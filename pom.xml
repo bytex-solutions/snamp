@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    xmlns:xsi="http://www.w3.org/200XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>bank.express</groupId>
-  <artifactId>jmx2snmp</artifactId>
+  <groupId>com.snamp</groupId>
+  <artifactId>snampy</artifactId>
   <version>1.0.0</version>
   <packaging>jar</packaging>
-  <name>jmx2snmp</name>
+  <name>snampy</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
   </properties>
-  <description>jmx2snmp bridge for monitoring some java jmx servers</description>
+  <description>JMX to SNMP bridge</description>
   <build>
     <plugins>
       <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
+          <version>2.3.2</version>
           <configuration>
               <archive>
                   <manifest>
@@ -26,6 +27,14 @@
               </archive>
           </configuration>
       </plugin>
+        <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>2.3.2</version>
+            <configuration>
+                <source>1.7</source>
+                <target>1.7</target>
+            </configuration>
+        </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -56,7 +65,7 @@
     <dependency>
       <groupId>org.snmp4j</groupId>
       <artifactId>snmp4j</artifactId>
-      <version>2.0.3</version>
+      <version>2.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.yaml</groupId>
@@ -66,18 +75,19 @@
     <dependency>
       <groupId>org.snmp4j</groupId>
       <artifactId>snmp4j-agent</artifactId>
-      <version>2.0.5</version>
+      <version>2.0.6</version>
     </dependency>
   </dependencies>
-<!-- В локальном репозитории зависимостей может и не оказаться 
-     - качаем с зеркала (только snmp4f, за snakeyaml нужно лезть отдельно,
-     если что - спросить у Евгения Кириченко)-->
-  <repositories>
-     <repository>
-        <id>tst-wbs</id>
-        <name>tst-wbs-releases</name>
-        <url>http://10.200.100.99:8081/artifactory/express-bank-local</url>
-    </repository>
-  </repositories>
-<!---->
+    <repositories>
+        <repository>
+            <id>oosnmpRepo</id>
+            <name>oosnmp.com Repository</name>
+            <url>https://server.oosnmp.net/dist/release</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
