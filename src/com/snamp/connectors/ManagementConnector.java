@@ -10,6 +10,13 @@ import java.util.concurrent.*;
  * @author roman
  */
 public interface ManagementConnector extends Iterable<String>, AutoCloseable {
+    /**
+     * Initialize the management connector.
+     * @param connectionString Connection string.
+     * @param connectionProperties Connection parameters.
+     * @return {@literal true}, if this instance is initialized successfully; otherwise, {@literal false}.
+     */
+    public boolean initialize(final String connectionString, final Properties connectionProperties);
 
     /**
      * Connects to the specified attribute.
