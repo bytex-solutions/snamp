@@ -1,4 +1,4 @@
-package bank.express.jmx2snmp;
+package com.snamp.connectors.jmx;
 
 import java.io.*;
 import java.util.*;
@@ -20,7 +20,7 @@ final class JmxMonitor implements Iterable<String> {
 	public static final char delimiter = '@'; 
 	public static final char regExDelimiter = '*';
 	
-	private static final String connectionFormat = "service:jmx:rmi://%s:%s/jndi/rmi://%s:%s/jmxrmi";
+	private static final String connectionFormat = "service:connectors:rmi://%s:%s/jndi/rmi://%s:%s/jmxrmi";
 	private final Map<String, AttributeProvider> _attributes;
 	private final JMXServiceURL _url;
 	private final Map<String, ?> _connectionParameters;

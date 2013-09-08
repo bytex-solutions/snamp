@@ -1,10 +1,4 @@
-package bank.express.jmx2snmp;
-
-import java.io.IOException;
-
-import javax.management.JMException;
-import javax.management.OperationsException;
-import javax.management.openmbean.CompositeType;
+package com.snamp.connectors.jmx;
 
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
