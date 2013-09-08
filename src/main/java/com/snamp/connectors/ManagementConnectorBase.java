@@ -1,4 +1,4 @@
-package com.snamp.connectors;
+package main.java.com.snamp.connectors;
 
 import com.snamp.TimeSpan;
 
