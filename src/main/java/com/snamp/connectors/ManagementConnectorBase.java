@@ -1,6 +1,7 @@
 package com.snamp.connectors;
 
 import com.snamp.TimeSpan;
+import net.xeoh.plugins.base.annotations.Capabilities;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -142,6 +143,7 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
      * Returns the set of capabilities for JSPF infrastructure, you should not use this method directly.
      * @return An array of capabilities.
      */
+    @Capabilities
     public final String[] capabilities(){
         return this.capabilities;
     }
