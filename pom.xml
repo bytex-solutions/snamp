@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/200XMLSchema-instance">
+<project>
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.snamp</groupId>
   <artifactId>snampy</artifactId>
@@ -77,12 +76,27 @@
       <artifactId>snmp4j-agent</artifactId>
       <version>2.0.6</version>
     </dependency>
+    <dependency>
+      <groupId>net.xeoh.jspf</groupId>
+      <artifactId>jspf-core</artifactId>
+      <version>1.0.2</version>
+</dependency>
   </dependencies>
     <repositories>
         <repository>
             <id>oosnmpRepo</id>
             <name>oosnmp.com Repository</name>
             <url>https://server.oosnmp.net/dist/release</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>jspfRepo</id>
+            <name>formreturn.com Repository</name>
+            <url>http://maven.formreturn.com/repository</url>
             <layout>default</layout>
             <snapshots>
                 <enabled>true</enabled>
