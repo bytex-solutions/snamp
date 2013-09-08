@@ -15,7 +15,7 @@ public final class TimeSpan {
     /**
      * Represents the time value.
      */
-    public final int time;
+    public final long time;
 
     /**
      * Represents time measurement unit.
@@ -27,7 +27,7 @@ public final class TimeSpan {
      * @param time The time value.
      * @param unit The time measurement unit.
      */
-    public TimeSpan(final int time, final TimeUnit unit) {
+    public TimeSpan(final long time, final TimeUnit unit) {
       this.time = time;
       this.unit = unit == null ? TimeUnit.MILLISECONDS : unit;
     }
@@ -36,7 +36,7 @@ public final class TimeSpan {
      * Initializes a new millisecond time span.
      * @param milliseconds The number of milliseconds,
      */
-    public TimeSpan(final int milliseconds) {
+    public TimeSpan(final long milliseconds) {
         this(milliseconds, TimeUnit.MILLISECONDS);
     }
 
