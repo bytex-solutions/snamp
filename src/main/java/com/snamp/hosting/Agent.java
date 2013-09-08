@@ -5,6 +5,8 @@ import java.lang.management.ManagementFactory;
 
 import javax.management.MalformedObjectNameException;
 
+import com.snamp.connectors.jmx.*;
+
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.MOScalar;

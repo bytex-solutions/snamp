@@ -9,7 +9,7 @@ import org.snmp4j.smi.*;
  * @author rvsakno
  *
  */
-final class JmxToSnmpValueConverter {
+public final class JmxToSnmpValueConverter {
 
 	private JmxToSnmpValueConverter(){
 		

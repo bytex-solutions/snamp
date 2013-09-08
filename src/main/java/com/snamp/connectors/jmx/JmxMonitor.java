@@ -13,7 +13,7 @@ import javax.management.openmbean.*;
  * @author agrishin
  * 
  */
-final class JmxMonitor implements Iterable<String> {
+public final class JmxMonitor implements Iterable<String> {
 	/**
 	 * Разделитель составного атрибута, используется в имени атрибута.
 	 */

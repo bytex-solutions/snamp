@@ -3,6 +3,8 @@ package com.snamp.hosting;
 import java.io.*;
 import java.util.*;
 import javax.management.MalformedObjectNameException;
+
+import com.snamp.connectors.jmx.JmxMonitor;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -103,7 +105,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 		}
 		
 		/**
-		 * Настройки хоста, используется {@link bank.express.jmx2snmp.ConnectionInfo}
+		 * Настройки хоста, используется {@link ConnectionInfo}
 		 * @return
 		 */
 		public SnmpHost getSnmpHost() {
@@ -114,7 +116,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 	/**
 	 * Класс для привязки атрибутов MXBean к SNMP OID.
 	 * Вынесен наверх и имеет модификатор public по тем же причинам, что и 
-	 * класс {@link bank.express.jmx2snmp.ConnectionInfo ConnectionInfo}
+	 * класс {@link ConnectionInfo ConnectionInfo}
 	 * 
 	 * @author erkirichenko
 	 *
@@ -199,7 +201,6 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 		
 		/**
 		 * Вспомогательная перегруженная функция.
-		 * @see JmxAttribute#setFieldPath( path, String) 
 		 * @param path
 		 * @param delimiter
 		 */
@@ -209,7 +210,6 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 
 	    /**
 	     * {@link JmxAttribute#getFieldPath}
-	     * @see JmxAttribute#setFieldPath( path, String ) 
 	     */
 		public void setFieldPath(final String path) {
 			setFieldPath(path, "/");
@@ -218,7 +218,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 		/**
 		 * Структуру аттрибутов в виде строки.
 		 * Добавочные JMX аттрибуты хранятся в виде массива строк.
-		 * Данная функция собирает их с применением {@link bank.express.jmx2snmp.JmxMonitor.delimiter}
+		 * Данная функция собирает их с применением {@link JmxMonitor}
 		 * @return
 		 */
 		public String getFieldPath() {
@@ -239,7 +239,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 		}
 
 		/**
-		 * Установка {@link JmxAttribute#getUseRegExp}.
+		 * Установка {@link JmxAttribute}.
 		 * @param useRegExp
 		 */
 		public void setUseRegExp(boolean useRegExp) {
@@ -250,7 +250,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 
 	/**
 	 * Описание сервера JMX с необходимыми полями,
-	 * а также привязанными аттрибутами  {@link bank.express.jmx2snmp.JmxAttribute JmxAttribute}
+	 * а также привязанными аттрибутами  {@link JmxAttribute JmxAttribute}
 	 * 
 	 * @author erkirichenko
 	 *
@@ -329,7 +329,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 		}
 
 		/**
-		 * RMI регистер (структура типа {@link bank.express.jmx2snmp.ConnectionInfo ConnectionInfo})
+		 * RMI регистер (структура типа {@link ConnectionInfo ConnectionInfo})
 		 * @return
 		 */
 		public ConnectionInfo getRMIRegistry() {
@@ -344,7 +344,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 		}
 
 		/**
-		 * RMI сервер (структура типа {@link bank.express.jmx2snmp.ConnectionInfo ConnectionInfo})
+		 * RMI сервер (структура типа {@link ConnectionInfo ConnectionInfo})
 		 * @return
 		 */
 		public ConnectionInfo getRMIServer() {
@@ -433,7 +433,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 	
 	/**
 	 * Информация о настройках хоста для JMX-SNMP хоста.
-	 * Пока является экземпляром {@link bank.express.jmx2snmp.ConnectionInfo ConnectionInfo}
+	 * Пока является экземпляром {@link ConnectionInfo ConnectionInfo}
 	 */
 	private final SnmpHost _hostInfo;
 	
@@ -446,7 +446,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 	/**
 	 * Создать поставщика параметров запуска агента из набора свойств YAML.
 	 * 
-	 * @param hostInfo структура {@link bank.express.jmx2snmp.ConnectionInfo ConnectionInfo} c информаций о настройках моста
+	 * @param hostInfo структура {@link ConnectionInfo ConnectionInfo} c информаций о настройках моста
  	 * @param servers коллекция JMX серверов
 	 */
 	public AgentStartupInfo(final SnmpHost hostInfo,
@@ -461,7 +461,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 
 	/**
 	 * Фабрика для создания настроек в зависимости от типа файла настроек
-	 * @see bank.express.jmx2snmp.ConfigurationFileFormat
+	 * @see ConfigurationFileFormat
 	 * @param fileName Путь к конфигурационному файлу
 	 * @return AgentStartupInfo экзампляр настроек
 	 * @throws IOException
