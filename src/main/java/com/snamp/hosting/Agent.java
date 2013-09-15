@@ -2,14 +2,16 @@ package com.snamp.hosting;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.management.MalformedObjectNameException;
 
-import com.snamp.connectors.jmx.*;
-
+import com.snamp.TimeSpan;
+import com.snamp.connectors.AttributeConnectionOptions;
+import net.xeoh.plugins.base.impl.PluginManagerFactory;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
-import org.snmp4j.agent.mo.MOScalar;
 import org.snmp4j.agent.mo.MOTableRow;
 import org.snmp4j.agent.mo.snmp.RowStatus;
 import org.snmp4j.agent.mo.snmp.SnmpCommunityMIB;
@@ -148,19 +150,16 @@ public final class Agent extends BaseAgent {
 	
 	/**
 	 * Зарегистрировать JMX-монитор для проброса через SNMP.
-	 * @param monitor JMX-монитор для проброса через SNMP.
+	 * @param objects JMX-монитор для проброса через SNMP.
 	 * @throws DuplicateRegistrationException 
 	 */
-	public void registerMonitor(final String prefix, final JmxMonitor monitor) throws DuplicateRegistrationException{
+	public void registerManagedObjects(final String prefix, final Iterable<ManagedObject> objects) throws DuplicateRegistrationException{
 		this.getVacmMIB().addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
 				new OctetString(), VacmMIB.vacmViewIncluded,
 				StorageType.nonVolatile);
 		//пройтись по все атрибутам и зарегистрировать скаляр для значения каждого из атрибутов
-		for(final String oid: monitor){
-			final ManagedObject mo = JmxToSnmpValueConverter.createScalarValueProvider(oid, monitor.getAttribute(oid));
-			if(mo == null) continue;
-			else server.register(mo, null);
-		}
+		for(final ManagedObject mo: objects)
+			server.register(mo, null);
 	}
 
 	/**
@@ -198,6 +197,7 @@ public final class Agent extends BaseAgent {
 			return;
 		}
 		savePid();
+
 		// Загружаем конфигурацию JMX и SNMP из файла
 		final AgentStartupInfo settings = AgentStartupInfo.loadFromFile(args[0], ConfigurationFileFormat.parse(args[1]));
 		final Agent ag = new Agent(String.format("%s/%s",
@@ -213,22 +213,19 @@ public final class Agent extends BaseAgent {
 					sinfo.getRMIServer().getAddress(), 
 					sinfo.getRMIServer().getPort()
 			);
-			final JmxMonitor monitor;
-			try{
-				monitor = sinfo.createMonitor();
-			}catch(IOException e){
-				System.err.printf("Unable to register JMX-server(%s, %s). Reason: %s\n",
-						sinfo.getRMIRegistry().getAddress(), sinfo.getRMIServer().getAddress(), e.getMessage());
-				continue;
-			}
+			final SnmpTypeSystemBridge bridge = new SnmpTypeSystemBridge(sinfo.createMonitor());
 			//Регистрируем привязки
+            final Collection<ManagedObject> managedObjects = new ArrayList<ManagedObject>();
 			for(final AgentStartupInfo.JmxAttribute attr_: sinfo.getAttributes()){
 				System.out.printf("Registering JMX object %s\n", attr_.getOwner() + attr_.getName());
 				//к каждой привязке добавляем OID-префикс, что позволяет мониторить одни и те же MXBean, но на разных серверах
-				monitor.addAttribute(attr_.getOwner(), attr_.getFullName(), String.format("%s.%s", sinfo.getOidPrefix(), attr_.getOidPostfix()), attr_.isUseRegExp());
-			}
+
+                final ManagedObject mo = bridge.connectAttribute(String.format("%s.%s", sinfo.getOidPrefix(), attr_.getOidPostfix()), attr_.getOwner(), attr_.getFullName(), attr_.isUseRegExp() ? AttributeConnectionOptions.USE_NAMESPACE_REGEXP : AttributeConnectionOptions.NONE, TimeSpan.infinite);
+			    if(mo == null) continue;
+                else managedObjects.add(mo);
+            }
 			//Регистрация OIDов разных Jmx мониторов
-			ag.registerMonitor(sinfo.getOidPrefix(), monitor);
+			ag.registerManagedObjects(sinfo.getOidPrefix(), managedObjects);
 		}
 		//регистрация процедуры остановки агента при выгрузке JVM
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {

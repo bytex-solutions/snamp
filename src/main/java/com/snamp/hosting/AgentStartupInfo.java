@@ -3,8 +3,11 @@ package com.snamp.hosting;
 import java.io.*;
 import java.util.*;
 import javax.management.MalformedObjectNameException;
+import javax.management.remote.JMXServiceURL;
 
-import com.snamp.connectors.jmx.JmxMonitor;
+import com.snamp.connectors.ManagementConnector;
+import com.snamp.connectors.ManagementConnectorFactory;
+import com.snamp.connectors.jmx.JmxConnectorFactory;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -124,7 +127,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 	public final static class JmxAttribute implements Serializable {
 		
 		private static final long serialVersionUID = 3549213735560557965L;
-		public static final char delimiter = JmxMonitor.delimiter;
+		public static final char delimiter = '@';
 		
 		private String name = ""; // required
 		private String oidPostfix = ""; // required
@@ -218,7 +221,6 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 		/**
 		 * Структуру аттрибутов в виде строки.
 		 * Добавочные JMX аттрибуты хранятся в виде массива строк.
-		 * Данная функция собирает их с применением {@link JmxMonitor}
 		 * @return
 		 */
 		public String getFieldPath() {
@@ -418,11 +420,14 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 		 * @throws MalformedObjectNameException
 		 * @throws IOException
 		 */
-		public JmxMonitor createMonitor() throws IOException,
+		public ManagementConnector createMonitor() throws IOException,
 				MalformedObjectNameException {
-			return new JmxMonitor(RMIServer.getAddress(), RMIServer.getPort(),
-					RMIRegistry.getAddress(), RMIRegistry.getPort(),
-					getLogin(), getPassword());
+            final String connectionFormat = "service:jmx:rmi://%s:%s/jndi/rmi://%s:%s/jmxrmi";
+            final ManagementConnectorFactory factory = new JmxConnectorFactory();
+            return factory.newInstance(String.format(connectionFormat, RMIServer.getAddress(), RMIServer.getPort(), RMIRegistry.getAddress(), RMIRegistry.getPort()), new Properties(){{
+                put("login", login);
+                put("password", password);
+            }});
 		}
 	};
 

@@ -17,10 +17,15 @@ public interface AttributeMetadata {
     public String getAttributeName();
 
     /**
-     *
+     * Returns the location of the attribute.
      * @return
      */
     public String getNamespace();
+
+    /**
+     * Determines whether the value of this attribute can be obtained.
+     * @return {@literal true}, if attribute value can be obtained; otherwise, {@literal false}.
+     */
     public boolean canRead();
 
     /**
@@ -43,8 +48,8 @@ public interface AttributeMetadata {
     public boolean cacheable();
 
     /**
-     * Returns the attribute connection options.
-     * @return The attribute connection options.
+     * Returns the canonical name of the attribute type.
+     * @return The canonical name of the attribute type.
      */
-    public AttributeConnectionOptions options();
+    public String getAttributeClassName();
 }

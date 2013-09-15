@@ -1,0 +1,474 @@
+package com.snamp.connectors.jmx;
+
+import com.snamp.TimeSpan;
+import com.snamp.connectors.*;
+import net.xeoh.plugins.base.annotations.PluginImplementation;
+
+import javax.management.*;
+import javax.management.openmbean.*;
+import javax.management.remote.*;
+import javax.sql.rowset.spi.SyncResolver;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
+
+/**
+ * Represents JMX connector.
+ * @author roman
+ */
+final class JmxConnector extends ManagementConnectorBase {
+    private final JMXServiceURL serviceURL;
+    private final Map<String, Object> connectionProperties;
+
+    /**
+     * Represents Management Bean connection handler.
+     * @param <T> Type of the connection handling result.
+     */
+    private static interface MBeanServerConnectionReader<T> {
+        /**
+         * Extracts object from the connection,
+         * @param connection
+         * @return
+         * @throws IOException
+         * @throws JMException
+         */
+        public T read(final MBeanServerConnection connection) throws IOException, JMException;
+    }
+
+    /**
+     * Represents field navigator in the composite JMX data.
+     */
+    private static final class CompositeValueNavigator
+    {
+        /**
+         * Represents path delimiter.
+         */
+        public static final char delimiter = '@';
+        /**
+         * Represents the name of the attribute that has a composite type.
+         */
+        public final String attributeName;
+        private final String[] path;
+
+        /**
+         * Initializes a new field navigator.
+         * @param attributeName The name
+         */
+        public CompositeValueNavigator(final String attributeName)
+        {
+            if(!isCompositeAttribute(attributeName)) throw new IllegalArgumentException("Неверный формат имени составного атрибута");
+            final String[] parts = attributeName.split(new String(new char[]{delimiter}));
+            this.attributeName = parts[0];
+            this.path = Arrays.copyOfRange(parts, 1, parts.length);
+        }
+
+        /**
+         * Returns the path depth.
+         * @return
+         */
+        public int depth(){
+            return path.length;
+        }
+
+        /**
+         * Returns the subfield name by depth index.
+         * @param index
+         * @return
+         */
+        public String item(int index)
+        {
+            return path[index];
+        }
+
+        private Object getValue(final Object root, final int index)
+        {
+            if(root instanceof CompositeData && index < path.length){
+                final CompositeData cdata = (CompositeData)root;
+                final String subattr = path[index];
+                return cdata.containsKey(subattr) ? getValue(cdata.get(subattr), index + 1) : root;
+            }
+            else return root;
+        }
+
+        /**
+         * Получить значение вложенного атрибута.
+         * @param root
+         * @return
+         */
+        public Object getValue(final Object root)
+        {
+            return getValue(root, 0);
+        }
+
+        private String getType(final Object root, final int index)
+        {
+            if(root instanceof CompositeType && index < path.length){
+                final CompositeType cdata = (CompositeType)root;
+                final String subattr = path[index];
+                return cdata.containsKey(subattr) ? getType(cdata.getType(subattr).getClassName(), index + 1) : root.toString();
+            }
+            else return root.toString();
+        }
+
+        /**
+         * Получить тип вложенного атрибута.
+         * @param root
+         * @return
+         */
+        public String getType(final OpenType<?> root)
+        {
+            return getType(root, 0);
+        }
+
+        /**
+         * Получить полный путь композитного атрибута.
+         */
+
+        public String toString()
+        {
+            return this.attributeName + Arrays.toString(path).replace(", ", new String(new char[]{delimiter}));
+        }
+
+        /**
+         * Determines whether the attribute name contains subfield path.
+         * @param attributeName
+         * @return
+         */
+        public static boolean isCompositeAttribute(final String attributeName)
+        {
+            return attributeName.indexOf(delimiter) >= 0;
+        }
+    }
+
+    /**
+     * Represents JMX attribute metadata.
+     */
+    public static interface JmxAttributeMetadata extends AttributeMetadata {
+        /**
+         * Returns the object name in which the current attribute is located.
+         * @return
+         */
+        public ObjectName getOwner();
+    }
+
+    /**
+     * Represents an abstract class for building JMX attribute providers.
+     */
+    private abstract class JmxAttributeProvider extends GenericAttributeMetadata implements JmxAttributeMetadata {
+        private final ObjectName namespace;
+        private MBeanServerConnectionReader<Object> attributeValueReader;
+
+        protected JmxAttributeProvider(final String attributeName,
+                                       final ObjectName namespace,
+                                       final Set<Object> tags){
+            super(attributeName, namespace.toString());
+            this.namespace = namespace;
+            this.tags.addAll(tags != null ? tags : new HashSet<>());
+        }
+
+        /**
+         * Creates a new instance of the attribute value reader.
+         * @return
+         */
+        protected abstract MBeanServerConnectionReader<Object> createAttributeValueReader();
+
+        /**
+         * Creates a new instance of the attribute value writer.
+         * @return
+         */
+        protected abstract MBeanServerConnectionReader<Boolean> createAttributeValueWriter(final Object value);
+
+        /**
+         * Returns the attribute owner.
+         * @return
+         */
+        public final ObjectName getOwner(){
+            return namespace;
+        }
+
+        /**
+         * Returns the value of the attribute.
+         * @param defval
+         * @return
+         */
+        public final Object getValue(final Object defval){
+            if(canRead()){
+                if(attributeValueReader == null) attributeValueReader = createAttributeValueReader();
+                return handleConnection(attributeValueReader, defval);
+            }
+            else return defval;
+        }
+
+        /**
+         * Writes the value to the attribute.
+         * @param value
+         * @return
+         */
+        public final boolean setValue(final Object value){
+            if(canWrite()){
+                return handleConnection(createAttributeValueWriter(value), false);
+            }
+            else return false;
+        }
+    }
+
+    private JmxAttributeProvider createPlainAttribute(final ObjectName namespace, final String attributeName, final Set<Object> tags){
+        //extracts JMX attribute metadata
+        final MBeanAttributeInfo targetAttr = handleConnection(new MBeanServerConnectionReader<MBeanAttributeInfo>(){
+            @Override
+            public MBeanAttributeInfo read(final MBeanServerConnection connection) throws IOException, JMException {
+                for(final MBeanAttributeInfo attr: connection.getMBeanInfo(namespace).getAttributes())
+                    if(attributeName.equals(attr.getName())) return attr;
+                return null;
+            }
+        }, null);
+        return targetAttr != null ? new JmxAttributeProvider(targetAttr.getName(), namespace, tags){
+            @Override
+            public final String getAttributeClassName() {
+                return targetAttr.getType();
+            }
+
+            /**
+             * Determines whether the value of this attribute can be changed, returns {@literal true} by default.
+             *
+             * @return {@literal true}, if the attribute value can be changed; otherwise, {@literal false}.
+             */
+            @Override
+            public boolean canWrite() {
+                return targetAttr.isWritable();
+            }
+
+            /**
+             * By default, returns {@literal true}.
+             *
+             * @return
+             */
+            @Override
+            public boolean canRead() {
+                return targetAttr.isReadable();
+            }
+
+            /**
+             * Creates a new instance of the attribute value reader.
+             *
+             * @return
+             */
+            @Override
+            protected final MBeanServerConnectionReader<Object> createAttributeValueReader() {
+                return new MBeanServerConnectionReader<Object>(){
+
+                    public Object read(final MBeanServerConnection connection) throws IOException, JMException {
+                        return connection.getAttribute(namespace, getAttributeName());
+                    }
+
+                };
+            }
+            /**
+             * Creates a new instance of the attribute value writer.
+             *
+             * @return
+             */
+            @Override
+            protected final MBeanServerConnectionReader<Boolean> createAttributeValueWriter(final Object value) {
+                return new MBeanServerConnectionReader<Boolean>(){
+
+                    public Boolean read(final MBeanServerConnection connection) throws IOException, JMException {
+                        connection.setAttribute(namespace, new Attribute(getAttributeName(), value));
+                        return true;
+                    }
+                };
+            }
+        } : null;
+    }
+
+    private JmxAttributeProvider createCompositeAttribute(final ObjectName namespace, final String attributeName, final Set<Object> tags){
+        final CompositeValueNavigator navigator = new CompositeValueNavigator(attributeName);
+        //получить описатель поля, этот описатель может содержать знак @ для вложенного атрибута
+        final MBeanAttributeInfo targetAttr = handleConnection(new MBeanServerConnectionReader<MBeanAttributeInfo>() {
+            @Override
+            public MBeanAttributeInfo read(final MBeanServerConnection connection) throws IOException, JMException {
+                for(final MBeanAttributeInfo attr: connection.getMBeanInfo(namespace).getAttributes())
+                    if(navigator.attributeName.equals(attr.getName())) return attr;
+                return null;
+            }
+        }, null);
+        return targetAttr != null ? new JmxAttributeProvider(targetAttr.getName(), namespace, tags){
+            private final OpenType<?> compositeType = targetAttr instanceof OpenMBeanAttributeInfoSupport ? ((OpenMBeanAttributeInfoSupport)targetAttr).getOpenType() : SimpleType.STRING;
+
+            @Override
+            public final boolean canRead() {
+                return targetAttr.isReadable();
+            }
+
+            @Override
+            public final boolean canWrite(){
+                return false;
+            }
+
+            /**
+             * Creates a new instance of the attribute value reader.
+             *
+             * @return
+             */
+            @Override
+            protected final MBeanServerConnectionReader<Object> createAttributeValueReader() {
+                return new MBeanServerConnectionReader<Object>(){
+                    public Object read(final MBeanServerConnection connection) throws IOException, JMException {
+                        return navigator.getValue(connection.getAttribute(namespace, navigator.attributeName));
+                    }
+                };
+            }
+
+            /**
+             * The writer for the composite data structure is not supported.
+             *
+             * @return
+             */
+            @Override
+            protected final MBeanServerConnectionReader<Boolean> createAttributeValueWriter(Object value) {
+                return new MBeanServerConnectionReader<Boolean>() {
+                    @Override
+                    public Boolean read(MBeanServerConnection connection) throws IOException, JMException {
+                        return false;
+                    }
+                };
+            }
+
+            /**
+             * Returns the canonical name of the attribute type.
+             *
+             * @return
+             */
+            @Override
+            public final String getAttributeClassName() {
+                return navigator.getType(compositeType);
+            }
+        } : null;
+    }
+
+    private ObjectName findObjectName(final ObjectName namespace){
+        return handleConnection(new MBeanServerConnectionReader<ObjectName>() {
+            public ObjectName read(final MBeanServerConnection connection) throws IOException, JMException {
+
+                final Set<ObjectInstance> beans = connection.queryMBeans(namespace, null);
+
+                for(final ObjectInstance instance : beans ) return instance.getObjectName();
+                return null;
+            }
+        }, null);
+    }
+
+    /**
+     * Initializes a new connector and established connection to the JMX provider.
+     * @param serviceURL JMX connection string.
+     * @param connectionProperties JMX connection properties(such as credentials).
+     * @exception IllegalArgumentException Could not establish connection to JMX provider.
+     */
+    public JmxConnector(final JMXServiceURL serviceURL, final Map<String, Object> connectionProperties){
+        if(serviceURL == null) throw new IllegalArgumentException("serviceURL is null.");
+        this.serviceURL = serviceURL;
+        this.connectionProperties = connectionProperties != null ? Collections.unmodifiableMap(connectionProperties) : new HashMap<String, Object>();
+    }
+
+    private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final boolean useRegexp, final Set<Object> tags){
+        //creates JMX attribute provider based on its metadata and connection options.
+        if(namespace == null) return null;
+        if(CompositeValueNavigator.isCompositeAttribute(attributeName))
+            return createCompositeAttribute(namespace, attributeName, tags);
+        else if(useRegexp) return connectAttribute(findObjectName(namespace), attributeName, false, tags);
+        else return createPlainAttribute(namespace, attributeName, tags);
+    }
+
+    /**
+     * Connects to the specified attribute.
+     * @param namespace The namespace of the attribute.
+     * @param attributeName The name of the attribute.
+     * @param options The attribute discovery options.
+     * @param tags The set of custom objects associated with the attribute.
+     * @return The description of the attribute.
+     */
+    @Override
+    protected JmxAttributeMetadata connectAttribute(final String namespace, final String attributeName, final AttributeConnectionOptions options, final Set<Object> tags){
+        try {
+            return connectAttribute(new ObjectName(namespace), attributeName, options == AttributeConnectionOptions.USE_NAMESPACE_REGEXP, tags);
+        } catch (MalformedObjectNameException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Handles connection.
+     * @param reader The MBean reader.
+     * @param <TOutput> Type of the connection handling result.
+     * @return The result of the connection handling result.
+     */
+    private <TOutput> TOutput handleConnection(final MBeanServerConnectionReader<TOutput> reader, final TOutput defval)
+    {
+        try{
+            final javax.management.remote.JMXConnector connector = JMXConnectorFactory.connect(serviceURL, connectionProperties);
+            final TOutput result = reader.read(connector.getMBeanServerConnection());
+            connector.close();
+            return result;
+        }
+        catch(Exception e){
+            return defval;
+        }
+    }
+
+    /**
+     * Throws an exception if the connector is not initialized.
+     */
+    @Override
+    protected void verifyInitialization() {
+        //do nothing, because this connector doesn't store connection session.
+    }
+
+    /**
+     * Returns the value of the attribute.
+     *
+     * @param attribute    The metadata of the attribute to get.
+     * @param readTimeout
+     * @param defaultValue The default value of the attribute if reading fails.
+     * @return The value of the attribute.
+     * @throws java.util.concurrent.TimeoutException
+     *
+     */
+    @Override
+    protected Object getAttributeValue(AttributeMetadata attribute, TimeSpan readTimeout, Object defaultValue) throws TimeoutException {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    /**
+     * Sends the attribute value to the remote agent.
+     *
+     * @param attribute    The metadata of the attribute to set.
+     * @param writeTimeout
+     * @param value
+     * @return
+     */
+    @Override
+    protected boolean setAttributeValue(AttributeMetadata attribute, TimeSpan writeTimeout, Object value) {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    /**
+     * Executes remote action.
+     *
+     * @param actionName The name of the action,
+     * @param args       The invocation arguments.
+     * @param timeout    The Invocation timeout.
+     * @return The invocation result.
+     */
+    @Override
+    public Object doAction(String actionName, Arguments args, TimeSpan timeout) throws UnsupportedOperationException, TimeoutException {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    /**
+     * Releases all resources associated with this connector.
+     */
+    @Override
+    public void close(){
+
+    }
+}
