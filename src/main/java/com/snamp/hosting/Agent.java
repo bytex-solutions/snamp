@@ -7,8 +7,10 @@ import java.util.Collection;
 
 import javax.management.MalformedObjectNameException;
 
+import com.snamp.ExtensionsManager;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.AttributeConnectionOptions;
+import com.snamp.connectors.ManagementConnectorFactory;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
@@ -191,7 +193,7 @@ public final class Agent extends BaseAgent {
 
 	public static void main(String[] args) throws IOException,
 			InterruptedException, MalformedObjectNameException, DuplicateRegistrationException {
-		if (args.length < 1) {
+		/*if (args.length < 1) {
 			System.out.println("java jmx2snmp config-file");
 			System.out.println("Example: java jmx2snmp mon.properties");
 			return;
@@ -234,7 +236,7 @@ public final class Agent extends BaseAgent {
 				ag.stop();
 			}
 		}));
-		runMainLoop();
+		runMainLoop();*/
 	}
 }
 ;

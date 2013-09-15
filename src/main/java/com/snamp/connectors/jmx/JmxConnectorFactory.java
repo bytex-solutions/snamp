@@ -8,6 +8,7 @@ import javax.management.remote.JMXServiceURL;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.logging.*;
+import com.snamp.ExtensionsManager;
 
 /**
  * Represents JMX connector factory.

@@ -5,9 +5,9 @@ import java.util.*;
 import javax.management.MalformedObjectNameException;
 import javax.management.remote.JMXServiceURL;
 
+import com.snamp.ExtensionsManager;
 import com.snamp.connectors.ManagementConnector;
 import com.snamp.connectors.ManagementConnectorFactory;
-import com.snamp.connectors.jmx.JmxConnectorFactory;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -423,7 +423,7 @@ final class AgentStartupInfo implements Iterable<AgentStartupInfo.JmxServer> {
 		public ManagementConnector createMonitor() throws IOException,
 				MalformedObjectNameException {
             final String connectionFormat = "service:jmx:rmi://%s:%s/jndi/rmi://%s:%s/jmxrmi";
-            final ManagementConnectorFactory factory = new JmxConnectorFactory();
+            final ManagementConnectorFactory factory = ExtensionsManager.getManagementConnectorFactory("jmx");
             return factory.newInstance(String.format(connectionFormat, RMIServer.getAddress(), RMIServer.getPort(), RMIRegistry.getAddress(), RMIRegistry.getPort()), new Properties(){{
                 put("login", login);
                 put("password", password);
