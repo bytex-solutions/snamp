@@ -152,9 +152,15 @@ final class AgentHostingSandbox implements AutoCloseable {
      * @param configuration The hosting configuration.
      * @param interracial {@literal true} to start command-line session; otherwise, {@literal false}.
      */
-    public static void start(final AgentConfiguration configuration, final boolean interracial) throws IOException{
-        try(final AgentHostingSandbox hosting = new AgentHostingSandbox(configuration)){
-            hosting.start(interracial);
+    public static AgentHostingSandbox start(final AgentConfiguration configuration, final boolean interracial) throws IOException{
+        if(interracial) try(final AgentHostingSandbox hosting = new AgentHostingSandbox(configuration)){
+            hosting.start(true);
+            return hosting;
+        }
+        else{
+            final AgentHostingSandbox hosting = new AgentHostingSandbox(configuration);
+            hosting.start(false);
+            return hosting;
         }
     }
 
