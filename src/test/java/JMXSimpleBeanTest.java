@@ -277,15 +277,14 @@ public class JMXSimpleBeanTest extends TestCase
         startMethod.setAccessible(true);
         try(final AutoCloseable hosting = (AutoCloseable)startMethod.invoke(null, createTestConfig(), false)){
 
-            Thread.sleep(100000000);
+         //   Thread.sleep(100000000);
 
         SNMPManager client = new SNMPManager("udp:127.0.0.1/"+Integer.toString(localHostPort));
         client.start();
 
         String sysDescr = client.getAsString(new OID(oidPrefix + "." + oidCheckPostfix));
 
-        assertEquals(sysDescr,checkString);
-
+        assertEquals("Something wrong",sysDescr,checkString);
 
         backward.interrupt();
 
