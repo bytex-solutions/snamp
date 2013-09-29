@@ -10,25 +10,16 @@ import java.util.concurrent.*;
  * Represents management connector that exposes management attributes of the remote provider.
  * @author roman
  */
-public interface ManagementConnector extends Iterable<String>, AutoCloseable, Plugin {
-    /**
-     * Initialize the management connector.
-     * @param connectionString Connection string.
-     * @param connectionProperties Connection parameters.
-     * @return {@literal true}, if this instance is initialized successfully; otherwise, {@literal false}.
-     */
-    public boolean initialize(final String connectionString, final Properties connectionProperties);
+public interface ManagementConnector extends Iterable<String>, AutoCloseable {
 
     /**
      * Connects to the specified attribute.
      * @param id A key string that is used to read attribute from this connector.
-     * @param namespace The namespace of the attribute.
      * @param attributeName The name of the attribute.
      * @param options The attribute discovery options.
-     * @param tags The set of custom objects associated with the attribute.
      * @return The description of the attribute.
      */
-    public AttributeMetadata connectAttribute(final String id, final String namespace, final String attributeName, final AttributeConnectionOptions options, final Set<Object> tags);
+    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options);
 
     /**
      * Returns the attribute value.
@@ -36,7 +27,7 @@ public interface ManagementConnector extends Iterable<String>, AutoCloseable, Pl
      * @param readTimeout The attribute value read operation timeout.
      * @param defaultValue The default value of the attribute if it is real value is not available.
      * @return The value of the attribute, or default value.
-     * @throws TimeoutException The attribute value cannot be read in the specified time.
+     * @throws TimeoutException The attribute value cannot be read in the specified duration.
      */
     public Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException;
 
@@ -45,7 +36,7 @@ public interface ManagementConnector extends Iterable<String>, AutoCloseable, Pl
      * @param output The dictionary with set of attribute keys to read and associated default values.
      * @param readTimeout The attribute value read operation timeout.
      * @return The set of attributes ids really written to the dictionary.
-     * @throws TimeoutException The attribute value cannot be read in the specified time.
+     * @throws TimeoutException The attribute value cannot be read in the specified duration.
      */
     public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException;
 
@@ -55,7 +46,7 @@ public interface ManagementConnector extends Iterable<String>, AutoCloseable, Pl
      * @param writeTimeout The attribute value write operation timeout.
      * @param value The value to write.
      * @return {@literal true} if attribute set operation is supported by remote provider; otherwise, {@literal false}.
-     * @throws TimeoutException The attribute value cannot be write in the specified time.
+     * @throws TimeoutException The attribute value cannot be write in the specified duration.
      */
     public boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException;
 
@@ -73,12 +64,21 @@ public interface ManagementConnector extends Iterable<String>, AutoCloseable, Pl
      * @param id The unique identifier of the attribute.
      * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
      */
-    public boolean disconnectAttribute(String id);
+    public boolean disconnectAttribute(final String id);
 
     /**
      * Returns the information about the connected attribute.
      * @param id An identifier of the attribute.
      * @return The attribute descriptor; or {@literal null} if attribute is not connected.
      */
-    public AttributeMetadata getAttributeInfo(String id);
+    public AttributeMetadata getAttributeInfo(final String id);
+
+    /**
+     * Executes remote action.
+     * @param actionName The name of the action,
+     * @param args The invocation arguments.
+     * @param timeout The Invocation timeout.
+     * @return The invocation result.
+     */
+    public Object doAction(final String actionName, final Arguments args, final TimeSpan timeout) throws UnsupportedOperationException, TimeoutException;
 }
