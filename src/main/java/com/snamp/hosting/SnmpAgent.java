@@ -99,7 +99,6 @@ public final class SnmpAgent extends BaseAgent {
 	 * @throws IOException
 	 */
 	public void start() throws IOException {
-
 		init();
 		addShutdownHook();
 		getServer().addContext(new OctetString("public"));

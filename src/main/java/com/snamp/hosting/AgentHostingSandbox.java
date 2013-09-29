@@ -108,11 +108,8 @@ final class AgentHostingSandbox implements AutoCloseable {
         System.out.printf("Process ID: %s\n", pid);
         final File file = new File("jmx2snmp.pid");
         file.createNewFile();
-        final BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-        try {
+        try(BufferedWriter bw = new BufferedWriter(new FileWriter(file))){
             bw.write(pid);
-        } finally {
-            bw.close();
         }
     }
 

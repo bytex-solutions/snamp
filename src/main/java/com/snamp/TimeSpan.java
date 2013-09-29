@@ -57,7 +57,7 @@ public final class TimeSpan {
      */
     @Override
     public String toString() {
-        return String.format("%n %s", duration, unit);
+        return String.format("%s %s", duration, unit);
     }
 
     /**
