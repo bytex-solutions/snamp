@@ -11,12 +11,17 @@ import java.util.*;
  * Represents agent host.
  * @author roman
  */
-final class Host implements AutoCloseable {
+final class AgentHostingSandbox implements AutoCloseable {
     private final AgentConfiguration configuration;
     private SnmpAgent snmp;
 
-    private Host(final String configurationFile, final String configurationFormat) throws IOException {
-        configuration = ConfigurationFileFormat.load(configurationFile, configurationFormat);
+    /**
+     * Initializes a new instance of the agent host.
+     * @param configuration The custom agent configuration.
+     */
+    private AgentHostingSandbox(final AgentConfiguration configuration){
+        if(configuration == null) throw new IllegalArgumentException("configuration is null.");
+        this.configuration = configuration;
     }
 
     private void repl_pause(){
@@ -54,6 +59,8 @@ final class Host implements AutoCloseable {
         try(final BufferedReader br = new BufferedReader(new InputStreamReader(System.in))){
             processNexCommand:
             switch (br.readLine()){
+                case "?":
+                case "help":
                 case "uptime":
                     System.out.println(ManagementFactory.getRuntimeMXBean().getUptime());
                     break processNexCommand;
@@ -140,6 +147,17 @@ final class Host implements AutoCloseable {
         }
     }
 
+    /**
+     * Executes the agent in the caller process.
+     * @param configuration The hosting configuration.
+     * @param interracial {@literal true} to start command-line session; otherwise, {@literal false}.
+     */
+    public static void start(final AgentConfiguration configuration, final boolean interracial) throws IOException{
+        try(final AgentHostingSandbox hosting = new AgentHostingSandbox(configuration)){
+            hosting.start(interracial);
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         //prepare startup arguments
         switch (args.length){
@@ -150,9 +168,7 @@ final class Host implements AutoCloseable {
                 System.out.println("Example: java snamp mon.yaml");
                 return;
         }
-        try(final Host host = new Host(args[0], args[1])){
-            host.start(true);
-        }
+        start(ConfigurationFileFormat.load(args[0], args[1]), true);
     }
 
     /**
