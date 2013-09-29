@@ -134,7 +134,7 @@ final class AgentHostingSandbox implements AutoCloseable {
         //register attributes
         final Collection<ManagedObject> managedObjects = new ArrayList<ManagedObject>();
         for(final Map.Entry<String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attribute: target.getAttributes().entrySet()){
-            System.out.printf("Registering attribute object %s\n", attribute.getValue().getAttributeName());
+            System.out.printf("Registering attribute %s\n", attribute.getValue().getAttributeName());
             final ManagedObject mo = bridge.connectAttribute(String.format("%s.%s", target.getNamespace(), attribute.getKey()), attribute.getValue().getAttributeName(), attribute.getValue().getAdditionalElements(), attribute.getValue().getReadWriteTimeout());
             if(mo == null) continue;
             else managedObjects.add(mo);

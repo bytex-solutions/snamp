@@ -11,6 +11,7 @@ import javax.management.*;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +20,8 @@ public class JMXSimpleBeanTest extends TestCase
     public static final String checkString = "Some text is here";
     public static final String oidCheckPostfix = "1.1";
     public static final String objectName = "com.snampy.jmx:type=SimpleBean";
-    public static final int localHostPort = 31162;
+    public static final int localHostPort = 1161;
+    public static final int localJMXPort = Integer.parseInt(System.getProperties().getProperty("com.sun.management.jmxremote.port"));
     public static final String oidPrefix = "1.1";
 
 
@@ -145,7 +147,7 @@ public class JMXSimpleBeanTest extends TestCase
 
                    @Override
                    public String getAddress() {
-                       return "127.0.0.1";
+                       return "0.0.0.0";
                    }
 
                    @Override
@@ -161,7 +163,7 @@ public class JMXSimpleBeanTest extends TestCase
                 targets.put("test_server", new ManagementTargetConfiguration() {
                     @Override
                     public String getConnectionString() {
-                        return "service:jmx:rmi://localhost";
+                        return String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", localJMXPort);
                     }
 
                     @Override
@@ -205,7 +207,7 @@ public class JMXSimpleBeanTest extends TestCase
 
                                 @Override
                                 public String getAttributeName() {
-                                    return "testString";
+                                    return "String";
                                 }
 
                                 @Override
@@ -249,11 +251,11 @@ public class JMXSimpleBeanTest extends TestCase
     }
 
     @Test
-    public void testGetSimpleBean() throws MalformedObjectNameException, NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanRegistrationException, InterruptedException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
+    public void testGetSimpleBean() throws Exception {
         SimpleBean cache = new SimpleBean(checkString);
 
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        ObjectName name = new ObjectName("com.snampy.jmx:type=SimpleBean");
+        ObjectName name = new ObjectName(objectName);
         mbs.registerMBean(cache, name);
 
         Thread backward = new Thread(new Runnable() {
@@ -267,15 +269,15 @@ public class JMXSimpleBeanTest extends TestCase
                 }
             }
         });
-
-
+        //Thread.sleep(100000000);
 
         ClassLoader classLoader = JMXSimpleBeanTest.class.getClassLoader();
         Class aClass = classLoader.loadClass("com.snamp.hosting.AgentHostingSandbox");
+        final Method startMethod = aClass.getMethod("start", AgentConfiguration.class, boolean.class);
+        startMethod.setAccessible(true);
+        try(final AutoCloseable hosting = (AutoCloseable)startMethod.invoke(null, createTestConfig(), false)){
 
-        aClass.getMethod("start", AgentConfiguration.class, boolean.class).invoke(createTestConfig(),false);
-
-
+            Thread.sleep(100000000);
 
         SNMPManager client = new SNMPManager("udp:127.0.0.1/"+Integer.toString(localHostPort));
         client.start();
@@ -286,6 +288,8 @@ public class JMXSimpleBeanTest extends TestCase
 
 
         backward.interrupt();
+
+        }
 
 
     }
