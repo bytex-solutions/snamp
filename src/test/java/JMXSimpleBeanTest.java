@@ -58,6 +58,7 @@ public class JMXSimpleBeanTest extends TestCase
         });
 
 
+
         backward.interrupt();
 
 
