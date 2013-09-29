@@ -1,7 +1,8 @@
 package com.snamp.connectors;
 
 import net.xeoh.plugins.base.annotations.Capabilities;
-import java.util.Properties;
+
+import java.util.Map;
 
 /**
  * Represents a base class for building management connectors.
@@ -47,7 +48,8 @@ public abstract class ManagementConnectorFactoryBase<TConnector extends Manageme
      * @param connectionProperties The connection properties such as credentials.
      * @return A new instance of the management connector.
      */
-    public abstract TConnector newInstance(final String connectionString, final Properties connectionProperties);
+    @Override
+    public abstract TConnector newInstance(final String connectionString, final Map<String, String> connectionProperties);
 
     /**
      * Returns the connector name.

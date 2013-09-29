@@ -15,21 +15,35 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
     /**
      * Represents default implementation of the attribute descriptor.
      */
-    protected abstract static class GenericAttributeMetadata implements AttributeMetadata {
+    protected static abstract class GenericAttributeMetadata implements AttributeMetadata {
         private final String attributeName;
         private final String namespace;
-
-        /**
-         * Represents a set of custom attributes,
-         */
-        protected final HashSet<Object> tags;
 
         public GenericAttributeMetadata(final String attributeName, final String namespace){
             if(attributeName == null) throw new IllegalArgumentException("attributeName is null.");
             else if(namespace == null) throw new IllegalArgumentException("namespace is null.");
             this.attributeName = attributeName;
             this.namespace = namespace;
-            this.tags = new HashSet<Object>();
+        }
+
+        @Override
+        public final String put(String s, String s2) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public final String remove(Object o) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public final void putAll(Map<? extends String, ? extends String> map) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public final void clear() {
+            throw new UnsupportedOperationException();
         }
 
         /**
@@ -39,14 +53,6 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
         @Override
         public final String getAttributeName() {
             return attributeName;
-        }
-
-        /**
-         * @return
-         */
-        @Override
-        public final String getNamespace() {
-            return namespace;
         }
 
         /**
@@ -66,16 +72,6 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
         @Override
         public boolean canWrite() {
             return true;
-        }
-
-        /**
-         * Returns the mutable set of tags.
-         *
-         * @return The mutable set of custom tags.
-         */
-        @Override
-        public final Set<Object> tags() {
-            return tags;
         }
 
         /**
@@ -109,25 +105,21 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
 
     /**
      * Connects to the specified attribute.
-     * @param namespace The namespace of the attribute.
      * @param attributeName The name of the attribute.
      * @param options Attribute discovery options.
-     * @param tags The set of custom objects associated with the attribute.
      * @return The description of the attribute.
      */
-    protected abstract AttributeMetadata connectAttribute(final String namespace, final String attributeName, final AttributeConnectionOptions options, final Set<Object> tags);
+    protected abstract AttributeMetadata connectAttribute(final String attributeName, final Map<String, String> options);
 
     /**
      * Connects to the specified attribute.
      * @param id A key string that is used to read attribute from this connector.
-     * @param namespace The namespace of the attribute.
      * @param attributeName The name of the attribute.
      * @param options Attribute discovery options.
-     * @param tags The set of custom objects associated with the attribute.
      * @return The description of the attribute.
      */
     @Override
-    public final AttributeMetadata connectAttribute(final String id, final String namespace, final String attributeName, final AttributeConnectionOptions options, final Set<Object> tags) {
+    public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) {
         verifyInitialization();
         final Lock writeLock =  coordinator.writeLock();
         writeLock.lock();
@@ -135,7 +127,7 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
             //return existed attribute without exception to increase flexibility of the API
             if(attributes.containsKey(id)) return attributes.get(id);
             final AttributeMetadata attr;
-            if((attr = connectAttribute(namespace, attributeName, options, tags)) != null)
+            if((attr = connectAttribute(attributeName, options)) != null)
                 attributes.put(id, attr);
             return attr;
         }

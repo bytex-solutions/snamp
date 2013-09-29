@@ -2,7 +2,7 @@ package com.snamp.connectors;
 
 import net.xeoh.plugins.base.Plugin;
 
-import java.util.Properties;
+import java.util.Map;
 
 /**
  * Represents management connector factory.
@@ -15,5 +15,5 @@ public interface ManagementConnectorFactory extends Plugin {
      * @param connectionProperties The connection properties such as credentials.
      * @return A new instance of the management connector.
      */
-    public ManagementConnector newInstance(final String connectionString, final Properties connectionProperties);
+    public ManagementConnector newInstance(final String connectionString, final Map<String, String> connectionProperties);
 }

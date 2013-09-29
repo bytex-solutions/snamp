@@ -1,26 +1,17 @@
 package com.snamp.connectors;
 
-import java.util.Set;
+import java.util.Map;
 
 /**
- * Created with IntelliJ IDEA.
- * User: roman
- * Date: 9/7/13
- * Time: 10:45 PM
- * To change this template use File | Settings | File Templates.
+ * Represents attribute metadata,
  */
-public interface AttributeMetadata {
+public interface AttributeMetadata extends Map<String, String> {
+
     /**
      * Returns the attribute name.
      * @return The attribute name.
      */
     public String getAttributeName();
-
-    /**
-     * Returns the location of the attribute.
-     * @return
-     */
-    public String getNamespace();
 
     /**
      * Determines whether the value of this attribute can be obtained.
@@ -33,12 +24,6 @@ public interface AttributeMetadata {
      * @return {@literal true}, if the attribute value can be changed; otherwise, {@literal false}.
      */
     public boolean canWrite();
-
-    /**
-     * Returns the mutable set of tags.
-     * @return The mutable set of custom tags.
-     */
-    public Set<Object> tags();
 
     /**
      * Determines whether the value of the attribute can be cached after first reading

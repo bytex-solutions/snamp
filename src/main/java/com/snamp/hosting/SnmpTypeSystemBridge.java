@@ -1,5 +1,6 @@
 package com.snamp.hosting;
 
+import com.snamp.ExtensionsManager;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.agent.*;
@@ -7,6 +8,7 @@ import org.snmp4j.agent.mo.*;
 import org.snmp4j.smi.*;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -299,11 +301,10 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
      * @return
      */
 	public final ManagedObject connectAttribute(final String oid,
-                                                final String namespace,
                                                 final String attributeName,
-                                                final AttributeConnectionOptions options,
+                                                final Map<String, String> options,
                                                 final TimeSpan timeouts){
-        final AttributeMetadata attributeMetadata = connector.connectAttribute(oid, namespace, attributeName, options, new HashSet<Object>());
+        final AttributeMetadata attributeMetadata = connector.connectAttribute(oid, attributeName, options);
         return attributeMetadata !=null ? createManagedObject(oid, attributeMetadata.getAttributeClassName(), timeouts) : null;
     }
 }

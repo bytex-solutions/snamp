@@ -15,13 +15,11 @@ public interface ManagementConnector extends Iterable<String>, AutoCloseable {
     /**
      * Connects to the specified attribute.
      * @param id A key string that is used to read attribute from this connector.
-     * @param namespace The namespace of the attribute.
      * @param attributeName The name of the attribute.
      * @param options The attribute discovery options.
-     * @param tags The set of custom objects associated with the attribute.
      * @return The description of the attribute.
      */
-    public AttributeMetadata connectAttribute(final String id, final String namespace, final String attributeName, final AttributeConnectionOptions options, final Set<Object> tags);
+    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options);
 
     /**
      * Returns the attribute value.

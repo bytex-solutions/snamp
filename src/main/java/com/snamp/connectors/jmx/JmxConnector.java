@@ -2,7 +2,6 @@ package com.snamp.connectors.jmx;
 
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
-import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -11,12 +10,15 @@ import javax.sql.rowset.spi.SyncResolver;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents JMX connector.
  * @author roman
  */
 final class JmxConnector extends ManagementConnectorBase {
+    private static final Logger log = Logger.getLogger("snamp.log");
     private final JMXServiceURL serviceURL;
     private final Map<String, Object> connectionProperties;
 
@@ -144,6 +146,7 @@ final class JmxConnector extends ManagementConnectorBase {
      * Represents JMX attribute metadata.
      */
     public static interface JmxAttributeMetadata extends AttributeMetadata {
+        static final String ownerOption = "owner";
         /**
          * Returns the object name in which the current attribute is located.
          * @return
@@ -155,15 +158,76 @@ final class JmxConnector extends ManagementConnectorBase {
      * Represents an abstract class for building JMX attribute providers.
      */
     private abstract class JmxAttributeProvider extends GenericAttributeMetadata implements JmxAttributeMetadata {
+
         private final ObjectName namespace;
         private MBeanServerConnectionReader<Object> attributeValueReader;
 
         protected JmxAttributeProvider(final String attributeName,
-                                       final ObjectName namespace,
-                                       final Set<Object> tags){
+                                       final ObjectName namespace){
             super(attributeName, namespace.toString());
             this.namespace = namespace;
-            this.tags.addAll(tags != null ? tags : new HashSet<>());
+        }
+
+        @Override
+        public final int size() {
+            return 1;
+        }
+
+        @Override
+        public final boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public final boolean containsKey(final Object option) {
+            return ownerOption.equals(option);
+        }
+
+        @Override
+        public final boolean containsValue(Object o) {
+            return namespace.equals(o);
+        }
+
+        @Override
+        public final String get(Object o) {
+            return null;  //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        @Override
+        public final Set<String> keySet() {
+            return new HashSet<String>(1){{
+                add(ownerOption);
+            }};
+        }
+
+        @Override
+        public final Collection<String> values() {
+            return new ArrayList(1){{
+                add(namespace.toString());
+            }};
+        }
+
+        @Override
+        public final Set<Entry<String, String>> entrySet() {
+            return new HashSet<Entry<String, String>>(1){{
+                add(new Entry<String, String>(){
+
+                    @Override
+                    public final String getKey() {
+                        return ownerOption;
+                    }
+
+                    @Override
+                    public final String getValue() {
+                        return namespace.toString();
+                    }
+
+                    @Override
+                    public final String setValue(String s) {
+                        throw new UnsupportedOperationException();
+                    }
+                });
+            }};
         }
 
         /**
@@ -212,7 +276,7 @@ final class JmxConnector extends ManagementConnectorBase {
         }
     }
 
-    private JmxAttributeProvider createPlainAttribute(final ObjectName namespace, final String attributeName, final Set<Object> tags){
+    private JmxAttributeProvider createPlainAttribute(final ObjectName namespace, final String attributeName){
         //extracts JMX attribute metadata
         final MBeanAttributeInfo targetAttr = handleConnection(new MBeanServerConnectionReader<MBeanAttributeInfo>(){
             @Override
@@ -222,7 +286,7 @@ final class JmxConnector extends ManagementConnectorBase {
                 return null;
             }
         }, null);
-        return targetAttr != null ? new JmxAttributeProvider(targetAttr.getName(), namespace, tags){
+        return targetAttr != null ? new JmxAttributeProvider(targetAttr.getName(), namespace){
             @Override
             public final String getAttributeClassName() {
                 return targetAttr.getType();
@@ -281,7 +345,7 @@ final class JmxConnector extends ManagementConnectorBase {
         } : null;
     }
 
-    private JmxAttributeProvider createCompositeAttribute(final ObjectName namespace, final String attributeName, final Set<Object> tags){
+    private JmxAttributeProvider createCompositeAttribute(final ObjectName namespace, final String attributeName){
         final CompositeValueNavigator navigator = new CompositeValueNavigator(attributeName);
         //получить описатель поля, этот описатель может содержать знак @ для вложенного атрибута
         final MBeanAttributeInfo targetAttr = handleConnection(new MBeanServerConnectionReader<MBeanAttributeInfo>() {
@@ -292,7 +356,7 @@ final class JmxConnector extends ManagementConnectorBase {
                 return null;
             }
         }, null);
-        return targetAttr != null ? new JmxAttributeProvider(targetAttr.getName(), namespace, tags){
+        return targetAttr != null ? new JmxAttributeProvider(targetAttr.getName(), namespace){
             private final OpenType<?> compositeType = targetAttr instanceof OpenMBeanAttributeInfoSupport ? ((OpenMBeanAttributeInfoSupport)targetAttr).getOpenType() : SimpleType.STRING;
 
             @Override
@@ -370,28 +434,28 @@ final class JmxConnector extends ManagementConnectorBase {
         this.connectionProperties = connectionProperties != null ? Collections.unmodifiableMap(connectionProperties) : new HashMap<String, Object>();
     }
 
-    private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final boolean useRegexp, final Set<Object> tags){
+    private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final boolean useRegexp){
         //creates JMX attribute provider based on its metadata and connection options.
         if(namespace == null) return null;
         if(CompositeValueNavigator.isCompositeAttribute(attributeName))
-            return createCompositeAttribute(namespace, attributeName, tags);
-        else if(useRegexp) return connectAttribute(findObjectName(namespace), attributeName, false, tags);
-        else return createPlainAttribute(namespace, attributeName, tags);
+            return createCompositeAttribute(namespace, attributeName);
+        else if(useRegexp) return connectAttribute(findObjectName(namespace), attributeName, false);
+        else return createPlainAttribute(namespace, attributeName);
     }
 
     /**
      * Connects to the specified attribute.
-     * @param namespace The namespace of the attribute.
      * @param attributeName The name of the attribute.
      * @param options The attribute discovery options.
-     * @param tags The set of custom objects associated with the attribute.
      * @return The description of the attribute.
      */
     @Override
-    protected JmxAttributeMetadata connectAttribute(final String namespace, final String attributeName, final AttributeConnectionOptions options, final Set<Object> tags){
+    protected JmxAttributeMetadata connectAttribute(final String attributeName, final Map<String, String> options){
+        final String namespace = options.get("objectName");
         try {
-            return connectAttribute(new ObjectName(namespace), attributeName, options == AttributeConnectionOptions.USE_NAMESPACE_REGEXP, tags);
+            return connectAttribute(new ObjectName(namespace), attributeName, options.containsKey("useRegexp") && Boolean.TRUE.equals(options.get("useRegexp")));
         } catch (MalformedObjectNameException e) {
+            log.log(Level.WARNING, String.format("Unsupported JMX object name: %s", namespace), e);
             return null;
         }
     }
