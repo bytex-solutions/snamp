@@ -108,11 +108,8 @@ final class AgentHostingSandbox implements AutoCloseable {
         System.out.printf("Process ID: %s\n", pid);
         final File file = new File("jmx2snmp.pid");
         file.createNewFile();
-        final BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-        try {
+        try(BufferedWriter bw = new BufferedWriter(new FileWriter(file))){
             bw.write(pid);
-        } finally {
-            bw.close();
         }
     }
 
@@ -151,10 +148,17 @@ final class AgentHostingSandbox implements AutoCloseable {
      * Executes the agent in the caller process.
      * @param configuration The hosting configuration.
      * @param interracial {@literal true} to start command-line session; otherwise, {@literal false}.
+     * @return An instance of the hosting sandbox (it is not useful for interracial mode).
      */
-    public static void start(final AgentConfiguration configuration, final boolean interracial) throws IOException{
-        try(final AgentHostingSandbox hosting = new AgentHostingSandbox(configuration)){
-            hosting.start(interracial);
+    public static AutoCloseable start(final AgentConfiguration configuration, final boolean interracial) throws IOException{
+        if(interracial) try(final AgentHostingSandbox hosting = new AgentHostingSandbox(configuration)){
+            hosting.start(true);
+            return hosting;
+        }
+        else{
+            final AgentHostingSandbox hosting = new AgentHostingSandbox(configuration);
+            hosting.start(false);
+            return hosting;
         }
     }
 
