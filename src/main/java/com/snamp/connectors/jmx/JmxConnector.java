@@ -487,6 +487,15 @@ final class JmxConnector extends ManagementConnectorBase {
         //do nothing, because this connector doesn't store connection session.
     }
 
+    private Object getAttributeValue(final JmxAttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
+        return handleConnection(new MBeanServerConnectionReader<Object>() {
+            @Override
+            public Object read(final MBeanServerConnection connection) throws IOException, JMException {
+                return connection.getAttribute(attribute.getOwner(), attribute.getAttributeName());
+            }
+        }, defaultValue);
+    }
+
     /**
      * Returns the value of the attribute.
      *
@@ -498,8 +507,8 @@ final class JmxConnector extends ManagementConnectorBase {
      *
      */
     @Override
-    protected Object getAttributeValue(AttributeMetadata attribute, TimeSpan readTimeout, Object defaultValue) throws TimeoutException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
+        return attribute instanceof JmxAttributeMetadata ? getAttributeValue((JmxAttributeMetadata)attribute, readTimeout, defaultValue) : defaultValue;
     }
 
     /**
