@@ -21,7 +21,7 @@ final class HostingServices {
         if(target == null) throw new IllegalArgumentException("target is null.");
         final ManagementConnectorFactory factory = ExtensionsManager.getManagementConnectorFactory(target.getConnectionType());
         if(factory == null){
-            log.warning(String.format("Unsupported management connector '%s'", target.getConnectionType()));
+            log.severe(String.format("Unsupported management connector '%s'", target.getConnectionType()));
             return null;
         }
         return factory.newInstance(target.getConnectionString(), target.getAdditionalElements());

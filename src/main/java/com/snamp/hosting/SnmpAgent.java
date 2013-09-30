@@ -16,7 +16,7 @@ import org.snmp4j.smi.*;
 import org.snmp4j.transport.TransportMappings;
 
 /**
- * SNMP Агент получающий данные из JMX
+ * Represents SNMP Agent.
  * 
  * @author agrishin
  * 
@@ -34,14 +34,14 @@ public final class SnmpAgent extends BaseAgent {
 		this.address = address;
 	}
 
-	
+	@Override
 	protected void registerManagedObjects() {
 	}
 
 	/**
 	 * Регистирует объект в SNMP агенте
 	 */
-	public void registerManagedObject(ManagedObject mo) {
+	public void registerManagedObject(final ManagedObject mo) {
 		try {
 			server.register(mo, null);
 		} catch (DuplicateRegistrationException ex) {
@@ -49,7 +49,7 @@ public final class SnmpAgent extends BaseAgent {
 		}
 	}
 
-	public void unregisterManagedObject(MOGroup moGroup) {
+	public void unregisterManagedObject(final MOGroup moGroup) {
 		moGroup.unregisterMOs(server, getContext(moGroup));
 	}
 
@@ -77,9 +77,9 @@ public final class SnmpAgent extends BaseAgent {
 	}
 
 	/**
-	 * Нужно только для SNMPv3
+	 * Initializes SNMPv3 users.
 	 */
-	protected void addUsmUser(USM usm) {
+	protected void addUsmUser(final USM usm) {
 	}
 
 	/**
@@ -100,7 +100,6 @@ public final class SnmpAgent extends BaseAgent {
 	 */
 	public void start() throws IOException {
 		init();
-		addShutdownHook();
 		getServer().addContext(new OctetString("public"));
 		finishInit();
 		run();
@@ -112,7 +111,7 @@ public final class SnmpAgent extends BaseAgent {
 	}
 
 	/**
-	 * Кнфигурирует публичный доступ
+	 * Initializes SNMP communities.
 	 */
 	protected void addCommunities(SnmpCommunityMIB communityMIB) {
 		Variable[] com2sec = new Variable[] { new OctetString("public"), // community

@@ -172,7 +172,7 @@ final class AgentHostingSandbox implements AutoCloseable {
                 System.out.println("Example: java snamp mon.yaml");
                 return;
         }
-        start(ConfigurationFileFormat.load(args[0], args[1]), true);
+        //start(ConfigurationFileFormat.load(args[0], args[1]), true);
     }
 
     /**

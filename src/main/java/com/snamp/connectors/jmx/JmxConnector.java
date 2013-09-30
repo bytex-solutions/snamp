@@ -455,7 +455,7 @@ final class JmxConnector extends ManagementConnectorBase {
         try {
             return connectAttribute(new ObjectName(namespace), attributeName, options.containsKey("useRegexp") && Boolean.TRUE.equals(options.get("useRegexp")));
         } catch (MalformedObjectNameException e) {
-            log.log(Level.WARNING, String.format("Unsupported JMX object name: %s", namespace), e);
+            log.log(Level.SEVERE, String.format("Unsupported JMX object name: %s", namespace), e);
             return null;
         }
     }

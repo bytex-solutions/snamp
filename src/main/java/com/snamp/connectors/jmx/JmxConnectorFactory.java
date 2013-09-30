@@ -59,7 +59,7 @@ public final class JmxConnectorFactory extends ManagementConnectorFactoryBase<Jm
             return newInstance(new JMXServiceURL(connectionString), connectionProperties);
         }
         catch (Exception e) {
-            log.log(Level.WARNING, "Unable to create JMX connector", e);
+            log.log(Level.SEVERE, "Unable to create JMX connector", e);
             return null;
         }
     }
