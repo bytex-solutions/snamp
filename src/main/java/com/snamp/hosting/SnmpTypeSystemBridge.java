@@ -51,13 +51,12 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
         protected final String attributeClassName;
 
         private static MOAccess getAccessRestrictions(final AttributeMetadata metadata){
-            /*switch ((metadata.canWrite() ? 1 : 0) << 1 | (metadata.canRead() ? 1 : 0)){
+            switch ((metadata.canWrite() ? 1 : 0) << 1 | (metadata.canRead() ? 1 : 0)){
                 //case 0: case 1:
                 default: return MOAccessImpl.ACCESS_READ_ONLY;
                 case 2: return MOAccessImpl.ACCESS_WRITE_ONLY;
                 case 3: return MOAccessImpl.ACCESS_READ_WRITE;
-            }*/
-            return MOAccessImpl.ACCESS_READ_ONLY;
+            }
         }
 
         private ScalarValueProvider(final String oid, final ManagementConnector connector, final AttributeMetadata attributeInfo, final T defval, final TimeSpan timeouts){

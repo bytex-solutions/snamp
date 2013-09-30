@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  * @author roman
  */
 final class JmxConnector extends ManagementConnectorBase {
-    private static final Logger log = Logger.getLogger("snamp.log");
+    private static final Logger log = Logger.getLogger("snamp.jmxconnector.log");
     private final JMXServiceURL serviceURL;
     private final Map<String, Object> connectionProperties;
 
@@ -463,6 +463,7 @@ final class JmxConnector extends ManagementConnectorBase {
     /**
      * Handles connection.
      * @param reader The MBean reader.
+     * @param defval The default value returned by the connection handler if it handling failed.
      * @param <TOutput> Type of the connection handling result.
      * @return The result of the connection handling result.
      */
@@ -474,7 +475,8 @@ final class JmxConnector extends ManagementConnectorBase {
             connector.close();
             return result;
         }
-        catch(Exception e){
+        catch(final Exception e){
+            log.log(Level.INFO, e.getMessage(), e);
             return defval;
         }
     }
@@ -487,7 +489,7 @@ final class JmxConnector extends ManagementConnectorBase {
         //do nothing, because this connector doesn't store connection session.
     }
 
-    private Object getAttributeValue(final JmxAttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
+    private Object getAttributeValue(final JmxAttributeMetadata attribute, final Object defaultValue) throws TimeoutException {
         return handleConnection(new MBeanServerConnectionReader<Object>() {
             @Override
             public Object read(final MBeanServerConnection connection) throws IOException, JMException {
@@ -508,7 +510,17 @@ final class JmxConnector extends ManagementConnectorBase {
      */
     @Override
     protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
-        return attribute instanceof JmxAttributeMetadata ? getAttributeValue((JmxAttributeMetadata)attribute, readTimeout, defaultValue) : defaultValue;
+        return attribute instanceof JmxAttributeMetadata ? getAttributeValue((JmxAttributeMetadata)attribute, defaultValue) : defaultValue;
+    }
+
+    private boolean setAttributeValue(final JmxAttributeMetadata attribute, final Object value){
+        return handleConnection(new MBeanServerConnectionReader<Boolean>() {
+            @Override
+            public Boolean read(final MBeanServerConnection connection) throws IOException, JMException {
+                connection.setAttribute(attribute.getOwner(), new Attribute(attribute.getAttributeName(), value));
+                return true;
+            }
+        }, false);
     }
 
     /**
@@ -520,8 +532,8 @@ final class JmxConnector extends ManagementConnectorBase {
      * @return
      */
     @Override
-    protected boolean setAttributeValue(AttributeMetadata attribute, TimeSpan writeTimeout, Object value) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    protected boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
+        return attribute instanceof JmxAttributeMetadata ? setAttributeValue((JmxAttributeMetadata)attribute, value) : false;
     }
 
     /**
