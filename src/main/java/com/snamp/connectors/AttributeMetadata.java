@@ -33,8 +33,8 @@ public interface AttributeMetadata extends Map<String, String> {
     public boolean cacheable();
 
     /**
-     * Returns the canonical name of the attribute type.
-     * @return The canonical name of the attribute type.
+     * Returns the type of the attribute value.
+     * @return The type of the attribute value.
      */
-    public String getAttributeClassName();
+    public AttributeTypeInfo getAttributeType();
 }

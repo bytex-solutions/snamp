@@ -7,11 +7,11 @@ import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.smi.*;
 
-import java.util.HashSet;
-import java.util.Map;
+import javax.management.openmbean.TabularData;
+import java.math.*;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 /**
  * Represents a bridge between management connector attribute types and SNMP-compliant types.
@@ -48,7 +48,7 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
         /**
          * Represents the type of the attribute.
          */
-        protected final String attributeClassName;
+        protected final AttributeTypeInfo attributeTypeInfo;
 
         private static MOAccess getAccessRestrictions(final AttributeMetadata metadata){
             switch ((metadata.canWrite() ? 1 : 0) << 1 | (metadata.canRead() ? 1 : 0)){
@@ -65,7 +65,7 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
             this.connector = connector;
             defaultValue = defval;
             this.timeouts = timeouts;
-            this.attributeClassName = attributeInfo.getAttributeClassName();
+            this.attributeTypeInfo = attributeInfo.getAttributeType();
         }
 
         /**
@@ -78,7 +78,7 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
          */
 		protected ScalarValueProvider(final String oid, final ManagementConnector connector, final T defval, final TimeSpan timeouts)
 		{
-            this(oid, connector, connector.getAttributeInfo(oid),defval, timeouts);
+            this(oid, connector, connector.getAttributeInfo(oid), defval, timeouts);
 		}
 
         /**
@@ -145,7 +145,7 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
 
 		@Override
 		protected Integer32 convert(final Object value){
-			return new Integer32(Integer.parseInt(value.toString()));
+			return new Integer32(attributeTypeInfo.convertTo(value, Integer.class));
 		}
 
         /**
@@ -155,18 +155,11 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
          * @return
          */
         @Override
-        protected Number convert(final Integer32 value) {
-            switch (attributeClassName){
-                case "int":
-                case "java.lang.Integer": return value.toInt();
-                case "long":
-                case "java.lang.Long": return value.toLong();
-                case "short":
-                case "java.lang.Short": return (short)value.toInt();
-                case "byte":
-                case "java.lang.Byte": return (byte)value.toInt();
-                default: return defaultValue;
-            }
+        protected Object convert(final Integer32 value) {
+            if(attributeTypeInfo.canConvertFrom(Long.class)) return value.toLong();
+            else if(attributeTypeInfo.canConvertFrom(Integer.class)) return value.toInt();
+            else if(attributeTypeInfo.canConvertFrom(String.class)) return value.toString();
+            else return null;
         }
     }
 	
@@ -185,7 +178,7 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
          */
         @Override
         protected Integer32 convert(final Object value) {
-            return new Integer32(Boolean.TRUE.equals(value) ? 1 : 0);
+            return new Integer32(attributeTypeInfo.convertTo(value, Integer.class));
         }
 
         /**
@@ -196,7 +189,7 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
          */
         @Override
         protected Boolean convert(final Integer32 value) {
-            return value.toLong() > 0;
+            return value.toLong() != 0;
         }
     }
 	
@@ -215,7 +208,7 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
          */
         @Override
         protected OctetString convert(final Object value) {
-            return new OctetString(value != null ? value.toString() : defaultValue);
+            return new OctetString(attributeTypeInfo.convertTo(value, String.class));
         }
 
         /**
@@ -226,14 +219,104 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
          */
         @Override
         protected String convert(final OctetString value) {
-            switch (attributeClassName){
-                case "java.lang.String":
-                case "string": return value.toString();
-                default: return defaultValue;
-            }
+            return value.toString();
         }
     }
-	
+
+    private static final class LongValueProvider extends ScalarValueProvider<Counter64>{
+        public static final long defaultValue = -1;
+
+        public LongValueProvider(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
+            super(oid, connector, new Counter64(defaultValue), timeouts);
+        }
+
+        /**
+         * Converts the attribute value into the SNMP-compliant value.
+         *
+         * @param value The value to convert.
+         * @return
+         */
+        @Override
+        protected Counter64 convert(final Object value) {
+            return new Counter64(attributeTypeInfo.convertTo(value, Long.class));
+        }
+
+        /**
+         * Converts the SNMP-compliant value to the management connector native value.
+         *
+         * @param value The value to convert.
+         * @return
+         */
+        @Override
+        protected Long convert(final Counter64 value) {
+            if(attributeTypeInfo.canConvertFrom(Long.class)) return value.toLong();
+            else return defaultValue;
+        }
+    }
+
+    private static final class UnixTimeProvider extends ScalarValueProvider<TimeTicks>{
+        public static final long defaultValue = -1;
+
+        public UnixTimeProvider(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
+            super(oid, connector, new TimeTicks(defaultValue), timeouts);
+        }
+
+        /**
+         * Converts the attribute value into the SNMP-compliant value.
+         *
+         * @param value The value to convert.
+         * @return
+         */
+        @Override
+        protected TimeTicks convert(final Object value) {
+            return new TimeTicks(attributeTypeInfo.convertTo(value, Long.class));
+        }
+
+        /**
+         * Converts the SNMP-compliant value to the management connector native value.
+         *
+         * @param value The value to convert.
+         * @return
+         */
+        @Override
+        protected Object convert(final TimeTicks value) {
+            if(attributeTypeInfo.canConvertFrom(Long.class)) return value.toLong();
+            else if(attributeTypeInfo.canConvertFrom(Date.class)) return new Date(value.toLong());
+            else return new Date();
+        }
+    }
+
+    private static final class BigNumberProvider extends ScalarValueProvider<OctetString>{
+        public static final Number defaultValue = 0;
+
+        public BigNumberProvider(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
+            super(oid, connector, new OctetString(defaultValue.toString()), timeouts);
+        }
+
+        /**
+         * Converts the attribute value into the SNMP-compliant value.
+         *
+         * @param value The value to convert.
+         * @return
+         */
+        @Override
+        protected OctetString convert(final Object value) {
+            return new OctetString(attributeTypeInfo.convertTo(value, String.class));
+        }
+
+        /**
+         * Converts the SNMP-compliant value to the management connector native value.
+         *
+         * @param value The value to convert.
+         * @return
+         */
+        @Override
+        protected Object convert(final OctetString value) {
+            if(attributeTypeInfo.canConvertFrom(String.class)) return value.toString();
+            else return defaultValue;
+        }
+    }
+
 	private static final class FloatValueProvider extends ScalarValueProvider<OctetString>{
         public static final Float defaultValue = -1.0F;
 
@@ -249,7 +332,7 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
          */
         @Override
         protected OctetString convert(final Object value) {
-            return new OctetString((value != null ? value : defaultValue).toString());
+            return new OctetString(attributeTypeInfo.convertTo(value, String.class));
         }
 
         /**
@@ -259,39 +342,32 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
          * @return
          */
         @Override
-        protected Number convert(final OctetString value) {
-            switch (attributeClassName){
-                case "float":
-                case "java.lang.Float": return Float.valueOf(value.toString());
-                case "double":
-                case "java.lang.Double":return Double.valueOf(value.toString());
-                default: return defaultValue;
-            }
+        protected Object convert(final OctetString value) {
+            if(attributeTypeInfo.canConvertFrom(String.class)) return value.toString();
+            else return defaultValue;
         }
     }
 
-    private ManagedObject createManagedObject(final String oid, final String attributeType, final TimeSpan timeouts){
-        //for all integers
+    private ScalarValueProvider<?> createScalarManagedObject(final String oid, final AttributePrimitiveType attributeType, final TimeSpan timeouts){
         switch (attributeType){
-            case "int":
-            case "java.lang.Integer":
-            case "byte":
-            case "java.lang.Byte":
-            case "short":
-            case "java.lang.Short":
-            case "long":
-            case "java.lang.Long":
-                return new IntegerValueProvider(oid, connector, timeouts);
-            case "boolean":
-            case "java.lang.Boolean":
-                return new BooleanValueProvider(oid, connector, timeouts);
-            case "float":
-            case "java.lang.Float":
-            case "double":
-            case "java.lang.double":
-                return new FloatValueProvider(oid, connector, timeouts);
+            case BOOL: return new BooleanValueProvider(oid, connector, timeouts);
+            case INT8:
+            case INT16:
+            case INT32: return new IntegerValueProvider(oid, connector, timeouts);
+            case FLOAT:
+            case DOUBLE: return new FloatValueProvider(oid, connector, timeouts);
+            case INT64: return new LongValueProvider(oid, connector, timeouts);
+            case INTEGER:
+            case DECIMAL: return new BigNumberProvider(oid, connector, timeouts);
+            case UNIX_TIME: return new UnixTimeProvider(oid, connector, timeouts);
+            case TEXT:
             default: return new StringValueProvider(oid, connector, timeouts);
         }
+    }
+
+    private ManagedObject createManagedObject(final String oid, final AttributeTypeInfo attributeType, final TimeSpan timeouts){
+        if(attributeType instanceof AttributePrimitiveType) return createScalarManagedObject(oid, (AttributePrimitiveType) attributeType, timeouts);
+        else return null;
     }
 
     /**
@@ -305,6 +381,6 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
                                                 final Map<String, String> options,
                                                 final TimeSpan timeouts){
         final AttributeMetadata attributeMetadata = connector.connectAttribute(oid, attributeName, options);
-        return attributeMetadata !=null ? createManagedObject(oid, attributeMetadata.getAttributeClassName(), timeouts) : null;
+        return attributeMetadata !=null ? createManagedObject(oid, attributeMetadata.getAttributeType(), timeouts) : null;
     }
 }
