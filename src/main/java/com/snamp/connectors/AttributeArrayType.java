@@ -1,9 +1,7 @@
 package com.snamp.connectors;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.lang.reflect.Array;
+import java.util.*;
 
 /**
  * Represents single-dimensional array type as table.
@@ -44,6 +42,16 @@ public abstract class AttributeArrayType implements AttributeTabularType {
     }
 
     /**
+     * Creates a new array type based on the primitive element type.
+     * @param primitiveType
+     * @return
+     */
+    public static AttributeArrayType primitiveArray(final AttributePrimitiveType primitiveType){
+        return new AttributeArrayType(primitiveType) {
+        };
+    }
+
+    /**
      * Gets a set of dictionary keys (items).
      *
      * @return A set of dictionary keys (items).
@@ -68,6 +76,19 @@ public abstract class AttributeArrayType implements AttributeTabularType {
     }
 
     /**
+     * Determines whether the specified object is an array.
+     * @param obj
+     * @return
+     */
+    public static boolean isArray(final Object obj) {
+        return obj instanceof Object[] || obj instanceof boolean[] ||
+                obj instanceof byte[] || obj instanceof short[] ||
+                obj instanceof char[] || obj instanceof int[] ||
+                obj instanceof long[] || obj instanceof float[] ||
+                obj instanceof double[];
+    }
+
+    /**
      * Determines whether the attribute value can be converted into the specified type.
      *
      * @param target The result of the conversion.
@@ -79,7 +100,23 @@ public abstract class AttributeArrayType implements AttributeTabularType {
         return Object.class == target || String.class == target || (target.isArray() && elementType.canConvertFrom(target.getComponentType()));
     }
 
-    protected abstract <T> T[] convertToArray(final Object value, final Class<T> elementType);
+    /**
+     * Converts the attribute value to thw array.
+     * @param value
+     * @param destinationElementType
+     * @param <T>
+     * @return
+     */
+    protected <T> T[] convertToArray(final Object value, final Class<T> destinationElementType) throws IllegalArgumentException{
+        if(isArray(value)){
+            final Object result = Array.newInstance(destinationElementType, Array.getLength(value));
+            for(int i = 0; i < Array.getLength(value); i++)
+                Array.set(result, i, elementType.convertTo(Array.get(value, i), destinationElementType));
+            return (T[])result;
+        } else if(value instanceof List)
+            return convertToArray(((List)value).toArray(), destinationElementType);
+        else throw new IllegalArgumentException(String.format("Could not convert %s to array", value));
+    }
 
     /**
      * Converts the attribute value to the specified type.
@@ -91,7 +128,7 @@ public abstract class AttributeArrayType implements AttributeTabularType {
      * @throws IllegalArgumentException The target type is not supported.
      */
     @Override
-    public final <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException {
+    public <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException {
         if(target.isInstance(value)) return (T)value;
         else if(String.class == target) return (T)Objects.toString(value, "");
         else if(target.isArray() && elementType.canConvertFrom(target.getComponentType()) && value != null && value.getClass().isArray())

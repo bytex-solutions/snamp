@@ -219,8 +219,8 @@ final class JmxConnector extends ManagementConnectorBase {
             else return new DefaultJavaAttributeTypeInfo(Object.class);
         }
 
-        private final AttributeTypeInfo getAttributeType(final Class<?> attributeType){
-            switch (attributeType.getCanonicalName()){
+        protected final AttributeTypeInfo getAttributeType(final String attributeTypeName){
+            switch (attributeTypeName){
                 case "byte":
                 case "java.lang.Byte":
                     return AttributePrimitiveType.INT8;
@@ -252,30 +252,31 @@ final class JmxConnector extends ManagementConnectorBase {
                     return AttributePrimitiveType.UNIX_TIME;
                 case "java.util.Calendar":
                     return AttributePrimitiveType.UNIX_TIME;
+                case "byte[]":
+                case "java.lang.Byte[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.INT8);
+                case "short[]":
+                case "java.lang.Short[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.INT16);
+                case "int[]":
+                case "java.lang.Integer[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.INT32);
+                case "long[]":
+                case "java.lang.Long[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.INT64);
+                case "float[]":
+                case "java.lang.Float[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.FLOAT);
+                case "double[]":
+                case "java.lang.Double[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.DOUBLE);
+                case "boolean[]":
+                case "java.lang.Boolean[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.BOOL);
+                case "java.lang.String[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.TEXT);
+                case "java.util.Date[]":
+                case "java..util.Calendar[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.UNIX_TIME);
+                case "java.math.BigInteger[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.INTEGER);
+                case "java.math.BigDecimal[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.DECIMAL);
                 default:
-                    if(attributeType.isArray()) return new AttributeArrayType(getAttributeType(attributeType.getComponentType())) {
-                        private <T> T[] convertToArray(final Object[] source, final Class<T> elementType){
-                            final Object result = Array.newInstance(elementType, source.length);
-                            for(int i = 0; i < source.length; i++)
-                                Array.set(result, i, source[i]);
-                            return (T[])result;
-                        }
-
-                        @Override
-                        protected <T> T[] convertToArray(final Object value, final Class<T> elementType) {
-                            return convertToArray((Object[])value, elementType);
-                        }
-                    };
-                    else return new DefaultJavaAttributeTypeInfo(attributeType);
-            }
-        }
-
-        protected final AttributeTypeInfo getAttributeType(final String attributeTypeName){
-            try {
-                return getAttributeType(Class.forName(attributeTypeName));
-            }
-            catch (final ClassNotFoundException e) {
-                return new DefaultJavaAttributeTypeInfo(Object.class);
+                    try {
+                        return new DefaultJavaAttributeTypeInfo(Class.forName(attributeTypeName));
+                    } catch (final ClassNotFoundException e) {
+                        return new DefaultJavaAttributeTypeInfo(Object.class);
+                    }
             }
         }
 
