@@ -19,7 +19,7 @@ public interface ManagementConnector extends Iterable<String>, AutoCloseable {
      * @param options The attribute discovery options.
      * @return The description of the attribute.
      */
-    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options);
+    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, Object> options);
 
     /**
      * Returns the attribute value.

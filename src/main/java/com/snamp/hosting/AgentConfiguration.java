@@ -66,7 +66,7 @@ public interface AgentConfiguration {
             /**
              * Sets attribute value read/write operation timeout.
              */
-            public void setReadWriteTimeout();
+            public void setReadWriteTimeout(TimeSpan time);
 
             /**
              * Returns the attribute name.
@@ -84,13 +84,7 @@ public interface AgentConfiguration {
              * Returns the additional configuration elements.
              * @return
              */
-            public Map<String, String> getAdditionalElements();
-
-            /**
-             * Sets the additional configuration elements.
-             * @param elements
-             */
-            public void setAdditionalElements(final Map<String, String> elements);
+            public Map<String, Object> getAdditionalElements();
         }
 
         /**
@@ -137,23 +131,12 @@ public interface AgentConfiguration {
          */
         public Map<String, AttributeConfiguration> getAttributes();
 
-        /**
-         * Sets the configuration of attributes.
-         * @param attributes The dictionary of attributes.
-         */
-        public void setAttributes(final Map<String, AttributeConfiguration> attributes);
 
         /**
          * Returns the dictionary of additional configuration elements.
          * @return The dictionary of additional configuration elements.
          */
-        public Map<String, String> getAdditionalElements();
-
-        /**
-         * Sets the additional configuration elements.
-         * @param elements The dictionary of additional configuration elements.
-         */
-        public void setAdditionalElements(final Map<String, String> elements);
+        public Map<String, Object> getAdditionalElements();
     }
 
     /**

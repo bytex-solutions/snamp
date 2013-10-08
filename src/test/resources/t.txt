@@ -1,0 +1,22 @@
+---
+port: 5
+address: jdbc:mysql://localhost:3306/db
+
+managementTargets:
+- target: wso-esb-0
+  connectionString: 'https://12345' 
+  connectionType: JMX
+  namespace: express
+  defaultTimeout: 100
+  random: 'random1'
+  attributes:
+  - {name: name,readWriteTimeout: 50, id: 1.1}
+- target: wso-esb-1
+  connectionString: 'https://67890'
+  connectionType: SOAP
+  namespace: bank
+  defaultTimeout: 7000
+  attributes:
+  - {name: name, id: '1.2.3'}
+  random: 'random2'
+  random1: 'random5'

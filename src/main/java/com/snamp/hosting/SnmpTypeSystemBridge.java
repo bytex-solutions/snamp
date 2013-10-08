@@ -378,7 +378,7 @@ final class SnmpTypeSystemBridge implements AutoCloseable {
      */
 	public final ManagedObject connectAttribute(final String oid,
                                                 final String attributeName,
-                                                final Map<String, String> options,
+                                                final Map<String, Object> options,
                                                 final TimeSpan timeouts){
         final AttributeMetadata attributeMetadata = connector.connectAttribute(oid, attributeName, options);
         return attributeMetadata !=null ? createManagedObject(oid, attributeMetadata.getAttributeType(), timeouts) : null;

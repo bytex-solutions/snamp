@@ -1,5 +1,6 @@
 import com.snamp.TimeSpan;
 import com.snamp.hosting.AgentConfiguration;
+import com.snamp.hosting.ConfigurationFileFormat;
 import junit.framework.TestCase;
 import org.junit.Test;
 import org.snmp4j.*;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -201,7 +203,7 @@ public class JMXSimpleBeanTest extends TestCase
                                 }
 
                                 @Override
-                                public void setReadWriteTimeout() {
+                                public void setReadWriteTimeout(TimeSpan time) {
                                     throw new UnsupportedOperationException();
                                 }
 
@@ -216,33 +218,18 @@ public class JMXSimpleBeanTest extends TestCase
                                 }
 
                                 @Override
-                                public Map<String, String> getAdditionalElements() {
-                                    return new HashMap<String, String>(){{
+                                public Map<String, Object> getAdditionalElements() {
+                                    return new HashMap<String, Object>(){{
                                         put("objectName",objectName);
                                     }};
-                                }
-
-                                @Override
-                                public void setAdditionalElements(Map<String, String> elements) {
-                                    throw new UnsupportedOperationException();
                                 }
                             });
                         }};
                     }
 
                     @Override
-                    public void setAttributes(Map<String, AttributeConfiguration> attributes) {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    @Override
-                    public Map<String, String> getAdditionalElements() {
+                    public Map<String, Object> getAdditionalElements() {
                         return new HashMap<>();
-                    }
-
-                    @Override
-                    public void setAdditionalElements(Map<String, String> elements) {
-                        throw new UnsupportedOperationException();
                     }
                 });
                 return targets;
@@ -290,6 +277,19 @@ public class JMXSimpleBeanTest extends TestCase
 
         }
 
+
+    }
+
+    @Test
+    public void testYaml() throws IOException {
+        //Get test file path
+        URL url = this.getClass().getResource("/t.txt");
+        //Load the configuration from file
+        AgentConfiguration config = ConfigurationFileFormat.load("yaml", url.getFile());
+        //Check if configuration loaded properly
+        assertNotNull(config);
+        //Make sure that there are two targets in configuration
+        assertEquals(2, config.getTargets().size());
 
     }
 }

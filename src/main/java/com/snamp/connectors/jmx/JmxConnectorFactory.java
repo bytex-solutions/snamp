@@ -36,7 +36,7 @@ public final class JmxConnectorFactory extends ManagementConnectorFactoryBase<Jm
      * @param props JMX connection properties.
      * @return A new instance of the JMX connector.
      */
-    public final JmxConnector newInstance(final JMXServiceURL serviceURL, final Map<String, String> props){
+    public final JmxConnector newInstance(final JMXServiceURL serviceURL, final Map<String, Object> props){
         final Map<String, Object> jmxConnectionProperties = new HashMap<>();
         //parse credentials
         if(props.containsKey("login") && props.containsKey("password"))
@@ -54,7 +54,7 @@ public final class JmxConnectorFactory extends ManagementConnectorFactoryBase<Jm
      * @return A new instance of the management connector.
      */
     @Override
-    public final JmxConnector newInstance(final String connectionString, final Map<String, String> connectionProperties) {
+    public final JmxConnector newInstance(final String connectionString, final Map<String, Object> connectionProperties) {
         try {
             return newInstance(new JMXServiceURL(connectionString), connectionProperties);
         }
