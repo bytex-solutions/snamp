@@ -8,6 +8,7 @@ import java.io.*;
 import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Represents configuration file parser.
@@ -258,6 +259,11 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
                 return new YamlAdditionalElementsMap(configMap, connectionStringtKey, connectionTypetKey, namespaceKey, defaultTimeoutKey);
             }
 
+            @Override
+            public AttributeConfiguration newAttributeConfiguration() {
+                return new AttributeConfigurationEmptyImpl();
+            }
+
             private final class AttributeConfigurationImpl implements AttributeConfiguration
             {
                 private Map<String, Object> attrMap;
@@ -282,12 +288,12 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
                     {
                         attrMap.put(readWriteTimeoutKey, defaultTimeOut);
                     }
-                    return new TimeSpan(Long.parseLong(Objects.toString(attrMap.get(readWriteTimeoutKey))));
+                    return new TimeSpan(Long.parseLong(Objects.toString(attrMap.get(readWriteTimeoutKey))), TimeUnit.MILLISECONDS);
                 }
 
                 @Override
                 public void setReadWriteTimeout(TimeSpan time) {
-                    attrMap.put(readWriteTimeoutKey, time.duration);
+                    attrMap.put(readWriteTimeoutKey, time.convert(TimeUnit.MILLISECONDS).duration);
                 }
 
                 @Override
@@ -628,6 +634,112 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
             final WeakReference<List<Object>> weakRefList = new WeakReference((List<Object>)this.get(managementTargetsKey));
 
             return new YamlManagementTargetConfigurations(weakRefList.get());
+        }
+
+        private class AttributeConfigurationEmptyImpl implements ManagementTargetConfiguration.AttributeConfiguration
+        {
+            private TimeSpan readWriteTimeout;
+            private String attributeName;
+            private Map<String, Object> addirionalElements;
+
+            public AttributeConfigurationEmptyImpl()
+            {
+               this.readWriteTimeout = new TimeSpan(0);
+               this.attributeName = "";
+               this.addirionalElements = new HashMap<>();
+            }
+
+            @Override
+            public TimeSpan getReadWriteTimeout() {
+                return this.readWriteTimeout;
+            }
+
+            @Override
+            public void setReadWriteTimeout(TimeSpan time) {
+                this.readWriteTimeout = time;
+            }
+
+            @Override
+            public String getAttributeName() {
+                return this.attributeName;
+            }
+
+            @Override
+            public void setAttributeName(String attributeName) {
+                this.attributeName = attributeName;
+            }
+
+            @Override
+            public Map<String, Object> getAdditionalElements() {
+                return this.addirionalElements;
+            }
+        }
+
+        private class ManagementTargetConfigurationEmptyImpl implements ManagementTargetConfiguration
+        {
+            private String connectionString;
+            private String connectorType;
+            private String namespace;
+            private Map<String, AttributeConfiguration> attributes;
+            private Map<String, Object> additionalElements;
+
+            public ManagementTargetConfigurationEmptyImpl()
+            {
+                this.connectionString = "";
+                this.connectorType = "";
+                this.namespace = "";
+                this.attributes = new HashMap<>();
+                this.additionalElements = new HashMap<>();
+            }
+
+            @Override
+            public String getConnectionString() {
+                return this.connectionString;
+            }
+
+            @Override
+            public void setConnectionString(String connectionString) {
+                this.connectionString = connectionString;
+            }
+
+            @Override
+            public String getConnectionType() {
+                return this.connectorType;
+            }
+
+            @Override
+            public void setConnectionType(String connectorType) {
+                this.connectorType = connectorType;
+            }
+
+            @Override
+            public String getNamespace() {
+                return this.namespace;
+            }
+
+            @Override
+            public void setNamespace(String namespace) {
+                this.namespace = namespace;
+            }
+
+            @Override
+            public Map<String, AttributeConfiguration> getAttributes() {
+                return this.attributes;
+            }
+
+            @Override
+            public Map<String, Object> getAdditionalElements() {
+                return this.additionalElements;
+            }
+
+            @Override
+            public AttributeConfiguration newAttributeConfiguration() {
+                return new AttributeConfigurationEmptyImpl();
+            }
+        }
+        @Override
+        public ManagementTargetConfiguration newManagementTargetConfiguration() {
+            return new ManagementTargetConfigurationEmptyImpl();
         }
     }
 

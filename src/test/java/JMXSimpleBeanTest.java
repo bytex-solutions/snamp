@@ -8,6 +8,8 @@ import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
+import org.yaml.snakeyaml.Yaml;
+
 import javax.management.*;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -231,8 +233,18 @@ public class JMXSimpleBeanTest extends TestCase
                     public Map<String, Object> getAdditionalElements() {
                         return new HashMap<>();
                     }
+
+                    @Override
+                    public AttributeConfiguration newAttributeConfiguration() {
+                        return null;  //To change body of implemented methods use File | Settings | File Templates.
+                    }
                 });
                 return targets;
+            }
+
+            @Override
+            public ManagementTargetConfiguration newManagementTargetConfiguration() {
+                return null;  //To change body of implemented methods use File | Settings | File Templates.
             }
         };
     }
@@ -288,8 +300,35 @@ public class JMXSimpleBeanTest extends TestCase
         AgentConfiguration config = ConfigurationFileFormat.load("yaml", url.getFile());
         //Check if configuration loaded properly
         assertNotNull(config);
+
+        Map<String, AgentConfiguration.ManagementTargetConfiguration> targets = config.getTargets();
         //Make sure that there are two targets in configuration
-        assertEquals(2, config.getTargets().size());
+        assertEquals(2, targets.size());
+
+        //Create and add new target
+        AgentConfiguration.ManagementTargetConfiguration newTarget = config.newManagementTargetConfiguration();
+        newTarget.setConnectionType("HTTPS");
+        newTarget.setConnectionString("https://");
+        newTarget.setNamespace("mynamespace");
+        targets.put("1.3.5", newTarget);
+         //Check that new target is in the map
+        assertEquals(3, targets.size());
+
+        AgentConfiguration.ManagementTargetConfiguration target = targets.get("wso-esb-1");
+        //Check connection type
+        assertEquals("SOAP", target.getConnectionType());
+
+        //Change connection type and check if it is changed
+        target.setConnectionType("HTTP");
+        assertEquals("HTTP", target.getConnectionType());
+
+        Map<String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attrs = target.getAttributes();
+        //Check number of attributes
+        assertEquals(1, attrs.size());
+
+        AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration attr = attrs.get("1.2.3");
+        //Check timeout, should be set to default value
+        assertEquals(7000, attr.getReadWriteTimeout().duration);
 
     }
 }

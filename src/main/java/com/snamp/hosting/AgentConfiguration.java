@@ -137,6 +137,12 @@ public interface AgentConfiguration {
          * @return The dictionary of additional configuration elements.
          */
         public Map<String, Object> getAdditionalElements();
+
+        /**
+         * Empty implementation of AttributeConfiguration interface
+         * @return implementation of AttributeConfiguration interface
+         */
+        public AttributeConfiguration newAttributeConfiguration();
     }
 
     /**
@@ -150,4 +156,10 @@ public interface AgentConfiguration {
      * @return The dictionary of management targets (management back-ends).
      */
     public Map<String, ManagementTargetConfiguration> getTargets();
+
+    /**
+     * Empty implementation of ManagementTargetConfiguration interface
+     * @return implementation of ManagementTargetConfiguration interface
+     */
+    public ManagementTargetConfiguration newManagementTargetConfiguration();
 }
