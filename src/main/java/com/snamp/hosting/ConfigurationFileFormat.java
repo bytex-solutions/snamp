@@ -40,7 +40,15 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
      */
     private static final class YamlAgentConfiguration extends HashMap<String, Object> implements AgentConfiguration{
         private static final String managementTargetsKey = "managementTargets";
-
+        private final static String connectionStringtKey = "connectionString";
+        private final static String connectionTypetKey = "connectionType";
+        private final static String namespaceKey = "namespace";
+        private final static String defaultTimeoutKey = "defaultTimeout";
+        private final static String attributesKey = "attributes";
+        private static final String targetKey = "target";
+        private final static String idKey = "id";
+        private final static String readWriteTimeoutKey = "readWriteTimeout";
+        private final static String nameKey = "name";
         /**
          * Initializes a new YAML-compliant configuration.
          * @param rawConfiguration The raw configuration in the form of the YAML DOM.
@@ -51,12 +59,6 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
 
         private final class YamlManagementTargetConfigurations implements Map<String, AgentConfiguration.ManagementTargetConfiguration>{
             private final List<Object> targets;
-            private static final String targetKey = "target";
-
-            private final static String connectionStringtKey = "connectionString";
-            private final static String connectionTypetKey = "connectionType";
-            private final static String namespaceKey = "namespace";
-            private final static String attributesKey = "attributes";
 
             public YamlManagementTargetConfigurations(final List<Object> targets){
                 this.targets = targets;
@@ -105,6 +107,17 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
                 return new ManagementTargetConfigurationImpl(getValueByKey(key));
             }
 
+            private Map<String,Object> convertAttributeToMap(final String key, final ManagementTargetConfiguration.AttributeConfiguration configuration)
+            {   final Map<String,Object> tmpMap = new HashMap<>();
+                //Convert ManagementTargetConfiguration to Map
+                tmpMap.put(idKey, key);
+                tmpMap.put(readWriteTimeoutKey, configuration.getReadWriteTimeout().duration);
+                tmpMap.put(nameKey, configuration.getAttributeName());
+                for(Map.Entry<String,Object> entry:configuration.getAdditionalElements().entrySet())
+                    tmpMap.put(entry.getKey(), entry.getValue());
+                return tmpMap;
+            }
+
             private Map<String,Object> convertConfigurationToMap(final String key, final AgentConfiguration.ManagementTargetConfiguration configuration)
             {   final Map<String,Object> tmpMap = new HashMap<>();
                 //Convert ManagementTargetConfiguration to Map
@@ -112,15 +125,36 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
                 tmpMap.put(connectionStringtKey, configuration.getConnectionString());
                 tmpMap.put(connectionTypetKey, configuration.getConnectionType());
                 tmpMap.put(namespaceKey, configuration.getNamespace());
-                tmpMap.put(attributesKey, configuration.getAttributes());
+                //
+                List<Object> attributes = new ArrayList<>();
+                for(Map.Entry<String, ManagementTargetConfiguration.AttributeConfiguration> entry: configuration.getAttributes().entrySet())
+                {
+                    attributes.add(convertAttributeToMap(entry.getKey(), entry.getValue()));
+                }
+                tmpMap.put(attributesKey, attributes);
+
+                //
                 for(Map.Entry<String,Object> entry:configuration.getAdditionalElements().entrySet())
                     tmpMap.put(entry.getKey(), entry.getValue());
                 return tmpMap;
             }
             @Override
             public AgentConfiguration.ManagementTargetConfiguration put(String key, AgentConfiguration.ManagementTargetConfiguration value) {
-                targets.add(convertConfigurationToMap(key, value));
-                return get(key);
+                boolean found = false;
+                //If map is already has that key, we should change only value
+                for(int i=0;i<targets.size();i++)
+                {
+                    if(((Map<String,Object>)targets.get(i)).get(targetKey).equals(key))
+                    {
+                        targets.remove(i);
+                        targets.add(convertConfigurationToMap(key, value));
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found)
+                    targets.add(convertConfigurationToMap(key, value));
+                return null;
             }
 
             @Override
@@ -199,15 +233,6 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
         }
 
         private class ManagementTargetConfigurationImpl implements AgentConfiguration.ManagementTargetConfiguration{
-            private final static String connectionStringtKey = "connectionString";
-            private final static String connectionTypetKey = "connectionType";
-            private final static String namespaceKey = "namespace";
-            private final static String defaultTimeoutKey = "defaultTimeout";
-            private final static String attributesKey = "attributes";
-
-            private final static String idKey = "id";
-            private final static String readWriteTimeoutKey = "readWriteTimeout";
-            private final static String nameKey = "name";
 
             private Map<String, Object> configMap;
 
@@ -372,7 +397,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
                 {   final Map<String,Object> tmpMap = new HashMap<>();
                     //Convert ManagementTargetConfiguration to Map
                     tmpMap.put(idKey, key);
-                    tmpMap.put(readWriteTimeoutKey, configuration.getReadWriteTimeout());
+                    tmpMap.put(readWriteTimeoutKey, configuration.getReadWriteTimeout().duration);
                     tmpMap.put(nameKey, configuration.getAttributeName());
                     for(Map.Entry<String,Object> entry:configuration.getAdditionalElements().entrySet())
                         tmpMap.put(entry.getKey(), entry.getValue());
@@ -381,8 +406,21 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
 
                 @Override
                 public AttributeConfiguration put(String key, AttributeConfiguration value) {
-                    targets.add(convertConfigurationToMap(key, value));
-                    return get(key);
+                    boolean found = false;
+                    //If map is already has that key, we should change only value
+                    for(int i=0;i<targets.size();i++)
+                    {
+                        if(((Map<String,Object>)targets.get(i)).get(targetKey).equals(key))
+                        {
+                            targets.remove(i);
+                            targets.add(convertConfigurationToMap(key, value));
+                            found = true;
+                            break;
+                        }
+                    }
+                    if(!found)
+                        targets.add(convertConfigurationToMap(key, value));
+                    return null;
                 }
 
                 @Override
@@ -535,7 +573,11 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
 
             @Override
             public void putAll(Map<? extends String, ? extends Object> m) {
-                internalMap.putAll(m);
+                for(final String key: m.keySet())
+                {
+                    if(isKeyLegal(Objects.toString(key)))
+                        internalMap.put(key, m.get(key));
+                }
             }
 
             @Override
@@ -638,25 +680,25 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
 
         private class AttributeConfigurationEmptyImpl implements ManagementTargetConfiguration.AttributeConfiguration
         {
-            private TimeSpan readWriteTimeout;
+            private Long readWriteTimeout;
             private String attributeName;
             private Map<String, Object> addirionalElements;
 
             public AttributeConfigurationEmptyImpl()
             {
-               this.readWriteTimeout = new TimeSpan(0);
+               this.readWriteTimeout = 0L;
                this.attributeName = "";
                this.addirionalElements = new HashMap<>();
             }
 
             @Override
             public TimeSpan getReadWriteTimeout() {
-                return this.readWriteTimeout;
+                return new TimeSpan(this.readWriteTimeout);
             }
 
             @Override
             public void setReadWriteTimeout(TimeSpan time) {
-                this.readWriteTimeout = time;
+                this.readWriteTimeout = time.convert(TimeUnit.MILLISECONDS).duration;
             }
 
             @Override

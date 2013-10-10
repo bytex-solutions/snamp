@@ -11,7 +11,7 @@ import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.management.*;
-import java.io.IOException;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -294,25 +294,22 @@ public class JMXSimpleBeanTest extends TestCase
 
     @Test
     public void testYaml() throws IOException {
+
         //Get test file path
-        URL url = this.getClass().getResource("/t.txt");
+        URL inFile = this.getClass().getResource("/in.txt");
+        AgentConfiguration config = null;
+        try(InputStream is = new FileInputStream(inFile.getFile()))
+        {
+            config = ConfigurationFileFormat.YAML.parse(is);
+        }
         //Load the configuration from file
-        AgentConfiguration config = ConfigurationFileFormat.load("yaml", url.getFile());
+        //config = ConfigurationFileFormat.load("yaml", url.getFile());
         //Check if configuration loaded properly
         assertNotNull(config);
 
         Map<String, AgentConfiguration.ManagementTargetConfiguration> targets = config.getTargets();
         //Make sure that there are two targets in configuration
         assertEquals(2, targets.size());
-
-        //Create and add new target
-        AgentConfiguration.ManagementTargetConfiguration newTarget = config.newManagementTargetConfiguration();
-        newTarget.setConnectionType("HTTPS");
-        newTarget.setConnectionString("https://");
-        newTarget.setNamespace("mynamespace");
-        targets.put("1.3.5", newTarget);
-         //Check that new target is in the map
-        assertEquals(3, targets.size());
 
         AgentConfiguration.ManagementTargetConfiguration target = targets.get("wso-esb-1");
         //Check connection type
@@ -330,5 +327,37 @@ public class JMXSimpleBeanTest extends TestCase
         //Check timeout, should be set to default value
         assertEquals(7000, attr.getReadWriteTimeout().duration);
 
+        //Create and add new target
+        AgentConfiguration.ManagementTargetConfiguration newTarget = config.newManagementTargetConfiguration();
+        newTarget.setConnectionType("HTTPS");
+        newTarget.setConnectionString("https://");
+        newTarget.setNamespace("mynamespace");
+        newTarget.getAdditionalElements().put("addelem", "value1");
+        //Create new attribute
+        AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration newAttr = newTarget.newAttributeConfiguration();
+        newAttr.setAttributeName("newAttr");
+        newAttr.setReadWriteTimeout(new TimeSpan(2890));
+        newAttr.getAdditionalElements().put("attraddelem", "value2");
+        //Put 3 attributes and two af them with same id
+        newTarget.getAttributes().put("1.5.9", newAttr);
+        newAttr.setAttributeName("newAttr1");
+        newTarget.getAttributes().put("1.5.8", newAttr);
+        newAttr.setAttributeName("newAttr3");
+        newTarget.getAttributes().put("1.5.9", newAttr);
+
+        //Attributes should be two
+        assertEquals(2, newTarget.getAttributes().size());
+        //Check that last attribute replases the firts ne
+        assertEquals("newAttr3", newTarget.getAttributes().get("1.5.9").getAttributeName());
+        //Put just made target into configuration with already existing name
+        targets.put("wso-esb-1", newTarget);
+        //Check that new target replases the existing one
+        assertEquals(2, targets.size());
+
+        URL outFile = this.getClass().getResource("/out.txt");
+        try(OutputStream os = new FileOutputStream(outFile.getFile()))
+        {
+            ConfigurationFileFormat.YAML.save(config, os);
+        }
     }
 }
