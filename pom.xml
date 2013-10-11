@@ -21,7 +21,7 @@
               <archive>
                   <manifest>
                       <addClasspath>true</addClasspath>
-                      <mainClass>com.snamp.hosting.SnmpAgent</mainClass>
+                      <mainClass>com.snamp.adapters.snmp.SnmpAdapter</mainClass>
                   </manifest>
               </archive>
           </configuration>
@@ -51,7 +51,7 @@
                <archive>
                 <manifest>
                     <addClasspath>true</addClasspath>
-                    <mainClass>com.snamp.hosting.SnmpAgent</mainClass>
+                    <mainClass>com.snamp.adapters.snmp.SnmpAdapter</mainClass>
                 </manifest>
               </archive>
             </configuration>

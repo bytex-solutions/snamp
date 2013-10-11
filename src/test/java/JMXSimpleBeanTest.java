@@ -1,4 +1,5 @@
 import com.snamp.TimeSpan;
+import com.snamp.hosting.Agent;
 import com.snamp.hosting.AgentConfiguration;
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -10,10 +11,7 @@ import org.snmp4j.transport.DefaultUdpTransportMapping;
 import javax.management.*;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class JMXSimpleBeanTest extends TestCase
 {
@@ -132,35 +130,53 @@ public class JMXSimpleBeanTest extends TestCase
 
     private static AgentConfiguration createTestConfig(){
         return new AgentConfiguration() {
+            /**
+             * Creates a new default configuration of the management target.
+             *
+             * @return A new default configuration of the management target.
+             */
+            @Override
+            public ManagementTargetConfiguration newManagementTargetConfiguration() {
+                throw new UnsupportedOperationException();
+            }
+
             @Override
             public HostingConfiguration getAgentHostingConfig() {
-               return new HostingConfiguration() {
-                   @Override
-                   public int getPort() {
-                       return localHostPort;
-                   }
+              return new HostingConfiguration() {
+                  @Override
+                  public String getAdapterName() {
+                      return "snmp";
+                  }
 
-                   @Override
-                   public void setPort(int port) {
+                  @Override
+                  public void setAdapterName(final String adapterName) {
                       throw new UnsupportedOperationException();
-                   }
+                  }
 
-                   @Override
-                   public String getAddress() {
-                       return "0.0.0.0";
-                   }
-
-                   @Override
-                   public void setAddress(String address) {
-                       throw new UnsupportedOperationException();
-                   }
-               };
+                  @Override
+                  public Map<String, String> getHostingParams() {
+                      return new HashMap<String, String>(){{
+                        put("port", "161");
+                        put("address", "0.0.0.0");
+                      }};
+                  }
+              };
             }
 
             @Override
             public Map<String, ManagementTargetConfiguration> getTargets() {
                 Map<String, ManagementTargetConfiguration> targets = new HashMap<>();
                 targets.put("test_server", new ManagementTargetConfiguration() {
+                    /**
+                     * Creates a new default attribute configuration.
+                     *
+                     * @return A new default attribute configuration.
+                     */
+                    @Override
+                    public AttributeConfiguration newAttributeConfiguration() {
+                        throw new UnsupportedOperationException();
+                    }
+
                     @Override
                     public String getConnectionString() {
                         return String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", localJMXPort);
@@ -221,28 +237,13 @@ public class JMXSimpleBeanTest extends TestCase
                                         put("objectName",objectName);
                                     }};
                                 }
-
-                                @Override
-                                public void setAdditionalElements(Map<String, String> elements) {
-                                    throw new UnsupportedOperationException();
-                                }
                             });
                         }};
                     }
 
                     @Override
-                    public void setAttributes(Map<String, AttributeConfiguration> attributes) {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    @Override
                     public Map<String, String> getAdditionalElements() {
                         return new HashMap<>();
-                    }
-
-                    @Override
-                    public void setAdditionalElements(Map<String, String> elements) {
-                        throw new UnsupportedOperationException();
                     }
                 });
                 return targets;
@@ -273,9 +274,9 @@ public class JMXSimpleBeanTest extends TestCase
 
         ClassLoader classLoader = JMXSimpleBeanTest.class.getClassLoader();
         Class aClass = classLoader.loadClass("com.snamp.hosting.AgentHostingSandbox");
-        final Method startMethod = aClass.getMethod("start", AgentConfiguration.class, boolean.class);
-        startMethod.setAccessible(true);
-        try(final AutoCloseable hosting = (AutoCloseable)startMethod.invoke(null, createTestConfig(), false)){
+        final AgentConfiguration config = createTestConfig();
+        try(final Agent hosting = new Agent(config.getAgentHostingConfig())){
+            hosting.start(config.getTargets());
 
          //   Thread.sleep(100000000);
 

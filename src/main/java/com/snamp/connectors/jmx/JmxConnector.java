@@ -7,11 +7,10 @@ import javax.management.*;
 import javax.management.openmbean.*;
 import javax.management.remote.*;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
+import static com.snamp.connectors.jmx.JmxAttributeTypeInfoBuilder.createJmxType;
 
 /**
  * Represents JMX connector.
@@ -173,113 +172,6 @@ final class JmxConnector extends ManagementConnectorBase {
             return 1;
         }
 
-        private final AttributeTypeInfo getAttributeType(final SimpleType<?> simpleType){
-            if(simpleType == SimpleType.BOOLEAN)
-                return AttributePrimitiveType.BOOL;
-            else if(simpleType == SimpleType.BIGDECIMAL)
-                return AttributePrimitiveType.DECIMAL;
-            else if(simpleType == SimpleType.BIGINTEGER)
-                return AttributePrimitiveType.INTEGER;
-            else if(simpleType == SimpleType.BYTE)
-                return AttributePrimitiveType.INT8;
-            else if(simpleType == SimpleType.CHARACTER || simpleType == SimpleType.STRING)
-                return AttributePrimitiveType.TEXT;
-            else if(simpleType == SimpleType.DATE)
-                return AttributePrimitiveType.UNIX_TIME;
-            else if(simpleType == SimpleType.DOUBLE)
-                return AttributePrimitiveType.DOUBLE;
-            else if(simpleType == SimpleType.FLOAT)
-                return AttributePrimitiveType.FLOAT;
-            else if(simpleType == SimpleType.SHORT)
-                return AttributePrimitiveType.INT16;
-            else if(simpleType == SimpleType.LONG)
-                return AttributePrimitiveType.INT32;
-            else return new DefaultJavaAttributeTypeInfo(Object.class);
-        }
-
-        private final AttributeTypeInfo getAttributeType(final ArrayType<?> attributeType){
-            if(attributeType.getDimension() == 1)
-                return null;
-            else return new DefaultJavaAttributeTypeInfo(Object.class);
-        }
-
-        private final AttributeTypeInfo getAttributeType(final CompositeType attributeType){
-            return null;
-        }
-
-        private final AttributeTypeInfo getAttributeType(final TabularType attributeType){
-            return null;
-        }
-
-        protected final AttributeTypeInfo getAttributeType(final OpenType<?> attributeType){
-            if(attributeType instanceof SimpleType) return getAttributeType((SimpleType<?>)attributeType);
-            else if(attributeType instanceof ArrayType) return getAttributeType((ArrayType)attributeType);
-            else if(attributeType instanceof CompositeType) return getAttributeType((CompositeType)attributeType);
-            else if(attributeType instanceof TabularType) return getAttributeType((TabularType)attributeType);
-            else return new DefaultJavaAttributeTypeInfo(Object.class);
-        }
-
-        protected final AttributeTypeInfo getAttributeType(final String attributeTypeName){
-            switch (attributeTypeName){
-                case "byte":
-                case "java.lang.Byte":
-                    return AttributePrimitiveType.INT8;
-                case "short":
-                case "java.lang.Short":
-                    return AttributePrimitiveType.INT16;
-                case "int":
-                case "java.lang.Integer":
-                    return AttributePrimitiveType.INT32;
-                case "long":
-                case "java.lang.Long":
-                    return AttributePrimitiveType.INT64;
-                case "boolean":
-                    return AttributePrimitiveType.BOOL;
-                case "java.lang.String":
-                case "char":
-                    return AttributePrimitiveType.TEXT;
-                case "java.math.BigInteger":
-                    return AttributePrimitiveType.INTEGER;
-                case "java.math.BigDecimal":
-                    return AttributePrimitiveType.DECIMAL;
-                case "float":
-                case "java.math.Float":
-                    return AttributePrimitiveType.FLOAT;
-                case "double":
-                case "java.lang.Double":
-                    return AttributePrimitiveType.DOUBLE;
-                case "java.util.Date":
-                    return AttributePrimitiveType.UNIX_TIME;
-                case "java.util.Calendar":
-                    return AttributePrimitiveType.UNIX_TIME;
-                case "byte[]":
-                case "java.lang.Byte[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.INT8);
-                case "short[]":
-                case "java.lang.Short[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.INT16);
-                case "int[]":
-                case "java.lang.Integer[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.INT32);
-                case "long[]":
-                case "java.lang.Long[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.INT64);
-                case "float[]":
-                case "java.lang.Float[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.FLOAT);
-                case "double[]":
-                case "java.lang.Double[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.DOUBLE);
-                case "boolean[]":
-                case "java.lang.Boolean[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.BOOL);
-                case "java.lang.String[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.TEXT);
-                case "java.util.Date[]":
-                case "java..util.Calendar[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.UNIX_TIME);
-                case "java.math.BigInteger[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.INTEGER);
-                case "java.math.BigDecimal[]": return AttributeArrayType.primitiveArray(AttributePrimitiveType.DECIMAL);
-                default:
-                    try {
-                        return new DefaultJavaAttributeTypeInfo(Class.forName(attributeTypeName));
-                    } catch (final ClassNotFoundException e) {
-                        return new DefaultJavaAttributeTypeInfo(Object.class);
-                    }
-            }
-        }
-
         @Override
         public final boolean isEmpty() {
             return false;
@@ -395,10 +287,10 @@ final class JmxConnector extends ManagementConnectorBase {
         }, null);
         return targetAttr != null ? new JmxAttributeProvider(targetAttr.getName(), namespace){
             @Override
-            public final AttributeTypeInfo getAttributeType() {
+            protected final AttributeTypeInfo detectAttributeType() {
                 if(targetAttr instanceof OpenMBeanAttributeInfoSupport)
-                    return getAttributeType(((OpenMBeanAttributeInfoSupport) targetAttr).getOpenType());
-                else return getAttributeType(targetAttr.getType());
+                    return createJmxType(((OpenMBeanAttributeInfoSupport) targetAttr).getOpenType());
+                else return createJmxType(targetAttr.getType());
             }
 
             /**
@@ -507,18 +399,14 @@ final class JmxConnector extends ManagementConnectorBase {
                 };
             }
 
-            /**
-             * Returns the canonical name of the attribute type.
-             *
-             * @return
-             */
             @Override
-            public final AttributeTypeInfo getAttributeType() {
+            protected final AttributeTypeInfo detectAttributeType() {
                 final Object attributeType = navigator.getType(compositeType);
                 if(attributeType instanceof OpenType)
-                    return getAttributeType((OpenType<?>)attributeType);
-                else
-                    return getAttributeType(Objects.toString(attributeType, ""));
+                    return createJmxType((OpenType<?>)attributeType);
+                else if(attributeType instanceof Class<?>)
+                    return createJmxType((Class<?>)attributeType);
+                else return createJmxType(Objects.toString(attributeType, ""));
             }
         } : null;
     }

@@ -36,15 +36,19 @@ enum ConfigurationFileFormat implements ConfigurationParser {
      * Represents YAML-compliant configuration.
      */
     private static final class YamlAgentConfiguration extends HashMap<String, Object> implements AgentConfiguration{
-        private static final String hostingPortKey = "port";
-        private static final String hostingAddressKey = "address";
+
+        public YamlAgentConfiguration(final Map<String, Object> rawConfig){
+            super(rawConfig);
+        }
 
         /**
-         * Initializes a new YAML-compliant configuration.
-         * @param rawConfiguration The raw configuration in the form of the YAML DOM.
+         * Creates a new default configuration of the management target.
+         *
+         * @return A new default configuration of the management target.
          */
-        public YamlAgentConfiguration(final Map<String, Object> rawConfiguration){
-            super(rawConfiguration);
+        @Override
+        public ManagementTargetConfiguration newManagementTargetConfiguration() {
+            return null;  //To change body of implemented methods use File | Settings | File Templates.
         }
 
         /**
@@ -54,7 +58,7 @@ enum ConfigurationFileFormat implements ConfigurationParser {
          */
         @Override
         public HostingConfiguration getAgentHostingConfig() {
-            return null;
+            return null;  //To change body of implemented methods use File | Settings | File Templates.
         }
 
         /**

@@ -1,14 +1,11 @@
 package com.snamp.connectors.jmx;
 
 import com.snamp.connectors.*;
-import com.sun.jmx.defaults.JmxProperties;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 import javax.management.remote.JMXServiceURL;
-import java.net.MalformedURLException;
 import java.util.*;
 import java.util.logging.*;
-import com.snamp.ExtensionsManager;
 
 /**
  * Represents JMX connector factory.

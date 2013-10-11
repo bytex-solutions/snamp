@@ -7,6 +7,7 @@ import java.util.*;
  * @author roman
  */
 public interface AttributeTabularType extends AttributeTypeInfo {
+
     /**
      * Returns a set of column names.
      * @return

@@ -1,9 +1,13 @@
 package com.snamp.hosting;
 
-import com.snamp.ExtensionsManager;
-import com.snamp.connectors.ManagementConnector;
-import com.snamp.connectors.ManagementConnectorFactory;
+import com.snamp.adapters.*;
+import com.snamp.connectors.*;
+import net.xeoh.plugins.base.PluginManager;
+import net.xeoh.plugins.base.impl.PluginManagerFactory;
+import net.xeoh.plugins.base.options.getplugin.OptionCapabilities;
+import net.xeoh.plugins.base.util.uri.ClassURI;
 
+import java.net.URI;
 import java.util.logging.Logger;
 
 /**
@@ -11,6 +15,7 @@ import java.util.logging.Logger;
  * @author roman
  */
 final class HostingServices {
+    private static final PluginManager manager;
     private static final Logger log = Logger.getLogger("snamp.log");
 
     private HostingServices(){
@@ -19,11 +24,44 @@ final class HostingServices {
 
     public static ManagementConnector createConnector(final AgentConfiguration.ManagementTargetConfiguration target){
         if(target == null) throw new IllegalArgumentException("target is null.");
-        final ManagementConnectorFactory factory = ExtensionsManager.getManagementConnectorFactory(target.getConnectionType());
+        final ManagementConnectorFactory factory = getManagementConnectorFactory(target.getConnectionType());
         if(factory == null){
             log.severe(String.format("Unsupported management connector '%s'", target.getConnectionType()));
             return null;
         }
         return factory.newInstance(target.getConnectionString(), target.getAdditionalElements());
+    }
+    static {
+        manager = PluginManagerFactory.createPluginManager();
+        //load standard plug-ins
+        manager.addPluginsFrom(URI.create("classpath://com.snamp.connectors.jmx.JmxConnectorFactory"));
+
+    }
+
+    /**
+     * Registers a new management connector factory.
+     * @param connectorFactory The type of the management connector factory to register.
+     */
+    public static void registerManagementConnectorFactory(final Class<? extends ManagementConnectorFactory> connectorFactory){
+        if(connectorFactory == null) throw new IllegalArgumentException("connectorFactory is null.");
+        manager.addPluginsFrom(new ClassURI(connectorFactory).toURI());
+    }
+
+    public static void registerAdapter(final Class<? extends Adapter> adapterImpl){
+        if(adapterImpl == null) throw new IllegalArgumentException("adapterImpl is null.");
+        manager.addPluginsFrom(new ClassURI(adapterImpl).toURI());
+    }
+
+    public static Adapter getAdapter(final String adapterName){
+        return manager.getPlugin(Adapter.class, new OptionCapabilities(AdapterBase.makeCapabilities(adapterName)));
+    }
+
+    /**
+     * Returns the management connector factory already loaded as plugin.
+     * @param connectorName The name of the connector.
+     * @return A new instance of the management connector factory,
+     */
+    public static ManagementConnectorFactory getManagementConnectorFactory(final String connectorName){
+        return manager.getPlugin(ManagementConnectorFactory.class, new OptionCapabilities(ManagementConnectorFactoryBase.makeCapabilities(connectorName)));
     }
 }

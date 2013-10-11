@@ -14,44 +14,40 @@ public interface AgentConfiguration {
      */
     public static interface HostingConfiguration {
         /**
-         * Represents the port number for SNMP agent,
+         * Gets the hosting adapter name.
+         * @return
          */
-        static final int snmpDefaultPort = 161;
+        public String getAdapterName();
 
         /**
-         * Represents the default hosting IP-address.
+         * Sets the hosting adapter name.
+         * @param adapterName The adapter name.
          */
-        static final String defaultAddress = "0.0.0.0";
+        public void setAdapterName(final String adapterName);
 
         /**
-         * Gets the agent hosting port.
-         * @return The agent hosting port.
+         * Returns a dictionary of hosting parameters, such as port and hosting address.
+         * @return
          */
-        public int getPort();
-
-        /**
-         * Sets the agent hosting port.
-         * @param port The port number.
-         */
-        public void setPort(final int port);
-
-        /**
-         * Gets the agent hosting address (such as IP binding).
-         * @return The hosting address.
-         */
-        public String getAddress();
-
-        /**
-         * Sets the agent hosting address.
-         * @param address The agent hosting address.
-         */
-        public void setAddress(final String address);
+        public Map<String, String> getHostingParams();
     }
+
+    /**
+     * Creates a new default configuration of the management target.
+     * @return A new default configuration of the management target.
+     */
+    public ManagementTargetConfiguration newManagementTargetConfiguration();
 
     /**
      * Represents management target configuration (back-end management information providers).
      */
     public static interface ManagementTargetConfiguration {
+
+        /**
+         * Creates a new default attribute configuration.
+         * @return A new default attribute configuration.
+         */
+        public AttributeConfiguration newAttributeConfiguration();
 
         /**
          * Represents attribute configuration.
@@ -85,12 +81,6 @@ public interface AgentConfiguration {
              * @return
              */
             public Map<String, String> getAdditionalElements();
-
-            /**
-             * Sets the additional configuration elements.
-             * @param elements
-             */
-            public void setAdditionalElements(final Map<String, String> elements);
         }
 
         /**
@@ -138,22 +128,10 @@ public interface AgentConfiguration {
         public Map<String, AttributeConfiguration> getAttributes();
 
         /**
-         * Sets the configuration of attributes.
-         * @param attributes The dictionary of attributes.
-         */
-        public void setAttributes(final Map<String, AttributeConfiguration> attributes);
-
-        /**
          * Returns the dictionary of additional configuration elements.
          * @return The dictionary of additional configuration elements.
          */
         public Map<String, String> getAdditionalElements();
-
-        /**
-         * Sets the additional configuration elements.
-         * @param elements The dictionary of additional configuration elements.
-         */
-        public void setAdditionalElements(final Map<String, String> elements);
     }
 
     /**

@@ -5,12 +5,14 @@ import com.snamp.*;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.*;
+import java.util.logging.Logger;
 
 /**
  * Represents an abstract class for building custom management connectors.
  * @author roman
  */
 public abstract class ManagementConnectorBase implements ManagementConnector {
+    private static final Logger log = Logger.getLogger("snamp.snmp.log");
 
     /**
      * Represents default implementation of the attribute descriptor.
@@ -18,12 +20,30 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
     protected static abstract class GenericAttributeMetadata implements AttributeMetadata {
         private final String attributeName;
         private final String namespace;
+        private AttributeTypeInfo attributeType;
 
         public GenericAttributeMetadata(final String attributeName, final String namespace){
             if(attributeName == null) throw new IllegalArgumentException("attributeName is null.");
             else if(namespace == null) throw new IllegalArgumentException("namespace is null.");
             this.attributeName = attributeName;
             this.namespace = namespace;
+        }
+
+        /**
+         * Detects the attribute type (this method will be called by infrastructure once).
+         * @return Detected attribute type.
+         */
+        protected abstract AttributeTypeInfo detectAttributeType();
+
+        /**
+         * Returns the type of the attribute value.
+         *
+         * @return The type of the attribute value.
+         */
+        @Override
+        public final AttributeTypeInfo getAttributeType() {
+            if(attributeType == null) attributeType = detectAttributeType();
+            return attributeType;
         }
 
         @Override

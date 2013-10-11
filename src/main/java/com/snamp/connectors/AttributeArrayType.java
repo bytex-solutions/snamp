@@ -42,16 +42,6 @@ public abstract class AttributeArrayType implements AttributeTabularType {
     }
 
     /**
-     * Creates a new array type based on the primitive element type.
-     * @param primitiveType
-     * @return
-     */
-    public static AttributeArrayType primitiveArray(final AttributePrimitiveType primitiveType){
-        return new AttributeArrayType(primitiveType) {
-        };
-    }
-
-    /**
      * Gets a set of dictionary keys (items).
      *
      * @return A set of dictionary keys (items).
@@ -62,6 +52,15 @@ public abstract class AttributeArrayType implements AttributeTabularType {
     }
 
     /**
+     * Returns the type of the array index column.
+     * @return
+     */
+    protected AttributeJavaTypeInfo<? extends Number> getIndexColumnType(){
+        final AttributePrimitiveTypeBuilder builder = new AttributePrimitiveTypeBuilder();
+        return builder.createInt32Type();
+    }
+
+    /**
      * Returns the type of the column.
      * @param columnName
      * @return
@@ -69,7 +68,7 @@ public abstract class AttributeArrayType implements AttributeTabularType {
     @Override
     public final AttributeTypeInfo getColumnType(final String columnName) {
         switch (columnName){
-            case indexColumnName: return AttributePrimitiveType.INT32;
+            case indexColumnName: getIndexColumnType();
             case valueColumnName: return elementType;
             default: return null;
         }
