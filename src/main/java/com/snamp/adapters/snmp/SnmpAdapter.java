@@ -7,7 +7,7 @@ import java.util.logging.*;
 import com.snamp.adapters.Adapter;
 import static com.snamp.adapters.AdapterBase.makeCapabilities;
 import com.snamp.connectors.ManagementConnector;
-import net.xeoh.plugins.base.annotations.Capabilities;
+import net.xeoh.plugins.base.annotations.*;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
@@ -25,6 +25,7 @@ import com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.Attrib
  * @author agrishin
  * 
  */
+@PluginImplementation
 final class SnmpAdapter extends BaseAgent implements Adapter {
     private static final Logger log = Logger.getLogger("snamp.snmp.log");
     private static final int defaultPort = 161;

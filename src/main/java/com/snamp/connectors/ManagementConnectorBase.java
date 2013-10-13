@@ -16,11 +16,12 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
 
     /**
      * Represents default implementation of the attribute descriptor.
+     * @param <T> Type of the attribute type descriptor.
      */
-    protected static abstract class GenericAttributeMetadata implements AttributeMetadata {
+    protected static abstract class GenericAttributeMetadata<T extends AttributeTypeInfo> implements AttributeMetadata {
         private final String attributeName;
         private final String namespace;
-        private AttributeTypeInfo attributeType;
+        private T attributeType;
 
         public GenericAttributeMetadata(final String attributeName, final String namespace){
             if(attributeName == null) throw new IllegalArgumentException("attributeName is null.");
@@ -33,7 +34,7 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
          * Detects the attribute type (this method will be called by infrastructure once).
          * @return Detected attribute type.
          */
-        protected abstract AttributeTypeInfo detectAttributeType();
+        protected abstract T detectAttributeType();
 
         /**
          * Returns the type of the attribute value.
@@ -41,7 +42,7 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
          * @return The type of the attribute value.
          */
         @Override
-        public final AttributeTypeInfo getAttributeType() {
+        public final T getAttributeType() {
             if(attributeType == null) attributeType = detectAttributeType();
             return attributeType;
         }

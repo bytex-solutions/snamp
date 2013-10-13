@@ -6,7 +6,7 @@ import java.util.Objects;
  * Represents the default implementation of the Java-specific attribute type.
  * @author roman
  */
-public final class DefaultAttributeJavaTypeInfo implements AttributeJavaTypeInfo {
+public class DefaultAttributeJavaTypeInfo implements AttributeJavaTypeInfo {
     private final Class<?> nativeClass;
 
     /**

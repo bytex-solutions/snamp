@@ -10,7 +10,10 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.*;
+
+import static com.snamp.connectors.AttributePrimitiveTypeBuilder.numberToBoolean;
 import static com.snamp.connectors.jmx.JmxAttributeTypeInfoBuilder.createJmxType;
+import static com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo;
 
 /**
  * Represents JMX connector.
@@ -151,12 +154,19 @@ final class JmxConnector extends ManagementConnectorBase {
          * @return
          */
         public ObjectName getOwner();
+
+        /**
+         * Returns the type of the attribute value.
+         * @return The type of the attribute value.
+         */
+        @Override
+        public AttributeConvertibleTypeInfo<?> getAttributeType();
     }
 
     /**
      * Represents an abstract class for building JMX attribute providers.
      */
-    private abstract class JmxAttributeProvider extends GenericAttributeMetadata implements JmxAttributeMetadata {
+    private abstract class JmxAttributeProvider extends GenericAttributeMetadata<AttributeConvertibleTypeInfo<?>> implements JmxAttributeMetadata {
 
         private final ObjectName namespace;
         private MBeanServerConnectionReader<Object> attributeValueReader;
@@ -268,8 +278,9 @@ final class JmxConnector extends ManagementConnectorBase {
          * @return
          */
         public final boolean setValue(final Object value){
-            if(canWrite()){
-                return handleConnection(createAttributeValueWriter(value), false);
+            final AttributeConvertibleTypeInfo<?> typeInfo = getAttributeType();
+            if(canWrite() && value != null && typeInfo.canConvertFrom(value.getClass())){
+                return handleConnection(createAttributeValueWriter(typeInfo.convertFrom(value)), false);
             }
             else return false;
         }
@@ -287,7 +298,7 @@ final class JmxConnector extends ManagementConnectorBase {
         }, null);
         return targetAttr != null ? new JmxAttributeProvider(targetAttr.getName(), namespace){
             @Override
-            protected final AttributeTypeInfo detectAttributeType() {
+            protected final AttributeConvertibleTypeInfo<?> detectAttributeType() {
                 if(targetAttr instanceof OpenMBeanAttributeInfoSupport)
                     return createJmxType(((OpenMBeanAttributeInfoSupport) targetAttr).getOpenType());
                 else return createJmxType(targetAttr.getType());
@@ -400,7 +411,7 @@ final class JmxConnector extends ManagementConnectorBase {
             }
 
             @Override
-            protected final AttributeTypeInfo detectAttributeType() {
+            protected final AttributeConvertibleTypeInfo<?> detectAttributeType() {
                 final Object attributeType = navigator.getType(compositeType);
                 if(attributeType instanceof OpenType)
                     return createJmxType((OpenType<?>)attributeType);
