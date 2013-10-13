@@ -84,7 +84,7 @@ public interface AgentConfiguration {
              * Returns the additional configuration elements.
              * @return
              */
-            public Map<String, Object> getAdditionalElements();
+            public Map<String, String> getAdditionalElements();
         }
 
         /**
@@ -136,7 +136,7 @@ public interface AgentConfiguration {
          * Returns the dictionary of additional configuration elements.
          * @return The dictionary of additional configuration elements.
          */
-        public Map<String, Object> getAdditionalElements();
+        public Map<String, String> getAdditionalElements();
 
         /**
          * Empty implementation of AttributeConfiguration interface

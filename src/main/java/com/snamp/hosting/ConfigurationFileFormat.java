@@ -113,7 +113,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
                 tmpMap.put(idKey, key);
                 tmpMap.put(readWriteTimeoutKey, configuration.getReadWriteTimeout().duration);
                 tmpMap.put(nameKey, configuration.getAttributeName());
-                for(Map.Entry<String,Object> entry:configuration.getAdditionalElements().entrySet())
+                for(Map.Entry<String,String> entry:configuration.getAdditionalElements().entrySet())
                     tmpMap.put(entry.getKey(), entry.getValue());
                 return tmpMap;
             }
@@ -134,7 +134,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
                 tmpMap.put(attributesKey, attributes);
 
                 //
-                for(Map.Entry<String,Object> entry:configuration.getAdditionalElements().entrySet())
+                for(Map.Entry<String,String> entry:configuration.getAdditionalElements().entrySet())
                     tmpMap.put(entry.getKey(), entry.getValue());
                 return tmpMap;
             }
@@ -280,7 +280,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
             }
 
             @Override
-            public Map<String, Object> getAdditionalElements() {
+            public Map<String, String> getAdditionalElements() {
                 return new YamlAdditionalElementsMap(configMap, connectionStringtKey, connectionTypetKey, namespaceKey, defaultTimeoutKey);
             }
 
@@ -332,7 +332,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
                 }
 
                 @Override
-                public Map<String, Object> getAdditionalElements() {
+                public Map<String, String> getAdditionalElements() {
                     return new YamlAdditionalElementsMap(attrMap, readWriteTimeoutKey, nameKey, defaultTimeoutKey);
                 }
             }
@@ -399,7 +399,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
                     tmpMap.put(idKey, key);
                     tmpMap.put(readWriteTimeoutKey, configuration.getReadWriteTimeout().duration);
                     tmpMap.put(nameKey, configuration.getAttributeName());
-                    for(Map.Entry<String,Object> entry:configuration.getAdditionalElements().entrySet())
+                    for(Map.Entry<String,String> entry:configuration.getAdditionalElements().entrySet())
                         tmpMap.put(entry.getKey(), entry.getValue());
                     return tmpMap;
                 }
@@ -499,7 +499,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
             }
         }
 
-        private final class YamlAdditionalElementsMap implements Map<String,Object> {
+        private final class YamlAdditionalElementsMap implements Map<String, String> {
             private Map<String,Object> internalMap;
             private String[] internalLegalKeys = new String[0];
 
@@ -556,7 +556,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
             }
 
             @Override
-            public String put(String key, Object value) {
+            public String put(String key, String value) {
                 if(isKeyLegal(key))
                     return Objects.toString(internalMap.put(key, Objects.toString(value)), null);
                 else
@@ -572,7 +572,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
             }
 
             @Override
-            public void putAll(Map<? extends String, ? extends Object> m) {
+            public void putAll(Map<? extends String, ? extends String> m) {
                 for(final String key: m.keySet())
                 {
                     if(isKeyLegal(Objects.toString(key)))
@@ -605,26 +605,42 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
             }
 
             @Override
-            public Collection<Object> values() {
-                final Collection<Object> internalList = new ArrayList<Object>();
+            public Collection<String> values() {
+                final Collection<String> internalList = new ArrayList<String>();
                 for(Map.Entry<String, Object> entry : internalMap.entrySet())
                 {
                     if(isKeyLegal(entry.getKey()))
                     {
-                        internalList.add(entry.getValue());
+                        internalList.add(Objects.toString(entry.getValue(), ""));
                     }
                 }
                 return internalList;
             }
 
             @Override
-            public Set<Entry<String, Object>> entrySet() {
-                final Set<Map.Entry<String, Object>> internalSet = new HashSet<Map.Entry<String, Object>>();
-                for(Map.Entry<String, Object> entry : internalMap.entrySet())
+            public Set<Entry<String, String>> entrySet() {
+                final Set<Map.Entry<String, String>> internalSet = new HashSet<Map.Entry<String, String>>();
+                for(final Map.Entry<String, Object> entry : internalMap.entrySet())
                 {
                     if(isKeyLegal(entry.getKey()))
                     {
-                        internalSet.add(entry);
+                        internalSet.add(new Entry<String, String>(){
+
+                            @Override
+                            public String getKey() {
+                                return entry.getKey();
+                            }
+
+                            @Override
+                            public String getValue() {
+                                return Objects.toString(entry.getValue());
+                            }
+
+                            @Override
+                            public String setValue(String value) {
+                                return null;
+                            }
+                        });
                     }
                 }
                 return internalSet;
@@ -682,7 +698,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
         {
             private Long readWriteTimeout;
             private String attributeName;
-            private Map<String, Object> addirionalElements;
+            private Map<String, String> addirionalElements;
 
             public AttributeConfigurationEmptyImpl()
             {
@@ -712,7 +728,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
             }
 
             @Override
-            public Map<String, Object> getAdditionalElements() {
+            public Map<String, String> getAdditionalElements() {
                 return this.addirionalElements;
             }
         }
@@ -723,7 +739,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
             private String connectorType;
             private String namespace;
             private Map<String, AttributeConfiguration> attributes;
-            private Map<String, Object> additionalElements;
+            private Map<String, String> additionalElements;
 
             public ManagementTargetConfigurationEmptyImpl()
             {
@@ -770,7 +786,7 @@ public enum ConfigurationFileFormat implements ConfigurationParser {
             }
 
             @Override
-            public Map<String, Object> getAdditionalElements() {
+            public Map<String, String> getAdditionalElements() {
                 return this.additionalElements;
             }
 

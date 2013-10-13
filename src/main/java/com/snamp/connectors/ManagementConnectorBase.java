@@ -109,7 +109,7 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
      * @param options Attribute discovery options.
      * @return The description of the attribute.
      */
-    protected abstract AttributeMetadata connectAttribute(final String attributeName, final Map<String, Object> options);
+    protected abstract AttributeMetadata connectAttribute(final String attributeName, final Map<String, String> options);
 
     /**
      * Connects to the specified attribute.
@@ -119,7 +119,7 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
      * @return The description of the attribute.
      */
     @Override
-    public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, Object> options) {
+    public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) {
         verifyInitialization();
         final Lock writeLock =  coordinator.writeLock();
         writeLock.lock();

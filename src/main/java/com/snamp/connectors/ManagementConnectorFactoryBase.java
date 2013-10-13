@@ -49,7 +49,7 @@ public abstract class ManagementConnectorFactoryBase<TConnector extends Manageme
      * @return A new instance of the management connector.
      */
     @Override
-    public abstract TConnector newInstance(final String connectionString, final Map<String, Object> connectionProperties);
+    public abstract TConnector newInstance(final String connectionString, final Map<String, String> connectionProperties);
 
     /**
      * Returns the connector name.

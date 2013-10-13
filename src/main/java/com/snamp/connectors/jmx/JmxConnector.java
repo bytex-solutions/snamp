@@ -563,7 +563,7 @@ final class JmxConnector extends ManagementConnectorBase {
      * @return The description of the attribute.
      */
     @Override
-    protected JmxAttributeMetadata connectAttribute(final String attributeName, final Map<String, Object> options){
+    protected JmxAttributeMetadata connectAttribute(final String attributeName, final Map<String, String> options){
         final String namespace = Objects.toString(options.get("objectName"), "");
         try {
             return connectAttribute(new ObjectName(namespace), attributeName, options.containsKey("useRegexp") && Boolean.TRUE.equals(options.get("useRegexp")));

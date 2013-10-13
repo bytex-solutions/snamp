@@ -220,8 +220,8 @@ public class JMXSimpleBeanTest extends TestCase
                                 }
 
                                 @Override
-                                public Map<String, Object> getAdditionalElements() {
-                                    return new HashMap<String, Object>(){{
+                                public Map<String, String> getAdditionalElements() {
+                                    return new HashMap<String, String>(){{
                                         put("objectName",objectName);
                                     }};
                                 }
@@ -230,7 +230,7 @@ public class JMXSimpleBeanTest extends TestCase
                     }
 
                     @Override
-                    public Map<String, Object> getAdditionalElements() {
+                    public Map<String, String> getAdditionalElements() {
                         return new HashMap<>();
                     }
 
