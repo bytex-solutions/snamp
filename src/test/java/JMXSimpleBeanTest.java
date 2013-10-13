@@ -385,6 +385,16 @@ public class JMXSimpleBeanTest extends TestCase
         //Check that new target replases the existing one
         assertEquals(2, targets.size());
 
+        //HostingConfiguration test
+        AgentConfiguration.HostingConfiguration hostConf= config.getAgentHostingConfig();
+        assertEquals("SNMPAdapter", hostConf.getAdapterName());
+        assertEquals(2, hostConf.getHostingParams().size());
+        Map<String, String> hostParams = hostConf.getHostingParams();
+        hostParams.put("addelem", "changedValue");
+        //Size still should be same
+        assertEquals(2, hostConf.getHostingParams().size());
+        //Value should be changed
+        assertEquals("changedValue", hostConf.getHostingParams().get("addelem"));
         URL outFile = this.getClass().getResource("/out.txt");
         try(OutputStream os = new FileOutputStream(outFile.getFile()))
         {

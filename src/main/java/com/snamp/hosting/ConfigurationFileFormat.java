@@ -49,6 +49,8 @@ public enum ConfigurationFileFormat{
         private final static String idKey = "id";
         private final static String readWriteTimeoutKey = "readWriteTimeout";
         private final static String nameKey = "name";
+        private final static String hostingConfigurationKey = "hostingConfiguration";
+        private final static String adapterNameKey = "adapterName";
         /**
          * Initializes a new empty configuration.
          */
@@ -653,33 +655,23 @@ public enum ConfigurationFileFormat{
          */
         @Override
         public HostingConfiguration getAgentHostingConfig() {
-            /*final WeakReference<Map<String, Object>> conn = new WeakReference(this);
+            final Map<String, Object> conn = (Map<String, Object>)this.get(hostingConfigurationKey);
             return new AgentConfiguration.HostingConfiguration(){
-
-                private final static String hostingPortKey = "port";
-                private final static String hostingAddressKey = "address";
-
                 @Override
-                public int getPort() {
-                    return Integer.parseInt(Objects.toString(conn.get().get(hostingPortKey), "-1"));
+                public String getAdapterName() {
+                    return Objects.toString(conn.get(adapterNameKey), "");
                 }
 
                 @Override
-                public void setPort(int port) {
-                    conn.get().put(hostingPortKey, port);
+                public void setAdapterName(final String adapterName) {
+                    conn.put(adapterNameKey, adapterName);
                 }
 
                 @Override
-                public String getAddress() {
-                    return Objects.toString(conn.get().get(hostingAddressKey));
+                public Map<String, String> getHostingParams() {
+                    return new YamlAdditionalElementsMap(conn, adapterNameKey);
                 }
-
-                @Override
-                public void setAddress(String address) {
-                    conn.get().put(hostingAddressKey, address);
-                }
-            }; */
-            return null;
+            };
         }
 
         /**
@@ -698,13 +690,13 @@ public enum ConfigurationFileFormat{
         {
             private Long readWriteTimeout;
             private String attributeName;
-            private Map<String, String> addirionalElements;
+            private Map<String, String> additionalElements;
 
             public AttributeConfigurationEmptyImpl()
             {
                this.readWriteTimeout = 0L;
                this.attributeName = "";
-               this.addirionalElements = new HashMap<>();
+               this.additionalElements = new HashMap<>();
             }
 
             @Override
@@ -729,7 +721,7 @@ public enum ConfigurationFileFormat{
 
             @Override
             public Map<String, String> getAdditionalElements() {
-                return this.addirionalElements;
+                return this.additionalElements;
             }
         }
 
