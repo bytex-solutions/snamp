@@ -385,6 +385,11 @@ public class JMXSimpleBeanTest extends TestCase
         //Check that new target replases the existing one
         assertEquals(2, targets.size());
 
+
+        AgentConfiguration.HostingConfiguration hostConf= config.getAgentHostingConfig();
+        assertEquals("SNMPAdapter", hostConf.getAdapterName());
+        assertEquals(2, hostConf.getHostingParams().size());
+
         URL outFile = this.getClass().getResource("/out.txt");
         try(OutputStream os = new FileOutputStream(outFile.getFile()))
         {
