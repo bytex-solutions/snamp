@@ -298,12 +298,11 @@ public class JMXSimpleBeanTest extends TestCase
         //Get test file path
         URL inFile = this.getClass().getResource("/in.txt");
         AgentConfiguration config = null;
+        //Load the configuration from file
         try(InputStream is = new FileInputStream(inFile.getFile()))
         {
             config = ConfigurationFileFormat.YAML.parse(is);
         }
-        //Load the configuration from file
-        //config = ConfigurationFileFormat.load("yaml", url.getFile());
         //Check if configuration loaded properly
         assertNotNull(config);
 
@@ -359,5 +358,13 @@ public class JMXSimpleBeanTest extends TestCase
         {
             ConfigurationFileFormat.YAML.save(config, os);
         }
+        //Load the configuration from file again
+        try(InputStream is = new FileInputStream(outFile.getFile()))
+        {
+            config = ConfigurationFileFormat.YAML.parse(is);
+        }
+
+        AgentConfiguration.ManagementTargetConfiguration outTarget = targets.get("wso-esb-1");
+        assertEquals("mynamespace", outTarget.getNamespace());
     }
 }
