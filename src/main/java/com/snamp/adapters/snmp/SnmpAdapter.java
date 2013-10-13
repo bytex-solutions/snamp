@@ -129,7 +129,7 @@ final class SnmpAdapter extends SnmpAgentBase {
 	 */
 	protected void initTransportMappings() throws IOException {
 		final TransportMapping tm = TransportMappings.getInstance()
-				.createTransportMapping(GenericAddress.parse(address));
+				.createTransportMapping(GenericAddress.parse(String.format("%s/%s", address, port)));
 		transportMappings = new TransportMapping[]{tm};
 	}
 

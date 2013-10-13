@@ -7,6 +7,7 @@ import com.snamp.connectors.ManagementConnectorFactory;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -114,6 +115,10 @@ final class Startup extends ReplServer {
 
     public static void main(String[] args) throws Exception {
         final Adapter ad = HostingServices.getAdapter("snmp");
+        ad.start(new HashMap<String, String>(){{
+            put("port", "3999");
+            put("address", "0.0.0.0");
+        }});
         return;
         //prepare startup arguments
         /*switch (args.length){
