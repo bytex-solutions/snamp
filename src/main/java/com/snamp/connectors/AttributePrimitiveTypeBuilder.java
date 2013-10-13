@@ -337,9 +337,12 @@ public class AttributePrimitiveTypeBuilder extends AttributeTypeInfoBuilder {
      * @param d
      * @return
      */
+    @Converter
     public static Long dateToLong(final Date d){
         return d.getTime();
     }
+
+
 
     public static AttributeConvertibleTypeInfo<Byte> createInt8Type(final Class<? extends AttributeTypeInfoBuilder> builderType){
         return createTypeInfo(builderType, Byte.class);

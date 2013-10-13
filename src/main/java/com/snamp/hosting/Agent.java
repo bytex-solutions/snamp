@@ -13,7 +13,7 @@ import java.util.logging.*;
  */
 public final class Agent implements AutoCloseable {
     private static final Logger log = Logger.getLogger("snamp.log");
-    private final Adapter adapter;
+    private Adapter adapter;
     private final Map<String, String> params;
     private final Map<String, ManagementConnector> connectors;
     private boolean started;
@@ -33,6 +33,23 @@ public final class Agent implements AutoCloseable {
      */
     public Agent(final AgentConfiguration.HostingConfiguration hostingConfig){
         this(HostingServices.getAdapter(hostingConfig.getAdapterName()), hostingConfig.getHostingParams());
+    }
+
+    /**
+     * Reconfigures the agent.
+     * @param hostingConfig
+     * @throws IllegalArgumentException hostingConfig is {@literal null}.
+     * @throws IllegalStateException Attempts to reconfigure agent in the started state.
+     */
+    public void reconfigure(final AgentConfiguration.HostingConfiguration hostingConfig) {
+        if(hostingConfig == null) throw new IllegalArgumentException("hostingConfig is null.");
+        if(started) throw new IllegalStateException("The agent must be in stopped state.");
+        final Adapter ad = HostingServices.getAdapter(hostingConfig.getAdapterName());
+        if(ad == null) throw new IllegalStateException("Adapter is not available");
+        this.adapter = ad;
+        params.clear();
+        connectors.clear();
+        params.putAll(hostingConfig.getHostingParams());
     }
 
     private void registerTarget(final AgentConfiguration.ManagementTargetConfiguration targetConfig){
@@ -60,14 +77,18 @@ public final class Agent implements AutoCloseable {
         adapter.exposeAttributes(connector, targetConfig.getNamespace(), targetConfig.getAttributes());
     }
 
-    public boolean start(final Map<String, AgentConfiguration.ManagementTargetConfiguration> targets) throws IOException {
+    public final boolean start(final Map<String, AgentConfiguration.ManagementTargetConfiguration> targets) throws IOException {
         if(started) return false;
-        for(final String targetName: targets.keySet()){
+        else if(targets == null) return start(new HashMap<String, AgentConfiguration.ManagementTargetConfiguration>());
+        else for(final String targetName: targets.keySet()){
             log.fine(String.format("Registering %s management target", targetName));
             registerTarget(targets.get(targetName));
         }
-        adapter.start(params);
-        return true;
+        return adapter.start(params);
+    }
+
+    public final boolean stop(){
+        return adapter.stop(true);
     }
 
     /**
@@ -75,32 +96,24 @@ public final class Agent implements AutoCloseable {
      * @param configuration The hosting configurtion.
      * @return An instance of the hosting sandbox (it is not useful for interracial mode).
      */
-    private static void start(final AgentConfiguration configuration) throws Exception{
-        Agent engine = null;
+    static Agent start(final AgentConfiguration configuration) throws Exception{
         try{
-            engine = new Agent(configuration.getAgentHostingConfig());
+            final Agent engine = new Agent(configuration.getAgentHostingConfig());
             engine.start(configuration.getTargets());
+            return engine;
         }
         catch (final Exception e){
             log.log(Level.SEVERE, "Unable to start SNAMP", e);
-            engine = null;
-        }
-        finally {
-            if(engine != null) engine.close();
+            return null;
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        //prepare startup arguments
-        switch (args.length){
-            case 1: args = new String[]{args[0], ""}; break;
-            case 2: break;
-            default:
-                System.out.println("java snamp config-file");
-                System.out.println("Example: java snamp mon.yaml");
-                return;
-        }
-        start(ConfigurationFileFormat.load(args[0], args[1]));
+    /**
+     * Determines whether the agent is started.
+     * @return {@literal true} if this agent is in started state; otherwise, {@literal false}.
+     */
+    public final boolean isStarted(){
+        return started;
     }
 
     /**

@@ -1,0 +1,6 @@
+pause - pauses the agent
+resume - resumes the agent
+uptime - agent uptime
+pid - displays own Process ID
+kill - kills the current process with exit code 0
+exit - exits from the REPL session (propably, terminates the current process)

@@ -2,6 +2,7 @@ package com.snamp.hosting;
 
 import com.snamp.TimeSpan;
 
+import java.io.*;
 import java.util.Map;
 
 /**
@@ -145,4 +146,20 @@ public interface AgentConfiguration {
      * @return The dictionary of management targets (management back-ends).
      */
     public Map<String, ManagementTargetConfiguration> getTargets();
+
+    /**
+     * Saves the current configuration into the specified stream.
+     * @param output
+     * @throws UnsupportedOperationException Serialization is not supported.
+     * @throws IOException Cannot write to the specified stream.
+     */
+    public void save(final OutputStream output) throws UnsupportedOperationException, IOException;
+
+    /**
+     * Reads the file and fills the current instance.
+     * @param input
+     * @throws UnsupportedOperationException Deserialization is not supported.
+     * @throws IOException Cannot read from the specified stream.
+     */
+    public void load(final InputStream input) throws UnsupportedOperationException, IOException;
 }

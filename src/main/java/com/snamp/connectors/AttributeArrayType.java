@@ -7,7 +7,7 @@ import java.util.*;
  * Represents single-dimensional array type as table.
  * @author roman
  */
-public abstract class AttributeArrayType implements AttributeTabularType {
+public class AttributeArrayType implements AttributeTabularType {
     /**
      * Represents name of the first column.
      */
@@ -36,7 +36,7 @@ public abstract class AttributeArrayType implements AttributeTabularType {
      * @param elementType The type of the array elements.
      * @throws IllegalArgumentException elementType is {@literal null}.
      */
-    protected AttributeArrayType(final AttributeTypeInfo elementType){
+    public AttributeArrayType(final AttributeTypeInfo elementType){
         if(elementType == null) throw new IllegalArgumentException("elementType is null.");
         this.elementType = elementType;
     }

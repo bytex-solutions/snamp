@@ -52,6 +52,44 @@ public final class TimeSpan {
     }
 
     /**
+     * Increases up the scale of this time span.
+     * @return A newly created time span with increased scale,
+     */
+    public final TimeSpan up(){
+        switch (this.unit){
+            case NANOSECONDS: return convert(TimeUnit.MICROSECONDS);
+            case MICROSECONDS: return convert(TimeUnit.MILLISECONDS);
+            case MILLISECONDS: return convert(TimeUnit.SECONDS);
+            case SECONDS: return convert(TimeUnit.MINUTES);
+            case MINUTES: return convert(TimeUnit.HOURS);
+            case HOURS: return convert(TimeUnit.DAYS);
+            default: return this;
+        }
+    }
+
+    /**
+     * Returns the auto-scaled time span.
+     * @return
+     */
+    public final TimeSpan autoScale(){
+        TimeSpan result = this;
+        while (result.duration > 0 && result.unit != TimeUnit.DAYS)
+            result = result.up();
+        return result;
+    }
+
+    /**
+     * Creates a new auto-scaled time span.
+     * @param duration
+     * @param unit
+     * @return
+     */
+    public static TimeSpan autoScale(final long duration, final TimeUnit unit){
+        final TimeSpan temp = new TimeSpan(duration, unit);
+        return temp.autoScale();
+    }
+
+    /**
      * Returns the string representation of this instance.
      * @return The string representation of this instance.
      */

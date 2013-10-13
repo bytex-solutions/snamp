@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Represents configuration file parser.
  */
-enum ConfigurationFileFormat implements ConfigurationParser {
+enum ConfigurationFileFormat {
 
     /**
 	 * Формат файла YAML
@@ -37,8 +37,11 @@ enum ConfigurationFileFormat implements ConfigurationParser {
      */
     private static final class YamlAgentConfiguration extends HashMap<String, Object> implements AgentConfiguration{
 
-        public YamlAgentConfiguration(final Map<String, Object> rawConfig){
-            super(rawConfig);
+        /**
+         * Initializes a new empty configuration.
+         */
+        public YamlAgentConfiguration(){
+            super(10);
         }
 
         /**
@@ -70,46 +73,31 @@ enum ConfigurationFileFormat implements ConfigurationParser {
         public Map<String, ManagementTargetConfiguration> getTargets() {
             return null;  //To change body of implemented methods use File | Settings | File Templates.
         }
-    }
 
-    private static AgentConfiguration parseYaml(final InputStream stream){
-        final Yaml yaml = new Yaml();
-        final Map<String, Object> dom = (Map<String, Object>)yaml.load(stream);
-        return new YamlAgentConfiguration(dom);
-    }
-
-    private static void saveYaml(final AgentConfiguration config, final OutputStream output) throws IOException {
-        final Yaml yaml = new Yaml();
-        final String result = yaml.dumpAsMap(config);
-        output.write(result.getBytes(Charset.forName("UTF-8")));
-    }
-
-    /**
-     * Parses the configuration
-     * @param stream The stream that contains configuration of the agent in serialized form.
-     * @return The parsed agent configuration.
-     * @throws IllegalArgumentException stream is {@literal null}.
-     * @throws UnsupportedOperationException Invalid configuration file format type.
-     */
-    @Override
-    public final AgentConfiguration parse(final InputStream stream){
-        if(stream == null) throw new IllegalArgumentException("stream is null.");
-        switch (_formatName){
-            case "yaml": return parseYaml(stream);
-            default: throw new UnsupportedOperationException("Configuration format is not supported.");
+        /**
+         * Saves the current configuration into the specified stream.
+         *
+         * @param output
+         * @throws UnsupportedOperationException Serialization is not supported.
+         */
+        @Override
+        public void save(final OutputStream output) throws IOException {
+            final Yaml yaml = new Yaml();
+            final String result = yaml.dumpAsMap(this);
+            output.write(result.getBytes(Charset.forName("UTF-8")));
         }
-    }
 
-    /**
-     * Saves the configuration back to the stream.
-     * @param configuration The configuration to save.
-     * @param output The output stream.
-     */
-    @Override
-    public final void save(final AgentConfiguration configuration, final OutputStream output) throws IOException {
-        switch (_formatName){
-            case "yaml": saveYaml(configuration, output); return;
-            default: throw new UnsupportedOperationException("Unsupported configuration file format");
+        /**
+         * Reads the file and fills the current instance.
+         *
+         * @param input
+         */
+        @Override
+        public void load(final InputStream input) {
+            final Yaml yaml = new Yaml();
+            final Map<String, Object> dom = (Map<String, Object>)yaml.load(input);
+            clear();
+            putAll(dom);
         }
     }
 
@@ -126,15 +114,36 @@ enum ConfigurationFileFormat implements ConfigurationParser {
 	}
 
     /**
+     * Creates a new empty configuration of the specified format.
+     * @param format
+     * @return
+     */
+    public static AgentConfiguration newAgentConfiguration(final String format){
+        return parse(format).newAgentConfiguration();
+    }
+
+    /**
+     * Creates a new empty configuration of this format.
+     * @return
+     */
+    public final AgentConfiguration newAgentConfiguration(){
+        switch (_formatName){
+            case "yaml": return new YamlAgentConfiguration();
+            default: return null;
+        }
+    }
+
+    /**
      * Loads the configuration from the specified file.
      * @param format The configuration file format name.
      * @param fileName The path to the configuration file.
      * @return The parsed configuration.
      */
     public static AgentConfiguration load(final String format, final String fileName) throws IOException {
-        final ConfigurationParser parser = parse(format);
+        final AgentConfiguration config = newAgentConfiguration(format);
         try(final InputStream stream = new FileInputStream(fileName)){
-            return parser.parse(stream);
+            config.load(stream);
         }
+        return config;
     }
 }
