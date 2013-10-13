@@ -34,21 +34,9 @@ public interface AgentConfiguration extends BinarySerializable {
     }
 
     /**
-     * Creates a new default configuration of the management target.
-     * @return A new default configuration of the management target.
-     */
-    public ManagementTargetConfiguration newManagementTargetConfiguration();
-
-    /**
      * Represents management target configuration (back-end management information providers).
      */
     public static interface ManagementTargetConfiguration {
-
-        /**
-         * Creates a new default attribute configuration.
-         * @return A new default attribute configuration.
-         */
-        public AttributeConfiguration newAttributeConfiguration();
 
         /**
          * Represents attribute configuration.
@@ -63,7 +51,7 @@ public interface AgentConfiguration extends BinarySerializable {
             /**
              * Sets attribute value read/write operation timeout.
              */
-            public void setReadWriteTimeout();
+            public void setReadWriteTimeout(TimeSpan time);
 
             /**
              * Returns the attribute name.
@@ -128,11 +116,18 @@ public interface AgentConfiguration extends BinarySerializable {
          */
         public Map<String, AttributeConfiguration> getAttributes();
 
+
         /**
          * Returns the dictionary of additional configuration elements.
          * @return The dictionary of additional configuration elements.
          */
         public Map<String, String> getAdditionalElements();
+
+        /**
+         * Empty implementation of AttributeConfiguration interface
+         * @return implementation of AttributeConfiguration interface
+         */
+        public AttributeConfiguration newAttributeConfiguration();
     }
 
     /**
@@ -148,11 +143,11 @@ public interface AgentConfiguration extends BinarySerializable {
     public Map<String, ManagementTargetConfiguration> getTargets();
 
     /**
-     * Saves the current configuration into the specified stream.
-     * @param output
-     * @throws UnsupportedOperationException Serialization is not supported.
-     * @throws IOException Cannot write to the specified stream.
+     * Empty implementation of ManagementTargetConfiguration interface
+     * @return implementation of ManagementTargetConfiguration interface
      */
+    public ManagementTargetConfiguration newManagementTargetConfiguration();
+
     @Override
     public void save(final OutputStream output) throws UnsupportedOperationException, IOException;
 
