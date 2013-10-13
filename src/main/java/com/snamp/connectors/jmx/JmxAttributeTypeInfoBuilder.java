@@ -146,6 +146,7 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
     }
 
     private static AttributeConvertibleTypeInfo<?> createJmxArrayType(final ArrayType<?> attributeType){
+
         return new AttributeJmxArrayType(createJmxType(attributeType.getElementOpenType()));
     }
 

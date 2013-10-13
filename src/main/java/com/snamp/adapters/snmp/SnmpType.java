@@ -46,7 +46,9 @@ enum SnmpType {
     /**
      * Represents String SNMP type mapping.
      */
-    TEXT(SnmpStringObject.class);
+    TEXT(SnmpStringObject.class),
+
+    TABLE(SnmpTableObject.class);
 
     private final Class<? extends SnmpAttributeMapping> mapping;
 
@@ -93,6 +95,8 @@ enum SnmpType {
             return NUMBER;
         else if(isUnixTime(attributeType))
             return UNIX_TIME;
+        else if(attributeType instanceof AttributeTabularType || attributeType instanceof AttributeDictionaryType)
+            return TABLE;
         else return TEXT;
     }
 

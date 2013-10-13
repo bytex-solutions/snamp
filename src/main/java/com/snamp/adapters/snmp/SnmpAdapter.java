@@ -26,21 +26,7 @@ import com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.Attrib
  * 
  */
 @PluginImplementation
-final class SnmpAdapter extends BaseAgent implements Adapter {
-    private static final Logger log = Logger.getLogger("snamp.snmp.log");
-    private static final int defaultPort = 161;
-    private static final String defaultAddress = "127.0.0.1";
-    public static String adapterName = "snmp";
-
-    /**
-     * Returns an array of plug-in capabilities.
-     * @return An array of plug-in capabilities.
-     */
-    @Capabilities
-    public final String[] capabilities(){
-        return makeCapabilities(adapterName);
-    }
-
+final class SnmpAdapter extends SnmpAgentBase {
     /**
      * Represents a collection of MO's with OID postfixes.
      */

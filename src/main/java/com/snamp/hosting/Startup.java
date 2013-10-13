@@ -1,6 +1,8 @@
 package com.snamp.hosting;
 
 import com.snamp.TimeSpan;
+import com.snamp.adapters.Adapter;
+import com.snamp.connectors.ManagementConnectorFactory;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -111,8 +113,10 @@ final class Startup extends ReplServer {
     }
 
     public static void main(String[] args) throws Exception {
+        final Adapter ad = HostingServices.getAdapter("snmp");
+        return;
         //prepare startup arguments
-        switch (args.length){
+        /*switch (args.length){
             case 1: args = new String[]{args[0], ""}; break;
             case 2: break;
             default:
@@ -123,6 +127,6 @@ final class Startup extends ReplServer {
         Agent.start(ConfigurationFileFormat.load(args[0], args[1]));
         //represents REPL server startup.
         final ReplServer repl = new Startup(args[0], args[1]);
-        repl.loop(System.in, System.out);
+        repl.loop(System.in, System.out);*/
     }
 }

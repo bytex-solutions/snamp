@@ -35,7 +35,7 @@ final class HostingServices {
         manager = PluginManagerFactory.createPluginManager();
         //load standard plug-ins
         manager.addPluginsFrom(URI.create("classpath://com.snamp.connectors.jmx.JmxConnectorFactory"));
-
+        manager.addPluginsFrom(URI.create("classpath://com.snamp.adapters.snmp.SnmpAdapter"));
     }
 
     /**

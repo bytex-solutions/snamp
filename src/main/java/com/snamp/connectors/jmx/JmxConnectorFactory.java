@@ -12,7 +12,7 @@ import java.util.logging.*;
  * @author roman
  */
 @PluginImplementation
-public final class JmxConnectorFactory extends ManagementConnectorFactoryBase<JmxConnector> {
+final class JmxConnectorFactory extends ManagementConnectorFactoryBase<JmxConnector> {
 
     private static final Logger log = Logger.getLogger("snamp.log");
     /**
