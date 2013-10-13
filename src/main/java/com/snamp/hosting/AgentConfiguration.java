@@ -1,6 +1,6 @@
 package com.snamp.hosting;
 
-import com.snamp.TimeSpan;
+import com.snamp.*;
 
 import java.io.*;
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Map;
  * Represents agent configuration.
  * @author roman
  */
-public interface AgentConfiguration {
+public interface AgentConfiguration extends BinarySerializable {
     /**
      * Represents hosting configuration (front-end configuration).
      */
@@ -153,6 +153,7 @@ public interface AgentConfiguration {
      * @throws UnsupportedOperationException Serialization is not supported.
      * @throws IOException Cannot write to the specified stream.
      */
+    @Override
     public void save(final OutputStream output) throws UnsupportedOperationException, IOException;
 
     /**
@@ -161,5 +162,6 @@ public interface AgentConfiguration {
      * @throws UnsupportedOperationException Deserialization is not supported.
      * @throws IOException Cannot read from the specified stream.
      */
+    @Override
     public void load(final InputStream input) throws UnsupportedOperationException, IOException;
 }

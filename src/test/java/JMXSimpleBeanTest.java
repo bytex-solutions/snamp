@@ -256,7 +256,6 @@ public class JMXSimpleBeanTest extends TestCase
              *
              * @param output
              * @throws UnsupportedOperationException Serialization is not supported.
-             * @throws java.io.IOException           Cannot write to the specified stream.
              */
             @Override
             public void save(final OutputStream output) throws UnsupportedOperationException {
@@ -268,7 +267,6 @@ public class JMXSimpleBeanTest extends TestCase
              *
              * @param input
              * @throws UnsupportedOperationException Deserialization is not supported.
-             * @throws java.io.IOException           Cannot read from the specified stream.
              */
             @Override
             public void load(final InputStream input) throws UnsupportedOperationException {
