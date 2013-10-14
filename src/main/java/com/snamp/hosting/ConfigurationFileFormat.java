@@ -82,7 +82,10 @@ public enum ConfigurationFileFormat{
             @Override
             public boolean containsKey(final Object targetName) {
                 for(int i=0;i<targets.size();i++)
-                    if(containsTarget(targetName, (Map<String,Object>)targets.get(i))) return true;
+                {
+                    Object obj = targets.get(i);
+                    if(obj != null && obj instanceof Map && containsTarget(targetName, (Map<String,Object>)targets.get(i))) return true;
+                }
                 return false;
             }
 
@@ -97,8 +100,10 @@ public enum ConfigurationFileFormat{
             private Map<String, Object> getValueByKey(final Object key){
                 for(int i = 0; i < targets.size();i++)
                 {
-                    if(((Map<String,Object>)targets.get(i)).get(targetKey).equals(Objects.toString(key)))
-                        return (Map<String, Object>)targets.get(i);
+                    Object obj = targets.get(i);
+                    if(obj != null && obj instanceof Map)
+                    if(((Map<String,Object>)obj).get(targetKey).equals(Objects.toString(key, "")))
+                        return (Map<String, Object>)obj;
                 }
                 return null;
             }
@@ -163,10 +168,15 @@ public enum ConfigurationFileFormat{
                 final AgentConfiguration.ManagementTargetConfiguration tmpConfig = get(key);
                 for(int i = 0; i < targets.size();i++)
                 {
-                    if(((Map<String,Object>)targets.get(i)).get(targetKey).equals(Objects.toString(key)))
+                    Object obj = targets.get(i);
+                    if(obj != null && obj instanceof Map)
                     {
-                        targets.remove(i);
-                        break;
+                        final Object item = ((Map<String,Object>)obj).get(targetKey);
+                        if(item != null && item.equals(Objects.toString(key, "")))
+                        {
+                            targets.remove(i);
+                            break;
+                        }
                     }
                 }
                 return tmpConfig;
@@ -189,10 +199,11 @@ public enum ConfigurationFileFormat{
             public Set<String> keySet() {
                 Set<String> tmpSet = new HashSet<>();
                 for(int i=0;i<targets.size();i++)
-                {
-                    tmpSet.add(Objects.toString(((Map<String,Object>)targets).get(targetKey)));
+                {   Object obj = targets.get(i);
+                    if(obj != null && obj instanceof Map)
+                        tmpSet.add(Objects.toString(((Map<String,Object>)obj).get(targetKey)));
                 }
-                return tmpSet;  //To change body of implemented methods use File | Settings | File Templates.
+                return tmpSet;
             }
 
             @Override
@@ -200,7 +211,9 @@ public enum ConfigurationFileFormat{
                 Collection<AgentConfiguration.ManagementTargetConfiguration> tmpCollection = new ArrayList<>();
                 for(int i=0;i<targets.size();i++)
                 {
-                    tmpCollection.add(new ManagementTargetConfigurationImpl((Map<String,Object>)targets.get(i)));
+                    Object obj = targets.get(i);
+                    if(obj != null && obj instanceof Map)
+                        tmpCollection.add(new ManagementTargetConfigurationImpl((Map<String,Object>)obj));
                 }
                 return tmpCollection;
             }
@@ -214,12 +227,20 @@ public enum ConfigurationFileFormat{
                     tmpSet.add(new Entry<String, AgentConfiguration.ManagementTargetConfiguration>() {
                         @Override
                         public String getKey() {
-                            return Objects.toString(((Map<String,Object>)targets.get(j)).get(targetKey));
+                            Object obj = targets.get(j);
+                            if(obj instanceof Map)
+                                return Objects.toString(((Map<String,Object>)obj).get(targetKey));
+                            else
+                                return null;
                         }
 
                         @Override
                         public AgentConfiguration.ManagementTargetConfiguration getValue() {
-                            return new ManagementTargetConfigurationImpl((Map<String,Object>)targets.get(j));
+                            Object obj = targets.get(j);
+                            if(obj != null && obj instanceof Map)
+                                return new ManagementTargetConfigurationImpl((Map<String,Object>)obj);
+                            else
+                                return null;
                         }
 
                         @Override
@@ -228,7 +249,7 @@ public enum ConfigurationFileFormat{
                         }
                     });
                 }
-                return tmpSet;  //To change body of implemented methods use File | Settings | File Templates.
+                return tmpSet;
             }
 
         }
@@ -254,7 +275,7 @@ public enum ConfigurationFileFormat{
 
             @Override
             public String getConnectionType() {
-                return Objects.toString(configMap.get(connectionTypetKey));
+                return Objects.toString(configMap.get(connectionTypetKey), "");
             }
 
             @Override
@@ -264,7 +285,7 @@ public enum ConfigurationFileFormat{
 
             @Override
             public String getNamespace() {
-                return Objects.toString(configMap.get(namespaceKey));
+                return Objects.toString(configMap.get(namespaceKey), "");
             }
 
             @Override
@@ -274,10 +295,11 @@ public enum ConfigurationFileFormat{
 
             @Override
             public Map<String, AttributeConfiguration> getAttributes() {
-                final List<Object> attributes = (List<Object>)configMap.get(attributesKey);
-                if(attributes == null) return null;
-
-                return new YamlAttributeConfiguration(attributes, Long.parseLong(Objects.toString(configMap.get(defaultTimeoutKey))));
+                final Object obj = configMap.get(attributesKey);
+                if(obj != null && obj instanceof List)
+                    return new YamlAttributeConfiguration((List<Object>)obj, Long.parseLong(Objects.toString(configMap.get(defaultTimeoutKey))));
+                else
+                    return null;
             }
 
             @Override
@@ -314,7 +336,7 @@ public enum ConfigurationFileFormat{
                     {
                         attrMap.put(readWriteTimeoutKey, defaultTimeOut);
                     }
-                    return new TimeSpan(Long.parseLong(Objects.toString(attrMap.get(readWriteTimeoutKey))), TimeUnit.MILLISECONDS);
+                    return new TimeSpan(Long.parseLong(Objects.toString(attrMap.get(readWriteTimeoutKey), "0")), TimeUnit.MILLISECONDS);
                 }
 
                 @Override
@@ -324,7 +346,7 @@ public enum ConfigurationFileFormat{
 
                 @Override
                 public String getAttributeName() {
-                    return Objects.toString(attrMap.get(nameKey));
+                    return Objects.toString(attrMap.get(nameKey), "");
                 }
 
                 @Override
@@ -368,7 +390,10 @@ public enum ConfigurationFileFormat{
                 @Override
                 public boolean containsKey(final Object targetName) {
                     for(int i=0;i<targets.size();i++)
-                        if(containsTarget(targetName, (Map<String,Object>)targets.get(i))) return true;
+                    {
+                        Object obj = targets.get(i);
+                        if(obj != null && obj instanceof Map && containsTarget(targetName, (Map<String,Object>)obj)) return true;
+                    }
                     return false;
                 }
 
@@ -383,8 +408,13 @@ public enum ConfigurationFileFormat{
                 private Map<String, Object> getValueByKey(final Object key){
                     for(int i = 0; i < targets.size();i++)
                     {
-                        if(((Map<String,Object>)targets.get(i)).get(idKey).equals(Objects.toString(key)))
-                            return (Map<String, Object>)targets.get(i);
+                        final Object obj = targets.get(i);
+                        if(obj != null && obj instanceof Map)
+                        {
+                            final Object item = ((Map<String,Object>)obj).get(idKey);
+                            if(item != null && item.equals(Objects.toString(key, "")))
+                                return (Map<String, Object>)obj;
+                        }
                     }
                     return null;
                 }
@@ -411,12 +441,17 @@ public enum ConfigurationFileFormat{
                     //If map is already has that key, we should change only value
                     for(int i=0;i<targets.size();i++)
                     {
-                        if(((Map<String,Object>)targets.get(i)).get(targetKey).equals(key))
+                        final Object obj = targets.get(i);
+                        if(obj != null && obj instanceof Map)
                         {
-                            targets.remove(i);
-                            targets.add(convertConfigurationToMap(key, value));
-                            found = true;
-                            break;
+                            Object item = ((Map<String,Object>)obj).get(idKey);
+                            if(item != null && item.equals(Objects.toString(key, "")))
+                            {
+                                targets.remove(i);
+                                targets.add(convertConfigurationToMap(key, value));
+                                found = true;
+                                break;
+                            }
                         }
                     }
                     if(!found)
@@ -429,10 +464,15 @@ public enum ConfigurationFileFormat{
                     final AttributeConfiguration tmpConfig = get(key);
                     for(int i = 0; i < targets.size();i++)
                     {
-                        if(((Map<String,Object>)targets.get(i)).get(idKey).equals(Objects.toString(key)))
+                        final Object obj = targets.get(i);
+                        if(obj != null && obj instanceof Map)
                         {
-                            targets.remove(i);
-                            break;
+                            Object item = ((Map<String,Object>)obj).get(idKey);
+                            if(item != null && item.equals(Objects.toString(key, "")))
+                            {
+                                targets.remove(i);
+                                break;
+                            }
                         }
                     }
                     return tmpConfig;
@@ -456,7 +496,9 @@ public enum ConfigurationFileFormat{
                     Set<String> tmpSet = new HashSet<>();
                     for(int i=0;i<targets.size();i++)
                     {
-                        tmpSet.add(Objects.toString(((Map<String,Object>)targets).get(idKey)));
+                        final Object obj = targets.get(i);
+                        if(obj != null && obj instanceof Map)
+                            tmpSet.add(Objects.toString(((Map<String,Object>)obj).get(idKey)));
                     }
                     return tmpSet;  //To change body of implemented methods use File | Settings | File Templates.
                 }
@@ -466,7 +508,9 @@ public enum ConfigurationFileFormat{
                     Collection<AttributeConfiguration> tmpCollection = new ArrayList<>();
                     for(int i=0;i<targets.size();i++)
                     {
-                        tmpCollection.add(new AttributeConfigurationImpl((Map<String,Object>)targets.get(i), defaultTimeOut));
+                        final Object obj = targets.get(i);
+                        if(obj != null && obj instanceof Map)
+                            tmpCollection.add(new AttributeConfigurationImpl((Map<String,Object>)obj, defaultTimeOut));
                     }
                     return tmpCollection;
                 }
@@ -476,23 +520,24 @@ public enum ConfigurationFileFormat{
                     Set<Entry<String, AttributeConfiguration>> tmpSet = new HashSet<>();
                     for(int i=0;i<targets.size();i++)
                     {
-                        final int j = i;
-                        tmpSet.add(new Entry<String, AttributeConfiguration>() {
-                            @Override
-                            public String getKey() {
-                                return Objects.toString(((Map<String,Object>)targets.get(j)).get(idKey));
-                            }
+                        final Object obj = targets.get(i);
+                        if(obj != null && obj instanceof Map)
+                            tmpSet.add(new Entry<String, AttributeConfiguration>() {
+                                @Override
+                                public String getKey() {
+                                    return Objects.toString(((Map<String,Object>)obj).get(idKey), "");
+                                }
 
-                            @Override
-                            public AttributeConfiguration getValue() {
-                                return new AttributeConfigurationImpl((Map<String,Object>)targets.get(j), defaultTimeOut);
-                            }
+                                @Override
+                                public AttributeConfiguration getValue() {
+                                    return new AttributeConfigurationImpl((Map<String,Object>)obj, defaultTimeOut);
+                                }
 
-                            @Override
-                            public AttributeConfiguration setValue(AttributeConfiguration value) {
-                                return null;
-                            }
-                        });
+                                @Override
+                                public AttributeConfiguration setValue(AttributeConfiguration value) {
+                                    return null;
+                                }
+                            });
                     }
                     return tmpSet;
                 }
@@ -602,7 +647,7 @@ public enum ConfigurationFileFormat{
                         internalSet.add(entry.getKey());
                     }
                 }
-                return internalSet;  //To change body of implemented methods use File | Settings | File Templates.
+                return internalSet;
             }
 
             @Override
@@ -682,7 +727,6 @@ public enum ConfigurationFileFormat{
         @Override
         public Map<String, ManagementTargetConfiguration> getTargets() {
             final WeakReference<List<Object>> weakRefList = new WeakReference((List<Object>)this.get(managementTargetsKey));
-
             return new YamlManagementTargetConfigurations(weakRefList.get());
         }
 
