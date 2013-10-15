@@ -414,7 +414,7 @@ public class JMXSimpleBeanTest extends TestCase
 
 
     @Test
-    public void crashYamlConfigTest() throws IOException {
+    public void testCrashYamlConfig() throws IOException {
         URL inFile = this.getClass().getResource("/err.txt");
         AgentConfiguration config = null;
         //Load the configuration from file
@@ -424,6 +424,8 @@ public class JMXSimpleBeanTest extends TestCase
             config.load(is);
         }
 
-        assertEquals(null, config.getTargets());
+        assertNotNull(config.getTargets());
+
+        assertEquals(0, config.getTargets().size());
     }
 }
