@@ -307,16 +307,16 @@ public class JMXSimpleBeanTest extends TestCase
         try(final Agent hosting = new Agent(config.getAgentHostingConfig())){
             hosting.start(config.getTargets());
 
-         //   Thread.sleep(100000000);
+            //   Thread.sleep(100000000);
 
-        SNMPManager client = new SNMPManager("udp:127.0.0.1/"+Integer.toString(localHostPort));
-        client.start();
+            SNMPManager client = new SNMPManager("udp:127.0.0.1/"+Integer.toString(localHostPort));
+            client.start();
 
-        String sysDescr = client.getAsString(new OID(oidPrefix + "." + oidCheckPostfix));
+            String sysDescr = client.getAsString(new OID(oidPrefix + "." + oidCheckPostfix));
 
-        assertEquals("Something wrong",sysDescr,checkString);
+            assertEquals("Something wrong",sysDescr,checkString);
 
-        backward.interrupt();
+            backward.interrupt();
 
         }
 
@@ -324,7 +324,7 @@ public class JMXSimpleBeanTest extends TestCase
     }
 
     @Test
-    public void testYaml() throws IOException {
+    public void testYaml() throws IOException, ClassNotFoundException {
 
         //Get test file path
         URL inFile = this.getClass().getResource("/in.txt");
@@ -409,5 +409,23 @@ public class JMXSimpleBeanTest extends TestCase
 
         AgentConfiguration.ManagementTargetConfiguration outTarget = targets.get("wso-esb-1");
         assertEquals("mynamespace", outTarget.getNamespace());
+    }
+
+
+
+    @Test
+    public void testCrashYamlConfig() throws IOException {
+        URL inFile = this.getClass().getResource("/err.txt");
+        AgentConfiguration config = null;
+        //Load the configuration from file
+        try(InputStream is = new FileInputStream(inFile.getFile()))
+        {
+            config = ConfigurationFileFormat.YAML.newAgentConfiguration();
+            config.load(is);
+        }
+
+        assertNotNull(config.getTargets());
+
+        assertEquals(0, config.getTargets().size());
     }
 }
