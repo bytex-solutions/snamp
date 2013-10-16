@@ -14,24 +14,24 @@ import java.util.concurrent.TimeUnit;
 public enum ConfigurationFileFormat{
 
     /**
-	 * Формат файла YAML
-	 */
-	YAML("yaml");
+     * Формат файла YAML
+     */
+    YAML("yaml");
 
-	private final String _formatName;
-	
-	private ConfigurationFileFormat(String formatName) {
-		_formatName = formatName;
-	}
-	
-	/**
-	 * Returns a string representation of this file format.
+    private final String _formatName;
+
+    private ConfigurationFileFormat(String formatName) {
+        _formatName = formatName;
+    }
+
+    /**
+     * Returns a string representation of this file format.
      * @return The name of the format.
-	 */
-	@Override
-	public final String toString() {
-		return _formatName;
-	}
+     */
+    @Override
+    public final String toString() {
+        return _formatName;
+    }
 
     /**
      * Represents YAML-compliant configuration.
@@ -653,14 +653,14 @@ public enum ConfigurationFileFormat{
         {
             public AttributeConfigurationImpl()
             {
-               super();
+                super();
             }
 
             public AttributeConfigurationImpl(final Long defaultTimeout)
             {
-               super();
-               if(defaultTimeout > 0)
-                this.put(readWriteTimeoutKey, defaultTimeout);
+                super();
+                if(defaultTimeout > 0)
+                    this.put(readWriteTimeoutKey, defaultTimeout);
 
             }
             @Override
@@ -731,7 +731,7 @@ public enum ConfigurationFileFormat{
                 Object obj = this.get(attributesKey);
                 if(!(obj instanceof List))
                 {
-                   this.put(attributesKey, obj = new ArrayList<>());
+                    this.put(attributesKey, obj = new ArrayList<>());
                 }
                 return new YamlAttributeConfiguration((List<Object>)obj, Long.parseLong(Objects.toString(this.get(defaultTimeoutKey), "0")));
             }
@@ -783,12 +783,12 @@ public enum ConfigurationFileFormat{
      * @param format The configuration file format name.
      * @return An instance of the configuration file.
      */
-	public static ConfigurationFileFormat parse(final String format) {
-		switch (format){
+    public static ConfigurationFileFormat parse(final String format) {
+        switch (format){
             default:
             case "yaml": return YAML;
         }
-	}
+    }
 
     /**
      * Creates a new empty configuration of the specified format.
