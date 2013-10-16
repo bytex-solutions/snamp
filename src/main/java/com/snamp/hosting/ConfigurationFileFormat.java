@@ -56,6 +56,23 @@ public enum ConfigurationFileFormat{
             super(10);
         }
 
+        /**Helper method to compose map from AttributeConfiguration impl.*/
+        private Map<String,Object> convertAttributeToMap(final String key, final ManagementTargetConfiguration.AttributeConfiguration configuration)
+        {   final Map<String,Object> tmpMap = new HashMap<>();
+            tmpMap.put(idKey, key);
+            tmpMap.putAll((AttributeConfigurationImpl)configuration);
+            return tmpMap;
+        }
+
+        /**Helper method to compose map from ManagementTargetConfiguration impl.*/
+        private Map<String,Object> convertConfigurationToMap(final String key, final AgentConfiguration.ManagementTargetConfiguration configuration)
+        {
+            final Map<String,Object> tmpMap = new HashMap<>();
+            tmpMap.put(targetKey, key);
+            tmpMap.putAll((ManagementTargetConfigurationImpl)configuration);
+            return tmpMap;
+        }
+
         private final class YamlManagementTargetConfigurations implements Map<String, AgentConfiguration.ManagementTargetConfiguration>{
             private final List<Object> targets;
 
@@ -89,9 +106,6 @@ public enum ConfigurationFileFormat{
 
             @Override
             public boolean containsValue(final Object value) {
-            /*for(final Map<String, Object> targetEntry: targets)
-                if(containsTarget(targetName, targetEntry)) return true;
-            return false;*/
                 return false;
             }
 
@@ -115,37 +129,6 @@ public enum ConfigurationFileFormat{
                 return target;//new ManagementTargetConfigurationImpl(getValueByKey(key));
             }
 
-            private Map<String,Object> convertAttributeToMap(final String key, final ManagementTargetConfiguration.AttributeConfiguration configuration)
-            {   final Map<String,Object> tmpMap = new HashMap<>();
-                //Convert ManagementTargetConfiguration to Map
-                tmpMap.put(idKey, key);
-                tmpMap.put(readWriteTimeoutKey, configuration.getReadWriteTimeout().duration);
-                tmpMap.put(nameKey, configuration.getAttributeName());
-                for(Map.Entry<String,String> entry:configuration.getAdditionalElements().entrySet())
-                    tmpMap.put(entry.getKey(), entry.getValue());
-                return tmpMap;
-            }
-
-            private Map<String,Object> convertConfigurationToMap(final String key, final AgentConfiguration.ManagementTargetConfiguration configuration)
-            {   final Map<String,Object> tmpMap = new HashMap<>();
-                //Convert ManagementTargetConfiguration to Map
-                tmpMap.put(targetKey, key);
-                tmpMap.put(connectionStringtKey, configuration.getConnectionString());
-                tmpMap.put(connectionTypetKey, configuration.getConnectionType());
-                tmpMap.put(namespaceKey, configuration.getNamespace());
-                //
-                List<Object> attributes = new ArrayList<>();
-                for(Map.Entry<String, ManagementTargetConfiguration.AttributeConfiguration> entry: configuration.getAttributes().entrySet())
-                {
-                    attributes.add(convertAttributeToMap(entry.getKey(), entry.getValue()));
-                }
-                tmpMap.put(attributesKey, attributes);
-
-                //
-                for(Map.Entry<String,String> entry:configuration.getAdditionalElements().entrySet())
-                    tmpMap.put(entry.getKey(), entry.getValue());
-                return tmpMap;
-            }
             @Override
             public AgentConfiguration.ManagementTargetConfiguration put(String key, AgentConfiguration.ManagementTargetConfiguration value) {
                 boolean found = false;
@@ -309,9 +292,6 @@ public enum ConfigurationFileFormat{
 
             @Override
             public boolean containsValue(final Object value) {
-            /*for(final Map<String, Object> targetEntry: targets)
-                if(containsTarget(targetName, targetEntry)) return true;
-            return false;*/
                 return false;
             }
 
@@ -336,17 +316,6 @@ public enum ConfigurationFileFormat{
                 return attrs;
             }
 
-            private Map<String,Object> convertConfigurationToMap(final String key, final ManagementTargetConfiguration.AttributeConfiguration configuration)
-            {   final Map<String,Object> tmpMap = new HashMap<>();
-                //Convert ManagementTargetConfiguration to Map
-                tmpMap.put(idKey, key);
-                tmpMap.put(readWriteTimeoutKey, configuration.getReadWriteTimeout().duration);
-                tmpMap.put(nameKey, configuration.getAttributeName());
-                for(Map.Entry<String,String> entry:configuration.getAdditionalElements().entrySet())
-                    tmpMap.put(entry.getKey(), entry.getValue());
-                return tmpMap;
-            }
-
             @Override
             public ManagementTargetConfiguration.AttributeConfiguration put(String key, ManagementTargetConfiguration.AttributeConfiguration value) {
                 boolean found = false;
@@ -360,14 +329,14 @@ public enum ConfigurationFileFormat{
                         if(item != null && item.equals(Objects.toString(key, "")))
                         {
                             targets.remove(i);
-                            targets.add(convertConfigurationToMap(key, value));
+                            targets.add(convertAttributeToMap(key, value));
                             found = true;
                             break;
                         }
                     }
                 }
                 if(!found)
-                    targets.add(convertConfigurationToMap(key, value));
+                    targets.add(convertAttributeToMap(key, value));
                 return null;
             }
 
@@ -394,7 +363,7 @@ public enum ConfigurationFileFormat{
             public void putAll(Map<? extends String, ? extends ManagementTargetConfiguration.AttributeConfiguration> m) {
                 for(Map.Entry<? extends String, ? extends ManagementTargetConfiguration.AttributeConfiguration> entry: m.entrySet())
                 {
-                    targets.add(convertConfigurationToMap(entry.getKey(), entry.getValue()));
+                    targets.add(convertAttributeToMap(entry.getKey(), entry.getValue()));
                 }
             }
 
@@ -685,7 +654,7 @@ public enum ConfigurationFileFormat{
 
             @Override
             public Map<String, String> getAdditionalElements() {
-                return new YamlAdditionalElementsMap(this, readWriteTimeoutKey, nameKey, defaultTimeoutKey);
+                return new YamlAdditionalElementsMap(this, idKey, readWriteTimeoutKey, nameKey);
             }
         }
 
