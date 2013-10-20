@@ -38,8 +38,11 @@ final class HostingServices {
         File pluginDir = new File("plugins");
         if(pluginDir.exists() && pluginDir.isDirectory())
             for(File plugin : pluginDir.listFiles())
-                if(plugin.isFile() && plugin.getName(). edsWith("jar"))
-                    manager.addPluginsFrom(URI.create(plugin.getPath()));
+                if(plugin.isFile() && plugin.getName().toLowerCase().endsWith("jar")) {
+                    System.out.println("Added plugins from " + plugin.getPath());
+                    URI uri = URI.create("file://" + plugin.getAbsolutePath());
+                    manager.addPluginsFrom(uri);
+                }
     }
 
     /**
@@ -57,6 +60,7 @@ final class HostingServices {
     }
 
     public static Adapter getAdapter(final String adapterName){
+        System.out.println(adapterName);
         return manager.getPlugin(Adapter.class, new OptionCapabilities(AdapterBase.makeCapabilities(adapterName)));
     }
 

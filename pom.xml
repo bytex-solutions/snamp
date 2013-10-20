@@ -43,6 +43,7 @@
             <configuration>
               <includes>
                 <include>**/connectors/jmx/*</include>
+                <include>**/connectors/*</include>
               </includes>
               <outputDirectory>${project.build.directory}/plugins</outputDirectory>
               <finalName>snampy.connector.jmx</finalName>
@@ -55,6 +56,7 @@
             <configuration>
               <includes>
                 <include>**/adapters/snmp/*</include>
+                <include>**/adapters/*</include>
               </includes>
               <outputDirectory>${project.build.directory}/plugins</outputDirectory>
               <finalName>snampy.adapter.snmp</finalName>
