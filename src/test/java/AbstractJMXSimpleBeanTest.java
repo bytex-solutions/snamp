@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public abstract class AbstractJMXSimpleBeanTest extends TestCase
+public abstract class AbstractJMXSimpleBeanTest
 {
 
     protected final String objectName;
