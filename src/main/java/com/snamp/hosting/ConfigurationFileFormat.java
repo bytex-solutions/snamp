@@ -1,11 +1,9 @@
 package com.snamp.hosting;
 
 import com.snamp.TimeSpan;
-import com.snamp.connectors.ManagementConnector;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
-import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -16,24 +14,24 @@ import java.util.concurrent.TimeUnit;
 public enum ConfigurationFileFormat{
 
     /**
-	 * Формат файла YAML
-	 */
-	YAML("yaml");
+     * Формат файла YAML
+     */
+    YAML("yaml");
 
-	private final String _formatName;
-	
-	private ConfigurationFileFormat(String formatName) {
-		_formatName = formatName;
-	}
-	
-	/**
-	 * Returns a string representation of this file format.
+    private final String _formatName;
+
+    private ConfigurationFileFormat(String formatName) {
+        _formatName = formatName;
+    }
+
+    /**
+     * Returns a string representation of this file format.
      * @return The name of the format.
-	 */
-	@Override
-	public final String toString() {
-		return _formatName;
-	}
+     */
+    @Override
+    public final String toString() {
+        return _formatName;
+    }
 
     /**
      * Represents YAML-compliant configuration.
@@ -49,11 +47,30 @@ public enum ConfigurationFileFormat{
         private final static String idKey = "id";
         private final static String readWriteTimeoutKey = "readWriteTimeout";
         private final static String nameKey = "name";
+        private final static String hostingConfigurationKey = "adapter";
+        private final static String adapterNameKey = "name";
         /**
          * Initializes a new empty configuration.
          */
         public YamlAgentConfiguration(){
             super(10);
+        }
+
+        /**Helper method to compose map from AttributeConfiguration impl.*/
+        private Map<String,Object> convertAttributeToMap(final String key, final ManagementTargetConfiguration.AttributeConfiguration configuration)
+        {   final Map<String,Object> tmpMap = new HashMap<>();
+            tmpMap.put(idKey, key);
+            tmpMap.putAll((AttributeConfigurationImpl)configuration);
+            return tmpMap;
+        }
+
+        /**Helper method to compose map from ManagementTargetConfiguration impl.*/
+        private Map<String,Object> convertConfigurationToMap(final String key, final AgentConfiguration.ManagementTargetConfiguration configuration)
+        {
+            final Map<String,Object> tmpMap = new HashMap<>();
+            tmpMap.put(targetKey, key);
+            tmpMap.putAll((ManagementTargetConfigurationImpl)configuration);
+            return tmpMap;
         }
 
         private final class YamlManagementTargetConfigurations implements Map<String, AgentConfiguration.ManagementTargetConfiguration>{
@@ -80,75 +97,55 @@ public enum ConfigurationFileFormat{
             @Override
             public boolean containsKey(final Object targetName) {
                 for(int i=0;i<targets.size();i++)
-                    if(containsTarget(targetName, (Map<String,Object>)targets.get(i))) return true;
+                {
+                    final Object obj = targets.get(i);
+                    if(obj instanceof Map && containsTarget(targetName, (Map<String,Object>)obj)) return true;
+                }
                 return false;
             }
 
             @Override
             public boolean containsValue(final Object value) {
-            /*for(final Map<String, Object> targetEntry: targets)
-                if(containsTarget(targetName, targetEntry)) return true;
-            return false;*/
                 return false;
             }
 
             private Map<String, Object> getValueByKey(final Object key){
                 for(int i = 0; i < targets.size();i++)
                 {
-                    if(((Map<String,Object>)targets.get(i)).get(targetKey).equals(Objects.toString(key)))
-                        return (Map<String, Object>)targets.get(i);
+                    final Object obj = targets.get(i);
+                    if(obj instanceof Map)
+                    {   final Object item = ((Map<String,Object>)obj).get(targetKey);
+                        if(item != null && item.equals(Objects.toString(key, "")))
+                            return (Map<String, Object>)obj;
+                    }
                 }
                 return null;
             }
 
             @Override
             public AgentConfiguration.ManagementTargetConfiguration get(Object key) {
-                return new ManagementTargetConfigurationImpl(getValueByKey(key));
+                ManagementTargetConfigurationImpl target = new ManagementTargetConfigurationImpl();
+                target.putAll(getValueByKey(key));
+                return target;//new ManagementTargetConfigurationImpl(getValueByKey(key));
             }
 
-            private Map<String,Object> convertAttributeToMap(final String key, final ManagementTargetConfiguration.AttributeConfiguration configuration)
-            {   final Map<String,Object> tmpMap = new HashMap<>();
-                //Convert ManagementTargetConfiguration to Map
-                tmpMap.put(idKey, key);
-                tmpMap.put(readWriteTimeoutKey, configuration.getReadWriteTimeout().duration);
-                tmpMap.put(nameKey, configuration.getAttributeName());
-                for(Map.Entry<String,String> entry:configuration.getAdditionalElements().entrySet())
-                    tmpMap.put(entry.getKey(), entry.getValue());
-                return tmpMap;
-            }
-
-            private Map<String,Object> convertConfigurationToMap(final String key, final AgentConfiguration.ManagementTargetConfiguration configuration)
-            {   final Map<String,Object> tmpMap = new HashMap<>();
-                //Convert ManagementTargetConfiguration to Map
-                tmpMap.put(targetKey, key);
-                tmpMap.put(connectionStringtKey, configuration.getConnectionString());
-                tmpMap.put(connectionTypetKey, configuration.getConnectionType());
-                tmpMap.put(namespaceKey, configuration.getNamespace());
-                //
-                List<Object> attributes = new ArrayList<>();
-                for(Map.Entry<String, ManagementTargetConfiguration.AttributeConfiguration> entry: configuration.getAttributes().entrySet())
-                {
-                    attributes.add(convertAttributeToMap(entry.getKey(), entry.getValue()));
-                }
-                tmpMap.put(attributesKey, attributes);
-
-                //
-                for(Map.Entry<String,String> entry:configuration.getAdditionalElements().entrySet())
-                    tmpMap.put(entry.getKey(), entry.getValue());
-                return tmpMap;
-            }
             @Override
             public AgentConfiguration.ManagementTargetConfiguration put(String key, AgentConfiguration.ManagementTargetConfiguration value) {
                 boolean found = false;
                 //If map is already has that key, we should change only value
                 for(int i=0;i<targets.size();i++)
                 {
-                    if(((Map<String,Object>)targets.get(i)).get(targetKey).equals(key))
+                    final Object obj =  targets.get(i);
+                    if(obj instanceof Map)
                     {
-                        targets.remove(i);
-                        targets.add(convertConfigurationToMap(key, value));
-                        found = true;
-                        break;
+                        final Object item = ((Map<String,Object>)obj).get(targetKey);
+                        if(item != null && item.equals(key))
+                        {
+                            targets.remove(i);
+                            targets.add(convertConfigurationToMap(key, value));
+                            found = true;
+                            break;
+                        }
                     }
                 }
                 if(!found)
@@ -161,10 +158,15 @@ public enum ConfigurationFileFormat{
                 final AgentConfiguration.ManagementTargetConfiguration tmpConfig = get(key);
                 for(int i = 0; i < targets.size();i++)
                 {
-                    if(((Map<String,Object>)targets.get(i)).get(targetKey).equals(Objects.toString(key)))
+                    final Object obj = targets.get(i);
+                    if(obj instanceof Map)
                     {
-                        targets.remove(i);
-                        break;
+                        final Object item = ((Map<String,Object>)obj).get(targetKey);
+                        if(item != null && item.equals(Objects.toString(key, "")))
+                        {
+                            targets.remove(i);
+                            break;
+                        }
                     }
                 }
                 return tmpConfig;
@@ -187,10 +189,11 @@ public enum ConfigurationFileFormat{
             public Set<String> keySet() {
                 Set<String> tmpSet = new HashSet<>();
                 for(int i=0;i<targets.size();i++)
-                {
-                    tmpSet.add(Objects.toString(((Map<String,Object>)targets).get(targetKey)));
+                {   final Object obj = targets.get(i);
+                    if(obj instanceof Map)
+                        tmpSet.add(Objects.toString(((Map<String,Object>)obj).get(targetKey)));
                 }
-                return tmpSet;  //To change body of implemented methods use File | Settings | File Templates.
+                return tmpSet;
             }
 
             @Override
@@ -198,7 +201,14 @@ public enum ConfigurationFileFormat{
                 Collection<AgentConfiguration.ManagementTargetConfiguration> tmpCollection = new ArrayList<>();
                 for(int i=0;i<targets.size();i++)
                 {
-                    tmpCollection.add(new ManagementTargetConfigurationImpl((Map<String,Object>)targets.get(i)));
+                    final Object obj = targets.get(i);
+                    if(obj instanceof Map)
+                    {
+                        //tmpCollection.add(new ManagementTargetConfigurationImpl((Map<String,Object>)obj));
+                        final ManagementTargetConfigurationImpl target = new ManagementTargetConfigurationImpl();
+                        target.putAll((Map<String,Object>)obj);
+                        tmpCollection.add(target);
+                    }
                 }
                 return tmpCollection;
             }
@@ -212,12 +222,24 @@ public enum ConfigurationFileFormat{
                     tmpSet.add(new Entry<String, AgentConfiguration.ManagementTargetConfiguration>() {
                         @Override
                         public String getKey() {
-                            return Objects.toString(((Map<String,Object>)targets.get(j)).get(targetKey));
+                            final Object obj = targets.get(j);
+                            if(obj instanceof Map)
+                                return Objects.toString(((Map<String,Object>)obj).get(targetKey));
+                            else
+                                return null;
                         }
 
                         @Override
                         public AgentConfiguration.ManagementTargetConfiguration getValue() {
-                            return new ManagementTargetConfigurationImpl((Map<String,Object>)targets.get(j));
+                            final Object obj = targets.get(j);
+                            if(obj instanceof Map)
+                            {
+                                ManagementTargetConfigurationImpl target = new ManagementTargetConfigurationImpl();
+                                target.putAll((Map<String,Object>)obj);
+                                return target;//new ManagementTargetConfigurationImpl((Map<String,Object>)obj);
+                            }
+                            else
+                                return null;
                         }
 
                         @Override
@@ -226,278 +248,189 @@ public enum ConfigurationFileFormat{
                         }
                     });
                 }
-                return tmpSet;  //To change body of implemented methods use File | Settings | File Templates.
+                return tmpSet;
             }
 
         }
 
-        private class ManagementTargetConfigurationImpl implements AgentConfiguration.ManagementTargetConfiguration{
+        private final class YamlAttributeConfiguration implements Map<String, ManagementTargetConfiguration.AttributeConfiguration>{
+            private final List<Object> targets;
+            private Long defaultTimeOut;
 
-            private Map<String, Object> configMap;
+            public YamlAttributeConfiguration(final List<Object> targets, final Long defaultTimeOut){
+                this.targets = targets;
+                this.defaultTimeOut = defaultTimeOut;
+            }
 
-            public ManagementTargetConfigurationImpl(Map<String, Object> configMap)
-            {
-                this.configMap = configMap;
+            public YamlAttributeConfiguration(final List<Object> targets){
+                this(targets, 0L);
             }
 
             @Override
-            public String getConnectionString() {
-                return Objects.toString(configMap.get(connectionStringtKey));
+            public int size() {
+                return targets.size();
             }
 
             @Override
-            public void setConnectionString(String connectionString) {
-                configMap.put(connectionStringtKey, connectionString);
+            public boolean isEmpty() {
+                return targets.isEmpty();
+            }
+
+            private boolean containsTarget(final Object targetName, Map<String, Object> targetConfig){
+                return Objects.equals(targetConfig.get(idKey), targetName);
             }
 
             @Override
-            public String getConnectionType() {
-                return Objects.toString(configMap.get(connectionTypetKey));
-            }
-
-            @Override
-            public void setConnectionType(String connectorType) {
-                configMap.put(connectionTypetKey, connectorType);
-            }
-
-            @Override
-            public String getNamespace() {
-                return Objects.toString(configMap.get(namespaceKey));
-            }
-
-            @Override
-            public void setNamespace(String namespace) {
-                configMap.put(namespaceKey, namespace);
-            }
-
-            @Override
-            public Map<String, AttributeConfiguration> getAttributes() {
-                final List<Object> attributes = (List<Object>)configMap.get(attributesKey);
-                if(attributes == null) return null;
-
-                return new YamlAttributeConfiguration(attributes, Long.parseLong(Objects.toString(configMap.get(defaultTimeoutKey))));
-            }
-
-            @Override
-            public Map<String, String> getAdditionalElements() {
-                return new YamlAdditionalElementsMap(configMap, connectionStringtKey, connectionTypetKey, namespaceKey, defaultTimeoutKey);
-            }
-
-            @Override
-            public AttributeConfiguration newAttributeConfiguration() {
-                return new AttributeConfigurationEmptyImpl();
-            }
-
-            private final class AttributeConfigurationImpl implements AttributeConfiguration
-            {
-                private Map<String, Object> attrMap;
-                private Long defaultTimeOut;
-
-                public AttributeConfigurationImpl(final Map<String, Object> attrMap, final Long defaultTimeOut)
+            public boolean containsKey(final Object targetName) {
+                for(int i=0;i<targets.size();i++)
                 {
-                    this.attrMap = attrMap;
-                    this.defaultTimeOut = defaultTimeOut;
+                    final Object obj = targets.get(i);
+                    if(obj instanceof Map && containsTarget(targetName, (Map<String,Object>)obj)) return true;
                 }
-
-                public AttributeConfigurationImpl(final Map<String, Object> attrMap)
-                {
-                    this(attrMap, 0L);
-                }
-
-                @Override
-                public TimeSpan getReadWriteTimeout() {
-                    //Check if readWriteTimeout set up
-                    Object tmpTimeout = attrMap.get(readWriteTimeoutKey);
-                    if(tmpTimeout == null)
-                    {
-                        attrMap.put(readWriteTimeoutKey, defaultTimeOut);
-                    }
-                    return new TimeSpan(Long.parseLong(Objects.toString(attrMap.get(readWriteTimeoutKey))), TimeUnit.MILLISECONDS);
-                }
-
-                @Override
-                public void setReadWriteTimeout(TimeSpan time) {
-                    attrMap.put(readWriteTimeoutKey, time.convert(TimeUnit.MILLISECONDS).duration);
-                }
-
-                @Override
-                public String getAttributeName() {
-                    return Objects.toString(attrMap.get(nameKey));
-                }
-
-                @Override
-                public void setAttributeName(String attributeName) {
-                    attrMap.put(nameKey, attributeName);
-                }
-
-                @Override
-                public Map<String, String> getAdditionalElements() {
-                    return new YamlAdditionalElementsMap(attrMap, readWriteTimeoutKey, nameKey, defaultTimeoutKey);
-                }
+                return false;
             }
 
-            private final class YamlAttributeConfiguration implements Map<String, AttributeConfiguration>{
-                private final List<Object> targets;
-                private Long defaultTimeOut;
+            @Override
+            public boolean containsValue(final Object value) {
+                return false;
+            }
 
-                public YamlAttributeConfiguration(final List<Object> targets, final Long defaultTimeOut){
-                    this.targets = targets;
-                    this.defaultTimeOut = defaultTimeOut;
-                }
-
-                public YamlAttributeConfiguration(final List<Object> targets){
-                    this(targets, 0L);
-                }
-
-                @Override
-                public int size() {
-                    return targets.size();
-                }
-
-                @Override
-                public boolean isEmpty() {
-                    return targets.isEmpty();
-                }
-
-                private boolean containsTarget(final Object targetName, Map<String, Object> targetConfig){
-                    return Objects.equals(targetConfig.get(idKey), targetName);
-                }
-
-                @Override
-                public boolean containsKey(final Object targetName) {
-                    for(int i=0;i<targets.size();i++)
-                        if(containsTarget(targetName, (Map<String,Object>)targets.get(i))) return true;
-                    return false;
-                }
-
-                @Override
-                public boolean containsValue(final Object value) {
-            /*for(final Map<String, Object> targetEntry: targets)
-                if(containsTarget(targetName, targetEntry)) return true;
-            return false;*/
-                    return false;
-                }
-
-                private Map<String, Object> getValueByKey(final Object key){
-                    for(int i = 0; i < targets.size();i++)
+            private Map<String, Object> getValueByKey(final Object key){
+                for(int i = 0; i < targets.size();i++)
+                {
+                    final Object obj = targets.get(i);
+                    if(obj instanceof Map)
                     {
-                        if(((Map<String,Object>)targets.get(i)).get(idKey).equals(Objects.toString(key)))
-                            return (Map<String, Object>)targets.get(i);
+                        final Object item = ((Map<String,Object>)obj).get(idKey);
+                        if(item != null && item.equals(Objects.toString(key, "")))
+                            return (Map<String, Object>)obj;
                     }
-                    return null;
                 }
+                return null;
+            }
 
-                @Override
-                public AttributeConfiguration get(Object key) {
-                    return new AttributeConfigurationImpl(getValueByKey(key), defaultTimeOut);
-                }
+            @Override
+            public ManagementTargetConfiguration.AttributeConfiguration get(Object key) {
+                final AttributeConfigurationImpl attrs = new AttributeConfigurationImpl(defaultTimeOut);
+                attrs.putAll(getValueByKey(key));
+                return attrs;
+            }
 
-                private Map<String,Object> convertConfigurationToMap(final String key, final AttributeConfiguration configuration)
-                {   final Map<String,Object> tmpMap = new HashMap<>();
-                    //Convert ManagementTargetConfiguration to Map
-                    tmpMap.put(idKey, key);
-                    tmpMap.put(readWriteTimeoutKey, configuration.getReadWriteTimeout().duration);
-                    tmpMap.put(nameKey, configuration.getAttributeName());
-                    for(Map.Entry<String,String> entry:configuration.getAdditionalElements().entrySet())
-                        tmpMap.put(entry.getKey(), entry.getValue());
-                    return tmpMap;
-                }
-
-                @Override
-                public AttributeConfiguration put(String key, AttributeConfiguration value) {
-                    boolean found = false;
-                    //If map is already has that key, we should change only value
-                    for(int i=0;i<targets.size();i++)
+            @Override
+            public ManagementTargetConfiguration.AttributeConfiguration put(String key, ManagementTargetConfiguration.AttributeConfiguration value) {
+                boolean found = false;
+                //If map is already has that key, we should change only value
+                for(int i=0;i<targets.size();i++)
+                {
+                    final Object obj = targets.get(i);
+                    if(obj instanceof Map)
                     {
-                        if(((Map<String,Object>)targets.get(i)).get(targetKey).equals(key))
+                        final Object item = ((Map<String,Object>)obj).get(idKey);
+                        if(item != null && item.equals(Objects.toString(key, "")))
                         {
                             targets.remove(i);
-                            targets.add(convertConfigurationToMap(key, value));
+                            targets.add(convertAttributeToMap(key, value));
                             found = true;
                             break;
                         }
                     }
-                    if(!found)
-                        targets.add(convertConfigurationToMap(key, value));
-                    return null;
                 }
+                if(!found)
+                    targets.add(convertAttributeToMap(key, value));
+                return null;
+            }
 
-                @Override
-                public AttributeConfiguration remove(Object key) {
-                    final AttributeConfiguration tmpConfig = get(key);
-                    for(int i = 0; i < targets.size();i++)
+            @Override
+            public ManagementTargetConfiguration.AttributeConfiguration remove(Object key) {
+                final ManagementTargetConfiguration.AttributeConfiguration tmpConfig = get(key);
+                for(int i = 0; i < targets.size();i++)
+                {
+                    final Object obj = targets.get(i);
+                    if(obj instanceof Map)
                     {
-                        if(((Map<String,Object>)targets.get(i)).get(idKey).equals(Objects.toString(key)))
+                        final Object item = ((Map<String,Object>)obj).get(idKey);
+                        if(item != null && item.equals(Objects.toString(key, "")))
                         {
                             targets.remove(i);
                             break;
                         }
                     }
-                    return tmpConfig;
                 }
+                return tmpConfig;
+            }
 
-                @Override
-                public void putAll(Map<? extends String, ? extends AttributeConfiguration> m) {
-                    for(Map.Entry<? extends String, ? extends AttributeConfiguration> entry: m.entrySet())
+            @Override
+            public void putAll(Map<? extends String, ? extends ManagementTargetConfiguration.AttributeConfiguration> m) {
+                for(Map.Entry<? extends String, ? extends ManagementTargetConfiguration.AttributeConfiguration> entry: m.entrySet())
+                {
+                    targets.add(convertAttributeToMap(entry.getKey(), entry.getValue()));
+                }
+            }
+
+            @Override
+            public void clear() {
+                targets.clear();
+            }
+
+            @Override
+            public Set<String> keySet() {
+                Set<String> tmpSet = new HashSet<>();
+                for(int i=0;i<targets.size();i++)
+                {
+                    final Object obj = targets.get(i);
+                    if(obj instanceof Map)
+                        tmpSet.add(Objects.toString(((Map<String,Object>)obj).get(idKey)));
+                }
+                return tmpSet;  //To change body of implemented methods use File | Settings | File Templates.
+            }
+
+            @Override
+            public Collection<ManagementTargetConfiguration.AttributeConfiguration> values() {
+                Collection<ManagementTargetConfiguration.AttributeConfiguration> tmpCollection = new ArrayList<>();
+                for(int i=0;i<targets.size();i++)
+                {
+                    final Object obj = targets.get(i);
+                    if(obj instanceof Map)
                     {
-                        targets.add(convertConfigurationToMap(entry.getKey(), entry.getValue()));
+                        //tmpCollection.add(new AttributeConfigurationImpl((Map<String,Object>)obj, defaultTimeOut));
+                        final AttributeConfigurationImpl attrs = new AttributeConfigurationImpl(defaultTimeOut);
+                        attrs.putAll((Map<String,Object>)obj);
+                        tmpCollection.add(attrs);
                     }
                 }
+                return tmpCollection;
+            }
 
-                @Override
-                public void clear() {
-                    targets.clear();
-                }
-
-                @Override
-                public Set<String> keySet() {
-                    Set<String> tmpSet = new HashSet<>();
-                    for(int i=0;i<targets.size();i++)
-                    {
-                        tmpSet.add(Objects.toString(((Map<String,Object>)targets).get(idKey)));
-                    }
-                    return tmpSet;  //To change body of implemented methods use File | Settings | File Templates.
-                }
-
-                @Override
-                public Collection<AttributeConfiguration> values() {
-                    Collection<AttributeConfiguration> tmpCollection = new ArrayList<>();
-                    for(int i=0;i<targets.size();i++)
-                    {
-                        tmpCollection.add(new AttributeConfigurationImpl((Map<String,Object>)targets.get(i), defaultTimeOut));
-                    }
-                    return tmpCollection;
-                }
-
-                @Override
-                public Set<Entry<String, AttributeConfiguration>> entrySet() {
-                    Set<Entry<String, AttributeConfiguration>> tmpSet = new HashSet<>();
-                    for(int i=0;i<targets.size();i++)
-                    {
-                        final int j = i;
-                        tmpSet.add(new Entry<String, AttributeConfiguration>() {
+            @Override
+            public Set<Entry<String, ManagementTargetConfiguration.AttributeConfiguration>> entrySet() {
+                Set<Entry<String, ManagementTargetConfiguration.AttributeConfiguration>> tmpSet = new HashSet<>();
+                for(int i=0;i<targets.size();i++)
+                {
+                    final Object obj = targets.get(i);
+                    if(obj instanceof Map)
+                        tmpSet.add(new Entry<String, ManagementTargetConfiguration.AttributeConfiguration>() {
                             @Override
                             public String getKey() {
-                                return Objects.toString(((Map<String,Object>)targets.get(j)).get(idKey));
+                                return Objects.toString(((Map<String,Object>)obj).get(idKey), "");
                             }
 
                             @Override
-                            public AttributeConfiguration getValue() {
-                                return new AttributeConfigurationImpl((Map<String,Object>)targets.get(j), defaultTimeOut);
+                            public ManagementTargetConfiguration.AttributeConfiguration getValue() {
+                                final AttributeConfigurationImpl attrs = new AttributeConfigurationImpl(defaultTimeOut);
+                                attrs.putAll((Map<String,Object>)obj);
+                                return attrs;
                             }
 
                             @Override
-                            public AttributeConfiguration setValue(AttributeConfiguration value) {
+                            public ManagementTargetConfiguration.AttributeConfiguration setValue(ManagementTargetConfiguration.AttributeConfiguration value) {
                                 return null;
                             }
                         });
-                    }
-                    return tmpSet;
                 }
-
+                return tmpSet;
             }
-        }
 
+        }
         private final class YamlAdditionalElementsMap implements Map<String, String> {
             private Map<String,Object> internalMap;
             private String[] internalLegalKeys = new String[0];
@@ -600,7 +533,7 @@ public enum ConfigurationFileFormat{
                         internalSet.add(entry.getKey());
                     }
                 }
-                return internalSet;  //To change body of implemented methods use File | Settings | File Templates.
+                return internalSet;
             }
 
             @Override
@@ -653,33 +586,23 @@ public enum ConfigurationFileFormat{
          */
         @Override
         public HostingConfiguration getAgentHostingConfig() {
-            /*final WeakReference<Map<String, Object>> conn = new WeakReference(this);
+            final Map<String, Object> conn = (Map<String, Object>)this.get(hostingConfigurationKey);
             return new AgentConfiguration.HostingConfiguration(){
-
-                private final static String hostingPortKey = "port";
-                private final static String hostingAddressKey = "address";
-
                 @Override
-                public int getPort() {
-                    return Integer.parseInt(Objects.toString(conn.get().get(hostingPortKey), "-1"));
+                public String getAdapterName() {
+                    return Objects.toString(conn.get(adapterNameKey), "");
                 }
 
                 @Override
-                public void setPort(int port) {
-                    conn.get().put(hostingPortKey, port);
+                public void setAdapterName(final String adapterName) {
+                    conn.put(adapterNameKey, adapterName);
                 }
 
                 @Override
-                public String getAddress() {
-                    return Objects.toString(conn.get().get(hostingAddressKey));
+                public Map<String, String> getHostingParams() {
+                    return new YamlAdditionalElementsMap(conn, adapterNameKey);
                 }
-
-                @Override
-                public void setAddress(String address) {
-                    conn.get().put(hostingAddressKey, address);
-                }
-            }; */
-            return null;
+            };
         }
 
         /**
@@ -689,115 +612,112 @@ public enum ConfigurationFileFormat{
          */
         @Override
         public Map<String, ManagementTargetConfiguration> getTargets() {
-            final WeakReference<List<Object>> weakRefList = new WeakReference((List<Object>)this.get(managementTargetsKey));
-
-            return new YamlManagementTargetConfigurations(weakRefList.get());
+            Object obj =  this.get(managementTargetsKey);
+            if(!(obj instanceof List))
+                this.put(managementTargetsKey, obj = new ArrayList<>());
+            return new YamlManagementTargetConfigurations((List<Object>)obj);
         }
 
-        private class AttributeConfigurationEmptyImpl implements ManagementTargetConfiguration.AttributeConfiguration
+        private class AttributeConfigurationImpl extends HashMap<String, Object> implements ManagementTargetConfiguration.AttributeConfiguration
         {
-            private Long readWriteTimeout;
-            private String attributeName;
-            private Map<String, String> addirionalElements;
-
-            public AttributeConfigurationEmptyImpl()
+            public AttributeConfigurationImpl()
             {
-               this.readWriteTimeout = 0L;
-               this.attributeName = "";
-               this.addirionalElements = new HashMap<>();
+                super();
             }
 
+            public AttributeConfigurationImpl(final Long defaultTimeout)
+            {
+                super();
+                if(defaultTimeout > 0)
+                    this.put(readWriteTimeoutKey, defaultTimeout);
+
+            }
             @Override
             public TimeSpan getReadWriteTimeout() {
-                return new TimeSpan(this.readWriteTimeout);
+                return new TimeSpan(Long.parseLong(Objects.toString(this.get(readWriteTimeoutKey), "0")));
             }
 
             @Override
             public void setReadWriteTimeout(TimeSpan time) {
-                this.readWriteTimeout = time.convert(TimeUnit.MILLISECONDS).duration;
+                this.put(readWriteTimeoutKey, time.convert(TimeUnit.MILLISECONDS).duration);
             }
 
             @Override
             public String getAttributeName() {
-                return this.attributeName;
+                return Objects.toString(this.get(nameKey), "");
             }
 
             @Override
             public void setAttributeName(String attributeName) {
-                this.attributeName = attributeName;
+                this.put(nameKey, attributeName);
             }
 
             @Override
             public Map<String, String> getAdditionalElements() {
-                return this.addirionalElements;
+                return new YamlAdditionalElementsMap(this, idKey, readWriteTimeoutKey, nameKey);
             }
         }
 
-        private class ManagementTargetConfigurationEmptyImpl implements ManagementTargetConfiguration
+        private class ManagementTargetConfigurationImpl extends HashMap<String, Object> implements ManagementTargetConfiguration
         {
-            private String connectionString;
-            private String connectorType;
-            private String namespace;
-            private Map<String, AttributeConfiguration> attributes;
-            private Map<String, String> additionalElements;
-
-            public ManagementTargetConfigurationEmptyImpl()
+            public ManagementTargetConfigurationImpl()
             {
-                this.connectionString = "";
-                this.connectorType = "";
-                this.namespace = "";
-                this.attributes = new HashMap<>();
-                this.additionalElements = new HashMap<>();
+                super();
             }
 
             @Override
             public String getConnectionString() {
-                return this.connectionString;
+                return Objects.toString(this.get(connectionStringtKey), "");
             }
 
             @Override
             public void setConnectionString(String connectionString) {
-                this.connectionString = connectionString;
+                this.put(connectionStringtKey, connectionString);
             }
 
             @Override
             public String getConnectionType() {
-                return this.connectorType;
+                return Objects.toString(this.get(connectionTypetKey), "");
             }
 
             @Override
             public void setConnectionType(String connectorType) {
-                this.connectorType = connectorType;
+                this.put(connectionTypetKey, connectorType);
             }
 
             @Override
             public String getNamespace() {
-                return this.namespace;
+                return Objects.toString(this.get(namespaceKey), "");
             }
 
             @Override
             public void setNamespace(String namespace) {
-                this.namespace = namespace;
+                this.put(namespaceKey, namespace);
             }
 
             @Override
             public Map<String, AttributeConfiguration> getAttributes() {
-                return this.attributes;
+                Object obj = this.get(attributesKey);
+                if(!(obj instanceof List))
+                {
+                    this.put(attributesKey, obj = new ArrayList<>());
+                }
+                return new YamlAttributeConfiguration((List<Object>)obj, Long.parseLong(Objects.toString(this.get(defaultTimeoutKey), "0")));
             }
 
             @Override
             public Map<String, String> getAdditionalElements() {
-                return this.additionalElements;
+                return new YamlAdditionalElementsMap(this, connectionStringtKey, connectionTypetKey, namespaceKey, targetKey, attributesKey);
             }
 
             @Override
             public AttributeConfiguration newAttributeConfiguration() {
-                return new AttributeConfigurationEmptyImpl();
+                return new AttributeConfigurationImpl();
             }
         }
         @Override
         public ManagementTargetConfiguration newManagementTargetConfiguration() {
-            return new ManagementTargetConfigurationEmptyImpl();
+            return new ManagementTargetConfigurationImpl();
         }
 
         /**
@@ -832,12 +752,12 @@ public enum ConfigurationFileFormat{
      * @param format The configuration file format name.
      * @return An instance of the configuration file.
      */
-	public static ConfigurationFileFormat parse(final String format) {
-		switch (format){
+    public static ConfigurationFileFormat parse(final String format) {
+        switch (format){
             default:
             case "yaml": return YAML;
         }
-	}
+    }
 
     /**
      * Creates a new empty configuration of the specified format.

@@ -1,6 +1,8 @@
 ---
-port: 5
-address: jdbc:mysql://localhost:3306/db
+adapter:
+  name: SNMPAdapter
+  addelem: value1
+  addelem3: value3
 
 managementTargets:
 - target: wso-esb-0
