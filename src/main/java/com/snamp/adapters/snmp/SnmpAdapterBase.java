@@ -12,7 +12,7 @@ import static com.snamp.adapters.AdapterBase.makeCapabilities;
  * Represents a base class for SNMP adapter.
  * @author roman
  */
-public abstract class SnmpAgentBase extends BaseAgent implements Adapter {
+public abstract class SnmpAdapterBase extends BaseAgent implements Adapter {
     protected static final Logger log = Logger.getLogger("snamp.snmp.log");
     protected static final int defaultPort = 161;
     protected static final String defaultAddress = "127.0.0.1";
@@ -27,9 +27,9 @@ public abstract class SnmpAgentBase extends BaseAgent implements Adapter {
         return makeCapabilities(adapterName);
     }
 
-    protected SnmpAgentBase(final File bootCounterFile,
-                        final File configFile,
-                        final CommandProcessor commandProcessor){
+    protected SnmpAdapterBase(final File bootCounterFile,
+                              final File configFile,
+                              final CommandProcessor commandProcessor){
         super(bootCounterFile, configFile, commandProcessor);
     }
 }

@@ -4,8 +4,6 @@ import java.io.*;
 import java.util.*;
 import java.util.logging.*;
 
-import com.snamp.adapters.Adapter;
-import static com.snamp.adapters.AdapterBase.makeCapabilities;
 import com.snamp.connectors.ManagementConnector;
 import net.xeoh.plugins.base.annotations.*;
 import org.snmp4j.TransportMapping;
@@ -26,7 +24,7 @@ import com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.Attrib
  * 
  */
 @PluginImplementation
-final class SnmpAdapter extends SnmpAgentBase {
+final class SnmpAdapter extends SnmpAdapterBase {
     /**
      * Represents a collection of MO's with OID postfixes.
      */

@@ -1,14 +1,26 @@
 package com.snamp.adapters.snmp;
 
 import com.snamp.TimeSpan;
-import com.snamp.connectors.ManagementConnector;
-import org.snmp4j.smi.OctetString;
+import com.snamp.connectors.*;
+import org.snmp4j.smi.*;
 
+import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
+
+@MOSyntax(SYNTAX_OCTET_STRING)
 final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
     public static final Number defaultValue = 0;
 
     public SnmpBigNumberObject(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
         super(oid, connector, new OctetString(defaultValue.toString()), timeouts);
+    }
+
+    public static OctetString convert(final Object value, final AttributeTypeInfo attributeTypeInfo){
+        return new OctetString(attributeTypeInfo.convertTo(value, String.class));
+    }
+
+    public static Object convert(final Variable value, final AttributeTypeInfo attributeTypeInfo){
+        if(attributeTypeInfo.canConvertFrom(String.class)) return value.toString();
+        else return defaultValue;
     }
 
     /**
@@ -19,7 +31,7 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
      */
     @Override
     protected OctetString convert(final Object value) {
-        return new OctetString(attributeTypeInfo.convertTo(value, String.class));
+        return convert(value, attributeTypeInfo);
     }
 
     /**
@@ -30,7 +42,6 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
      */
     @Override
     protected Object convert(final OctetString value) {
-        if(attributeTypeInfo.canConvertFrom(String.class)) return value.toString();
-        else return defaultValue;
+        return convert(value, attributeTypeInfo);
     }
 }

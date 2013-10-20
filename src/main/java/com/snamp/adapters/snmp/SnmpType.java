@@ -2,10 +2,14 @@ package com.snamp.adapters.snmp;
 
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
-import static com.snamp.connectors.AttributePrimitiveTypeBuilder.*;
-import org.snmp4j.agent.*;
+import org.snmp4j.smi.Null;
+import org.snmp4j.smi.Variable;
 
-import java.lang.reflect.Constructor;
+import static com.snamp.connectors.AttributePrimitiveTypeBuilder.*;
+
+import java.lang.reflect.*;
+import static org.snmp4j.smi.SMIConstants.EXCEPTION_NO_SUCH_OBJECT;
+
 import java.util.*;
 
 /**
@@ -51,6 +55,9 @@ enum SnmpType {
     TABLE(SnmpTableObject.class);
 
     private final Class<? extends SnmpAttributeMapping> mapping;
+    private final MOSyntax syntax;
+    private Method toVariableConverter;
+    private Method fromVariableConverter;
 
     /**
      * Initializes a new well-known SNMP value provider.
@@ -58,6 +65,9 @@ enum SnmpType {
      */
     private SnmpType(final Class<? extends SnmpAttributeMapping> mapping){
         this.mapping = mapping;
+        this.syntax = mapping.getAnnotation(MOSyntax.class);
+        this.toVariableConverter = null;
+        this.fromVariableConverter = null;
     }
 
     /**
@@ -71,6 +81,54 @@ enum SnmpType {
         try {
             final Constructor<? extends SnmpAttributeMapping> ctor = mapping.getConstructor(String.class, ManagementConnector.class, TimeSpan.class);
             return ctor.newInstance(oid, connector, timeouts);
+        }
+        catch (final ReflectiveOperationException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a value from {@link org.snmp4j.smi.SMIConstants} that represents value syntax type.
+     * @return The value syntax type.
+     */
+    public int getSyntax(){
+        return syntax != null ? syntax.value() : EXCEPTION_NO_SUCH_OBJECT;
+    }
+
+    /**
+     * Converts the specified value to the SNMP-compliant value.
+     * @param value The value to convert.
+     * @param valueType The value type.
+     * @return SNMP-compliant value.
+     */
+    public Variable convert(final Object value, final AttributeTypeInfo valueType){
+        if(toVariableConverter == null)
+            try {
+                toVariableConverter = mapping.getMethod("convert", Object.class, AttributeTypeInfo.class);
+            }
+            catch (final NoSuchMethodException e) {
+                return new Null();
+            }
+        //attempts to invoke the converter.
+        try {
+            return (Variable)toVariableConverter.invoke(null, new Object[]{value, valueType});
+        }
+        catch (final ReflectiveOperationException e) {
+            return new Null();
+        }
+    }
+
+    public Object convert(final Variable value, final AttributeTypeInfo valueType){
+        if(fromVariableConverter == null)
+            try {
+                fromVariableConverter = mapping.getMethod("convert", Variable.class, AttributeTypeInfo.class);
+            }
+            catch (final NoSuchMethodException e) {
+                return null;
+            }
+        //attempts to invoke the converter.
+        try {
+            return fromVariableConverter.invoke(null, new Object[]{value, valueType});
         }
         catch (final ReflectiveOperationException e) {
             return null;
@@ -95,7 +153,7 @@ enum SnmpType {
             return NUMBER;
         else if(isUnixTime(attributeType))
             return UNIX_TIME;
-        else if(attributeType instanceof AttributeTabularType || attributeType instanceof AttributeDictionaryType)
+        else if(attributeType instanceof AttributeTabularType)
             return TABLE;
         else return TEXT;
     }
@@ -113,10 +171,19 @@ enum SnmpType {
                                                     final String oid,
                                                     final String attributeName,
                                                     final Map<String, String> options,
-                                                    final TimeSpan timeouts){
+                                                   final TimeSpan timeouts){
         final AttributeMetadata attribute = connector.connectAttribute(oid, attributeName, options);
         if(attribute == null) return null;
         final SnmpType type = map(attribute.getAttributeType());
         return type != null ? type.createManagedObject(oid, connector, timeouts) : null;
+    }
+
+    /**
+     * Returns a value from {@link org.snmp4j.smi.SMIConstants} that represents the specified attrbute type.
+     * @param typeInfo
+     * @return
+     */
+    public static int getSyntax(final AttributeTypeInfo typeInfo){
+        return map(typeInfo).getSyntax();
     }
 }

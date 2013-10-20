@@ -18,94 +18,12 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
 
     }
 
-    private static interface AttrbuteJmxCompositeType extends AttributeConvertibleTypeInfo, AttributeDictionaryType{
+    private static interface AttrbuteJmxCompositeType extends AttributeConvertibleTypeInfo, AttributeTabularType{
 
     }
 
     private static AttrbuteJmxCompositeType createJmxCompositeType(final CompositeType ct){
-        return new AttrbuteJmxCompositeType() {
-            /**
-             * Returns a set of dictionary keys.
-             * @return A set of dictionary keys.
-             */
-            @Override
-            public final Set<String> getItems() {
-                return ct.keySet();
-            }
-
-            /**
-             * Returns the type of the dictionary value by its key.
-             * @param itemName The item name.
-             * @return
-             */
-            @Override
-            public AttributeTypeInfo getItemType(final String itemName) {
-                return createJmxType(ct.getType(itemName));
-            }
-
-            /**
-             *
-             * @param target The result of the conversion.
-             * @param <T>
-             * @return
-             */
-            @Override
-            public <T> boolean canConvertTo(final Class<T> target) {
-                return target != null && target.isAssignableFrom(Map.class);
-            }
-
-            private Map<String, Object> convertToMap(final CompositeData cdata){
-                final Map<String, Object> result = new HashMap<>(ct.keySet().size());
-                for(final String itemName: ct.keySet())
-                    result.put(itemName, cdata.get(itemName));
-                return result;
-            }
-
-            @Override
-            public <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException {
-                if(value instanceof CompositeData && target != null)
-                    if(target.isAssignableFrom(Map.class)) return (T)convertToMap((CompositeData)value);
-                throw new IllegalArgumentException(String.format("Value %s is not supported", value));
-            }
-
-            @Override
-            public <T> boolean canConvertFrom(final Class<T> source) {
-                return source != null && (Map.class.isAssignableFrom(source) || CompositeData.class.isAssignableFrom(source));
-            }
-
-            private CompositeData convertFrom(final Map<String, Object> source) throws OpenDataException {
-                return new CompositeDataSupport(ct, source);
-            }
-
-            /**
-             * Converts the specified value into the
-             *
-             * @param value The value to convert.
-             * @return The value of the attribute.
-             */
-            @Override
-            public Object convertFrom(final Object value) throws IllegalArgumentException {
-                if(value instanceof Map)
-                    try {
-                        return convertFrom((Map<String, Object>)value);
-                    }
-                    catch (final OpenDataException e) {
-                        throw new IllegalArgumentException(e);
-                    }
-                else if(value instanceof CompositeData) return value;
-                else throw new IllegalArgumentException(String.format("Value %s cannot be converted to composite data.", value));
-            }
-
-            /**
-             * Returns the underlying Java class.
-             *
-             * @return The underlying Java class.
-             */
-            @Override
-            public Class<?> getNativeClass() {
-                return CompositeData.class;
-            }
-        };
+        return null;
     }
 
     private static final class AttributeJmxArrayType<T> extends AttributeArrayType implements AttributeConvertibleTypeInfo<T[]>{

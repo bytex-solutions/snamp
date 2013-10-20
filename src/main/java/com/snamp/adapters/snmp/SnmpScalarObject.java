@@ -2,7 +2,6 @@ package com.snamp.adapters.snmp;
 
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
-import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
@@ -11,6 +10,7 @@ import java.lang.ref.*;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
+import static com.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
 
 /**
  * Represents a base class for scalar SNMP managed objects.
@@ -24,15 +24,6 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
      * Represents the type of the attribute.
      */
     protected final AttributeTypeInfo attributeTypeInfo;
-
-    private static MOAccess getAccessRestrictions(final AttributeMetadata metadata){
-        switch ((metadata.canWrite() ? 1 : 0) << 1 | (metadata.canRead() ? 1 : 0)){
-            //case 0: case 1:
-            default: return MOAccessImpl.ACCESS_READ_ONLY;
-            case 2: return MOAccessImpl.ACCESS_WRITE_ONLY;
-            case 3: return MOAccessImpl.ACCESS_READ_WRITE;
-        }
-    }
 
     private SnmpScalarObject(final String oid, final ManagementConnector connector, final AttributeMetadata attributeInfo, final T defval, final TimeSpan timeouts){
         super(new OID(oid), getAccessRestrictions(attributeInfo), defval);

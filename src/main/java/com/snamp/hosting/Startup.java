@@ -114,14 +114,8 @@ final class Startup extends ReplServer {
     }
 
     public static void main(String[] args) throws Exception {
-        final Adapter ad = HostingServices.getAdapter("snmp");
-        ad.start(new HashMap<String, String>(){{
-            put("port", "3999");
-            put("address", "0.0.0.0");
-        }});
-        return;
         //prepare startup arguments
-        /*switch (args.length){
+        switch (args.length){
             case 1: args = new String[]{args[0], ""}; break;
             case 2: break;
             default:
@@ -132,6 +126,6 @@ final class Startup extends ReplServer {
         Agent.start(ConfigurationFileFormat.load(args[0], args[1]));
         //represents REPL server startup.
         final ReplServer repl = new Startup(args[0], args[1]);
-        repl.loop(System.in, System.out);*/
+        repl.loop(System.in, System.out);
     }
 }
