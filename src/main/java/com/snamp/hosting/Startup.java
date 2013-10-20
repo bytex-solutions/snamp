@@ -119,8 +119,9 @@ final class Startup extends ReplServer {
             case 1: args = new String[]{args[0], ""}; break;
             case 2: break;
             default:
-                System.out.println("java snamp config-file");
-                System.out.println("Example: java snamp mon.yaml");
+                System.out.println("Usage:");
+                System.out.println("\tjava snamp config-format config-file");
+                System.out.println("\tExample: java snamp yaml mon.yaml");
                 return;
         }
         Agent.start(ConfigurationFileFormat.load(args[0], args[1]));
