@@ -8,7 +8,7 @@ import java.util.concurrent.TimeoutException;
  * Represents countdown timer that can be used to compute timeout.
  * @author roman
  */
-public final class CountdownTimer {
+public class CountdownTimer {
     private TimeSpan elapsed;
     private Date beginning;
 
@@ -23,10 +23,20 @@ public final class CountdownTimer {
     }
 
     /**
+     * Sets the current timer value.
+     * @param current The new value for the timer.
+     * @throws IllegalStateException The timer should be stopped.
+     */
+    protected final void setTimerValue(final TimeSpan current) throws IllegalStateException{
+        if(isStarted()) throw new IllegalStateException("The timer should be stopped.");
+        elapsed = current != null ? current : new TimeSpan(Long.MAX_VALUE);
+    }
+
+    /**
      * Returns elapsed time.
      * @return
      */
-    public TimeSpan getElapsedTime(){
+    public final TimeSpan getElapsedTime(){
         return elapsed;
     }
 
@@ -34,7 +44,7 @@ public final class CountdownTimer {
      * Determines whether the timer is launched.
      * @return
      */
-    public boolean isStarted(){
+    public final boolean isStarted(){
         return beginning != null;
     }
 

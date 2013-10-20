@@ -179,7 +179,7 @@ enum SnmpType {
     }
 
     /**
-     * Returns a value from {@link org.snmp4j.smi.SMIConstants} that represents the specified attrbute type.
+     * Returns a value from {@link org.snmp4j.smi.SMIConstants} that represents the specified attribute type.
      * @param typeInfo
      * @return
      */

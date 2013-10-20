@@ -28,6 +28,38 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     }
 
     /**
+     * Creates a simple table from an array of rows.
+     * @param rows
+     * @param <COLUMN>
+     * @return
+     */
+    public static <COLUMN> SimpleTable<COLUMN> fromArray(final Map<COLUMN, Object>[] rows){
+        if(rows.length == 0) return new SimpleTable<COLUMN>();
+        SimpleTable<COLUMN> result = null;
+        for(final Map<COLUMN, Object> row: rows){
+            if(result == null){
+                final Map<COLUMN, Class<?>> columns = new HashMap<>(10);
+                for(final COLUMN key: row.keySet())
+                    columns.put(key, Object.class);
+                result = new SimpleTable<COLUMN>(columns);
+            }
+            result.addRow(row);
+        }
+        return result;
+    }
+
+    /**
+     * Converts this table to the array of rows
+     * @return
+     */
+    public Map<COLUMN, Object>[] toArray(){
+        final Map<COLUMN, Object>[] rows = new HashMap[size()];
+        for(int i = 0; i < size(); i++)
+            rows[i] = new HashMap<>(this.get(i));
+        return rows;
+    }
+
+    /**
      * Returns a set of available columns.
      *
      * @return A set of available columns.
