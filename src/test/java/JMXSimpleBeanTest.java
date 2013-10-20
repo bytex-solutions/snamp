@@ -3,6 +3,7 @@ import com.snamp.hosting.Agent;
 import com.snamp.hosting.AgentConfiguration;
 import com.snamp.hosting.ConfigurationFileFormat;
 import junit.framework.TestCase;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
@@ -21,7 +22,7 @@ import java.net.URL;
 
 public class JMXSimpleBeanTest extends TestCase
 {
-    public static final String checkString = "Some text is here";
+    public static final String checkString = "String parameter";
     public static final String oidCheckPostfix = "1.1";
     public static final String objectName = "com.snampy.jmx:type=SimpleBean";
     public static final int localHostPort = 1161;
@@ -79,7 +80,6 @@ public class JMXSimpleBeanTest extends TestCase
         private void start() throws IOException {
             TransportMapping transport = new DefaultUdpTransportMapping();
             snmp = new Snmp(transport);
-// Do not forget this line!
             transport.listen();
         }
 
@@ -131,9 +131,6 @@ public class JMXSimpleBeanTest extends TestCase
 
     }
 
-
-
-
     private static AgentConfiguration createTestConfig(){
         return new AgentConfiguration() {
             /**
@@ -158,7 +155,7 @@ public class JMXSimpleBeanTest extends TestCase
                   @Override
                   public Map<String, String> getHostingParams() {
                       return new HashMap<String, String>(){{
-                        put("port", "161");
+                        put("port", String.valueOf(localHostPort));
                         put("address", "0.0.0.0");
                       }};
                   }
@@ -282,13 +279,13 @@ public class JMXSimpleBeanTest extends TestCase
 
     @Test
     public void testGetSimpleBean() throws Exception {
-        SimpleBean cache = new SimpleBean(checkString);
+        final SimpleBean cache = new SimpleBean(checkString);
 
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        ObjectName name = new ObjectName(objectName);
+        final  MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        final  ObjectName name = new ObjectName(objectName);
         mbs.registerMBean(cache, name);
 
-        Thread backward = new Thread(new Runnable() {
+        final Thread backward = new Thread(new Runnable() {
             @Override
             public void run() {
                 while(true) {
@@ -299,22 +296,17 @@ public class JMXSimpleBeanTest extends TestCase
                 }
             }
         });
-        //Thread.sleep(100000000);
 
-        ClassLoader classLoader = JMXSimpleBeanTest.class.getClassLoader();
-        Class aClass = classLoader.loadClass("com.snamp.hosting.AgentHostingSandbox");
         final AgentConfiguration config = createTestConfig();
         try(final Agent hosting = new Agent(config.getAgentHostingConfig())){
             hosting.start(config.getTargets());
 
-            //   Thread.sleep(100000000);
-
-            SNMPManager client = new SNMPManager("udp:127.0.0.1/"+Integer.toString(localHostPort));
+            final SNMPManager client = new SNMPManager("udp:127.0.0.1/"+Integer.toString(localHostPort));
             client.start();
 
-            String sysDescr = client.getAsString(new OID(oidPrefix + "." + oidCheckPostfix));
+            final String sysDescr = client.getAsString(new OID(oidPrefix + "." + oidCheckPostfix));
 
-            assertEquals("Something wrong",sysDescr,checkString);
+            assertEquals("Checking String attribute failed",sysDescr,checkString);
 
             backward.interrupt();
 
@@ -410,8 +402,6 @@ public class JMXSimpleBeanTest extends TestCase
         AgentConfiguration.ManagementTargetConfiguration outTarget = targets.get("wso-esb-1");
         assertEquals("mynamespace", outTarget.getNamespace());
     }
-
-
 
     @Test
     public void testCrashYamlConfig() throws IOException {
