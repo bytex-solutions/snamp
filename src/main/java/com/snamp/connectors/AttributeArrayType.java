@@ -75,6 +75,17 @@ public class AttributeArrayType implements AttributeTabularType {
     }
 
     /**
+     * Returns the number of rows if this information is available.
+     *
+     * @return The count of rows.
+     * @throws UnsupportedOperationException Row count is not supported.
+     */
+    @Override
+    public long getRowCount() throws UnsupportedOperationException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Determines whether the specified object is an array.
      * @param obj
      * @return

@@ -1,8 +1,8 @@
 package com.snamp.adapters.snmp;
 
 import com.snamp.TimeSpan;
-import com.snamp.connectors.ManagementConnector;
-import org.snmp4j.smi.TimeTicks;
+import com.snamp.connectors.*;
+import org.snmp4j.smi.*;
 
 import java.util.Date;
 
@@ -13,6 +13,16 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<TimeTicks>{
         super(oid, connector, new TimeTicks(defaultValue), timeouts);
     }
 
+    public static TimeTicks convert(final Object value, final AttributeTypeInfo attributeTypeInfo){
+        return new TimeTicks(attributeTypeInfo.convertTo(value, Long.class));
+    }
+
+    public static Object convert(final Variable value, final AttributeTypeInfo attributeTypeInfo){
+        if(attributeTypeInfo.canConvertFrom(Long.class)) return value.toLong();
+        else if(attributeTypeInfo.canConvertFrom(Date.class)) return new Date(value.toLong());
+        else return new Date();
+    }
+
     /**
      * Converts the attribute value into the SNMP-compliant value.
      *
@@ -21,7 +31,7 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<TimeTicks>{
      */
     @Override
     protected TimeTicks convert(final Object value) {
-        return new TimeTicks(attributeTypeInfo.convertTo(value, Long.class));
+        return convert(value, attributeTypeInfo);
     }
 
     /**
@@ -32,8 +42,6 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<TimeTicks>{
      */
     @Override
     protected Object convert(final TimeTicks value) {
-        if(attributeTypeInfo.canConvertFrom(Long.class)) return value.toLong();
-        else if(attributeTypeInfo.canConvertFrom(Date.class)) return new Date(value.toLong());
-        else return new Date();
+        return convert(value, attributeTypeInfo);
     }
 }

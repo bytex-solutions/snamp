@@ -1,14 +1,26 @@
 package com.snamp.adapters.snmp;
 
 import com.snamp.TimeSpan;
-import com.snamp.connectors.ManagementConnector;
-import org.snmp4j.smi.Counter64;
+import com.snamp.connectors.*;
+import org.snmp4j.smi.*;
 
+import static org.snmp4j.smi.SMIConstants.SYNTAX_COUNTER64;
+
+@MOSyntax(SYNTAX_COUNTER64)
 final class SnmpLongObject extends SnmpScalarObject<Counter64>{
     public static final long defaultValue = -1;
 
     public SnmpLongObject(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
         super(oid, connector, new Counter64(defaultValue), timeouts);
+    }
+
+    public static Counter64 convert(final Object value, final AttributeTypeInfo attributeTypeInfo){
+        return new Counter64(attributeTypeInfo.convertTo(value, Long.class));
+    }
+
+    public static Long convert(final Variable value, final AttributeTypeInfo attributeTypeInfo){
+        if(attributeTypeInfo.canConvertFrom(Long.class)) return value.toLong();
+        else return defaultValue;
     }
 
     /**
@@ -19,7 +31,7 @@ final class SnmpLongObject extends SnmpScalarObject<Counter64>{
      */
     @Override
     protected Counter64 convert(final Object value) {
-        return new Counter64(attributeTypeInfo.convertTo(value, Long.class));
+        return convert(value, attributeTypeInfo);
     }
 
     /**
@@ -30,7 +42,6 @@ final class SnmpLongObject extends SnmpScalarObject<Counter64>{
      */
     @Override
     protected Long convert(final Counter64 value) {
-        if(attributeTypeInfo.canConvertFrom(Long.class)) return value.toLong();
-        else return defaultValue;
+        return convert(value, attributeTypeInfo);
     }
 }
