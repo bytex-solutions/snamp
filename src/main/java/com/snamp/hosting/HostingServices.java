@@ -7,6 +7,7 @@ import net.xeoh.plugins.base.impl.PluginManagerFactory;
 import net.xeoh.plugins.base.options.getplugin.OptionCapabilities;
 import net.xeoh.plugins.base.util.uri.ClassURI;
 
+import java.io.File;
 import java.net.URI;
 import java.util.logging.Logger;
 
@@ -34,8 +35,12 @@ final class HostingServices {
     static {
         manager = PluginManagerFactory.createPluginManager();
         //load standard plug-ins
-        manager.addPluginsFrom(URI.create("classpath://com.snamp.connectors.jmx.JmxConnectorFactory"));
-        manager.addPluginsFrom(URI.create("classpath://com.snamp.adapters.snmp.SnmpAdapter"));
+        File pluginDir = new File("plugins");
+        if(pluginDir.exists() && pluginDir.isDirectory())
+            for(File plugin : pluginDir.listFiles())
+                if(plugin.isFile() && plugin.getName().toLowerCase().endsWith("jar")) {
+                    manager.addPluginsFrom(plugin.toURI());
+                }
     }
 
     /**

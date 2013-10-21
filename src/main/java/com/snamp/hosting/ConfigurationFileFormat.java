@@ -790,6 +790,10 @@ public enum ConfigurationFileFormat{
         try(final InputStream stream = new FileInputStream(fileName)){
             config.load(stream);
         }
+        catch(FileNotFoundException ignored) {
+            System.out.println("No input configuration file specified!");
+            System.exit(0);
+        }
         return config;
     }
 }
