@@ -56,16 +56,21 @@ public enum ConfigurationFileFormat{
             super(10);
         }
 
-        /**Helper method to compose map from AttributeConfiguration impl.*/
-        private Map<String,Object> convertAttributeToMap(final String key, final ManagementTargetConfiguration.AttributeConfiguration configuration)
-        {   final Map<String,Object> tmpMap = new HashMap<>();
+        /**
+         *
+         * @param key
+         * @param configuration
+         * @return
+         */
+        private static Map<String,Object> convertAttributeToMap(final String key, final ManagementTargetConfiguration.AttributeConfiguration configuration){
+            final Map<String,Object> tmpMap = new HashMap<>();
             tmpMap.put(idKey, key);
             tmpMap.putAll((AttributeConfigurationImpl)configuration);
             return tmpMap;
         }
 
         /**Helper method to compose map from ManagementTargetConfiguration impl.*/
-        private Map<String,Object> convertConfigurationToMap(final String key, final AgentConfiguration.ManagementTargetConfiguration configuration)
+        private static Map<String,Object> convertConfigurationToMap(final String key, final AgentConfiguration.ManagementTargetConfiguration configuration)
         {
             final Map<String,Object> tmpMap = new HashMap<>();
             tmpMap.put(targetKey, key);
@@ -73,7 +78,7 @@ public enum ConfigurationFileFormat{
             return tmpMap;
         }
 
-        private final class YamlManagementTargetConfigurations implements Map<String, AgentConfiguration.ManagementTargetConfiguration>{
+        private static final class YamlManagementTargetConfigurations implements Map<String, AgentConfiguration.ManagementTargetConfiguration>{
             private final List<Object> targets;
 
             public YamlManagementTargetConfigurations(final List<Object> targets){
@@ -253,7 +258,7 @@ public enum ConfigurationFileFormat{
 
         }
 
-        private final class YamlAttributeConfiguration implements Map<String, ManagementTargetConfiguration.AttributeConfiguration>{
+        private final static class YamlAttributeConfiguration implements Map<String, ManagementTargetConfiguration.AttributeConfiguration>{
             private final List<Object> targets;
             private Long defaultTimeOut;
 
@@ -431,7 +436,7 @@ public enum ConfigurationFileFormat{
             }
 
         }
-        private final class YamlAdditionalElementsMap implements Map<String, String> {
+        private final static class YamlAdditionalElementsMap implements Map<String, String> {
             private Map<String,Object> internalMap;
             private String[] internalLegalKeys = new String[0];
 
@@ -618,7 +623,7 @@ public enum ConfigurationFileFormat{
             return new YamlManagementTargetConfigurations((List<Object>)obj);
         }
 
-        private class AttributeConfigurationImpl extends HashMap<String, Object> implements ManagementTargetConfiguration.AttributeConfiguration
+        private final static class AttributeConfigurationImpl extends HashMap<String, Object> implements ManagementTargetConfiguration.AttributeConfiguration
         {
             public AttributeConfigurationImpl()
             {
@@ -658,7 +663,7 @@ public enum ConfigurationFileFormat{
             }
         }
 
-        private class ManagementTargetConfigurationImpl extends HashMap<String, Object> implements ManagementTargetConfiguration
+        private static final class ManagementTargetConfigurationImpl extends HashMap<String, Object> implements ManagementTargetConfiguration
         {
             public ManagementTargetConfigurationImpl()
             {

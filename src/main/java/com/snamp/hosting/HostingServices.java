@@ -1,5 +1,6 @@
 package com.snamp.hosting;
 
+import com.snamp.FileExtensionFilter;
 import com.snamp.adapters.*;
 import com.snamp.connectors.*;
 import net.xeoh.plugins.base.PluginManager;
@@ -17,7 +18,7 @@ import java.util.logging.Logger;
  */
 final class HostingServices {
     private static final PluginManager manager;
-    private static final Logger log = Logger.getLogger("snamp.log");
+    private static final Logger log;
 
     private HostingServices(){
 
@@ -32,15 +33,24 @@ final class HostingServices {
         }
         return factory.newInstance(target.getConnectionString(), target.getAdditionalElements());
     }
+
+    /**
+     * Returns a directory with plugins.
+     * @return A directory with plugins.
+     */
+    public static File getPluginsDirectory(){
+        return new File(System.getProperty("com.snamp.plugindir", "plugins"));
+    }
+
     static {
+        log = Logger.getLogger("snamp.log");
         manager = PluginManagerFactory.createPluginManager();
         //load standard plug-ins
-        File pluginDir = new File("plugins");
+        final File pluginDir = getPluginsDirectory();
         if(pluginDir.exists() && pluginDir.isDirectory())
-            for(File plugin : pluginDir.listFiles())
-                if(plugin.isFile() && plugin.getName().toLowerCase().endsWith("jar")) {
-                    manager.addPluginsFrom(plugin.toURI());
-                }
+            for(final File plugin: pluginDir.listFiles(new FileExtensionFilter(".jar")))
+                if(plugin.isFile()) manager.addPluginsFrom(plugin.toURI());
+        else log.severe("No plugins are loaded.");
     }
 
     /**
