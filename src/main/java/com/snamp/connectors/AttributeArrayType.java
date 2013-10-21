@@ -1,5 +1,7 @@
 package com.snamp.connectors;
 
+import com.snamp.*;
+
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -103,7 +105,10 @@ public class AttributeArrayType implements AttributeTabularType {
      */
     @Override
     public <T> boolean canConvertTo(final Class<T> target) {
-        return Object.class == target || String.class == target || (target.isArray() && elementType.canConvertFrom(target.getComponentType()));
+        return Object.class == target ||
+                String.class == target ||
+                Table.class == target ||
+                (target.isArray() && elementType.canConvertFrom(target.getComponentType()));
     }
 
     /**
@@ -121,7 +126,32 @@ public class AttributeArrayType implements AttributeTabularType {
             return (T[])result;
         } else if(value instanceof List)
             return convertToArray(((List)value).toArray(), destinationElementType);
-        else throw new IllegalArgumentException(String.format("Could not convert %s to array", value));
+        else throw new IllegalArgumentException(String.format("Could not convert %s to array.", value));
+    }
+
+    protected Table<String> convertToTable(final Object value){
+        final Table<String> result = new SimpleTable<String>(new HashMap<String, Class<?>>(2){{
+            put(indexColumnName, Integer.class);
+            put(valueColumnName, Object.class);
+        }});
+        if(isArray(value))
+            for(int i = 0; i < Array.getLength(value); i++){
+                final Map<String, Object> row = new HashMap<>(2);
+                row.put(indexColumnName, i);
+                row.put(valueColumnName, Array.get(value, i));
+                result.addRow(row);
+            }
+        else if(value instanceof List){
+            final List<?> lst = (List<?>)value;
+            for(int i = 0; i < lst.size(); i++){
+                final Map<String, Object> row = new HashMap<>(2);
+                row.put(indexColumnName, i);
+                row.put(valueColumnName, lst.get(i));
+                result.addRow(row);
+            }
+        }
+        else throw new IllegalArgumentException(String.format("Could not convert %s to table.", value));
+        return result;
     }
 
     /**
@@ -136,6 +166,7 @@ public class AttributeArrayType implements AttributeTabularType {
     @Override
     public <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException {
         if(target.isInstance(value)) return (T)value;
+        else if(Table.class == target) return (T)convertToTable(value);
         else if(String.class == target) return (T)Objects.toString(value, "");
         else if(target.isArray() && elementType.canConvertFrom(target.getComponentType()) && value != null && value.getClass().isArray())
             return (T)convertToArray(value, target.getComponentType());
@@ -151,6 +182,6 @@ public class AttributeArrayType implements AttributeTabularType {
      */
     @Override
     public <T> boolean canConvertFrom(final Class<T> source) {
-        return source.isArray() && elementType.canConvertFrom(source.getComponentType());
+        return Table.class == source || (source.isArray() && elementType.canConvertFrom(source.getComponentType()));
     }
 }

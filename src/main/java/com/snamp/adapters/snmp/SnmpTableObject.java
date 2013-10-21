@@ -201,7 +201,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
      *         such a variable does not exist.
      */
     @Override
-    public Variable getValue(final OID instanceOID) {
+    public synchronized Variable getValue(final OID instanceOID) {
         try {
             fillTableIfNecessary();
             return table.getValue(instanceOID);
@@ -222,7 +222,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
      *         successfully, <code>false</code> otherwise.
      */
     @Override
-    public boolean setValue(final VariableBinding newValueAndInstanceOID) {
+    public synchronized boolean setValue(final VariableBinding newValueAndInstanceOID) {
         return table.setValue(newValueAndInstanceOID);
     }
 
@@ -255,7 +255,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
      * @param request the <code>SubRequest</code> to process.
      */
     @Override
-    public void get(final SubRequest request) {
+    public synchronized void get(final SubRequest request) {
         try {
             fillTableIfNecessary();
         } catch (final TimeoutException e) {
@@ -277,7 +277,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
      *         <code>false</code> otherwise.
      */
     @Override
-    public boolean next(final SubRequest request) {
+    public synchronized boolean next(final SubRequest request) {
         return table.next(request);
     }
 
@@ -290,7 +290,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
      * @param request the <code>SubRequest</code> to process.
      */
     @Override
-    public void prepare(final SubRequest request) {
+    public synchronized void prepare(final SubRequest request) {
         try{
             commit(_connector.get(), table, _tabularType, readWriteTimeout);
             table.prepare(request);
@@ -337,7 +337,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
      * @param request the <code>SubRequest</code> to process.
      */
     @Override
-    public void commit(final SubRequest request) {
+    public synchronized void commit(final SubRequest request) {
         table.commit(request);
     }
 
@@ -349,7 +349,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
      * @param request the <code>SubRequest</code> to process.
      */
     @Override
-    public void undo(final SubRequest request) {
+    public synchronized void undo(final SubRequest request) {
         table.undo(request);
     }
 
@@ -360,7 +360,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
      * @param request the <code>SubRequest</code> to process.
      */
     @Override
-    public void cleanup(final SubRequest request) {
+    public synchronized void cleanup(final SubRequest request) {
         table.cleanup(request);
     }
 }
