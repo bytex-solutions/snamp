@@ -178,15 +178,13 @@ public enum ConfigurationFileFormat{
             }
 
             @Override
-            public void putAll(Map<? extends String, ? extends AgentConfiguration.ManagementTargetConfiguration> m) {
+            public final void putAll(Map<? extends String, ? extends AgentConfiguration.ManagementTargetConfiguration> m) {
                 for(Map.Entry<? extends String, ? extends AgentConfiguration.ManagementTargetConfiguration> entry: m.entrySet())
-                {
                     targets.add(convertConfigurationToMap(entry.getKey(), entry.getValue()));
-                }
             }
 
             @Override
-            public void clear() {
+            public final void clear() {
                 targets.clear();
             }
 
@@ -749,6 +747,16 @@ public enum ConfigurationFileFormat{
             final Map<String, Object> dom = (Map<String, Object>)yaml.load(input);
             clear();
             putAll(dom);
+        }
+
+        /**
+         * Imports the state of specified object into this object.
+         *
+         * @param input
+         */
+        @Override
+        public final void load(final AgentConfiguration input) {
+            AgentConfigurationBase.copy(input, this);
         }
     }
 

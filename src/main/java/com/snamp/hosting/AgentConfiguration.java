@@ -148,6 +148,12 @@ public interface AgentConfiguration extends BinarySerializable {
      */
     public ManagementTargetConfiguration newManagementTargetConfiguration();
 
+    /**
+     * Serializes this object into the specified stream.
+     * @param output
+     * @throws UnsupportedOperationException Serialization is not supported.
+     * @throws IOException Some I/O error occurs.
+     */
     @Override
     public void save(final OutputStream output) throws UnsupportedOperationException, IOException;
 
@@ -159,4 +165,10 @@ public interface AgentConfiguration extends BinarySerializable {
      */
     @Override
     public void load(final InputStream input) throws UnsupportedOperationException, IOException;
+
+    /**
+     * Imports the state of specified object into this object.
+     * @param input
+     */
+    public void load(final AgentConfiguration input);
 }

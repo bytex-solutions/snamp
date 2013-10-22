@@ -184,6 +184,16 @@ public abstract class AbstractJMXSimpleBeanTest
                 throw new UnsupportedOperationException();
             }
 
+            /**
+             * Imports the state of specified object into this object.
+             *
+             * @param input
+             */
+            @Override
+            public void load(final AgentConfiguration input) {
+                throw new UnsupportedOperationException();
+            }
+
             @Override
             public ManagementTargetConfiguration newManagementTargetConfiguration() {
                 return null;
