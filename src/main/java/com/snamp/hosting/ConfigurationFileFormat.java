@@ -78,10 +78,10 @@ public enum ConfigurationFileFormat{
             return tmpMap;
         }
 
-        private static final class YamlManagementTargetConfigurations implements Map<String, AgentConfiguration.ManagementTargetConfiguration>{
+        private static final class YamlManagementTargetConfiguration implements Map<String, AgentConfiguration.ManagementTargetConfiguration>{
             private final List<Object> targets;
 
-            public YamlManagementTargetConfigurations(final List<Object> targets){
+            public YamlManagementTargetConfiguration(final List<Object> targets){
                 this.targets = targets;
             }
 
@@ -618,7 +618,7 @@ public enum ConfigurationFileFormat{
             Object obj =  this.get(managementTargetsKey);
             if(!(obj instanceof List))
                 this.put(managementTargetsKey, obj = new ArrayList<>());
-            return new YamlManagementTargetConfigurations((List<Object>)obj);
+            return new YamlManagementTargetConfiguration((List<Object>)obj);
         }
 
         private final static class AttributeConfigurationImpl extends HashMap<String, Object> implements ManagementTargetConfiguration.AttributeConfiguration
@@ -777,7 +777,7 @@ public enum ConfigurationFileFormat{
      * @param format
      * @return
      */
-    public static AgentConfiguration newAgentConfiguration(final String format){
+    public static final AgentConfiguration newAgentConfiguration(final String format){
         return parse(format).newAgentConfiguration();
     }
 
@@ -803,7 +803,7 @@ public enum ConfigurationFileFormat{
         try(final InputStream stream = new FileInputStream(fileName)){
             config.load(stream);
         }
-        catch(FileNotFoundException ignored) {
+        catch(final FileNotFoundException ignored) {
             System.out.println("No input configuration file specified!");
             System.exit(0);
         }
