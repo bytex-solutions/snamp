@@ -42,7 +42,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
 	public SnmpAdapter() throws IOException {
 		// These files does not exist and are not used but has to be specified
 		// Read snmp4j docs for more info
-		super(new File("conf.agent"), new File("bootCounter.agent"),
+		super(new File("conf.agent"), null,
 				new CommandProcessor(
 						new OctetString(MPv3.createLocalEngineID())));
         coldStart = true;
