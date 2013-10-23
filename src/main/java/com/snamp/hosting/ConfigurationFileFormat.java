@@ -37,13 +37,13 @@ public enum ConfigurationFileFormat{
      * Represents YAML-compliant configuration.
      */
     private static final class YamlAgentConfiguration extends HashMap<String, Object> implements AgentConfiguration{
-        private static final String managementTargetsKey = "managementTargets";
+        private final static String managementTargetsKey = "managementTargets";
         private final static String connectionStringtKey = "connectionString";
         private final static String connectionTypetKey = "connectionType";
         private final static String namespaceKey = "namespace";
         private final static String defaultTimeoutKey = "defaultTimeout";
         private final static String attributesKey = "attributes";
-        private static final String targetKey = "target";
+        private final static String targetKey = "target";
         private final static String idKey = "id";
         private final static String readWriteTimeoutKey = "readWriteTimeout";
         private final static String nameKey = "name";
@@ -64,8 +64,11 @@ public enum ConfigurationFileFormat{
          */
         private static Map<String,Object> convertAttributeToMap(final String key, final ManagementTargetConfiguration.AttributeConfiguration configuration){
             final Map<String,Object> tmpMap = new HashMap<>();
-            tmpMap.put(idKey, key);
-            tmpMap.putAll((AttributeConfigurationImpl)configuration);
+            if(configuration instanceof AttributeConfigurationImpl)
+            {
+                tmpMap.put(idKey, key);
+                tmpMap.putAll((AttributeConfigurationImpl)configuration);
+            }
             return tmpMap;
         }
 
@@ -73,8 +76,11 @@ public enum ConfigurationFileFormat{
         private static Map<String,Object> convertConfigurationToMap(final String key, final AgentConfiguration.ManagementTargetConfiguration configuration)
         {
             final Map<String,Object> tmpMap = new HashMap<>();
-            tmpMap.put(targetKey, key);
-            tmpMap.putAll((ManagementTargetConfigurationImpl)configuration);
+            if(configuration instanceof ManagementTargetConfigurationImpl)
+            {
+                tmpMap.put(targetKey, key);
+                tmpMap.putAll((ManagementTargetConfigurationImpl)configuration);
+            }
             return tmpMap;
         }
 
@@ -111,7 +117,7 @@ public enum ConfigurationFileFormat{
 
             @Override
             public boolean containsValue(final Object value) {
-                return false;
+                throw new UnsupportedOperationException();
             }
 
             private Map<String, Object> getValueByKey(final Object key){
@@ -129,9 +135,9 @@ public enum ConfigurationFileFormat{
 
             @Override
             public AgentConfiguration.ManagementTargetConfiguration get(Object key) {
-                ManagementTargetConfigurationImpl target = new ManagementTargetConfigurationImpl();
+                final ManagementTargetConfigurationImpl target = new ManagementTargetConfigurationImpl();
                 target.putAll(getValueByKey(key));
-                return target;//new ManagementTargetConfigurationImpl(getValueByKey(key));
+                return target;
             }
 
             @Override
@@ -190,7 +196,7 @@ public enum ConfigurationFileFormat{
 
             @Override
             public Set<String> keySet() {
-                Set<String> tmpSet = new HashSet<>();
+                final Set<String> tmpSet = new HashSet<>();
                 for(int i=0;i<targets.size();i++)
                 {   final Object obj = targets.get(i);
                     if(obj instanceof Map)
@@ -201,13 +207,12 @@ public enum ConfigurationFileFormat{
 
             @Override
             public Collection<AgentConfiguration.ManagementTargetConfiguration> values() {
-                Collection<AgentConfiguration.ManagementTargetConfiguration> tmpCollection = new ArrayList<>();
+                final Collection<AgentConfiguration.ManagementTargetConfiguration> tmpCollection = new ArrayList<>();
                 for(int i=0;i<targets.size();i++)
                 {
                     final Object obj = targets.get(i);
                     if(obj instanceof Map)
                     {
-                        //tmpCollection.add(new ManagementTargetConfigurationImpl((Map<String,Object>)obj));
                         final ManagementTargetConfigurationImpl target = new ManagementTargetConfigurationImpl();
                         target.putAll((Map<String,Object>)obj);
                         tmpCollection.add(target);
@@ -239,7 +244,7 @@ public enum ConfigurationFileFormat{
                             {
                                 ManagementTargetConfigurationImpl target = new ManagementTargetConfigurationImpl();
                                 target.putAll((Map<String,Object>)obj);
-                                return target;//new ManagementTargetConfigurationImpl((Map<String,Object>)obj);
+                                return target;
                             }
                             else
                                 return null;
@@ -295,7 +300,7 @@ public enum ConfigurationFileFormat{
 
             @Override
             public boolean containsValue(final Object value) {
-                return false;
+                throw new UnsupportedOperationException();
             }
 
             private Map<String, Object> getValueByKey(final Object key){
@@ -377,25 +382,24 @@ public enum ConfigurationFileFormat{
 
             @Override
             public Set<String> keySet() {
-                Set<String> tmpSet = new HashSet<>();
+                final Set<String> tmpSet = new HashSet<>();
                 for(int i=0;i<targets.size();i++)
                 {
                     final Object obj = targets.get(i);
                     if(obj instanceof Map)
                         tmpSet.add(Objects.toString(((Map<String,Object>)obj).get(idKey)));
                 }
-                return tmpSet;  //To change body of implemented methods use File | Settings | File Templates.
+                return tmpSet;
             }
 
             @Override
             public Collection<ManagementTargetConfiguration.AttributeConfiguration> values() {
-                Collection<ManagementTargetConfiguration.AttributeConfiguration> tmpCollection = new ArrayList<>();
+                final Collection<ManagementTargetConfiguration.AttributeConfiguration> tmpCollection = new ArrayList<>();
                 for(int i=0;i<targets.size();i++)
                 {
                     final Object obj = targets.get(i);
                     if(obj instanceof Map)
                     {
-                        //tmpCollection.add(new AttributeConfigurationImpl((Map<String,Object>)obj, defaultTimeOut));
                         final AttributeConfigurationImpl attrs = new AttributeConfigurationImpl(defaultTimeOut);
                         attrs.putAll((Map<String,Object>)obj);
                         tmpCollection.add(attrs);
@@ -406,7 +410,7 @@ public enum ConfigurationFileFormat{
 
             @Override
             public Set<Entry<String, ManagementTargetConfiguration.AttributeConfiguration>> entrySet() {
-                Set<Entry<String, ManagementTargetConfiguration.AttributeConfiguration>> tmpSet = new HashSet<>();
+                final Set<Entry<String, ManagementTargetConfiguration.AttributeConfiguration>> tmpSet = new HashSet<>();
                 for(int i=0;i<targets.size();i++)
                 {
                     final Object obj = targets.get(i);
