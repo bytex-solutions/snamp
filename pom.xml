@@ -2,10 +2,10 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.snamp</groupId>
-  <artifactId>snampy</artifactId>
+  <artifactId>snamp</artifactId>
   <version>1.0.0</version>
   <packaging>jar</packaging>
-  <name>snampy</name>
+  <name>snamp</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -33,7 +33,7 @@
                 <exclude>**/connectors/*/*</exclude>
                 <exclude>**/adapters/*/*</exclude>
               </excludes>
-              <finalName>snampy.alpha</finalName>
+              <finalName>snamp.alpha</finalName>
             </configuration>
           </execution>
           <execution>
@@ -46,7 +46,7 @@
                 <include>**/connectors/*</include>
               </includes>
               <outputDirectory>${project.build.directory}/plugins</outputDirectory>
-              <finalName>snampy.connector.jmx</finalName>
+              <finalName>snamp.connector.jmx</finalName>
             </configuration>
           </execution>
           <execution>
@@ -59,7 +59,7 @@
                 <include>**/adapters/*</include>
               </includes>
               <outputDirectory>${project.build.directory}/plugins</outputDirectory>
-              <finalName>snampy.adapter.snmp</finalName>
+              <finalName>snamp.adapter.snmp</finalName>
             </configuration>
           </execution>
         </executions>
