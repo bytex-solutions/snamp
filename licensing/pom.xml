@@ -6,15 +6,15 @@
     <artifactId>snamp</artifactId>
     <version>1.0.0</version>
   </parent>
-  <artifactId>agent</artifactId>
+  <artifactId>licensing</artifactId>
   <version>1.0.0</version>
   <packaging>jar</packaging>
-  <name>Agent module</name>
+  <name>License generator module</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
   </properties>
-  <description>JMX to SNMP bridge</description>
+  <description>Generates and shows Snampy bridge licenses</description>
   <build>
     <plugins>
       <plugin>
@@ -25,7 +25,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>com.snamp.hosting.Startup</mainClass>
+              <mainClass>com.snamp.licensing.generator.LicenseManager</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -38,54 +38,13 @@
           <target>1.7</target>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>create-my-bundle</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <archive>
-                <manifest>
-                  <addClasspath>true</addClasspath>
-                  <mainClass>com.snamp.hosting.Startup</mainClass>
-                </manifest>
-              </archive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
   <dependencies>
-    <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-      <version>[1.11,)</version>
-    </dependency>
     <dependency>
       <groupId>net.xeoh.jspf</groupId>
       <artifactId>jspf-core</artifactId>
       <version>1.0.2</version>
     </dependency>
   </dependencies>
-  <repositories>
-    <repository>
-      <id>jspfRepo</id>
-      <name>formreturn.com Repository</name>
-      <url>http://maven.formreturn.com/repository</url>
-      <layout>default</layout>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-    </repository>
-  </repositories>
 </project>
