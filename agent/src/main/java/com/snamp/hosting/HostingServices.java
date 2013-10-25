@@ -46,6 +46,9 @@ final class HostingServices {
         log = Logger.getLogger("snamp.log");
         manager = PluginManagerFactory.createPluginManager();
         //load standard plug-ins
+        manager.addPluginsFrom(URI.create("classpath://com.snamp.connectors.**"));
+        manager.addPluginsFrom(URI.create("classpath://com.snamp.adapters.**"));
+        //load external plugins
         final File pluginDir = getPluginsDirectory();
         if(pluginDir.exists() && pluginDir.isDirectory())
             for(final File plugin: pluginDir.listFiles(new FileExtensionFilter(".jar")))

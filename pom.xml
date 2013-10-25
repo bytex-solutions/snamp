@@ -10,5 +10,6 @@
     <module>agent</module>
     <module>adapters</module>
     <module>connectors</module>
+    <module>tests</module>
   </modules>
 </project>
