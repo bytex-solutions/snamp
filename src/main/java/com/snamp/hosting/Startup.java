@@ -114,6 +114,7 @@ final class Startup extends ReplServer {
     }
 
     public static void main(String[] args) throws Exception {
+        com.snamp.licensing.generator.LicenseManager.main(new String[]{"-g", "lickey.key"});
         //prepare startup arguments
         switch (args.length){
             case 1: args = new String[]{args[0], ""}; break;
