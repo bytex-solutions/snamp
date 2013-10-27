@@ -24,7 +24,7 @@ public final class FileExtensionFilter implements FilenameFilter {
 
     public static String getExtension(final String fileName){
         final int i = fileName.lastIndexOf('.');
-        final int p = Math.max(fileName.lastIndexOf('/'), fileName.lastIndexOf('\\'));
+        final int p = fileName.lastIndexOf(System.getProperty("file.separator"));
         return i > p ? fileName.substring(i + 1) : "";
     }
 
