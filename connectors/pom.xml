@@ -4,10 +4,10 @@
   <parent>
     <groupId>com.snamp</groupId>
     <artifactId>snamp</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>connectors</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Connectors</name>
   <description>Connectors module</description>
@@ -15,7 +15,7 @@
     <dependency>
       <groupId>com.snamp</groupId>
       <artifactId>agent</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <modules>

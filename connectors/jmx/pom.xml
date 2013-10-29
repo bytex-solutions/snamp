@@ -4,10 +4,10 @@
   <parent>
     <groupId>com.snamp</groupId>
     <artifactId>connectors</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>jmx</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>JMX Module Plugin</name>
   <properties>
