@@ -35,11 +35,16 @@ final class HostingServices {
     }
 
     /**
+     * Represents name of the system property that contains path to the folder with SNAMP plugins.
+     */
+    public static final String PLUGINS_DIR = "com.snamp.plugindir";
+
+    /**
      * Returns a directory with plugins.
      * @return A directory with plugins.
      */
     public static File getPluginsDirectory(){
-        return new File(System.getProperty("com.snamp.plugindir", "plugins"));
+        return new File(System.getProperty(PLUGINS_DIR, "plugins"));
     }
 
     static {
