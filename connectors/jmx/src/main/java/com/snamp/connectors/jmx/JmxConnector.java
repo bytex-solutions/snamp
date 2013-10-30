@@ -2,6 +2,7 @@ package com.snamp.connectors.jmx;
 
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
+import com.snamp.licensing.JmxConnectorLicenseLimitations;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -9,6 +10,7 @@ import javax.management.remote.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.*;
 
 import static com.snamp.connectors.AttributePrimitiveTypeBuilder.numberToBoolean;
@@ -21,6 +23,11 @@ import static com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertible
  */
 final class JmxConnector extends ManagementConnectorBase {
     private static final Logger log = Logger.getLogger("snamp.jmxconnector.log");
+    /**
+     * Represents count of instantiated connectors.
+     */
+    private static final AtomicLong instanceCounter = new AtomicLong(0);
+
     private final JMXServiceURL serviceURL;
     private final Map<String, Object> connectionProperties;
 
@@ -444,6 +451,7 @@ final class JmxConnector extends ManagementConnectorBase {
         if(serviceURL == null) throw new IllegalArgumentException("serviceURL is null.");
         this.serviceURL = serviceURL;
         this.connectionProperties = connectionProperties != null ? Collections.unmodifiableMap(connectionProperties) : new HashMap<String, Object>();
+        JmxConnectorLicenseLimitations.current().verifyMaxInstanceCount(instanceCounter.incrementAndGet());
     }
 
     private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final boolean useRegexp){
@@ -466,7 +474,7 @@ final class JmxConnector extends ManagementConnectorBase {
         final String namespace = Objects.toString(options.get("objectName"), "");
         try {
             return connectAttribute(new ObjectName(namespace), attributeName, options.containsKey("useRegexp") && Boolean.TRUE.equals(options.get("useRegexp")));
-        } catch (MalformedObjectNameException e) {
+        } catch (final MalformedObjectNameException e) {
             log.log(Level.SEVERE, String.format("Unsupported JMX object name: %s", namespace), e);
             return null;
         }
@@ -566,6 +574,11 @@ final class JmxConnector extends ManagementConnectorBase {
      */
     @Override
     public void close(){
+        instanceCounter.decrementAndGet();
+    }
 
+    @Override
+    protected void finalize() {
+        close();
     }
 }
