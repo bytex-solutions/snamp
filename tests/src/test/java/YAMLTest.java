@@ -14,7 +14,7 @@ import java.util.Map;
  * Date: 20.10.13
  * Time: 17:02
  */
-public class YAMLTest extends TestCase{
+public class YAMLTest extends SnampTestCase{
 
     @Test
     public void testYaml() throws IOException, ClassNotFoundException {

@@ -2,7 +2,7 @@ package com.snamp.connectors.jmx;
 
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
-import com.snamp.licensing.JmxConnectorLicenseLimitations;
+import com.snamp.licensing.JmxConnectorLimitations;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -13,7 +13,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.*;
 
-import static com.snamp.connectors.AttributePrimitiveTypeBuilder.numberToBoolean;
 import static com.snamp.connectors.jmx.JmxAttributeTypeInfoBuilder.createJmxType;
 import static com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo;
 
@@ -451,7 +450,7 @@ final class JmxConnector extends ManagementConnectorBase {
         if(serviceURL == null) throw new IllegalArgumentException("serviceURL is null.");
         this.serviceURL = serviceURL;
         this.connectionProperties = connectionProperties != null ? Collections.unmodifiableMap(connectionProperties) : new HashMap<String, Object>();
-        JmxConnectorLicenseLimitations.current().verifyMaxInstanceCount(instanceCounter.incrementAndGet());
+        JmxConnectorLimitations.current().verifyMaxInstanceCount(instanceCounter.incrementAndGet());
     }
 
     private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final boolean useRegexp){
@@ -477,6 +476,9 @@ final class JmxConnector extends ManagementConnectorBase {
         } catch (final MalformedObjectNameException e) {
             log.log(Level.SEVERE, String.format("Unsupported JMX object name: %s", namespace), e);
             return null;
+        }
+        finally {
+            JmxConnectorLimitations.current().verifyMaxAttributeCount(attributesCount());
         }
     }
 
@@ -552,7 +554,7 @@ final class JmxConnector extends ManagementConnectorBase {
      * @return
      */
     @Override
-    protected boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
+    protected final boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
         return attribute instanceof JmxAttributeMetadata ? setAttributeValue((JmxAttributeMetadata)attribute, value) : false;
     }
 
@@ -573,12 +575,12 @@ final class JmxConnector extends ManagementConnectorBase {
      * Releases all resources associated with this connector.
      */
     @Override
-    public void close(){
+    public final void close(){
         instanceCounter.decrementAndGet();
     }
 
     @Override
-    protected void finalize() {
+    protected final void finalize() {
         close();
     }
 }

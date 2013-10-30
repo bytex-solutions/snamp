@@ -120,6 +120,14 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
     }
 
     /**
+     * Returns the co
+     * @return
+     */
+    protected final int attributesCount(){
+        return attributes.size();
+    }
+
+    /**
      *  Throws an exception if the connector is not initialized.
      */
     protected abstract void verifyInitialization();

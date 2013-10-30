@@ -1,6 +1,9 @@
+help - displays this message
+state - displays the agent state
 pause - pauses the agent
 resume - resumes the agent
 uptime - agent uptime
 pid - displays own Process ID
 kill - kills the current process with exit code 0
 exit - exits from the REPL session (propably, terminates the current process)
+reloadlic - reload license file

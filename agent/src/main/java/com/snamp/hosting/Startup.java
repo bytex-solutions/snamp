@@ -3,6 +3,7 @@ package com.snamp.hosting;
 import com.snamp.TimeSpan;
 import com.snamp.adapters.Adapter;
 import com.snamp.connectors.ManagementConnectorFactory;
+import com.snamp.licensing.LicenseReader;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -80,6 +81,10 @@ final class Startup extends ReplServer {
         }
     }
 
+    private static void reloadLicense(final PrintStream output){
+        LicenseReader.reloadCurrentLicense();
+    }
+
     private void pauseAgent(final PrintStream output){
         output.println(String.format("Stopping agent: %s", agnt.stop()));
     }
@@ -109,12 +114,12 @@ final class Startup extends ReplServer {
             case "restart": restart(output); return true;
             case "pause": pauseAgent(output); return true;
             case "resume": resumeAgent(output); return true;
+            case "reloadlic": reloadLicense(output); return true;
             default: output.println("Unknown command"); return true;
         }
     }
 
     public static void main(String[] args) throws Exception {
-        com.snamp.licensing.generator.LicenseManager.main(new String[]{"-g", "lickey.key"});
         //prepare startup arguments
         switch (args.length){
             case 1: args = new String[]{args[0], ""}; break;

@@ -14,7 +14,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
   </properties>
-  <description>JMX to SNMP bridge</description>
+  <description>Monitoring agent</description>
   <build>
     <plugins>
       <plugin>

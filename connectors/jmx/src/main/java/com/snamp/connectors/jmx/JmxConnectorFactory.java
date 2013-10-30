@@ -1,6 +1,7 @@
 package com.snamp.connectors.jmx;
 
 import com.snamp.connectors.*;
+import com.snamp.licensing.JmxConnectorLimitations;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 import javax.management.remote.JMXServiceURL;
@@ -14,7 +15,7 @@ import java.util.logging.*;
 @PluginImplementation
 final class JmxConnectorFactory extends ManagementConnectorFactoryBase<JmxConnector> {
 
-    private static final Logger log = Logger.getLogger("snamp.log");
+    private static final Logger log = Logger.getLogger("snamp.jmxconnector.log");
     /**
      * Represents JMX connector name.
      */
@@ -25,6 +26,8 @@ final class JmxConnectorFactory extends ManagementConnectorFactoryBase<JmxConnec
      */
     public JmxConnectorFactory(){
         super(connectorName);
+        //TODO: Package.getImplementationVersion() returns null, I don't know why...
+        //JmxConnectorLimitations.current().verifyPluginVersion(getClass());
     }
 
     /**
