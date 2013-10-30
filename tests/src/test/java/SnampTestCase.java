@@ -7,9 +7,10 @@ import org.junit.Assert;
  * @author roman
  */
 public abstract class SnampTestCase extends Assert {
+    public static final String TEST_LICENCE_FILE = "unlimited.lic";
 
     static {
-        System.setProperty(LicenseReader.LICENSE_FILE_PROPERTY, "unlimited.lic");
+        System.setProperty(LicenseReader.LICENSE_FILE_PROPERTY, TEST_LICENCE_FILE);
         LicenseReader.reloadCurrentLicense();
     }
 }
