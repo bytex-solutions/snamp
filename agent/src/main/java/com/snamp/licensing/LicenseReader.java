@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.logging.*;
 
 /**
+ * Represents license reader for SNAMP license consumers.
  * @author roman
  */
 public final class LicenseReader {
@@ -79,6 +80,13 @@ public final class LicenseReader {
         return target.getLength() > 0 ? (T)deserializer.unmarshal(target.item(0)) : null;
     }
 
+    /**
+     * Returns the limitations from the currently loaded license.
+     * @param limitationsDescriptor The limitations descriptor.
+     * @param fallback The fallback factory that produces limitation holder if license is not available.
+     * @param <T> Type of the license limitations descriptor.
+     * @return A new instance of the license limitations.
+     */
     public static <T extends LicenseLimitations> T getLimitations(final Class<T> limitationsDescriptor, final Activator<T> fallback){
         T result = null;
         if(loadedLicense == null || limitationsDescriptor == null) return fallback.newInstance();
