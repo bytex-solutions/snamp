@@ -1,7 +1,6 @@
 import com.snamp.TimeSpan;
 import com.snamp.hosting.AgentConfiguration;
 import com.snamp.hosting.ConfigurationFileFormat;
-import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.io.*;
@@ -14,7 +13,7 @@ import java.util.Map;
  * Date: 20.10.13
  * Time: 17:02
  */
-public class YAMLTest extends SnampTestCase{
+public class YAMLTest extends SnampTestSet {
 
     @Test
     public void testYaml() throws IOException, ClassNotFoundException {

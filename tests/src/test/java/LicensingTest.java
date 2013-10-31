@@ -6,7 +6,7 @@ import org.junit.Test;
  * Represents SNAMP licensing infrastructure tests.
  * @author roman
  */
-public final class LicensingTest extends SnampTestCase {
+public final class LicensingTest extends SnampTestSet {
 
     @Test
     public void jmxConnectorLicenseLimitations() throws ClassNotFoundException {

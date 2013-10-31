@@ -35,14 +35,14 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
      * @param <A> Type of the actual value.
      * @param <E> Type of the expected value.
      */
-    protected static abstract class Expectation<A, E> implements Limitation<A>{
+    protected static abstract class Requirement<A, E> implements Limitation<A>{
         /**
          * Represents expected value.
          */
-        protected final E expectedValue;
+        protected final E requiredValue;
 
-        protected Expectation(final E expectedValue){
-            this.expectedValue = expectedValue;
+        protected Requirement(final E requiredValue){
+            this.requiredValue = requiredValue;
         }
     }
 
@@ -52,7 +52,7 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
      * @param <E> Type of the expected value.
      * @param <L> Type of the limitation based on the expected value.
      */
-    protected static abstract class ExpectationAdapter<A, E, L extends Expectation<A, E>> extends XmlAdapter<E, L>{
+    protected static abstract class RequirementParser<A, E, L extends Requirement<A, E>> extends XmlAdapter<E, L>{
 
         /**
          * Converts the limitation to the expected value.
@@ -61,55 +61,55 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
          */
         @Override
         public final E marshal(final L limitation) {
-            return limitation.expectedValue;
+            return limitation.requiredValue;
         }
     }
 
-    protected static abstract class MaxValueLimitation<T> extends Expectation<Comparable<T>, T>{
+    protected static abstract class MaxValueLimitation<T> extends Requirement<Comparable<T>, T> {
         protected MaxValueLimitation(final T expectedValue){
             super(expectedValue);
         }
 
         @Override
         public final boolean validate(final Comparable<T> actualValue) {
-            return actualValue.compareTo(expectedValue) <= 0;
+            return actualValue.compareTo(requiredValue) <= 0;
         }
     }
 
-    protected static abstract class MinValueLimitation<T> extends Expectation<Comparable<T>, T>{
+    protected static abstract class MinValueLimitation<T> extends Requirement<Comparable<T>, T> {
         protected MinValueLimitation(final T expectedValue){
             super(expectedValue);
         }
 
         @Override
         public final boolean validate(final Comparable<T> actualValue){
-            return actualValue.compareTo(expectedValue) >= 0;
+            return actualValue.compareTo(requiredValue) >= 0;
         }
     }
 
-    protected static abstract class ExactLimitation<T> extends Expectation<T, T>{
+    protected static abstract class ExactLimitation<T> extends Requirement<T, T> {
         protected ExactLimitation(final T expectedValue){
             super(expectedValue);
         }
 
         @Override
         public final boolean validate(final T actualValue){
-            return Objects.equals(actualValue, expectedValue);
+            return Objects.equals(actualValue, requiredValue);
         }
     }
 
-    protected static abstract class NotExactLimitation<T> extends Expectation<T, T>{
+    protected static abstract class NotExactLimitation<T> extends Requirement<T, T> {
         protected NotExactLimitation(final T expectedValue){
             super(expectedValue);
         }
 
         @Override
         public final boolean validate(final T actualValue){
-            return !Objects.equals(actualValue, expectedValue);
+            return !Objects.equals(actualValue, requiredValue);
         }
     }
 
-    protected static abstract class RangeLimitation<T extends Comparable<T>> extends Expectation<T, Range<T>>{
+    protected static abstract class RangeLimitation<T extends Comparable<T>> extends Requirement<T, Range<T>> {
         private final Range.InclusionTestType testType;
 
         protected RangeLimitation(final Range<T> range, final Range.InclusionTestType testType){
@@ -129,11 +129,11 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
          */
         @Override
         public final boolean validate(final T actualValue) {
-            return expectedValue.contains(actualValue, testType);
+            return requiredValue.contains(actualValue, testType);
         }
     }
 
-    protected static abstract class VersionLimitation extends Expectation<String, String>{
+    protected static abstract class VersionLimitation extends Requirement<String, String> {
         protected VersionLimitation(final String expectedVersion){
             super(expectedVersion);
         }
@@ -146,9 +146,9 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
          */
         @Override
         public final boolean validate(final String actualValue) {
-            switch (expectedValue){
+            switch (requiredValue){
                 case "*": return true;
-                default: return expectedValue.compareTo(actualValue) >= 0;
+                default: return requiredValue.compareTo(actualValue) >= 0;
             }
         }
     }

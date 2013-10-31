@@ -4,18 +4,18 @@
   <parent>
     <groupId>com.snamp</groupId>
     <artifactId>snamp</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>0.1.1</version>
   </parent>
   <artifactId>adapters</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>0.1.1</version>
   <packaging>pom</packaging>
-  <name>Adapters</name>
-  <description>Adapters module</description>
+  <name>SNAMP Adapter Plugin Framework</name>
+  <description>A base classes for building SNAMP adapters</description>
   <dependencies>
     <dependency>
       <groupId>com.snamp</groupId>
       <artifactId>agent</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>0.1.1</version>
     </dependency>
   </dependencies>
   <modules>

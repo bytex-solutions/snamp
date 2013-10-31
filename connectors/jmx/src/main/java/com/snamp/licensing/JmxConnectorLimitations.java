@@ -43,13 +43,13 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
         return current(JmxConnectorLimitations.class, fallbackFactory);
     }
 
-    private static final class MaxRegisteredAttributeCountAdapter extends ExpectationAdapter<Comparable<Long>, Long, MaxValueLimitation<Long>>{
+    private static final class MaxRegisteredAttributeCountAdapter extends RequirementParser<Comparable<Long>, Long, MaxValueLimitation<Long>> {
 
         public static final MaxValueLimitation<Long> createLimitation(final Long expectedValue){
             return new MaxValueLimitation<Long>(expectedValue) {
                 @Override
                 public LicensingException createException() {
-                    return new LicensingException(String.format("The maximum number of registered attributes(%s) is reached.", expectedValue));
+                    return new LicensingException(String.format("The maximum number of registered attributes(%s) is reached.", requiredValue));
                 }
             };
         }
@@ -60,12 +60,12 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
         }
     }
 
-    private static final class MaxInstanceCountAdapter extends ExpectationAdapter<Comparable<Long>, Long, MaxValueLimitation<Long>>{
+    private static final class MaxInstanceCountAdapter extends RequirementParser<Comparable<Long>, Long, MaxValueLimitation<Long>> {
         public static final MaxValueLimitation<Long> createLimitation(final Long expectedValue){
             return new MaxValueLimitation<Long>(expectedValue) {
                 @Override
                 public LicensingException createException() {
-                    return new LicensingException(String.format("The maximum number of JMX connector instances(%s) is reached.", expectedValue));
+                    return new LicensingException(String.format("The maximum number of JMX connector instances(%s) is reached.", requiredValue));
                 }
             };
         }
@@ -76,12 +76,12 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
         }
     }
 
-    private static final class ConnectorVersionAdapter extends ExpectationAdapter<String, String, VersionLimitation>{
+    private static final class ConnectorVersionAdapter extends RequirementParser<String, String, VersionLimitation> {
         public static VersionLimitation createLimitation(final String expectedVersion){
             return new VersionLimitation(expectedVersion) {
                 @Override
                 public LicensingException createException() {
-                    return new LicensingException(String.format("'%s' version of JMX connector expected.", expectedValue));
+                    return new LicensingException(String.format("'%s' version of JMX connector expected.", requiredValue));
                 }
             };
         }

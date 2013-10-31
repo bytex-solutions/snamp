@@ -4,17 +4,17 @@
   <parent>
     <groupId>com.snamp</groupId>
     <artifactId>connectors</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>0.1.1</version>
   </parent>
   <artifactId>jmx</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>0.1.1</version>
   <packaging>jar</packaging>
   <name>JMX Module Plugin</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
   </properties>
-  <description>JMX Connector module</description>
+  <description>JMX Connector</description>
   <build>
     <plugins>
       <plugin>

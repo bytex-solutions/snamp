@@ -12,13 +12,13 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @XmlRootElement(name = "snmpAdapterLimitations")
 public final class SnmpAdapterLimitations extends AbstractLicenseLimitations {
 
-    private static final class PluginVersionLimitationAdapter extends ExpectationAdapter<String, String, VersionLimitation>{
+    private static final class PluginVersionLimitationAdapter extends RequirementParser<String, String, VersionLimitation> {
 
         public static final VersionLimitation createLimitation(final String requiredVersion){
             return new VersionLimitation(requiredVersion) {
                 @Override
                 public LicensingException createException() {
-                    return new LicensingException(String.format("'%s' version of SNMP adapter expected.", expectedValue));
+                    return new LicensingException(String.format("'%s' version of SNMP adapter expected.", requiredValue));
                 }
             };
         }

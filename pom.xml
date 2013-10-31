@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.snamp</groupId>
   <artifactId>snamp</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>0.1.1</version>
   <packaging>pom</packaging>
   <name>snamp</name>
   <scm>

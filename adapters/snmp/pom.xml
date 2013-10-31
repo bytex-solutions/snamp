@@ -4,17 +4,17 @@
   <parent>
     <groupId>com.snamp</groupId>
     <artifactId>adapters</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>0.1.1</version>
   </parent>
   <artifactId>snmp</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>0.1.1</version>
   <packaging>jar</packaging>
-  <name>Snmp Module Plugin</name>
+  <name>Snmp Adapter</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
   </properties>
-  <description>SNMP adapter module</description>
+  <description>SNMP Adapter implementation</description>
   <build>
     <plugins>
       <plugin>

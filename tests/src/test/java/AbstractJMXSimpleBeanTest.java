@@ -1,20 +1,13 @@
 import com.snamp.TimeSpan;
-import com.snamp.hosting.Agent;
 import com.snamp.hosting.AgentConfiguration;
-import junit.framework.TestCase;
-import org.junit.Test;
-import org.snmp4j.smi.OID;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public abstract class AbstractJMXSimpleBeanTest extends SnampTestCase
+public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
 {
 
     protected final String objectName;
