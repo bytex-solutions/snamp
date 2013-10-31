@@ -38,6 +38,16 @@ public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
     protected AgentConfiguration createTestConfig(){
         return new AgentConfiguration() {
             /**
+             * Creates clone of the current configuration.
+             *
+             * @return
+             */
+            @Override
+            public AgentConfiguration clone() {
+                return this;
+            }
+
+            /**
              * Creates a new default configuration of the management target.
              *
              * @return A new default configuration of the management target.

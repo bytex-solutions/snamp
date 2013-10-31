@@ -1,5 +1,6 @@
 package com.snamp.hosting;
 
+import com.snamp.PlatformService;
 import com.snamp.adapters.*;
 import com.snamp.connectors.*;
 
@@ -11,7 +12,7 @@ import java.util.logging.*;
  * Represents agent host.
  * @author roman
  */
-public final class Agent implements AutoCloseable {
+public final class Agent implements AutoCloseable, PlatformService {
     private static final Logger log = Logger.getLogger("snamp.log");
     private Adapter adapter;
     private final Map<String, String> params;
@@ -33,6 +34,14 @@ public final class Agent implements AutoCloseable {
      */
     public Agent(final AgentConfiguration.HostingConfiguration hostingConfig){
         this(HostingServices.getAdapter(hostingConfig.getAdapterName()), hostingConfig.getHostingParams());
+    }
+
+    /**
+     * Returns a map of instantiated connectors.
+     * @return A map of instantiated connectors.
+     */
+    public final Map<String, ManagementConnector> getConnectors(){
+        return Collections.unmodifiableMap(connectors);
     }
 
     /**
@@ -96,7 +105,7 @@ public final class Agent implements AutoCloseable {
      * @param configuration The hosting configurtion.
      * @return An instance of the hosting sandbox (it is not useful for interracial mode).
      */
-    static Agent start(final AgentConfiguration configuration) throws Exception{
+    static Agent start(final AgentConfiguration configuration){
         try{
             final Agent engine = new Agent(configuration.getAgentHostingConfig());
             engine.start(configuration.getTargets());

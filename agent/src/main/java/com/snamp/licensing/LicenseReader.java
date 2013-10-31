@@ -1,9 +1,13 @@
 package com.snamp.licensing;
 
 import com.snamp.Activator;
+import com.snamp.ConcurrentResourceHolder;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import sun.security.provider.DSAPublicKeyImpl;
+import static com.snamp.ConcurrentResourceHolder.ConsistentWriter;
+import static com.snamp.ConcurrentResourceHolder.ConsistentReader;
+import static com.snamp.ConcurrentResourceHolder.Reader;
 
 import javax.xml.bind.*;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -29,11 +33,23 @@ public final class LicenseReader {
      */
     public static final String LICENSE_FILE_PROPERTY = "com.snamp.license";
 
-    private static final Map<Class<? extends LicenseLimitations>, LicenseLimitations> loadedLimitations;
-    private static Document loadedLicense;
+    /**
+     * Represents licensing context.
+     */
+    private static final class LicensingContext{
+        public final Map<Class<? extends LicenseLimitations>, LicenseLimitations> loadedLimitations;
+        public Document loadedLicense;
+
+        public LicensingContext(){
+            loadedLimitations = new HashMap<>(10);
+            loadedLicense = null;
+        }
+    }
+
+    private static final ConcurrentResourceHolder<LicensingContext> licensingContext;
 
     static {
-        loadedLimitations = new HashMap<>(5);
+        licensingContext = new ConcurrentResourceHolder<LicensingContext>(new LicensingContext());
     }
 
     private LicenseReader(){
@@ -71,13 +87,25 @@ public final class LicenseReader {
      * Reloads the current license file.
      */
     public static void reloadCurrentLicense(){
-        loadedLicense = loadLicense();
-        loadedLimitations.clear();
+        final Document newLicenseContent = loadLicense();
+        licensingContext.write(new ConsistentWriter<LicensingContext, Void, Void>() {
+            @Override
+            public Void write(final LicensingContext resource, final Void value) {
+                resource.loadedLimitations.clear();
+                resource.loadedLicense = newLicenseContent;
+                return null;
+            }
+        }, null);
     }
 
     private static <T extends LicenseLimitations> T getLimitations(final String licensedObject, final Unmarshaller deserializer) throws JAXBException {
-        final NodeList target = loadedLicense.getElementsByTagName(licensedObject);
-        return target.getLength() > 0 ? (T)deserializer.unmarshal(target.item(0)) : null;
+        return licensingContext.read(new Reader<LicensingContext, T, JAXBException>() {
+            @Override
+            public T read(final LicensingContext resource) throws JAXBException {
+                final NodeList target = resource.loadedLicense.getElementsByTagName(licensedObject);
+                return target.getLength() > 0 ? (T)deserializer.unmarshal(target.item(0)) : null;
+            }
+        });
     }
 
     /**
@@ -89,24 +117,37 @@ public final class LicenseReader {
      */
     public static <T extends LicenseLimitations> T getLimitations(final Class<T> limitationsDescriptor, final Activator<T> fallback){
         T result = null;
-        if(loadedLicense == null || limitationsDescriptor == null) return fallback.newInstance();
-        else if(loadedLimitations.containsKey(limitationsDescriptor)) result = (T)loadedLimitations.get(limitationsDescriptor);
+        if(limitationsDescriptor == null) return fallback.newInstance();
+        result = licensingContext.read(new ConsistentReader<LicensingContext, T>() {
+            @Override
+            public T read(final LicensingContext resource) {
+                if (resource.loadedLicense == null) return fallback.newInstance();
+                else if (resource.loadedLimitations.containsKey(limitationsDescriptor))
+                    return (T) resource.loadedLimitations.get(limitationsDescriptor);
+                else return fallback.newInstance();
+            }
+        });
+        //limitations is not in cache, creates a new limitations reader
+        if(result != null) return result;
         else try {
             final JAXBContext context = JAXBContext.newInstance(limitationsDescriptor);
             if(limitationsDescriptor.isAnnotationPresent(XmlRootElement.class)){
                 final XmlRootElement rootElement = limitationsDescriptor.getAnnotation(XmlRootElement.class);
                 result = LicenseReader.<T>getLimitations(rootElement.name(), context.createUnmarshaller());
+                //writes result to the cache
+                licensingContext.write(new ConsistentWriter<LicensingContext, T, Void>() {
+                    @Override
+                    public Void write(final LicensingContext resource, final T value) {
+                        resource.loadedLimitations.put(limitationsDescriptor, value);
+                        return null;
+                    }
+                }, result);
             }
-            else result = null;
-
-
+            else result = fallback.newInstance();
         }
         catch (final JAXBException e) {
             log.warning(e.getLocalizedMessage());
             result = fallback.newInstance();
-        }
-        finally {
-            loadedLimitations.put(limitationsDescriptor, result);
         }
         return result;
     }

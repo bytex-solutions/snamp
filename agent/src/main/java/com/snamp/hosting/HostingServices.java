@@ -3,6 +3,7 @@ package com.snamp.hosting;
 import com.snamp.FileExtensionFilter;
 import com.snamp.adapters.*;
 import com.snamp.connectors.*;
+import com.snamp.hosting.management.*;
 import net.xeoh.plugins.base.PluginManager;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
 import net.xeoh.plugins.base.options.getplugin.OptionCapabilities;
@@ -53,26 +54,13 @@ final class HostingServices {
         //load standard plug-ins
         manager.addPluginsFrom(URI.create("classpath://com.snamp.connectors.**"));
         manager.addPluginsFrom(URI.create("classpath://com.snamp.adapters.**"));
+        manager.addPluginsFrom(URI.create("classpath://com.snamp.hosting.management.**"));
         //load external plugins
         final File pluginDir = getPluginsDirectory();
         if(pluginDir.exists() && pluginDir.isDirectory())
             for(final File plugin: pluginDir.listFiles(new FileExtensionFilter(".jar")))
                 if(plugin.isFile()) manager.addPluginsFrom(plugin.toURI());
         else log.severe("No plugins are loaded.");
-    }
-
-    /**
-     * Registers a new management connector factory.
-     * @param connectorFactory The type of the management connector factory to register.
-     */
-    public static void registerManagementConnectorFactory(final Class<? extends ManagementConnectorFactory> connectorFactory){
-        if(connectorFactory == null) throw new IllegalArgumentException("connectorFactory is null.");
-        manager.addPluginsFrom(new ClassURI(connectorFactory).toURI());
-    }
-
-    public static void registerAdapter(final Class<? extends Adapter> adapterImpl){
-        if(adapterImpl == null) throw new IllegalArgumentException("adapterImpl is null.");
-        manager.addPluginsFrom(new ClassURI(adapterImpl).toURI());
     }
 
     public static Adapter getAdapter(final String adapterName){
@@ -86,5 +74,24 @@ final class HostingServices {
      */
     public static ManagementConnectorFactory getManagementConnectorFactory(final String connectorName){
         return manager.getPlugin(ManagementConnectorFactory.class, new OptionCapabilities(ManagementConnectorFactoryBase.makeCapabilities(connectorName)));
+    }
+
+    /**
+     * Returns the Agent manager.
+     * @param managerName The name of the manager.
+     * @return
+     */
+    public static AgentManager getAgentManager(final String managerName){
+        return manager.getPlugin(AgentManager.class, new OptionCapabilities(AgentManagerBase.makeCapabilities(managerName)));
+    }
+
+    /**
+     * Returns the predefined (through system property) Agent manager.
+     * @param defaultIfNotAvailable {@literal true} to return default Agent manager if it is unavailable as plug-in; otherwise, {@link false} for {@literal null}.
+     * @return
+     */
+    public static AgentManager getAgentManager(final boolean defaultIfNotAvailable){
+        final AgentManager am =  getAgentManager(AgentManager.MANAGER_NAME);
+        return am == null && defaultIfNotAvailable ? new ConsoleAgentManager() : am;
     }
 }

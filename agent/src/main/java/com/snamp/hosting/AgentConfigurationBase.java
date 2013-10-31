@@ -16,6 +16,13 @@ abstract class AgentConfigurationBase implements AgentConfiguration {
 
     }
 
+    /**
+     * Clones this instance of agent configuration.
+     * @return
+     */
+    @Override
+    public abstract AgentConfigurationBase clone();
+
     private static final void copy(final HostingConfiguration input, final HostingConfiguration output){
         output.setAdapterName(input.getAdapterName());
         final Map<String, String> hostingParams = output.getHostingParams();

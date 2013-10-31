@@ -1,7 +1,7 @@
 package com.snamp.adapters;
 
+import com.snamp.PlatformPlugin;
 import com.snamp.connectors.ManagementConnector;
-import net.xeoh.plugins.base.Plugin;
 
 import java.io.IOException;
 import java.util.Map;
@@ -11,7 +11,7 @@ import com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.Attrib
  * Represents hosting adapter.
  * @author roman
  */
-public interface Adapter extends AutoCloseable, Plugin {
+public interface Adapter extends AutoCloseable, PlatformPlugin {
     /**
      * Represents name of the port definition parameter.
      */

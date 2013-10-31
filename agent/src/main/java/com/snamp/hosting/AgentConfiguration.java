@@ -9,7 +9,7 @@ import java.util.Map;
  * Represents agent configuration.
  * @author roman
  */
-public interface AgentConfiguration extends BinarySerializable {
+public interface AgentConfiguration extends BinarySerializable, Cloneable {
     /**
      * Represents hosting configuration (front-end configuration).
      */
@@ -32,6 +32,12 @@ public interface AgentConfiguration extends BinarySerializable {
          */
         public Map<String, String> getHostingParams();
     }
+
+    /**
+     * Creates clone of the current configuration.
+     * @return
+     */
+    public AgentConfiguration clone();
 
     /**
      * Represents management target configuration (back-end management information providers).

@@ -2,8 +2,6 @@ package com.snamp.hosting;
 
 import com.snamp.SnampTestSet;
 import com.snamp.TimeSpan;
-import com.snamp.hosting.AgentConfiguration;
-import com.snamp.hosting.ConfigurationFileFormat;
 import org.junit.Test;
 
 import java.io.*;
@@ -27,7 +25,7 @@ public class YAMLTest extends SnampTestSet {
         //Load the configuration from file
         try(final InputStream is = new FileInputStream(inFile.getFile()))
         {
-            config = ConfigurationFileFormat.YAML.newAgentConfiguration();
+            config = ConfigurationFormat.YAML.newAgentConfiguration();
             config.load(is);
         }
         //Check if configuration loaded properly
@@ -98,7 +96,7 @@ public class YAMLTest extends SnampTestSet {
         //Load the configuration from file again
         try(final InputStream is = new FileInputStream(outFile.getFile()))
         {
-            config = ConfigurationFileFormat.YAML.newAgentConfiguration();
+            config = ConfigurationFormat.YAML.newAgentConfiguration();
             config.load(is);
         }
 
@@ -113,7 +111,7 @@ public class YAMLTest extends SnampTestSet {
         //Load the configuration from file
         try(final InputStream is = new FileInputStream(inFile.getFile()))
         {
-            config = ConfigurationFileFormat.YAML.newAgentConfiguration();
+            config = ConfigurationFormat.YAML.newAgentConfiguration();
             config.load(is);
         }
 

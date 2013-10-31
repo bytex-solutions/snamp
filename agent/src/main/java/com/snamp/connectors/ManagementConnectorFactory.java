@@ -1,6 +1,6 @@
 package com.snamp.connectors;
 
-import net.xeoh.plugins.base.Plugin;
+import com.snamp.PlatformPlugin;
 
 import java.util.Map;
 
@@ -8,7 +8,7 @@ import java.util.Map;
  * Represents management connector factory.
  * @author roman
  */
-public interface ManagementConnectorFactory extends Plugin {
+public interface ManagementConnectorFactory extends PlatformPlugin {
     /**
      * Creates a new instance of the connector.
      * @param connectionString The protocol-specific connection string.

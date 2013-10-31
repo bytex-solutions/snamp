@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Represents configuration file parser.
  */
-public enum ConfigurationFileFormat{
+public enum ConfigurationFormat {
 
     /**
      * Формат файла YAML
@@ -20,7 +20,7 @@ public enum ConfigurationFileFormat{
 
     private final String _formatName;
 
-    private ConfigurationFileFormat(String formatName) {
+    private ConfigurationFormat(String formatName) {
         _formatName = formatName;
     }
 
@@ -49,11 +49,21 @@ public enum ConfigurationFileFormat{
         private final static String nameKey = "name";
         private final static String hostingConfigurationKey = "adapter";
         private final static String adapterNameKey = "name";
+
         /**
          * Initializes a new empty configuration.
          */
         public YamlAgentConfiguration(){
             super(10);
+        }
+
+        private YamlAgentConfiguration(final Map<String, Object> dom){
+            super(dom);
+        }
+
+        @Override
+        public YamlAgentConfiguration clone() {
+            return new YamlAgentConfiguration(this);
         }
 
         /**
@@ -769,7 +779,7 @@ public enum ConfigurationFileFormat{
      * @param format The configuration file format name.
      * @return An instance of the configuration file.
      */
-    public static ConfigurationFileFormat parse(final String format) {
+    public static ConfigurationFormat parse(final String format) {
         switch (format){
             default:
             case "yaml": return YAML;

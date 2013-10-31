@@ -19,14 +19,5 @@ abstract class ReplServer {
 
     }
 
-    protected abstract boolean doCommand(final String commmand, final PrintStream output);
 
-    public final void loop(final InputStream input, final PrintStream output) throws IOException{
-        try(final BufferedReader reader = new BufferedReader(new InputStreamReader(input))){
-            while (doCommand(reader.readLine(), output)){
-
-            }
-        }
-
-    }
 }

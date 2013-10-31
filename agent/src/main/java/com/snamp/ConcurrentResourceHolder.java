@@ -18,7 +18,6 @@ public class ConcurrentResourceHolder<R> extends ReentrantReadWriteLock {
      * @param resource
      */
     public ConcurrentResourceHolder(final R resource){
-        if(resource == null) throw new IllegalArgumentException("resource is null.");
         this.resource = resource;
     }
 
@@ -27,15 +26,30 @@ public class ConcurrentResourceHolder<R> extends ReentrantReadWriteLock {
      * @param <R> Type of the resource to read.
      * @param <V> Type of the resource reading operation.
      */
-    public static interface Reader<R, V>{
+    public static interface Reader<R, V, E extends Throwable>{
+        public V read(final R resource) throws E;
+    }
+
+    /**
+     * Represents resource reader that cannot throws an exception.
+     * @param <R>
+     * @param <V>
+     */
+    public static interface ConsistentReader<R, V> extends Reader<R, V, Exception>{
+        @Override
         public V read(final R resource);
     }
 
-    public static interface Writer<R, V>{
-        public void write(final R resource, final V value);
+    public static interface Writer<R, I, O, E extends Throwable>{
+        public O write(final R resource, final I value) throws E;
     }
 
-    public final <V> V read(final Reader<R, V> reader){
+    public static interface ConsistentWriter<R, I, O> extends Writer<R, I, O, Exception>{
+        @Override
+        public O write(final R resource, final I value);
+    }
+
+    public final <V> V read(final ConsistentReader<R, V> reader){
         if(reader == null) return null;
         final ReadLock rl = readLock();
         rl.lock();
@@ -47,19 +61,43 @@ public class ConcurrentResourceHolder<R> extends ReentrantReadWriteLock {
         }
     }
 
-    public final <V> void write(final Writer<R, V> writer, final V value){
-        if(writer == null) return;
+    public final <V, E extends Throwable> V read(final Reader<R, V, E> reader) throws E{
+        if(reader == null) return null;
+        final ReadLock rl = readLock();
+        rl.lock();
+        try{
+            return reader.read(resource);
+        }
+        finally {
+            rl.unlock();
+        }
+    }
+
+    public final <I, O> O write(final ConsistentWriter<R, I, O> writer, final I value){
+        if(writer == null) return null;
         final WriteLock wl = writeLock();
         wl.lock();
         try{
-            writer.write(resource, value);
+            return writer.write(resource, value);
         }
         finally {
             wl.unlock();
         }
     }
 
-    public final <V> void readAndWrite(final Reader<R, V> reader, final Writer<R, V> writer){
+    public final <I, O, E extends Throwable> O write(final Writer<R, I, O, E> writer, final I value) throws E{
+        if(writer == null) return null;
+        final WriteLock wl = writeLock();
+        wl.lock();
+        try{
+            return writer.write(resource, value);
+        }
+        finally {
+            wl.unlock();
+        }
+    }
+
+    public final <I, O, E extends Throwable> void readAndWrite(final Reader<R, I, E> reader, final Writer<R, I, O, E> writer) throws E{
         write(writer, read(reader));
     }
 
@@ -77,9 +115,7 @@ public class ConcurrentResourceHolder<R> extends ReentrantReadWriteLock {
         final WriteLock wl = writeLock();
         wl.lock();
         try{
-            final R res = newResource.newInstance();
-            if(res == null) throw new IllegalArgumentException("res is null.");
-            else resource = res;
+            this.resource = newResource.newInstance();
         }
         finally {
             wl.unlock();
