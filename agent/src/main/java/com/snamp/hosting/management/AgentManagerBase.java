@@ -1,8 +1,9 @@
 package com.snamp.hosting.management;
 
-import com.snamp.ConcurrentResourceHolder;
-import static com.snamp.ConcurrentResourceHolder.ConsistentReader;
-import static com.snamp.ConcurrentResourceHolder.Reader;
+import com.snamp.ConcurrentResourceAccess;
+
+import static com.snamp.ConcurrentResourceAccess.ConsistentReader;
+import static com.snamp.ConcurrentResourceAccess.Reader;
 import com.snamp.hosting.HostingContext;
 import net.xeoh.plugins.base.annotations.Capabilities;
 
@@ -11,12 +12,12 @@ import net.xeoh.plugins.base.annotations.Capabilities;
  */
 public abstract class AgentManagerBase implements AgentManager {
     private final String managerName;
-    private final ConcurrentResourceHolder<HostingContext> contextHolder;
+    private final ConcurrentResourceAccess<HostingContext> contextHolder;
     private boolean started;
 
     protected AgentManagerBase(final String managerName){
         this.managerName = managerName;
-        this.contextHolder = new ConcurrentResourceHolder<>(null);
+        this.contextHolder = new ConcurrentResourceAccess<>(null);
         started = false;
     }
 

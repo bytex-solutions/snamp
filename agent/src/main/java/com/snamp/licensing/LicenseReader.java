@@ -1,13 +1,13 @@
 package com.snamp.licensing;
 
 import com.snamp.Activator;
-import com.snamp.ConcurrentResourceHolder;
+import com.snamp.ConcurrentResourceAccess;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import sun.security.provider.DSAPublicKeyImpl;
-import static com.snamp.ConcurrentResourceHolder.ConsistentWriter;
-import static com.snamp.ConcurrentResourceHolder.ConsistentReader;
-import static com.snamp.ConcurrentResourceHolder.Reader;
+import static com.snamp.ConcurrentResourceAccess.ConsistentWriter;
+import static com.snamp.ConcurrentResourceAccess.ConsistentReader;
+import static com.snamp.ConcurrentResourceAccess.Reader;
 
 import javax.xml.bind.*;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -15,7 +15,6 @@ import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dsig.*;
 import javax.xml.crypto.dsig.dom.DOMValidateContext;
 import javax.xml.parsers.*;
-import javax.xml.xpath.*;
 import java.io.*;
 import java.security.*;
 import java.util.*;
@@ -46,10 +45,10 @@ public final class LicenseReader {
         }
     }
 
-    private static final ConcurrentResourceHolder<LicensingContext> licensingContext;
+    private static final ConcurrentResourceAccess<LicensingContext> licensingContext;
 
     static {
-        licensingContext = new ConcurrentResourceHolder<LicensingContext>(new LicensingContext());
+        licensingContext = new ConcurrentResourceAccess<LicensingContext>(new LicensingContext());
     }
 
     private LicenseReader(){

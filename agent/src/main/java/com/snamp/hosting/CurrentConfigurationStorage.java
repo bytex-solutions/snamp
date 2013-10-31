@@ -7,9 +7,9 @@ import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.util.Date;
 
-import static com.snamp.ConcurrentResourceHolder.Writer;
-import static com.snamp.ConcurrentResourceHolder.ConsistentReader;
-import static com.snamp.ConcurrentResourceHolder.Reader;
+import static com.snamp.ConcurrentResourceAccess.Writer;
+import static com.snamp.ConcurrentResourceAccess.ConsistentReader;
+import static com.snamp.ConcurrentResourceAccess.Reader;
 
 import static com.snamp.hosting.AgentConfigurationStorage.StoredAgentConfiguration;
 
@@ -168,10 +168,10 @@ final class CurrentConfigurationStorage {
         }
     }
 
-    private static final ConcurrentResourceHolder<AgentConfigurationStorage> currentStorage;
+    private static final ConcurrentResourceAccess<AgentConfigurationStorage> currentStorage;
 
     static {
-        currentStorage = new ConcurrentResourceHolder<AgentConfigurationStorage>(new MemoryConfigurationStorage());
+        currentStorage = new ConcurrentResourceAccess<AgentConfigurationStorage>(new MemoryConfigurationStorage());
     }
 
     /**

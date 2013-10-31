@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @param <R> Type of the resource to hold.
  * @author roman
  */
-public class ConcurrentResourceHolder<R> extends ReentrantReadWriteLock {
+public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock {
     /**
      * Represents coordinated resource.
      */
@@ -17,7 +17,7 @@ public class ConcurrentResourceHolder<R> extends ReentrantReadWriteLock {
      * Initializes a new thread safe container for the specified resource.
      * @param resource
      */
-    public ConcurrentResourceHolder(final R resource){
+    public ConcurrentResourceAccess(final R resource){
         this.resource = resource;
     }
 

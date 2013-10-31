@@ -100,7 +100,7 @@ public class ConsoleAgentManager extends AgentManagerBase {
     }
 
     protected boolean doCommand(final String commmand, final PrintStream output) {
-        return readContext(new ConcurrentResourceHolder.ConsistentReader<HostingContext, Boolean>() {
+        return readContext(new ConcurrentResourceAccess.ConsistentReader<HostingContext, Boolean>() {
             @Override
             public Boolean read(final HostingContext context) {
                 if(context == null) return false;
