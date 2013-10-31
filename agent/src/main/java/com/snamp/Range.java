@@ -50,11 +50,11 @@ public class Range<T extends Comparable<T>> {
         public final <T extends Comparable<T>> boolean isInRange(final T lowerBound, final T upperBound, final T value){
             if(includeLowerBound)
                 return includeUpperBound ?
-                        lowerBound.compareTo(value) >= 0 && upperBound.compareTo(value) <= 0 :
-                        lowerBound.compareTo(value) >= 0 && upperBound.compareTo(value) < 0;
+                        lowerBound.compareTo(value) <= 0 && upperBound.compareTo(value) >= 0 :
+                        lowerBound.compareTo(value) <= 0 && upperBound.compareTo(value) > 0;
             else return includeUpperBound ?
-                    lowerBound.compareTo(value) > 0 && upperBound.compareTo(value) <= 0 :
-                    lowerBound.compareTo(value) > 0 && upperBound.compareTo(value) < 0;
+                    lowerBound.compareTo(value) < 0 && upperBound.compareTo(value) >= 0 :
+                    lowerBound.compareTo(value) < 0 && upperBound.compareTo(value) > 0;
         }
     }
 

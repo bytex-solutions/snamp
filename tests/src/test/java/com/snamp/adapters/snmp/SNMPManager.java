@@ -1,3 +1,5 @@
+package com.snamp.adapters.snmp;
+
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.mp.SnmpConstants;
@@ -13,10 +15,10 @@ import java.io.IOException;
  * Time: 17:19
  * Simple SNMP client that uses snmp4j lib to access all neccessary methods/attrs
  */
-public  class SNMPManager {
+public final class SNMPManager {
 
-    Snmp snmp = null;
-    String address = null;
+    private Snmp snmp = null;
+    private final String address;
 
     /**
      * Constructor

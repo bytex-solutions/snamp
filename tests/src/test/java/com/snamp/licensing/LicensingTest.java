@@ -1,3 +1,6 @@
+package com.snamp.licensing;
+
+import com.snamp.SnampTestSet;
 import com.snamp.licensing.JmxConnectorLimitations;
 import com.snamp.licensing.LicensingException;
 import org.junit.Test;

@@ -1,3 +1,5 @@
+package com.snamp.adapters;
+
 /**
  * Created with IntelliJ IDEA.
  * User: temni

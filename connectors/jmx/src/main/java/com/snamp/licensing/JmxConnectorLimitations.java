@@ -39,7 +39,7 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
      * Returns the currently loaded limitations.
      * @return
      */
-    public static JmxConnectorLimitations current(){
+    public final static JmxConnectorLimitations current(){
         return current(JmxConnectorLimitations.class, fallbackFactory);
     }
 
@@ -105,10 +105,8 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
     @XmlElement(type = String.class)
     private VersionLimitation maxVersion;
 
-
     public final void verifyMaxAttributeCount(final long currentAttributeCount) throws LicensingException{
         verify(maxAttributeCount, currentAttributeCount);
-
     }
 
     public final void verifyMaxInstanceCount(final long currentInstanceCount) throws LicensingException{

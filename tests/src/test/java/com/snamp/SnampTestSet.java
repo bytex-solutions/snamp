@@ -1,5 +1,6 @@
+package com.snamp;
+
 import com.snamp.licensing.LicenseReader;
-import junit.framework.TestCase;
 import org.junit.Assert;
 
 /**

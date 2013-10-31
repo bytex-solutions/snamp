@@ -1,9 +1,11 @@
+package com.snamp.adapters;
+
 /**
  * Created with IntelliJ IDEA.
  * User: temni
  * Date: 20.10.13
  * Time: 17:16
- * This class implements SimpleBeanMBean interface and needed to test
+ * This class implements com.snamp.adapters.SimpleBeanMBean interface and needed to test
  * attributes supported by JMX adapter
  */
 public class SimpleBean implements SimpleBeanMBean{

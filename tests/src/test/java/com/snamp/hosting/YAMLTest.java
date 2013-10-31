@@ -1,3 +1,6 @@
+package com.snamp.hosting;
+
+import com.snamp.SnampTestSet;
 import com.snamp.TimeSpan;
 import com.snamp.hosting.AgentConfiguration;
 import com.snamp.hosting.ConfigurationFileFormat;

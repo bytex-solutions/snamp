@@ -1,10 +1,12 @@
-/**
+package com.snamp.adapters.snmp; /**
  * Created with IntelliJ IDEA.
  * User: temni
  * Date: 20.10.13
  * Time: 17:26
  */
 
+import com.snamp.adapters.AbstractJMXSimpleBeanTest;
+import com.snamp.adapters.SimpleBean;
 import com.snamp.hosting.Agent;
 import com.snamp.hosting.AgentConfiguration;
 import junit.framework.Assert;
@@ -17,13 +19,13 @@ import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class JMXSimpleTest extends AbstractJMXSimpleBeanTest {
+public class JmxToSnmpTest extends AbstractJMXSimpleBeanTest {
 
     // JMX String checking
     private final String checkString = "String attribute";
 
     private static final String oidPrefix = "1.1";
-    private static final String objectName = "com.snampy.jmx:type=SimpleBean";
+    private static final String objectName = "com.snampy.jmx:type=com.snamp.adapters.SimpleBean";
     private static final int localHostPort = 1161;
     private static final int localJMXPort = Integer.parseInt(System.getProperties().getProperty("com.sun.management.jmxremote.port"));
     private static final Map<String, String> attributes = new HashMap<String,String>(){{
@@ -32,7 +34,7 @@ public class JMXSimpleTest extends AbstractJMXSimpleBeanTest {
 
     }};
 
-    public JMXSimpleTest() {
+    public JmxToSnmpTest() {
         super(oidPrefix,objectName, localHostPort, localJMXPort, attributes);
     }
 
