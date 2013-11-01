@@ -15,20 +15,14 @@ public interface AgentManager extends PlatformPlugin, AutoCloseable {
     static final String MANAGER_NAME = "com.snamp.manager";
 
     /**
-     * Starts the manager.
+     * Starts the manager synchronously.
      * @param context SNAMP hosting context.
-     * @return {@literal true} if manager is started successfully; otherwise, {@literal false}.
      */
-    public boolean start(final HostingContext context);
+    public void start(final HostingContext context);
 
     /**
      * Stops the agent.
      * @return {@literal true} if manager is stopped successfully; otherwise, {@literal false}.
      */
     public boolean stop();
-
-    /**
-     * Blocks the current thread until the manager will not signals to continue.
-     */
-    public void waitForTermination();
 }

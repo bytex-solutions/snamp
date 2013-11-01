@@ -13,6 +13,81 @@ import java.util.*;
  */
 final class Startup implements HostingContext {
     /**
+     * Represents memory-based configuration storage,
+     */
+    private final static class MemoryConfigurationStorage implements AgentConfigurationStorage{
+
+        private StoredAgentConfiguration storedConfig;
+
+        public MemoryConfigurationStorage(){
+            storedConfig = null;
+        }
+
+        /**
+         * Saves the specified agent configuration into the current storage.
+         *
+         * @param config The configuration to save.
+         * @param tag    Tag name for the saved version.
+         * @return Persistence information about configuration.
+         */
+        @Override
+        public final StoredAgentConfiguration save(final AgentConfiguration config, final String tag) throws IOException{
+            try(final ByteArrayOutputStream os = new ByteArrayOutputStream()){
+                config.save(os);
+                final Date timeStamp = new Date();
+                final byte[] content = os.toByteArray();
+                final AgentConfiguration prototype = config.clone();
+                return storedConfig = new StoredAgentConfiguration() {
+                    @Override
+                    public final String tag() {
+                        return TAG_LAST;
+                    }
+
+                    @Override
+                    public final Date lastModified() {
+                        return timeStamp;
+                    }
+
+                    @Override
+                    public final Date firstModified() {
+                        return timeStamp;
+                    }
+
+                    @Override
+                    public AgentConfiguration restore() throws IOException {
+                        final AgentConfiguration newInstance = prototype.clone();
+                        try(final InputStream is = new ByteArrayInputStream(content)){
+                            newInstance.load(is);
+                        }
+                        return newInstance;
+                    }
+                };
+            }
+        }
+
+        /**
+         * Determines whether the current storage supports configuration versions (tagging).
+         *
+         * @return {@literal true}, if the current storage supports configuration versions (tagging); otherwise, {@literal false}.
+         */
+        @Override
+        public final boolean supportsTagging() {
+            return false;
+        }
+
+        /**
+         * Returns persistence information about agent configuration.
+         *
+         * @param tag
+         * @return
+         */
+        @Override
+        public final StoredAgentConfiguration getStoredAgentConfiguration(final String tag) {
+            return storedConfig;
+        }
+    }
+
+    /**
      * Represents file-based configuration storage.
      */
     private final static class FileConfigurationStorage implements AgentConfigurationStorage{
@@ -109,13 +184,10 @@ final class Startup implements HostingContext {
                 System.out.println("\tExample: java snamp yaml mon.yaml");
                 return;
         }
-        Agent.start(ConfigurationFormat.load(args[0], args[1]));
-        //represents REPL server startup.
         try(final AgentManager manager = HostingServices.getAgentManager(true)){
-            final Startup repl = new Startup(args[0], args[1]);
+            final Startup snampEntryPoint = new Startup(args[0], args[1]);
             //executes the manager
-            manager.start(repl);
-            manager.waitForTermination();
+            manager.start(snampEntryPoint);
         }
     }
 

@@ -43,17 +43,9 @@ public abstract class AgentManagerBase implements AgentManager {
      * @return {@literal true} if manager is started successfully; otherwise, {@literal false}.
      */
     @Override
-    public final boolean start(final HostingContext context) {
-        if(started) return false;
+    public final void start(final HostingContext context) {
         contextHolder.changeResource(context);
-        contextHolder.read(new ConsistentReader<HostingContext, Void>() {
-            @Override
-            public Void read(final HostingContext resource) {
-                startCore(context);
-                return null;
-            }
-        });
-        return true;
+        startCore(context);
     }
 
     protected void stopCore(){

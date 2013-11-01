@@ -34,6 +34,20 @@ public class ConsoleAgentManager extends AgentManagerBase {
         this(MANAGER_NAME, System.in, System.out, System.err);
     }
 
+    /**
+     * Starts this manager.
+     */
+    @Override
+    protected final void startCore(final HostingContext context) {
+        try(final BufferedReader reader = new BufferedReader(new InputStreamReader(input))){
+            while (doCommand(reader.readLine(), output)){
+            }
+        }
+        catch (final IOException e) {
+            errors.println(e);
+        }
+    }
+
     private static void restart(final Agent agnt, final AgentConfigurationStorage storage, final PrintStream output){
         output.println(String.format("Stopping the agent: %s", agnt.stop()));
         try {
@@ -118,20 +132,6 @@ public class ConsoleAgentManager extends AgentManagerBase {
                 }
             }
         });
-    }
-
-    /**
-     * Blocks the current thread until the manager will not signals to continue.
-     */
-    @Override
-    public final void waitForTermination() {
-        try(final BufferedReader reader = new BufferedReader(new InputStreamReader(input))){
-            while (doCommand(reader.readLine(), output)){
-            }
-        }
-        catch (final IOException e) {
-            errors.println(e);
-        }
     }
 
     @Override
