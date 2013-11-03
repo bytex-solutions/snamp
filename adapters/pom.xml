@@ -19,6 +19,6 @@
     </dependency>
   </dependencies>
   <modules>
-    <module>snmp</module>
+    <module>snmp-adapter</module>
   </modules>
 </project>
