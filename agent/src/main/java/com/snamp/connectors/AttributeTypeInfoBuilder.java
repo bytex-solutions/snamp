@@ -105,7 +105,8 @@ public abstract class AttributeTypeInfoBuilder {
      * @param <T>
      * @return
      */
-    public static <T> AttributeConvertibleTypeInfo<T> createTypeInfo(final Class<? extends AttributeTypeInfoBuilder> builderType, final Class<T> nativeType){
+    public final static <T> AttributeConvertibleTypeInfo<T> createTypeInfo(final Class<? extends AttributeTypeInfoBuilder> builderType, final Class<T> nativeType){
+        if(shouldNormalize(nativeType)) return (AttributeConvertibleTypeInfo<T>)createTypeInfo(builderType, normalizeClass(normalizeClass(nativeType)));
         final Method[] candidates = builderType.getMethods();
         return new AttributeConvertibleTypeInfo<T>() {
             //convertersTo: key is an output result of nativeType
@@ -141,7 +142,7 @@ public abstract class AttributeTypeInfoBuilder {
             @Override
             public final <G> boolean canConvertFrom(final Class<G> source) {
                 if(source != null)
-                    if(source.isPrimitive() || source.isArray() && source.getComponentType().isPrimitive()) return canConvertFrom(normalizeClass(source));
+                    if(shouldNormalize(source)) return canConvertFrom(normalizeClass(source));
                     else if(nativeType.isAssignableFrom(source)) return true;
                 final Method converter = getConverterFrom(source);
                 return converter != null;
@@ -166,7 +167,7 @@ public abstract class AttributeTypeInfoBuilder {
             @Override
             public final <G> boolean canConvertTo(final Class<G> target) {
                 if(target != null)
-                    if(target.isPrimitive() || target.isArray() && target.getComponentType().isPrimitive()) return canConvertTo(normalizeClass(target));
+                    if(shouldNormalize(target)) return canConvertTo(normalizeClass(target));
                     else if(target.isAssignableFrom(nativeType)) return true;
                 final Method converter = getConverterTo(target);
                 return converter != null;
@@ -182,7 +183,8 @@ public abstract class AttributeTypeInfoBuilder {
              */
             @Override
             public final <G> G convertTo(final Object value, final Class<G> target) throws IllegalArgumentException {
-                if(target !=null && target.isInstance(value)) return target.cast(value);
+                if(shouldNormalize(target)) return (G)convertTo(value, normalizeClass(target));
+                else if(target !=null && target.isInstance(value)) return target.cast(value);
                 final Method converter = getConverterTo(target);
                 if(converter == null) throw new IllegalArgumentException(String.format("Conversion to %s is not supported.", target));
                 else try {
@@ -202,6 +204,10 @@ public abstract class AttributeTypeInfoBuilder {
      */
     public final <T> AttributeConvertibleTypeInfo<T> createTypeInfo(final Class<T> nativeType){
         return createTypeInfo(getClass(), nativeType);
+    }
+
+    private static final boolean shouldNormalize(final Class<?> classInfo){
+        return classInfo.isPrimitive() || classInfo.isArray() && classInfo.getComponentType().isPrimitive();
     }
 
     /**

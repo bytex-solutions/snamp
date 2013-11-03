@@ -1,6 +1,6 @@
 package com.snamp.hosting.management;
 
-import com.snamp.PlatformPlugin;
+import com.snamp.*;
 import com.snamp.hosting.HostingContext;
 
 
@@ -18,11 +18,13 @@ public interface AgentManager extends PlatformPlugin, AutoCloseable {
      * Starts the manager synchronously.
      * @param context SNAMP hosting context.
      */
+    @ThreadSafety(MethodThreadSafety.LOOP)
     public void start(final HostingContext context);
 
     /**
      * Stops the agent.
      * @return {@literal true} if manager is stopped successfully; otherwise, {@literal false}.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public boolean stop();
 }

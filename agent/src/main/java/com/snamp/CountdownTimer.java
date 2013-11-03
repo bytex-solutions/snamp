@@ -27,6 +27,7 @@ public class CountdownTimer {
      * @param current The new value for the timer.
      * @throws IllegalStateException The timer should be stopped.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     protected final void setTimerValue(final TimeSpan current) throws IllegalStateException{
         if(isStarted()) throw new IllegalStateException("The timer should be stopped.");
         elapsed = current != null ? current : new TimeSpan(Long.MAX_VALUE);

@@ -9,9 +9,9 @@ import java.util.concurrent.TimeUnit;
  */
 public final class TimeSpan {
     /**
-     * Represents infinite timeout.
+     * Represents INFINITE timeout.
      */
-    public static final TimeSpan infinite = null;
+    public static final TimeSpan INFINITE = null;
 
     /**
      * Represents the duration value.

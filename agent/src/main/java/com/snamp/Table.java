@@ -11,12 +11,14 @@ public interface Table<COLUMN> {
      * Returns a set of available columns.
      * @return A set of available columns.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public Set<COLUMN> getColumns();
 
     /**
      * Returns a count of rows.
      * @return
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public int getRowCount();
 
     /**
@@ -26,6 +28,7 @@ public interface Table<COLUMN> {
      * @return The cell value.
      * @throws IndexOutOfBoundsException The cell doesn't exist.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public Object getCell(final COLUMN column, final int row) throws IndexOutOfBoundsException;
 
     /**
@@ -34,6 +37,7 @@ public interface Table<COLUMN> {
      * @return The type of values at the specified column.
      * @throws IndexOutOfBoundsException  The specified column doesn't exist.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public Class<?> getColumnType(final COLUMN column) throws IndexOutOfBoundsException;
 
     /**
@@ -44,6 +48,7 @@ public interface Table<COLUMN> {
      * @throws UnsupportedOperationException Operation is not supported.
      * @throws ClassCastException The value type is not compliant with column type.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public void setCell(final COLUMN column, final int row, final Object value) throws UnsupportedOperationException, ClassCastException;
 
     /**
@@ -53,6 +58,7 @@ public interface Table<COLUMN> {
      * @throws ClassCastException The value type is not compliant with column type.
      * @throws IllegalArgumentException The count of values doesn't match to column count.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public void addRow(final Map<COLUMN, Object> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
 
     /**
@@ -60,5 +66,6 @@ public interface Table<COLUMN> {
      * @param rowIndex An index of the row to remove.
      * @throws UnsupportedOperationException Operation is not supported.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public void removeRow(final int rowIndex) throws UnsupportedOperationException;
 }
