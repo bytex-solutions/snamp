@@ -29,10 +29,10 @@
             <version>2.9.1</version>
             <executions>
                 <execution>
-                    <id>attach-javadocs</id>
-                    <phase>site</phase>
+                    <id>bundle-sources</id>
+                    <phase>package</phase>
                     <goals>
-                        <goal>aggregate</goal>
+                        <goal>jar</goal>
                     </goals>
                 </execution>
             </executions>
