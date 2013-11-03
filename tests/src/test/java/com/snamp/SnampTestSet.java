@@ -11,7 +11,8 @@ public abstract class SnampTestSet extends Assert {
     public static final String TEST_LICENCE_FILE = "unlimited.lic";
 
     static {
-        System.setProperty(LicenseReader.LICENSE_FILE_PROPERTY, TEST_LICENCE_FILE);
+        if (System.getProperty(LicenseReader.LICENSE_FILE_PROPERTY) == null)
+            System.setProperty(LicenseReader.LICENSE_FILE_PROPERTY, TEST_LICENCE_FILE);
         LicenseReader.reloadCurrentLicense();
     }
 }

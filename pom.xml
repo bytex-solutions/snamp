@@ -23,6 +23,20 @@
           <useReleaseProfile>false</useReleaseProfile>  <!-- This should be reviewed when we will have javadocs -->
         </configuration>
       </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9.1</version>
+            <executions>
+                <execution>
+                    <id>attach-javadocs</id>
+                    <phase>site</phase>
+                    <goals>
+                        <goal>aggregate</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
     </plugins>
   </build>
   <modules>
@@ -32,4 +46,26 @@
     <module>licensing</module>
     <module>tests</module>
   </modules>
+    <repositories>
+        <repository>
+            <id>oosnmpRepo</id>
+            <name>oosnmp.com Repository</name>
+            <url>https://server.oosnmp.net/dist/release</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>jspfRepo</id>
+            <name>formreturn.com Repository</name>
+            <url>http://maven.formreturn.com/repository</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
