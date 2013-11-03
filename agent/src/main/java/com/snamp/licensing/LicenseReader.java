@@ -123,7 +123,7 @@ public final class LicenseReader {
                 if (resource.loadedLicense == null) return fallback.newInstance();
                 else if (resource.loadedLimitations.containsKey(limitationsDescriptor))
                     return (T) resource.loadedLimitations.get(limitationsDescriptor);
-                else return fallback.newInstance();
+                else return null;
             }
         });
         //limitations is not in cache, creates a new limitations reader

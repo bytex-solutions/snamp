@@ -11,5 +11,6 @@ public interface ServiceProvider {
      * @param <T> Type of the required service.
      * @return An instance of the requested service; or {@literal null} if service is not available.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public <T> T getService(final Class<T> serviceType);
 }

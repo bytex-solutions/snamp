@@ -4,6 +4,9 @@ import com.snamp.ConcurrentResourceAccess;
 
 import static com.snamp.ConcurrentResourceAccess.ConsistentReader;
 import static com.snamp.ConcurrentResourceAccess.Reader;
+
+import com.snamp.MethodThreadSafety;
+import com.snamp.ThreadSafety;
 import com.snamp.hosting.HostingContext;
 import net.xeoh.plugins.base.annotations.Capabilities;
 
@@ -24,14 +27,17 @@ public abstract class AgentManagerBase implements AgentManager {
     /**
      * Starts this manager.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     protected void startCore(final HostingContext context){
 
     }
 
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     protected final <T, E extends Throwable> T readContext(final Reader<HostingContext, T, E> reader) throws E{
         return contextHolder.read(reader);
     }
 
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     protected final <T> T readContext(final ConsistentReader<HostingContext, T> reader) {
         return contextHolder.read(reader);
     }
@@ -43,11 +49,13 @@ public abstract class AgentManagerBase implements AgentManager {
      * @return {@literal true} if manager is started successfully; otherwise, {@literal false}.
      */
     @Override
+    @ThreadSafety(MethodThreadSafety.LOOP)
     public final void start(final HostingContext context) {
         contextHolder.changeResource(context);
         startCore(context);
     }
 
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     protected void stopCore(){
 
     }
@@ -58,6 +66,7 @@ public abstract class AgentManagerBase implements AgentManager {
      * @return {@literal true} if manager is stopped successfully; otherwise, {@literal false}.
      */
     @Override
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public final boolean stop() {
         if(!started) return false;
         stopCore();
@@ -70,6 +79,7 @@ public abstract class AgentManagerBase implements AgentManager {
      * @return An array of plug-in capabilities.
      */
     @Capabilities
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final String[] capabilities(){
         return makeCapabilities(managerName);
     }
@@ -80,6 +90,7 @@ public abstract class AgentManagerBase implements AgentManager {
      * @param managerName The name of the manager.
      * @return An array of plug-in capabilities.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public static String[] makeCapabilities(final String managerName){
         return new String[]{
                 String.format("manager:%s", managerName)

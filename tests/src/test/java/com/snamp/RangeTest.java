@@ -5,7 +5,7 @@ import org.junit.Test;
 /**
  * @author roman
  */
-public final class RangeTest extends SnampTestSet {
+public final class RangeTest extends SnampClassTestSet<Range<?>> {
     @Test
     public final void isInInt32RangeTest(){
         final Range<Integer> r = new Range<Integer>(10, 20);

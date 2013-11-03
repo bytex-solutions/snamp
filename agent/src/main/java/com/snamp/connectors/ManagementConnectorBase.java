@@ -188,7 +188,7 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
         final CountdownTimer timer = new CountdownTimer(readTimeout);
         final Lock readLock = coordinator.readLock();
         timer.start();
-        if(readTimeout == TimeSpan.infinite) readLock.lock();
+        if(readTimeout == TimeSpan.INFINITE) readLock.lock();
         else try {
             if(!readLock.tryLock(readTimeout.duration, readTimeout.unit))
                 throw new TimeoutException("The connector runs read/write operation too long");
@@ -217,7 +217,7 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
         final Lock readLock = coordinator.readLock();
         final CountdownTimer timer = new CountdownTimer(readTimeout);
         timer.start();
-        if(readTimeout == TimeSpan.infinite) readLock.lock();
+        if(readTimeout == TimeSpan.INFINITE) readLock.lock();
         else try {
             if(!readLock.tryLock(readTimeout.duration, readTimeout.unit))
                 throw new TimeoutException("The connector runs read/write operation too long");
@@ -268,7 +268,7 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
         final Lock writeLock = coordinator.writeLock();
         final CountdownTimer timer = new CountdownTimer(writeTimeout);
         timer.start();
-        if(writeTimeout == TimeSpan.infinite) writeLock.lock();
+        if(writeTimeout == TimeSpan.INFINITE) writeLock.lock();
         else try {
             if(!writeLock.tryLock(writeTimeout.duration, writeTimeout.unit))
                 throw new TimeoutException("The connector runs read/write operation too long");
@@ -296,7 +296,7 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
         final Lock writeLock = coordinator.writeLock();
         final CountdownTimer timer = new CountdownTimer(writeTimeout);
         timer.start();
-        if(writeTimeout == TimeSpan.infinite) writeLock.lock();
+        if(writeTimeout == TimeSpan.INFINITE) writeLock.lock();
         else try {
             if(!writeLock.tryLock(writeTimeout.duration, writeTimeout.unit))
                 throw new TimeoutException("The connector runs read/write operation too long");
