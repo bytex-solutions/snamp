@@ -31,5 +31,6 @@
     <module>connectors</module>
     <module>licensing</module>
     <module>tests</module>
+    <module>rest-manager</module>
   </modules>
 </project>
