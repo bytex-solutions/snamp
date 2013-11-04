@@ -770,7 +770,7 @@ public enum ConfigurationFormat {
          */
         @Override
         public final void load(final AgentConfiguration input) {
-            AgentConfigurationBase.copy(input, this);
+            AbstractAgentConfiguration.copy(input, this);
         }
     }
 

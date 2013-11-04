@@ -8,11 +8,11 @@ import java.util.*;
  * Represents a base class for building agent configuration.
  * @author roman
  */
-abstract class AgentConfigurationBase implements AgentConfiguration {
+abstract class AbstractAgentConfiguration implements AgentConfiguration {
     /**
      * Initializes a new empty agent configuration.
      */
-    protected AgentConfigurationBase(){
+    protected AbstractAgentConfiguration(){
 
     }
 
@@ -21,7 +21,7 @@ abstract class AgentConfigurationBase implements AgentConfiguration {
      * @return
      */
     @Override
-    public abstract AgentConfigurationBase clone();
+    public abstract AbstractAgentConfiguration clone();
 
     private static final void copy(final HostingConfiguration input, final HostingConfiguration output){
         output.setAdapterName(input.getAdapterName());

@@ -11,9 +11,8 @@ import java.util.logging.*;
  * @author roman
  */
 @PluginImplementation
-final class JmxConnectorFactory extends ManagementConnectorFactoryBase<JmxConnector> {
+final class JmxConnectorFactory extends AbstractManagementConnectorFactory<JmxConnector> {
 
-    private static final Logger log = Logger.getLogger("snamp.jmxconnector.log");
     /**
      * Represents JMX connector name.
      */
@@ -57,7 +56,7 @@ final class JmxConnectorFactory extends ManagementConnectorFactoryBase<JmxConnec
             return newInstance(new JMXServiceURL(connectionString), connectionProperties);
         }
         catch (Exception e) {
-            log.log(Level.SEVERE, "Unable to create JMX connector", e);
+            logger.log(Level.SEVERE, "Unable to create JMX connector", e);
             return null;
         }
     }

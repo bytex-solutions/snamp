@@ -11,7 +11,7 @@ import java.util.logging.Logger;
  * Represents an abstract class for building custom management connectors.
  * @author roman
  */
-public abstract class ManagementConnectorBase implements ManagementConnector {
+public abstract class AbstractManagementConnector implements ManagementConnector {
     private static final Logger log = Logger.getLogger("snamp.snmp.log");
 
     /**
@@ -114,7 +114,7 @@ public abstract class ManagementConnectorBase implements ManagementConnector {
     /**
      * Initializes a new management connector.
      */
-    protected ManagementConnectorBase(){
+    protected AbstractManagementConnector(){
         this.attributes = new HashMap<>();
         this.coordinator = new ReentrantReadWriteLock();
     }

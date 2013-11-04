@@ -10,6 +10,8 @@ import com.snamp.ThreadSafety;
 import com.snamp.hosting.HostingContext;
 import net.xeoh.plugins.base.annotations.Capabilities;
 
+import java.util.logging.Logger;
+
 /**
  * @author roman
  */
@@ -17,11 +19,20 @@ public abstract class AgentManagerBase implements AgentManager {
     private final String managerName;
     private final ConcurrentResourceAccess<HostingContext> contextHolder;
     private boolean started;
+    /**
+     * Represents logger associated with this instance of manager.
+     */
+    protected final Logger logger;
 
     protected AgentManagerBase(final String managerName){
         this.managerName = managerName;
         this.contextHolder = new ConcurrentResourceAccess<>(null);
         started = false;
+        logger = getLogger(managerName);
+    }
+
+    public static final Logger getLogger(final String managerName){
+        return Logger.getLogger(String.format("snamp.managers.%s.log", managerName));
     }
 
     /**

@@ -21,7 +21,7 @@ public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
 
     protected AbstractJMXSimpleBeanTest() {
         oidPrefix = "1.1";
-        objectName = this.getClass().getPackage().getName() + ":type=" + this.getClass().getName();//"com.snampy.jmx:type=com.snamp.adapters.SimpleBean";
+        objectName = this.getClass().getPackage().getName() + ":type=" + this.getClass().getName();//"com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
         localHostPort = 161; //1161
         localJMXPort = 9010; //Integer.parseInt(System.getProperties().getProperty("com.sun.management.jmxremote.port"));
         attributes = new HashMap<>();

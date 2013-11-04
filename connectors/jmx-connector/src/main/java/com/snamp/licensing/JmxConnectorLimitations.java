@@ -1,7 +1,7 @@
 package com.snamp.licensing;
 
 import com.snamp.Activator;
-import com.snamp.connectors.ManagementConnectorFactoryBase;
+import com.snamp.connectors.AbstractManagementConnectorFactory;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * @author roman
  */
 @XmlRootElement(name = "jmxConnectorLimitations")
-public final class JmxConnectorLimitations extends AbstractLicenseLimitations implements PluginLicenseLimitations<ManagementConnectorFactoryBase> {
+public final class JmxConnectorLimitations extends AbstractLicenseLimitations implements PluginLicenseLimitations<AbstractManagementConnectorFactory> {
 
     /**
      * Initializes a new limitation descriptor for the JMX connector.
@@ -119,7 +119,7 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
      *
      */
     @Override
-    public final void verifyPluginVersion(final Class<? extends ManagementConnectorFactoryBase> pluginImpl) throws LicensingException {
+    public final void verifyPluginVersion(final Class<? extends AbstractManagementConnectorFactory> pluginImpl) throws LicensingException {
         verify(maxVersion, pluginImpl.getPackage().getImplementationVersion());
     }
 }

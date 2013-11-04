@@ -19,8 +19,13 @@ import static com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertible
  * Represents JMX connector.
  * @author roman
  */
-final class JmxConnector extends ManagementConnectorBase {
-    private static final Logger log = Logger.getLogger("snamp.jmxconnector.log");
+final class JmxConnector extends AbstractManagementConnector {
+    /**
+     * Represents JMX connector name.
+     */
+    public static final String connectorName = "jmx";
+    private static final Logger log = AbstractManagementConnectorFactory.getLogger(connectorName);
+
     /**
      * Represents count of instantiated connectors.
      */
@@ -497,7 +502,7 @@ final class JmxConnector extends ManagementConnectorBase {
             return result;
         }
         catch(final Exception e){
-            log.log(Level.INFO, e.getMessage(), e);
+            log.log(Level.WARNING, e.getMessage(), e);
             return defval;
         }
     }

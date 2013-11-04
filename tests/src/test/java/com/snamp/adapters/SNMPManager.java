@@ -1,4 +1,4 @@
-package com.snamp.adapters.snmp;
+package com.snamp.adapters;
 
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;

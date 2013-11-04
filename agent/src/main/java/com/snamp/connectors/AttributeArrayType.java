@@ -13,19 +13,19 @@ public class AttributeArrayType implements AttributeTabularType {
     /**
      * Represents name of the first column.
      */
-    public static final String indexColumnName = "Index";
+    public static final String INDEX_COLUMN_NAME = "Index";
 
     /**
      * Represents name of the second column.
      */
-    public static final String valueColumnName = "Value";
+    public static final String VALUE_COLUMN_NAME = "Value";
 
     /**
      * Represents a set of array columns (index and value).
      */
     public static final Set<String> columns = Collections.unmodifiableSet(new HashSet<String>(){{
-        add(indexColumnName);
-        add(valueColumnName);
+        add(INDEX_COLUMN_NAME);
+        add(VALUE_COLUMN_NAME);
     }});
 
     /**
@@ -70,8 +70,8 @@ public class AttributeArrayType implements AttributeTabularType {
     @Override
     public final AttributeTypeInfo getColumnType(final String columnName) {
         switch (columnName){
-            case indexColumnName: getIndexColumnType();
-            case valueColumnName: return elementType;
+            case INDEX_COLUMN_NAME: getIndexColumnType();
+            case VALUE_COLUMN_NAME: return elementType;
             default: return null;
         }
     }
@@ -131,22 +131,22 @@ public class AttributeArrayType implements AttributeTabularType {
 
     protected Table<String> convertToTable(final Object value){
         final Table<String> result = new SimpleTable<String>(new HashMap<String, Class<?>>(2){{
-            put(indexColumnName, Integer.class);
-            put(valueColumnName, Object.class);
+            put(INDEX_COLUMN_NAME, Integer.class);
+            put(VALUE_COLUMN_NAME, Object.class);
         }});
         if(isArray(value))
             for(int i = 0; i < Array.getLength(value); i++){
                 final Map<String, Object> row = new HashMap<>(2);
-                row.put(indexColumnName, i);
-                row.put(valueColumnName, Array.get(value, i));
+                row.put(INDEX_COLUMN_NAME, i);
+                row.put(VALUE_COLUMN_NAME, Array.get(value, i));
                 result.addRow(row);
             }
         else if(value instanceof List){
             final List<?> lst = (List<?>)value;
             for(int i = 0; i < lst.size(); i++){
                 final Map<String, Object> row = new HashMap<>(2);
-                row.put(indexColumnName, i);
-                row.put(valueColumnName, lst.get(i));
+                row.put(INDEX_COLUMN_NAME, i);
+                row.put(VALUE_COLUMN_NAME, lst.get(i));
                 result.addRow(row);
             }
         }

@@ -9,12 +9,12 @@ import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Represents tests for {@link EmbeddedManagementConnector} class.
+ * Represents tests for {@link ManagementConnectorBean} class.
  * @author roman
  */
-public final class ManagementConnectorBeanTest extends SnampClassTestSet<EmbeddedManagementConnector> {
+public final class ManagementConnectorBeanTest extends SnampClassTestSet<ManagementConnectorBean> {
 
-    private static final class TestManagementConnectorBeanTest extends EmbeddedManagementConnector {
+    private static final class TestManagementConnectorBeanTest extends ManagementConnectorBean {
         private String field1;
         private int field2;
         private boolean field3;
@@ -65,7 +65,7 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Embedde
 
     @Test
     public final void testAnonymousBean() throws IntrospectionException, TimeoutException{
-        final ManagementConnector mc = EmbeddedManagementConnector.wrap(new Object() {
+        final ManagementConnector mc = ManagementConnectorBean.wrap(new Object() {
             private int simpleField;
 
             public final int getProperty() {

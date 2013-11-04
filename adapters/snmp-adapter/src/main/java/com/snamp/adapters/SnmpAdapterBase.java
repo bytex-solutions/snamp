@@ -1,12 +1,11 @@
 package com.snamp.adapters;
 
-import com.snamp.adapters.Adapter;
 import net.xeoh.plugins.base.annotations.Capabilities;
 import org.snmp4j.agent.*;
 
 import java.io.File;
 import java.util.logging.Logger;
-import static com.snamp.adapters.AdapterBase.makeCapabilities;
+import static com.snamp.adapters.AbstractAdapter.makeCapabilities;
 
 /**
  * Represents a base class for SNMP adapter.

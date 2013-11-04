@@ -52,16 +52,4 @@
       <version>2.0.6</version>
     </dependency>
   </dependencies>
-  <repositories>
-    <repository>
-      <id>oosnmpRepo</id>
-      <name>oosnmp.com Repository</name>
-      <url>https://oosnmp.net/dist/release</url>
-      <layout>default</layout>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-    </repository>
-  </repositories>
 </project>

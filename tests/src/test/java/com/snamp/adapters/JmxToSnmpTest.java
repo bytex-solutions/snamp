@@ -1,12 +1,10 @@
-package com.snamp.adapters.snmp; /**
+package com.snamp.adapters; /**
  * Created with IntelliJ IDEA.
  * User: temni
  * Date: 20.10.13
  * Time: 17:26
  */
 
-import com.snamp.adapters.AbstractJMXSimpleBeanTest;
-import com.snamp.adapters.SimpleBean;
 import com.snamp.hosting.Agent;
 import com.snamp.hosting.AgentConfiguration;
 import junit.framework.Assert;
@@ -25,7 +23,7 @@ public class JmxToSnmpTest extends AbstractJMXSimpleBeanTest {
     private final String checkString = "String attribute";
 
     private static final String oidPrefix = "1.1";
-    private static final String objectName = "com.snampy.jmx:type=com.snamp.adapters.SimpleBean";
+    private static final String objectName = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
     private static final int localHostPort = 1161;
     private static final int localJMXPort = Integer.parseInt(System.getProperties().getProperty("com.sun.management.jmxremote.port"));
     private static final Map<String, String> attributes = new HashMap<String,String>(){{
@@ -40,7 +38,8 @@ public class JmxToSnmpTest extends AbstractJMXSimpleBeanTest {
 
     @Test
     public void testGetSimpleBean() throws Exception {
-        final SimpleBean cache = new SimpleBean(checkString);
+        final TestManagementBean cache = new TestManagementBean();
+        cache.setString(checkString);
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         final ObjectName name = new ObjectName(objectName);
         mbs.registerMBean(cache, name);
@@ -54,7 +53,7 @@ public class JmxToSnmpTest extends AbstractJMXSimpleBeanTest {
 
             final String sysDescr = client.getAsString(new OID(oidPrefix + "." + "1.1"));
 
-            Assert.assertEquals("Checking String attribute failed",sysDescr,checkString);
+            Assert.assertEquals("Checking String attribute failed", checkString, sysDescr);
 
         }
     }

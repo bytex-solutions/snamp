@@ -8,6 +8,7 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import static com.snamp.adapters.SnmpHelpers.getAccessRestrictions;
 
+import com.snamp.*;
 import java.lang.ref.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;

@@ -13,7 +13,7 @@ import static com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertible
  * Represents SNAMP in-process management connector that exposes Java Bean properties through connector attributes.
  * @author roman
  */
-public class EmbeddedManagementConnector extends ManagementConnectorBase {
+public class ManagementConnectorBean extends AbstractManagementConnector {
 
     private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<AttributeConvertibleTypeInfo<?>>{
         private final Map<String, String> properties;
@@ -128,14 +128,14 @@ public class EmbeddedManagementConnector extends ManagementConnectorBase {
      * @param typeBuilder Type information provider that provides property type converter.
      * @throws IllegalArgumentException typeBuilder is {@literal null}.
      */
-    protected EmbeddedManagementConnector(final AttributeTypeInfoBuilder typeBuilder) throws IntrospectionException {
+    protected ManagementConnectorBean(final AttributeTypeInfoBuilder typeBuilder) throws IntrospectionException {
         if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.typeInfoBuilder = typeBuilder;
-        this.beanMetadata = Introspector.getBeanInfo(getClass(), EmbeddedManagementConnector.class);
+        this.beanMetadata = Introspector.getBeanInfo(getClass(), ManagementConnectorBean.class);
         this.beanInstance = null;
     }
 
-    private EmbeddedManagementConnector(final Object beanInstance, final AttributeTypeInfoBuilder typeBuilder) throws IntrospectionException {
+    private ManagementConnectorBean(final Object beanInstance, final AttributeTypeInfoBuilder typeBuilder) throws IntrospectionException {
         if(beanInstance == null) throw new IllegalArgumentException("beanInstance is null.");
         else if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.beanInstance = beanInstance;
@@ -151,8 +151,8 @@ public class EmbeddedManagementConnector extends ManagementConnectorBase {
      * @return A new instance of the management connector that wraps the Java Bean.
      * @throws IntrospectionException
      */
-    public static <T> EmbeddedManagementConnector wrap(final T beanInstance, final AttributeTypeInfoBuilder typeBuilder) throws IntrospectionException {
-        return new EmbeddedManagementConnector(beanInstance, typeBuilder);
+    public static <T> ManagementConnectorBean wrap(final T beanInstance, final AttributeTypeInfoBuilder typeBuilder) throws IntrospectionException {
+        return new ManagementConnectorBean(beanInstance, typeBuilder);
     }
 
     /**

@@ -7,7 +7,6 @@ import com.snamp.hosting.management.*;
 import net.xeoh.plugins.base.PluginManager;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
 import net.xeoh.plugins.base.options.getplugin.OptionCapabilities;
-import net.xeoh.plugins.base.util.uri.ClassURI;
 
 import java.io.File;
 import java.net.URI;
@@ -64,7 +63,7 @@ final class HostingServices {
     }
 
     public static Adapter getAdapter(final String adapterName){
-        return manager.getPlugin(Adapter.class, new OptionCapabilities(AdapterBase.makeCapabilities(adapterName)));
+        return manager.getPlugin(Adapter.class, new OptionCapabilities(AbstractAdapter.makeCapabilities(adapterName)));
     }
 
     /**
@@ -73,7 +72,7 @@ final class HostingServices {
      * @return A new instance of the management connector factory,
      */
     public static ManagementConnectorFactory getManagementConnectorFactory(final String connectorName){
-        return manager.getPlugin(ManagementConnectorFactory.class, new OptionCapabilities(ManagementConnectorFactoryBase.makeCapabilities(connectorName)));
+        return manager.getPlugin(ManagementConnectorFactory.class, new OptionCapabilities(AbstractManagementConnectorFactory.makeCapabilities(connectorName)));
     }
 
     /**

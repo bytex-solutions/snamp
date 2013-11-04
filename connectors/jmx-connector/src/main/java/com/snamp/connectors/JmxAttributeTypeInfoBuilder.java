@@ -267,7 +267,7 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
                 final Table<String> tbl = (Table<String>)value;
                 final Object result = Array.newInstance(elementType.getNativeClass(), tbl.getRowCount());
                 for(int i = 0; i < tbl.getRowCount(); i++)
-                    Array.set(result, i, tbl.getCell(indexColumnName, i));
+                    Array.set(result, i, tbl.getCell(INDEX_COLUMN_NAME, i));
                 return (T[])result;
             }
             else throw new IllegalArgumentException(String.format("Cannot convert %s value.", value));
