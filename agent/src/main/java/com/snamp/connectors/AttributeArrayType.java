@@ -7,7 +7,12 @@ import java.util.*;
 
 /**
  * Represents single-dimensional array type as table.
- * @author roman
+ * <p>
+ *     An array type of the attribute should be always represented by this class (or one of its derived classes).
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public class AttributeArrayType implements AttributeTabularType {
     /**
@@ -55,7 +60,11 @@ public class AttributeArrayType implements AttributeTabularType {
 
     /**
      * Returns the type of the array index column.
-     * @return
+     * <p>
+     *     In the default implementation, this method always returns value
+     *     returned by {@link com.snamp.connectors.AttributePrimitiveTypeBuilder#createInt32Type()} method.
+     * </p>
+     * @return The type of the array index column.
      */
     protected AttributeJavaTypeInfo<? extends Number> getIndexColumnType(){
         final AttributePrimitiveTypeBuilder builder = new AttributePrimitiveTypeBuilder();
@@ -64,8 +73,15 @@ public class AttributeArrayType implements AttributeTabularType {
 
     /**
      * Returns the type of the column.
-     * @param columnName
-     * @return
+     * <p>
+     *     There is only two available column names:
+     *     <ul>
+     *         <li>{@link #INDEX_COLUMN_NAME} that represents column containing array index.</li>
+     *         <li>{@link #VALUE_COLUMN_NAME} that represents column containing array element.</li>
+     *     </ul>
+     * </p>
+     * @param columnName The name of the column.
+     * @return The column type.
      */
     @Override
     public final AttributeTypeInfo getColumnType(final String columnName) {
@@ -89,8 +105,8 @@ public class AttributeArrayType implements AttributeTabularType {
 
     /**
      * Determines whether the specified object is an array.
-     * @param obj
-     * @return
+     * @param obj An object to test.
+     * @return {@literal true}, if the specified object is array; otherwise, {@literal false}.
      */
     public static boolean isArray(final Object obj) {
         return obj != null && obj.getClass().isArray();
@@ -101,7 +117,7 @@ public class AttributeArrayType implements AttributeTabularType {
      *
      * @param target The result of the conversion.
      * @param <T>    The type of the conversion result.
-     * @return {@literal true}, if conversion to the specified type is supported.
+     * @return {@literal true}, if conversion to the specified type is supported; otherwise, {@literal false}.
      */
     @Override
     public <T> boolean canConvertTo(final Class<T> target) {

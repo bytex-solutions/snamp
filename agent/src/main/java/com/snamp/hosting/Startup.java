@@ -7,11 +7,10 @@ import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * Represents application startup.
- * @author roman
+ * @author Roman Sakno
  */
 final class Startup implements HostingContext {
     private static final String CONFIG_STORAGE_LOG_NAME = "com.snamp.configuration.storage";
@@ -205,7 +204,7 @@ final class Startup implements HostingContext {
      */
     @Override
     public final  <T> T queryObject(final Class<T> objectType) {
-        if(AGENT_SERVICE == objectType) return (T)agnt;
+        if(AGENT == objectType) return (T)agnt;
         else if(CONFIG_STORAGE == objectType) return (T)configurationStorage;
         else return null;
     }

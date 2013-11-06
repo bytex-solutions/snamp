@@ -10,7 +10,7 @@ import static com.snamp.adapters.AbstractAdapter.makeCapabilities;
 
 /**
  * Represents a base class for SNMP adapter.
- * @author roman
+ * @author Roman Sakno
  */
 public abstract class SnmpAdapterBase extends BaseAgent implements Adapter {
     protected static final Logger log = Logger.getLogger("snamp.snmp.log");
@@ -19,9 +19,9 @@ public abstract class SnmpAdapterBase extends BaseAgent implements Adapter {
     public static final String adapterName = "snmp";
 
     /**
-     * Gets a logger associated with the specified platform service.
+     * Gets a logger associated with this adapter.
      *
-     * @return
+     * @return A logger associated with this adapter.
      */
     @Override
     public final Logger getLogger() {

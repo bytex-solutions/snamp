@@ -9,8 +9,11 @@ import java.util.logging.Logger;
 
 /**
  * Represents an abstract class for building custom management connectors.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Lifecycle(InstanceLifecycle.NORMAL)
 public abstract class AbstractManagementConnector implements ManagementConnector {
     private static final Logger log = Logger.getLogger("snamp.snmp.log");
 
@@ -78,7 +81,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
 
         /**
          * By default, returns {@literal true}.
-         * @return
+         * @return {@literal true}
          */
         @Override
         public boolean canRead() {
@@ -120,9 +123,10 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     }
 
     /**
-     * Returns the co
-     * @return
+     * Returns a count of connected attributes.
+     * @return The count of connected attributes.
      */
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
     protected final int attributesCount(){
         return attributes.size();
     }
@@ -251,7 +255,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      * @param attribute The metadata of the attribute to set.
      * @param writeTimeout
      * @param value
-     * @return
+     * @return {@literal true} if attribute value is overridden successfully; otherwise, {@literal false}.
      */
     protected abstract boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value);
 

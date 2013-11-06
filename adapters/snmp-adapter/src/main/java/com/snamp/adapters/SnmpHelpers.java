@@ -5,7 +5,7 @@ import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
 final class SnmpHelpers {
     private SnmpHelpers(){

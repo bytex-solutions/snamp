@@ -7,7 +7,7 @@ import org.junit.Test;
 
 /**
  * Represents SNAMP licensing infrastructure tests.
- * @author roman
+ * @author Roman Sakno
  */
 public final class LicensingTest extends SnampTestSet {
 

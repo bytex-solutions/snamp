@@ -8,7 +8,9 @@ import java.util.*;
 
 /**
  * Represents an abstract class for all licensed objects.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public abstract class AbstractLicenseLimitations implements LicenseLimitations {
     /**

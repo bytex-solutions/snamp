@@ -9,7 +9,7 @@ import java.util.*;
 
 /**
  * Represents an abstract class for building SNAMP adapter tests.
- * @author roman
+ * @author Roman Sakno
  */
 public abstract class HostingTest extends SnampTestSet implements AgentConfiguration {
     private final String adapterName;

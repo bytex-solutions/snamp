@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
 @XmlRootElement(name = "snmpAdapterLimitations")
 public final class SnmpAdapterLimitations extends AbstractLicenseLimitations {

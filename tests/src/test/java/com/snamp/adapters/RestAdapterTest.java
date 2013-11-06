@@ -16,7 +16,7 @@ import java.net.*;
 import java.util.*;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
 public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> {
     private static final Map<String, String> restAdapterSettings = new HashMap<String, String>(2){{

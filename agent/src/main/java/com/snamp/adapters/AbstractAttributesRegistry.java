@@ -11,8 +11,11 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Represents registry of exposed attributes based on attribute namespace.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Internal
 public abstract class AbstractAttributesRegistry extends HashMap<String, ConnectedAttributes> implements AttributesRegistry {
 
     protected AbstractAttributesRegistry(){
@@ -102,7 +105,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     /**
      * Gets a read-only collection of registered namespaces.
      *
-     * @return
+     * @return A read-only collection of registered namespaces.
      */
     @Override
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
@@ -113,8 +116,8 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     /**
      * Gets a read-only collection of registered attributes inside of the specified attributes.
      *
-     * @param namespace
-     * @return
+     * @param namespace The attribute namespace.
+     * @return A collection of registered attributes located in the specified namespace.
      */
     @Override
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)

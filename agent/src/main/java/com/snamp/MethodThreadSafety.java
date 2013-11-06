@@ -2,8 +2,11 @@ package com.snamp;
 
 /**
  * Describes method usage in the multi-threading context.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Internal
 public enum MethodThreadSafety {
     /**
      * Indicates that the method can be called from different threads without additional synchronization.

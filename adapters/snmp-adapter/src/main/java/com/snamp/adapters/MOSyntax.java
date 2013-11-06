@@ -4,7 +4,7 @@ import java.lang.annotation.*;
 
 /**
  * Represents the syntax of the managed object.
- * @author roman
+ * @author Roman Sakno
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

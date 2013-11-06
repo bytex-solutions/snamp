@@ -10,7 +10,7 @@ import java.util.*;
 
 /**
  * Represents JMX attribute type information.
- * @author roman
+ * @author Roman Sakno
  */
 final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
     /**

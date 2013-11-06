@@ -17,7 +17,7 @@ import static com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertible
 
 /**
  * Represents JMX connector.
- * @author roman
+ * @author Roman Sakno
  */
 final class JmxConnector extends AbstractManagementConnector {
     /**

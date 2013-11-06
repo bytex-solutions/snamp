@@ -16,7 +16,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Represents SNMP table.
- * @author roman
+ * @author Roman Sakno
  */
 final class SnmpTableObject implements SnmpAttributeMapping{
 

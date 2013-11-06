@@ -1,7 +1,6 @@
 package com.snamp.adapters;
 
-import com.snamp.MethodThreadSafety;
-import com.snamp.ThreadSafety;
+import com.snamp.*;
 import com.snamp.connectors.*;
 
 import java.lang.ref.*;
@@ -9,8 +8,13 @@ import java.util.*;
 
 /**
  * Represents a map of exposed attributes to the adapter.
- * @author roman
+ * <p>This is an utility class and can be used to organize connected attributes
+ * in some types of custom adapters.</p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Internal
 public abstract class ConnectedAttributes extends HashMap<String, AttributeMetadata> {
     private final Reference<ManagementConnector> connector;
 

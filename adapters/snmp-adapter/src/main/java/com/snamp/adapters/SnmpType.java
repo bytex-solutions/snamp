@@ -14,7 +14,7 @@ import java.util.*;
 
 /**
  * Represents SNMP managed object factory.
- * @author roman
+ * @author Roman Sakno
  */
 enum SnmpType {
     /**

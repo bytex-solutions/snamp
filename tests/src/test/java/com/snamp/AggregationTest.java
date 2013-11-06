@@ -3,10 +3,10 @@ package com.snamp;
 import org.junit.Test;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
-public final class AggregationTest extends SnampClassTestSet<AbstractAggregated> {
-    private static final class TestAggregator extends AbstractAggregated {
+public final class AggregationTest extends SnampClassTestSet<AbstractAggregator> {
+    private static final class TestAggregator extends AbstractAggregator {
 
         @Aggregation
         private final Range<Integer> service1 = new Range<>(0, 10);

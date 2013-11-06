@@ -1,6 +1,6 @@
 package com.snamp.connectors;
 
-import com.snamp.TimeSpan;
+import com.snamp.*;
 import net.xeoh.plugins.base.Plugin;
 
 import java.util.*;
@@ -8,8 +8,11 @@ import java.util.concurrent.*;
 
 /**
  * Represents management connector that exposes management attributes of the remote provider.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Lifecycle(InstanceLifecycle.NORMAL)
 public interface ManagementConnector extends Iterable<String>, AutoCloseable {
 
     /**

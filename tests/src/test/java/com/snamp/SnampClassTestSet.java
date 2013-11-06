@@ -1,7 +1,7 @@
 package com.snamp;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
 public abstract class SnampClassTestSet<T> extends SnampTestSet {
     protected SnampClassTestSet(){

@@ -5,8 +5,11 @@ import com.snamp.connectors.AttributeTypeInfo;
 
 /**
  * Represents utility class that represents raw attribute value and its type.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Internal
 public final class AttributeValue<T extends AttributeTypeInfo> {
     /**
      * Represents attribute value.

@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Represents console-based Agent manager.
- * @author roman
+ * @author Roman Sakno
  */
 public class ConsoleAgentManager extends AgentManagerBase {
     public static final String MANAGER_NAME = "console";
@@ -123,10 +123,10 @@ public class ConsoleAgentManager extends AgentManagerBase {
                     case "exit": return false;
                     case "pid": displayProcessID(output); return true;
                     case "help": displayHelp(output); return true;
-                    case "state": displayAgentState(context.queryObject(HostingContext.AGENT_SERVICE), output); return true;
-                    case "restart": restart(context.queryObject(HostingContext.AGENT_SERVICE), context.queryObject(HostingContext.CONFIG_STORAGE), output); return true;
-                    case "pause": pauseAgent(context.queryObject(HostingContext.AGENT_SERVICE), output); return true;
-                    case "resume": resumeAgent(context.queryObject(HostingContext.AGENT_SERVICE), output); return true;
+                    case "state": displayAgentState(context.queryObject(HostingContext.AGENT), output); return true;
+                    case "restart": restart(context.queryObject(HostingContext.AGENT), context.queryObject(HostingContext.CONFIG_STORAGE), output); return true;
+                    case "pause": pauseAgent(context.queryObject(HostingContext.AGENT), output); return true;
+                    case "resume": resumeAgent(context.queryObject(HostingContext.AGENT), output); return true;
                     case "reloadlic": reloadLicense(output); return true;
                     default: output.println("Unknown command"); return true;
                 }

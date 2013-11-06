@@ -6,12 +6,49 @@ import java.math.*;
 import java.util.*;
 
 /**
- * Represents builder for {@link AttributeTypeInfo} class.
- * @author roman
+ * Represents builder for {@link AttributeTypeInfo} instances.
+ * <p>
+ * This class represents a bridge between management information base data types and MIB-free
+ * type system that can be interpreted in right way by SNAMP connector and adapter both.
+ * </p>
+ * <p>
+ * Attribute type information is a set of converters that provides conversion between MIB-specific
+ * data types and universal data types. This class provides set of converters between these data types
+ * in the form of static public unary methods annotated with {@link Converter} interface. Typically,
+ * each custom SNAMP connector contains its own type system converter, inherited from this class.
+ * The following example demonstrates your own type system converter:
+ * <pre>{@code
+ * public final class CustomTypeInfoBuilder extends AttributeTypeInfoBuilder{
+ *     @Converter
+ *     public static byte[] stringToByteArray(final String str){
+ *         return str.getBytes("UTF-8");
+ *     }
+ *
+ *     @Converter
+ *     public static String byteArrayToString(final byte[] b){
+ *         return new String(b, "UTF-8");
+ *     }
+ *
+ *     public static final AttributeConvertibleTypeInfo<byte[]> createByteArrayType(final Class<? extends AttributeTypeInfoBuilder> ts){
+ *       return createTypeInfo(ts, byte[].class);
+ *     }
+ *
+ *     public AttributeConvertibleTypeInfo<byte[]> createByteArrayType(){
+ *       return createByteArrayType(getClass());
+ *     }
+ * }
+ * }</pre>
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public abstract class AttributeTypeInfoBuilder {
     /**
      * Marks the method with single argument and non-void return value as converter.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -22,6 +59,9 @@ public abstract class AttributeTypeInfoBuilder {
     /**
      * Represents advanced representation of the {@link com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo} that
      * supports conversion methods.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
     public static interface AttributeConvertibleTypeInfo<T> extends AttributeJavaTypeInfo<T>{
         /**

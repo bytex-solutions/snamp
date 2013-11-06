@@ -6,8 +6,29 @@ import java.io.*;
 import java.util.Map;
 
 /**
- * Represents agent configuration.
- * @author roman
+ * Represents in-memory representation of the agent configuration.
+ * <p>The agent configuration consists of the following parts:
+ * <ul>
+ *     <li>Hosting configuration - contains configuration of the adapter.</li>
+ *     <li>Management targets - set of management information sources.</li>
+ * </ul><br/>
+ * Hosting configuration describes configuration of the adapter, that exposes
+ * the management information to the outside world.
+ * This configuration part contains adapter name (name of the Adapter Plug-in) and
+ * additional elements, such as port number and host name.<br/>
+ * Each management target contains information about management information source in the form
+ * of the following elements:
+ * <ul>
+ *     <li>Connection string - source-specific string, that describes management information source.</li>
+ *     <li>Connection type - name of the connector plug-in that is used to organize management information exchange with source.</li>
+ *     <li>Management attributes - a set of atomic management entity that supplies management data.</li>
+ * </ul><br/>
+ * Each management attribute describes the single entry in the remote management information database. This
+ * entry can have getter or setter for its value.
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public interface AgentConfiguration extends BinarySerializable, Cloneable {
     /**
@@ -16,7 +37,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
     public static interface HostingConfiguration {
         /**
          * Gets the hosting adapter name.
-         * @return
+         * @return The hosting adapter name.
          */
         public String getAdapterName();
 
@@ -28,14 +49,14 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
 
         /**
          * Returns a dictionary of hosting parameters, such as port and hosting address.
-         * @return
+         * @return The map of additional configuration elements.
          */
         public Map<String, String> getHostingParams();
     }
 
     /**
-     * Creates clone of the current configuration.
-     * @return
+     * Creates clone of this configuration.
+     * @return The cloned instance of this configuration.
      */
     public AgentConfiguration clone();
 
@@ -73,7 +94,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
 
             /**
              * Returns the additional configuration elements.
-             * @return
+             * @return The map of additional configuration elements.
              */
             public Map<String, String> getAdditionalElements();
         }
@@ -174,7 +195,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
 
     /**
      * Imports the state of specified object into this object.
-     * @param input
+     * @param input The import source.
      */
     public void load(final AgentConfiguration input);
 }

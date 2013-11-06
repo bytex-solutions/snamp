@@ -5,8 +5,10 @@ import com.snamp.Activator;
 import java.util.*;
 
 /**
- * Represents a base class for building agent configuration.
- * @author roman
+ * Represents a base class for custom agent configuration holders.
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 abstract class AbstractAgentConfiguration implements AgentConfiguration {
     /**
@@ -18,7 +20,7 @@ abstract class AbstractAgentConfiguration implements AgentConfiguration {
 
     /**
      * Clones this instance of agent configuration.
-     * @return
+     * @return A new clone of this configuration.
      */
     @Override
     public abstract AbstractAgentConfiguration clone();
@@ -72,7 +74,7 @@ abstract class AbstractAgentConfiguration implements AgentConfiguration {
     /**
      * Imports the state of specified object into this object.
      *
-     * @param input
+     * @param input An input configuration which internal state should be copied into this instance.
      */
     @Override
     public final void load(final AgentConfiguration input) {

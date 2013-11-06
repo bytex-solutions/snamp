@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 /**
  * Represents descriptor of the HTTP servlet container.
- * @author roman
+ * @author Roman Sakno
  */
 final class RestAdapterServlet extends ServletContainer {
     private static Application createResourceConfig(final RestAdapterService serviceInstance){

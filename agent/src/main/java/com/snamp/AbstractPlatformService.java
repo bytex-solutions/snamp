@@ -1,16 +1,16 @@
 package com.snamp;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 /**
  * Represents an abstract class for building SNAMP platform services.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
-public abstract class AbstractPlatformService extends AbstractAggregated implements PlatformService {
+@Internal
+public abstract class AbstractPlatformService extends AbstractAggregator implements PlatformService {
     private final Logger logger;
-
-
 
     /**
      * Initializes a new instance of the platform service.
@@ -29,18 +29,32 @@ public abstract class AbstractPlatformService extends AbstractAggregated impleme
         this(Logger.getLogger(loggerName));
     }
 
+    /**
+     * Throws an exception in the caller thread and logs it to the {@link Logger}.
+     * @param logLevel The exception logging level.
+     * @param e An exception to throw.
+     * @param <E> Type of the exception to throw.
+     * @throws E An exception to be thrown by this method.
+     */
     protected final <E extends Throwable> void throwAndLog(final Level logLevel, final E e) throws E{
         logger.log(logLevel, e.getLocalizedMessage(), e);
         throw e;
     }
 
+    /**
+     * Throws an exception in the caller thread and logs it to the {@link Logger}.
+     * @param logLevel The exception logging level.
+     * @param e An exception to throw.
+     * @param <E> Type of the exception to throw.
+     * @throws E An exception to be thrown by this method.
+     */
     protected final <E extends Throwable> void throwAndLog(final Level logLevel, final Activator<E> e) throws E{
         throwAndLog(logLevel, e.newInstance());
     }
 
     /**
      * Gets a logger associated with this platform service.
-     * @return
+     * @return A logger associated with this platform service.
      */
     @Override
     @Aggregation

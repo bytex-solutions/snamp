@@ -3,8 +3,11 @@ package com.snamp;
 import java.util.*;
 
 /**
- * Represents a simple table.
- * @author roman
+ * Represents default implementation of the in-memory table.
+ * @param <COLUMN> Type of the column descriptor. It is recommended to use {@link String}.
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implements Table<COLUMN> {
     private final Map<COLUMN, Class<?>> _columns;
@@ -29,11 +32,11 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
 
     /**
      * Creates a simple table from an array of rows.
-     * @param rows
-     * @param <COLUMN>
-     * @return
+     * @param rows An array of rows.
+     * @param <COLUMN> Type of the column descriptor.
+     * @return A new instance of the in-memory table.
      */
-    public static <COLUMN> SimpleTable<COLUMN> fromArray(final Map<COLUMN, Object>[] rows){
+    public final static <COLUMN> SimpleTable<COLUMN> fromArray(final Map<COLUMN, Object>[] rows){
         if(rows.length == 0) return new SimpleTable<COLUMN>();
         SimpleTable<COLUMN> result = null;
         for(final Map<COLUMN, Object> row: rows){
@@ -49,10 +52,10 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     }
 
     /**
-     * Converts this table to the array of rows
-     * @return
+     * Converts this table to the array of rows.
+     * @return An array of rows.
      */
-    public Map<COLUMN, Object>[] toArray(){
+    public final Map<COLUMN, Object>[] toArray(){
         final Map<COLUMN, Object>[] rows = new HashMap[size()];
         for(int i = 0; i < size(); i++)
             rows[i] = new HashMap<>(this.get(i));
@@ -72,7 +75,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     /**
      * Returns a count of rows.
      *
-     * @return
+     * @return The count of rows in this table.
      */
     @Override
     public final int getRowCount() {

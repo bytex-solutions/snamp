@@ -5,7 +5,27 @@ import java.util.*;
 
 /**
  * Represents builder for primitive types.
- * @author roman
+ * <p>
+ *     This type system provides the following MIB-free data types that can be
+ *     used to represent attribute values in your SNAMP connector:
+ *     <ul>
+ *         <li>Int8 - wrapper for {@link Byte} class.</li>
+ *         <li>Int16 - wrapper for {@link Short} class.</li>
+ *         <li>Int32 - wrapper for {@link Integer} class.</li>
+ *         <li>Int64 - wrapper for {@link Long} class.</li>
+ *         <li>String - wrapper for {@link String} class.</li>
+ *         <li>Integer - wrapper for {@link BigInteger} class.</li>
+ *         <li>Decimal - wrapper for {@link BigDecimal} class.</li>
+ *         <li>Boolean - wrapper for {@link Boolean} class.</li>
+ *         <li>Date - wrapper for {@link Date} and {@link Calendar} classes both.</li>
+ *     </ul>
+ * </p>
+ * <p>
+ *     It is recommended to use this class as a base class for building your own MIB-specific type system.
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public class AttributePrimitiveTypeBuilder extends AttributeTypeInfoBuilder {
 

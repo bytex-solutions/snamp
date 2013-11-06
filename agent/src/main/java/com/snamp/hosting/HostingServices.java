@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 /**
  * Represents internal hosting services and routines.
- * @author roman
+ * @author Roman Sakno
  */
 final class HostingServices {
     private static final PluginManager manager;

@@ -7,20 +7,23 @@ import java.util.Collection;
 
 /**
  * Represents utility interface for easy reading of connected attributes.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Internal
 public interface AttributesRegistryReader {
     /**
      * Gets a read-only collection of registered namespaces.
-     * @return
+     * @return A read-only collection of registered namespaces.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public Collection<String> getNamespaces();
 
     /**
      * Gets a read-only collection of registered attributes inside of the specified attributes.
-     * @param namespace
-     * @return
+     * @param namespace A namespace of registered attributes.
+     * @return A collection of registered attributes in the specified namespace.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public Collection<String> getRegisteredAttributes(final String namespace);

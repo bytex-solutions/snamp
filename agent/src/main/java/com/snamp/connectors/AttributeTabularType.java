@@ -4,13 +4,19 @@ import java.util.*;
 
 /**
  * Represents a table type of the attribute value.
- * @author roman
+ * <p>
+ *     It is highly recommended to represent tabular management attribute type as
+ *     an instance of the {@link AttributeTypeInfo} that implements this interface.
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public interface AttributeTabularType extends AttributeTypeInfo {
 
     /**
      * Returns a set of column names.
-     * @return
+     * @return The set of column names.
      */
     public Set<String> getColumns();
 

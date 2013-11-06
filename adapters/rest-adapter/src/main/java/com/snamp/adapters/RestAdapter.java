@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
 @PluginImplementation
 final class RestAdapter extends AbstractAdapter {

@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
 public final class EmbeddedAdapterTest extends SnampClassTestSet<EmbeddedAdapter> {
     public static final class TestAdapter extends EmbeddedAdapter{

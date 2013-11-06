@@ -7,7 +7,9 @@ import java.util.logging.Logger;
 
 /**
  * Represents an abstract class for building adapters.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public abstract class AbstractAdapter extends AbstractPlatformService implements Adapter {
     private final String adapterName;

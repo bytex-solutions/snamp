@@ -10,6 +10,21 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Represents configuration file parser.
+ * <p>
+ *     This enum is an entry point for organizing agent configuration persistence.
+ *     The following example demonstrates how to read agent configuration stored in YAML file:<br/>
+ *     <pre>{@code
+ *     final AgentConfiguration config = ConfigurationFormat.load("yaml", "~/docs/snamp.yaml");
+ *     }</pre><br/>
+ *     The current version of SNAMP supports the two persistent configuration formats:
+ *     <ul>
+ *         <li>YAML markup.</li>
+ *         <li>Binary file (serialization/deserialization of {@link EmbeddedAgentConfiguration}.</li>
+ *     </ul>
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public enum ConfigurationFormat {
 

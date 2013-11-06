@@ -5,8 +5,12 @@ import com.snamp.hosting.HostingContext;
 
 
 /**
- * Represents SNAMP management plugin.
- * @author roman
+ * Represents an interface for SNAMP manager plug-in.
+ * <p>
+ *     Manager is SNAMP platform component that exposes management infrastructure
+ *     to administrators or tools, such as Web console, or command-line string.
+ * </p>
+ * @author Roman Sakno
  */
 public interface AgentManager extends PlatformPlugin, AutoCloseable {
     /**

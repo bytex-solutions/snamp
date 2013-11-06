@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 /**
  * Represents a base class for building management connectors.
- * @author roman
+ * @author Roman Sakno
  */
 public abstract class AbstractManagementConnectorFactory<TConnector extends ManagementConnector> extends AbstractPlatformService implements ManagementConnectorFactory {
     private final String connectorName;
@@ -68,18 +68,22 @@ public abstract class AbstractManagementConnectorFactory<TConnector extends Mana
     }
 
     /**
-     *
-     * @param factory
-     * @return
+     * Determines whether the specified factory equals to this factory and produces
+     * the same type of the SNAMP management connector.
+     * @param factory The factory to compare.
+     * @return {@literal true}, if the specified factory equals to this factory and produces
+     * the same type of the SNAMP management connector; otherwise, {@literal false}.
      */
     public final boolean equals(final AbstractManagementConnectorFactory<?> factory){
         return factory != null && connectorName.equals(factory.connectorName);
     }
 
     /**
-     *
-     * @param factory
-     * @return
+     * Determines whether the specified factory equals to this factory and produces
+     * the same type of the SNAMP management connector.
+     * @param factory The factory to compare.
+     * @return {@literal true}, if the specified factory equals to this factory and produces
+     * the same type of the SNAMP management connector; otherwise, {@literal false}.
      */
     @Override
     public final boolean equals(final Object factory){

@@ -1,8 +1,6 @@
 package com.snamp.adapters;
 
-import com.snamp.MethodThreadSafety;
-import com.snamp.PlatformPlugin;
-import com.snamp.ThreadSafety;
+import com.snamp.*;
 import com.snamp.connectors.ManagementConnector;
 
 import java.io.IOException;
@@ -10,9 +8,15 @@ import java.util.Map;
 import com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
 /**
- * Represents hosting adapter.
- * @author roman
+ * Represents hosting adapter, that exposes management information to the outside world.
+ * <p>
+ *     The implementer should have parameterless constructor and annotated with {@link net.xeoh.plugins.base.annotations.PluginImplementation}.
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Lifecycle(InstanceLifecycle.SINGLE_PER_PROCESS)
 public interface Adapter extends AutoCloseable, PlatformPlugin {
     /**
      * Represents name of the port definition parameter.

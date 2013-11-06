@@ -9,8 +9,11 @@ import java.util.Map;
 
 /**
  * Represents utility interface for connecting attributes.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Internal
 public interface AttributesRegistryWriter {
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public Collection<String> putAll(final ManagementConnector connector, final String prefix, final Map<String, AttributeConfiguration> attributes);

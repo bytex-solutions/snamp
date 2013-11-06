@@ -3,8 +3,11 @@ package com.snamp;
 import java.util.*;
 
 /**
- * Represents generic table.
- * @author roman
+ * Represents generic in-memory table.
+ * @param <COLUMN> Type of the column descriptor. It is recommended to use {@link String} as a title for table columns.
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public interface Table<COLUMN> {
     /**
@@ -15,8 +18,8 @@ public interface Table<COLUMN> {
     public Set<COLUMN> getColumns();
 
     /**
-     * Returns a count of rows.
-     * @return
+     * Returns the count of rows in this table.
+     * @return The count of rows in this table.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public int getRowCount();
@@ -45,7 +48,7 @@ public interface Table<COLUMN> {
      * @param column The column identifier.
      * @param row The row number (zero-based).
      * @param value The cell value to set.
-     * @throws UnsupportedOperationException Operation is not supported.
+     * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
      * @throws ClassCastException The value type is not compliant with column type.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
@@ -54,7 +57,7 @@ public interface Table<COLUMN> {
     /**
      * Adds a new row to the end of the table.
      * @param values The values of the row.
-     * @throws UnsupportedOperationException Operation is not supported.
+     * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
      * @throws ClassCastException The value type is not compliant with column type.
      * @throws IllegalArgumentException The count of values doesn't match to column count.
      */
@@ -64,7 +67,7 @@ public interface Table<COLUMN> {
     /**
      * Removes the row from this table.
      * @param rowIndex An index of the row to remove.
-     * @throws UnsupportedOperationException Operation is not supported.
+     * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public void removeRow(final int rowIndex) throws UnsupportedOperationException;

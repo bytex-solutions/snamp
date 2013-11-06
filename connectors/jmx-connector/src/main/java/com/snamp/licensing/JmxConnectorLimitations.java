@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * Represents license descriptor of the JMX connector.
- * @author roman
+ * @author Roman Sakno
  */
 @XmlRootElement(name = "jmxConnectorLimitations")
 public final class JmxConnectorLimitations extends AbstractLicenseLimitations implements PluginLicenseLimitations<AbstractManagementConnectorFactory> {
@@ -37,7 +37,7 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
 
     /**
      * Returns the currently loaded limitations.
-     * @return
+     * @return The currently loaded limitations.
      */
     public final static JmxConnectorLimitations current(){
         return current(JmxConnectorLimitations.class, fallbackFactory);

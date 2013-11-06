@@ -7,7 +7,7 @@ import java.util.Date;
 
 /**
  * Represents a storage for {@link AgentConfiguration} instance.
- * @author roman
+ * @author Roman Sakno
  */
 public interface AgentConfigurationStorage extends PlatformService {
     /**

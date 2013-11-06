@@ -1,6 +1,6 @@
 package com.snamp.connectors;
 
-import com.snamp.TimeSpan;
+import com.snamp.*;
 
 import java.beans.*;
 import java.lang.ref.*;
@@ -11,8 +11,38 @@ import static com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertible
 
 /**
  * Represents SNAMP in-process management connector that exposes Java Bean properties through connector attributes.
- * @author roman
+ * <p>
+ *     Use this class as base class for your custom management connector, if schema of the management information base
+ *     is well known at the compile time and stable through connector instantiations.
+ *     The following example demonstrates management connector bean:
+ *     <pre>{@code
+ *     public final class CustomConnector extends ManagementConnectorBean{
+ *       private String prop1;
+ *
+ *       public CustomConnector(){
+ *           super(new AttributePrimitiveTypeBuilder());
+ *           prop1 = "Hello, world!";
+ *       }
+ *
+ *       public String getProperty1(){
+ *         return prop1;
+ *       }
+ *
+ *       public String setProperty1(final String value){
+ *         prop1 = value;
+ *       }
+ *     }
+ *
+ *     final CustomConnector c = new CustomConnector();
+ *     c.connectProperty("001", "property1", new HashMap<>());
+ *     System.out.println(c.getAttribute("001", TimeSpan.INFINITE, ""));//output is: Hello, world!
+ *     }</pre>
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Lifecycle(InstanceLifecycle.NORMAL)
 public class ManagementConnectorBean extends AbstractManagementConnector {
 
     private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<AttributeConvertibleTypeInfo<?>>{
@@ -164,7 +194,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
 
     /**
      * Returns an array of all discovered attributes available for registration.
-     * @return
+     * @return An array of all discovered attributes available for registration.
      */
     public final String[] availableAttributes(){
         final PropertyDescriptor[] properties = beanMetadata.getPropertyDescriptors();
@@ -174,6 +204,12 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
         return result;
     }
 
+    /**
+     * Connects the specified Java Bean property.
+     * @param property Java Bean property to connect.
+     * @param options Additional connection options.
+     * @return An information about registered attribute.
+     */
     protected final AttributeMetadata connectAttribute(final PropertyDescriptor property, final Map<String, String> options){
         return new JavaBeanPropertyMetadata(property, typeInfoBuilder, options);
     }
@@ -221,7 +257,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @param attribute    The metadata of the attribute to set.
      * @param writeTimeout
      * @param value
-     * @return
+     * @return {@literal true} if attribute is overridden successfully; otherwise, {@literal false}.
      */
     @Override
     protected final boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
@@ -237,6 +273,12 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
         else return false;
     }
 
+    /**
+     * Invokes the Java Bean method.
+     * @param action An action to execute.
+     * @param args Action invocation arguments.
+     * @return The invocation result.
+     */
     protected final Object doAction(final MethodDescriptor action, final Arguments args){
         try {
             return action.getMethod().invoke(beanInstance != null ? beanInstance : this, args.values().toArray());
@@ -261,6 +303,10 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
         return null;
     }
 
+    /**
+     * Releases all resources associated with this management connector.
+     * @throws Exception
+     */
     @Override
     public void close() throws Exception {
         //To change body of implemented methods use File | Settings | File Templates.

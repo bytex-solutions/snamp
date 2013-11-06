@@ -8,7 +8,7 @@ import java.util.logging.*;
 
 /**
  * Represents JMX connector factory.
- * @author roman
+ * @author Roman Sakno
  */
 @PluginImplementation
 final class JmxConnectorFactory extends AbstractManagementConnectorFactory<JmxConnector> {

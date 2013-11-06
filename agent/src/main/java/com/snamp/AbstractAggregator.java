@@ -4,11 +4,33 @@ import java.lang.annotation.*;
 import java.lang.reflect.*;
 
 /**
- * @author roman
+ * Represents a base class for all aggregators.
+ * <p>
+ *  You can use {@link Aggregation} annotation for annotating fields and parameterless methods. These
+ *  program elements will be automatically recognized as aggregated object and available for requesting
+ *  through {@link #queryObject(Class)} method.
+ *  <b>Example:</b><br/>
+ *  <pre>{@code
+ *  final class CustomAggregator extends AbstractAggregator{
+ *      @Aggregation
+ *      private final File someFile;
+ *
+ *      public CustomAggregator(final String fileName){
+ *          someFile = new File(fileName);
+ *      }
+ *  }
+ *  }</pre>
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
-public abstract class AbstractAggregated implements Aggregator {
+public abstract class AbstractAggregator implements Aggregator {
     /**
-     * Identifies that the parameterless method or field holds the aggregated object (service).
+     * Identifies that the parameterless method or field holds the aggregated object.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD})
@@ -38,11 +60,11 @@ public abstract class AbstractAggregated implements Aggregator {
     }
 
     /**
-     * Retrieves the service instance.
+     * Retrieves the aggregated object.
      *
-     * @param objectType Type of the requested service.
-     * @param <T>         Type of the required service.
-     * @return An instance of the requested service; or {@literal null} if service is not available.
+     * @param objectType Type of the aggregated object.
+     * @param <T>         Type of the required object.
+     * @return An instance of the requested object; or {@literal null} if object is not available.
      */
     @Override
     public <T> T queryObject(final Class<T> objectType) {

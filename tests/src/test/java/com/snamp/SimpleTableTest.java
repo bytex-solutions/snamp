@@ -5,7 +5,7 @@ import org.junit.Test;
 import java.util.*;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
 public class SimpleTableTest extends SnampClassTestSet<SimpleTable<?>> {
     @Test

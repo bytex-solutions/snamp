@@ -7,14 +7,24 @@ import java.util.*;
 
 /**
  * Represents embedded agent configuration.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration implements Serializable {
 
+    /**
+     * Represents adapter settings. This class cannot be inherited.
+     * @since 1.0
+     * @version 1.0
+     */
     public static final class EmbeddedHostingConfiguration implements HostingConfiguration, Serializable{
         private String adapterName;
         private final Map<String, String> additionalElements;
 
+        /**
+         * Initializes a new empty adapter settings.
+         */
         public EmbeddedHostingConfiguration(){
             adapterName = "";
             additionalElements = new HashMap<>(10);
@@ -23,7 +33,7 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
         /**
          * Gets the hosting adapter name.
          *
-         * @return
+         * @return The name of the adapter.
          */
         @Override
         public final String getAdapterName() {
@@ -43,27 +53,44 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
         /**
          * Returns a dictionary of hosting parameters, such as port and hosting address.
          *
-         * @return
+         * @return The map of additional hosting parameters.
          */
         @Override
         public Map<String, String> getHostingParams() {
-            return getHostingParams();
+            return additionalElements;
         }
     }
 
+    /**
+     * Represents configuration of the management information provider. This class cannot be inherited.
+     * @since 1.0
+     * @version 1.0
+     */
     public static final class EmbeddedManagementTargetConfiguration implements ManagementTargetConfiguration, Serializable{
 
+        /**
+         * Represents configuration of the management attribute. This class cannot be inherited.
+         * @since 1.0
+         * @version 1.0
+         */
         public static final class EmbeddedAttributeConfiguration implements AttributeConfiguration, Serializable{
             private TimeSpan readWriteTimeout;
             private String attributeName;
             private final Map<String, String> additionalElements;
 
+            /**
+             * Initializes a new configuration of the management attribute.
+             */
             public EmbeddedAttributeConfiguration(){
                 readWriteTimeout = TimeSpan.INFINITE;
                 attributeName = "";
                 additionalElements = new HashMap<>();
             }
 
+            /**
+             * Initializes a new configuration of the management attribute.
+             * @param attributeName The name of the management attribute.
+             */
             public EmbeddedAttributeConfiguration(final String attributeName){
                 this();
                 this.attributeName = attributeName;
@@ -72,7 +99,7 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
             /**
              * Gets attribute value read/write operation timeout.
              *
-             * @return
+             * @return The attribute read/write operation timeout.
              */
             @Override
             public final TimeSpan getReadWriteTimeout() {
@@ -81,10 +108,11 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
 
             /**
              * Sets attribute value read/write operation timeout.
+             * @param timeout A new value read/write operation timeout.
              */
             @Override
-            public final void setReadWriteTimeout(final TimeSpan time) {
-                this.readWriteTimeout = time;
+            public final void setReadWriteTimeout(final TimeSpan timeout) {
+                this.readWriteTimeout = timeout;
             }
 
             /**
@@ -110,7 +138,7 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
             /**
              * Returns the additional configuration elements.
              *
-             * @return
+             * @return Additional options associated with the management attribute configuration.
              */
             @Override
             public final Map<String, String> getAdditionalElements() {
@@ -124,6 +152,9 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
         private String namespace;
         private final Map<String, String> additionalElements;
 
+        /**
+         * Initializes a new empty configuration of the management information source.
+         */
         public EmbeddedManagementTargetConfiguration(){
             connectionString = connectionType = namespace = "";
             attributes = new HashMap<>(10);
@@ -234,7 +265,7 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
     /**
      * Clones this instance of agent configuration.
      *
-     * @return
+     * @return A new cloned instance of the {@link EmbeddedAgentConfiguration}.
      */
     @Override
     public EmbeddedAgentConfiguration clone() {
@@ -264,9 +295,9 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
     }
 
     /**
-     * Empty implementation of ManagementTargetConfiguration interface
+     * Creates a new instance of the {@link EmbeddedManagementTargetConfiguration}.
      *
-     * @return implementation of ManagementTargetConfiguration interface
+     * @return A new instance of the {@link EmbeddedManagementTargetConfiguration}.
      */
     @Override
     public final EmbeddedManagementTargetConfiguration newManagementTargetConfiguration() {

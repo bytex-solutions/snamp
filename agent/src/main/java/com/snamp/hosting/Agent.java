@@ -1,6 +1,6 @@
 package com.snamp.hosting;
 
-import com.snamp.AbstractPlatformService;
+import com.snamp.*;
 import com.snamp.adapters.*;
 import com.snamp.connectors.*;
 
@@ -9,9 +9,28 @@ import java.util.*;
 import java.util.logging.*;
 
 /**
- * Represents agent host.
- * @author roman
+ * Represents SNAMP hosting agent that provides interoperability between adapter and connectors.
+ * <p>
+ *     This class accepts the SNAMP configuration and instantiates necessary adapters and connectors,
+ *     and provides communication between them. An instance of this class should be created once per calling process.
+ * </p>
+ * <p>
+ *     Also, this class is an entry point for embedding SNAMP into your application.<br/>
+ *     <pre>{@code
+ *     //restores the configuration from the file
+ *     final AgentConfiguration config = ConfigurationFormat.YAML.newAgentConfiguration();
+ *     config.load(fileStream);
+ *     try(final Agent ag = new Agent(config.getHostingConfiguration())){
+ *       ag.start(config.getTargets());
+ *     }
+ *     }</pre>
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Internal
+@Lifecycle(InstanceLifecycle.SINGLE_PER_PROCESS)
 public final class Agent extends AbstractPlatformService implements AutoCloseable {
     private static final Logger logger = Logger.getLogger("com.snamp");
     /**
@@ -62,11 +81,14 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
 
     /**
      * Reconfigures the agent.
-     * @param hostingConfig
+     * <p>
+     *     You should call {@link #stop()} before invocation of this method.
+     * </p>
+     * @param hostingConfig A new configuration of the adapter.
      * @throws IllegalArgumentException hostingConfig is {@literal null}.
      * @throws IllegalStateException Attempts to reconfigure agent in the started state.
      */
-    public void reconfigure(final AgentConfiguration.HostingConfiguration hostingConfig) {
+    public final void reconfigure(final AgentConfiguration.HostingConfiguration hostingConfig) {
         if(hostingConfig == null) throw new IllegalArgumentException("hostingConfig is null.");
         if(started) throw new IllegalStateException("The agent must be in stopped state.");
         final Adapter ad = HostingServices.getAdapter(hostingConfig.getAdapterName());
@@ -102,6 +124,12 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
         adapter.exposeAttributes(connector, targetConfig.getNamespace(), targetConfig.getAttributes());
     }
 
+    /**
+     * Starts the hosting of the instantiated adapter and connectors.
+     * @param targets The configuration of connectors.
+     * @return {@literal true}, if agent is started successfully; otherwise, {@literal false}.
+     * @throws IOException The adapter cannot be instantiated. See logs for more information.
+     */
     public final boolean start(final Map<String, AgentConfiguration.ManagementTargetConfiguration> targets) throws IOException {
         if(started) return false;
         else if(targets == null) return start(new HashMap<String, AgentConfiguration.ManagementTargetConfiguration>());
@@ -112,13 +140,17 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
         return adapter.start(params);
     }
 
+    /**
+     * Stops the hosting of instantiated adapter and connectors.
+     * @return {@literal true}, if agent is stopped successfully; otherwise, {@literal false}.
+     */
     public final boolean stop(){
         return adapter.stop(true);
     }
 
     /**
      * Executes the agent in the caller process.
-     * @param configuration The hosting configurtion.
+     * @param configuration The hosting configuration.
      * @return An instance of the hosting sandbox (it is not useful for interracial mode).
      */
     static Agent start(final AgentConfiguration configuration){
@@ -142,7 +174,7 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
     }
 
     /**
-     * Releases all resources associated
+     * Releases all resources associated with this instance of agent.
      */
     @Override
     public void close() throws Exception{

@@ -14,7 +14,7 @@ import java.net.MalformedURLException;
 import java.util.*;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
 public abstract class JmxConnectorTest<ManagementBean> extends HostingTest {
     private final ManagementBean bean;

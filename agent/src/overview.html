@@ -1,0 +1,23 @@
+<body>
+SNAMP is a middleware solution for monitoring of the software components in your enterprise IT-infrastructure.
+It consists of the following parts:
+<ul>
+    <li>Management connector - provides connection to the management information base and exposes
+    atomic management entities (called attributes) into the SNAMP platform. This component is a back-end
+    of the SNAMP platform.</li>
+    <li>Adapter - provides conversion of the management information supplied by connector into the new
+    representation and exposes this information to the world.</li>
+    <li>Manager - provides SNAMP platform management interface for configuring SNAMP, such as Web console or
+    command-line interface.</li>
+    <li>(Agent) configuration - the configuration of the SNAMP platform that is used to instantiate
+    connectors and adapter.</li>
+    <li>Agent - the heart of the SNAMP platform that provides hosting of the connector, adapter and manager.</li>
+</ul>
+For each architectural component SNAMP platform provides separated Java package:
+<ul>
+    <li>{@link com.snamp.connectors} for management connectors.</li>
+    <li>{@link com.snamp.adapters} for adapters.</li>
+    <li>{@link com.snamp.hosting.management} for managers.</li>
+    <li>{@link com.snamp.hosting} for agent and its configuration model.</li>
+</ul>
+</body>

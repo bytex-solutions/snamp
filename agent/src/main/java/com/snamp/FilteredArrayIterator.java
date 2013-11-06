@@ -4,8 +4,11 @@ import java.util.Iterator;
 
 /**
  * Represents a base class for building filtered array iterator.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Internal
 public abstract class FilteredArrayIterator<T> implements Iterator<T> {
     private final T[] array;
     private int currentPos;
@@ -22,16 +25,16 @@ public abstract class FilteredArrayIterator<T> implements Iterator<T> {
     protected abstract boolean filter(final T element);
 
     /**
-     * Returns the current position of the iterator.
-     * @return
+     * Returns the current position of this iterator.
+     * @return The current position of this iterator.
      */
     public final int getCurrentPosition(){
         return currentPos;
     }
 
     /**
-     * Determines whether the next value
-     * @return
+     * Determines whether the next value is available.
+     * @return {@literal true}, if the end of iterator is not reached; otherwise, {@literal false}.
      */
     @Override
     public final boolean hasNext() {
@@ -40,7 +43,7 @@ public abstract class FilteredArrayIterator<T> implements Iterator<T> {
 
     /**
      * Returns the next array element.
-     * @return
+     * @return The next array element.
      */
     @Override
     public T next() {

@@ -10,7 +10,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Represents tests for {@link ManagementConnectorBean} class.
- * @author roman
+ * @author Roman Sakno
  */
 public final class ManagementConnectorBeanTest extends SnampClassTestSet<ManagementConnectorBean> {
 

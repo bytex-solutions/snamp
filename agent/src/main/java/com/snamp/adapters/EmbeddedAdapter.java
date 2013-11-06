@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
 public class EmbeddedAdapter extends AbstractAdapter {
     private final AbstractAttributesRegistry attributes;

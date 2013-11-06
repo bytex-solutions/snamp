@@ -4,12 +4,23 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Represents timeout information.
- * @author roman
+ * Represents a time interval. This class cannot be inherited.<br/>
+ *
+ * <p><b>Example:</b><br/>
+ * <pre>{@code
+ *     TimeSpan t = new TimeSpan(10, TimeUnit.SECONDS); //represents 10 seconds
+ *     System.out.println(t.duration); //10
+ *     t = t.convert(TimeUnit.MILLISECONDS); //represents 10 second but in MILLISECONDS representation
+ *     System.out.println(t.duration); //10000
+ * }</pre>
+ * </p>
+ * @author Roman Sakno
+ * @version 1.0
+ * @since 1.0
  */
 public final class TimeSpan {
     /**
-     * Represents INFINITE timeout.
+     * Represents infinite time interval.
      */
     public static final TimeSpan INFINITE = null;
 
@@ -24,7 +35,7 @@ public final class TimeSpan {
     public final TimeUnit unit;
 
     /**
-     * Initializes a new duration span.
+     * Initializes a new time interval.
      * @param time The duration value.
      * @param unit The duration measurement unit.
      */
@@ -34,8 +45,11 @@ public final class TimeSpan {
     }
 
     /**
-     * Initializes a new millisecond duration span.
-     * @param milliseconds The number of milliseconds,
+     * Initializes a new milliseconds interval.<br/>
+     * <p>
+     *     This constructor is equivalent to {@code new TimeSpan(value, TimeUnit.MILLISECONDS}</code>
+     * </p>
+     * @param milliseconds The number of milliseconds in interval.
      */
     public TimeSpan(final long milliseconds) {
         this(milliseconds, TimeUnit.MILLISECONDS);
@@ -43,18 +57,29 @@ public final class TimeSpan {
 
     /**
      * Converts this span to another.
-     * @param unit
-     * @return
+     * @param unit A new time interval measurement unit.
+     * @return A new time interval with the specified measurement unit.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public TimeSpan convert(TimeUnit unit){
         if(unit == null) unit = TimeUnit.MILLISECONDS;
         return new TimeSpan(unit.convert(this.duration, this.unit));
     }
 
     /**
-     * Increases up the scale of this time span.
+     * Increases up the scale of this time span.<br/>
+     * <p>
+     *     <b>Example:</b><br/>
+     *     <pre>{@code
+     *         TimeSpan value = new TimeSpan(1000);//1000 milliseconds<br/>
+     *         System.out.println(value.duration);//1000<br/>
+     *         value = value.up();<br/>
+     *         System.out.println(value.duration); //1<br/>
+     *     }</pre>
+     * </p>
      * @return A newly created time span with increased scale,
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final TimeSpan up(){
         switch (this.unit){
             case NANOSECONDS: return convert(TimeUnit.MICROSECONDS);
@@ -68,9 +93,18 @@ public final class TimeSpan {
     }
 
     /**
-     * Returns the auto-scaled time span.
-     * @return
+     * Returns the auto-scaled time interval.<br/>
+     * <p>
+     *     <b>Example:</b><br/>
+     *     <pre>{@code
+     *         TimeSpan value = new TimeSpan(60000);<br/>
+     *         value = value.autoScale();//new time span has duration value = 1 and unit = MINUTES<br/>
+     *     }</pre>
+     * </p>
+     * @return The auto-scaled time interval.
+     * @see #autoScale(long, java.util.concurrent.TimeUnit)
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final TimeSpan autoScale(){
         TimeSpan result = this;
         while (result.duration > 0 && result.unit != TimeUnit.DAYS)
@@ -79,11 +113,13 @@ public final class TimeSpan {
     }
 
     /**
-     * Creates a new auto-scaled time span.
-     * @param duration
-     * @param unit
-     * @return
+     * Creates a new auto-scaled time interval.
+     * @param duration The interval value.
+     * @param unit The interval measurement unit.
+     * @return Auto-scaled time interval.
+     * @see #autoScale()
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public static TimeSpan autoScale(final long duration, final TimeUnit unit){
         final TimeSpan temp = new TimeSpan(duration, unit);
         return temp.autoScale();
@@ -94,7 +130,8 @@ public final class TimeSpan {
      * @return The string representation of this instance.
      */
     @Override
-    public String toString() {
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    public final String toString() {
         return String.format("%s %s", duration, unit);
     }
 
@@ -103,6 +140,7 @@ public final class TimeSpan {
      * @param obj An object to compare.
      * @return {@literal true}, if this object the same duration as the specified object.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public boolean equals(final TimeSpan obj) {
         return obj != null && unit.toMillis(duration) == obj.unit.toMillis(obj.duration);
     }
@@ -113,6 +151,7 @@ public final class TimeSpan {
      * @return {@literal true}, if this object the same duration as the specified object.
      */
     @Override
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public boolean equals(final Object obj) {
         return obj instanceof TimeSpan && equals((TimeSpan)obj);
     }
@@ -122,8 +161,9 @@ public final class TimeSpan {
      * @param left The left operand of the diff operation.
      * @param right The right operand of the diff operation.
      * @param unit The time measurement unit.
-     * @return
+     * @return The difference between two dates.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public static TimeSpan diff(final Date left, final Date right, final TimeUnit unit){
         final TimeSpan temp = new TimeSpan(left.getTime() - right.getTime(), TimeUnit.MILLISECONDS);
         return temp.convert(unit);

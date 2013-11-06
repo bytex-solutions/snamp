@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 /**
  * Represents SNMP mapping for the management connector attribute.
- * @author roman
+ * @author Roman Sakno
  */
 interface SnmpAttributeMapping extends ManagedObjectValueAccess {
     static Logger log = Logger.getLogger("snamp.snmp.log");
