@@ -515,15 +515,6 @@ final class JmxConnector extends AbstractManagementConnector {
         //do nothing, because this connector doesn't store connection session.
     }
 
-    private Object getAttributeValue(final JmxAttributeMetadata attribute, final Object defaultValue) throws TimeoutException {
-        return handleConnection(new MBeanServerConnectionReader<Object>() {
-            @Override
-            public Object read(final MBeanServerConnection connection) throws IOException, JMException {
-                return connection.getAttribute(attribute.getOwner(), attribute.getAttributeName());
-            }
-        }, defaultValue);
-    }
-
     /**
      * Returns the value of the attribute.
      *
@@ -536,17 +527,7 @@ final class JmxConnector extends AbstractManagementConnector {
      */
     @Override
     protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
-        return attribute instanceof JmxAttributeMetadata ? getAttributeValue((JmxAttributeMetadata)attribute, defaultValue) : defaultValue;
-    }
-
-    private boolean setAttributeValue(final JmxAttributeMetadata attribute, final Object value){
-        return handleConnection(new MBeanServerConnectionReader<Boolean>() {
-            @Override
-            public Boolean read(final MBeanServerConnection connection) throws IOException, JMException {
-                connection.setAttribute(attribute.getOwner(), new Attribute(attribute.getAttributeName(), value));
-                return true;
-            }
-        }, false);
+        return attribute instanceof JmxAttributeProvider ? ((JmxAttributeProvider)attribute).getValue(defaultValue) : defaultValue;
     }
 
     /**
@@ -559,7 +540,7 @@ final class JmxConnector extends AbstractManagementConnector {
      */
     @Override
     protected final boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
-        return attribute instanceof JmxAttributeMetadata ? setAttributeValue((JmxAttributeMetadata)attribute, value) : false;
+        return attribute instanceof JmxAttributeProvider && ((JmxAttributeProvider)attribute).setValue(value);
     }
 
     /**

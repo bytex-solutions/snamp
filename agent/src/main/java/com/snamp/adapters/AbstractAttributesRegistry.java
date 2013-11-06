@@ -22,7 +22,8 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     protected abstract ConnectedAttributes createBinding(final ManagementConnector connector);
 
-    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    @Override
     public final Collection<String> putAll(final ManagementConnector connector, final String prefix, final Map<String, AttributeConfiguration> attributes){
         final ConnectedAttributes binding = createBinding(connector);
         final Collection<String> connectedAttributes = new HashSet<>(attributes.size());
@@ -38,7 +39,8 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
         return connectedAttributes;
     }
 
-    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
+    @Override
     public final <T> T getAttribute(final String prefix, final String postfix, final Class<T> attributeType, final T defaultValue, final TimeSpan readTimeout){
         if(containsKey(prefix)){
             final ConnectedAttributes binding = get(prefix);
@@ -53,6 +55,8 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
         return defaultValue;
     }
 
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
+    @Override
     public final AttributeValue getAttribute(final String prefix, final String postfix, final TimeSpan readTimeout){
         if(containsKey(prefix)){
             final ConnectedAttributes binding = get(prefix);
@@ -69,7 +73,18 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
         return null;
     }
 
-    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
+    @Override
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
+    public final AttributeTypeInfo getAttributeType(final String prefix, final String postfix){
+        if(containsKey(prefix)){
+            final ConnectedAttributes binding = get(prefix);
+            return binding.containsKey(postfix) ? binding.get(postfix).getAttributeType() : null;
+        }
+        else return null;
+    }
+
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    @Override
     public final boolean setAttribute(final String prefix, final String postfix, final Object value, final TimeSpan writeTimeout){
         if(containsKey(prefix)){
             final ConnectedAttributes binding = get(prefix);
@@ -90,7 +105,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
      * @return
      */
     @Override
-    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
     public final Collection<String> getNamespaces() {
         return keySet();
     }
@@ -102,7 +117,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
      * @return
      */
     @Override
-    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
     public final Collection<String> getRegisteredAttributes(final String namespace) {
         return containsKey(namespace) ? get(namespace).keySet() : Arrays.<String>asList();
     }

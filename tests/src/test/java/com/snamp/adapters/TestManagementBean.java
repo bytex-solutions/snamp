@@ -2,6 +2,8 @@ package com.snamp.adapters;
 
 import javax.management.*;
 import javax.management.openmbean.*;
+import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.Objects;
 
 /**
@@ -19,18 +21,139 @@ public final class TestManagementBean implements DynamicMBean {
             true,
             true,
             false);
+    private static final MBeanAttributeInfo BOOLEAN_PROPERTY = new OpenMBeanAttributeInfoSupport("boolean",
+            "Sample description",
+            SimpleType.BOOLEAN,
+            true,
+            true,
+            false);
+    private static final MBeanAttributeInfo INT32_PROPERTY = new OpenMBeanAttributeInfoSupport("int32",
+            "Sample description",
+            SimpleType.INTEGER,
+            true,
+            true,
+            false);
+    private static final MBeanAttributeInfo BIGINT_PROPERTY = new OpenMBeanAttributeInfoSupport("bigint",
+            "Sample description",
+            SimpleType.BIGINTEGER,
+            true,
+            true,
+            false);
+    private static final MBeanAttributeInfo ARRAY_PROPERTY = new OpenMBeanAttributeInfoSupport("array",
+            "Sample description",
+            ArrayType.getPrimitiveArrayType(short[].class),
+            true,
+            true,
+            false);
+
+    private static CompositeType createCompositeType(){
+        try {
+            return new CompositeType("dictionary", "Test dictionary",
+                    new String[]{"col1", "col2", "col3"},
+                    new String[]{"descr1", "descr2", "descr3"},
+                    new OpenType[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
+        } catch (OpenDataException e) {
+            return null;
+        }
+    }
+    private static final OpenMBeanAttributeInfoSupport DICTIONARY_PROPERTY = new OpenMBeanAttributeInfoSupport("dictionary",
+            "Composite data property",
+            createCompositeType(),
+            true,
+            true,
+            false
+            );
+
+    private static TabularType createTabularType(){
+        try {
+            return new TabularType("SimpleTable", "Example of simple table", createCompositeType(), new String[]{"col3"});
+        } catch (OpenDataException e) {
+            return null;
+        }
+    }
+
+    private static final OpenMBeanAttributeInfoSupport TABLE_PROPERTY = new OpenMBeanAttributeInfoSupport("table",
+            "Table data property",
+            createTabularType(),
+            true,
+            true,
+            false);
 
     private static final MBeanInfo BEAN_INFO = new MBeanInfo(TestManagementBean.class.getName(),
             "Test MBean",
-            new MBeanAttributeInfo[]{STRING_PROPERTY},
+            new MBeanAttributeInfo[]{STRING_PROPERTY,
+                    BOOLEAN_PROPERTY,
+                    INT32_PROPERTY,
+                    BIGINT_PROPERTY,
+                    ARRAY_PROPERTY,
+                    DICTIONARY_PROPERTY,
+                    TABLE_PROPERTY},
             new MBeanConstructorInfo[0],
             new MBeanOperationInfo[0],
             new MBeanNotificationInfo[0]);
 
     private String chosenString;
+    private boolean aBoolean;
+    private int anInt;
+    private BigInteger aBigInt;
+    private Short[] array;
+    private CompositeData dictionary;
+    private TabularData table;
 
     public TestManagementBean() {
         chosenString = "NO VALUE";
+        aBigInt = BigInteger.ZERO;
+        array = new Short[0];
+        try{
+            dictionary = new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), new HashMap<String, Object>() {{
+                put("col1", true);
+                put("col2", 10);
+                put("col3", "abc");
+            }});
+            table = new TabularDataSupport((TabularType)TABLE_PROPERTY.getOpenType());
+            table.put(new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), new HashMap<String, Object>() {{
+                put("col1", true);
+                put("col2", 1050);
+                put("col3", "Hello, world!");
+            }}));
+            table.put(new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), new HashMap<String, Object>() {{
+                put("col1", false);
+                put("col2", 42);
+                put("col3", "Ciao, monde!");
+            }}));
+            table.put(new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), new HashMap<String, Object>() {{
+                put("col1", true);
+                put("col2", 1);
+                put("col3", "Luke Skywalker");
+            }}));
+        }
+        catch (final OpenDataException e){
+
+        }
+    }
+
+    public final Short[] getArray(){
+        return array;
+    }
+
+    public final void setArray(final Short[] value){
+        array = value;
+    }
+
+    public final BigInteger getBigInt(){
+        return aBigInt;
+    }
+
+    public final void setBigInt(final BigInteger value){
+        aBigInt = value;
+    }
+
+    public final int getInt32(){
+        return anInt;
+    }
+
+    public final void setInt32(final int value){
+        anInt = value;
     }
 
     public final String getString(){
@@ -39,6 +162,14 @@ public final class TestManagementBean implements DynamicMBean {
 
     public final void setString(final String value){
         chosenString = value;
+    }
+
+    public final boolean getBoolean(){
+        return aBoolean;
+    }
+
+    public final void setBoolean(final boolean value){
+        aBoolean = value;
     }
 
     /**
@@ -58,6 +189,18 @@ public final class TestManagementBean implements DynamicMBean {
     public final Object getAttribute(final String attribute) throws AttributeNotFoundException {
         if(Objects.equals(attribute, STRING_PROPERTY.getName()))
             return chosenString;
+        else if(Objects.equals(attribute, BOOLEAN_PROPERTY.getName()))
+            return aBoolean;
+        else if(Objects.equals(attribute, INT32_PROPERTY.getName()))
+            return anInt;
+        else if(Objects.equals(attribute, BIGINT_PROPERTY.getName()))
+            return aBigInt;
+        else if(Objects.equals(attribute, ARRAY_PROPERTY.getName()))
+            return array;
+        else if(Objects.equals(attribute, DICTIONARY_PROPERTY.getName()))
+            return dictionary;
+        else if(Objects.equals(attribute, TABLE_PROPERTY.getName()))
+            return table;
         else throw new AttributeNotFoundException();
     }
 
@@ -78,8 +221,20 @@ public final class TestManagementBean implements DynamicMBean {
      */
     @Override
     public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException{
-        if(Objects.equals(attribute, STRING_PROPERTY.getName()))
+        if(Objects.equals(attribute.getName(), STRING_PROPERTY.getName()))
             chosenString = Objects.toString(attribute.getValue(), "");
+        else if(Objects.equals(attribute.getName(), BOOLEAN_PROPERTY.getName()))
+            aBoolean = Boolean.valueOf(Objects.toString(attribute.getValue()));
+        else if(Objects.equals(attribute.getName(), INT32_PROPERTY.getName()))
+            anInt = Integer.valueOf(Objects.toString(attribute.getValue()));
+        else if(Objects.equals(attribute.getName(), BIGINT_PROPERTY.getName()))
+            aBigInt = new BigInteger(Objects.toString(attribute.getValue()));
+        else if(Objects.equals(attribute.getName(), ARRAY_PROPERTY.getName()))
+            array = (Short[])attribute.getValue();
+        else if(Objects.equals(attribute.getName(), DICTIONARY_PROPERTY.getName()))
+            dictionary = (CompositeData)attribute.getValue();
+        else if(Objects.equals(attribute.getName(), TABLE_PROPERTY.getName()))
+            table = (TabularData)attribute.getValue();
         else throw new AttributeNotFoundException();
     }
 

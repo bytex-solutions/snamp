@@ -1,5 +1,6 @@
 package com.snamp.adapters;
 
+import com.snamp.AbstractPlatformService;
 import net.xeoh.plugins.base.annotations.Capabilities;
 
 import java.util.logging.Logger;
@@ -8,11 +9,7 @@ import java.util.logging.Logger;
  * Represents an abstract class for building adapters.
  * @author roman
  */
-public abstract class AbstractAdapter implements Adapter {
-    /**
-     * Represents logger associated with this instance of adapter.
-     */
-    protected final Logger logger;
+public abstract class AbstractAdapter extends AbstractPlatformService implements Adapter {
     private final String adapterName;
 
     /**
@@ -20,8 +17,8 @@ public abstract class AbstractAdapter implements Adapter {
      * @param adapterName
      */
     protected AbstractAdapter(final String adapterName){
+        super(getLogger(adapterName));
         this.adapterName = adapterName;
-        logger = getLogger(adapterName);
     }
 
     public static final Logger getLogger(final String adapterName){

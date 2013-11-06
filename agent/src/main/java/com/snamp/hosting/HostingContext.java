@@ -1,13 +1,12 @@
 package com.snamp.hosting;
 
-import com.snamp.PlatformService;
-import com.snamp.ServiceProvider;
+import com.snamp.Aggregator;
 
 /**
  * Represents agent hosting context.
  * @author roman
  */
-public interface HostingContext extends ServiceProvider {
+public interface HostingContext extends Aggregator {
     /**
      * Represents {@link Agent} reference.
      */

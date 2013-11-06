@@ -1,5 +1,6 @@
 package com.snamp.connectors;
 
+import com.snamp.AbstractPlatformService;
 import net.xeoh.plugins.base.annotations.Capabilities;
 
 import java.util.Map;
@@ -9,12 +10,8 @@ import java.util.logging.Logger;
  * Represents a base class for building management connectors.
  * @author roman
  */
-public abstract class AbstractManagementConnectorFactory<TConnector extends ManagementConnector> implements ManagementConnectorFactory {
+public abstract class AbstractManagementConnectorFactory<TConnector extends ManagementConnector> extends AbstractPlatformService implements ManagementConnectorFactory {
     private final String connectorName;
-    /**
-     * Represents management connector login.
-     */
-    protected final Logger logger;
 
     /**
      * Initializes a new connector factory.
@@ -22,9 +19,9 @@ public abstract class AbstractManagementConnectorFactory<TConnector extends Mana
      * @exception IllegalArgumentException connectorName is null.
      */
     protected AbstractManagementConnectorFactory(final String connectorName){
+        super(getLogger(connectorName));
         if(connectorName == null) throw new IllegalArgumentException("connectorName is null.");
         this.connectorName = connectorName;
-        this.logger = getLogger(connectorName);
     }
 
     public static Logger getLogger(final String connectorName){

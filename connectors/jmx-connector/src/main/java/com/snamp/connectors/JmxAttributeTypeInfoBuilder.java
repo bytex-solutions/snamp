@@ -57,8 +57,8 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
                     for(final String columnName: rowType.keySet())
                         put(columnName, Object.class);
                 }});
-                for(final Object rowIndex: value.keySet()){
-                    final CompositeData nativeRow = value.get((Object[])rowIndex);
+                for(final Object rowIndex: value.values()){
+                    final CompositeData nativeRow = (CompositeData)rowIndex;
                     final Map<String, Object> tableRow = new HashMap<>(10);
                     for(final String columnName: tt.getRowType().keySet())
                         tableRow.put(columnName, nativeRow.get(columnName));
@@ -73,9 +73,10 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
             }
 
             private final  <T> T convertTo(final TabularData value, final Class<T> target) throws IllegalArgumentException{
-                if(Table.class == target)
+                if(target == null) return null;
+                else if(target.isAssignableFrom(Table.class))
                     return (T)convertToTable(value);
-                else if(Map[].class == target)
+                else if(target.isAssignableFrom(Map[].class))
                     return (T)convertToMapArray(value);
                 else throw new IllegalArgumentException(String.format("Cannot convert %s value to table.", value));
             }
@@ -89,7 +90,9 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
 
             @Override
             public final <T> boolean canConvertFrom(final Class<T> source) throws IllegalArgumentException{
-                return TabularData.class == source || Map[].class == source || Table.class == source;
+                return TabularData.class.isAssignableFrom(source) ||
+                        Map[].class.isAssignableFrom(source) ||
+                        Table.class.isAssignableFrom(source);
             }
 
             private TabularData convertFromTable(final Table<String> table){
@@ -181,9 +184,9 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
             }
 
             private <T> T convertTo(final CompositeData value, final Class<T> target){
-                if(Map.class == target)
+                if(target.isAssignableFrom(Map.class))
                     return (T)convertToMap(value);
-                else if(Table.class == target)
+                else if(target.isAssignableFrom(Table.class))
                     return (T)convertToTable(value);
                 else throw new IllegalArgumentException(String.format("Unsupported destination type %s", target));
             }
@@ -198,7 +201,9 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
 
             @Override
             public <T> boolean canConvertFrom(final Class<T> source) {
-                return Map.class == source || Table.class == source || CompositeData.class == source;
+                return Map.class.isAssignableFrom(source) ||
+                        Table.class.isAssignableFrom(source) ||
+                        CompositeData.class.isAssignableFrom(source);
             }
 
             private CompositeData convertFromMap(final Map<String, Object> value) throws IllegalArgumentException{
@@ -299,6 +304,8 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
             return createIntegerType(JmxAttributeTypeInfoBuilder.class);
         else if(attributeType == SimpleType.BYTE)
             return createInt8Type(JmxAttributeTypeInfoBuilder.class);
+        else if(attributeType == SimpleType.INTEGER)
+            return createInt32Type(JmxAttributeTypeInfoBuilder.class);
         else if(attributeType == SimpleType.CHARACTER || attributeType == SimpleType.STRING)
             return createStringType(JmxAttributeTypeInfoBuilder.class);
         else if(attributeType == SimpleType.DATE)

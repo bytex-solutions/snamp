@@ -1,6 +1,6 @@
 package com.snamp.hosting;
 
-import com.snamp.PlatformService;
+import com.snamp.AbstractPlatformService;
 import com.snamp.adapters.*;
 import com.snamp.connectors.*;
 
@@ -12,18 +12,34 @@ import java.util.logging.*;
  * Represents agent host.
  * @author roman
  */
-public final class Agent implements AutoCloseable, PlatformService {
-    private static final Logger log = Logger.getLogger("snamp.log");
+public final class Agent extends AbstractPlatformService implements AutoCloseable {
+    private static final Logger logger = Logger.getLogger("com.snamp");
+    /**
+     * Represents a map of instantiated management connector.
+     */
+    public static interface InstantiatedConnectors extends Map<String, ManagementConnector>{
+
+    }
+
+    private static final class InstantiatedConnectorsImpl extends HashMap<String, ManagementConnector> implements InstantiatedConnectors{
+        public InstantiatedConnectorsImpl(){
+            super(4);
+        }
+    }
+
+    @Aggregation
     private Adapter adapter;
     private final Map<String, String> params;
-    private final Map<String, ManagementConnector> connectors;
+    @Aggregation
+    private final InstantiatedConnectors connectors;
     private boolean started;
 
     private Agent(final Adapter adapter, final Map<String, String> hostingParams){
+        super(logger);
         if(adapter == null) throw new IllegalArgumentException("Adapter is not available");
         else this.adapter = adapter;
         this.params = hostingParams != null ? new HashMap<String, String>(hostingParams) : new HashMap<String, String>();
-        this.connectors = new HashMap<>(4);
+        this.connectors = new InstantiatedConnectorsImpl();
         started = false;
     }
 
@@ -63,7 +79,7 @@ public final class Agent implements AutoCloseable, PlatformService {
 
     private void registerTarget(final AgentConfiguration.ManagementTargetConfiguration targetConfig){
         if(targetConfig == null){
-            log.fine("Unexpected empty management target configuration");
+            logger.fine("Unexpected empty management target configuration");
             return;
         }
         //loads the management connector
@@ -74,12 +90,12 @@ public final class Agent implements AutoCloseable, PlatformService {
         else {
             final ManagementConnectorFactory factory = HostingServices.getManagementConnectorFactory(targetConfig.getConnectionType());
             if(factory == null){
-                log.warning(String.format("Management connector %s is not installed.", targetConfig.getConnectionType()));
+                logger.warning(String.format("Management connector %s is not installed.", targetConfig.getConnectionType()));
                 return;
             }
             connector = factory.newInstance(targetConfig.getConnectionString(), targetConfig.getAdditionalElements());
             if(connector == null){
-                log.warning(String.format("Management connector %s is not installed.", targetConfig.getConnectionType()));
+                logger.warning(String.format("Management connector %s is not installed.", targetConfig.getConnectionType()));
                 return;
             }
         }
@@ -90,7 +106,7 @@ public final class Agent implements AutoCloseable, PlatformService {
         if(started) return false;
         else if(targets == null) return start(new HashMap<String, AgentConfiguration.ManagementTargetConfiguration>());
         else for(final String targetName: targets.keySet()){
-            log.fine(String.format("Registering %s management target", targetName));
+            logger.fine(String.format("Registering %s management target", targetName));
             registerTarget(targets.get(targetName));
         }
         return adapter.start(params);
@@ -112,7 +128,7 @@ public final class Agent implements AutoCloseable, PlatformService {
             return engine;
         }
         catch (final Exception e){
-            log.log(Level.SEVERE, "Unable to start SNAMP", e);
+            logger.log(Level.SEVERE, "Unable to start SNAMP", e);
             return null;
         }
     }

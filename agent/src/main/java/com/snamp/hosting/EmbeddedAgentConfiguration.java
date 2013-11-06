@@ -11,7 +11,7 @@ import java.util.*;
  */
 public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration implements Serializable {
 
-    public static final class EmbeddedHostingConfiguration implements HostingConfiguration{
+    public static final class EmbeddedHostingConfiguration implements HostingConfiguration, Serializable{
         private String adapterName;
         private final Map<String, String> additionalElements;
 
@@ -51,9 +51,9 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
         }
     }
 
-    public static final class EmbeddedManagementTargetConfiguration implements ManagementTargetConfiguration{
+    public static final class EmbeddedManagementTargetConfiguration implements ManagementTargetConfiguration, Serializable{
 
-        public static final class EmbeddedAttributeConfiguration implements AttributeConfiguration{
+        public static final class EmbeddedAttributeConfiguration implements AttributeConfiguration, Serializable{
             private TimeSpan readWriteTimeout;
             private String attributeName;
             private final Map<String, String> additionalElements;

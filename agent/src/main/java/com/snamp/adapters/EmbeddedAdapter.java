@@ -6,6 +6,7 @@ import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration
 
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * @author roman

@@ -75,6 +75,6 @@ public final class AttributeValue<T extends AttributeTypeInfo> {
 
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final <G extends AttributeTypeInfo> AttributeValue<G> cast(final Class<G> attributeType){
-        return new AttributeValue<G>(rawValue, attributeType.cast(attributeType));
+        return new AttributeValue<G>(rawValue, attributeType.cast(type));
     }
 }

@@ -14,9 +14,14 @@ import java.util.concurrent.TimeUnit;
 public enum ConfigurationFormat {
 
     /**
-     * Формат файла YAML
+     * Represents YAML-formatted SNAMP agent configuration file.
      */
-    YAML("yaml");
+    YAML("yaml"),
+
+    /**
+     * Represents binary agent configuration file.
+     */
+    BINARY("bin");
 
     private final String _formatName;
 
@@ -783,6 +788,7 @@ public enum ConfigurationFormat {
         switch (format){
             default:
             case "yaml": return YAML;
+            case "bin": return BINARY;
         }
     }
 
@@ -802,6 +808,7 @@ public enum ConfigurationFormat {
     public final AgentConfiguration newAgentConfiguration(){
         switch (_formatName){
             case "yaml": return new YamlAgentConfiguration();
+            case "bin": return new EmbeddedAgentConfiguration();
             default: return null;
         }
     }

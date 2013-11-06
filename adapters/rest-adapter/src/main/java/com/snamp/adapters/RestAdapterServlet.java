@@ -6,6 +6,7 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Represents descriptor of the HTTP servlet container.
@@ -22,7 +23,7 @@ final class RestAdapterServlet extends ServletContainer {
      * Initializes a new instance of the rest service.
      * @param attributes
      */
-    public RestAdapterServlet(final AttributesRegistryReader attributes){
-        super(createResourceConfig(new RestAdapterService(attributes)));
+    public RestAdapterServlet(final AttributesRegistryReader attributes, final Logger serviceLogger){
+        super(createResourceConfig(new RestAdapterService(attributes, serviceLogger)));
     }
 }

@@ -123,10 +123,10 @@ public class ConsoleAgentManager extends AgentManagerBase {
                     case "exit": return false;
                     case "pid": displayProcessID(output); return true;
                     case "help": displayHelp(output); return true;
-                    case "state": displayAgentState(context.getService(HostingContext.AGENT_SERVICE), output); return true;
-                    case "restart": restart(context.getService(HostingContext.AGENT_SERVICE), context.getService(HostingContext.CONFIG_STORAGE), output); return true;
-                    case "pause": pauseAgent(context.getService(HostingContext.AGENT_SERVICE), output); return true;
-                    case "resume": resumeAgent(context.getService(HostingContext.AGENT_SERVICE), output); return true;
+                    case "state": displayAgentState(context.queryObject(HostingContext.AGENT_SERVICE), output); return true;
+                    case "restart": restart(context.queryObject(HostingContext.AGENT_SERVICE), context.queryObject(HostingContext.CONFIG_STORAGE), output); return true;
+                    case "pause": pauseAgent(context.queryObject(HostingContext.AGENT_SERVICE), output); return true;
+                    case "resume": resumeAgent(context.queryObject(HostingContext.AGENT_SERVICE), output); return true;
                     case "reloadlic": reloadLicense(output); return true;
                     default: output.println("Unknown command"); return true;
                 }

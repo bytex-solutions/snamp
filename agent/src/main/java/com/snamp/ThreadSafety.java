@@ -13,5 +13,7 @@ public @interface ThreadSafety {
      * Represents method thread safe kind.
      * @return
      */
-    MethodThreadSafety value();
+    MethodThreadSafety value() default MethodThreadSafety.THREAD_UNSAFE;
+
+    SynchronizationType advice() default SynchronizationType.NO_LOCK_REQUIRED;
 }

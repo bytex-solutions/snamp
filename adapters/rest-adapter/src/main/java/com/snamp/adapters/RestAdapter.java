@@ -39,7 +39,7 @@ final class RestAdapter extends AbstractAdapter {
     }
 
     private Servlet createRestServlet(){
-        return new RestAdapterServlet(exposedAttributes);
+        return new RestAdapterServlet(exposedAttributes, getLogger());
     }
 
     private final boolean initializeServer(final Server s, final Map<String, String> parameters){
@@ -76,7 +76,7 @@ final class RestAdapter extends AbstractAdapter {
                 return started = true;
             }
             catch (final Exception e) {
-                logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                getLogger().log(Level.WARNING, e.getLocalizedMessage(), e);
                 throw new IOException(e);
             }
         else return false;
@@ -94,10 +94,11 @@ final class RestAdapter extends AbstractAdapter {
         if(started)
             try {
                 jettyServer.stop();
+                started = false;
                 return true;
             }
             catch (final Exception e) {
-                logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                getLogger().log(Level.WARNING, e.getLocalizedMessage(), e);
                 return false;
             }
         else return false;
