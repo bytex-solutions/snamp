@@ -1,6 +1,6 @@
 # SNAMP Platform Oveview
 SNAMP is a middleware solution for monitoring and management of the software components in your enterprise IT-infrastructure.
-![SNAMP Overview](/images/overview.png)
+![SNAMP Overview](./images/overview.png)
 
 SNAMP supplies monitoring and management information through different technologies and management information sources. For example, you can monitor [JMX](http://www.oracle.com/technetwork/java/javase/tech/javamanagement-140525.html) sources (such as Java(EE) applications) using SNMPv2 or SNMPv3 protocols, or even through HTTP using REST service.
 
@@ -25,4 +25,4 @@ Additional features:
 ## Documentation
  See additional documentation:
 * User Guide, if you are an administrator and want to configure SNAMP
-* [Programming Guide](/programming-guide.html), [Javadoc](/javadoc/index.html) if you are a developer and want to write custom extensions for SNAMP
+* [Programming Guide](./programming-guide.html), [Javadoc](./javadoc/index.html) if you are a developer and want to write custom extensions for SNAMP
