@@ -28,6 +28,7 @@ SNAMP platform consists of the following parts:
 * (Agent) configuration - the configuration of the SNAMP platform that is used to instantiate
     connectors and adapter.
 * Agent - the heart of the SNAMP platform that provides hosting of the connector, adapter and manager.
+
 The following SNAMP components are pluggable (connecting to SNAMP as plug-ins):
 * Management connector
 * Adapter

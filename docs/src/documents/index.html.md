@@ -8,9 +8,11 @@ SNAMP supplies monitoring and management information through different technolog
 At this time, SNAMP supports bridge between the following technologies:
 * Monitoring Java(EE) applications or any JMX-compliant services via SNMPv2, SNMPv3, HTTP(REST-JSON);
 * Monitoring of IBM Message Queue state via SNMPv2, SNMPv3, HTTP(REST-JSON).
+
 SNAMP platform has extensible architecture that allows you to write custom extensions for it:
 * Custom monitoring channels and notifiers, such as E-Mail, Syslog, CMIP and etc.
 * Custom connectors for your enterprise-specific monitoring solutions
+
 SNAMP can be executed on every operating system(Windows, Linux) and hardware (x86, x64, ARM), that supports Java Virtual Machine.
 
 Additional features:
