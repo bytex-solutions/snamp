@@ -1,0 +1,1 @@
+Programming guide helps you to understand software architecture of SNAMP and gives you some best practices and examples for writing custom extensions.
