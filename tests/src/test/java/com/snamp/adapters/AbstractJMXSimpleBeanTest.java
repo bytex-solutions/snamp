@@ -6,9 +6,7 @@ import com.snamp.hosting.AgentConfiguration;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
 {
@@ -90,6 +88,20 @@ public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
                         throw new UnsupportedOperationException();
                     }
 
+                    /**
+                     * Creates an empty event configuration.
+                     * <p>
+                     * Usually, this method is used for adding new events in the collection
+                     * returned by {@link #getEvents()} method.
+                     * </p>
+                     *
+                     * @return An empty event configuration.
+                     */
+                    @Override
+                    public EventConfiguration newEventConfiguration() {
+                        return null;  //To change body of implemented methods use File | Settings | File Templates.
+                    }
+
                     @Override
                     public String getConnectionString() {
                         return String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", localJMXPort);
@@ -158,6 +170,16 @@ public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
                                 it.remove(); // avoids a ConcurrentModificationException
                             }
                         }};
+                    }
+
+                    /**
+                     * Returns the event sources.
+                     *
+                     * @return A set of event sources.
+                     */
+                    @Override
+                    public Set<EventConfiguration> getEvents() {
+                        return new HashSet<>();
                     }
 
                     @Override

@@ -1,8 +1,11 @@
 package com.snamp.adapters;
 
 import com.snamp.AbstractPlatformService;
+import com.snamp.connectors.ManagementConnector;
+import com.snamp.hosting.AgentConfiguration;
 import net.xeoh.plugins.base.annotations.Capabilities;
 
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -23,6 +26,11 @@ public abstract class AbstractAdapter extends AbstractPlatformService implements
         this.adapterName = adapterName;
     }
 
+    /**
+     * Returns the logging infrastructure associated with the specified adapter.
+     * @param adapterName The system name of the adapter.
+     * @return The logger that can be used to emitting logs associated with the specified adapter.
+     */
     public static final Logger getLogger(final String adapterName){
         return Logger.getLogger(String.format("snamp.adapters.%s.log", adapterName));
     }
@@ -46,5 +54,19 @@ public abstract class AbstractAdapter extends AbstractPlatformService implements
         return new String[]{
                 String.format("adapter:%s", adapterName)
         };
+    }
+
+    /**
+     * Exposes monitoring events.
+     * <p>
+     *     By default, this method does nothing.
+     * </p>
+     *
+     * @param connector The management connector that provides notification listening and subscribing.
+     * @param events    The collection of configured notifications.
+     */
+    @Override
+    public void exposeEvents(final ManagementConnector connector, final Set<AgentConfiguration.ManagementTargetConfiguration.EventConfiguration> events) {
+
     }
 }

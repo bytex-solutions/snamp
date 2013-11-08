@@ -4,8 +4,8 @@ import com.snamp.*;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.*;
-import java.util.logging.Logger;
 
 /**
  * Represents an abstract class for building custom management connectors.
@@ -15,17 +15,25 @@ import java.util.logging.Logger;
  */
 @Lifecycle(InstanceLifecycle.NORMAL)
 public abstract class AbstractManagementConnector implements ManagementConnector {
-    private static final Logger log = Logger.getLogger("snamp.snmp.log");
 
     /**
      * Represents default implementation of the attribute descriptor.
      * @param <T> Type of the attribute type descriptor.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
     protected static abstract class GenericAttributeMetadata<T extends AttributeTypeInfo> implements AttributeMetadata {
         private final String attributeName;
         private final String namespace;
         private T attributeType;
 
+        /**
+         * Initializes a new attribute metadata.
+         * @param attributeName The name of the attribute. Cannot be {@literal null}.
+         * @param namespace The namespace of the attribute. Cannot be {@literal null}.
+         * @throws IllegalArgumentException attributeName or namespace is {@literal null}.
+         */
         public GenericAttributeMetadata(final String attributeName, final String namespace){
             if(attributeName == null) throw new IllegalArgumentException("attributeName is null.");
             else if(namespace == null) throw new IllegalArgumentException("namespace is null.");
@@ -50,21 +58,47 @@ public abstract class AbstractManagementConnector implements ManagementConnector
             return attributeType;
         }
 
+        /**
+         * Always throws {@link UnsupportedOperationException} exception because
+         * this map is read-only.
+         * @param option The name of the option to put.
+         * @param value The value of the option to put.
+         * @return The previously option value.
+         * @throws UnsupportedOperationException This operation is not supported.
+         */
         @Override
-        public final String put(String s, String s2) {
+        public final String put(final String option, final String value) {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * Always throws {@link UnsupportedOperationException} exception because
+         * this map is read-only.
+         * @param option The name of the option to remove.
+         * @return The value of the remove option.
+         * @throws UnsupportedOperationException This operation is not supported.
+         */
         @Override
-        public final String remove(Object o) {
+        public final String remove(final Object option) {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * Always throws {@link UnsupportedOperationException} exception because
+         * this map is read-only.
+         * @param options A map of attribute discovery options.
+         * @throws UnsupportedOperationException This operation is not supported.
+         */
         @Override
-        public final void putAll(Map<? extends String, ? extends String> map) {
+        public final void putAll(Map<? extends String, ? extends String> options) {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * Always throws {@link UnsupportedOperationException} exception because
+         * this map is read-only.
+         * @throws UnsupportedOperationException This operation is not supported.
+         */
         @Override
         public final void clear() {
             throw new UnsupportedOperationException();
@@ -110,9 +144,125 @@ public abstract class AbstractManagementConnector implements ManagementConnector
         }
     }
 
-    private final ReadWriteLock coordinator; //transaction coordinator
-    private final Map<String, AttributeMetadata> attributes;
+    /**
+     * Represents default implementation of the notification metadata.
+     * <p>
+     *     This class holds the list of notification listeners.
+     * </p>
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static abstract class GenericNotificationMetadata implements Map<String, String>, NotificationMetadata{
+        private final String eventCategory;
+        private final AtomicLong counter;
+        private final Map<Long, NotificationListener<? extends Notification>> listeners;
+        private final ReadWriteLock coordinator;
 
+        /**
+         * Initializes a new event metadata.
+         * @param category The category of the event.
+         */
+        protected GenericNotificationMetadata(final String category){
+            this.eventCategory = category;
+            this.listeners = new HashMap<>(10);
+            this.counter = new AtomicLong(0);
+            this.coordinator = new ReentrantReadWriteLock();
+        }
+
+        /**
+         * Gets the category of the notification.
+         *
+         * @return The category of the notification.
+         */
+        @Override
+        public final String getCategory() {
+            return eventCategory;
+        }
+
+        /**
+         * Adds a new listener for this event.
+         * @param listener The notification listener.
+         * @return A new unique identifier of the added listener.
+         */
+        public final Long addListener(final NotificationListener<? extends Notification> listener){
+            final Long listenerId = counter.getAndIncrement();
+            final Lock writeLock = coordinator.writeLock();
+            try{
+                listeners.put(listenerId, listener);
+            }
+            finally {
+                writeLock.unlock();
+            }
+            return listenerId;
+        }
+
+        /**
+         * Removes the listener from this event.
+         * @param listenerId An identifier of the listener obtained with {@link #addListener(NotificationListener)}
+         *                   method.
+         * @return {@literal true} if the listener with the specified ID was registered; otherwise, {@literal false}.
+         */
+        public final boolean removeListener(final Long listenerId){
+            final Lock writeLock = coordinator.writeLock();
+            try{
+                return listeners.remove(listenerId) != null;
+            }
+            finally {
+                writeLock.unlock();
+            }
+        }
+
+        /**
+         * Always throws {@link UnsupportedOperationException} exception because
+         * this map is read-only.
+         * @param option The name of the event option.
+         * @param value The value of the event option.
+         * @return The previous value of the event option.
+         * @throws UnsupportedOperationException This operation is not supported.
+         */
+        @Override
+        public final String put(final String option, final String value) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Always throws {@link UnsupportedOperationException} exception because
+         * this map is read-only.
+         * @param option The name of the event option to remove.
+         * @return The value of the removed option.
+         * @throws UnsupportedOperationException This operation is not supported.
+         */
+        @Override
+        public final String remove(final Object option) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Always throws {@link UnsupportedOperationException} exception
+         * because this map is read-only.
+         * @param options The map of event options to add.
+         * @throws UnsupportedOperationException This operation is not supported.
+         */
+        @Override
+        public final void putAll(final Map<? extends String, ? extends String> options) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Always throws {@link UnsupportedOperationException} exception because
+         * this map is read-only.
+         * @throws UnsupportedOperationException This operation is not supported.
+         */
+        @Override
+        public final void clear() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private final ReadWriteLock coordinator; //transaction coordinator
+    private final Map<String, GenericAttributeMetadata<?>> attributes;
+    private final Map<String, GenericNotificationMetadata> notifications;
 
     /**
      * Initializes a new management connector.
@@ -120,6 +270,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     protected AbstractManagementConnector(){
         this.attributes = new HashMap<>();
         this.coordinator = new ReentrantReadWriteLock();
+        this.notifications = new HashMap<>();
     }
 
     /**
@@ -142,7 +293,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      * @param options Attribute discovery options.
      * @return The description of the attribute.
      */
-    protected abstract AttributeMetadata connectAttribute(final String attributeName, final Map<String, String> options);
+    protected abstract GenericAttributeMetadata<?> connectAttributeCore(final String attributeName, final Map<String, String> options);
 
     /**
      * Connects to the specified attribute.
@@ -159,8 +310,8 @@ public abstract class AbstractManagementConnector implements ManagementConnector
         try {
             //return existed attribute without exception to increase flexibility of the API
             if(attributes.containsKey(id)) return attributes.get(id);
-            final AttributeMetadata attr;
-            if((attr = connectAttribute(attributeName, options)) != null)
+            final GenericAttributeMetadata<?> attr;
+            if((attr = connectAttributeCore(attributeName, options)) != null)
                 attributes.put(id, attr);
             return attr;
         }
@@ -339,12 +490,19 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
      */
     @Override
-    public final synchronized boolean disconnectAttribute(final String id) {
-        if(attributes.containsKey(id) && disconnectAttributeCore(id)){
-            attributes.remove(id);
-            return true;
+    public final boolean disconnectAttribute(final String id) {
+        final Lock writeLock = coordinator.writeLock();
+        writeLock.lock();
+        try{
+            if(attributes.containsKey(id) && disconnectAttributeCore(id)){
+                attributes.remove(id);
+                return true;
+            }
+            else return false;
         }
-        else return false;
+        finally {
+            writeLock.unlock();
+        }
     }
 
     /**
@@ -353,7 +511,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      * @return The attribute descriptor; or {@literal null} if attribute is not connected.
      */
     @Override
-    public final AttributeMetadata getAttributeInfo(String id) {
+    public final AttributeMetadata getAttributeInfo(final String id) {
         final Lock readLock = coordinator.readLock();
         readLock.lock();
         try {
@@ -371,5 +529,157 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     @Override
     public final Iterator<String> iterator() {
         return attributes.keySet().iterator();
+    }
+
+    /**
+     * Enables event listening for the specified category of events.
+     *
+     * @param category The name of the category to listen.
+     * @param options  Event discovery options.
+     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+     */
+    protected GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options){
+        return null;
+    }
+
+    /**
+     * Enables event listening for the specified category of events.
+     *
+     * @param category The name of the category to listen.
+     * @param options  Event discovery options.
+     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+     */
+    @Override
+    public final NotificationMetadata enableNotifications(final String category, final Map<String, String> options) {
+        final Lock writeLock = coordinator.writeLock();
+        try{
+            if(notifications.containsKey(category)) return notifications.get(category);
+            final GenericNotificationMetadata metadata = enableNotificationsCore(category, options);
+            if(metadata != null) notifications.put(category, metadata);
+            return metadata;
+        }
+        finally {
+            writeLock.unlock();
+        }
+    }
+
+    /**
+     * Disable all notifications associated with the specified event.
+     * @param notificationType The event descriptor.
+     */
+    protected void disableNotificationsCore(final NotificationMetadata notificationType){
+    }
+
+    /**
+     * Disables event listening for the specified category of events.
+     *
+     * @param category The name of the event category.
+     * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+     */
+    @Override
+    public final boolean disableNotifications(final String category) {
+        final Lock writeLock = coordinator.writeLock();
+        writeLock.lock();
+        try{
+            if(notifications.containsKey(category)){
+                disableNotificationsCore(notifications.remove(category));
+                return true;
+            }
+            else return false;
+        }
+        finally {
+            writeLock.unlock();
+        }
+    }
+
+    /**
+     * Gets the notification metadata by its category.
+     *
+     * @param category The category of the notification.
+     * @return The metadata of the specified notification category; or {@literal null}, if notifications
+     *         for the specified category is not enabled by {@link #enableNotifications(String, java.util.Map)} method.
+     */
+    @Override
+    public final NotificationMetadata getNotificationInfo(final String category) {
+        final Lock readLock = coordinator.readLock();
+        try{
+            return notifications.get(category);
+        }
+        finally {
+            readLock.unlock();
+        }
+    }
+
+    /**
+     * Adds a new listener for the specified notification.
+     * @param notificationType The event type.
+     * @param listener The event listener.
+     */
+    protected void subscribeCore(final NotificationMetadata notificationType, final NotificationListener<? extends Notification> listener){
+
+    }
+
+    /**
+     * Attaches the notification listener.
+     *
+     * @param category The category of the event to listen.
+     * @param listener The notification listener.
+     * @return An identifier of the notification listener generated by this connector.
+     */
+    @Override
+    public final Long subscribe(final String category, final NotificationListener<? extends Notification> listener) {
+        final Lock readLock = coordinator.readLock();
+        try{
+            final GenericNotificationMetadata metadata = notifications.get(category);
+            if(metadata == null) return null;
+            subscribeCore(metadata, listener);
+            return metadata.addListener(listener) ^ category.hashCode();
+        }
+        finally {
+            readLock.unlock();
+        }
+    }
+
+    /**
+     * Cancels the notification listening.
+     * @param metadata The event type.
+     * @param listener The notification listener to remove.
+     */
+    protected void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener){
+
+    }
+
+    /**
+     * Removes the notification listener.
+     * @param listenerId An identifier of the notification listener previously returned
+     *                   by {@link #subscribe(String, NotificationListener)} method.
+     * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
+     */
+    public final boolean unsubscribe(final long listenerId){
+        final Lock readLock = coordinator.readLock();
+        readLock.lock();
+        try{
+            for(final String category: notifications.keySet()){
+                final int categoryHash = category.hashCode();
+                if((categoryHash ^ listenerId) == categoryHash)
+                    return notifications.get(category).removeListener(listenerId);
+            }
+
+        }
+        finally {
+            readLock.unlock();
+        }
+        return false;
+    }
+
+    /**
+     * Removes the notification listener.
+     *
+     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationListener)}.
+     * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
+     */
+    @Override
+    public final boolean unsubscribe(final Object listenerId)  {
+        return listenerId instanceof Long && unsubscribe((Long)listenerId);
     }
 }

@@ -154,6 +154,33 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
     private final Object beanInstance;
 
     /**
+     * Represents raised Java Bean event.
+     * @param <T> Type of the event data.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static abstract interface JavaBeanEventNotification<T extends EventObject> extends Notification{
+        /**
+         * Gets the data of the raised Java Bean event.
+         * @return The data of the raised Java Bean event.
+         */
+        @Override
+        public T getContent();
+    }
+
+    /**
+     * Represents descriptor of the Java Bean event data.
+     * @param <T> Type of the Java Bean event data.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static interface JavaBeanEventInfo<T extends EventObject> extends NotificationContentJavaTypeInfo<T>{
+
+    }
+
+    /**
      * Initializes a new management connector.
      * @param typeBuilder Type information provider that provides property type converter.
      * @throws IllegalArgumentException typeBuilder is {@literal null}.
@@ -210,7 +237,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @param options Additional connection options.
      * @return An information about registered attribute.
      */
-    protected final AttributeMetadata connectAttribute(final PropertyDescriptor property, final Map<String, String> options){
+    protected final GenericAttributeMetadata<?> connectAttribute(final PropertyDescriptor property, final Map<String, String> options){
         return new JavaBeanPropertyMetadata(property, typeInfoBuilder, options);
     }
 
@@ -222,7 +249,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @return The description of the attribute.
      */
     @Override
-    protected final AttributeMetadata connectAttribute(final String attributeName, final Map<String, String> options) {
+    protected final GenericAttributeMetadata<?> connectAttributeCore(final String attributeName, final Map<String, String> options) {
         for(final PropertyDescriptor pd: beanMetadata.getPropertyDescriptors())
             if(Objects.equals(pd.getName(), attributeName))
                 return connectAttribute(pd, options);
