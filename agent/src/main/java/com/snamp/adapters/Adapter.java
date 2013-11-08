@@ -4,8 +4,10 @@ import com.snamp.*;
 import com.snamp.connectors.ManagementConnector;
 
 import java.io.IOException;
-import java.util.Map;
-import com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import java.util.*;
+
+import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 
 /**
  * Represents hosting adapter, that exposes management information to the outside world.
@@ -47,10 +49,18 @@ public interface Adapter extends AutoCloseable, PlatformPlugin {
 
     /**
      * Exposes management attributes.
-     * @param connector Management connector that provides access to the specified attributes.
+     * @param connector The management connector that provides access to the specified attributes.
      * @param namespace The attributes namespace.
      * @param attributes The dictionary of attributes.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public void exposeAttributes(final ManagementConnector connector, final String namespace, final Map<String, AttributeConfiguration> attributes);
+
+    /**
+     * Exposes monitoring events.
+     * @param connector The management connector that provides notification listening and subscribing.
+     * @param events The collection of configured notifications.
+     */
+    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
+    public void exposeEvents(final ManagementConnector connector, final Set<EventConfiguration> events);
 }

@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.logging.*;
 
 import com.snamp.connectors.ManagementConnector;
+import com.snamp.hosting.AgentConfiguration;
 import net.xeoh.plugins.base.annotations.*;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
@@ -225,6 +226,17 @@ final class SnmpAdapter extends SnmpAdapterBase {
     public void exposeAttributes(final ManagementConnector connector, final String namespace, final Map<String, AttributeConfiguration> attributes) {
         for(final String postfix: attributes.keySet())
             exposeAttribute(connector, namespace, postfix, attributes.get(postfix));
+    }
+
+    /**
+     * Exposes monitoring events.
+     *
+     * @param connector The management connector that provides notification listening and subscribing.
+     * @param events    The collection of configured notifications.
+     */
+    @Override
+    public void exposeEvents(final ManagementConnector connector, final Set<AgentConfiguration.ManagementTargetConfiguration.EventConfiguration> events) {
+        //TODO: Should be converted into SNMP notifications
     }
 
     /**

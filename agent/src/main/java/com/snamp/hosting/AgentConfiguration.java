@@ -3,7 +3,7 @@ package com.snamp.hosting;
 import com.snamp.*;
 
 import java.io.*;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents in-memory representation of the agent configuration.
@@ -64,6 +64,29 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
      * Represents management target configuration (back-end management information providers).
      */
     public static interface ManagementTargetConfiguration {
+
+        /**
+         * Represents event configuration.
+         */
+        public static interface EventConfiguration{
+            /**
+             * Gets the event category.
+             * @return The event category.
+             */
+            public String getCategory();
+
+            /**
+             * Sets the category of the event to listen.
+             * @param eventCategory The category of the event to listen.
+             */
+            public void setCategory(final String eventCategory);
+
+            /**
+             * Gets a map of event options.
+             * @return The map of event options.
+             */
+            public Map<String, String> getAdditionalElements();
+        }
 
         /**
          * Represents attribute configuration.
@@ -143,6 +166,11 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
          */
         public Map<String, AttributeConfiguration> getAttributes();
 
+        /**
+         * Returns the event sources.
+         * @return A set of event sources.
+         */
+        public Set<EventConfiguration> getEvents();
 
         /**
          * Returns the dictionary of additional configuration elements.
@@ -151,10 +179,24 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
         public Map<String, String> getAdditionalElements();
 
         /**
-         * Empty implementation of AttributeConfiguration interface
-         * @return implementation of AttributeConfiguration interface
+         * Creates an empty attribute configuration.
+         * <p>
+         *     Usually, this method is used for adding new attributes in the map
+         *     returned by {@link #getAttributes()} method.
+         * </p>
+         * @return An empty attribute configuration.
          */
         public AttributeConfiguration newAttributeConfiguration();
+
+        /**
+         * Creates an empty event configuration.
+         * <p>
+         *     Usually, this method is used for adding new events in the collection
+         *     returned by {@link #getEvents()} method.
+         * </p>
+         * @return An empty event configuration.
+         */
+        public EventConfiguration newEventConfiguration();
     }
 
     /**

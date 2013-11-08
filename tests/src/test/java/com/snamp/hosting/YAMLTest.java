@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.io.*;
 import java.net.URL;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Test env for YAML configuration object (including r/w from/to files, assertations etc)
@@ -38,6 +39,14 @@ public class YAMLTest extends SnampTestSet {
         final AgentConfiguration.ManagementTargetConfiguration target = targets.get("wso-esb-1");
         //Check connection type
         assertEquals("SOAP", target.getConnectionType());
+        //Check on events
+        final Set<AgentConfiguration.ManagementTargetConfiguration.EventConfiguration> events = target.getEvents();
+        assertEquals(1, events.size());
+        final AgentConfiguration.ManagementTargetConfiguration.EventConfiguration singleEvent = events.iterator().next();
+        assertTrue(singleEvent != null);
+        assertEquals("attributeChanged", singleEvent.getCategory());
+        assertEquals(1, singleEvent.getAdditionalElements().size());
+        assertEquals("true", singleEvent.getAdditionalElements().get("all"));
 
         //Change connection type and check if it is changed
         target.setConnectionType("HTTP");

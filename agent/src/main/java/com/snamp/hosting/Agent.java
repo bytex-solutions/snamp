@@ -101,7 +101,7 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
 
     private void registerTarget(final AgentConfiguration.ManagementTargetConfiguration targetConfig){
         if(targetConfig == null){
-            logger.fine("Unexpected empty management target configuration");
+            logger.info("Unexpected empty management target configuration");
             return;
         }
         //loads the management connector
@@ -121,7 +121,10 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
                 return;
             }
         }
+        //register attributes
         adapter.exposeAttributes(connector, targetConfig.getNamespace(), targetConfig.getAttributes());
+        //register events
+        adapter.exposeEvents(connector, targetConfig.getEvents());
     }
 
     /**
