@@ -36,20 +36,22 @@ The following SNAMP components are pluggable (connecting to SNAMP as plug-ins):
 
 So, you can write your own SNAMP plug-in using Java (or another JVM-compliant programming language).
 
-The unit of management information in SNAMP is an [attribute](javadoc/com/snamp/connectors/AttributeMetadata.html). The management attribute consists of:
-* Attribute name, that uniquely identifies this entity in the management information base.
-* Attribute specifiers indicating that the attribute is read-only, write-only or bi-directional.
-* Attribute [type](javadoc/com/snamp/connectors/AttributeTypeInfo.html), that provides routines for converting source-specific attribute values into the well-known SNAMP data types and vice versa.
+The management information base of the management targets consits ofthe following entities:
+* Management [attribute](javadoc/com/snamp/connectors/AttributeMetadata.html):
+  * Attribute name, that uniquely identifies this entity in the management information base.
+  * Attribute specifiers indicating that the attribute is read-only, write-only or bi-directional.
+  * Attribute [type](javadoc/com/snamp/connectors/AttributeTypeInfo.html), that provides routines for converting source-specific attribute values into the well-known SNAMP data types and vice versa.
+* Management [notification](javadoc/com/snamp/connectors/NotificationMetadata.html) that represents asynchronous event inside of the source.
 
-Attribute entity implementation should be supplied by management connector.
+Both entities are supplied by management connector.
 
 
 ### Management connector
-[Management connector](javadoc/com/snamp/connectors/ManagementConnector.html) is a back-end component of SNAMP platform that provides abstraction layer over source-specific management information base. It represents every source as a collection of [management attributes](javadoc/com/snamp/connectors/AttributeMetadata.html). Single instance of SNAMP process can holds many instances of management connectors, therefore, it is possible to unify monitoring and management of different software components that are incompatible through monitoring and management technology.
+[Management connector](javadoc/com/snamp/connectors/ManagementConnector.html) is a back-end component of SNAMP platform that provides abstraction layer over source-specific management information base. It represents every source as a collection of [management attributes](javadoc/com/snamp/connectors/AttributeMetadata.html) and [notification](javadoc/com/snamp/connectors/NotificationMetadata.html). Single instance of SNAMP process can holds many instances of management connectors, therefore, it is possible to unify monitoring and management of different software components that are incompatible through monitoring and management technology.
 
 For more information about management connector, see [Diving in-to-deep: Custom Management Connectors](custom-connector.html).
 ### Adapter
-[Adapter](javadoc/com/snamp/adapters/Adapter.html) is a front-end component of SNAMP platforms that provides abstraction layer between consumer-specific monitoring and management technology and management connector. This component converts the management attributes into the technology-specific entities (such as MIB's in SNMP). Single instance of SNAMP process can holds only single adapter instance.
+[Adapter](javadoc/com/snamp/adapters/Adapter.html) is a front-end component of SNAMP platforms that provides abstraction layer between consumer-specific monitoring and management technology and management connector. This component converts the management attributes and notifications into the technology-specific entities (such as MIB's and traps in SNMP). Single instance of SNAMP process can holds only single adapter instance.
 
 For more information about adapters, see [Diving in-to-deep: Custom Adapters](custom-adapter.html).
 ### Manager
