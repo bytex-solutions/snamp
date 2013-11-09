@@ -1,11 +1,10 @@
 package com.snamp.adapters;
 
+import com.snamp.connectors.util.AttributesRegistryReader;
 import com.sun.jersey.api.core.DefaultResourceConfig;
-import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
-import java.util.*;
 import java.util.logging.Logger;
 
 /**

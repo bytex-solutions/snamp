@@ -10,6 +10,8 @@ import java.util.logging.*;
 import com.google.gson.*;
 import com.snamp.*;
 import com.snamp.connectors.*;
+import com.snamp.connectors.util.AttributeValue;
+import com.snamp.connectors.util.AttributesRegistryReader;
 import com.sun.jersey.spi.resource.Singleton;
 
 import static com.snamp.connectors.WellKnownTypeSystem.*;

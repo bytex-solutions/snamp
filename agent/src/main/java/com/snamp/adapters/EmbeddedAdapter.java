@@ -2,11 +2,13 @@ package com.snamp.adapters;
 
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
+import com.snamp.connectors.util.AbstractAttributesRegistry;
+import com.snamp.connectors.util.ConnectedAttributes;
+
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
