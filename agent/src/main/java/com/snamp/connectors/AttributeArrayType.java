@@ -62,12 +62,12 @@ public class AttributeArrayType implements AttributeTabularType {
      * Returns the type of the array index column.
      * <p>
      *     In the default implementation, this method always returns value
-     *     returned by {@link com.snamp.connectors.AttributePrimitiveTypeBuilder#createInt32Type()} method.
+     *     returned by {@link WellKnownTypeSystem#createInt32Type()} method.
      * </p>
      * @return The type of the array index column.
      */
-    protected AttributeJavaTypeInfo<? extends Number> getIndexColumnType(){
-        final AttributePrimitiveTypeBuilder builder = new AttributePrimitiveTypeBuilder();
+    protected AttributeTypeInfo getIndexColumnType(){
+        final WellKnownTypeSystem<AttributeTypeInfo> builder = new WellKnownTypeSystem<>(AttributeTypeInfo.class);
         return builder.createInt32Type();
     }
 
@@ -122,17 +122,16 @@ public class AttributeArrayType implements AttributeTabularType {
     @Override
     public <T> boolean canConvertTo(final Class<T> target) {
         return Object.class == target ||
-                String.class == target ||
                 Table.class == target ||
                 (target.isArray() && elementType.canConvertFrom(target.getComponentType()));
     }
 
     /**
      * Converts the attribute value to thw array.
-     * @param value
-     * @param destinationElementType
-     * @param <T>
-     * @return
+     * @param value The value to be converted into the array.
+     * @param destinationElementType The type of the result array element.
+     * @param <T> Type of the array element.
+     * @return A new array constructed from the specified source value.
      */
     protected <T> T[] convertToArray(final Object value, final Class<T> destinationElementType) throws IllegalArgumentException{
         if(isArray(value)){
@@ -198,6 +197,6 @@ public class AttributeArrayType implements AttributeTabularType {
      */
     @Override
     public <T> boolean canConvertFrom(final Class<T> source) {
-        return Table.class == source || (source.isArray() && elementType.canConvertFrom(source.getComponentType()));
+        return (source != null) && (Table.class.isAssignableFrom(source) || source.isArray());
     }
 }

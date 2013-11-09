@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  * </p>
  * @author Roman Sakno
  * @since 1.0
- * @version
+ * @version 1.0
  */
 public abstract class AgentManagerBase extends AbstractPlatformService implements AgentManager {
     private final String managerName;

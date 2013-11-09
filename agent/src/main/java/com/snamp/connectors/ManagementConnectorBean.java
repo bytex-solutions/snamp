@@ -7,7 +7,7 @@ import java.lang.ref.*;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.lang.reflect.*;
-import static com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo;
+import static com.snamp.connectors.EntityTypeInfoBuilder.AttributeTypeConverter;
 
 /**
  * Represents SNAMP in-process management connector that exposes Java Bean properties through connector attributes.
@@ -20,7 +20,7 @@ import static com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertible
  *       private String prop1;
  *
  *       public CustomConnector(){
- *           super(new AttributePrimitiveTypeBuilder());
+ *           super(new WellKnownAttributeTypeSystem());
  *           prop1 = "Hello, world!";
  *       }
  *
@@ -45,14 +45,14 @@ import static com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertible
 @Lifecycle(InstanceLifecycle.NORMAL)
 public class ManagementConnectorBean extends AbstractManagementConnector {
 
-    private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<AttributeConvertibleTypeInfo<?>>{
+    private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<AttributeTypeConverter>{
         private final Map<String, String> properties;
         private final Class<?> propertyType;
         private final Method getter;
         private final Method setter;
-        private final Reference<AttributeTypeInfoBuilder> typeBuilder;
+        private final Reference<EntityTypeInfoFactory<AttributeTypeConverter>> typeBuilder;
 
-        public JavaBeanPropertyMetadata(final PropertyDescriptor descriptor, final AttributeTypeInfoBuilder typeBuilder, final Map<String, String> props){
+        public JavaBeanPropertyMetadata(final PropertyDescriptor descriptor, final EntityTypeInfoFactory<AttributeTypeConverter> typeBuilder, final Map<String, String> props){
             super(descriptor.getName(), "");
             properties = new HashMap<>(props);
             properties.put("displayName", descriptor.getDisplayName());
@@ -102,8 +102,8 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
          * @return Detected attribute type.
          */
         @Override
-        protected final AttributeConvertibleTypeInfo<?> detectAttributeType() {
-            final AttributeConvertibleTypeInfo<?> typeInfo = typeBuilder.get().createTypeInfo(propertyType);
+        protected final AttributeTypeConverter detectAttributeType() {
+            final AttributeTypeConverter typeInfo = typeBuilder.get().createTypeInfo(propertyType, propertyType);
             typeBuilder.clear();
             return typeInfo;
         }
@@ -150,7 +150,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
     }
 
     private final BeanInfo beanMetadata;
-    private final AttributeTypeInfoBuilder typeInfoBuilder;
+    private final EntityTypeInfoFactory typeInfoBuilder;
     private final Object beanInstance;
 
     /**
@@ -170,29 +170,18 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
     }
 
     /**
-     * Represents descriptor of the Java Bean event data.
-     * @param <T> Type of the Java Bean event data.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    protected static interface JavaBeanEventInfo<T extends EventObject> extends NotificationContentJavaTypeInfo<T>{
-
-    }
-
-    /**
      * Initializes a new management connector.
      * @param typeBuilder Type information provider that provides property type converter.
      * @throws IllegalArgumentException typeBuilder is {@literal null}.
      */
-    protected ManagementConnectorBean(final AttributeTypeInfoBuilder typeBuilder) throws IntrospectionException {
+    protected ManagementConnectorBean(final EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
         if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.typeInfoBuilder = typeBuilder;
         this.beanMetadata = Introspector.getBeanInfo(getClass(), ManagementConnectorBean.class);
         this.beanInstance = null;
     }
 
-    private ManagementConnectorBean(final Object beanInstance, final AttributeTypeInfoBuilder typeBuilder) throws IntrospectionException {
+    private ManagementConnectorBean(final Object beanInstance, final EntityTypeInfoFactory<AttributeTypeConverter> typeBuilder) throws IntrospectionException {
         if(beanInstance == null) throw new IllegalArgumentException("beanInstance is null.");
         else if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.beanInstance = beanInstance;
@@ -208,7 +197,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @return A new instance of the management connector that wraps the Java Bean.
      * @throws IntrospectionException
      */
-    public static <T> ManagementConnectorBean wrap(final T beanInstance, final AttributeTypeInfoBuilder typeBuilder) throws IntrospectionException {
+    public static <T> ManagementConnectorBean wrap(final T beanInstance, final EntityTypeInfoFactory<AttributeTypeConverter> typeBuilder) throws IntrospectionException {
         return new ManagementConnectorBean(beanInstance, typeBuilder);
     }
 

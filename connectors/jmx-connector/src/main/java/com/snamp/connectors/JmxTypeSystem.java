@@ -12,25 +12,20 @@ import java.util.*;
  * Represents JMX attribute type information.
  * @author Roman Sakno
  */
-final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
+final class JmxTypeSystem extends WellKnownTypeSystem<EntityTypeInfoBuilder.AttributeTypeConverter> {
     /**
      * Initializes a new builder of JMX attributes.
      */
-    public JmxAttributeTypeInfoBuilder(){
+    public JmxTypeSystem(){
+        super(EntityTypeInfoBuilder.AttributeTypeConverter.class);
+    }
+
+    private static interface AttributeJmxTabularType extends AttributeTypeConverter, AttributeTabularType{
 
     }
 
-    private static interface AttributeJmxTabularType extends AttributeConvertibleTypeInfo<TabularData>, AttributeTabularType{
-
-    }
-
-    private static AttributeJmxTabularType createJmxTabularType(final TabularType tt){
+    private AttributeJmxTabularType createJmxTabularType(final TabularType tt){
         return new AttributeJmxTabularType() {
-            @Override
-            public Class<TabularData> getNativeClass() {
-                return TabularData.class;
-            }
-
             @Override
             public Set<String> getColumns() {
                 return tt.getRowType().keySet();
@@ -48,7 +43,7 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
 
             @Override
             public final  <T> boolean canConvertTo(final Class<T> target) {
-                return target == Table.class;
+                return target != null && target.isAssignableFrom(Table.class);
             }
 
             private SimpleTable<String> convertToTable(final TabularData value){
@@ -75,9 +70,9 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
             private final  <T> T convertTo(final TabularData value, final Class<T> target) throws IllegalArgumentException{
                 if(target == null) return null;
                 else if(target.isAssignableFrom(Table.class))
-                    return (T)convertToTable(value);
+                    return target.cast(convertToTable(value));
                 else if(target.isAssignableFrom(Map[].class))
-                    return (T)convertToMapArray(value);
+                    return target.cast(convertToMapArray(value));
                 else throw new IllegalArgumentException(String.format("Cannot convert %s value to table.", value));
             }
 
@@ -105,7 +100,7 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
                         //create each cell in the row
                         rows[rowIndex] = new CompositeDataSupport(columnSchema, new HashMap<String, Object>(){{
                             for(final String columnName: columnSchema.keySet()){
-                                final AttributeConvertibleTypeInfo<?> columnType = createJmxType(columnSchema.getType(columnName));
+                                final AttributeTypeConverter columnType = createJmxType(columnSchema.getType(columnName));
                                 put(columnName, columnType.convertFrom(table.getCell(columnName, rowID)));
                             }
                         }});
@@ -133,16 +128,12 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
         };
     }
 
-    private static interface AttributeJmxCompositeType extends AttributeConvertibleTypeInfo<CompositeData>, AttributeTabularType{
+    private static interface AttributeJmxCompositeType extends AttributeTypeConverter, AttributeTabularType{
 
     }
 
-    private static AttributeJmxCompositeType createJmxCompositeType(final CompositeType ct){
+    private AttributeJmxCompositeType createJmxCompositeType(final CompositeType ct){
         return new AttributeJmxCompositeType() {
-            @Override
-            public final Class<CompositeData> getNativeClass() {
-                return CompositeData.class;
-            }
 
             @Override
             public final Set<String> getColumns() {
@@ -185,9 +176,9 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
 
             private <T> T convertTo(final CompositeData value, final Class<T> target){
                 if(target.isAssignableFrom(Map.class))
-                    return (T)convertToMap(value);
+                    return target.cast(convertToMap(value));
                 else if(target.isAssignableFrom(Table.class))
-                    return (T)convertToTable(value);
+                    return target.cast(convertToTable(value));
                 else throw new IllegalArgumentException(String.format("Unsupported destination type %s", target));
             }
 
@@ -209,7 +200,7 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
             private CompositeData convertFromMap(final Map<String, Object> value) throws IllegalArgumentException{
                 final Map<String, Object> convertedValue = new HashMap<>(value.size());
                 for(final String columnName: value.keySet()){
-                    final AttributeConvertibleTypeInfo<?> columnType = createJmxType(ct.getType(columnName));
+                    final AttributeTypeConverter columnType = createJmxType(ct.getType(columnName));
                     convertedValue.put(columnName, columnType.convertFrom(value.get(columnName)));
                 }
                 try {
@@ -224,7 +215,7 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
                 final Map<String, Object> result = new HashMap<>(10);
                 if(value.getRowCount() > 0)
                     for(final String columnName: ct.keySet()){
-                        final AttributeConvertibleTypeInfo<?> columnType = createJmxType(ct.getType(columnName));
+                        final AttributeTypeConverter columnType = createJmxType(ct.getType(columnName));
                         result.put(columnName, columnType.convertFrom(value.getCell(columnName, 0)));
                     }
                 else throw new IllegalArgumentException(String.format("Cannot convert table %s to composite data.", value));
@@ -246,12 +237,14 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
         };
     }
 
-    private static final class AttributeJmxArrayType<T> extends AttributeArrayType implements AttributeConvertibleTypeInfo<T[]>{
-        private final AttributeConvertibleTypeInfo<T> elementType;
+    private static final class AttributeJmxArrayType extends AttributeArrayType implements AttributeTypeConverter {
+        private final AttributeTypeConverter elementType;
+        private final Class<?> nativeElementType;
 
-        public AttributeJmxArrayType(final AttributeConvertibleTypeInfo<T> elementType){
+        public AttributeJmxArrayType(final Class<?> nativeElementType, final AttributeTypeConverter elementType){
             super(elementType);
             this.elementType = elementType;
+            this.nativeElementType = nativeElementType;
         }
 
         /**
@@ -261,69 +254,63 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
          * @return The value of the attribute.
          */
         @Override
-        public T[] convertFrom(final Object value) throws IllegalArgumentException {
-            if(isArray(value) && super.elementType.canConvertFrom(value.getClass().getComponentType())){
-                final Object result = Array.newInstance(elementType.getNativeClass(), Array.getLength(value));
+        public Object convertFrom(final Object value) throws IllegalArgumentException {
+            if(isArray(value)){
+                final Object result = Array.newInstance(nativeElementType, Array.getLength(value));
                 for(int i = 0; i < Array.getLength(value); i++)
                     Array.set(result, i, Array.get(value, i));
-                return (T[])result;
+                return result;
             }
             else if(value instanceof Table){
                 final Table<String> tbl = (Table<String>)value;
-                final Object result = Array.newInstance(elementType.getNativeClass(), tbl.getRowCount());
+                final Object result = Array.newInstance(nativeElementType, tbl.getRowCount());
                 for(int i = 0; i < tbl.getRowCount(); i++)
                     Array.set(result, i, tbl.getCell(INDEX_COLUMN_NAME, i));
-                return (T[])result;
+                return result;
             }
             else throw new IllegalArgumentException(String.format("Cannot convert %s value.", value));
         }
+    }
 
-        /**
-         * Returns the underlying Java class.
-         *
-         * @return The underlying Java class.
-         */
-        @Override
-        public Class<T[]> getNativeClass() {
-            final Object obj = Array.newInstance(elementType.getNativeClass(), 0);
-            return (Class<T[]>)obj.getClass();
+    private AttributeTypeConverter createJmxArrayType(final ArrayType<?> attributeType){
+        try {
+            final Class<?> nativeElementType = Class.forName(attributeType.getElementOpenType().getClassName());
+            return new AttributeJmxArrayType(nativeElementType, createJmxType(attributeType.getElementOpenType()));
+        }
+        catch (final ClassNotFoundException e) {
+            return null;
         }
     }
 
-    private static AttributeConvertibleTypeInfo<?> createJmxArrayType(final ArrayType<?> attributeType){
-
-        return new AttributeJmxArrayType(createJmxType(attributeType.getElementOpenType()));
-    }
-
-    private static AttributeConvertibleTypeInfo<?> createJmxSimpleType(final SimpleType<?> attributeType){
+    private AttributeTypeConverter createJmxSimpleType(final SimpleType<?> attributeType){
         if(attributeType == SimpleType.BOOLEAN)
-            return createBooleanType(JmxAttributeTypeInfoBuilder.class);
+            return createBooleanType();
         else if(attributeType == SimpleType.BIGDECIMAL)
-            return createDecimalType(JmxAttributeTypeInfoBuilder.class);
+            return createDecimalType(JmxTypeSystem.class);
         else if(attributeType == SimpleType.BIGINTEGER)
-            return createIntegerType(JmxAttributeTypeInfoBuilder.class);
+            return createIntegerType();
         else if(attributeType == SimpleType.BYTE)
-            return createInt8Type(JmxAttributeTypeInfoBuilder.class);
+            return createInt8Type();
         else if(attributeType == SimpleType.INTEGER)
-            return createInt32Type(JmxAttributeTypeInfoBuilder.class);
-        else if(attributeType == SimpleType.CHARACTER || attributeType == SimpleType.STRING)
-            return createStringType(JmxAttributeTypeInfoBuilder.class);
-        else if(attributeType == SimpleType.DATE)
-            return createUnixTimeType(JmxAttributeTypeInfoBuilder.class);
-        else if(attributeType == SimpleType.DOUBLE)
-            return createDoubleType(JmxAttributeTypeInfoBuilder.class);
-        else if(attributeType == SimpleType.FLOAT)
-            return createFloatType(JmxAttributeTypeInfoBuilder.class);
-        else if(attributeType == SimpleType.SHORT)
-            return createInt16Type(JmxAttributeTypeInfoBuilder.class);
-        else if(attributeType == SimpleType.LONG)
-            return createInt64Type(JmxAttributeTypeInfoBuilder.class);
+            return createInt32Type();
+        else if(attributeType == SimpleType.CHARACTER)
+            return createStringType(Character.class);
         else if(attributeType == SimpleType.STRING)
-            return createStringType(JmxAttributeTypeInfoBuilder.class);
-        else return createTypeInfo(JmxAttributeTypeInfoBuilder.class, Object.class);
+            return createStringType();
+        else if(attributeType == SimpleType.DATE)
+            return createUnixTimeType();
+        else if(attributeType == SimpleType.DOUBLE)
+            return createDoubleType();
+        else if(attributeType == SimpleType.FLOAT)
+            return createFloatType();
+        else if(attributeType == SimpleType.SHORT)
+            return createInt16Type();
+        else if(attributeType == SimpleType.LONG)
+            return createInt64Type();
+        else return createTypeInfo(getClass(), AttributeTypeConverter.class, attributeType.getClassName());
     }
 
-    public static AttributeConvertibleTypeInfo<?> createJmxType(final OpenType<?> attributeType){
+    public AttributeTypeConverter createJmxType(final OpenType<?> attributeType){
         if(attributeType instanceof SimpleType)
             return createJmxSimpleType((SimpleType<?>)attributeType);
         else if(attributeType instanceof CompositeType)
@@ -332,56 +319,61 @@ final class JmxAttributeTypeInfoBuilder extends AttributePrimitiveTypeBuilder {
             return createJmxArrayType((ArrayType<?>) attributeType);
         else if(attributeType instanceof TabularType)
             return createJmxTabularType((TabularType)attributeType);
-        else return createTypeInfo(JmxAttributeTypeInfoBuilder.class, Object.class);
+        else return createTypeInfo(getClass(), AttributeTypeConverter.class, attributeType.getClassName());
     }
 
-    public static AttributeConvertibleTypeInfo<?> createJmxType(final Class<?> attributeType){
-        return createTypeInfo(JmxAttributeTypeInfoBuilder.class, attributeType);
+    public AttributeTypeConverter createJmxType(final Class<?> attributeType){
+        return createTypeInfo(getClass(), AttributeTypeConverter.class, attributeType.getCanonicalName());
     }
 
-    public static AttributeConvertibleTypeInfo<?> createJmxType(final String attributeType){
-        switch (attributeType){
-            case "byte":
-            case "java.lang.Byte": return createJmxType(SimpleType.BYTE);
-            case "short":
-            case "java.lang.Short": return createJmxType(SimpleType.SHORT);
-            case "int":
-            case "java.lang.Integer": return createJmxType(SimpleType.INTEGER);
-            case "long":
-            case "java.lang.Long": return createJmxType(SimpleType.LONG);
-            case "java.lang.String": return createJmxType(SimpleType.STRING);
-            case "java.lang.Date": return createJmxType(SimpleType.DATE);
-            case "float":
-            case "java.lang.Float": return createJmxType(SimpleType.FLOAT);
-            case "double":
-            case "java.lang.Double": return createJmxType(SimpleType.DOUBLE);
-            case "char":
-            case "java.lang.Character": return createJmxType(SimpleType.CHARACTER);
-            case "boolean":
-            case "java.lang.Boolean": return createJmxType(SimpleType.BOOLEAN);
-            case "java.math.BigInteger": return createJmxType(SimpleType.BIGINTEGER);
-            case "java.math.BigDecimal": return createJmxType(SimpleType.BIGDECIMAL);
-            case "byte[]":
-            case "java.lang.Byte[]": return createJmxArrayType(ArrayType.getPrimitiveArrayType(Byte[].class));
-            case "short[]":
-            case "java.lang.Short[]": return createJmxArrayType(ArrayType.getPrimitiveArrayType(Short[].class));
-            case "int[]":
-            case "java.lang.Integer[]": return createJmxArrayType(ArrayType.getPrimitiveArrayType(Integer[].class));
-            case "long[]":
-            case "java.lang.Long[]": return createJmxArrayType(ArrayType.getPrimitiveArrayType(Long[].class));
-            case "java.lang.String[]": return createJmxType(ArrayType.getPrimitiveArrayType(String[].class));
-            case "java.lang.Date[]": return createJmxType(ArrayType.getPrimitiveArrayType(Date[].class));
-            case "float[]":
-            case "java.lang.Float[]": return createJmxType(ArrayType.getPrimitiveArrayType(Float[].class));
-            case "double[]":
-            case "java.lang.Double[]": return createJmxType(ArrayType.getPrimitiveArrayType(Double[].class));
-            case "char[]":
-            case "java.lang.Character[]": return createJmxType(ArrayType.getPrimitiveArrayType(Character[].class));
-            case "boolean[]":
-            case "java.lang.Boolean[]": return createJmxType(ArrayType.getPrimitiveArrayType(Boolean[].class));
-            case "java.math.BigInteger[]": return createJmxType(ArrayType.getPrimitiveArrayType(BigInteger[].class));
-            case "java.math.BigDecimal[]": return createJmxType(ArrayType.getPrimitiveArrayType(BigDecimal[].class));
-            default: return createTypeInfo(JmxAttributeTypeInfoBuilder.class, attributeType);
+    public AttributeTypeConverter createJmxType(final String attributeType){
+        try{
+            switch (attributeType){
+                case "byte":
+                case "java.lang.Byte": return createJmxType(SimpleType.BYTE);
+                case "short":
+                case "java.lang.Short": return createJmxType(SimpleType.SHORT);
+                case "int":
+                case "java.lang.Integer": return createJmxType(SimpleType.INTEGER);
+                case "long":
+                case "java.lang.Long": return createJmxType(SimpleType.LONG);
+                case "java.lang.String": return createJmxType(SimpleType.STRING);
+                case "java.lang.Date": return createJmxType(SimpleType.DATE);
+                case "float":
+                case "java.lang.Float": return createJmxType(SimpleType.FLOAT);
+                case "double":
+                case "java.lang.Double": return createJmxType(SimpleType.DOUBLE);
+                case "char":
+                case "java.lang.Character": return createJmxType(SimpleType.CHARACTER);
+                case "boolean":
+                case "java.lang.Boolean": return createJmxType(SimpleType.BOOLEAN);
+                case "java.math.BigInteger": return createJmxType(SimpleType.BIGINTEGER);
+                case "java.math.BigDecimal": return createJmxType(SimpleType.BIGDECIMAL);
+                case "byte[]":
+                case "java.lang.Byte[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.BYTE));
+                case "short[]":
+                case "java.lang.Short[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.SHORT));
+                case "int[]":
+                case "java.lang.Integer[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.INTEGER));
+                case "long[]":
+                case "java.lang.Long[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.SHORT));
+                case "java.lang.String[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.STRING));
+                case "java.lang.Date[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.DATE));
+                case "float[]":
+                case "java.lang.Float[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.FLOAT));
+                case "double[]":
+                case "java.lang.Double[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.DOUBLE));
+                case "char[]":
+                case "java.lang.Character[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.CHARACTER));
+                case "boolean[]":
+                case "java.lang.Boolean[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.BOOLEAN));
+                case "java.math.BigInteger[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.BIGINTEGER));
+                case "java.math.BigDecimal[]": return createJmxArrayType(new ArrayType<>(1, SimpleType.BIGDECIMAL));
+                default: return createTypeInfo(getClass(), AttributeTypeConverter.class, attributeType);
+            }
+        }
+        catch(final OpenDataException e){
+            return createTypeInfo(getClass(), AttributeTypeConverter.class, attributeType);
         }
     }
 }

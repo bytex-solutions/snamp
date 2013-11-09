@@ -40,7 +40,7 @@ public final class EmbeddedAdapterTest extends SnampClassTestSet<EmbeddedAdapter
             public final void setProperty(final int val) {
                 value = val;
             }
-        }, new AttributePrimitiveTypeBuilder());
+        }, new WellKnownTypeSystem<>(EntityTypeInfoBuilder.AttributeTypeConverter.class));
         final TestAdapter adapter = new TestAdapter();
         adapter.exposeAttributes(connector, "", new HashMap<String, AttributeConfiguration>(){{
             put("0.1", new AttributeConfiguration() {

@@ -5,7 +5,7 @@ import com.snamp.connectors.*;
 import org.snmp4j.smi.Null;
 import org.snmp4j.smi.Variable;
 
-import static com.snamp.connectors.AttributePrimitiveTypeBuilder.*;
+import static com.snamp.connectors.WellKnownTypeSystem.*;
 
 import java.lang.reflect.*;
 import static org.snmp4j.smi.SMIConstants.EXCEPTION_NO_SUCH_OBJECT;

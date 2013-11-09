@@ -1223,8 +1223,9 @@ public enum ConfigurationFormat {
 
     /**
      * Creates a new empty configuration of the specified format.
-     * @param format
-     * @return
+     * @param format The name of the configuration persistence format.
+     * @return A new empty configuration that can be stored and restored to/from stream in
+     * the specified format.
      */
     public static final AgentConfiguration newAgentConfiguration(final String format){
         return parse(format).newAgentConfiguration();
@@ -1232,7 +1233,7 @@ public enum ConfigurationFormat {
 
     /**
      * Creates a new empty configuration of this format.
-     * @return
+     * @return A new empty configuration of this format.
      */
     public final AgentConfiguration newAgentConfiguration(){
         switch (_formatName){

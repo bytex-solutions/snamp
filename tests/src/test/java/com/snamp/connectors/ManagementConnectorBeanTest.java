@@ -20,7 +20,7 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Managem
         private boolean field3;
 
         public TestManagementConnectorBeanTest() throws IntrospectionException {
-            super(new AttributePrimitiveTypeBuilder());
+            super(new WellKnownTypeSystem<>(EntityTypeInfoBuilder.AttributeTypeConverter.class));
         }
 
         public final String getProperty1(){
@@ -75,7 +75,7 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Managem
             public final void setProperty(int value) {
                 simpleField = value;
             }
-        }, new AttributePrimitiveTypeBuilder());
+        }, new WellKnownTypeSystem<>(EntityTypeInfoBuilder.AttributeTypeConverter.class));
         mc.connectAttribute("1", "property", new HashMap<String, String>());
         mc.setAttribute("1", TimeSpan.INFINITE, 42);
         assertEquals(42, mc.getAttribute("1", TimeSpan.INFINITE, 0));

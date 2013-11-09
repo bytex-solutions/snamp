@@ -3,13 +3,13 @@ package com.snamp.connectors;
 /**
  * Represents an information about attribute type.
  * <p>
- *     It is recommended to use {@link AttributeTypeInfoBuilder} for creating
+ *     It is recommended to use {@link EntityTypeInfoFactory} for creating
  *     attribute types.
  * </p>
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
- * @see AttributeTypeInfoBuilder
+ * @see EntityTypeInfoFactory
  */
 public interface AttributeTypeInfo extends EntityTypeInfo {
     /**

@@ -1,7 +1,6 @@
 package com.snamp.adapters;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.math.*;
 import java.text.DateFormat;
 import java.util.*;
@@ -13,7 +12,7 @@ import com.snamp.*;
 import com.snamp.connectors.*;
 import com.sun.jersey.spi.resource.Singleton;
 
-import static com.snamp.connectors.AttributePrimitiveTypeBuilder.*;
+import static com.snamp.connectors.WellKnownTypeSystem.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
