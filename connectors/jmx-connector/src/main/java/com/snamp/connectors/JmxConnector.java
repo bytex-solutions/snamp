@@ -12,9 +12,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.*;
 
-import static com.snamp.connectors.JmxAttributeTypeInfoBuilder.createJmxType;
-import static com.snamp.connectors.AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo;
-
 /**
  * Represents JMX connector.
  * @author Roman Sakno
@@ -25,6 +22,7 @@ final class JmxConnector extends AbstractManagementConnector {
      */
     public static final String connectorName = "jmx";
     private static final Logger log = AbstractManagementConnectorFactory.getLogger(connectorName);
+    private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
 
     /**
      * Represents count of instantiated connectors.
@@ -170,13 +168,13 @@ final class JmxConnector extends AbstractManagementConnector {
          * @return The type of the attribute value.
          */
         @Override
-        public AttributeConvertibleTypeInfo<?> getAttributeType();
+        public EntityTypeInfoBuilder.AttributeTypeConverter getAttributeType();
     }
 
     /**
      * Represents an abstract class for building JMX attribute providers.
      */
-    private abstract class JmxAttributeProvider extends GenericAttributeMetadata<AttributeConvertibleTypeInfo<?>> implements JmxAttributeMetadata {
+    private abstract class JmxAttributeProvider extends GenericAttributeMetadata<EntityTypeInfoBuilder.AttributeTypeConverter> implements JmxAttributeMetadata {
 
         private final ObjectName namespace;
         private MBeanServerConnectionReader<Object> attributeValueReader;
@@ -288,7 +286,7 @@ final class JmxConnector extends AbstractManagementConnector {
          * @return
          */
         public final boolean setValue(final Object value){
-            final AttributeConvertibleTypeInfo<?> typeInfo = getAttributeType();
+            final EntityTypeInfoBuilder.AttributeTypeConverter typeInfo = getAttributeType();
             if(canWrite() && value != null && typeInfo.canConvertFrom(value.getClass())){
                 return handleConnection(createAttributeValueWriter(typeInfo.convertFrom(value)), false);
             }
@@ -308,10 +306,10 @@ final class JmxConnector extends AbstractManagementConnector {
         }, null);
         return targetAttr != null ? new JmxAttributeProvider(targetAttr.getName(), namespace){
             @Override
-            protected final AttributeConvertibleTypeInfo<?> detectAttributeType() {
+            protected final EntityTypeInfoBuilder.AttributeTypeConverter detectAttributeType() {
                 if(targetAttr instanceof OpenMBeanAttributeInfoSupport)
-                    return createJmxType(((OpenMBeanAttributeInfoSupport) targetAttr).getOpenType());
-                else return createJmxType(targetAttr.getType());
+                    return typeSystem.createJmxType(((OpenMBeanAttributeInfoSupport) targetAttr).getOpenType());
+                else return typeSystem.createJmxType(targetAttr.getType());
             }
 
             /**
@@ -421,13 +419,13 @@ final class JmxConnector extends AbstractManagementConnector {
             }
 
             @Override
-            protected final AttributeConvertibleTypeInfo<?> detectAttributeType() {
+            protected final EntityTypeInfoBuilder.AttributeTypeConverter detectAttributeType() {
                 final Object attributeType = navigator.getType(compositeType);
                 if(attributeType instanceof OpenType)
-                    return createJmxType((OpenType<?>)attributeType);
+                    return typeSystem.createJmxType((OpenType<?>)attributeType);
                 else if(attributeType instanceof Class<?>)
-                    return createJmxType((Class<?>)attributeType);
-                else return createJmxType(Objects.toString(attributeType, ""));
+                    return typeSystem.createJmxType((Class<?>)attributeType);
+                else return typeSystem.createJmxType(Objects.toString(attributeType, ""));
             }
         } : null;
     }
@@ -552,7 +550,7 @@ final class JmxConnector extends AbstractManagementConnector {
      * @return The invocation result.
      */
     @Override
-    public Object doAction(String actionName, Arguments args, TimeSpan timeout) throws UnsupportedOperationException, TimeoutException {
+    public Object doAction(final String actionName, final Arguments args, final TimeSpan timeout) throws UnsupportedOperationException, TimeoutException {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 

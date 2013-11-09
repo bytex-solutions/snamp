@@ -92,7 +92,7 @@ public interface Notification extends Map<String, Object> {
 
     /**
      * Gets the order number of the notification message.
-     * @return
+     * @return The order number of the notification message.
      */
     public long getSequenceNumber();
 

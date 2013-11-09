@@ -4,23 +4,27 @@ import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.math.*;
 import java.util.*;
+import java.util.logging.*;
 
 /**
  * Represents a base class for building management entity types, such as attributes or notifications.
- * <p>
- *     You should use {@link AttributeTypeInfoBuilder} or
- *     {@link NotificationContentTypeInfoBuilder} classes instead of direct inheritance from this class.
- * </p>
+ * @param <E> Type of the management entity.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public abstract class EntityTypeInfoBuilder {
+public abstract class EntityTypeInfoBuilder<E extends EntityTypeInfo> implements EntityTypeInfoFactory<E> {
+    private static final Logger logger = Logger.getLogger("com.snamp");
+    private final Class<E> entityType;
+
     /**
      * Initializes a new empty entity type builder.
+     * @param entityType Type of the management entity. Cannot be {@literal null}.
+     * @throws IllegalArgumentException entityType is {@literal null}.
      */
-    EntityTypeInfoBuilder(){
-
+    protected EntityTypeInfoBuilder(final Class<E> entityType){
+        if(entityType == null) throw new IllegalArgumentException("entityType is null.");
+        this.entityType = entityType;
     }
 
     /**
@@ -36,91 +40,104 @@ public abstract class EntityTypeInfoBuilder {
     }
 
     /**
-     * Represents advanced representation of the {@link com.snamp.connectors.EntityTypeInfoBuilder.AttributeConvertibleTypeInfo} that
+     * Represents advanced representation of the {@link com.snamp.connectors.EntityTypeInfoBuilder.AttributeTypeConverter} that
      * supports conversion methods.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    public static interface AttributeConvertibleTypeInfo<T> extends AttributeJavaTypeInfo<T>{
+    public static interface AttributeTypeConverter extends AttributeTypeInfo {
         /**
          * Converts the specified value into the
          * @param value The value to convert.
          * @return The value of the attribute.
+         * @throws IllegalArgumentException Conversion from the specified value is not supported.
          */
-        public T convertFrom(final Object value) throws IllegalArgumentException;
+        public Object convertFrom(final Object value) throws IllegalArgumentException;
     }
 
     /**
      * Represents type information about universal entity.
-     * @param <T>
      */
-    private static interface EntityConvertibleTypeInfo<T> extends AttributeConvertibleTypeInfo<T>, NotificationContentJavaTypeInfo<T>{
+    private static interface EntityTypeConverter extends AttributeTypeConverter, NotificationContentTypeInfo {
 
     }
 
-    private static EntityConvertibleTypeInfo<?> createTypeInfo(final Class<? extends EntityTypeInfoBuilder> builderType, final String nativeType){
+    private static EntityTypeConverter createTypeInfo(final Class<? extends EntityTypeInfoBuilder> builderType, final String nativeType){
         switch (nativeType){
             case "byte":
-            case "java.lang.Byte": return createTypeInfo(builderType, Byte.class);
+            case "java.lang.Byte": return createTypeInfo(builderType, Byte.class, Byte.class);
             case "short":
-            case "java.lang.Short": return createTypeInfo(builderType, Short.class);
+            case "java.lang.Short": return createTypeInfo(builderType, Short.class, Short.class);
             case "int":
-            case "java.lang.Integer": return createTypeInfo(builderType, Integer.class);
+            case "java.lang.Integer": return createTypeInfo(builderType, Integer.class, Integer.class);
             case "long":
-            case "java.lang.Long": return createTypeInfo(builderType, Long.class);
+            case "java.lang.Long": return createTypeInfo(builderType, Long.class, Long.class);
             case "boolean":
-            case "java.lang.Boolean": return createTypeInfo(builderType, Boolean.class);
+            case "java.lang.Boolean": return createTypeInfo(builderType, Boolean.class, Boolean.class);
             case "float":
-            case "java.lang.Float": return createTypeInfo(builderType, Float.class);
+            case "java.lang.Float": return createTypeInfo(builderType, Float.class, Float.class);
             case "double":
-            case "java.lang.Double": return createTypeInfo(builderType, Double.class);
+            case "java.lang.Double": return createTypeInfo(builderType, Double.class, Double.class);
             case "void":
-            case "java.lang.Void": return createTypeInfo(builderType, Void.class);
+            case "java.lang.Void": return createTypeInfo(builderType, Void.class, Void.class);
             case "char":
-            case "java.lang.Character": return createTypeInfo(builderType, Character.class);
-            case "java.lang.BigInteger": return createTypeInfo(builderType, BigInteger.class);
-            case "java.lang.BigDecimal": return createTypeInfo(builderType, BigDecimal.class);
+            case "java.lang.Character": return createTypeInfo(builderType, Character.class, Character.class);
+            case "java.lang.BigInteger": return createTypeInfo(builderType, BigInteger.class, BigInteger.class);
+            case "java.lang.BigDecimal": return createTypeInfo(builderType, BigDecimal.class, BigDecimal.class);
             case "byte[]":
-            case "java.lang.Byte[]": return createTypeInfo(builderType, Byte.class);
+            case "java.lang.Byte[]": return createTypeInfo(builderType, Byte[].class, Byte[].class);
             case "short[]":
-            case "java.lang.Short[]": return createTypeInfo(builderType, Short.class);
+            case "java.lang.Short[]": return createTypeInfo(builderType, Short[].class, Short[].class);
             case "int[]":
-            case "java.lang.Integer[]": return createTypeInfo(builderType, Integer.class);
+            case "java.lang.Integer[]": return createTypeInfo(builderType, Integer[].class, Integer[].class);
             case "long[]":
-            case "java.lang.Long[]": return createTypeInfo(builderType, Long.class);
+            case "java.lang.Long[]": return createTypeInfo(builderType, Long[].class, Long[].class);
             case "boolean[]":
-            case "java.lang.Boolean[]": return createTypeInfo(builderType, Boolean.class);
+            case "java.lang.Boolean[]": return createTypeInfo(builderType, Boolean[].class, Boolean[].class);
             case "float[]":
-            case "java.lang.Float[]": return createTypeInfo(builderType, Float.class);
+            case "java.lang.Float[]": return createTypeInfo(builderType, Float[].class, Float[].class);
             case "double[]":
-            case "java.lang.Double[]": return createTypeInfo(builderType, Double.class);
+            case "java.lang.Double[]": return createTypeInfo(builderType, Double[].class, Double[].class);
             case "void[]":
-            case "java.lang.Void[]": return createTypeInfo(builderType, Void.class);
+            case "java.lang.Void[]": return createTypeInfo(builderType, Void[].class, Void[].class);
             case "char[]":
-            case "java.lang.Character[]": return createTypeInfo(builderType, Character.class);
-            case "java.lang.BigInteger[]": return createTypeInfo(builderType, BigInteger.class);
-            case "java.lang.BigDecimal[]": return createTypeInfo(builderType, BigDecimal.class);
+            case "java.lang.Character[]": return createTypeInfo(builderType, Character[].class, Character[].class);
+            case "java.lang.BigInteger[]": return createTypeInfo(builderType, BigInteger[].class, BigInteger[].class);
+            case "java.lang.BigDecimal[]": return createTypeInfo(builderType, BigDecimal[].class, BigDecimal[].class);
             default:
                 try {
-                    return createTypeInfo(builderType, Class.forName(nativeType));
+                    final Class<?> loadedNativeType = Class.forName(nativeType);
+                    return createTypeInfo(builderType, loadedNativeType, loadedNativeType);
                 }
                 catch (final ClassNotFoundException e) {
-                    return createTypeInfo(builderType, Object.class);
+                    return createTypeInfo(builderType, Object.class, String.class);
                 }
 
         }
     }
 
     /**
+     * Creates a new management entity type for the specified source-specific type.
      *
-     * @param builderType
-     * @param entityType
-     * @param nativeType
-     * @param <E>
-     * @return
+     * @param sourceType      The source-specific type.
+     * @param destinationType The SNAMP-compliant type.
+     * @return A new management entity type.
      */
-    protected final static <E extends EntityJavaTypeInfo<?>> E createTypeInfo(final Class<? extends EntityTypeInfoBuilder> builderType, final Class<E> entityType, final String nativeType){
+    @Override
+    public final E createTypeInfo(final Class<?> sourceType, final Class<?> destinationType) {
+        return createTypeInfo(getClass(), entityType, sourceType, destinationType);
+    }
+
+    /**
+     * Builds a new type converter for the specified management entity.
+     * @param builderType Type of the type system. Cannot be {@literal null}.
+     * @param entityType Type of the management entity for which the type converter should be constructed.
+     * @param nativeType The native type of management entity in the management information base.
+     * @param <E> Type of the management entity for which the type converter should be constructed.
+     * @return A new type converter that can be used to convert entity values between MIB-specific and SNAMP ecosystem.
+     */
+    protected final static <E extends EntityTypeInfo> E createTypeInfo(final Class<? extends EntityTypeInfoBuilder> builderType, final Class<E> entityType, final String nativeType){
         return entityType.cast(createTypeInfo(builderType, nativeType));
     }
 
@@ -128,105 +145,155 @@ public abstract class EntityTypeInfoBuilder {
      * Creates a new type descriptor for the specified management entity.
      * @param builderType The type that holds conversion methods. Cannot be {@literal null}.
      * @param entityType The type of the management entity.
-     * @param nativeType The type of the underlying entity type.
-     * @param <T> Java type that represents value of the management entity.
+     * @param sourceType Source-specific attribute value type.
+     * @param destinationType SNAMP-compliant attribute value type.
      * @param <E> Type of the management entity.
      * @return A new instance of the type descriptor.
      */
-    protected final static <T, E extends EntityJavaTypeInfo<T>> E createTypeInfo(final Class<? extends EntityTypeInfoBuilder> builderType, final Class<E> entityType, final Class<T> nativeType){
-        return entityType.cast(createTypeInfo(builderType, nativeType));
+    protected final static <E extends EntityTypeInfo> E createTypeInfo(final Class<? extends EntityTypeInfoBuilder> builderType, final Class<E> entityType, final Class<?> sourceType, final Class<?> destinationType){
+        return entityType.cast(createTypeInfo(builderType, sourceType, destinationType));
     }
 
-    private final static <T> EntityConvertibleTypeInfo<T> createTypeInfo(final Class<? extends EntityTypeInfoBuilder> builderType, final Class<T> nativeType){
-        if(shouldNormalize(nativeType)) return (EntityConvertibleTypeInfo<T>)createTypeInfo(builderType, normalizeClass(normalizeClass(nativeType)));
-        final Method[] candidates = builderType.getMethods();
-        return new EntityConvertibleTypeInfo<T>() {
-            //convertersTo: key is an output result of nativeType
-            private final Map<Class<?>, Method> convertersToCache = new HashMap<>(20);
-            //convertersFrom: key is an input for the to-nativeType conversion
-            private final Map<Class<?>, Method> convertersFromCache = new HashMap<>(20);
+    private static abstract class AbstractEntityTypeConverter implements EntityTypeConverter{
+        /**
+         * Represents an array of potential conversion methods.
+         */
+        private final Method[] converters;
+        protected final Class<?> sourceType;
+        private final Map<Class<?>, Method> convertersToCache;
+        private final Map<Class<?>, Method> convertersFromCache;
 
-            private Method getConverterFrom(final Class<?> sourceType){
-                if(sourceType == null) return null;
-                else if(convertersFromCache.containsKey(sourceType)) return convertersFromCache.get(sourceType);
-                else for(final Method m : candidates)
-                        if(Modifier.isPublic(m.getModifiers()) && Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Converter.class) && m.getReturnType().isAssignableFrom(nativeType)){
-                            convertersFromCache.put(m.getParameterTypes()[0], m);
-                            return m;
-                        }
-                return null;
-            }
+        protected AbstractEntityTypeConverter(final Class<?> sourceType, final Method[] converters){
+            this.converters = converters != null ? converters : new Method[0];
+            this.sourceType = sourceType;
+            this.convertersToCache = new HashMap<>(5);
+            this.convertersFromCache = new HashMap<>(5);
+        }
 
-            @Override
-            public final T convertFrom(final Object value) throws IllegalArgumentException {
-                if(value == null) return null;
-                else if(nativeType.isInstance(value)) return nativeType.cast(value);
-                final Method converter = getConverterFrom(value.getClass());
-                if(converter!=null) try {
-                    return nativeType.cast(converter.invoke(null, new Object[]{value}));
+        private static final boolean isPublicStatic(final Method m){
+            return (m.getModifiers() & (Modifier.PUBLIC | Modifier.STATIC)) != 0;
+        }
+
+        private static final Object emptyConverter(final Object value){
+            return value;
+        }
+
+        protected synchronized final Method getConverterTo(final Class<?> destinationType){
+            if(convertersToCache.containsKey(destinationType))
+                return convertersToCache.get(destinationType);
+            else for(final Method candidate: converters)
+                if(candidate.isAnnotationPresent(Converter.class) && isPublicStatic(candidate)){
+                    final Class<?>[] parameters = candidate.getParameterTypes();
+                    if(parameters.length == 1 &&
+                            parameters[0].isAssignableFrom(sourceType) &&
+                            destinationType.isAssignableFrom(candidate.getReturnType())){
+                        convertersToCache.put(destinationType, candidate);
+                        return candidate;
+                    }
+                }
+            return null;
+        }
+
+        protected synchronized final Method getConverterFrom(final Class<?> fromType){
+            if(convertersFromCache.containsKey(fromType))
+                return convertersFromCache.get(fromType);
+            else for(final Method candidate: converters)
+                if(candidate.isAnnotationPresent(Converter.class) && isPublicStatic(candidate)){
+                    final Class<?>[] parameters = candidate.getParameterTypes();
+                    if(parameters.length == 1 &&
+                            parameters[0].isAssignableFrom(fromType) &&
+                            sourceType.isAssignableFrom(candidate.getReturnType())){
+                        convertersFromCache.put(fromType, candidate);
+                        return candidate;
+                    }
+                }
+            return null;
+        }
+
+        /**
+         * Determines whether the value of the specified type can be passed as attribute value.
+         *
+         * @param fromType The type of the value that can be converted to the attribute value.
+         * @param <T>    The type of the value.
+         * @return {@literal true}, if conversion from the specified type is supported; otherwise, {@literal false}.
+         */
+        @Override
+        public final <T> boolean canConvertFrom(final Class<T> fromType) {
+            return sourceType.isAssignableFrom(fromType) ||  getConverterFrom(fromType) != null;
+        }
+
+        /**
+         * Converts the specified value into the
+         *
+         * @param value The value to convert.
+         * @return The value of the attribute.
+         * @throws IllegalArgumentException Conversion from the specified value is not supported.
+         */
+        @Override
+        public final Object convertFrom(final Object value) throws IllegalArgumentException {
+            if(value == null) throw new IllegalArgumentException(String.format("Cannot convert null to %s", sourceType));
+            else if(sourceType.isInstance(value)) return value;
+            final Method converter = getConverterFrom(value.getClass());
+            if(converter != null)
+                try {
+                    return converter.invoke(null, value);
                 }
                 catch (final ReflectiveOperationException e) {
                     throw new IllegalArgumentException(e);
                 }
-                else throw new IllegalArgumentException(String.format("Could not convert %s to %s", value, nativeType));
-            }
+            else throw new IllegalArgumentException(String.format("Unable to convert %s to %s", value, sourceType));
+        }
+    }
 
-            @Override
-            public final <G> boolean canConvertFrom(final Class<G> source) {
-                if(source != null)
-                    if(shouldNormalize(source)) return canConvertFrom(normalizeClass(source));
-                    else if(nativeType.isAssignableFrom(source)) return true;
-                final Method converter = getConverterFrom(source);
-                return converter != null;
-            }
+    private final static EntityTypeConverter createTypeInfo(final Class<? extends EntityTypeInfoBuilder> builderType, final Class<?> sourceType, final Class<?> destinationType){
+        if(shouldNormalize(sourceType)) return createTypeInfo(builderType, normalizeClass(sourceType), destinationType);
+        else if(shouldNormalize(destinationType)) return createTypeInfo(builderType, sourceType, normalizeClass(destinationType));
+        //when source type is the same as conversion result type
+        else if(destinationType.isAssignableFrom(sourceType))
+            return new AbstractEntityTypeConverter(sourceType, builderType.getMethods()) {
+                @Override
+                public final <T> boolean canConvertTo(final Class<T> target) {
+                    return target.isAssignableFrom(super.sourceType) || destinationType.isAssignableFrom(target);
+                }
 
-            @Override
-            public final Class<T> getNativeClass() {
-                return nativeType;
-            }
+                @Override
+                public final <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException{
+                    if(target.isInstance(value))
+                        return target.cast(value);
+                    else if(sourceType.isInstance(value))
+                        if(destinationType.isAssignableFrom(target))
+                            return target.cast(value);
+                        else throw new IllegalArgumentException(String.format("Actual type % is not compatible with expected type %s", target, destinationType));
+                    else throw new IllegalArgumentException(String.format("The value %s is not of %s type.", value, sourceType));
+                }
+            };
+         //when source type differs from destination type
+        else return new AbstractEntityTypeConverter(sourceType, builderType.getMethods()) {
+                @Override
+                public final  <T> boolean canConvertTo(final Class<T> target) {
+                    if(target == null) return false;
+                    else if(target.isAssignableFrom(super.sourceType))
+                        return true;
+                    else if(getConverterTo(target) != null)
+                        return true;
+                    else return false;
+                }
 
-            private <G> Method getConverterTo(final Class<G> target){
-                if(target == null) return null;
-                else if(convertersToCache.containsKey(target)) return convertersToCache.get(target);
-                else for(final Method m : candidates)
-                        if(Modifier.isPublic(m.getModifiers()) && Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Converter.class) && nativeType.isAssignableFrom(m.getParameterTypes()[0])){
-                            convertersToCache.put(m.getReturnType(), m);
-                            return m;
+                @Override
+                public final  <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException {
+                    if(target == null) throw new IllegalArgumentException("target is null.");
+                    else if(target.isInstance(value)) return target.cast(value);
+                    final Method converter = getConverterTo(target);
+                    if(converter != null)
+                        try {
+                            return target.cast(converter.invoke(null, value));
                         }
-                return null;
-            }
-
-            @Override
-            public final <G> boolean canConvertTo(final Class<G> target) {
-                if(target != null)
-                    if(shouldNormalize(target)) return canConvertTo(normalizeClass(target));
-                    else if(target.isAssignableFrom(nativeType)) return true;
-                final Method converter = getConverterTo(target);
-                return converter != null;
-            }
-
-            /**
-             * Converts the attribute value to the specified type.
-             * @param value The attribute value to convert.
-             * @param target The type of the conversion result.
-             * @param <G> The conversion result.
-             * @return The conversion result.
-             * @throws IllegalArgumentException Conversion is not supported.
-             */
-            @Override
-            public final <G> G convertTo(final Object value, final Class<G> target) throws IllegalArgumentException {
-                if(shouldNormalize(target)) return (G)convertTo(value, normalizeClass(target));
-                else if(target !=null && target.isInstance(value)) return target.cast(value);
-                final Method converter = getConverterTo(target);
-                if(converter == null) throw new IllegalArgumentException(String.format("Conversion to %s is not supported.", target));
-                else try {
-                    return target.cast(converter.invoke(null, new Object[]{value}));
+                        catch (final ReflectiveOperationException e) {
+                            throw  new IllegalArgumentException(e);
+                        }
+                    else throw new IllegalArgumentException(String.format("Cannot convert %s to %s", value, target));
                 }
-                catch(final ReflectiveOperationException e) {
-                    throw new IllegalArgumentException(e);
-                }
-            }
-        };
+            };
     }
 
     private static final boolean shouldNormalize(final Class<?> classInfo){
@@ -268,17 +335,7 @@ public abstract class EntityTypeInfoBuilder {
      * @param typeToCompare JVM-compliant type.
      * @return {@literal true} if underlying entity type is equal to the specified Java type; otherwise, {@literal false}.
      */
-    public static boolean isTypeOf(final EntityJavaTypeInfo<?> entityType, final Class<?> typeToCompare){
-        return entityType != null && Objects.equals(entityType.getNativeClass(), typeToCompare);
-    }
-
-    /**
-     * Determines whether the specified entity type describes the Java type.
-     * @param entityType The type of the management entity that is convertible into JVM-compliant type.
-     * @param typeToCompare JVM-compliant type.
-     * @return {@literal true} if underlying entity type is equal to the specified Java type; otherwise, {@literal false}.
-     */
     public static boolean isTypeOf(final EntityTypeInfo entityType, final Class<?> typeToCompare){
-        return entityType instanceof EntityJavaTypeInfo && isTypeOf((EntityJavaTypeInfo<?>)entityType, typeToCompare);
+        return entityType != null && entityType.canConvertTo(typeToCompare);
     }
 }

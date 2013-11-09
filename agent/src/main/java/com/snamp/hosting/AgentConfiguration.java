@@ -94,7 +94,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
         public static interface AttributeConfiguration {
             /**
              * Gets attribute value read/write operation timeout.
-             * @return
+             * @return Gets attribute value read/write operation timeout.
              */
             public TimeSpan getReadWriteTimeout();
 
