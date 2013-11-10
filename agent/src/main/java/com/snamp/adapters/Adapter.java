@@ -35,7 +35,7 @@ public interface Adapter extends AutoCloseable, PlatformPlugin {
      * @param parameters The adapter startup parameters.
      * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
     public boolean start(final Map<String, String> parameters) throws IOException;
 
     /**

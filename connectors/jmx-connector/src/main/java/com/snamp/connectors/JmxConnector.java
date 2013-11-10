@@ -16,6 +16,7 @@ import java.util.logging.*;
  * Represents JMX connector.
  * @author Roman Sakno
  */
+@SuppressWarnings("unchecked")
 final class JmxConnector extends AbstractManagementConnector {
     /**
      * Represents JMX connector name.
@@ -23,6 +24,7 @@ final class JmxConnector extends AbstractManagementConnector {
     public static final String connectorName = "jmx";
     private static final Logger log = AbstractManagementConnectorFactory.getLogger(connectorName);
     private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
+    private static final String objectNameOption = "objectName";
 
     /**
      * Represents count of instantiated connectors.
@@ -472,7 +474,7 @@ final class JmxConnector extends AbstractManagementConnector {
      */
     @Override
     protected JmxAttributeProvider connectAttributeCore(final String attributeName, final Map<String, String> options){
-        final String namespace = Objects.toString(options.get("objectName"), "");
+        final String namespace = Objects.toString(options.get(objectNameOption), "");
         try {
             return connectAttribute(new ObjectName(namespace), attributeName, options.containsKey("useRegexp") && Boolean.TRUE.equals(options.get("useRegexp")));
         } catch (final MalformedObjectNameException e) {
@@ -562,8 +564,108 @@ final class JmxConnector extends AbstractManagementConnector {
         instanceCounter.decrementAndGet();
     }
 
+    /**
+     * Releases all resources associated with this connector.
+     */
     @Override
     protected final void finalize() {
-        close();
+        instanceCounter.decrementAndGet();
+    }
+
+    private static final class JmxNotificationMetadata extends GenericNotificationMetadata{
+        private final Map<String, String> options;
+        private final ObjectName eventOwner;
+        private final MBeanNotificationInfo eventMetadata;
+
+        public JmxNotificationMetadata(final MBeanNotificationInfo notificationInfo, final ObjectName eventOwner, final Map<String, String> options){
+            super(notificationInfo.getName());
+            this.options = Collections.unmodifiableMap(options);
+            this.eventOwner = eventOwner;
+            this.eventMetadata = notificationInfo;
+        }
+
+        /**
+         * Gets the type of the notification content.
+         *
+         * @return The type of the notification content.
+         */
+        @Override
+        public NotificationContentTypeInfo getContentType() {
+            return null;  //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        /**
+         * Gets listeners invocation model for this notification type.
+         *
+         * @return Listeners invocation model for this notification type.
+         */
+        @Override
+        public final NotificationModel getNotificationModel() {
+            return NotificationModel.MULTICAST;
+        }
+
+        @Override
+        public final int size() {
+            return options.size();
+        }
+
+        @Override
+        public final boolean isEmpty() {
+            return options.isEmpty();
+        }
+
+        @Override
+        public final boolean containsKey(final Object key) {
+            return options.containsKey(key);
+        }
+
+        @Override
+        public final boolean containsValue(final Object value) {
+            return options.containsValue(value);
+        }
+
+        @Override
+        public final String get(final Object key) {
+            return options.get(key);
+        }
+
+        @Override
+        public final Set<String> keySet() {
+            return options.keySet();
+        }
+
+        @Override
+        public final Collection<String> values() {
+            return options.values();
+        }
+
+        @Override
+        public final Set<Entry<String, String>> entrySet() {
+            return options.entrySet();
+        }
+    }
+
+    /**
+     * Enables event listening for the specified category of events.
+     *
+     * @param category The name of the category to listen.
+     * @param options  Event discovery options.
+     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+     */
+    @Override
+    protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
+        return handleConnection(new MBeanServerConnectionReader<JmxNotificationMetadata>() {
+            @Override
+            public JmxNotificationMetadata read(final MBeanServerConnection connection) throws IOException, JMException {
+                if(options.containsKey(objectNameOption)){
+                    final ObjectName on = new ObjectName(options.get(objectNameOption));
+                    for(final MBeanNotificationInfo notificationInfo: connection.getMBeanInfo(on).getNotifications())
+                        if(Objects.equals(notificationInfo.getName(), category))
+                            return new JmxNotificationMetadata(notificationInfo, on, options);
+                    return null;
+                }
+                else return null;
+            }
+        }, null);
     }
 }
