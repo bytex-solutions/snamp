@@ -574,11 +574,14 @@ final class JmxConnector extends AbstractManagementConnector {
 
     private static final class JmxNotificationMetadata extends GenericNotificationMetadata{
         private final Map<String, String> options;
-        private final ObjectName eventOwner;
+        /**
+         * Represents owner of this notification metadata.
+         */
+        public final ObjectName eventOwner;
         private final MBeanNotificationInfo eventMetadata;
 
-        public JmxNotificationMetadata(final MBeanNotificationInfo notificationInfo, final ObjectName eventOwner, final Map<String, String> options){
-            super(notificationInfo.getName());
+        public JmxNotificationMetadata(final String notifType, final MBeanNotificationInfo notificationInfo, final ObjectName eventOwner, final Map<String, String> options){
+            super(notifType);
             this.options = Collections.unmodifiableMap(options);
             this.eventOwner = eventOwner;
             this.eventMetadata = notificationInfo;
@@ -660,12 +663,56 @@ final class JmxConnector extends AbstractManagementConnector {
                 if(options.containsKey(objectNameOption)){
                     final ObjectName on = new ObjectName(options.get(objectNameOption));
                     for(final MBeanNotificationInfo notificationInfo: connection.getMBeanInfo(on).getNotifications())
-                        if(Objects.equals(notificationInfo.getName(), category))
-                            return new JmxNotificationMetadata(notificationInfo, on, options);
+                        for(final String notifType: notificationInfo.getNotifTypes())
+                        if(Objects.equals(notifType, category))
+                            return new JmxNotificationMetadata(notifType, notificationInfo, on, options);
                     return null;
                 }
                 else return null;
             }
         }, null);
+    }
+
+    private final Object subscribeCore(final JmxNotificationMetadata notificationType, final NotificationListener<? extends Notification> listener){
+        return handleConnection(new MBeanServerConnectionReader<javax.management.NotificationListener>() {
+            @Override
+            public javax.management.NotificationListener read(final MBeanServerConnection connection) throws IOException, JMException {
+                final javax.management.NotificationListener jmxListener = new javax.management.NotificationListener(){
+                    @Override
+                    public void handleNotification(final javax.management.Notification notification, final Object handback) {
+                        //To change body of implemented methods use File | Settings | File Templates.
+                    }
+                };
+
+
+                connection.addNotificationListener(notificationType.eventOwner, new javax.management.NotificationListener(){
+                    @Override
+                    public void handleNotification(final javax.management.Notification notification, final Object handback) {
+
+                    }
+                },
+                new NotificationFilter() {
+                    @Override
+                    public boolean isNotificationEnabled(final javax.management.Notification notification) {
+                        return false;  //To change body of implemented methods use File | Settings | File Templates.
+                    }
+                },
+                null);
+                return null;
+            }
+        }, null);
+    }
+
+    /**
+     * Adds a new listener for the specified notification.
+     *
+     * @param notificationType The event type.
+     * @param listener         The event listener.
+     */
+    @Override
+    protected final Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener<? extends Notification> listener) {
+        return notificationType instanceof JmxNotificationMetadata ?
+                subscribeCore((JmxNotificationMetadata)notificationType, listener):
+                null;
     }
 }

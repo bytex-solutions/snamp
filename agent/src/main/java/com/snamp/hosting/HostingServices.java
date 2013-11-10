@@ -81,7 +81,7 @@ final class HostingServices {
      * @return
      */
     public static AgentManager getAgentManager(final String managerName){
-        return manager.getPlugin(AgentManager.class, new OptionCapabilities(AgentManagerBase.makeCapabilities(managerName)));
+        return manager.getPlugin(AgentManager.class, new OptionCapabilities(AbstractAgentManager.makeCapabilities(managerName)));
     }
 
     /**
