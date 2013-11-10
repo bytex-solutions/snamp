@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AgentManagerBase extends AbstractPlatformService implements AgentManager {
+public abstract class AbstractAgentManager extends AbstractPlatformService implements AgentManager {
     private final String managerName;
     private final ConcurrentResourceAccess<HostingContext> contextHolder;
     private boolean started;
@@ -31,7 +31,7 @@ public abstract class AgentManagerBase extends AbstractPlatformService implement
      * Initializes a new SNAMP manager.
      * @param managerName The name of the manager plug-in.
      */
-    protected AgentManagerBase(final String managerName){
+    protected AbstractAgentManager(final String managerName){
         super(getLogger(managerName));
         this.managerName = managerName;
         this.contextHolder = new ConcurrentResourceAccess<>(null);
