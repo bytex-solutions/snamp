@@ -4,6 +4,9 @@ import java.util.Map;
 
 /**
  * Represents attribute metadata,
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public interface AttributeMetadata extends Map<String, String> {
 

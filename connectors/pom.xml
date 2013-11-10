@@ -19,6 +19,6 @@
     </dependency>
   </dependencies>
   <modules>
-    <module>jmx</module>
+    <module>jmx-connector</module>
   </modules>
 </project>

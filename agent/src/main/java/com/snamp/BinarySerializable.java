@@ -3,21 +3,23 @@ package com.snamp;
 import java.io.*;
 
 /**
- * Represents a serializable object.
- * @author roman
+ * Represents an object that can store/restore its internal state from the stream.
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public interface BinarySerializable {
     /**
-     * Saves the current configuration into the specified stream.
-     * @param output
+     * Dumps the state of this object into the specified stream.
+     * @param output An output stream for writing object's internal state.
      * @throws UnsupportedOperationException Serialization is not supported.
-     * @throws java.io.IOException Cannot write to the specified stream.
+     * @throws IOException Cannot write to the specified stream.
      */
     public void save(final OutputStream output) throws IOException;
 
     /**
-     * Reads the file and fills the current instance.
-     * @param input
+     * Restores the state of this object from the specified stream.
+     * @param input An input streams that contains the serialized state of this object.
      * @throws UnsupportedOperationException Deserialization is not supported.
      * @throws IOException Cannot read from the specified stream.
      */

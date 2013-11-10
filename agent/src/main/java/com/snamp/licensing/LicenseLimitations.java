@@ -2,12 +2,16 @@ package com.snamp.licensing;
 
 /**
  * Represents license limitations.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public interface LicenseLimitations extends Iterable<String> {
     /**
      * Represents a limitation for the specified licensed object.
      * @param <T>
+     * @since 1.0
+     * @version 1.0
      */
     public static interface Limitation<T>{
         /**

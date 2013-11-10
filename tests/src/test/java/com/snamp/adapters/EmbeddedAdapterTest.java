@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
 public final class EmbeddedAdapterTest extends SnampClassTestSet<EmbeddedAdapter> {
     public static final class TestAdapter extends EmbeddedAdapter{
@@ -30,17 +30,17 @@ public final class EmbeddedAdapterTest extends SnampClassTestSet<EmbeddedAdapter
 
     @Test
     public final void embeddingTest() throws IntrospectionException {
-        final EmbeddedManagementConnector connector = EmbeddedManagementConnector.wrap(new Object(){
+        final ManagementConnectorBean connector = ManagementConnectorBean.wrap(new Object() {
             private int value;
 
-            public final int getProperty(){
+            public final int getProperty() {
                 return value;
             }
 
-            public final void setProperty(final int val){
+            public final void setProperty(final int val) {
                 value = val;
             }
-        }, new AttributePrimitiveTypeBuilder());
+        }, new WellKnownTypeSystem<>(EntityTypeInfoBuilder.AttributeTypeConverter.class));
         final TestAdapter adapter = new TestAdapter();
         adapter.exposeAttributes(connector, "", new HashMap<String, AttributeConfiguration>(){{
             put("0.1", new AttributeConfiguration() {

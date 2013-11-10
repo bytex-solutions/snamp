@@ -6,9 +6,7 @@ import com.snamp.hosting.AgentConfiguration;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
 {
@@ -21,7 +19,7 @@ public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
 
     protected AbstractJMXSimpleBeanTest() {
         oidPrefix = "1.1";
-        objectName = this.getClass().getPackage().getName() + ":type=" + this.getClass().getName();//"com.snampy.jmx:type=com.snamp.adapters.SimpleBean";
+        objectName = this.getClass().getPackage().getName() + ":type=" + this.getClass().getName();//"com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
         localHostPort = 161; //1161
         localJMXPort = 9010; //Integer.parseInt(System.getProperties().getProperty("com.sun.management.jmxremote.port"));
         attributes = new HashMap<>();
@@ -88,6 +86,20 @@ public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
                     @Override
                     public AttributeConfiguration newAttributeConfiguration() {
                         throw new UnsupportedOperationException();
+                    }
+
+                    /**
+                     * Creates an empty event configuration.
+                     * <p>
+                     * Usually, this method is used for adding new events in the collection
+                     * returned by {@link #getEvents()} method.
+                     * </p>
+                     *
+                     * @return An empty event configuration.
+                     */
+                    @Override
+                    public EventConfiguration newEventConfiguration() {
+                        return null;  //To change body of implemented methods use File | Settings | File Templates.
                     }
 
                     @Override
@@ -158,6 +170,16 @@ public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
                                 it.remove(); // avoids a ConcurrentModificationException
                             }
                         }};
+                    }
+
+                    /**
+                     * Returns the event sources.
+                     *
+                     * @return A set of event sources.
+                     */
+                    @Override
+                    public Set<EventConfiguration> getEvents() {
+                        return new HashSet<>();
                     }
 
                     @Override

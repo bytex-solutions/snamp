@@ -1,6 +1,6 @@
 package com.snamp.hosting.management;
 
-import com.snamp.ConcurrentResourceAccess;
+import com.snamp.*;
 
 import static com.snamp.ConcurrentResourceAccess.ConsistentReader;
 import static com.snamp.ConcurrentResourceAccess.Reader;
@@ -10,18 +10,41 @@ import com.snamp.ThreadSafety;
 import com.snamp.hosting.HostingContext;
 import net.xeoh.plugins.base.annotations.Capabilities;
 
+import java.util.logging.Logger;
+
 /**
- * @author roman
+ * Represents an abstract class for implementing custom SNAMP managers.
+ * <p>
+ *     The inherited class must be annotated with {@link net.xeoh.plugins.base.annotations.PluginImplementation},
+ *     and have parameterless constructor.
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
-public abstract class AgentManagerBase implements AgentManager {
+public abstract class AgentManagerBase extends AbstractPlatformService implements AgentManager {
     private final String managerName;
     private final ConcurrentResourceAccess<HostingContext> contextHolder;
     private boolean started;
 
+    /**
+     * Initializes a new SNAMP manager.
+     * @param managerName The name of the manager plug-in.
+     */
     protected AgentManagerBase(final String managerName){
+        super(getLogger(managerName));
         this.managerName = managerName;
         this.contextHolder = new ConcurrentResourceAccess<>(null);
         started = false;
+    }
+
+    /**
+     * Returns the logging infrastructure associated with the specified SNAMP manager.
+     * @param managerName The name of the manager.
+     * @return An instance of the logger associated with the specified SNAMP manager.
+     */
+    public static final Logger getLogger(final String managerName){
+        return Logger.getLogger(String.format("snamp.managers.%s.log", managerName));
     }
 
     /**
@@ -32,6 +55,14 @@ public abstract class AgentManagerBase implements AgentManager {
 
     }
 
+    /**
+     * Reads the aggregated object from the hosting context.
+     * @param reader Hosting context reader.
+     * @param <T> Type of the reading result.
+     * @param <E> Type of the exception that can be thrown by the reader.
+     * @return The object obtained from the hosting context.
+     * @throws E
+     */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     protected final <T, E extends Throwable> T readContext(final Reader<HostingContext, T, E> reader) throws E{
         return contextHolder.read(reader);
@@ -46,7 +77,6 @@ public abstract class AgentManagerBase implements AgentManager {
      * Starts the manager.
      *
      * @param context SNAMP hosting context.
-     * @return {@literal true} if manager is started successfully; otherwise, {@literal false}.
      */
     @Override
     @ThreadSafety(MethodThreadSafety.LOOP)
@@ -55,6 +85,9 @@ public abstract class AgentManagerBase implements AgentManager {
         startCore(context);
     }
 
+    /**
+     * Stops the manager.
+     */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     protected void stopCore(){
 

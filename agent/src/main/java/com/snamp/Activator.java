@@ -1,8 +1,11 @@
 package com.snamp;
 
 /**
- * Represents instance activator.
- * @author roman
+ * Represents lazy instance creator.
+ * @param <T> Type of the instance that can be created by activator.
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public interface Activator<T> {
     /**

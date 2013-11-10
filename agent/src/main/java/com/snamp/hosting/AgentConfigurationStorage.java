@@ -7,7 +7,7 @@ import java.util.Date;
 
 /**
  * Represents a storage for {@link AgentConfiguration} instance.
- * @author roman
+ * @author Roman Sakno
  */
 public interface AgentConfigurationStorage extends PlatformService {
     /**
@@ -20,21 +20,26 @@ public interface AgentConfigurationStorage extends PlatformService {
      */
     public static interface StoredAgentConfiguration{
         /**
-         * Gets tag name.
-         * @return
+         * Gets the tag name.
+         * @return The tag name of the persisted configuration.
          */
         public String tag();
 
         /**
-         *
-         * @return
+         * Returns the timestamp of the last modification of the persistence.
+         * @return The timestamp of the last modification of the persistence.
          */
         public Date lastModified();
+
+        /**
+         * Returns the date/when of the configuration creation.
+         * @return The date/when of the configuration creation.
+         */
         public Date firstModified();
 
         /**
          * Restores the configuration from the persistence.
-         * @return
+         * @return The restored configuration.
          */
         public AgentConfiguration restore() throws IOException;
     }
@@ -55,8 +60,8 @@ public interface AgentConfigurationStorage extends PlatformService {
 
     /**
      * Returns persistence information about agent configuration.
-     * @param tag
-     * @return
+     * @param tag The tag of the previously stored version
+     * @return The persisted version of the configuration.
      */
     public StoredAgentConfiguration getStoredAgentConfiguration(final String tag) throws IOException;
 }

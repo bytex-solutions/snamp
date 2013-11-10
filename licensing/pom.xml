@@ -47,17 +47,4 @@
       <version>1.0.2</version>
     </dependency>
   </dependencies>
-
-    <repositories>
-        <repository>
-            <id>jspfRepo</id>
-            <name>formreturn.com Repository</name>
-            <url>http://maven.formreturn.com/repository</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
 </project>

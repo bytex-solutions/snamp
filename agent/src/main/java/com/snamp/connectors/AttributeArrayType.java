@@ -7,25 +7,30 @@ import java.util.*;
 
 /**
  * Represents single-dimensional array type as table.
- * @author roman
+ * <p>
+ *     An array type of the attribute should be always represented by this class (or one of its derived classes).
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public class AttributeArrayType implements AttributeTabularType {
     /**
      * Represents name of the first column.
      */
-    public static final String indexColumnName = "Index";
+    public static final String INDEX_COLUMN_NAME = "Index";
 
     /**
      * Represents name of the second column.
      */
-    public static final String valueColumnName = "Value";
+    public static final String VALUE_COLUMN_NAME = "Value";
 
     /**
      * Represents a set of array columns (index and value).
      */
     public static final Set<String> columns = Collections.unmodifiableSet(new HashSet<String>(){{
-        add(indexColumnName);
-        add(valueColumnName);
+        add(INDEX_COLUMN_NAME);
+        add(VALUE_COLUMN_NAME);
     }});
 
     /**
@@ -55,23 +60,34 @@ public class AttributeArrayType implements AttributeTabularType {
 
     /**
      * Returns the type of the array index column.
-     * @return
+     * <p>
+     *     In the default implementation, this method always returns value
+     *     returned by {@link WellKnownTypeSystem#createInt32Type()} method.
+     * </p>
+     * @return The type of the array index column.
      */
-    protected AttributeJavaTypeInfo<? extends Number> getIndexColumnType(){
-        final AttributePrimitiveTypeBuilder builder = new AttributePrimitiveTypeBuilder();
+    protected AttributeTypeInfo getIndexColumnType(){
+        final WellKnownTypeSystem<AttributeTypeInfo> builder = new WellKnownTypeSystem<>(AttributeTypeInfo.class);
         return builder.createInt32Type();
     }
 
     /**
      * Returns the type of the column.
-     * @param columnName
-     * @return
+     * <p>
+     *     There is only two available column names:
+     *     <ul>
+     *         <li>{@link #INDEX_COLUMN_NAME} that represents column containing array index.</li>
+     *         <li>{@link #VALUE_COLUMN_NAME} that represents column containing array element.</li>
+     *     </ul>
+     * </p>
+     * @param columnName The name of the column.
+     * @return The column type.
      */
     @Override
     public final AttributeTypeInfo getColumnType(final String columnName) {
         switch (columnName){
-            case indexColumnName: getIndexColumnType();
-            case valueColumnName: return elementType;
+            case INDEX_COLUMN_NAME: getIndexColumnType();
+            case VALUE_COLUMN_NAME: return elementType;
             default: return null;
         }
     }
@@ -89,8 +105,8 @@ public class AttributeArrayType implements AttributeTabularType {
 
     /**
      * Determines whether the specified object is an array.
-     * @param obj
-     * @return
+     * @param obj An object to test.
+     * @return {@literal true}, if the specified object is array; otherwise, {@literal false}.
      */
     public static boolean isArray(final Object obj) {
         return obj != null && obj.getClass().isArray();
@@ -101,22 +117,21 @@ public class AttributeArrayType implements AttributeTabularType {
      *
      * @param target The result of the conversion.
      * @param <T>    The type of the conversion result.
-     * @return {@literal true}, if conversion to the specified type is supported.
+     * @return {@literal true}, if conversion to the specified type is supported; otherwise, {@literal false}.
      */
     @Override
     public <T> boolean canConvertTo(final Class<T> target) {
         return Object.class == target ||
-                String.class == target ||
                 Table.class == target ||
                 (target.isArray() && elementType.canConvertFrom(target.getComponentType()));
     }
 
     /**
      * Converts the attribute value to thw array.
-     * @param value
-     * @param destinationElementType
-     * @param <T>
-     * @return
+     * @param value The value to be converted into the array.
+     * @param destinationElementType The type of the result array element.
+     * @param <T> Type of the array element.
+     * @return A new array constructed from the specified source value.
      */
     protected <T> T[] convertToArray(final Object value, final Class<T> destinationElementType) throws IllegalArgumentException{
         if(isArray(value)){
@@ -131,22 +146,22 @@ public class AttributeArrayType implements AttributeTabularType {
 
     protected Table<String> convertToTable(final Object value){
         final Table<String> result = new SimpleTable<String>(new HashMap<String, Class<?>>(2){{
-            put(indexColumnName, Integer.class);
-            put(valueColumnName, Object.class);
+            put(INDEX_COLUMN_NAME, Integer.class);
+            put(VALUE_COLUMN_NAME, Object.class);
         }});
         if(isArray(value))
             for(int i = 0; i < Array.getLength(value); i++){
                 final Map<String, Object> row = new HashMap<>(2);
-                row.put(indexColumnName, i);
-                row.put(valueColumnName, Array.get(value, i));
+                row.put(INDEX_COLUMN_NAME, i);
+                row.put(VALUE_COLUMN_NAME, Array.get(value, i));
                 result.addRow(row);
             }
         else if(value instanceof List){
             final List<?> lst = (List<?>)value;
             for(int i = 0; i < lst.size(); i++){
                 final Map<String, Object> row = new HashMap<>(2);
-                row.put(indexColumnName, i);
-                row.put(valueColumnName, lst.get(i));
+                row.put(INDEX_COLUMN_NAME, i);
+                row.put(VALUE_COLUMN_NAME, lst.get(i));
                 result.addRow(row);
             }
         }
@@ -182,6 +197,6 @@ public class AttributeArrayType implements AttributeTabularType {
      */
     @Override
     public <T> boolean canConvertFrom(final Class<T> source) {
-        return Table.class == source || (source.isArray() && elementType.canConvertFrom(source.getComponentType()));
+        return (source != null) && (Table.class.isAssignableFrom(source) || source.isArray());
     }
 }

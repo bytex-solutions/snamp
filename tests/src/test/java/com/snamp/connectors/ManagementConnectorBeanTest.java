@@ -9,18 +9,18 @@ import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Represents tests for {@link EmbeddedManagementConnector} class.
- * @author roman
+ * Represents tests for {@link ManagementConnectorBean} class.
+ * @author Roman Sakno
  */
-public final class ManagementConnectorBeanTest extends SnampClassTestSet<EmbeddedManagementConnector> {
+public final class ManagementConnectorBeanTest extends SnampClassTestSet<ManagementConnectorBean> {
 
-    private static final class TestManagementConnectorBeanTest extends EmbeddedManagementConnector {
+    private static final class TestManagementConnectorBeanTest extends ManagementConnectorBean {
         private String field1;
         private int field2;
         private boolean field3;
 
         public TestManagementConnectorBeanTest() throws IntrospectionException {
-            super(new AttributePrimitiveTypeBuilder());
+            super(new WellKnownTypeSystem<>(EntityTypeInfoBuilder.AttributeTypeConverter.class));
         }
 
         public final String getProperty1(){
@@ -65,7 +65,7 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Embedde
 
     @Test
     public final void testAnonymousBean() throws IntrospectionException, TimeoutException{
-        final ManagementConnector mc = EmbeddedManagementConnector.wrap(new Object() {
+        final ManagementConnector mc = ManagementConnectorBean.wrap(new Object() {
             private int simpleField;
 
             public final int getProperty() {
@@ -75,7 +75,7 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Embedde
             public final void setProperty(int value) {
                 simpleField = value;
             }
-        }, new AttributePrimitiveTypeBuilder());
+        }, new WellKnownTypeSystem<>(EntityTypeInfoBuilder.AttributeTypeConverter.class));
         mc.connectAttribute("1", "property", new HashMap<String, String>());
         mc.setAttribute("1", TimeSpan.INFINITE, 42);
         assertEquals(42, mc.getAttribute("1", TimeSpan.INFINITE, 0));

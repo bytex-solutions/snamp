@@ -1,5 +1,6 @@
 package com.snamp.hosting;
 
+import com.snamp.AbstractPlatformService;
 import com.snamp.hosting.management.AgentManager;
 
 import java.io.*;
@@ -9,18 +10,20 @@ import java.util.*;
 
 /**
  * Represents application startup.
- * @author roman
+ * @author Roman Sakno
  */
 final class Startup implements HostingContext {
+    private static final String CONFIG_STORAGE_LOG_NAME = "com.snamp.configuration.storage";
+
     /**
      * Represents memory-based configuration storage,
      */
-    private final static class MemoryConfigurationStorage implements AgentConfigurationStorage{
+    private final static class MemoryConfigurationStorage extends AbstractPlatformService implements AgentConfigurationStorage{
 
         private StoredAgentConfiguration storedConfig;
 
         public MemoryConfigurationStorage(){
-            storedConfig = null;
+            super(CONFIG_STORAGE_LOG_NAME);
         }
 
         /**
@@ -90,12 +93,13 @@ final class Startup implements HostingContext {
     /**
      * Represents file-based configuration storage.
      */
-    private final static class FileConfigurationStorage implements AgentConfigurationStorage{
+    private final static class FileConfigurationStorage extends AbstractPlatformService implements AgentConfigurationStorage{
 
         private final ConfigurationFormat format;
         private final Path configurationFile;
 
         public FileConfigurationStorage(final String fileName, final ConfigurationFormat format){
+            super(CONFIG_STORAGE_LOG_NAME);
             this.configurationFile = Paths.get(fileName);
             this.format = format;
         }
@@ -194,14 +198,14 @@ final class Startup implements HostingContext {
     /**
      * Retrieves the service instance.
      *
-     * @param serviceType Type of the requested service.
+     * @param objectType Type of the requested service.
      * @param <T>         Type of the required service.
      * @return An instance of the requested service; or {@literal null} if service is not available.
      */
     @Override
-    public final  <T> T getService(final Class<T> serviceType) {
-        if(AGENT_SERVICE == serviceType) return (T)agnt;
-        else if(CONFIG_STORAGE == serviceType) return (T)configurationStorage;
+    public final  <T> T queryObject(final Class<T> objectType) {
+        if(AGENT == objectType) return (T)agnt;
+        else if(CONFIG_STORAGE == objectType) return (T)configurationStorage;
         else return null;
     }
 }

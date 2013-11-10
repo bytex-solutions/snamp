@@ -3,7 +3,7 @@ package com.snamp;
 import org.junit.Test;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
 public final class RangeTest extends SnampClassTestSet<Range<?>> {
     @Test

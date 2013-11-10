@@ -20,7 +20,7 @@ import static javax.xml.crypto.dsig.CanonicalizationMethod.INCLUSIVE_WITH_COMMEN
 
 /**
  * Represents license manager.
- * @author roman
+ * @author Roman Sakno
  */
 public final class LicenseManager {
     private static void displayHelp(){

@@ -20,5 +20,7 @@ managementTargets:
   defaultTimeout: 7000
   attributes:
   - {name: name, id: '1.2.3'}
+  events:
+  - {category: attributeChanged, all: 'true'}
   random: 'random2'
   random1: 'random5'

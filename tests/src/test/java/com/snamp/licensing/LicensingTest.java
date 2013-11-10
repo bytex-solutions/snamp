@@ -7,7 +7,7 @@ import org.junit.Test;
 
 /**
  * Represents SNAMP licensing infrastructure tests.
- * @author roman
+ * @author Roman Sakno
  */
 public final class LicensingTest extends SnampTestSet {
 
@@ -15,7 +15,7 @@ public final class LicensingTest extends SnampTestSet {
     public void jmxConnectorLicenseLimitations() throws ClassNotFoundException {
         JmxConnectorLimitations.current().verifyMaxAttributeCount(10);
         JmxConnectorLimitations.current().verifyMaxInstanceCount(10);
-        //JmxConnectorLimitations.current().verifyPluginVersion((Class<ManagementConnectorFactoryBase>)Class.forName("com.snamp.connectors.jmx.JmxConnectorFactory"));
+        //JmxConnectorLimitations.current().verifyPluginVersion((Class<AbstractManagementConnectorFactory>)Class.forName("com.snamp.connectors.jmx.JmxConnectorFactory"));
     }
 
     @Test(expected = LicensingException.class)

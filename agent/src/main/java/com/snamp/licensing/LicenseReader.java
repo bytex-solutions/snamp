@@ -22,7 +22,9 @@ import java.util.logging.*;
 
 /**
  * Represents license reader for SNAMP license consumers.
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public final class LicenseReader {
     private static final Logger log = Logger.getLogger("com.snamp.licensing");

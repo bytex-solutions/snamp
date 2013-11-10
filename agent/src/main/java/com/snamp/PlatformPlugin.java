@@ -3,8 +3,13 @@ package com.snamp;
 import net.xeoh.plugins.base.Plugin;
 
 /**
- * Represents SNAMP plugin.
- * @author roman
+ * Represents SNAMP platform plug-in.<br/>
+ * <p>
+ *     The implementer class should be annotated with {@link net.xeoh.plugins.base.annotations.PluginImplementation}.
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public interface PlatformPlugin extends PlatformService, Plugin {
 }

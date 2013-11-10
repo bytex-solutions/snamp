@@ -61,6 +61,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+          <groupId>com.snamp</groupId>
+          <artifactId>rest-adapter</artifactId>
+          <version>0.1.1</version>
+          <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.snamp</groupId>
       <artifactId>snmp</artifactId>
       <version>0.1.1</version>

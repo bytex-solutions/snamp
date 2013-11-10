@@ -2,42 +2,19 @@ package com.snamp.adapters;
 
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
+import com.snamp.connectors.util.AbstractAttributesRegistry;
+import com.snamp.connectors.util.ConnectedAttributes;
+
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
-import java.beans.*;
 import java.io.IOException;
-import java.lang.annotation.*;
-import java.lang.reflect.*;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 
 /**
- * @author roman
+ * @author Roman Sakno
  */
-public class EmbeddedAdapter extends AdapterBase {
-
-    private static final class ExposedAttributes extends HashMap<String, AttributeMetadata>{
-        private final ManagementConnector connector;
-
-        public ExposedAttributes(final ManagementConnector connector){
-            this.connector = connector;
-        }
-
-        public final <T> T getValue(final String namespace, final String attributeId, final Class<T> returnType, final T defaultValue) throws TimeoutException {
-            final Object value = connector.getAttribute(makeAttributeID(namespace, attributeId), TimeSpan.INFINITE, defaultValue);
-            return get(attributeId).getAttributeType().convertTo(value, returnType);
-        }
-
-        public final boolean setValue(final String namespace, final String attributeId, final Object value) throws TimeoutException {
-            return connector.setAttribute(makeAttributeID(namespace, attributeId), TimeSpan.INFINITE, value);
-        }
-
-        public static final String makeAttributeID(final String namespace, final String id){
-            return String.format("%s/%s", namespace, id);
-        }
-    }
-
-    private final Map<String, ExposedAttributes> attributes;
+public class EmbeddedAdapter extends AbstractAdapter {
+    private final AbstractAttributesRegistry attributes;
 
     /**
      * Initializes a new instance of the adapter.
@@ -46,7 +23,17 @@ public class EmbeddedAdapter extends AdapterBase {
      */
     public EmbeddedAdapter(final String adapterName) {
         super(adapterName);
-        attributes = new HashMap<>(10);
+        attributes = new AbstractAttributesRegistry() {
+            @Override
+            protected ConnectedAttributes createBinding(final ManagementConnector connector) {
+                return new ConnectedAttributes(connector) {
+                    @Override
+                    public String makeAttributeId(final String prefix, final String postfix) {
+                        return String.format("%s/%s", prefix, postfix);
+                    }
+                };
+            }
+        };
     }
 
     /**
@@ -83,42 +70,15 @@ public class EmbeddedAdapter extends AdapterBase {
      */
     @Override
     public final void exposeAttributes(final ManagementConnector connector, final String namespace, final Map<String, AttributeConfiguration> attributes) {
-        final ExposedAttributes exposedAttrs;
-        this.attributes.put(namespace, exposedAttrs = new ExposedAttributes(connector));
-        for(final String attributeId: attributes.keySet()){
-            final AttributeConfiguration attributeConfig = attributes.get(attributeId);
-            final AttributeMetadata md = connector.connectAttribute(ExposedAttributes.makeAttributeID(namespace, attributeId), attributeConfig.getAttributeName(), attributeConfig.getAdditionalElements());
-
-            if(md != null)
-                exposedAttrs.put(attributeId, md);
-        }
+        this.attributes.putAll(connector, namespace, attributes);
     }
 
     protected final <T> T getAttribute(final String namespace, final String id, final Class<T> attributeType, final T defaultValue){
-        if(attributes.containsKey(namespace)){
-            final ExposedAttributes attrs = attributes.get(namespace);
-            if(attrs.containsKey(id))
-                try {
-                    return attrs.getValue(namespace, id, attributeType, defaultValue);
-                }
-                catch (final TimeoutException e) {
-                    return defaultValue;
-                }
-        }
-        return defaultValue;
+        return this.attributes.getAttribute(namespace, id, attributeType, defaultValue, TimeSpan.INFINITE);
     }
 
     protected final boolean setAttribute(final String namespace, final String id, final Object value){
-        if(attributes.containsKey(namespace)){
-            final ExposedAttributes attrs = attributes.get(namespace);
-            if(attrs.containsKey(id))
-                try {
-                    return attrs.setValue(namespace, id, value);
-                } catch (final TimeoutException e) {
-                    return false;
-                }
-        }
-        return false;
+        return this.attributes.setAttribute(namespace, id, value, TimeSpan.INFINITE);
     }
 
 

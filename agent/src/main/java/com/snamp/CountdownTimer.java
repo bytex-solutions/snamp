@@ -5,9 +5,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Represents countdown timer that can be used to compute timeout.
- * @author roman
+ * Represents countdown timer that can be used to compute time intervals.
+ * @author Roman Sakno
+ * @version 1.0
+ * @since 1.0
  */
+@Internal
 public class CountdownTimer {
     private TimeSpan elapsed;
     private Date beginning;
@@ -34,8 +37,8 @@ public class CountdownTimer {
     }
 
     /**
-     * Returns elapsed time.
-     * @return
+     * Returns the elapsed time.
+     * @return The elapsed time.
      */
     public final TimeSpan getElapsedTime(){
         return elapsed;
@@ -43,7 +46,7 @@ public class CountdownTimer {
 
     /**
      * Determines whether the timer is launched.
-     * @return
+     * @return The timer is launched.
      */
     public final boolean isStarted(){
         return beginning != null;
@@ -51,7 +54,7 @@ public class CountdownTimer {
 
     /**
      * Determines whether the timer is empty.
-     * @return
+     * @return The timer is empty.
      */
     public final boolean isEmpty(){
         return elapsed.duration <= 0L;
@@ -70,8 +73,8 @@ public class CountdownTimer {
     /**
      * Starts the timer.
      * @param timeoutException
-     * @return
-     * @throws TimeoutException
+     * @return {@literal true}, if timer started successfully; otherwise, {@literal false}.
+     * @throws TimeoutException Attempts to start empty timer.
      */
     public final boolean start(final Activator<TimeoutException> timeoutException) throws TimeoutException{
         if(timeoutException == null) return start();
@@ -105,8 +108,8 @@ public class CountdownTimer {
 
     /**
      * Determines whether the current timer contains the same elapsed time as other.
-     * @param timer
-     * @return
+     * @param timer The timer to compare.
+     * @return {@literal true}, if the specified object equals to this timer; otherwise, {@literal false}.
      */
     public final boolean equals(final CountdownTimer timer){
         return timer!=null && elapsed.equals(timer.elapsed);
@@ -114,11 +117,11 @@ public class CountdownTimer {
 
     /**
      * Determines whether the current timer contains the same elapsed time as other.
-     * @param obj
-     * @return
+     * @param timer The timer to compare.
+     * @return {@literal true}, if the specified object equals to this timer; otherwise, {@literal false}.
      */
     @Override
-    public final boolean equals(final Object obj){
-        return obj instanceof CountdownTimer && equals((CountdownTimer)obj);
+    public final boolean equals(final Object timer){
+        return timer instanceof CountdownTimer && equals((CountdownTimer)timer);
     }
 }

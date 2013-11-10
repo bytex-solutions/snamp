@@ -1,13 +1,19 @@
 package com.snamp.connectors;
 
-import com.snamp.PlatformPlugin;
+import com.snamp.*;
 
 import java.util.Map;
 
 /**
  * Represents management connector factory.
- * @author roman
+ * <p>
+ *     The implementer class should have parameterless constructor and annotated with {@link net.xeoh.plugins.base.annotations.PluginImplementation}.
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
+@Lifecycle(InstanceLifecycle.SINGLE_PER_PROCESS)
 public interface ManagementConnectorFactory extends PlatformPlugin {
     /**
      * Creates a new instance of the connector.

@@ -1,6 +1,6 @@
 package com.snamp.hosting;
 
-import com.snamp.PlatformService;
+import com.snamp.*;
 import com.snamp.adapters.*;
 import com.snamp.connectors.*;
 
@@ -9,21 +9,56 @@ import java.util.*;
 import java.util.logging.*;
 
 /**
- * Represents agent host.
- * @author roman
+ * Represents SNAMP hosting agent that provides interoperability between adapter and connectors.
+ * <p>
+ *     This class accepts the SNAMP configuration and instantiates necessary adapters and connectors,
+ *     and provides communication between them. An instance of this class should be created once per calling process.
+ * </p>
+ * <p>
+ *     Also, this class is an entry point for embedding SNAMP into your application.<br/>
+ *     <pre>{@code
+ *     //restores the configuration from the file
+ *     final AgentConfiguration config = ConfigurationFormat.YAML.newAgentConfiguration();
+ *     config.load(fileStream);
+ *     try(final Agent ag = new Agent(config.getHostingConfiguration())){
+ *       ag.start(config.getTargets());
+ *     }
+ *     }</pre>
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
-public final class Agent implements AutoCloseable, PlatformService {
-    private static final Logger log = Logger.getLogger("snamp.log");
+@Internal
+@Lifecycle(InstanceLifecycle.SINGLE_PER_PROCESS)
+public final class Agent extends AbstractPlatformService implements AutoCloseable {
+    private static final Logger logger = Logger.getLogger("com.snamp");
+    /**
+     * Represents a map of instantiated management connector.
+     */
+    public static interface InstantiatedConnectors extends Map<String, ManagementConnector>{
+
+    }
+
+    private static final class InstantiatedConnectorsImpl extends HashMap<String, ManagementConnector> implements InstantiatedConnectors{
+        public InstantiatedConnectorsImpl(){
+            super(4);
+        }
+    }
+
+    @Aggregation
     private Adapter adapter;
     private final Map<String, String> params;
-    private final Map<String, ManagementConnector> connectors;
+    @Aggregation
+    private final InstantiatedConnectors connectors;
     private boolean started;
 
     private Agent(final Adapter adapter, final Map<String, String> hostingParams){
+        super(logger);
         if(adapter == null) throw new IllegalArgumentException("Adapter is not available");
         else this.adapter = adapter;
         this.params = hostingParams != null ? new HashMap<String, String>(hostingParams) : new HashMap<String, String>();
-        this.connectors = new HashMap<>(4);
+        this.connectors = new InstantiatedConnectorsImpl();
         started = false;
     }
 
@@ -46,11 +81,14 @@ public final class Agent implements AutoCloseable, PlatformService {
 
     /**
      * Reconfigures the agent.
-     * @param hostingConfig
+     * <p>
+     *     You should call {@link #stop()} before invocation of this method.
+     * </p>
+     * @param hostingConfig A new configuration of the adapter.
      * @throws IllegalArgumentException hostingConfig is {@literal null}.
      * @throws IllegalStateException Attempts to reconfigure agent in the started state.
      */
-    public void reconfigure(final AgentConfiguration.HostingConfiguration hostingConfig) {
+    public final void reconfigure(final AgentConfiguration.HostingConfiguration hostingConfig) {
         if(hostingConfig == null) throw new IllegalArgumentException("hostingConfig is null.");
         if(started) throw new IllegalStateException("The agent must be in stopped state.");
         final Adapter ad = HostingServices.getAdapter(hostingConfig.getAdapterName());
@@ -63,7 +101,7 @@ public final class Agent implements AutoCloseable, PlatformService {
 
     private void registerTarget(final AgentConfiguration.ManagementTargetConfiguration targetConfig){
         if(targetConfig == null){
-            log.fine("Unexpected empty management target configuration");
+            logger.info("Unexpected empty management target configuration");
             return;
         }
         //loads the management connector
@@ -74,35 +112,48 @@ public final class Agent implements AutoCloseable, PlatformService {
         else {
             final ManagementConnectorFactory factory = HostingServices.getManagementConnectorFactory(targetConfig.getConnectionType());
             if(factory == null){
-                log.warning(String.format("Management connector %s is not installed.", targetConfig.getConnectionType()));
+                logger.warning(String.format("Management connector %s is not installed.", targetConfig.getConnectionType()));
                 return;
             }
             connector = factory.newInstance(targetConfig.getConnectionString(), targetConfig.getAdditionalElements());
             if(connector == null){
-                log.warning(String.format("Management connector %s is not installed.", targetConfig.getConnectionType()));
+                logger.warning(String.format("Management connector %s is not installed.", targetConfig.getConnectionType()));
                 return;
             }
         }
+        //register attributes
         adapter.exposeAttributes(connector, targetConfig.getNamespace(), targetConfig.getAttributes());
+        //register events
+        adapter.exposeEvents(connector, targetConfig.getEvents());
     }
 
+    /**
+     * Starts the hosting of the instantiated adapter and connectors.
+     * @param targets The configuration of connectors.
+     * @return {@literal true}, if agent is started successfully; otherwise, {@literal false}.
+     * @throws IOException The adapter cannot be instantiated. See logs for more information.
+     */
     public final boolean start(final Map<String, AgentConfiguration.ManagementTargetConfiguration> targets) throws IOException {
         if(started) return false;
         else if(targets == null) return start(new HashMap<String, AgentConfiguration.ManagementTargetConfiguration>());
         else for(final String targetName: targets.keySet()){
-            log.fine(String.format("Registering %s management target", targetName));
+            logger.fine(String.format("Registering %s management target", targetName));
             registerTarget(targets.get(targetName));
         }
         return adapter.start(params);
     }
 
+    /**
+     * Stops the hosting of instantiated adapter and connectors.
+     * @return {@literal true}, if agent is stopped successfully; otherwise, {@literal false}.
+     */
     public final boolean stop(){
         return adapter.stop(true);
     }
 
     /**
      * Executes the agent in the caller process.
-     * @param configuration The hosting configurtion.
+     * @param configuration The hosting configuration.
      * @return An instance of the hosting sandbox (it is not useful for interracial mode).
      */
     static Agent start(final AgentConfiguration configuration){
@@ -112,7 +163,7 @@ public final class Agent implements AutoCloseable, PlatformService {
             return engine;
         }
         catch (final Exception e){
-            log.log(Level.SEVERE, "Unable to start SNAMP", e);
+            logger.log(Level.SEVERE, "Unable to start SNAMP", e);
             return null;
         }
     }
@@ -126,7 +177,7 @@ public final class Agent implements AutoCloseable, PlatformService {
     }
 
     /**
-     * Releases all resources associated
+     * Releases all resources associated with this instance of agent.
      */
     @Override
     public void close() throws Exception{

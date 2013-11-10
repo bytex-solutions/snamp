@@ -5,7 +5,9 @@ import java.util.*;
 
 /**
  * Represents action invocation arguments,
- * @author roman
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public final class Arguments extends HashMap<String, Object> implements Serializable {
     static final long serialVersionUID = -1242599979055084673L;

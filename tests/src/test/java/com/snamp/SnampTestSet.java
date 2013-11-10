@@ -5,7 +5,7 @@ import org.junit.Assert;
 
 /**
  * Represents an abstract class for building SNAMP tests.
- * @author roman
+ * @author Roman Sakno
  */
 public abstract class SnampTestSet extends Assert {
     public static final String TEST_LICENCE_FILE = "unlimited.lic";

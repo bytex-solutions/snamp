@@ -3,11 +3,32 @@ package com.snamp.hosting;
 import com.snamp.*;
 
 import java.io.*;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Represents agent configuration.
- * @author roman
+ * Represents in-memory representation of the agent configuration.
+ * <p>The agent configuration consists of the following parts:
+ * <ul>
+ *     <li>Hosting configuration - contains configuration of the adapter.</li>
+ *     <li>Management targets - set of management information sources.</li>
+ * </ul><br/>
+ * Hosting configuration describes configuration of the adapter, that exposes
+ * the management information to the outside world.
+ * This configuration part contains adapter name (name of the Adapter Plug-in) and
+ * additional elements, such as port number and host name.<br/>
+ * Each management target contains information about management information source in the form
+ * of the following elements:
+ * <ul>
+ *     <li>Connection string - source-specific string, that describes management information source.</li>
+ *     <li>Connection type - name of the connector plug-in that is used to organize management information exchange with source.</li>
+ *     <li>Management attributes - a set of atomic management entity that supplies management data.</li>
+ * </ul><br/>
+ * Each management attribute describes the single entry in the remote management information database. This
+ * entry can have getter or setter for its value.
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public interface AgentConfiguration extends BinarySerializable, Cloneable {
     /**
@@ -16,7 +37,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
     public static interface HostingConfiguration {
         /**
          * Gets the hosting adapter name.
-         * @return
+         * @return The hosting adapter name.
          */
         public String getAdapterName();
 
@@ -28,14 +49,14 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
 
         /**
          * Returns a dictionary of hosting parameters, such as port and hosting address.
-         * @return
+         * @return The map of additional configuration elements.
          */
         public Map<String, String> getHostingParams();
     }
 
     /**
-     * Creates clone of the current configuration.
-     * @return
+     * Creates clone of this configuration.
+     * @return The cloned instance of this configuration.
      */
     public AgentConfiguration clone();
 
@@ -45,12 +66,35 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
     public static interface ManagementTargetConfiguration {
 
         /**
+         * Represents event configuration.
+         */
+        public static interface EventConfiguration{
+            /**
+             * Gets the event category.
+             * @return The event category.
+             */
+            public String getCategory();
+
+            /**
+             * Sets the category of the event to listen.
+             * @param eventCategory The category of the event to listen.
+             */
+            public void setCategory(final String eventCategory);
+
+            /**
+             * Gets a map of event options.
+             * @return The map of event options.
+             */
+            public Map<String, String> getAdditionalElements();
+        }
+
+        /**
          * Represents attribute configuration.
          */
         public static interface AttributeConfiguration {
             /**
              * Gets attribute value read/write operation timeout.
-             * @return
+             * @return Gets attribute value read/write operation timeout.
              */
             public TimeSpan getReadWriteTimeout();
 
@@ -73,7 +117,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
 
             /**
              * Returns the additional configuration elements.
-             * @return
+             * @return The map of additional configuration elements.
              */
             public Map<String, String> getAdditionalElements();
         }
@@ -122,6 +166,11 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
          */
         public Map<String, AttributeConfiguration> getAttributes();
 
+        /**
+         * Returns the event sources.
+         * @return A set of event sources.
+         */
+        public Set<EventConfiguration> getEvents();
 
         /**
          * Returns the dictionary of additional configuration elements.
@@ -130,10 +179,24 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
         public Map<String, String> getAdditionalElements();
 
         /**
-         * Empty implementation of AttributeConfiguration interface
-         * @return implementation of AttributeConfiguration interface
+         * Creates an empty attribute configuration.
+         * <p>
+         *     Usually, this method is used for adding new attributes in the map
+         *     returned by {@link #getAttributes()} method.
+         * </p>
+         * @return An empty attribute configuration.
          */
         public AttributeConfiguration newAttributeConfiguration();
+
+        /**
+         * Creates an empty event configuration.
+         * <p>
+         *     Usually, this method is used for adding new events in the collection
+         *     returned by {@link #getEvents()} method.
+         * </p>
+         * @return An empty event configuration.
+         */
+        public EventConfiguration newEventConfiguration();
     }
 
     /**
@@ -174,7 +237,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
 
     /**
      * Imports the state of specified object into this object.
-     * @param input
+     * @param input The import source.
      */
     public void load(final AgentConfiguration input);
 }
