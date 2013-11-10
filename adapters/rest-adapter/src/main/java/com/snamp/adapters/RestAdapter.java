@@ -1,6 +1,9 @@
 package com.snamp.adapters;
 
 import com.snamp.connectors.ManagementConnector;
+import com.snamp.connectors.util.AbstractAttributesRegistry;
+import com.snamp.connectors.util.AttributesRegistry;
+import com.snamp.connectors.util.ConnectedAttributes;
 import com.snamp.hosting.AgentConfiguration;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import org.eclipse.jetty.server.*;

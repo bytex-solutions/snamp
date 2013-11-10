@@ -1,4 +1,4 @@
-package com.snamp.adapters;
+package com.snamp.connectors.util;
 
 import com.snamp.Internal;
 

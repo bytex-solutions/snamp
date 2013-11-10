@@ -5,7 +5,6 @@ import com.snamp.Table;
 
 import javax.management.openmbean.*;
 import java.lang.reflect.Array;
-import java.math.*;
 import java.util.*;
 
 /**

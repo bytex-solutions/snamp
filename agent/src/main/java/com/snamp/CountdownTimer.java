@@ -7,6 +7,8 @@ import java.util.concurrent.TimeoutException;
 /**
  * Represents countdown timer that can be used to compute time intervals.
  * @author Roman Sakno
+ * @version 1.0
+ * @since 1.0
  */
 @Internal
 public class CountdownTimer {
