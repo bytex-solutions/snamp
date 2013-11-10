@@ -614,9 +614,10 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      * Adds a new listener for the specified notification.
      * @param notificationType The event type.
      * @param listener The event listener.
+     * @return Any custom data associated with the subscription.
      */
-    protected void subscribeCore(final NotificationMetadata notificationType, final NotificationListener<? extends Notification> listener){
-
+    protected Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener<? extends Notification> listener){
+        return null;
     }
 
     /**
@@ -644,8 +645,10 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      * Cancels the notification listening.
      * @param metadata The event type.
      * @param listener The notification listener to remove.
+     * @param data The custom data associated with subscription that returned from {@link #subscribeCore(NotificationMetadata, NotificationListener)}
+     *             method.
      */
-    protected void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener){
+    protected void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data){
 
     }
 
