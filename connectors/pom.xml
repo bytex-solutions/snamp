@@ -20,5 +20,6 @@
   </dependencies>
   <modules>
     <module>jmx-connector</module>
+    <module>ibmwmb-connector</module>
   </modules>
 </project>

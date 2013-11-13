@@ -285,7 +285,8 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     /**
      *  Throws an exception if the connector is not initialized.
      */
-    protected abstract void verifyInitialization();
+    // TODO: Architecture bug? Why no "throw" at declaration?
+    protected abstract void verifyInitialization(); //throws Exception;
 
     /**
      * Connects to the specified attribute.
