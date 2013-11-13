@@ -1,6 +1,5 @@
 package com.snamp.connectors;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -18,7 +17,7 @@ public class IbmWmbConnectorFactory extends AbstractManagementConnectorFactory<I
      * @throws IllegalArgumentException
      *          connectorName is null.
      */
-    protected IbmWmbConnector(String connectorName)
+    protected IbmWmbConnectorFactory(String connectorName)
     {
         super(connectorName);
     }
@@ -27,10 +26,10 @@ public class IbmWmbConnectorFactory extends AbstractManagementConnectorFactory<I
     public IbmWmbConnector newInstance(String connectionString, Map<String, String> env)
     {
         try {
-            return new IbmWmbConnector(env);
+            return new IbmWmbConnector(env, new IbmWmbTypeSystem());
         }
         catch (Exception e) {
-            getLogger().log(Level.SEVERE, "Unable to create IBM MQ connector", e);
+            getLogger().log(Level.SEVERE, "Unable to create IBM WMB connector", e);
         return null;
     }
     }
