@@ -1,6 +1,7 @@
 package com.snamp.adapters;
 
 import com.google.gson.*;
+import com.snamp.Temporary;
 import com.snamp.connectors.*;
 import static com.snamp.hosting.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration;
 import org.junit.Test;
@@ -23,12 +24,12 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         put(Adapter.portParamName, "3222");
         put(Adapter.addressParamName, "127.0.0.1");
     }};
-    private static final String BEAN_NAME = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
+
 
     private final Gson jsonFormatter;
 
     public RestAdapterTest() throws MalformedObjectNameException {
-        super("rest", restAdapterSettings, new TestManagementBean(), new ObjectName(BEAN_NAME));
+        super("rest", restAdapterSettings, new TestManagementBean(), new ObjectName(TestManagementBean.BEAN_NAME));
         jsonFormatter = new Gson();
     }
 
@@ -189,32 +190,33 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
 
     @Override
     protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes) {
+        @Temporary
         EmbeddedAttributeConfiguration attribute = new EmbeddedAttributeConfiguration("string");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("stringProperty", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("boolean");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("booleanProperty", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("int32");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("int32Property", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("bigint");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("bigintProperty", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("array");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("arrayProperty", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("dictionary");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("dictionaryProperty", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("table");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("tableProperty", attribute);
     }
 }

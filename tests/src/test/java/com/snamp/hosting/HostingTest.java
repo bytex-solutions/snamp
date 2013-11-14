@@ -29,6 +29,19 @@ public abstract class HostingTest extends SnampTestSet implements AgentConfigura
 
     }
 
+    /**
+     * Returns the hosting context.
+     * @return The hosting context created by
+     */
+    protected final HostingContext getTestContext(){
+        return new HostingContext() {
+            @Override
+            public <T> T queryObject(final Class<T> objectType) {
+                return agent.queryObject(objectType);
+            }
+        };
+    }
+
     @Before
     public final void initializeTestSet() throws Exception{
         agent = new Agent(getAgentHostingConfig());

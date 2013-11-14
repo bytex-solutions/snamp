@@ -15,7 +15,7 @@ import java.util.Set;
  * Date: 20.10.13
  * Time: 17:02
  */
-public class YAMLTest extends SnampTestSet {
+public final class YAMLTest extends SnampTestSet {
 
     @Test
     public void testYaml() throws IOException, ClassNotFoundException {
@@ -40,9 +40,9 @@ public class YAMLTest extends SnampTestSet {
         //Check connection type
         assertEquals("SOAP", target.getConnectionType());
         //Check on events
-        final Set<AgentConfiguration.ManagementTargetConfiguration.EventConfiguration> events = target.getEvents();
+        final Map<String, AgentConfiguration.ManagementTargetConfiguration.EventConfiguration> events = target.getEvents();
         assertEquals(1, events.size());
-        final AgentConfiguration.ManagementTargetConfiguration.EventConfiguration singleEvent = events.iterator().next();
+        final AgentConfiguration.ManagementTargetConfiguration.EventConfiguration singleEvent = events.get("1.2.3");
         assertTrue(singleEvent != null);
         assertEquals("attributeChanged", singleEvent.getCategory());
         assertEquals(1, singleEvent.getAdditionalElements().size());

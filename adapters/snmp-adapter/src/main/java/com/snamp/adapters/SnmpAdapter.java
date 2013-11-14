@@ -228,14 +228,8 @@ final class SnmpAdapter extends SnmpAdapterBase {
             exposeAttribute(connector, namespace, postfix, attributes.get(postfix));
     }
 
-    /**
-     * Exposes monitoring events.
-     *
-     * @param connector The management connector that provides notification listening and subscribing.
-     * @param events    The collection of configured notifications.
-     */
     @Override
-    public void exposeEvents(final ManagementConnector connector, final Set<AgentConfiguration.ManagementTargetConfiguration.EventConfiguration> events) {
+    public void exposeEvents(final ManagementConnector connector, final String namespace, final Map<String, AgentConfiguration.ManagementTargetConfiguration.EventConfiguration> events) {
         //TODO: Should be converted into SNMP notifications
     }
 

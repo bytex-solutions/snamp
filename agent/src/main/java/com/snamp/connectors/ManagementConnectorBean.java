@@ -154,22 +154,6 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
     private final Object beanInstance;
 
     /**
-     * Represents raised Java Bean event.
-     * @param <T> Type of the event data.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    protected static abstract interface JavaBeanEventNotification<T extends EventObject> extends Notification{
-        /**
-         * Gets the data of the raised Java Bean event.
-         * @return The data of the raised Java Bean event.
-         */
-        @Override
-        public T getContent();
-    }
-
-    /**
      * Initializes a new management connector.
      * @param typeBuilder Type information provider that provides property type converter.
      * @throws IllegalArgumentException typeBuilder is {@literal null}.

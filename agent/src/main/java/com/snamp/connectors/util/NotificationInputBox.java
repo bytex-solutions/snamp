@@ -8,12 +8,11 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  * Helps to collect notification into a single collection.
- * @param <N> Type of the notifications that can be stored in this collection.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public class NotificationInputBox<N extends Notification> extends ArrayList<N> implements NotificationListener<N> {
+public class NotificationInputBox extends ArrayList<Notification> implements NotificationListener {
     /**
      * Initializes a new empty collection for notifications.
      */
@@ -28,7 +27,7 @@ public class NotificationInputBox<N extends Notification> extends ArrayList<N> i
      * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
      */
     @Override
-    public final boolean handle(final N n) {
+    public final boolean handle(final Notification n) {
         add(n);
         return true;
     }

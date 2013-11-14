@@ -27,6 +27,12 @@ public abstract class ConnectedAttributes extends HashMap<String, AttributeMetad
         return connector.get();
     }
 
+    /**
+     * Constructs a new attribute identifier based on its namespace and postfix.
+     * @param prefix The attribute namespace (namespace in management target configuration).
+     * @param postfix The attribute postfix (id in attribute configuration).
+     * @return A new combination of the attribute namespace and postfix.
+     */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public abstract String makeAttributeId(final String prefix, final String postfix);
 }

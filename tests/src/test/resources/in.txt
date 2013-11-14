@@ -21,6 +21,6 @@ managementTargets:
   attributes:
   - {name: name, id: '1.2.3'}
   events:
-  - {category: attributeChanged, all: 'true'}
+  - {category: attributeChanged, all: 'true', id: '1.2.3'}
   random: 'random2'
   random1: 'random5'

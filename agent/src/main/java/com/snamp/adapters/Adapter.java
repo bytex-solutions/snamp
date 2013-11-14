@@ -59,8 +59,9 @@ public interface Adapter extends AutoCloseable, PlatformPlugin {
     /**
      * Exposes monitoring events.
      * @param connector The management connector that provides notification listening and subscribing.
+     * @param namespace The events namespace.
      * @param events The collection of configured notifications.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
-    public void exposeEvents(final ManagementConnector connector, final Set<EventConfiguration> events);
+    public void exposeEvents(final ManagementConnector connector, final String namespace, final Map<String, EventConfiguration> events);
 }

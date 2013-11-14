@@ -26,19 +26,29 @@ import com.snamp.connectors.*;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractNotificationListener<N extends Notification> implements NotificationListener<N> {
+public abstract class AbstractNotificationListener implements NotificationListener {
     private Object listenerId;
-    /**
-     * Represents category of the event for which this listener is instantiated.
-     */
-    protected final String category;
+    private NotificationMetadata metadata;
 
     /**
-     * Initializes a new listener for the specified category.
-     * @param category The category of notifications to listen.
+     * Represents identifier of the subscription list.
      */
-    protected AbstractNotificationListener(final String category){
-        this.category = category;
+    protected final String subscriptionList;
+
+    /**
+     * Initializes a new listener and associates it with the specified subscription list.
+     * @param listId An identifier of the subscription list.
+     */
+    protected AbstractNotificationListener(final String listId){
+        this.subscriptionList = listId;
+    }
+
+    /**
+     * Returns a metadata of the notification.
+     * @return The metadata of the notification; or {@literal null}, if listener is not attached.
+     */
+    protected final NotificationMetadata getMetadata(){
+        return metadata;
     }
 
     /**
@@ -56,7 +66,8 @@ public abstract class AbstractNotificationListener<N extends Notification> imple
      */
     public synchronized final void attachTo(final ManagementConnector connector){
         if(isAttached()) throw new IllegalStateException(String.format("This listener is already attached with %s identifier.", listenerId));
-        this.listenerId = connector.subscribe(category, this);
+        this.listenerId = connector.subscribe(subscriptionList, this);
+        this.metadata = connector.getNotificationInfo(subscriptionList);
     }
 
     /**
@@ -66,6 +77,26 @@ public abstract class AbstractNotificationListener<N extends Notification> imple
      */
     public synchronized final void detachFrom(final ManagementConnector connector){
         if(this.listenerId == null) throw new IllegalArgumentException("This listener already detached.");
-        if(connector.unsubscribe(this)) this.listenerId = null;
+        if(connector.unsubscribe(this)) {
+            this.metadata = null;
+            this.listenerId = null;
+        }
+    }
+
+    /**
+     * Wraps a notification listener into the implementation of this class.
+     * @param listId An identifier of the subscription list.
+     * @param listener A listener to wrap.
+     * @return A new instance of this class that wraps the specified listener.
+     */
+    public final static AbstractNotificationListener wrap(final String listId, final NotificationListener listener){
+        return listener instanceof AbstractNotificationListener ?
+                (AbstractNotificationListener)listener:
+                new AbstractNotificationListener(listId) {
+                    @Override
+                    public boolean handle(final Notification n) {
+                        return listener.handle(n);
+                    }
+                };
     }
 }
