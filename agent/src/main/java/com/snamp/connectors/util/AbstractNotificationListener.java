@@ -44,6 +44,14 @@ public abstract class AbstractNotificationListener implements NotificationListen
     }
 
     /**
+     * Returns the subscription list identifier.
+     * @return The subscription list identifier passed to {@link #AbstractNotificationListener(String)} constructor.
+     */
+    public final String getSubscriptionListId(){
+        return subscriptionList;
+    }
+
+    /**
      * Returns a metadata of the notification.
      * @return The metadata of the notification; or {@literal null}, if listener is not attached.
      */
