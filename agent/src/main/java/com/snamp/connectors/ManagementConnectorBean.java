@@ -7,6 +7,8 @@ import java.lang.ref.*;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.lang.reflect.*;
+import java.util.concurrent.atomic.AtomicLong;
+
 import static com.snamp.connectors.EntityTypeInfoBuilder.AttributeTypeConverter;
 
 /**
@@ -149,8 +151,211 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
         }
     }
 
+    private static final class JavaBeanNotification extends HashMap<String, Object> implements Notification{
+        private final Date timeStamp;
+        private final Severity severity;
+        private final long seqnum;
+        private final String message;
+        private final EntityTypeInfoFactory<AttributeTypeConverter> typeSystem;
+        private final Map<String, Object> attachments;
+
+        public JavaBeanNotification(final EntityTypeInfoFactory<AttributeTypeConverter> typeSys,
+                                    final Severity severity,
+                                    final long sequenceNumber,
+                                    final String message,
+                                    final Map<String, Object> attachments){
+            this.timeStamp = new Date();
+            this.severity = severity != null ? severity : Severity.UNKNOWN;
+            this.seqnum = sequenceNumber;
+            this.message = message != null ? message : "";
+            this.typeSystem = typeSys;
+            this.attachments = attachments != null ? Collections.unmodifiableMap(attachments) : new HashMap<String, Object>();
+
+        }
+
+
+
+        /**
+         * Gets the date and time at which the notification is generated.
+         *
+         * @return The date and time at which the notification is generated.
+         */
+        @Override
+        public final Date getTimeStamp() {
+            return timeStamp;
+        }
+
+        /**
+         * Gets the order number of the notification message.
+         *
+         * @return The order number of the notification message.
+         */
+        @Override
+        public final long getSequenceNumber() {
+            return seqnum;
+        }
+
+        /**
+         * Gets a severity of this event.
+         *
+         * @return The severity of this event.
+         */
+        @Override
+        public final Severity getSeverity() {
+            return severity;
+        }
+
+        /**
+         * Gets a message description of this notification.
+         *
+         * @return The message description of this notification.
+         */
+        @Override
+        public final String getMessage() {
+            return message;
+        }
+
+        /**
+         * Gets attachments associated with this notification.
+         * <p>
+         * The key of the returned map contains name of the attachment.
+         * </p>
+         *
+         * @return A read-only collection of attachments associated with this notification.
+         */
+        @Override
+        public final Map<String, Object> getAttachments() {
+            return attachments;
+        }
+    }
+
+    private static final class JavaBeanEventMetadata extends GenericNotificationMetadata{
+        private final AtomicLong sequenceCounter;
+        private final EntityTypeInfoFactory<AttributeTypeConverter> typeSystem;
+        private final Map<String, String> options;
+
+        public JavaBeanEventMetadata(final EntityTypeInfoFactory<AttributeTypeConverter> typeSys,
+                                     final String category,
+                                     final Map<String, String> options){
+            super(category);
+            sequenceCounter = new AtomicLong(0L);
+            typeSystem = typeSys;
+            this.options = options != null ? Collections.unmodifiableMap(options) : new HashMap<String, String>();
+        }
+
+        public final void fireListeners(final Notification.Severity severity, final String message, final Map<String, Object> attachments){
+            final JavaBeanNotification notif = new JavaBeanNotification(typeSystem, severity, sequenceCounter.getAndIncrement(), message, attachments);
+            for(final Pair<NotificationListener, Object> listener: getListeners())
+                listener.first.handle(notif);
+        }
+
+        /**
+         * Gets listeners invocation model for this notification type.
+         * @return Listeners invocation model for this notification type.
+         */
+        @Override
+        public final NotificationModel getNotificationModel() {
+            return NotificationModel.MULTICAST_SEQUENTIAL;
+        }
+
+        /**
+         * Returns the type descriptor for the specified attachment.
+         *
+         * @param attachment The notification attachment.
+         * @return The type descriptor for the specified attachment; or {@literal null} if the specified
+         *         attachment is not supported.
+         */
+        @Override
+        public final NotificationAttachmentTypeInfo getAttachmentType(final Object attachment) {
+            final EntityTypeInfo typeInfo = typeSystem.createTypeInfo(attachment.getClass(), attachment.getClass());
+            return typeInfo != null ? new NotificationAttachmentTypeInfo() {
+                @Override
+                public <T> boolean canConvertTo(final Class<T> target) {
+                    return typeInfo.canConvertTo(target);
+                }
+
+                @Override
+                public <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException {
+                    return typeInfo.convertTo(value, target);
+                }
+            }: null;
+        }
+
+        @Override
+        public final int size() {
+            return options.size();
+        }
+
+        @Override
+        public final boolean isEmpty() {
+            return options.isEmpty();
+        }
+
+        @Override
+        public final boolean containsKey(final Object key) {
+            return options.containsKey(key);
+        }
+
+        @Override
+        public final boolean containsValue(final Object value) {
+            return options.containsKey(value);
+        }
+
+        @Override
+        public final String get(final Object key) {
+            return options.get(key);
+        }
+
+        @Override
+        public final Set<String> keySet() {
+            return options.keySet();
+        }
+
+        /**
+         * Returns a {@link java.util.Collection} view of the values contained in this map.
+         * The collection is backed by the map, so changes to the map are
+         * reflected in the collection, and vice-versa.  If the map is
+         * modified while an iteration over the collection is in progress
+         * (except through the iterator's own <tt>remove</tt> operation),
+         * the results of the iteration are undefined.  The collection
+         * supports element removal, which removes the corresponding
+         * mapping from the map, via the <tt>Iterator.remove</tt>,
+         * <tt>Collection.remove</tt>, <tt>removeAll</tt>,
+         * <tt>retainAll</tt> and <tt>clear</tt> operations.  It does not
+         * support the <tt>add</tt> or <tt>addAll</tt> operations.
+         *
+         * @return a collection view of the values contained in this map
+         */
+        @Override
+        public Collection<String> values() {
+            return null;  //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        /**
+         * Returns a {@link java.util.Set} view of the mappings contained in this map.
+         * The set is backed by the map, so changes to the map are
+         * reflected in the set, and vice-versa.  If the map is modified
+         * while an iteration over the set is in progress (except through
+         * the iterator's own <tt>remove</tt> operation, or through the
+         * <tt>setValue</tt> operation on a map entry returned by the
+         * iterator) the results of the iteration are undefined.  The set
+         * supports element removal, which removes the corresponding
+         * mapping from the map, via the <tt>Iterator.remove</tt>,
+         * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt> and
+         * <tt>clear</tt> operations.  It does not support the
+         * <tt>add</tt> or <tt>addAll</tt> operations.
+         *
+         * @return a set view of the mappings contained in this map
+         */
+        @Override
+        public Set<Entry<String, String>> entrySet() {
+            return null;  //To change body of implemented methods use File | Settings | File Templates.
+        }
+    }
+
+
     private final BeanInfo beanMetadata;
-    private final EntityTypeInfoFactory typeInfoBuilder;
+    private final EntityTypeInfoFactory<AttributeTypeConverter> typeInfoBuilder;
     private final Object beanInstance;
 
     /**
@@ -158,7 +363,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @param typeBuilder Type information provider that provides property type converter.
      * @throws IllegalArgumentException typeBuilder is {@literal null}.
      */
-    protected ManagementConnectorBean(final EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
+    protected ManagementConnectorBean(final EntityTypeInfoFactory<AttributeTypeConverter> typeBuilder) throws IntrospectionException {
         if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.typeInfoBuilder = typeBuilder;
         this.beanMetadata = Introspector.getBeanInfo(getClass(), ManagementConnectorBean.class);
@@ -301,6 +506,58 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
             if(Objects.equals(md.getName(), actionName))
                 return doAction(md, args);
         return null;
+    }
+
+    /**
+     * Raises notification.
+     * <p>
+     *     In the derived class you should write your own emitter for each notification category,
+     *     for example:
+     *     <pre>{@code
+     *     protected final void emitPropertyChanged(final String propertyName, final Object oldValue, final Object newValue){
+     *       final Map<String, Object> attachments =new HashMap<String, Object>(3){{
+     *         put("propertyName", propertyName);
+     *         put("oldValue", oldValue);
+     *         put("newValue", newValue);
+     *       }};
+     *       emitNotification("propertyChanged", Notification.Severity.NOTICE, String.format("Property %s changed", propertyName), attachments);
+     *     }
+     *     }</pre>
+     * </p>
+     * @param category The category of the event to raise.
+     * @param severity The severity of the event to raise.
+     * @param message Human-readable description of the event.
+     * @param attachments A set of notification attachments. May be {@literal null}.
+     */
+    protected final void emitNotification(final String category, final Notification.Severity severity, final String message, final Map<String, Object> attachments){
+        for(final JavaBeanEventMetadata eventMetadata: getEnabledNotifications(category, JavaBeanEventMetadata.class).values())
+            eventMetadata.fireListeners(severity, message, attachments);
+    }
+
+    /**
+     * Enables event listening for the specified category of events.
+     *
+     * @param category The name of the category to listen.
+     * @param options  Event discovery options.
+     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+     */
+    @Override
+    protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
+        return new JavaBeanEventMetadata(typeInfoBuilder, category, options);
+    }
+
+    /**
+     * Disable all notifications associated with the specified event.
+     * <p>
+     * In the default implementation this method does nothing.
+     * </p>
+     *
+     * @param notificationType The event descriptor.
+     */
+    @Override
+    protected final void disableNotificationsCore(final NotificationMetadata notificationType) {
+        if(notificationType instanceof GenericNotificationMetadata)
+            ((GenericNotificationMetadata)notificationType).removeListeners();
     }
 
     /**

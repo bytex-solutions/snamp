@@ -349,6 +349,21 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     }
 
     /**
+     * Returns all notifications associated with the specified category.
+     * @param category The category of the event.
+     * @param metadataType The type of requested notification metadata.
+     * @param <T> The type of requested notification metadata.
+     * @return A map of registered notifications and subscription lists.
+     */
+    protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType){
+        final Map<String, T> result = new HashMap<>(10);
+        for(final Map.Entry<String, GenericNotificationMetadata> metadata: notifications.entrySet())
+            if(Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
+                result.put(metadata.getKey(), metadataType.cast(metadata.getValue()));
+        return result;
+    }
+
+    /**
      * Returns a count of connected attributes.
      * @return The count of connected attributes.
      */
@@ -609,7 +624,9 @@ public abstract class AbstractManagementConnector implements ManagementConnector
 
     /**
      * Enables event listening for the specified category of events.
-     *
+     * <p>
+     *     In the default implementation this method does nothing.
+     * </p>
      * @param category The name of the category to listen.
      * @param options  Event discovery options.
      * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
@@ -642,6 +659,9 @@ public abstract class AbstractManagementConnector implements ManagementConnector
 
     /**
      * Disable all notifications associated with the specified event.
+     * <p>
+     *     In the default implementation this method does nothing.
+     * </p>
      * @param notificationType The event descriptor.
      */
     protected void disableNotificationsCore(final NotificationMetadata notificationType){
