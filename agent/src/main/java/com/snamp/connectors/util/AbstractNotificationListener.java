@@ -7,9 +7,9 @@ import com.snamp.connectors.*;
  * the lifecycle of listeners for the single management connector.
  * <p>
  *     The following example demonstrates how to use this class for organizing listeners:<br/>
- *     <pre>{@code
+ *     <pre><code>
  *      final AbstractNotificationListener<Notification> listener = new AbstractNotificationListener<>("failures"){
- *        @Override
+ *        {@literal @}Override
  *        public boolean handle(final Notification n){
  *          System.out.println("%s: SEVERITY: %s: CONTENT: %s" n.getTimeStamp(), n.getSeverity(), n.getContent().toString());
  *        }
@@ -17,7 +17,7 @@ import com.snamp.connectors.*;
  *      listener.attachTo(connector);
  *      //some operations with connector
  *      listener.detachFrom(connector);
- *     }</pre>
+ *     </code></pre>
  * </p>
  * <p>
  *     This class is very useful for organizing unicast subscriptions.

@@ -97,7 +97,7 @@ public class EmbeddedAdapter extends AbstractAdapter {
      * @param attributeType Type of the attribute value.
      * @param defaultValue The default value of the attribute if it cannot be obtained from the underlying connector.
      * @param <T> Type of the attribute value.
-     * @return
+     * @return Strongly typed attribute value.
      */
     protected final <T> T getAttribute(final String namespace, final String id, final Class<T> attributeType, final T defaultValue){
         return this.attributes.getAttribute(namespace, id, attributeType, defaultValue, TimeSpan.INFINITE);
