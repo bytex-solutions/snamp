@@ -5,10 +5,9 @@
     <parent>
         <artifactId>snamp</artifactId>
         <groupId>com.snamp</groupId>
-        <version>0.1.1</version>
+        <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>0.1.1</version>
     <packaging>jar</packaging>
     <name>Examples</name>
     <artifactId>examples</artifactId>
@@ -28,7 +27,7 @@
         <dependency>
             <groupId>com.snamp</groupId>
             <artifactId>agent</artifactId>
-            <version>0.1.1</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>net.xeoh.jspf</groupId>

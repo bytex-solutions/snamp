@@ -4,10 +4,9 @@
   <parent>
     <groupId>com.snamp</groupId>
     <artifactId>snamp</artifactId>
-    <version>0.1.1</version>
+    <version>1.0.0</version>
   </parent>
   <artifactId>adapters</artifactId>
-  <version>0.1.1</version>
   <packaging>pom</packaging>
   <name>SNAMP Adapter Plugin Framework</name>
   <description>A base classes for building SNAMP adapters</description>
@@ -15,7 +14,7 @@
     <dependency>
       <groupId>com.snamp</groupId>
       <artifactId>agent</artifactId>
-      <version>0.1.1</version>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
   <modules>
