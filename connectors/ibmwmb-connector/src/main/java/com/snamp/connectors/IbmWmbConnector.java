@@ -13,16 +13,21 @@ import java.util.Map;
  * In order to build this file you should locate your own copies of ibm java libs
  * When done, execute following commands
  *
- * # mvn install:install-file -Dfile=.\lib\com.ibm.mq.jar -DgroupId=com.ibm.mq -DartifactId=WebsphereMQClassesForJava -Dversion=6.0.2.2 -Dpackaging=jar
- * # mvn install:install-file -Dfile=.\lib\connector.jar -DgroupId=javax.resource.cci -DartifactId=SunConnectorClasses -Dversion=1.3.0 -Dpackaging=jar
- * # mvn install:install-file -Dfile=.\lib\ConfigManagerProxy.jar -DgroupId=com.ibm.broker.config -DartifactId=WMBConfigManagerProxy -Dversion=1.5.0 -Dpackaging=jar
+ * # mvn install:install-file -Dfile=./ibmjsseprovider2.jar -DgroupId=com.ibm -DartifactId=JSSEProvider -Dversion=2.0.0 -Dpackaging=jar
+ *
+ * # mvn install:install-file -Dfile=./com.ibm.mq.commonservices.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereCommonServices -Dversion=6.0.0.0 -Dpackaging=jar
+ * # mvn install:install-file -Dfile=./com.ibm.mq.headers.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQHeaders -Dversion=6.0.0.0 -Dpackaging=jar
+ * # mvn install:install-file -Dfile=./com.ibm.mq.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQ -Dversion=6.0.0.0 -Dpackaging=jar
+ * # mvn install:install-file -Dfile=./com.ibm.mq.jmqi.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereJMQI -Dversion=6.0.0.0 -Dpackaging=jar
+ * # mvn install:install-file -Dfile=./connector.jar -DgroupId=javax.resource.cci -DartifactId=SunConnectorClasses -Dversion=1.3.0 -Dpackaging=jar
+ * # mvn install:install-file -Dfile=./ConfigManagerProxy.jar -DgroupId=com.ibm.broker.config -DartifactId=WMBConfigManagerProxy -Dversion=1.5.0 -Dpackaging=jar
  */
 class IbmWmbConnector extends ManagementConnectorBean
 {
     private BrokerProxy mBrokerInstance;
-    private List<ExecutionGroupProxy> mExecutionGroups = new ArrayList<>();
-    private List<ApplicationProxy> mApplications = new ArrayList<>();
-    private List<LogEntry> mLogs = new ArrayList<>();
+    private final List<ExecutionGroupProxy> mExecutionGroups = new ArrayList<>();
+    private final List<ApplicationProxy> mApplications = new ArrayList<>();
+    private final List<LogEntry> mLogs = new ArrayList<>();
 
 
     /**
@@ -41,7 +46,7 @@ class IbmWmbConnector extends ManagementConnectorBean
         try {
             if(env.containsKey("host") && env.containsKey("port") && env.containsKey("qmgr"))
             {
-                BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(env.get("host"), Integer.valueOf(env.get("port")), env.get("qmgr"));
+                final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(env.get("host"), Integer.valueOf(env.get("port")), env.get("qmgr"));
                 // that's blocking call. Does it make sense?
                 mBrokerInstance = BrokerProxy.getInstance(bcp);
                 while(!mBrokerInstance.hasBeenPopulatedByBroker())
@@ -56,7 +61,7 @@ class IbmWmbConnector extends ManagementConnectorBean
 
     private void retrieveExecutionGroups() throws ConfigManagerProxyPropertyNotInitializedException {
         mExecutionGroups.clear();
-        Enumeration<ExecutionGroupProxy> egIterator = mBrokerInstance.getExecutionGroups(null);
+        final Enumeration<ExecutionGroupProxy> egIterator = mBrokerInstance.getExecutionGroups(null);
         while(egIterator.hasMoreElements())
             mExecutionGroups.add(egIterator.nextElement());
     }
@@ -73,30 +78,45 @@ class IbmWmbConnector extends ManagementConnectorBean
 
     private void retrieveLogEntries() throws ConfigManagerProxyPropertyNotInitializedException {
         mLogs.clear();
-        Enumeration<LogEntry> logsIterator = mBrokerInstance.getLog().elements();
+        final Enumeration<LogEntry> logsIterator = mBrokerInstance.getLog().elements();
         while(logsIterator.hasMoreElements())
             mLogs.add(logsIterator.nextElement());
     }
 
-    public Integer getExecutionGroupCount() {
+    final public Integer getExecutionGroupCount() {
+        try {
+        retrieveExecutionGroups();
+        } catch (ConfigManagerProxyPropertyNotInitializedException e) {
+            return null;
+        }
         return mExecutionGroups.size();
     }
 
     // Request inputs count
-    public Integer getApplicationsCount() {
+    final public Integer getApplicationsCount() {
+        try {
+            retrieveExecutionGroups();
+            retrieveRunningApps();
+        } catch (ConfigManagerProxyPropertyNotInitializedException e) {
+            return null;
+        }
         return mApplications.size();
     }
 
-    public Integer getErrorsCount() {
+    final public Integer getErrorsCount() {
         Integer count = 0;
-        for(LogEntry entry : mLogs)
-            if(entry.isErrorMessage())
-                count++;
-
+        try {
+            retrieveLogEntries();
+            for(LogEntry entry : mLogs)
+                if(entry.isErrorMessage())
+                    count++;
+        } catch (ConfigManagerProxyPropertyNotInitializedException e) {
+            return null;
+        }
         return count;
     }
 
-    public String getLastErrorMessage()
+    final public String getLastErrorMessage()
     {
         for(int i = mLogs.size() - 1; i >= 0; ++i)
             if(mLogs.get(i).isErrorMessage())
@@ -105,7 +125,7 @@ class IbmWmbConnector extends ManagementConnectorBean
         return "";
     }
 
-    public Integer getRunningExecutionGroupCount() {
+    final public Integer getRunningExecutionGroupCount() {
         Integer count = 0;
         try {
             for(ExecutionGroupProxy group : mExecutionGroups)
@@ -118,9 +138,11 @@ class IbmWmbConnector extends ManagementConnectorBean
     }
 
     // Free request inputs count
-    public Integer getRunningApplicationsCount() {
+    final public Integer getRunningApplicationsCount() {
         Integer count = 0;
         try {
+            retrieveExecutionGroups();
+            retrieveRunningApps();
             for(ApplicationProxy app : mApplications)
                 if(app.isRunning())
                     count++;
