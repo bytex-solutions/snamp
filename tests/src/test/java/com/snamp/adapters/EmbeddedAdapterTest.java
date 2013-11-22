@@ -1,7 +1,6 @@
 package com.snamp.adapters;
 
-import com.snamp.Temporary;
-import com.snamp.TimeSpan;
+import com.snamp.*;
 import com.snamp.connectors.*;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
@@ -10,15 +9,13 @@ import static com.snamp.connectors.util.NotificationUtils.SynchronizationListene
 
 import com.snamp.connectors.Notification;
 import com.snamp.hosting.Agent;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.Timeout;
 
 import javax.management.*;
 import java.math.BigInteger;
+import java.security.Permission;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * @author Roman Sakno
@@ -54,6 +51,29 @@ public final class EmbeddedAdapterTest extends JmxConnectorTest<TestManagementBe
         assertEquals(Notification.Severity.NOTICE, n.getSeverity());
         assertEquals("Property bigint is changed", n.getMessage());
         assertNotNull(n.getTimeStamp());
+    }
+
+    @Test
+    public final void loadTest() throws InterruptedException {
+        final TestEmbeddedAdapter adapter = getTestContext().queryObject(TestEmbeddedAdapter.class);
+        final ExecutorService executor = Executors.newFixedThreadPool(5);
+        final int maxTasks = 300;
+        final CountDownLatch barrier = new CountDownLatch(maxTasks);
+        for(int i = 0; i < maxTasks; i++){
+            final BigInteger num = BigInteger.valueOf(i);
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    adapter.setBigIntProperty(num);
+                    barrier.countDown();
+                }
+            });
+        }
+        assertTrue(barrier.await(1, TimeUnit.MINUTES));
+        boolean equals = false;
+        for(int i = 0; i < maxTasks; i++)
+            equals |= Objects.equals(BigInteger.valueOf(i), adapter.getBigIntProperty());
+        assertTrue(equals);
     }
 
     @Test

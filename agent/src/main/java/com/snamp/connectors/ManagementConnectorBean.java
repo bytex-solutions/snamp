@@ -3,6 +3,7 @@ package com.snamp.connectors;
 import com.snamp.*;
 
 import java.beans.*;
+import java.lang.annotation.*;
 import java.lang.ref.*;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -47,6 +48,21 @@ import static com.snamp.connectors.EntityTypeInfoBuilder.AttributeTypeConverter;
 @Lifecycle(InstanceLifecycle.NORMAL)
 public class ManagementConnectorBean extends AbstractManagementConnector {
 
+    /**
+     * Determines whether the Java Bean property is cacheable.
+     * <p>
+     * This annotation should be applied to the property getter.
+     * </p>
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    protected static @interface Cacheable{
+
+    }
+
     private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<AttributeTypeConverter>{
         private final Map<String, String> properties;
         private final Class<?> propertyType;
@@ -67,6 +83,17 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
             if(setter != null && !setter.isAccessible())
                 setter.setAccessible(true);
             this.typeBuilder = new WeakReference<>(typeBuilder);
+        }
+
+        /**
+         * Determines whether the value of the attribute can be cached after first reading
+         * and supplied as real attribute value before first write, return {@literal false} by default.
+         *
+         * @return {@literal true}, if the value of this attribute can be cached; otherwise, {@literal false}.
+         */
+        @Override
+        public final boolean cacheable() {
+            return getter != null && getter.isAnnotationPresent(Cacheable.class);
         }
 
         public final Object getValue(final Object beanInstance) throws ReflectiveOperationException {

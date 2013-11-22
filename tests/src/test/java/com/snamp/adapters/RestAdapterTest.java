@@ -15,6 +15,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * @author Roman Sakno
@@ -113,6 +114,40 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
     public final void testForBigIntProperty() throws IOException{
         writeAttribute("bigintProperty", new BigInteger("100500"), BigInteger.class);
         assertEquals(new BigInteger("100500"), readAttribute("bigintProperty", BigInteger.class));
+    }
+
+    @Test
+    public final void loadTestForBigIntProperty() throws InterruptedException, IOException {
+        final int maxTasks = 100;
+        final CountDownLatch barrier = new CountDownLatch(maxTasks);
+        final ExecutorService executor = Executors.newFixedThreadPool(10);
+        for(int i = 0; i < maxTasks; i++){
+            final BigInteger num = BigInteger.valueOf(i);
+            executor.execute(new Runnable() {
+                @Override
+                public void run(){
+                    try{
+                        writeAttribute("bigintProperty", num, BigInteger.class);
+                    }
+                    catch (final IOException e){
+                        fail(e.getLocalizedMessage());
+                    }
+                    finally {
+                        barrier.countDown();
+                    }
+                }
+            });
+        }
+        assertTrue(barrier.await(1, TimeUnit.MINUTES));
+        boolean equals = false;
+        for(int i = 0; i < maxTasks; i++)
+            equals |= Objects.equals(BigInteger.valueOf(i), readAttribute("bigintProperty", BigInteger.class));
+        assertTrue(equals);
+    }
+
+    @Test
+    public final void loadTestForTable() throws IOException{
+
     }
 
     @Test

@@ -42,7 +42,7 @@ public final class LicenseReader {
         public Document loadedLicense;
 
         public LicensingContext(){
-            loadedLimitations = new HashMap<>(10);
+            loadedLimitations = new WeakHashMap<>(10);
             loadedLicense = null;
         }
     }
