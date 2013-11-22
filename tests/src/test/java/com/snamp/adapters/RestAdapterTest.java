@@ -146,8 +146,30 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
     }
 
     @Test
-    public final void loadTestForTable() throws IOException{
-
+    public final void loadTestForTable() throws IOException, InterruptedException {
+        final int maxTasks = 100;
+        final CountDownLatch barrier = new CountDownLatch(maxTasks);
+        final ExecutorService executor = Executors.newFixedThreadPool(10);
+        for(int i = 0; i < maxTasks; i++){
+            final JsonArray table = i % 2 == 0 ? createTestTable1() : createTestTable2();
+            executor.execute(new Runnable() {
+                @Override
+                public void run(){
+                    try{
+                        writeAttributeAsJson("tableProperty", table);
+                    }
+                    catch (final IOException e){
+                        fail(e.getLocalizedMessage());
+                    }
+                    finally {
+                        barrier.countDown();
+                    }
+                }
+            });
+        }
+        assertTrue(barrier.await(1, TimeUnit.MINUTES));
+        final JsonElement actual = readAttributeAsJson("tableProperty");
+        assertTrue(Objects.equals(actual, createTestTable1()) || Objects.equals(actual, createTestTable2()));
     }
 
     @Test
@@ -172,9 +194,37 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         assertEquals(new JsonPrimitive("Hello, world!"), dic.get("col3"));
     }
 
-    @Test
-    public final void testForTableProperty() throws IOException{
-        JsonArray table = new JsonArray();
+    private static final JsonArray createTestTable2(){
+        final JsonArray table = new JsonArray();
+        //row 1
+        JsonObject row = new JsonObject();
+        table.add(row);
+        row.add("col1", new JsonPrimitive(true));
+        row.add("col2", new JsonPrimitive(42));
+        row.add("col3", new JsonPrimitive("Simple Row 1"));
+        //row 2
+        row = new JsonObject();
+        table.add(row);
+        row.add("col1", new JsonPrimitive(true));
+        row.add("col2", new JsonPrimitive(43));
+        row.add("col3", new JsonPrimitive("Simple Row 2"));
+        //row 3
+        row = new JsonObject();
+        table.add(row);
+        row.add("col1", new JsonPrimitive(true));
+        row.add("col2", new JsonPrimitive(44));
+        row.add("col3", new JsonPrimitive("Simple Row 3"));
+        //row 4
+        row = new JsonObject();
+        table.add(row);
+        row.add("col1", new JsonPrimitive(true));
+        row.add("col2", new JsonPrimitive(45));
+        row.add("col3", new JsonPrimitive("Simple Row 4"));
+        return table;
+    }
+
+    private static final JsonArray createTestTable1(){
+        final JsonArray table = new JsonArray();
         //row 1
         JsonObject row = new JsonObject();
         table.add(row);
@@ -199,6 +249,12 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         row.add("col1", new JsonPrimitive(true));
         row.add("col2", new JsonPrimitive(100503));
         row.add("col3", new JsonPrimitive("Row 4"));
+        return table;
+    }
+
+    @Test
+    public final void testForTableProperty() throws IOException{
+        JsonArray table = createTestTable1();
         writeAttributeAsJson("tableProperty", table);
         //read table
         JsonElement elem = readAttributeAsJson("tableProperty");
