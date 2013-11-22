@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 
-/**
+/*
  * In order to build this file you should locate your own copies of ibm java libs
  * When done, execute following commands
  *
@@ -22,25 +22,25 @@ import java.util.Map;
  * # mvn install:install-file -Dfile=./connector.jar -DgroupId=javax.resource.cci -DartifactId=SunConnectorClasses -Dversion=1.3.0 -Dpackaging=jar
  * # mvn install:install-file -Dfile=./ConfigManagerProxy.jar -DgroupId=com.ibm.broker.config -DartifactId=WMBConfigManagerProxy -Dversion=1.5.0 -Dpackaging=jar
  */
+
+
+/**
+ * Connector class for IBM WebSphere Message Broker
+ * exports some basic monitoring attributes of WMB
+ *
+ * @author Oleg Chernovsky
+ *
+ */
 class IbmWmbConnector extends ManagementConnectorBean
 {
     private BrokerProxy mBrokerInstance;
-    private final List<ExecutionGroupProxy> mExecutionGroups = new ArrayList<>();
-    private final List<ApplicationProxy> mApplications = new ArrayList<>();
-    private final List<LogEntry> mLogs = new ArrayList<>();
-
 
     /**
-     * Initializes a new management connector.
+     * Initializes a new management connector for IBM WMB.
      *
      * @param typeBuilder Type information provider that provides property type converter.
      * @throws IllegalArgumentException
-     *          typeBuilder is {@literal null}.
      */
-    protected IbmWmbConnector(EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
-        super(typeBuilder);
-    }
-
     public IbmWmbConnector(Map<String, String> env, EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
         super(typeBuilder);
         try {
@@ -59,54 +59,92 @@ class IbmWmbConnector extends ManagementConnectorBean
         }
     }
 
-    private void retrieveExecutionGroups() throws ConfigManagerProxyPropertyNotInitializedException {
-        mExecutionGroups.clear();
+    /**
+     * Retrieves list of execution group from this broker instance. Broker must be initialized already.
+     * Throws error otherwise
+     *
+     * @return list of currently known execution groups for current broker instance
+     * @throws ConfigManagerProxyPropertyNotInitializedException
+     */
+    private List<ExecutionGroupProxy> retrieveExecutionGroups() throws ConfigManagerProxyPropertyNotInitializedException {
+        final List<ExecutionGroupProxy> mExecutionGroups = new ArrayList<>();
+
         final Enumeration<ExecutionGroupProxy> egIterator = mBrokerInstance.getExecutionGroups(null);
         while(egIterator.hasMoreElements())
             mExecutionGroups.add(egIterator.nextElement());
+
+        return mExecutionGroups;
     }
 
-    private void retrieveRunningApps() throws ConfigManagerProxyPropertyNotInitializedException {
-        mApplications.clear();
-        for(ExecutionGroupProxy eg : mExecutionGroups)
+    /**
+     * Retrieves list of applications of all execution groups from this broker instance. Broker must be initialized already.
+     * Throws error otherwise
+     *
+     * @return list of currently known applications for current broker instance
+     * @throws ConfigManagerProxyPropertyNotInitializedException
+     */
+    private List<ApplicationProxy> retrieveRunningApps() throws ConfigManagerProxyPropertyNotInitializedException {
+        final List<ApplicationProxy> mApplications = new ArrayList<>();
+
+        for(ExecutionGroupProxy eg : retrieveExecutionGroups())
         {
             Enumeration<ApplicationProxy> appIterator = eg.getApplications(null);
             while(appIterator.hasMoreElements())
                 mApplications.add(appIterator.nextElement());
         }
+
+        return mApplications;
     }
 
-    private void retrieveLogEntries() throws ConfigManagerProxyPropertyNotInitializedException {
-        mLogs.clear();
+    /**
+     * Retrieves list of log entries from this broker instance. Broker must be initialized already.
+     * Throws error otherwise
+     *
+     * @return list of log entries for current broker instance
+     * @throws ConfigManagerProxyPropertyNotInitializedException
+     */
+    private List<LogEntry> retrieveLogEntries() throws ConfigManagerProxyPropertyNotInitializedException {
+        final List<LogEntry> mLogs = new ArrayList<>();
+
         final Enumeration<LogEntry> logsIterator = mBrokerInstance.getLog().elements();
         while(logsIterator.hasMoreElements())
             mLogs.add(logsIterator.nextElement());
+
+        return mLogs;
     }
 
+    /**
+     * Getter for attribute that holds current execution group count
+     * @return count of known execution groups
+     */
     final public Integer getExecutionGroupCount() {
         try {
-        retrieveExecutionGroups();
+            return retrieveExecutionGroups().size();
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
             return null;
         }
-        return mExecutionGroups.size();
     }
 
-    // Request inputs count
+    /**
+     * Getter for attribute that holds current applications count for all execution groups
+     * @return count of known applications
+     */
     final public Integer getApplicationsCount() {
         try {
-            retrieveExecutionGroups();
-            retrieveRunningApps();
+            return retrieveRunningApps().size();
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
             return null;
         }
-        return mApplications.size();
     }
 
+    /**
+     * Getter for attribute that holds current error count
+     * @return count of errors in log entries
+     */
     final public Integer getErrorsCount() {
         Integer count = 0;
         try {
-            retrieveLogEntries();
+            final List<LogEntry> mLogs = retrieveLogEntries();
             for(LogEntry entry : mLogs)
                 if(entry.isErrorMessage())
                     count++;
@@ -116,34 +154,48 @@ class IbmWmbConnector extends ManagementConnectorBean
         return count;
     }
 
+    /**
+     * Getter for attribute that holds last error message
+     * @return last error message as a string
+     */
     final public String getLastErrorMessage()
     {
-        for(int i = mLogs.size() - 1; i >= 0; ++i)
-            if(mLogs.get(i).isErrorMessage())
-                return mLogs.get(i).getMessage();
+        final List<LogEntry> mLogs;
+        try
+        {
+            mLogs = retrieveLogEntries();
+            for(int i = mLogs.size() - 1; i >= 0; ++i)
+                if(mLogs.get(i).isErrorMessage())
+                    return mLogs.get(i).getMessage();
+        } catch (ConfigManagerProxyPropertyNotInitializedException ignored) {}
 
         return "";
     }
 
+    /**
+     * Getter for attribute that holds current running execution group count
+     * @return count of known running execution groups
+     */
     final public Integer getRunningExecutionGroupCount() {
         Integer count = 0;
         try {
-            for(ExecutionGroupProxy group : mExecutionGroups)
+            for(ExecutionGroupProxy group : retrieveExecutionGroups())
                 if(group.isRunning())
                     count++;
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
-            return -1;
+            return null;
         }
         return count;
     }
 
-    // Free request inputs count
+    /**
+     * Getter for attribute that holds current running applications count
+     * @return count of known running applications
+     */
     final public Integer getRunningApplicationsCount() {
         Integer count = 0;
         try {
-            retrieveExecutionGroups();
-            retrieveRunningApps();
-            for(ApplicationProxy app : mApplications)
+            for(ApplicationProxy app : retrieveRunningApps())
                 if(app.isRunning())
                     count++;
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
