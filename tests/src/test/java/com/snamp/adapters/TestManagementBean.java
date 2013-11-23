@@ -1,17 +1,12 @@
 package com.snamp.adapters;
 
-import com.sun.jmx.interceptor.DefaultMBeanServerInterceptor;
 
 import javax.management.*;
-import javax.management.modelmbean.ModelMBeanNotificationInfo;
 import javax.management.openmbean.*;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Objects;
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.

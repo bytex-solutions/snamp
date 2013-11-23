@@ -346,7 +346,7 @@ final class JmxConnector extends AbstractManagementConnector {
             //loads notification as Java Bean and explore each JB property as attachment
             if(attachments == null)
                 try {
-                    attachments = new BeanMap<javax.management.Notification>(jmxNotification, javax.management.Notification.class);
+                    attachments = new BeanPropertyAccessor<javax.management.Notification>(jmxNotification, javax.management.Notification.class);
                 } catch (final IntrospectionException e) {
                     attachments = new HashMap<>();
                     log.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);

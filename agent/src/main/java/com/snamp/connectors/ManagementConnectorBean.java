@@ -338,45 +338,15 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
             return options.keySet();
         }
 
-        /**
-         * Returns a {@link java.util.Collection} view of the values contained in this map.
-         * The collection is backed by the map, so changes to the map are
-         * reflected in the collection, and vice-versa.  If the map is
-         * modified while an iteration over the collection is in progress
-         * (except through the iterator's own <tt>remove</tt> operation),
-         * the results of the iteration are undefined.  The collection
-         * supports element removal, which removes the corresponding
-         * mapping from the map, via the <tt>Iterator.remove</tt>,
-         * <tt>Collection.remove</tt>, <tt>removeAll</tt>,
-         * <tt>retainAll</tt> and <tt>clear</tt> operations.  It does not
-         * support the <tt>add</tt> or <tt>addAll</tt> operations.
-         *
-         * @return a collection view of the values contained in this map
-         */
+
         @Override
-        public Collection<String> values() {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
+        public final Collection<String> values() {
+            return options.values();
         }
 
-        /**
-         * Returns a {@link java.util.Set} view of the mappings contained in this map.
-         * The set is backed by the map, so changes to the map are
-         * reflected in the set, and vice-versa.  If the map is modified
-         * while an iteration over the set is in progress (except through
-         * the iterator's own <tt>remove</tt> operation, or through the
-         * <tt>setValue</tt> operation on a map entry returned by the
-         * iterator) the results of the iteration are undefined.  The set
-         * supports element removal, which removes the corresponding
-         * mapping from the map, via the <tt>Iterator.remove</tt>,
-         * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt> and
-         * <tt>clear</tt> operations.  It does not support the
-         * <tt>add</tt> or <tt>addAll</tt> operations.
-         *
-         * @return a set view of the mappings contained in this map
-         */
         @Override
-        public Set<Entry<String, String>> entrySet() {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
+        public final Set<Entry<String, String>> entrySet() {
+            return options.entrySet();
         }
     }
 
@@ -386,7 +356,51 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
     private final Object beanInstance;
 
     /**
-     * Initializes a new management connector.
+     * Provides introspection for the specified bean instance.
+     * @param <T> Type of JavaBean to reflect.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static interface BeanIntrospector<T>{
+        /**
+         * Reflects the specified JavaBean.
+         * @param beanInstance An instance of JavaBean to reflect.
+         * @return Metadata of the specified JavaBean.
+         * @throws IntrospectionException Cannot reflect the specified JavaBean.
+         */
+        public BeanInfo getBeanInfo(final T beanInstance) throws IntrospectionException;
+    }
+
+    /**
+     * Provides the standard implementation of JavaBean reflection that simply
+     * calls {@link Introspector#getBeanInfo(Class)} method. This class cannot be inherited.
+     * @param <T> Type of JavaBean to reflect.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static final class StandardBeanIntrospector<T> implements BeanIntrospector<T>{
+
+        /**
+         * Reflects the specified JavaBean.
+         * <p>
+         *     This method simply calls {@link Introspector#getBeanInfo(Class)} method.
+         * </p>
+         * @param beanInstance An instance of JavaBean to reflect.
+         * @return Metadata of the specified JavaBean.
+         * @throws java.beans.IntrospectionException
+         *          Cannot reflect the specified JavaBean.
+         */
+        @Override
+        public final BeanInfo getBeanInfo(final T beanInstance) throws IntrospectionException {
+            return Introspector.getBeanInfo(beanInstance.getClass());
+        }
+    }
+
+    /**
+     * Initializes a new management connector that reflects properties of this class as
+     * connector attributes.
      * @param typeBuilder Type information provider that provides property type converter.
      * @throws IllegalArgumentException typeBuilder is {@literal null}.
      */
@@ -397,11 +411,22 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
         this.beanInstance = null;
     }
 
-    private ManagementConnectorBean(final Object beanInstance, final EntityTypeInfoFactory<AttributeTypeConverter> typeBuilder) throws IntrospectionException {
+    /**
+     * Initializes a new management connector that reflects properties of the specified instance
+     * as connector attributes.
+     * @param beanInstance An instance of JavaBean to reflect. Cannot be {@literal null}.
+     * @param introspector An introspector that reflects the specified JavaBean. Cannot be {@literal null}.
+     * @param typeBuilder Type information provider that provides property type converter. Cannot be {@literal null}.
+     * @param <T>  Type of JavaBean to reflect.
+     * @throws IntrospectionException Cannot reflect the specified instance.
+     * @throws IllegalArgumentException At least one of the specified arguments is {@literal null}.
+     */
+    protected <T> ManagementConnectorBean(final T beanInstance, final BeanIntrospector<T> introspector, final EntityTypeInfoFactory<AttributeTypeConverter> typeBuilder) throws IntrospectionException {
         if(beanInstance == null) throw new IllegalArgumentException("beanInstance is null.");
+        else if(introspector == null) throw new IllegalArgumentException("introspector is null.");
         else if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.beanInstance = beanInstance;
-        this.beanMetadata = Introspector.getBeanInfo(beanInstance.getClass());
+        this.beanMetadata = introspector.getBeanInfo(beanInstance);
         this.typeInfoBuilder = typeBuilder;
     }
 
@@ -414,7 +439,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @throws IntrospectionException
      */
     public static <T> ManagementConnectorBean wrap(final T beanInstance, final EntityTypeInfoFactory<AttributeTypeConverter> typeBuilder) throws IntrospectionException {
-        return new ManagementConnectorBean(beanInstance, typeBuilder);
+        return new ManagementConnectorBean(beanInstance, new StandardBeanIntrospector<>(), typeBuilder);
     }
 
     /**

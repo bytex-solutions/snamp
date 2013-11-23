@@ -9,7 +9,7 @@ import java.beans.IntrospectionException;
  * @version 1.0
  * @since 1.0
  */
-public final class BeanMapTest extends SnampClassTestSet<BeanMap<?>> {
+public final class BeanPropertyAccessorTest extends SnampClassTestSet<BeanPropertyAccessor<?>> {
     public static final class SimpleBean{
         private int propertyStorage;
 
@@ -24,7 +24,7 @@ public final class BeanMapTest extends SnampClassTestSet<BeanMap<?>> {
 
     @Test
     public final void propertyAccessingTest() throws IntrospectionException {
-        final BeanMap<SimpleBean> map = new BeanMap<>(new SimpleBean());
+        final BeanPropertyAccessor<SimpleBean> map = new BeanPropertyAccessor<>(new SimpleBean());
         assertTrue(map.set("value", 42));
         assertEquals(42, map.get("value"));
     }

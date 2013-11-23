@@ -14,7 +14,7 @@ import java.beans.*;
  */
 @Internal
 @Lifecycle(InstanceLifecycle.NORMAL)
-public class BeanMap<B> implements Map<String, Object>, Serializable {
+public class BeanPropertyAccessor<B> implements Map<String, Object>, Serializable {
     /**
      * Represents Java Bean stored in this map.
      */
@@ -29,7 +29,7 @@ public class BeanMap<B> implements Map<String, Object>, Serializable {
      *    will be ignored in the analysis.
      * @throws IllegalArgumentException beanInstance is {@literal null}.
      */
-    public BeanMap(final B beanInstance, final Class<?> stopClass) throws IntrospectionException {
+    public BeanPropertyAccessor(final B beanInstance, final Class<?> stopClass) throws IntrospectionException {
         if(beanInstance == null) throw new IllegalArgumentException("beanInstance is null.");
         bean = beanInstance;
         properties = Introspector.getBeanInfo(beanInstance.getClass(), stopClass).getPropertyDescriptors();
@@ -40,7 +40,7 @@ public class BeanMap<B> implements Map<String, Object>, Serializable {
      * @param beanInstance An instance of the Java Bean to wrap. Cannot be {@literal null}.
      * @throws IllegalArgumentException beanInstance is {@literal null}.
      */
-    public BeanMap(final B beanInstance) throws IntrospectionException {
+    public BeanPropertyAccessor(final B beanInstance) throws IntrospectionException {
         this(beanInstance, null);
     }
 
@@ -259,6 +259,16 @@ public class BeanMap<B> implements Map<String, Object>, Serializable {
     }
 
     /**
+     * Returns a type of the specified property.
+     * @param propertyName The name of the property.
+     * @return The property type; or {@literal null} if property doesn't exist.
+     */
+    public final Class<?> getType(final String propertyName){
+        final PropertyDescriptor desc = getDescriptor(propertyName);
+        return desc != null ? desc.getPropertyType() : null;
+    }
+
+    /**
      * Returns a set of available bean properties.
      * @return A set of available bean properties.
      */
@@ -308,7 +318,7 @@ public class BeanMap<B> implements Map<String, Object>, Serializable {
                 @Override
                 @Deprecated
                 public Object setValue(final Object value) {
-                    return put(pd.getName(), value);
+                    return set(pd.getName(), value);
                 };
             });
         return result;

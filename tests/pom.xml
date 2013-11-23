@@ -53,6 +53,12 @@
       <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>com.snamp</groupId>
+          <artifactId>rmi</artifactId>
+          <version>1.0.0</version>
+          <scope>test</scope>
+      </dependency>
     <dependency>
       <groupId>com.snamp</groupId>
       <artifactId>jmx</artifactId>
