@@ -33,7 +33,8 @@ import java.util.Map;
  */
 class IbmWmbConnector extends ManagementConnectorBean
 {
-    private BrokerProxy mBrokerInstance;
+    final static String connectorName = "ibm-wmb";
+    private final BrokerProxy mBrokerInstance;
 
     /**
      * Initializes a new management connector for IBM WMB.
@@ -41,22 +42,32 @@ class IbmWmbConnector extends ManagementConnectorBean
      * @param typeBuilder Type information provider that provides property type converter.
      * @throws IllegalArgumentException
      */
-    public IbmWmbConnector(Map<String, String> env, EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
+    public IbmWmbConnector(String connectionString, Map<String, String> env, EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
         super(typeBuilder);
         try {
-            if(env.containsKey("host") && env.containsKey("port") && env.containsKey("qmgr"))
+            String[] connectParams = connectionString.split(";");
+            if(connectParams.length == 3)
             {
-                final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(env.get("host"), Integer.valueOf(env.get("port")), env.get("qmgr"));
-                // that's blocking call. Does it make sense?
+                final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(connectParams[0], Integer.valueOf(connectParams[1]), connectParams[2]);
                 mBrokerInstance = BrokerProxy.getInstance(bcp);
-                while(!mBrokerInstance.hasBeenPopulatedByBroker())
-                    Thread.yield();
             }
             else
                 throw new IllegalArgumentException("Cannot create IBM Connector: insufficient parameters!");
         } catch (ConfigManagerProxyLoggedException e) {
             throw new IntrospectionException(e.toString());
         }
+    }
+
+    /**
+     * We should check if broker instance is already populated by underlying server
+     * Otherwise we will get exceptions for all attributes
+     *
+     */
+    @Override
+    protected void verifyInitialization() {
+        super.verifyInitialization();
+        if(!mBrokerInstance.hasBeenPopulatedByBroker()) // still not initialized
+            throw new IllegalStateException("Broker instance is not populated, please wait!");
     }
 
     /**
@@ -68,7 +79,6 @@ class IbmWmbConnector extends ManagementConnectorBean
      */
     private List<ExecutionGroupProxy> retrieveExecutionGroups() throws ConfigManagerProxyPropertyNotInitializedException {
         final List<ExecutionGroupProxy> mExecutionGroups = new ArrayList<>();
-
         final Enumeration<ExecutionGroupProxy> egIterator = mBrokerInstance.getExecutionGroups(null);
         while(egIterator.hasMoreElements())
             mExecutionGroups.add(egIterator.nextElement());

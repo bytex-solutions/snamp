@@ -8,25 +8,27 @@ import java.util.logging.Level;
  * Date: 13.11.13
  * Time: 15:20
  */
+
 public class IbmWmbConnectorFactory extends AbstractManagementConnectorFactory<IbmWmbConnector>
 {
     /**
      * Initializes a new connector factory.
-     *
-     * @param connectorName The name of the connector.
-     * @throws IllegalArgumentException
-     *          connectorName is null.
      */
-    protected IbmWmbConnectorFactory(String connectorName)
+    protected IbmWmbConnectorFactory()
     {
-        super(connectorName);
+        super(IbmWmbConnector.connectorName);
     }
 
     @Override
+    /**
+     * Compounds a new instance of IbmWmbConnector
+     * @param connectionString String of following format: "host;port;qmgr_name"
+     *
+     */
     public IbmWmbConnector newInstance(String connectionString, Map<String, String> env)
     {
         try {
-            return new IbmWmbConnector(env, new IbmWmbTypeSystem());
+            return new IbmWmbConnector(connectionString, env, new IbmWmbTypeSystem());
         }
         catch (Exception e) {
             getLogger().log(Level.SEVERE, "Unable to create IBM WMB connector", e);
