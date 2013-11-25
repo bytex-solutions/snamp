@@ -1,7 +1,6 @@
 package com.snamp.connectors;
 
 import com.snamp.SnampClassTestSet;
-import com.snamp.TimeSpan;
 import org.junit.Test;
 
 import java.beans.IntrospectionException;
@@ -19,11 +18,11 @@ public final class IbmWmbConnectorTest extends SnampClassTestSet<IbmWmbConnector
     public final void testConnectorBean() throws IntrospectionException, TimeoutException {
         final Map<String, String> env = new HashMap<String, String>()
         {{
-            put("host", "10.200.100.113");
-            put("port", "1450");
-            put("qmgr", "OEC_QMGR");
+            put("executionGroup", "TEST");
+            put("application", "TESTAPP");
         }};
-        final IbmWmbConnector connector = new IbmWmbConnectorFactory().newInstance("", env);
+        //final IbmWmbConnector connector = new IbmWmbConnectorFactory().newInstance("broker://10.200.100.113:1450/OEC_QMGR", env);
+        final IbmWmbConnector connector = new IbmWmbConnectorFactory().newInstance("broker://192.168.0.69:1450/TEST_QMGR", env);
         connector.connectAttribute("0", "executionGroupCount", new HashMap<String, String>());
         //assertEquals(connector.getProperty1(), connector.getAttribute("0", TimeSpan.INFINITE, ""));
         //connector.setAttribute("0", TimeSpan.INFINITE, "1234567890");

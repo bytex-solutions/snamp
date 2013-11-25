@@ -3,6 +3,7 @@ package com.snamp.connectors;
 import com.ibm.broker.config.proxy.*;
 
 import java.beans.IntrospectionException;
+import java.net.URI;
 import java.util.*;
 
 
@@ -44,11 +45,11 @@ class IbmWmbConnector extends ManagementConnectorBean
     public IbmWmbConnector(String connectionString, Map<String, String> env, EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
         super(typeBuilder);
         try {
-            String[] connectParams = connectionString.split(";");
-            if(connectParams.length == 3)
+            if(connectionString != null)
             {
                 mObjectFilter = env;
-                final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(connectParams[0], Integer.valueOf(connectParams[1]), connectParams[2]);
+                final URI address = URI.create(connectionString);
+                final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(address.getHost(), address.getPort(), address.getPath());
                 mBrokerInstance = BrokerProxy.getInstance(bcp);
             }
             else
