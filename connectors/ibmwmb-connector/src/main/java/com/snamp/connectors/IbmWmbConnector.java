@@ -3,10 +3,7 @@ package com.snamp.connectors;
 import com.ibm.broker.config.proxy.*;
 
 import java.beans.IntrospectionException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /*
@@ -35,6 +32,8 @@ class IbmWmbConnector extends ManagementConnectorBean
 {
     final static String connectorName = "ibm-wmb";
     private final BrokerProxy mBrokerInstance;
+    private final Map<String, String> mObjectFilter;
+    private AdministeredObject mEntity = null;  // we cannot get it at the constructor :(
 
     /**
      * Initializes a new management connector for IBM WMB.
@@ -48,6 +47,7 @@ class IbmWmbConnector extends ManagementConnectorBean
             String[] connectParams = connectionString.split(";");
             if(connectParams.length == 3)
             {
+                mObjectFilter = env;
                 final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(connectParams[0], Integer.valueOf(connectParams[1]), connectParams[2]);
                 mBrokerInstance = BrokerProxy.getInstance(bcp);
             }
@@ -70,147 +70,166 @@ class IbmWmbConnector extends ManagementConnectorBean
             throw new IllegalStateException("Broker instance is not populated, please wait!");
     }
 
+    private AdministeredObject getAdministeredObject() throws ConfigManagerProxyPropertyNotInitializedException {
+        if(mEntity != null)
+            return mEntity;
+
+        if(mObjectFilter != null && mObjectFilter.containsKey("executionGroup")) {
+            mEntity = mBrokerInstance.getExecutionGroupByName(mObjectFilter.get("executionGroup"));
+            if(mEntity == null)
+                throw new IllegalArgumentException("No such execution group in this broker instance!");
+            else {
+                if(mObjectFilter.containsKey("application")) {
+                    mEntity = ((ExecutionGroupProxy) mEntity).getApplicationByName(mObjectFilter.get("application"));
+                    if(mEntity == null)
+                        throw new IllegalArgumentException("No such application in this execution group!");
+                    else {
+                        if(mObjectFilter.containsKey("messageFlow")) {
+                            mEntity = ((ApplicationProxy) mEntity).getMessageFlowByName(mObjectFilter.get("messageFlow"));
+                            if(mEntity == null)
+                                throw new IllegalArgumentException("No such message flow in this application!");
+                            else
+                                return mEntity; // entity is Message Flow
+                        }
+                        else
+                            return mEntity;  // entity is Application
+                    }
+                }
+                else
+                    return mEntity;  // entity is Execution Group
+            }
+
+        }
+        else {
+            mEntity = mBrokerInstance;
+            return mEntity; // entity is Broker
+        }
+    }
+
     /**
-     * Retrieves list of execution group from this broker instance. Broker must be initialized already.
-     * Throws error otherwise
+     * Function that retrieves name of currently looked at administered object
      *
-     * @return list of currently known execution groups for current broker instance
-     * @throws ConfigManagerProxyPropertyNotInitializedException
+     * @return name of currently monitored object
      */
-    private List<ExecutionGroupProxy> retrieveExecutionGroups() throws ConfigManagerProxyPropertyNotInitializedException {
-        final List<ExecutionGroupProxy> mExecutionGroups = new ArrayList<>();
-        final Enumeration<ExecutionGroupProxy> egIterator = mBrokerInstance.getExecutionGroups(null);
-        while(egIterator.hasMoreElements())
-            mExecutionGroups.add(egIterator.nextElement());
-
-        return mExecutionGroups;
+    final public String getName() {
+        try {
+            final AdministeredObject entity = getAdministeredObject();
+            return entity.getName();
+        } catch (ConfigManagerProxyPropertyNotInitializedException e) {
+            return null;
+        }
     }
 
     /**
-     * Retrieves list of applications of all execution groups from this broker instance. Broker must be initialized already.
-     * Throws error otherwise
+     * Function that retrieves description of currently looked at administered object
+     * Often there is no description given
      *
-     * @return list of currently known applications for current broker instance
-     * @throws ConfigManagerProxyPropertyNotInitializedException
+     * @return description of currently monitored object
      */
-    private List<ApplicationProxy> retrieveRunningApps() throws ConfigManagerProxyPropertyNotInitializedException {
-        final List<ApplicationProxy> mApplications = new ArrayList<>();
-
-        for(ExecutionGroupProxy eg : retrieveExecutionGroups())
-        {
-            Enumeration<ApplicationProxy> appIterator = eg.getApplications(null);
-            while(appIterator.hasMoreElements())
-                mApplications.add(appIterator.nextElement());
+    final public String getDescription() {
+        try {
+            final AdministeredObject entity = getAdministeredObject();
+            return entity.getShortDescription();
+        } catch (ConfigManagerProxyPropertyNotInitializedException e) {
+            return null;
         }
-
-        return mApplications;
     }
 
     /**
-     * Retrieves list of log entries from this broker instance. Broker must be initialized already.
-     * Throws error otherwise
+     * Function that retrieves UUID of currently looked at administered object
+     * UUIDs are unique within broker instance
      *
-     * @return list of log entries for current broker instance
-     * @throws ConfigManagerProxyPropertyNotInitializedException
+     * @return UUID of currently monitored object
      */
-    private List<LogEntry> retrieveLogEntries() throws ConfigManagerProxyPropertyNotInitializedException {
-        final List<LogEntry> mLogs = new ArrayList<>();
-
-        final Enumeration<LogEntry> logsIterator = mBrokerInstance.getLog().elements();
-        while(logsIterator.hasMoreElements())
-            mLogs.add(logsIterator.nextElement());
-
-        return mLogs;
-    }
-
-    /**
-     * Getter for attribute that holds current execution group count
-     * @return count of known execution groups
-     */
-    final public Integer getExecutionGroupCount() {
+    final public String getUUID() {
         try {
-            return retrieveExecutionGroups().size();
+            final AdministeredObject entity = getAdministeredObject();
+            return entity.getUUID();
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
             return null;
         }
     }
 
     /**
-     * Getter for attribute that holds current applications count for all execution groups
-     * @return count of known applications
+     * Function that retrieves type of currently looked at administered object
+     * Types ex: "Message Flow", "Execution Group", "Application"
+     *
+     * @return type of currently monitored object
      */
-    final public Integer getApplicationsCount() {
+    final public String getType() {
         try {
-            return retrieveRunningApps().size();
+            final AdministeredObject entity = getAdministeredObject();
+            return entity.getType();
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
             return null;
         }
     }
 
     /**
-     * Getter for attribute that holds current error count
-     * @return count of errors in log entries
+     * Retrieves running children and formats its names as array
+     * of strings.
+     *
+     * Broker children are EGs
+     * EG children are applications
+     * App children are message flows/libraries
+     * and so on
+     *
+     * @return Array of names of currently running children
      */
-    final public Integer getErrorsCount() {
-        Integer count = 0;
+    final public String[] getRunningChildrenNames() {
         try {
-            final List<LogEntry> mLogs = retrieveLogEntries();
-            for(LogEntry entry : mLogs)
-                if(entry.isErrorMessage())
-                    count++;
+            final List<String> subcomponentsNames = new ArrayList<>();
+            final AdministeredObject entity = getAdministeredObject();
+            final Properties filterRunning = new Properties();
+
+            filterRunning.setProperty(AttributeConstants.OBJECT_RUNSTATE_PROPERTY, AttributeConstants.OBJECT_RUNSTATE_RUNNING);
+            final Enumeration<AdministeredObject> subcomponentsEnum = entity.getManagedSubcomponents(filterRunning);
+
+            while(subcomponentsEnum.hasMoreElements())
+                subcomponentsNames.add(subcomponentsEnum.nextElement().getName()); // just convert to list
+
+            return subcomponentsNames.toArray(new String[subcomponentsNames.size()]); // type system knows about String[]
+
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
             return null;
         }
-        return count;
     }
 
     /**
-     * Getter for attribute that holds last error message
-     * @return last error message as a string
+     * Retrieves array of string representation of last logs
+     * These are set when a previously submitted action completes and the response is received by the IBM Integration API (CMP).
+     *
+     * @return Array of string representation of last logs
      */
-    final public String getLastErrorMessage()
-    {
-        final List<LogEntry> mLogs;
-        try
-        {
-            mLogs = retrieveLogEntries();
-            for(int i = mLogs.size() - 1; i >= 0; ++i)
-                if(mLogs.get(i).isErrorMessage())
-                    return mLogs.get(i).getMessage();
-        } catch (ConfigManagerProxyPropertyNotInitializedException ignored) {}
-
-        return "";
-    }
-
-    /**
-     * Getter for attribute that holds current running execution group count
-     * @return count of known running execution groups
-     */
-    final public Integer getRunningExecutionGroupCount() {
-        Integer count = 0;
+    final public String[] getLogMessages() {
         try {
-            for(ExecutionGroupProxy group : retrieveExecutionGroups())
-                if(group.isRunning())
-                    count++;
+            final List<String> logMessages = new ArrayList<>();
+            final AdministeredObject entity = getAdministeredObject();
+
+            final Vector<LogEntry> logVector = entity.getLastBIPMessages();
+            if(logVector != null)
+                for(LogEntry log : logVector)
+                    logMessages.add(log.toString());
+
+            return logMessages.toArray(new String[logMessages.size()]); // type system knows about String[]
+
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
             return null;
         }
-        return count;
     }
 
     /**
-     * Getter for attribute that holds current running applications count
-     * @return count of known running applications
+     * Function that retrieves last update time of currently looked at administered object
+     *
+     * @return calendar instance with last update time of currently monitored object
      */
-    final public Integer getRunningApplicationsCount() {
-        Integer count = 0;
+    final public Calendar getLastUpdateTime() {
         try {
-            for(ApplicationProxy app : retrieveRunningApps())
-                if(app.isRunning())
-                    count++;
+            final AdministeredObject entity = getAdministeredObject();
+            return entity.getTimeOfLastUpdate();
+
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
-            return -1;
+            return null;
         }
-        return count;
     }
 }

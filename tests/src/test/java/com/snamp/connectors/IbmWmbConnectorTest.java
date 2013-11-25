@@ -23,7 +23,7 @@ public final class IbmWmbConnectorTest extends SnampClassTestSet<IbmWmbConnector
             put("port", "1450");
             put("qmgr", "OEC_QMGR");
         }};
-        final IbmWmbConnector connector = new IbmWmbConnectorFactory("ibmwmb").newInstance("", env);
+        final IbmWmbConnector connector = new IbmWmbConnectorFactory().newInstance("", env);
         connector.connectAttribute("0", "executionGroupCount", new HashMap<String, String>());
         //assertEquals(connector.getProperty1(), connector.getAttribute("0", TimeSpan.INFINITE, ""));
         //connector.setAttribute("0", TimeSpan.INFINITE, "1234567890");
