@@ -49,7 +49,7 @@ class IbmWmbConnector extends ManagementConnectorBean
             {
                 mObjectFilter = env;
                 final URI address = URI.create(connectionString);
-                final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(address.getHost(), address.getPort(), address.getPath());
+                final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(address.getHost(), address.getPort(), address.getPath().substring(1));
                 mBrokerInstance = BrokerProxy.getInstance(bcp);
             }
             else
