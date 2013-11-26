@@ -1,5 +1,7 @@
 package com.snamp.connectors;
 
+import net.xeoh.plugins.base.annotations.PluginImplementation;
+
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -8,15 +10,15 @@ import java.util.logging.Level;
  * Date: 13.11.13
  * Time: 15:20
  */
-
+@PluginImplementation
 public class IbmWmbConnectorFactory extends AbstractManagementConnectorFactory<IbmWmbConnector>
 {
     /**
      * Initializes a new connector factory.
      */
-    protected IbmWmbConnectorFactory()
+    public IbmWmbConnectorFactory()
     {
-        super(IbmWmbConnector.connectorName);
+        super(IbmWmbConnector.NAME);
     }
 
     @Override
@@ -32,7 +34,7 @@ public class IbmWmbConnectorFactory extends AbstractManagementConnectorFactory<I
         }
         catch (Exception e) {
             getLogger().log(Level.SEVERE, "Unable to create IBM WMB connector", e);
-        return null;
+            return null;
         }
     }
 }

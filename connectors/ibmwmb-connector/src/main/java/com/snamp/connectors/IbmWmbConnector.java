@@ -32,7 +32,7 @@ import java.util.*;
  */
 class IbmWmbConnector extends ManagementConnectorBean
 {
-    final static String connectorName = "ibm-wmb";
+    final static String NAME = "ibm-wmb";
     private final BrokerProxy mBrokerInstance;
     private final Map<String, String> mObjectFilter;
     private AdministeredObject mEntity = null;  // we cannot get it at the constructor :(
@@ -46,16 +46,16 @@ class IbmWmbConnector extends ManagementConnectorBean
     public IbmWmbConnector(String connectionString, Map<String, String> env, EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
         super(typeBuilder);
         try {
-            if(connectionString != null)
+            final URI address = URI.create(connectionString);
+            if(address.getScheme().equals("broker"))
             {
                 mObjectFilter = env;
-                final URI address = URI.create(connectionString);
                 final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(address.getHost(), address.getPort(), address.getPath().substring(1));
                 mBrokerInstance = BrokerProxy.getInstance(bcp);
             }
             else
                 throw new IllegalArgumentException("Cannot create IBM Connector: insufficient parameters!");
-        } catch (ConfigManagerProxyLoggedException e) {
+        } catch (Exception e) {
             throw new IntrospectionException(e.toString());
         }
     }
@@ -235,12 +235,19 @@ class IbmWmbConnector extends ManagementConnectorBean
         }
     }
 
+    /**
+     * Function that retrieves table of all defined broker parameters
+     * Note that this includes both simple properties and advanced properties
+     *
+     * @return properties in form of table of "Key : Value" pairs
+     * @see SimpleTable
+     */
     final public SimpleTable<String> getProperties() {
         try {
             final AdministeredObject entity = getAdministeredObject();
             final Properties propsNativeTable = entity.getProperties();
-            final Map<String, Class<?>> propsMap = new HashMap<String, Class<?>>() {{ put("Key", String.class); put("Value", String.class); }};
-            final SimpleTable<String> resTable = new SimpleTable<>(propsMap);
+            final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{ put("Key", String.class); put("Value", String.class); }};
+            final SimpleTable<String> resTable = new SimpleTable<>(columnsAndTypes);
             for(final Map.Entry<Object, Object> property : propsNativeTable.entrySet())
                 resTable.addRow(new HashMap<String, Object>() {{ put("Key", property.getKey().toString()); put("Value", property.getValue().toString()); }});
 

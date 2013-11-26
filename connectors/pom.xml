@@ -21,5 +21,6 @@
   <modules>
     <module>jmx-connector</module>
     <module>ibmwmb-connector</module>
+    <module>ibmmq-connector</module>
   </modules>
 </project>
