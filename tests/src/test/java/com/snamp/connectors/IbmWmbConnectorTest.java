@@ -29,8 +29,9 @@ public final class IbmWmbConnectorTest extends SnampClassTestSet<IbmWmbConnector
             try {
                 connector.connectAttribute("0", "name", new HashMap<String, String>());
                 connector.connectAttribute("1", "runningChildrenNames", new HashMap<String, String>());
+                connector.connectAttribute("2", "properties", new HashMap<String, String>());
                 break;
-            } catch (IllegalStateException e) { Thread.yield(); }
+            } catch (IllegalStateException e) { Thread.yield(); }  // ждем пока коннектор инициализируется
 
         final AttributeMetadata md = connector.getAttributeInfo("0");
         assertEquals("name", md.getAttributeName());

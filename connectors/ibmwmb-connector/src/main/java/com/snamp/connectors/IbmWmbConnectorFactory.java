@@ -33,6 +33,6 @@ public class IbmWmbConnectorFactory extends AbstractManagementConnectorFactory<I
         catch (Exception e) {
             getLogger().log(Level.SEVERE, "Unable to create IBM WMB connector", e);
         return null;
-    }
+        }
     }
 }

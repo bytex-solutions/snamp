@@ -1,6 +1,7 @@
 package com.snamp.connectors;
 
 import com.ibm.broker.config.proxy.*;
+import com.snamp.SimpleTable;
 
 import java.beans.IntrospectionException;
 import java.net.URI;
@@ -228,6 +229,22 @@ class IbmWmbConnector extends ManagementConnectorBean
         try {
             final AdministeredObject entity = getAdministeredObject();
             return entity.getTimeOfLastUpdate();
+
+        } catch (ConfigManagerProxyPropertyNotInitializedException e) {
+            return null;
+        }
+    }
+
+    final public SimpleTable<String> getProperties() {
+        try {
+            final AdministeredObject entity = getAdministeredObject();
+            final Properties propsNativeTable = entity.getProperties();
+            final Map<String, Class<?>> propsMap = new HashMap<String, Class<?>>() {{ put("Key", String.class); put("Value", String.class); }};
+            final SimpleTable<String> resTable = new SimpleTable<>(propsMap);
+            for(final Map.Entry<Object, Object> property : propsNativeTable.entrySet())
+                resTable.addRow(new HashMap<String, Object>() {{ put("Key", property.getKey().toString()); put("Value", property.getValue().toString()); }});
+
+            return resTable;
 
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
             return null;
