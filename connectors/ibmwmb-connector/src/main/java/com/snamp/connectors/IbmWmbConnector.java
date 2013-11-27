@@ -47,7 +47,7 @@ class IbmWmbConnector extends ManagementConnectorBean
         super(typeBuilder);
         try {
             final URI address = URI.create(connectionString);
-            if(address.getScheme().equals("broker"))
+            if(address.getScheme().equals("wmb"))
             {
                 mObjectFilter = env;
                 final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(address.getHost(), address.getPort(), address.getPath().substring(1));

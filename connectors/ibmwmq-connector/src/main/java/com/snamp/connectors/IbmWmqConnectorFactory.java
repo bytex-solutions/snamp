@@ -12,19 +12,19 @@ import java.util.logging.Level;
  * @since 1.1.0
  */
 @PluginImplementation
-public class IbmMqConnectorFactory extends AbstractManagementConnectorFactory<IbmMqConnector> {
+public class IbmWmqConnectorFactory extends AbstractManagementConnectorFactory<IbmWmqConnector> {
 
     /**
      * Initializes a new connector factory.
      */
-    public IbmMqConnectorFactory() {
-        super(IbmMqConnector.NAME);
+    public IbmWmqConnectorFactory() {
+        super(IbmWmqConnector.NAME);
     }
 
     @Override
-    public IbmMqConnector newInstance(String connectionString, Map<String, String> connectionProperties) {
+    public IbmWmqConnector newInstance(String connectionString, Map<String, String> connectionProperties) {
         try {
-            return new IbmMqConnector(connectionString, connectionProperties, new WellKnownTypeSystem<>(EntityTypeInfoBuilder.AttributeTypeConverter.class));
+            return new IbmWmqConnector(connectionString, connectionProperties, new WellKnownTypeSystem<>(EntityTypeInfoBuilder.AttributeTypeConverter.class));
         } catch (IntrospectionException e) {
             getLogger().log(Level.SEVERE, "Unable to create IBM MQ connector", e);
             return null;

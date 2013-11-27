@@ -12,8 +12,9 @@ import java.util.Map;
  * @author  Chernovsky Oleg
  * @since 1.1.0
  */
-public class IbmMqConnector extends ManagementConnectorBean {
-    public static final String NAME = "ibm-mq";
+public class IbmWmqConnector extends ManagementConnectorBean {
+    public static final String NAME = "ibm-wmq";
+    public final MQQueueManager mQmgrInstance;
 
     /**
      * Initializes a new management connector.
@@ -22,16 +23,17 @@ public class IbmMqConnector extends ManagementConnectorBean {
      * @throws IllegalArgumentException
      *          typeBuilder is {@literal null}.
      */
-    public IbmMqConnector(String connectionString, Map<String, String> connectionProperties, EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
+    public IbmWmqConnector(String connectionString, Map<String, String> connectionProperties, EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
         super(typeBuilder);
         try {
             URI address = URI.create(connectionString);
-            if(address.getScheme().equals("mq")) {
+            if(address.getScheme().equals("wmq")) {
                 MQEnvironment.hostname = address.getHost();
                 MQEnvironment.channel = address.getUserInfo();
                 MQEnvironment.port = address.getPort();
 
-                MQQueueManager queueManager = new MQQueueManager(address.getPath().substring(1));
+                mQmgrInstance = new MQQueueManager(address.getPath().substring(1));
+
             }
             else
                 throw new IllegalArgumentException("Cannot create IBM Connector: insufficient parameters!");
