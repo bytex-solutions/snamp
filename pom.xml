@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.snamp</groupId>
   <artifactId>snamp</artifactId>
-  <version>0.1.1</version>
+  <version>1.0.0</version>
   <packaging>pom</packaging>
   <name>snamp</name>
   <scm>
@@ -46,7 +46,7 @@
     <module>licensing</module>
     <module>tests</module>
     <module>rest-manager</module>
-      <module>examples</module>
+    <module>examples</module>
   </modules>
     <repositories>
         <repository>

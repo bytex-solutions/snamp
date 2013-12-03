@@ -178,8 +178,8 @@ public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
                      * @return A set of event sources.
                      */
                     @Override
-                    public Set<EventConfiguration> getEvents() {
-                        return new HashSet<>();
+                    public Map<String, EventConfiguration> getEvents() {
+                        return new HashMap<>();
                     }
 
                     @Override

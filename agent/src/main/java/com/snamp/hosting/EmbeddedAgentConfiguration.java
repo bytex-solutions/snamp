@@ -285,7 +285,7 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
         private String connectionType;
         private String namespace;
         private final Map<String, String> additionalElements;
-        private final Set<EventConfiguration> events;
+        private final Map<String, EventConfiguration> events;
 
         /**
          * Initializes a new empty configuration of the management information source.
@@ -294,7 +294,7 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
             connectionString = connectionType = namespace = "";
             attributes = new HashMap<>(10);
             additionalElements = new HashMap<>(10);
-            this.events = new HashSet<>();
+            this.events = new HashMap<>(10);
         }
 
         /**
@@ -375,7 +375,7 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
          * @return A set of event sources.
          */
         @Override
-        public final Set<EventConfiguration> getEvents() {
+        public final Map<String, EventConfiguration> getEvents() {
             return events;
         }
 

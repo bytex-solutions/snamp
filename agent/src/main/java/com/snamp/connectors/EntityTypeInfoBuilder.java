@@ -59,7 +59,7 @@ public abstract class EntityTypeInfoBuilder<E extends EntityTypeInfo> implements
     /**
      * Represents type information about universal entity.
      */
-    private static interface EntityTypeConverter extends AttributeTypeConverter, NotificationContentTypeInfo {
+    private static interface EntityTypeConverter extends AttributeTypeConverter, NotificationAttachmentTypeInfo {
 
     }
 
@@ -253,11 +253,14 @@ public abstract class EntityTypeInfoBuilder<E extends EntityTypeInfo> implements
             return new AbstractEntityTypeConverter(sourceType, builderType.getMethods()) {
                 @Override
                 public final <T> boolean canConvertTo(final Class<T> target) {
+                    if(shouldNormalize(target)) return canConvertTo(normalizeClass(target));
                     return target.isAssignableFrom(super.sourceType) || destinationType.isAssignableFrom(target);
                 }
 
                 @Override
                 public final <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException{
+                    if(shouldNormalize(target))
+                        return (T)convertTo(value, normalizeClass(target));
                     if(target.isInstance(value))
                         return target.cast(value);
                     else if(sourceType.isInstance(value))
@@ -282,6 +285,7 @@ public abstract class EntityTypeInfoBuilder<E extends EntityTypeInfo> implements
                 @Override
                 public final  <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException {
                     if(target == null) throw new IllegalArgumentException("target is null.");
+                    else if(shouldNormalize(target)) return (T)convertTo(value, normalizeClass(target));
                     else if(target.isInstance(value)) return target.cast(value);
                     final Method converter = getConverterTo(target);
                     if(converter != null)

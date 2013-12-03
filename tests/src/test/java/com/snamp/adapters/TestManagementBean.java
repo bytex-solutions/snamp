@@ -1,10 +1,12 @@
 package com.snamp.adapters;
 
+
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,7 +16,9 @@ import java.util.Objects;
  * This class implements com.snamp.adapters.TestManagementBeanInterface interface and needed to test
  * attributes supported by JMX adapter
  */
-public final class TestManagementBean implements DynamicMBean {
+public final class TestManagementBean extends NotificationBroadcasterSupport implements DynamicMBean {
+    public static final String BEAN_NAME = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
+
     private static final MBeanAttributeInfo STRING_PROPERTY = new OpenMBeanAttributeInfoSupport("string",
             "Sample description",
             SimpleType.STRING,
@@ -79,6 +83,12 @@ public final class TestManagementBean implements DynamicMBean {
             true,
             false);
 
+    private static final MBeanNotificationInfo PROPERTY_CHANGED_EVENT = new MBeanNotificationInfo(
+            new String[]{AttributeChangeNotification.ATTRIBUTE_CHANGE},
+            AttributeChangeNotification.class.getName(),
+            "Occurs when property is changed"
+    );
+
     private static final MBeanInfo BEAN_INFO = new MBeanInfo(TestManagementBean.class.getName(),
             "Test MBean",
             new MBeanAttributeInfo[]{STRING_PROPERTY,
@@ -90,7 +100,7 @@ public final class TestManagementBean implements DynamicMBean {
                     TABLE_PROPERTY},
             new MBeanConstructorInfo[0],
             new MBeanOperationInfo[0],
-            new MBeanNotificationInfo[0]);
+            new MBeanNotificationInfo[]{PROPERTY_CHANGED_EVENT});
 
     private String chosenString;
     private boolean aBoolean;
@@ -99,8 +109,11 @@ public final class TestManagementBean implements DynamicMBean {
     private Short[] array;
     private CompositeData dictionary;
     private TabularData table;
+    private final AtomicLong sequenceCounter;
 
     public TestManagementBean() {
+        super(PROPERTY_CHANGED_EVENT);
+        sequenceCounter = new AtomicLong(0);
         chosenString = "NO VALUE";
         aBigInt = BigInteger.ZERO;
         array = new Short[0];
@@ -204,6 +217,17 @@ public final class TestManagementBean implements DynamicMBean {
         else throw new AttributeNotFoundException();
     }
 
+    private final void propertyChanged(final String attributeName, final String attributeType, final Object oldValue, final Object newValue){
+        sendNotification(new AttributeChangeNotification(this,
+                sequenceCounter.getAndIncrement(),
+                System.currentTimeMillis(),
+                String.format("Property %s is changed", attributeName),
+                attributeName,
+                attributeType,
+                oldValue,
+                newValue));
+    }
+
     /**
      * Set the value of a specific attribute of the Dynamic MBean.
      *
@@ -221,21 +245,46 @@ public final class TestManagementBean implements DynamicMBean {
      */
     @Override
     public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException{
-        if(Objects.equals(attribute.getName(), STRING_PROPERTY.getName()))
-            chosenString = Objects.toString(attribute.getValue(), "");
-        else if(Objects.equals(attribute.getName(), BOOLEAN_PROPERTY.getName()))
-            aBoolean = Boolean.valueOf(Objects.toString(attribute.getValue()));
-        else if(Objects.equals(attribute.getName(), INT32_PROPERTY.getName()))
-            anInt = Integer.valueOf(Objects.toString(attribute.getValue()));
-        else if(Objects.equals(attribute.getName(), BIGINT_PROPERTY.getName()))
-            aBigInt = new BigInteger(Objects.toString(attribute.getValue()));
-        else if(Objects.equals(attribute.getName(), ARRAY_PROPERTY.getName()))
-            array = (Short[])attribute.getValue();
-        else if(Objects.equals(attribute.getName(), DICTIONARY_PROPERTY.getName()))
-            dictionary = (CompositeData)attribute.getValue();
-        else if(Objects.equals(attribute.getName(), TABLE_PROPERTY.getName()))
-            table = (TabularData)attribute.getValue();
+        final Object oldValue;
+        final Object newValue;
+        final String attributeType;
+        if(Objects.equals(attribute.getName(), STRING_PROPERTY.getName())){
+            oldValue = chosenString;
+            newValue = chosenString = Objects.toString(attribute.getValue(), "");
+            attributeType = STRING_PROPERTY.getType();
+        }
+        else if(Objects.equals(attribute.getName(), BOOLEAN_PROPERTY.getName())){
+            oldValue = aBoolean;
+            newValue = aBoolean = Boolean.valueOf(Objects.toString(attribute.getValue()));
+            attributeType = BOOLEAN_PROPERTY.getType();
+        }
+        else if(Objects.equals(attribute.getName(), INT32_PROPERTY.getName())){
+            oldValue = anInt;
+            newValue = anInt = Integer.valueOf(Objects.toString(attribute.getValue()));
+            attributeType = INT32_PROPERTY.getType();
+        }
+        else if(Objects.equals(attribute.getName(), BIGINT_PROPERTY.getName())){
+            oldValue = aBigInt;
+            attributeType = BIGINT_PROPERTY.getType();
+            newValue = aBigInt = new BigInteger(Objects.toString(attribute.getValue()));
+        }
+        else if(Objects.equals(attribute.getName(), ARRAY_PROPERTY.getName())){
+            oldValue = array;
+            newValue = array = (Short[])attribute.getValue();
+            attributeType = ARRAY_PROPERTY.getType();
+        }
+        else if(Objects.equals(attribute.getName(), DICTIONARY_PROPERTY.getName())){
+            oldValue = dictionary;
+            newValue = dictionary = (CompositeData)attribute.getValue();
+            attributeType = DICTIONARY_PROPERTY.getType();
+        }
+        else if(Objects.equals(attribute.getName(), TABLE_PROPERTY.getName())){
+            oldValue = table;
+            newValue = table = (TabularData)attribute.getValue();
+            attributeType = TABLE_PROPERTY.getType();
+        }
         else throw new AttributeNotFoundException();
+        propertyChanged(attribute.getName(), attributeType, oldValue, newValue);
     }
 
     /**

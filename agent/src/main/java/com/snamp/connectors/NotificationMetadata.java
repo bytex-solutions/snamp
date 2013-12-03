@@ -41,12 +41,6 @@ public interface NotificationMetadata extends Map<String, String> {
     }
 
     /**
-     * Gets the type of the notification content.
-     * @return The type of the notification content.
-     */
-    public NotificationContentTypeInfo getContentType();
-
-    /**
      * Gets the category of the notification.
      * @return The category of the notification.
      */
@@ -57,4 +51,12 @@ public interface NotificationMetadata extends Map<String, String> {
      * @return Listeners invocation model for this notification type.
      */
     public NotificationModel getNotificationModel();
+
+    /**
+     * Returns the type descriptor for the specified attachment.
+     * @param attachment The notification attachment.
+     * @return The type descriptor for the specified attachment; or {@literal null} if the specified
+     * attachment is not supported.
+     */
+    public NotificationAttachmentTypeInfo getAttachmentType(final Object attachment);
 }

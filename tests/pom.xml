@@ -4,10 +4,9 @@
   <parent>
     <groupId>com.snamp</groupId>
     <artifactId>snamp</artifactId>
-    <version>0.1.1</version>
+    <version>1.0.0</version>
   </parent>
   <artifactId>tests</artifactId>
-  <version>0.1.1</version>
   <packaging>jar</packaging>
   <name>Tests module</name>
   <properties>
@@ -51,26 +50,38 @@
     <dependency>
       <groupId>com.snamp</groupId>
       <artifactId>agent</artifactId>
-      <version>0.1.1</version>
+      <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>com.snamp</groupId>
+          <artifactId>rmi</artifactId>
+          <version>1.0.0</version>
+          <scope>test</scope>
+      </dependency>
     <dependency>
       <groupId>com.snamp</groupId>
       <artifactId>jmx</artifactId>
-      <version>0.1.1</version>
+      <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
           <groupId>com.snamp</groupId>
           <artifactId>rest-adapter</artifactId>
-          <version>0.1.1</version>
+          <version>1.0.0</version>
           <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.snamp</groupId>
       <artifactId>snmp</artifactId>
-      <version>0.1.1</version>
+      <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>com.google.code.gson</groupId>
+          <artifactId>gson</artifactId>
+          <version>2.2.4</version>
+          <scope>test</scope>
+      </dependency>
   </dependencies>
 </project>

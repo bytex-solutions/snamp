@@ -46,10 +46,8 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
         }
     }
 
-    @Aggregation
     private Adapter adapter;
     private final Map<String, String> params;
-    @Aggregation
     private final InstantiatedConnectors connectors;
     private boolean started;
 
@@ -57,7 +55,7 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
         super(logger);
         if(adapter == null) throw new IllegalArgumentException("Adapter is not available");
         else this.adapter = adapter;
-        this.params = hostingParams != null ? new HashMap<String, String>(hostingParams) : new HashMap<String, String>();
+        this.params = hostingParams != null ? new HashMap<>(hostingParams) : new HashMap<String, String>();
         this.connectors = new InstantiatedConnectorsImpl();
         started = false;
     }
@@ -120,11 +118,12 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
                 logger.warning(String.format("Management connector %s is not installed.", targetConfig.getConnectionType()));
                 return;
             }
+            else connectors.put(targetConfig.getConnectionType(), connector);
         }
         //register attributes
         adapter.exposeAttributes(connector, targetConfig.getNamespace(), targetConfig.getAttributes());
         //register events
-        adapter.exposeEvents(connector, targetConfig.getEvents());
+        adapter.exposeEvents(connector, targetConfig.getNamespace(), targetConfig.getEvents());
     }
 
     /**
@@ -184,5 +183,20 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
         connectors.clear();
         params.clear();
         adapter.close();
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the aggregated object.
+     * @param <T>        Type of the required object.
+     * @return An instance of the requested object; or {@literal null} if object is not available.
+     */
+    @Override
+    public final <T> T queryObject(final Class<T> objectType) {
+        if(objectType == null) return null;
+        else if(objectType.isInstance(adapter)) return objectType.cast(adapter);
+        else if(objectType.isInstance(connectors)) return objectType.cast(connectors);
+        else return null;
     }
 }

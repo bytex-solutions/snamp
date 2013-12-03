@@ -170,7 +170,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
          * Returns the event sources.
          * @return A set of event sources.
          */
-        public Set<EventConfiguration> getEvents();
+        public Map<String, EventConfiguration> getEvents();
 
         /**
          * Returns the dictionary of additional configuration elements.

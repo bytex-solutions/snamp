@@ -13,6 +13,16 @@ public final class Arguments extends HashMap<String, Object> implements Serializ
     static final long serialVersionUID = -1242599979055084673L;
 
     /**
+     * Initializes a new argument list.
+     * @param args An array of arguments.
+     */
+    public Arguments(Object... args){
+        super(args.length);
+        for(int i = 0; i < args.length; i++)
+            put(i, args[i]);
+    }
+
+    /**
      * Returns the argument by its index.
      * @param index The index of the argument.
      * @return The value of the argument.

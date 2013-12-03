@@ -1,16 +1,12 @@
 package com.snamp.connectors;
 
 import com.snamp.hosting.*;
-import org.junit.*;
 
 import javax.management.*;
-import javax.management.remote.JMXServiceURL;
-import java.io.IOException;
 import java.lang.management.*;
 import static com.snamp.hosting.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-
-import java.net.MalformedURLException;
+import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 import java.util.*;
 
 /**
@@ -46,6 +42,10 @@ public abstract class JmxConnectorTest<ManagementBean> extends HostingTest {
 
     protected abstract void fillAttributes(final Map<String, AttributeConfiguration> attributes);
 
+    protected void fillEvents(final Map<String, EventConfiguration> events){
+
+    }
+
     /**
      * Represents management targets.
      *
@@ -60,6 +60,7 @@ public abstract class JmxConnectorTest<ManagementBean> extends HostingTest {
             targetConfig.setConnectionType("jmx");
             targetConfig.setNamespace(getAttributesNamespace());
             fillAttributes(targetConfig.getAttributes());
+            fillEvents(targetConfig.getEvents());
             put("test-jmx", targetConfig);
         }};
     }

@@ -11,6 +11,7 @@ import java.util.*;
  * Represents JMX attribute type information.
  * @author Roman Sakno
  */
+@SuppressWarnings("unchecked")
 final class JmxTypeSystem extends WellKnownTypeSystem<EntityTypeInfoBuilder.AttributeTypeConverter> {
     /**
      * Initializes a new builder of JMX attributes.
