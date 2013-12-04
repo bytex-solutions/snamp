@@ -126,5 +126,11 @@
       <version>6.0.0.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.ibm.mq</groupId>
+      <artifactId>WebSphereMQPCF</artifactId>
+      <version>6.0.0.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>
