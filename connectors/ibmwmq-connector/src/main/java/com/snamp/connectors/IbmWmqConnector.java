@@ -7,11 +7,14 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
+import com.ibm.mq.headers.pcf.PCFParameter;
 import com.snamp.SimpleTable;
 
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,6 +52,8 @@ public class IbmWmqConnector extends ManagementConnectorBean {
                 mQmgrInstance = new MQQueueManager(address.getPath().substring(1));
                 mMonitor = new PCFMessageAgent(mQmgrInstance);
                 mObjectFilter = connectionProperties;
+
+                getChannelsStatus();
             }
             else
                 throw new IllegalArgumentException("Cannot create IBM Connector: insufficient parameters!");
@@ -57,6 +62,13 @@ public class IbmWmqConnector extends ManagementConnectorBean {
         }
     }
 
+    /**
+     * This function represents the table that holds all the attributes for queue status
+     * Each row is filled with some queue statistics data
+     *
+     *
+     * @return Table of queue attributes
+     */
     public SimpleTable<String> getQueuesStatus() {
         try {
             final PCFMessage inquireQueueStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS);
@@ -118,74 +130,37 @@ public class IbmWmqConnector extends ManagementConnectorBean {
 
             final PCFMessage[] statistics = mMonitor.send(inquireChannelStatus);
             final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{
-                put("ChannelName", String.class);
-                put("ConnectionName", String.class);
-                put("TransmissionQueueName", String.class);
-                put("ChannelInstanceType", Integer.class);
-                put("LastUncommittedMessageSequenceNumber", Integer.class);
-                put("CurrentIndoubtStatus", Integer.class);
-                put("LastCommittedMessageSequenceNumber", Integer.class);
+                for(PCFMessage curr : statistics) { // we need to add every parameter that appears at least once to table
+                    final Enumeration paramEnum = curr.getParameters();
+                    while (paramEnum.hasMoreElements()) { // fill the columns
+                        PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
+                        if(!containsKey(parameter.getParameterName())) {
+                            Class parameterClazz = parameter.getValue().getClass();
+                            if(!parameterClazz.isArray()) // arrays are converted to their String representation since adapters may not handle nested table types
+                                put(parameter.getParameterName(), parameterClazz);
+                            else
+                                put(parameter.getParameterName(), String.class);
+                        }
+                    }
+                }
 
-                put("ChannelStartDate", String.class);
-                put("ChannelStartTime", String.class);
-                put("LastMessageDate", String.class);
-                put("LastMessageTime", String.class);
-
-                put("ChannelLocalAddress", String.class);
-                put("ChannelMCAJobName", String.class);
-                put("ChannelMCAUserName", String.class);
-                put("ChannelRemoteAppName", String.class);
-
-                // TODO: test MQIACF_MONITORING
-
-                put("ChannelBatchesCompleted", Integer.class);
-                put("ChannelBuffersReceived", Integer.class);
-                put("ChannelBuffersSent", Integer.class);
-                put("ChannelBytesReceived", Integer.class);
-                put("ChannelBytesSent", Integer.class);
-
-                put("ChannelMessagesTotalNumber", Integer.class);
-                put("ChannelMessagesAvailable", Integer.class);
-                put("ChannelBatchSize", Integer.class);
-                put("ChannelHeartBeatInterval", Integer.class);
-                put("ChannelMessageSpeed", Integer.class);
             }};
 
-
+            // then iteratively fill table with data
             final SimpleTable<String> resTable = new SimpleTable<>(columnsAndTypes);
-            for(final PCFMessage queueStatus : statistics)
+            for(final PCFMessage curr : statistics) // each row
                 resTable.addRow(new HashMap<String, Object>() {{
-                    put("ChannelName", queueStatus.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME));
-                    put("ConnectionName", queueStatus.getStringParameterValue(CMQCFC.MQCACH_CONNECTION_NAME));
-                    put("TransmissionQueueName", queueStatus.getStringParameterValue(CMQCFC.MQCACH_XMIT_Q_NAME));
-                    put("ChannelInstanceType", queueStatus.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_INSTANCE_TYPE));
-                    put("LastUncommittedMessageSequenceNumber", queueStatus.getIntParameterValue(CMQCFC.MQIACH_CURRENT_SEQ_NUMBER));
-                    put("CurrentIndoubtStatus", queueStatus.getIntParameterValue(CMQCFC.MQIACH_IN_DOUBT));
-                    put("LastCommittedMessageSequenceNumber", queueStatus.getIntParameterValue(CMQCFC.MQIACH_LAST_SEQ_NUMBER));
-
-                    put("ChannelStartDate", queueStatus.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_START_DATE));
-                    put("ChannelStartTime", queueStatus.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_START_TIME));
-                    put("LastMessageDate", queueStatus.getStringParameterValue(CMQCFC.MQCACH_LAST_MSG_DATE));
-                    put("LastMessageTime", queueStatus.getStringParameterValue(CMQCFC.MQCACH_LAST_MSG_TIME));
-
-                    put("ChannelLocalAddress", queueStatus.getStringParameterValue(CMQCFC.MQCACH_LOCAL_ADDRESS));
-                    put("ChannelMCAJobName", queueStatus.getStringParameterValue(CMQCFC.MQCACH_MCA_JOB_NAME));
-                    put("ChannelMCAUserName", queueStatus.getStringParameterValue(CMQCFC.MQCACH_MCA_USER_ID));
-                    put("ChannelRemoteAppName", queueStatus.getStringParameterValue(CMQCFC.MQCACH_REMOTE_APPL_TAG));
-
-                    // TODO: test MQIACF_MONITORING
-
-                    put("ChannelBatchesCompleted", queueStatus.getIntParameterValue(CMQCFC.MQIACH_BATCHES));
-                    put("ChannelBuffersReceived", queueStatus.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RCVD));
-                    put("ChannelBuffersSent", queueStatus.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT));
-                    put("ChannelBytesReceived", queueStatus.getIntParameterValue(CMQCFC.MQIACH_BYTES_RCVD));
-                    put("ChannelBytesSent", queueStatus.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT));
-
-                    put("ChannelMessagesTotalNumber", queueStatus.getIntParameterValue(CMQCFC.MQIACH_MSGS));
-                    put("ChannelMessagesAvailable", queueStatus.getIntParameterValue(CMQCFC.MQIACH_XMITQ_MSGS_AVAILABLE));
-                    put("ChannelBatchSize", queueStatus.getIntParameterValue(CMQCFC.MQIACH_BATCH_SIZE));
-                    put("ChannelHeartBeatInterval", queueStatus.getIntParameterValue(CMQCFC.MQIACH_HB_INTERVAL));
-                    put("ChannelMessageSpeed", queueStatus.getIntParameterValue(CMQCFC.MQIACH_NPM_SPEED));
+                    final Enumeration paramEnum = curr.getParameters();
+                    while (paramEnum.hasMoreElements()) { // each column
+                        PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
+                        Class parameterClazz = parameter.getValue().getClass();
+                        if(!parameterClazz.isArray())
+                            put(parameter.getParameterName(), parameter.getValue());
+                        else if (parameterClazz == String[].class) // how to do this natively?
+                            put(parameter.getParameterName(), Arrays.toString((String[]) parameter.getValue()));
+                        else
+                            put(parameter.getParameterName(), Arrays.toString((int[]) parameter.getValue())); // "[0, 0]", for ex
+                    }
                 }});
 
             return resTable;
