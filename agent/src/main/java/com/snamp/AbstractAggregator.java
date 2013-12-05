@@ -10,16 +10,16 @@ import java.lang.reflect.*;
  *  program elements will be automatically recognized as aggregated object and available for requesting
  *  through {@link #queryObject(Class)} method.
  *  <b>Example:</b><br/>
- *  <pre>{@code
+ *  <pre><code>
  *  final class CustomAggregator extends AbstractAggregator{
- *      @Aggregation
+ *      {@literal @}Aggregation
  *      private final File someFile;
  *
  *      public CustomAggregator(final String fileName){
  *          someFile = new File(fileName);
  *      }
  *  }
- *  }</pre>
+ *  </code></pre>
  * </p>
  * @author Roman Sakno
  * @since 1.0

@@ -2,10 +2,11 @@ package com.snamp.adapters;
 
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
-import com.snamp.connectors.util.AbstractAttributesRegistry;
-import com.snamp.connectors.util.ConnectedAttributes;
+import com.snamp.connectors.util.*;
+import com.snamp.hosting.AgentConfiguration;
 
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 
 import java.io.IOException;
 import java.util.*;
@@ -15,6 +16,7 @@ import java.util.*;
  */
 public class EmbeddedAdapter extends AbstractAdapter {
     private final AbstractAttributesRegistry attributes;
+    private final AbstractSubscriptionList notifications;
 
     /**
      * Initializes a new instance of the adapter.
@@ -29,11 +31,26 @@ public class EmbeddedAdapter extends AbstractAdapter {
                 return new ConnectedAttributes(connector) {
                     @Override
                     public String makeAttributeId(final String prefix, final String postfix) {
-                        return String.format("%s/%s", prefix, postfix);
+                        return makeEntityId(prefix, postfix);
                     }
                 };
             }
         };
+        notifications = new AbstractSubscriptionList() {
+            @Override
+            protected EnabledNotification createBinding(final ManagementConnector connector) {
+                return new EnabledNotification(connector) {
+                    @Override
+                    public String makeListId(final String prefix, final String postfix) {
+                        return makeEntityId(prefix, postfix);
+                    }
+                };
+            }
+        };
+    }
+
+    private static String makeEntityId(final String prefix, final String postfix){
+        return String.format("%s/%s", prefix, postfix);
     }
 
     /**
@@ -73,16 +90,66 @@ public class EmbeddedAdapter extends AbstractAdapter {
         this.attributes.putAll(connector, namespace, attributes);
     }
 
+    /**
+     * Reads the attribute value in type-safe manner.
+     * @param namespace
+     * @param id
+     * @param attributeType Type of the attribute value.
+     * @param defaultValue The default value of the attribute if it cannot be obtained from the underlying connector.
+     * @param <T> Type of the attribute value.
+     * @return Strongly typed attribute value.
+     */
     protected final <T> T getAttribute(final String namespace, final String id, final Class<T> attributeType, final T defaultValue){
         return this.attributes.getAttribute(namespace, id, attributeType, defaultValue, TimeSpan.INFINITE);
     }
 
+    /**
+     * Sets the attribute value.
+     * @param namespace The attribute namespace.
+     * @param id The attribute identifier.
+     * @param value A new attribute value.
+     * @return {@literal true}, if attribute is overwritten successfully; otherwise, {@literal false};
+     */
     protected final boolean setAttribute(final String namespace, final String id, final Object value){
         return this.attributes.setAttribute(namespace, id, value, TimeSpan.INFINITE);
     }
 
+    /**
+     * Exposes monitoring events.
+     *
+     * @param connector The management connector that provides notification listening and subscribing.
+     * @param namespace The events namespace.
+     * @param events    The collection of configured notifications.
+     */
+    @Override
+    public final void exposeEvents(final ManagementConnector connector, final String namespace, final Map<String, EventConfiguration> events) {
+        notifications.putAll(connector, namespace, events);
+    }
 
+    /**
+     * Attaches the specified notification listener.
+     * @param namespace
+     * @param postfix
+     * @param listener
+     * @return An identifier of the subscription.
+     */
+    protected final Object subscribe(final String namespace, final String postfix, final NotificationListener listener){
+        return notifications.subscribe(namespace, postfix, listener);
+    }
 
+    /**
+     * Removes the subscription.
+     * @param listenerId An identifier of the subscription returned by {@link #subscribe(String, String, com.snamp.connectors.NotificationListener)} method.
+     * @return {@literal true}, if the specified subscription is removed successfully; otherwise, {@literal false}.
+     */
+    protected final boolean unsubscribe(final Object listenerId){
+        return listenerId instanceof AbstractSubscriptionList.Subscription &&
+                ((AbstractSubscriptionList.Subscription)listenerId).unsubscribe();
+    }
+
+    /**
+     * Releases all resources associated with this adapter.
+     */
     @Override
     public void close() {
         attributes.clear();

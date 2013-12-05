@@ -154,9 +154,10 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      * @version 1.0
      */
     protected static abstract class GenericNotificationMetadata implements Map<String, String>, NotificationMetadata{
+        private static final AtomicLong globalCounter = new AtomicLong(0L);
         private final String eventCategory;
         private final AtomicLong counter;
-        private final Map<Long, NotificationListener<? extends Notification>> listeners;
+        private final Map<Long, Pair<NotificationListener, Object>> listeners;
         private final ReadWriteLock coordinator;
 
         /**
@@ -164,10 +165,33 @@ public abstract class AbstractManagementConnector implements ManagementConnector
          * @param category The category of the event.
          */
         protected GenericNotificationMetadata(final String category){
+            this(category, true);
+        }
+
+        /**
+         * Initializes a new event metadata.
+         * @param category The category of the event.
+         * @param useGlobalIdGen {@literal true} to generate an unique listener identifier through
+         *                                      all instance of the notification metadata inside
+         *                                      of this process; {@literal false} to generate an unique
+         *                                      identifier scoped to this instance only.
+         */
+        protected GenericNotificationMetadata(final String category, final boolean useGlobalIdGen){
             this.eventCategory = category;
             this.listeners = new HashMap<>(10);
-            this.counter = new AtomicLong(0);
             this.coordinator = new ReentrantReadWriteLock();
+            this.counter = useGlobalIdGen ? globalCounter : new AtomicLong(0L);
+        }
+
+        final boolean hasListener(final Long listenerId){
+            final Lock readLock = coordinator.readLock();
+            readLock.lock();
+            try{
+                return listeners.containsKey(listenerId);
+            }
+            finally {
+                readLock.unlock();
+            }
         }
 
         /**
@@ -181,15 +205,65 @@ public abstract class AbstractManagementConnector implements ManagementConnector
         }
 
         /**
+         * Returns all subscribed listeners.
+         * @return A collection of subscribed listeners.
+         */
+        public final Collection<Pair<NotificationListener, Object>> getListeners(){
+            final Lock readLock = coordinator.readLock();
+            readLock.lock();
+            try{
+                return new ArrayList<>(listeners.values());
+            }
+            finally {
+                readLock.unlock();
+            }
+        }
+
+        /**
+         * Removes all listeners.
+         * @return A collection of removed listeners.
+         */
+        public final Collection<Pair<NotificationListener, Object>> removeListeners(){
+            final Lock writeLock = coordinator.readLock();
+            writeLock.lock();
+            try{
+                final Collection<Pair<NotificationListener, Object>> result = new ArrayList<>(listeners.values());
+                listeners.clear();
+                return result;
+            }
+            finally {
+                writeLock.unlock();
+            }
+        }
+
+        /**
+         * Gets the listener for the specified listener identifier.
+         * @param listenerId An identifier of the listener.
+         * @return An instance of the notification listener.
+         */
+        public final Pair<NotificationListener, Object> getListener(final Long listenerId){
+            final Lock readLock = coordinator.readLock();
+            readLock.lock();
+            try{
+                return listeners.containsKey(listenerId) ? listeners.get(listenerId) : null;
+            }
+            finally {
+                readLock.unlock();
+            }
+        }
+
+        /**
          * Adds a new listener for this event.
          * @param listener The notification listener.
+         * @param userData The user data associated with the listener.
          * @return A new unique identifier of the added listener.
          */
-        public final Long addListener(final NotificationListener<? extends Notification> listener){
+        public final Long addListener(final NotificationListener listener, final Object userData){
             final Long listenerId = counter.getAndIncrement();
             final Lock writeLock = coordinator.writeLock();
+            writeLock.lock();
             try{
-                listeners.put(listenerId, listener);
+                listeners.put(listenerId, new Pair<>(listener, userData));
             }
             finally {
                 writeLock.unlock();
@@ -199,12 +273,13 @@ public abstract class AbstractManagementConnector implements ManagementConnector
 
         /**
          * Removes the listener from this event.
-         * @param listenerId An identifier of the listener obtained with {@link #addListener(NotificationListener)}
+         * @param listenerId An identifier of the listener obtained with {@link #addListener(NotificationListener, Object)}
          *                   method.
          * @return {@literal true} if the listener with the specified ID was registered; otherwise, {@literal false}.
          */
         public final boolean removeListener(final Long listenerId){
             final Lock writeLock = coordinator.writeLock();
+            writeLock.lock();
             try{
                 return listeners.remove(listenerId) != null;
             }
@@ -274,6 +349,21 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     }
 
     /**
+     * Returns all notifications associated with the specified category.
+     * @param category The category of the event.
+     * @param metadataType The type of requested notification metadata.
+     * @param <T> The type of requested notification metadata.
+     * @return A map of registered notifications and subscription lists.
+     */
+    protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType){
+        final Map<String, T> result = new HashMap<>(10);
+        for(final Map.Entry<String, GenericNotificationMetadata> metadata: notifications.entrySet())
+            if(Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
+                result.put(metadata.getKey(), metadataType.cast(metadata.getValue()));
+        return result;
+    }
+
+    /**
      * Returns a count of connected attributes.
      * @return The count of connected attributes.
      */
@@ -283,7 +373,8 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     }
 
     /**
-     *  Throws an exception if the connector is not initialized.
+     *  Throws an {@link IllegalStateException} if the connector is not initialized.
+     *  @throws IllegalStateException Connector is not initialized.
      */
     // TODO: Architecture bug? Why no "throw" at declaration?
     protected abstract void verifyInitialization(); //throws Exception;
@@ -534,7 +625,9 @@ public abstract class AbstractManagementConnector implements ManagementConnector
 
     /**
      * Enables event listening for the specified category of events.
-     *
+     * <p>
+     *     In the default implementation this method does nothing.
+     * </p>
      * @param category The name of the category to listen.
      * @param options  Event discovery options.
      * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
@@ -545,18 +638,19 @@ public abstract class AbstractManagementConnector implements ManagementConnector
 
     /**
      * Enables event listening for the specified category of events.
-     *
-     * @param category The name of the category to listen.
+     * @param listId An identifier of the subscription list.
+     * @param category A name of the category to listen.
      * @param options  Event discovery options.
      * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
      */
     @Override
-    public final NotificationMetadata enableNotifications(final String category, final Map<String, String> options) {
+    public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
         final Lock writeLock = coordinator.writeLock();
+        writeLock.lock();
         try{
             if(notifications.containsKey(category)) return notifications.get(category);
             final GenericNotificationMetadata metadata = enableNotificationsCore(category, options);
-            if(metadata != null) notifications.put(category, metadata);
+            if(metadata != null) notifications.put(listId, metadata);
             return metadata;
         }
         finally {
@@ -566,6 +660,9 @@ public abstract class AbstractManagementConnector implements ManagementConnector
 
     /**
      * Disable all notifications associated with the specified event.
+     * <p>
+     *     In the default implementation this method does nothing.
+     * </p>
      * @param notificationType The event descriptor.
      */
     protected void disableNotificationsCore(final NotificationMetadata notificationType){
@@ -574,16 +671,16 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     /**
      * Disables event listening for the specified category of events.
      *
-     * @param category The name of the event category.
+     * @param listId An identifier of the subscription list.
      * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
      */
     @Override
-    public final boolean disableNotifications(final String category) {
+    public final boolean disableNotifications(final String listId) {
         final Lock writeLock = coordinator.writeLock();
         writeLock.lock();
         try{
-            if(notifications.containsKey(category)){
-                disableNotificationsCore(notifications.remove(category));
+            if(notifications.containsKey(listId)){
+                disableNotificationsCore(notifications.remove(listId));
                 return true;
             }
             else return false;
@@ -596,15 +693,16 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     /**
      * Gets the notification metadata by its category.
      *
-     * @param category The category of the notification.
+     * @param listId An identifier of the subscription list.
      * @return The metadata of the specified notification category; or {@literal null}, if notifications
-     *         for the specified category is not enabled by {@link #enableNotifications(String, java.util.Map)} method.
+     *         for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
      */
     @Override
-    public final NotificationMetadata getNotificationInfo(final String category) {
+    public final NotificationMetadata getNotificationInfo(final String listId) {
         final Lock readLock = coordinator.readLock();
+        readLock.lock();
         try{
-            return notifications.get(category);
+            return notifications.get(listId);
         }
         finally {
             readLock.unlock();
@@ -617,25 +715,26 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      * @param listener The event listener.
      * @return Any custom data associated with the subscription.
      */
-    protected Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener<? extends Notification> listener){
+    protected Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener){
         return null;
     }
 
     /**
      * Attaches the notification listener.
      *
-     * @param category The category of the event to listen.
+     * @param listId An identifier of the subscription list.
      * @param listener The notification listener.
      * @return An identifier of the notification listener generated by this connector.
      */
     @Override
-    public final Long subscribe(final String category, final NotificationListener<? extends Notification> listener) {
+    public final Long subscribe(final String listId, final NotificationListener listener) {
         final Lock readLock = coordinator.readLock();
+        readLock.lock();
         try{
-            final GenericNotificationMetadata metadata = notifications.get(category);
+            final GenericNotificationMetadata metadata = notifications.get(listId);
             if(metadata == null) return null;
-            subscribeCore(metadata, listener);
-            return metadata.addListener(listener) ^ category.hashCode();
+            final Object userData = subscribeCore(metadata, listener);
+            return metadata.addListener(listener, userData);
         }
         finally {
             readLock.unlock();
@@ -659,14 +758,17 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      *                   by {@link #subscribe(String, NotificationListener)} method.
      * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
      */
-    public final boolean unsubscribe(final long listenerId){
+    public final boolean unsubscribe(final Long listenerId){
         final Lock readLock = coordinator.readLock();
         readLock.lock();
         try{
-            for(final String category: notifications.keySet()){
-                final int categoryHash = category.hashCode();
-                if((categoryHash ^ listenerId) == categoryHash)
-                    return notifications.get(category).removeListener(listenerId);
+            for(final GenericNotificationMetadata metadata: notifications.values()){
+                if(metadata.hasListener(listenerId)){
+                    final Pair<NotificationListener, Object> pair = metadata.getListener(listenerId);
+                    if(pair == null) return false;
+                    unsubscribeCore(metadata, pair.first, pair.second);
+                    return metadata.removeListener(listenerId);
+                }
             }
 
         }

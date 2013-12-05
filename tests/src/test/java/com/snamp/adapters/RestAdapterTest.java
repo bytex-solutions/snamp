@@ -1,6 +1,7 @@
 package com.snamp.adapters;
 
 import com.google.gson.*;
+import com.snamp.Temporary;
 import com.snamp.connectors.*;
 import static com.snamp.hosting.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration;
 import org.junit.Test;
@@ -14,6 +15,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * @author Roman Sakno
@@ -23,12 +25,12 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         put(Adapter.portParamName, "3222");
         put(Adapter.addressParamName, "127.0.0.1");
     }};
-    private static final String BEAN_NAME = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
+
 
     private final Gson jsonFormatter;
 
     public RestAdapterTest() throws MalformedObjectNameException {
-        super("rest", restAdapterSettings, new TestManagementBean(), new ObjectName(BEAN_NAME));
+        super("rest", restAdapterSettings, new TestManagementBean(), new ObjectName(TestManagementBean.BEAN_NAME));
         jsonFormatter = new Gson();
     }
 
@@ -115,6 +117,62 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
     }
 
     @Test
+    public final void loadTestForBigIntProperty() throws InterruptedException, IOException {
+        final int maxTasks = 100;
+        final CountDownLatch barrier = new CountDownLatch(maxTasks);
+        final ExecutorService executor = Executors.newFixedThreadPool(10);
+        for(int i = 0; i < maxTasks; i++){
+            final BigInteger num = BigInteger.valueOf(i);
+            executor.execute(new Runnable() {
+                @Override
+                public void run(){
+                    try{
+                        writeAttribute("bigintProperty", num, BigInteger.class);
+                    }
+                    catch (final IOException e){
+                        fail(e.getLocalizedMessage());
+                    }
+                    finally {
+                        barrier.countDown();
+                    }
+                }
+            });
+        }
+        assertTrue(barrier.await(1, TimeUnit.MINUTES));
+        boolean equals = false;
+        for(int i = 0; i < maxTasks; i++)
+            equals |= Objects.equals(BigInteger.valueOf(i), readAttribute("bigintProperty", BigInteger.class));
+        assertTrue(equals);
+    }
+
+    @Test
+    public final void loadTestForTable() throws IOException, InterruptedException {
+        final int maxTasks = 100;
+        final CountDownLatch barrier = new CountDownLatch(maxTasks);
+        final ExecutorService executor = Executors.newFixedThreadPool(10);
+        for(int i = 0; i < maxTasks; i++){
+            final JsonArray table = i % 2 == 0 ? createTestTable1() : createTestTable2();
+            executor.execute(new Runnable() {
+                @Override
+                public void run(){
+                    try{
+                        writeAttributeAsJson("tableProperty", table);
+                    }
+                    catch (final IOException e){
+                        fail(e.getLocalizedMessage());
+                    }
+                    finally {
+                        barrier.countDown();
+                    }
+                }
+            });
+        }
+        assertTrue(barrier.await(1, TimeUnit.MINUTES));
+        final JsonElement actual = readAttributeAsJson("tableProperty");
+        assertTrue(Objects.equals(actual, createTestTable1()) || Objects.equals(actual, createTestTable2()));
+    }
+
+    @Test
     public final void testForArrayProperty() throws IOException{
         writeAttribute("arrayProperty", new short[]{1, 2, 3}, short[].class);
         assertArrayEquals(new short[]{1, 2, 3}, readAttribute("arrayProperty", short[].class));
@@ -136,9 +194,37 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         assertEquals(new JsonPrimitive("Hello, world!"), dic.get("col3"));
     }
 
-    @Test
-    public final void testForTableProperty() throws IOException{
-        JsonArray table = new JsonArray();
+    private static final JsonArray createTestTable2(){
+        final JsonArray table = new JsonArray();
+        //row 1
+        JsonObject row = new JsonObject();
+        table.add(row);
+        row.add("col1", new JsonPrimitive(true));
+        row.add("col2", new JsonPrimitive(42));
+        row.add("col3", new JsonPrimitive("Simple Row 1"));
+        //row 2
+        row = new JsonObject();
+        table.add(row);
+        row.add("col1", new JsonPrimitive(true));
+        row.add("col2", new JsonPrimitive(43));
+        row.add("col3", new JsonPrimitive("Simple Row 2"));
+        //row 3
+        row = new JsonObject();
+        table.add(row);
+        row.add("col1", new JsonPrimitive(true));
+        row.add("col2", new JsonPrimitive(44));
+        row.add("col3", new JsonPrimitive("Simple Row 3"));
+        //row 4
+        row = new JsonObject();
+        table.add(row);
+        row.add("col1", new JsonPrimitive(true));
+        row.add("col2", new JsonPrimitive(45));
+        row.add("col3", new JsonPrimitive("Simple Row 4"));
+        return table;
+    }
+
+    private static final JsonArray createTestTable1(){
+        final JsonArray table = new JsonArray();
         //row 1
         JsonObject row = new JsonObject();
         table.add(row);
@@ -163,6 +249,12 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         row.add("col1", new JsonPrimitive(true));
         row.add("col2", new JsonPrimitive(100503));
         row.add("col3", new JsonPrimitive("Row 4"));
+        return table;
+    }
+
+    @Test
+    public final void testForTableProperty() throws IOException{
+        JsonArray table = createTestTable1();
         writeAttributeAsJson("tableProperty", table);
         //read table
         JsonElement elem = readAttributeAsJson("tableProperty");
@@ -189,32 +281,33 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
 
     @Override
     protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes) {
+        @Temporary
         EmbeddedAttributeConfiguration attribute = new EmbeddedAttributeConfiguration("string");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("stringProperty", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("boolean");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("booleanProperty", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("int32");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("int32Property", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("bigint");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("bigintProperty", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("array");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("arrayProperty", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("dictionary");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("dictionaryProperty", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("table");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("tableProperty", attribute);
     }
 }

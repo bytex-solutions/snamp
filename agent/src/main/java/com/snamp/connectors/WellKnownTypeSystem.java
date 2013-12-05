@@ -23,23 +23,34 @@ import java.util.*;
  *     </ul>
  * </p>
  * <p>
+ *     For non-scalar data types such as arrays, dictionaries and tables it is recommended to use the
+ *     following mapping:
+ *     <ul>
+ *         <li>Tabular and dictionary data should be convertible to {@link com.snamp.Table} type. An implementation
+ *         for this interface is provided by {@link com.snamp.SimpleTable} class. Entity data type
+ *         should implements {@link EntityTabularType} interface.</li>
+ *         <li>Array data should be convertible to Java array and {@link com.snamp.Table} type. Attribute
+ *         data type should inherits from {@link AttributeArrayType} class.</li>
+ *     </ul>
+ * </p>
+ * <p>
  * Management entity type system is a set of converters that provides conversion between MIB-specific
  * data types and universal data types. This class provides set of converters between these data types
  * in the form of static public unary methods annotated with {@link EntityTypeInfoBuilder.Converter} interface. Typically,
  * each custom SNAMP connector contains its own type system converter, inherited from this class.
  * The following example demonstrates your own type system converter:
- * <pre>{@code
- * public final class CustomTypeInfoBuilder extends WellKnownTypeSystem<AttributeTypeInfo>{
+ * <pre><code>
+ * public final class CustomTypeInfoBuilder extends WellKnownTypeSystem&lt;AttributeTypeInfo&gt;{
  *     public CustomTypeInfoBuilder(){
  *       super(AttributeTypeInfo.class);
  *     }
  *
- *     @Converter
+ *     {@literal @}Converter
  *     public static byte[] stringToByteArray(final String str){
  *         return str.getBytes("UTF-8");
  *     }
  *
- *     @Converter
+ *     {@literal @}Converter
  *     public static String byteArrayToString(final byte[] b){
  *         return new String(b, "UTF-8");
  *     }
@@ -52,7 +63,7 @@ import java.util.*;
  * final CustomTypeInfoBuilder builder = new CustomTypeInfoBuilder();
  * final AttributeTypeInfo arrayType = builder.createByteArrayType();
  * final String result = arrayType.convertTo(new byte[]{1, 2, 3}, String.class);
- * }</pre>
+ * </code></pre>
  * </p>
  * @author Roman Sakno
  * @version 1.0

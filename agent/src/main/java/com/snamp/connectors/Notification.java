@@ -1,5 +1,6 @@
 package com.snamp.connectors;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -15,7 +16,7 @@ public interface Notification extends Map<String, Object> {
      * @version 1.0
      * @since 1.0
      */
-    public static enum Severity{
+    public static enum Severity implements Serializable{
         /**
          * Severity is unknown.
          */
@@ -79,12 +80,6 @@ public interface Notification extends Map<String, Object> {
     static final String FACILITY_LEVEL = "facilityLevel";
 
     /**
-     * Represents name of the notification property that may contains
-     * textual description of the event.
-     */
-    static final String DESCRIPTION = "description";
-
-    /**
      * Gets the date and time at which the notification is generated.
      * @return The date and time at which the notification is generated.
      */
@@ -97,14 +92,23 @@ public interface Notification extends Map<String, Object> {
     public long getSequenceNumber();
 
     /**
-     * Gets notification payload.
-     * @return The notification payload.
-     */
-    public Object getContent();
-
-    /**
      * Gets a severity of this event.
      * @return The severity of this event.
      */
     public Severity getSeverity();
+
+    /**
+     * Gets a message description of this notification.
+     * @return The message description of this notification.
+     */
+    public String getMessage();
+
+    /**
+     * Gets attachments associated with this notification.
+     * <p>
+     *     The key of the returned map contains name of the attachment.
+     * </p>
+     * @return A read-only collection of attachments associated with this notification.
+     */
+    public Map<String, Object> getAttachments();
 }

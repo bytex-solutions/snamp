@@ -71,11 +71,22 @@ public final class AttributeValue<T extends AttributeTypeInfo> {
         return type.canConvertFrom(source);
     }
 
+    /**
+     * Determines whether the current attribute type is compliant with the specified attribute type.
+     * @param attributeType The attribute type to check.
+     * @return {@literal true}, if the current attribute type is compliant with the specified attribute type; otherwise, {@literal false}.
+     */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final boolean isTypeOf(final Class<? extends AttributeTypeInfo> attributeType){
         return attributeType.isInstance(type);
     }
 
+    /**
+     * Casts this attribute value into the new instance with new attribute
+     * @param attributeType A new attribute type for upper type casting.
+     * @param <G> A new attribute type for upper type casting.
+     * @return A new instance of attribute value. Field {@link #rawValue} will not be changed.
+     */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final <G extends AttributeTypeInfo> AttributeValue<G> cast(final Class<G> attributeType){
         return new AttributeValue<G>(rawValue, attributeType.cast(type));

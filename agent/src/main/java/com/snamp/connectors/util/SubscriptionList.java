@@ -10,7 +10,7 @@ import java.util.HashMap;
  * @version 1.0
  * @since 1.0
  */
-public class SubscriptionList extends HashMap<Object, NotificationListener<? extends Notification>> {
+public class SubscriptionList extends HashMap<Object, NotificationListener> {
 
     /**
      * Removes the notification listener from the specified connector.
@@ -19,7 +19,7 @@ public class SubscriptionList extends HashMap<Object, NotificationListener<? ext
      * @return An instance of the listener that was removed from subscription; or {@literal null}
      * if the specified listener identifier is invalid for the specified management connector.
      */
-    public final NotificationListener<? extends Notification> unsubscribe(final ManagementConnector connector, final Object listenerId){
+    public final NotificationListener unsubscribe(final ManagementConnector connector, final Object listenerId){
         return connector.unsubscribe(listenerId) ? remove(listenerId) : null;
     }
 }

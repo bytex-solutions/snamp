@@ -18,6 +18,9 @@ import java.util.concurrent.TimeoutException;
 @Internal
 public abstract class AbstractAttributesRegistry extends HashMap<String, ConnectedAttributes> implements AttributesRegistry {
 
+    /**
+     * Initializes a new empty registry of attributes.
+     */
     protected AbstractAttributesRegistry(){
         super(10);
     }
@@ -28,9 +31,11 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
     @Override
     public final Collection<String> putAll(final ManagementConnector connector, final String prefix, final Map<String, AttributeConfiguration> attributes){
-        final ConnectedAttributes binding = createBinding(connector);
+        final ConnectedAttributes binding;
+        if(containsKey(prefix))
+            binding = get(prefix);
+        else put(prefix, binding = createBinding(connector));
         final Collection<String> connectedAttributes = new HashSet<>(attributes.size());
-        put(prefix, binding);
         for(final String postfix: attributes.keySet()){
             final AttributeConfiguration attributeConfig = attributes.get(postfix);
             final AttributeMetadata md = connector.connectAttribute(binding.makeAttributeId(prefix, postfix), attributeConfig.getAttributeName(), attributeConfig.getAdditionalElements());

@@ -1,5 +1,8 @@
 package com.snamp.connectors;
 
+import net.xeoh.plugins.base.annotations.PluginImplementation;
+
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -9,8 +12,12 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
+@PluginImplementation
 final class FileBasedManagementConnectorFactory extends AbstractManagementConnectorFactory<FileBasedManagementConnector> {
 
+    /**
+     * Initializes a new file-based management connector factory.
+     */
     public FileBasedManagementConnectorFactory(){
         super(FileBasedManagementConnector.NAME);
     }
@@ -24,6 +31,6 @@ final class FileBasedManagementConnectorFactory extends AbstractManagementConnec
      */
     @Override
     public FileBasedManagementConnector newInstance(final String connectionString, final Map<String, String> connectionProperties) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return new FileBasedManagementConnector(new File(connectionString));
     }
 }

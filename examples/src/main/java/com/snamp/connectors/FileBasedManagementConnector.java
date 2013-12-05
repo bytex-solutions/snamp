@@ -3,6 +3,7 @@ package com.snamp.connectors;
 import com.snamp.TimeSpan;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
+import java.io.File;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -12,18 +13,23 @@ import java.util.concurrent.TimeoutException;
  * @since 1.0
  */
 @PluginImplementation
-public final class FileBasedManagementConnector extends AbstractManagementConnector {
+final class FileBasedManagementConnector extends AbstractManagementConnector {
     public static final String NAME = "jproperties";
+    private final File propertiesFile;
 
-    public FileBasedManagementConnector(){
+    public FileBasedManagementConnector(final File propertiesFile){
+        if(propertiesFile == null) throw new IllegalArgumentException("propertiesFile is null.");
+        else this.propertiesFile = propertiesFile;
+
     }
 
     /**
      * Throws an exception if the connector is not initialized.
      */
     @Override
-    protected void verifyInitialization() {
-
+    protected final void verifyInitialization() {
+        if(!propertiesFile.exists())
+            throw new IllegalStateException(String.format("File %s doesn't exist.", propertiesFile));
     }
 
     /**
@@ -76,7 +82,7 @@ public final class FileBasedManagementConnector extends AbstractManagementConnec
      */
     @Override
     public Object doAction(final String actionName, final Arguments args, final TimeSpan timeout) throws UnsupportedOperationException, TimeoutException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new UnsupportedOperationException();
     }
 
     /**

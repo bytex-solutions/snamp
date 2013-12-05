@@ -1,11 +1,13 @@
 package com.snamp.connectors;
 
-import com.snamp.TimeSpan;
+import com.snamp.*;
 import com.snamp.licensing.JmxConnectorLimitations;
+import static com.snamp.connectors.JmxConnectionManager.MBeanServerConnectionHandler;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import javax.management.remote.*;
+import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -31,23 +33,7 @@ final class JmxConnector extends AbstractManagementConnector {
      */
     private static final AtomicLong instanceCounter = new AtomicLong(0);
 
-    private final JMXServiceURL serviceURL;
-    private final Map<String, Object> connectionProperties;
-
-    /**
-     * Represents Management Bean connection handler.
-     * @param <T> Type of the connection handling result.
-     */
-    private static interface MBeanServerConnectionReader<T> {
-        /**
-         * Extracts object from the connection,
-         * @param connection
-         * @return
-         * @throws IOException
-         * @throws JMException
-         */
-        public T read(final MBeanServerConnection connection) throws IOException, JMException;
-    }
+    private final JmxConnectionManager connectionManager;
 
     /**
      * Represents field navigator in the composite JMX data.
@@ -176,14 +162,17 @@ final class JmxConnector extends AbstractManagementConnector {
     /**
      * Represents an abstract class for building JMX attribute providers.
      */
-    private abstract class JmxAttributeProvider extends GenericAttributeMetadata<EntityTypeInfoBuilder.AttributeTypeConverter> implements JmxAttributeMetadata {
+    private abstract static class JmxAttributeProvider extends GenericAttributeMetadata<EntityTypeInfoBuilder.AttributeTypeConverter> implements JmxAttributeMetadata {
 
         private final ObjectName namespace;
-        private MBeanServerConnectionReader<Object> attributeValueReader;
+        private MBeanServerConnectionHandler<Object> attributeValueReader;
+        private final JmxConnectionManager connectionManager;
 
-        protected JmxAttributeProvider(final String attributeName,
+        protected JmxAttributeProvider(final JmxConnectionManager manager,
+                                       final String attributeName,
                                        final ObjectName namespace){
             super(attributeName, namespace.toString());
+            this.connectionManager = manager;
             this.namespace = namespace;
         }
 
@@ -253,13 +242,13 @@ final class JmxConnector extends AbstractManagementConnector {
          * Creates a new instance of the attribute value reader.
          * @return
          */
-        protected abstract MBeanServerConnectionReader<Object> createAttributeValueReader();
+        protected abstract MBeanServerConnectionHandler<Object> createAttributeValueReader();
 
         /**
          * Creates a new instance of the attribute value writer.
          * @return
          */
-        protected abstract MBeanServerConnectionReader<Boolean> createAttributeValueWriter(final Object value);
+        protected abstract MBeanServerConnectionHandler<Boolean> createAttributeValueWriter(final Object value);
 
         /**
          * Returns the attribute owner.
@@ -277,7 +266,7 @@ final class JmxConnector extends AbstractManagementConnector {
         public final Object getValue(final Object defval){
             if(canRead()){
                 if(attributeValueReader == null) attributeValueReader = createAttributeValueReader();
-                return handleConnection(attributeValueReader, defval);
+                return connectionManager.handleConnection(attributeValueReader, defval);
             }
             else return defval;
         }
@@ -290,23 +279,93 @@ final class JmxConnector extends AbstractManagementConnector {
         public final boolean setValue(final Object value){
             final EntityTypeInfoBuilder.AttributeTypeConverter typeInfo = getAttributeType();
             if(canWrite() && value != null && typeInfo.canConvertFrom(value.getClass())){
-                return handleConnection(createAttributeValueWriter(typeInfo.convertFrom(value)), false);
+                return connectionManager.handleConnection(createAttributeValueWriter(typeInfo.convertFrom(value)), false);
             }
             else return false;
         }
     }
 
+    private final static class JmxNotificationWrapper extends HashMap<String, Object> implements Notification{
+        private final javax.management.Notification jmxNotification;
+        private final Severity notificationSeverity;
+        private Map<String, Object> attachments;
+
+        public JmxNotificationWrapper(final Severity severity, final javax.management.Notification jmxNotification){
+            this.jmxNotification = jmxNotification;
+            notificationSeverity = severity != null ? severity : Severity.UNKNOWN;
+            this.attachments = null;
+        }
+
+        /**
+         * Gets the date and time at which the notification is generated.
+         *
+         * @return The date and time at which the notification is generated.
+         */
+        @Override
+        public final Date getTimeStamp() {
+            return new Date(jmxNotification.getTimeStamp());
+        }
+
+        /**
+         * Gets the order number of the notification message.
+         *
+         * @return The order number of the notification message.
+         */
+        @Override
+        public final long getSequenceNumber() {
+            return jmxNotification.getSequenceNumber();
+        }
+
+        /**
+         * Gets a severity of this event.
+         *
+         * @return The severity of this event.
+         */
+        @Override
+        public final Severity getSeverity() {
+            return notificationSeverity;
+        }
+
+        /**
+         * Gets a message description of this notification.
+         *
+         * @return The message description of this notification.
+         */
+        @Override
+        public final String getMessage() {
+            return jmxNotification.getMessage();
+        }
+
+        /**
+         * Gets attachments associated with this notification.
+         *
+         * @return A read-only collection of attachments associated with this notification.
+         */
+        @Override
+        public synchronized final Map<String, Object> getAttachments() {
+            //loads notification as Java Bean and explore each JB property as attachment
+            if(attachments == null)
+                try {
+                    attachments = new BeanPropertyAccessor<javax.management.Notification>(jmxNotification, javax.management.Notification.class);
+                } catch (final IntrospectionException e) {
+                    attachments = new HashMap<>();
+                    log.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);
+                }
+            return attachments;
+        }
+    }
+
     private JmxAttributeProvider createPlainAttribute(final ObjectName namespace, final String attributeName){
         //extracts JMX attribute metadata
-        final MBeanAttributeInfo targetAttr = handleConnection(new MBeanServerConnectionReader<MBeanAttributeInfo>(){
+        final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
             @Override
-            public MBeanAttributeInfo read(final MBeanServerConnection connection) throws IOException, JMException {
-                for(final MBeanAttributeInfo attr: connection.getMBeanInfo(namespace).getAttributes())
-                    if(attributeName.equals(attr.getName())) return attr;
+            public MBeanAttributeInfo handle(final MBeanServerConnection connection) throws IOException, JMException {
+                for (final MBeanAttributeInfo attr : connection.getMBeanInfo(namespace).getAttributes())
+                    if (attributeName.equals(attr.getName())) return attr;
                 return null;
             }
         }, null);
-        return targetAttr != null ? new JmxAttributeProvider(targetAttr.getName(), namespace){
+        return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace){
             @Override
             protected final EntityTypeInfoBuilder.AttributeTypeConverter detectAttributeType() {
                 if(targetAttr instanceof OpenMBeanAttributeInfoSupport)
@@ -340,13 +399,12 @@ final class JmxConnector extends AbstractManagementConnector {
              * @return
              */
             @Override
-            protected final MBeanServerConnectionReader<Object> createAttributeValueReader() {
-                return new MBeanServerConnectionReader<Object>(){
-
-                    public Object read(final MBeanServerConnection connection) throws IOException, JMException {
+            protected final MBeanServerConnectionHandler<Object> createAttributeValueReader() {
+                return new MBeanServerConnectionHandler<Object>(){
+                    @Override
+                    public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
                         return connection.getAttribute(namespace, getAttributeName());
                     }
-
                 };
             }
             /**
@@ -355,10 +413,10 @@ final class JmxConnector extends AbstractManagementConnector {
              * @return
              */
             @Override
-            protected final MBeanServerConnectionReader<Boolean> createAttributeValueWriter(final Object value) {
-                return new MBeanServerConnectionReader<Boolean>(){
-
-                    public Boolean read(final MBeanServerConnection connection) throws IOException, JMException {
+            protected final MBeanServerConnectionHandler<Boolean> createAttributeValueWriter(final Object value) {
+                return new MBeanServerConnectionHandler<Boolean>(){
+                    @Override
+                    public Boolean handle(final MBeanServerConnection connection) throws IOException, JMException {
                         connection.setAttribute(namespace, new Attribute(getAttributeName(), value));
                         return true;
                     }
@@ -370,15 +428,15 @@ final class JmxConnector extends AbstractManagementConnector {
     private JmxAttributeProvider createCompositeAttribute(final ObjectName namespace, final String attributeName){
         final CompositeValueNavigator navigator = new CompositeValueNavigator(attributeName);
         //получить описатель поля, этот описатель может содержать знак @ для вложенного атрибута
-        final MBeanAttributeInfo targetAttr = handleConnection(new MBeanServerConnectionReader<MBeanAttributeInfo>() {
+        final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
             @Override
-            public MBeanAttributeInfo read(final MBeanServerConnection connection) throws IOException, JMException {
+            public MBeanAttributeInfo handle(final MBeanServerConnection connection) throws IOException, JMException {
                 for(final MBeanAttributeInfo attr: connection.getMBeanInfo(namespace).getAttributes())
                     if(navigator.attributeName.equals(attr.getName())) return attr;
                 return null;
             }
         }, null);
-        return targetAttr != null ? new JmxAttributeProvider(targetAttr.getName(), namespace){
+        return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace){
             private final OpenType<?> compositeType = targetAttr instanceof OpenMBeanAttributeInfoSupport ? ((OpenMBeanAttributeInfoSupport)targetAttr).getOpenType() : SimpleType.STRING;
 
             @Override
@@ -397,9 +455,10 @@ final class JmxConnector extends AbstractManagementConnector {
              * @return
              */
             @Override
-            protected final MBeanServerConnectionReader<Object> createAttributeValueReader() {
-                return new MBeanServerConnectionReader<Object>(){
-                    public Object read(final MBeanServerConnection connection) throws IOException, JMException {
+            protected final MBeanServerConnectionHandler<Object> createAttributeValueReader() {
+                return new MBeanServerConnectionHandler<Object>(){
+                    @Override
+                    public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
                         return navigator.getValue(connection.getAttribute(namespace, navigator.attributeName));
                     }
                 };
@@ -411,10 +470,10 @@ final class JmxConnector extends AbstractManagementConnector {
              * @return
              */
             @Override
-            protected final MBeanServerConnectionReader<Boolean> createAttributeValueWriter(Object value) {
-                return new MBeanServerConnectionReader<Boolean>() {
+            protected final MBeanServerConnectionHandler<Boolean> createAttributeValueWriter(Object value) {
+                return new MBeanServerConnectionHandler<Boolean>() {
                     @Override
-                    public Boolean read(MBeanServerConnection connection) throws IOException, JMException {
+                    public Boolean handle(MBeanServerConnection connection) {
                         return false;
                     }
                 };
@@ -433,12 +492,13 @@ final class JmxConnector extends AbstractManagementConnector {
     }
 
     private ObjectName findObjectName(final ObjectName namespace){
-        return handleConnection(new MBeanServerConnectionReader<ObjectName>() {
-            public ObjectName read(final MBeanServerConnection connection) throws IOException, JMException {
+        return connectionManager.handleConnection(new MBeanServerConnectionHandler<ObjectName>() {
+            @Override
+            public ObjectName handle(final MBeanServerConnection connection) throws IOException, JMException {
 
                 final Set<ObjectInstance> beans = connection.queryMBeans(namespace, null);
 
-                for(final ObjectInstance instance : beans ) return instance.getObjectName();
+                for (final ObjectInstance instance : beans) return instance.getObjectName();
                 return null;
             }
         }, null);
@@ -452,8 +512,7 @@ final class JmxConnector extends AbstractManagementConnector {
      */
     public JmxConnector(final JMXServiceURL serviceURL, final Map<String, Object> connectionProperties){
         if(serviceURL == null) throw new IllegalArgumentException("serviceURL is null.");
-        this.serviceURL = serviceURL;
-        this.connectionProperties = connectionProperties != null ? Collections.unmodifiableMap(connectionProperties) : new HashMap<String, Object>();
+        this.connectionManager = new JmxConnectionManager(log, serviceURL, connectionProperties);
         JmxConnectorLimitations.current().verifyMaxInstanceCount(instanceCounter.incrementAndGet());
     }
 
@@ -483,27 +542,6 @@ final class JmxConnector extends AbstractManagementConnector {
         }
         finally {
             JmxConnectorLimitations.current().verifyMaxAttributeCount(attributesCount());
-        }
-    }
-
-    /**
-     * Handles connection.
-     * @param reader The MBean reader.
-     * @param defval The default value returned by the connection handler if it handling failed.
-     * @param <TOutput> Type of the connection handling result.
-     * @return The result of the connection handling result.
-     */
-    private <TOutput> TOutput handleConnection(final MBeanServerConnectionReader<TOutput> reader, final TOutput defval)
-    {
-        try{
-            final javax.management.remote.JMXConnector connector = JMXConnectorFactory.connect(serviceURL, connectionProperties);
-            final TOutput result = reader.read(connector.getMBeanServerConnection());
-            connector.close();
-            return result;
-        }
-        catch(final Exception e){
-            log.log(Level.WARNING, e.getMessage(), e);
-            return defval;
         }
     }
 
@@ -553,14 +591,20 @@ final class JmxConnector extends AbstractManagementConnector {
      */
     @Override
     public Object doAction(final String actionName, final Arguments args, final TimeSpan timeout) throws UnsupportedOperationException, TimeoutException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        switch (actionName){
+            //internal action
+            case "simulateConnectionAbort": simulateConnectionAbort(); return null;
+            default: return null;
+        }
     }
 
     /**
      * Releases all resources associated with this connector.
+     * @throws IOException Some I/O error occurs.
      */
     @Override
-    public final void close(){
+    public final void close() throws IOException{
+        connectionManager.close();
         instanceCounter.decrementAndGet();
     }
 
@@ -572,29 +616,61 @@ final class JmxConnector extends AbstractManagementConnector {
         instanceCounter.decrementAndGet();
     }
 
-    private static final class JmxNotificationMetadata extends GenericNotificationMetadata{
+    private static final class JmxNotificationUtils{
+        private JmxNotificationUtils(){
+
+        }
+
+        public static final javax.management.NotificationListener createJmxListener(final NotificationListener listener, final String category, final Notification.Severity severity){
+            return new javax.management.NotificationListener() {
+                @Override
+                public void handleNotification(final javax.management.Notification notification, final Object handback) {
+                    if(Objects.equals(category, notification.getType()))
+                        listener.handle(new JmxNotificationWrapper(severity, notification));
+                }
+            };
+        }
+    }
+
+    private final static class JmxNotificationMetadata extends GenericNotificationMetadata implements MBeanServerConnectionHandler<Void>{
+        private final static String severityOption = "severity";
         private final Map<String, String> options;
+        private final JmxConnectionManager connectionManager;
+
         /**
          * Represents owner of this notification metadata.
          */
         public final ObjectName eventOwner;
         private final MBeanNotificationInfo eventMetadata;
 
-        public JmxNotificationMetadata(final String notifType, final MBeanNotificationInfo notificationInfo, final ObjectName eventOwner, final Map<String, String> options){
+        public JmxNotificationMetadata(final JmxConnectionManager manager,
+                                       final String notifType,
+                                       final MBeanNotificationInfo notificationInfo,
+                                       final ObjectName eventOwner,
+                                       final Map<String, String> options){
             super(notifType);
             this.options = Collections.unmodifiableMap(options);
             this.eventOwner = eventOwner;
             this.eventMetadata = notificationInfo;
+            this.connectionManager = manager;
+            manager.addReconnectionHandler(this);
         }
 
-        /**
-         * Gets the type of the notification content.
-         *
-         * @return The type of the notification content.
-         */
-        @Override
-        public NotificationContentTypeInfo getContentType() {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
+        public final Notification.Severity getSeverity(){
+            if(options.containsKey(severityOption))
+                switch (options.get(severityOption)){
+                    case "panic": return Notification.Severity.PANIC;
+                    case "alert": return Notification.Severity.ALERT;
+                    case "critical": return Notification.Severity.CRITICAL;
+                    case "error": return Notification.Severity.ERROR;
+                    case "warning": return Notification.Severity.WARNING;
+                    case "notice": return Notification.Severity.NOTICE;
+                    case "info": return Notification.Severity.INFO;
+                    case "debug": return Notification.Severity.DEBUG;
+                    default: return Notification.Severity.UNKNOWN;
+
+                }
+            else return Notification.Severity.UNKNOWN;
         }
 
         /**
@@ -605,6 +681,29 @@ final class JmxConnector extends AbstractManagementConnector {
         @Override
         public final NotificationModel getNotificationModel() {
             return NotificationModel.MULTICAST;
+        }
+
+        /**
+         * Returns the attachment type descriptor.
+         * @param attachment The notification attachment.
+         * @return The attachment type descriptor for the specified attachment; or {@literal null} if
+         * attachment is not supported.
+         */
+        @Override
+        public final NotificationAttachmentTypeInfo getAttachmentType(final Object attachment) {
+            if(attachment == null) return null;
+            final EntityTypeInfoBuilder.AttributeTypeConverter converter = typeSystem.createJmxType(attachment.getClass());
+            return new NotificationAttachmentTypeInfo() {
+                @Override
+                public <T> boolean canConvertTo(final Class<T> target) {
+                    return converter.canConvertTo(target);
+                }
+
+                @Override
+                public <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException {
+                    return converter.convertTo(value, target);
+                }
+            };
         }
 
         @Override
@@ -646,6 +745,49 @@ final class JmxConnector extends AbstractManagementConnector {
         public final Set<Entry<String, String>> entrySet() {
             return options.entrySet();
         }
+
+        public final javax.management.NotificationListener subscribe(final NotificationListener listener){
+            final javax.management.NotificationListener wrapper = JmxNotificationUtils.createJmxListener(listener, getCategory(), getSeverity());
+            return connectionManager.handleConnection(new MBeanServerConnectionHandler<javax.management.NotificationListener>() {
+                @Override
+                public javax.management.NotificationListener handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    connection.addNotificationListener(eventOwner, wrapper, null, null);
+                    return wrapper;
+                }
+            }, wrapper);
+        }
+
+        /**
+         * Re-registers notification listeners.
+         * @param connection
+         * @return
+         * @throws IOException
+         * @throws JMException
+         */
+        @Override
+        public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
+            for(final Pair<NotificationListener, Object> listener: getListeners())
+                if(listener.second instanceof javax.management.NotificationListener)
+                    connection.addNotificationListener(eventOwner, (javax.management.NotificationListener)listener.second, null, null);
+            return null;
+        }
+
+        private final void removeJmxListener(final javax.management.NotificationListener listener){
+            connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
+                @Override
+                public Void handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    connection.removeNotificationListener(eventOwner, listener);
+                    return null;
+                }
+            }, null);
+        }
+
+        public final void disableNotifications(){
+            //remove all listeners
+            for(final Pair<NotificationListener, Object> listener: removeListeners())
+                if(listener.second instanceof javax.management.NotificationListener)
+                    removeJmxListener((javax.management.NotificationListener)listener.second);
+        }
     }
 
     /**
@@ -657,48 +799,17 @@ final class JmxConnector extends AbstractManagementConnector {
      */
     @Override
     protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
-        return handleConnection(new MBeanServerConnectionReader<JmxNotificationMetadata>() {
+        return connectionManager.handleConnection(new MBeanServerConnectionHandler<JmxNotificationMetadata>() {
             @Override
-            public JmxNotificationMetadata read(final MBeanServerConnection connection) throws IOException, JMException {
-                if(options.containsKey(objectNameOption)){
+            public JmxNotificationMetadata handle(final MBeanServerConnection connection) throws IOException, JMException {
+                if (options.containsKey(objectNameOption)) {
                     final ObjectName on = new ObjectName(options.get(objectNameOption));
-                    for(final MBeanNotificationInfo notificationInfo: connection.getMBeanInfo(on).getNotifications())
-                        for(final String notifType: notificationInfo.getNotifTypes())
-                        if(Objects.equals(notifType, category))
-                            return new JmxNotificationMetadata(notifType, notificationInfo, on, options);
+                    for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(on).getNotifications())
+                        for (final String notifType : notificationInfo.getNotifTypes())
+                            if (Objects.equals(notifType, category))
+                                return new JmxNotificationMetadata(connectionManager, notifType, notificationInfo, on, options);
                     return null;
-                }
-                else return null;
-            }
-        }, null);
-    }
-
-    private final Object subscribeCore(final JmxNotificationMetadata notificationType, final NotificationListener<? extends Notification> listener){
-        return handleConnection(new MBeanServerConnectionReader<javax.management.NotificationListener>() {
-            @Override
-            public javax.management.NotificationListener read(final MBeanServerConnection connection) throws IOException, JMException {
-                final javax.management.NotificationListener jmxListener = new javax.management.NotificationListener(){
-                    @Override
-                    public void handleNotification(final javax.management.Notification notification, final Object handback) {
-                        //To change body of implemented methods use File | Settings | File Templates.
-                    }
-                };
-
-
-                connection.addNotificationListener(notificationType.eventOwner, new javax.management.NotificationListener(){
-                    @Override
-                    public void handleNotification(final javax.management.Notification notification, final Object handback) {
-
-                    }
-                },
-                new NotificationFilter() {
-                    @Override
-                    public boolean isNotificationEnabled(final javax.management.Notification notification) {
-                        return false;  //To change body of implemented methods use File | Settings | File Templates.
-                    }
-                },
-                null);
-                return null;
+                } else return null;
             }
         }, null);
     }
@@ -710,9 +821,56 @@ final class JmxConnector extends AbstractManagementConnector {
      * @param listener         The event listener.
      */
     @Override
-    protected final Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener<? extends Notification> listener) {
+    protected final Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener) {
         return notificationType instanceof JmxNotificationMetadata ?
-                subscribeCore((JmxNotificationMetadata)notificationType, listener):
+                ((JmxNotificationMetadata)notificationType).subscribe(listener):
                 null;
+    }
+
+    private final void unsubscribeCore(final JmxNotificationMetadata md, final javax.management.NotificationListener listener){
+        connectionManager.handleConnection(new MBeanServerConnectionHandler<Object>() {
+            @Override
+            public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
+                connection.removeNotificationListener(md.eventOwner, listener);
+                return null;
+            }
+        }, null);
+    }
+
+    /**
+     * Cancels the notification listening.
+     *
+     * @param metadata The event type.
+     * @param listener The notification listener to remove.
+     * @param data     The custom data associated with subscription that returned from {@link #subscribeCore(com.snamp.connectors.NotificationMetadata, com.snamp.connectors.NotificationListener)}
+     *                 method.
+     */
+    @Override
+    protected final void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data) {
+        if(metadata instanceof JmxNotificationMetadata && data instanceof javax.management.NotificationListener)
+            unsubscribeCore((JmxNotificationMetadata)metadata, (javax.management.NotificationListener)data);
+        else log.warning(String.format("JMX-incompliant listener detected %s", data));
+    }
+
+    /**
+     * Disable all notifications associated with the specified event.
+     *
+     * @param notificationType The event descriptor.
+     */
+    @Override
+    protected final void disableNotificationsCore(final NotificationMetadata notificationType) {
+        if(notificationType instanceof JmxNotificationMetadata)
+            ((JmxNotificationMetadata)notificationType).disableNotifications();
+    }
+
+    /**
+     * Simulates connection abort.
+     * <p>
+     *     Only for testing purposes only.
+     * </p>
+     */
+    @Internal
+    private final void simulateConnectionAbort(){
+        connectionManager.simulateConnectionAbort();
     }
 }

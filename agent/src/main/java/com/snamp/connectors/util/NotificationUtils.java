@@ -22,6 +22,46 @@ public final class NotificationUtils {
     }
 
     /**
+     * Represents notification listener that can be used to handle the notification
+     * synchronously. This class cannot be inherited.
+     * <p>
+     *     The following example demonstrates how to use this class:
+     *     <pre>{@code
+     *     final SynchronizationListener listener = new SynchronizationListener();
+     *     final Object listenerId = connector.subscribe("subs-list", listener);
+     *     listener.getAwaitor().await(); //blocks the caller thread
+     *     connector.unsubscribe(listenerId);
+     *     }</pre>
+     * </p>
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static final class SynchronizationListener implements NotificationListener{
+        private final SynchronizationEvent<Notification> synchronizer = new SynchronizationEvent<>();
+
+        /**
+         * Handles the specified notification.
+         *
+         * @param n The notification to handle.
+         * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
+         */
+        @Override
+        public boolean handle(final Notification n) {
+            synchronizer.fire(n);
+            return true;
+        }
+
+        /**
+         * Returns a new awaitor for this listener.
+         * @return A new awaitor for this listener.
+         */
+        public final Awaitor<Notification> getAwaitor(){
+            return synchronizer.getAwaitor();
+        }
+    }
+
+    /**
      * Adds a new notification listener and returns synchronous awaitor for it.
      * <p>
      *     You can use this method for synchronization with notification delivery.
@@ -29,20 +69,19 @@ public final class NotificationUtils {
      *     from it.
      * </p>
      * @param connector The notification listener connector. Cannot be {@literal null}.
-     * @param category The category of notifications to listen.
+     * @param listId An identifier of the subscription list.
      * @param listener The notification filter. Cannot be {@literal null}.
-     * @param <N> Type of notifications to listen.
      * @return Notification awaitor that can be used to obtain notification synchronously;
      * or {@literal null} if notifications for the specified event category is not supported
      * by connector.
      */
-    public static <N extends Notification> Awaitor<N> createAwaitor(final ManagementConnector connector, final String category, final NotificationListener<N> listener){
+    public static Awaitor<Notification> createAwaitor(final ManagementConnector connector, final String listId, final NotificationListener listener){
         if(connector == null) throw new IllegalArgumentException("connector is null.");
         else if(listener == null) throw new IllegalArgumentException("listener is null.");
-        final SynchronizationEvent<N> ev = new SynchronizationEvent<>();
-        final Object listenerId = connector.subscribe(category, new NotificationListener<N>() {
+        final SynchronizationEvent<Notification> ev = new SynchronizationEvent<>();
+        final Object listenerId = connector.subscribe(listId, new NotificationListener() {
             @Override
-            public final boolean handle(final N notification) {
+            public final boolean handle(final Notification notification) {
                 try{
                     return listener != null ? listener.handle(notification) : true;
                 }
@@ -51,11 +90,11 @@ public final class NotificationUtils {
                 }
             }
         });
-        return listenerId != null ? new Awaitor<N>() {
-            private final Awaitor<N> awaitor = ev.getAwaitor();
+        return listenerId != null ? new Awaitor<Notification>() {
+            private final Awaitor<Notification> awaitor = ev.getAwaitor();
 
             @Override
-            public N await(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+            public Notification await(final TimeSpan timeout) throws TimeoutException, InterruptedException {
                 try{
                     return awaitor.await(timeout);
                 }
@@ -65,7 +104,7 @@ public final class NotificationUtils {
             }
 
             @Override
-            public N await() throws InterruptedException {
+            public Notification await() throws InterruptedException {
                 try{
                     return awaitor.await();
                 }
@@ -84,16 +123,15 @@ public final class NotificationUtils {
      *     from it.
      * </p>
      * @param connector The notification listener connector. Cannot be {@literal null}.
-     * @param category The category of notifications to listen.
-     * @param <N> Type of notifications to listen.
+     * @param listId An identifier of the subscription list.
      * @return Notification awaitor that can be used to obtain notification synchronously;
      * or {@literal null} if notifications for the specified event category is not supported
      * by connector.
      */
-    public static <N extends Notification> Awaitor<N> createAwaitor(final ManagementConnector connector, final String category){
-        return createAwaitor(connector, category, new NotificationListener<N>() {
+    public static Awaitor<Notification> createAwaitor(final ManagementConnector connector, final String listId){
+        return createAwaitor(connector, listId, new NotificationListener() {
             @Override
-            public boolean handle(final N n) {
+            public boolean handle(final Notification n) {
                 return true;
             }
         });

@@ -59,7 +59,7 @@ public abstract class EntityTypeInfoBuilder<E extends EntityTypeInfo> implements
     /**
      * Represents type information about universal entity.
      */
-    private static interface EntityTypeConverter extends AttributeTypeConverter, NotificationContentTypeInfo {
+    private static interface EntityTypeConverter extends AttributeTypeConverter, NotificationAttachmentTypeInfo {
 
     }
 
