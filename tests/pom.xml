@@ -53,12 +53,12 @@
       <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>com.snamp</groupId>
-          <artifactId>rmi</artifactId>
-          <version>1.0.0</version>
-          <scope>test</scope>
-      </dependency>
+    <dependency>
+      <groupId>com.snamp</groupId>
+      <artifactId>rmi</artifactId>
+      <version>1.0.0</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>com.snamp</groupId>
       <artifactId>jmx</artifactId>
@@ -68,7 +68,7 @@
     <dependency>
       <groupId>com.snamp</groupId>
       <artifactId>rest-adapter</artifactId>
-          <version>1.0.0</version>
+      <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -81,18 +81,6 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <version>2.2.4</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.snamp</groupId>
-      <artifactId>ibmwmb</artifactId>
-      <version>0.1.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.snamp</groupId>
-      <artifactId>ibmwmq</artifactId>
-      <version>0.1.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -141,7 +129,19 @@
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereMQPCF</artifactId>
       <version>6.0.0.0</version>
-          <scope>test</scope>
+      <scope>test</scope>
       </dependency>
+    <dependency>
+      <groupId>com.snamp</groupId>
+      <artifactId>ibmwmb</artifactId>
+      <version>1.0.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.snamp</groupId>
+      <artifactId>ibmwmq</artifactId>
+      <version>1.0.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>
