@@ -5,7 +5,7 @@ package com.snamp.connectors;
  * Date: 13.11.13
  * Time: 23:02
  */
-public class IbmWmbTypeSystem extends WellKnownTypeSystem<EntityTypeInfoBuilder.AttributeTypeConverter> {
+class IbmWmbTypeSystem extends WellKnownTypeSystem<EntityTypeInfoBuilder.AttributeTypeConverter> {
     /**
      * Initializes a new type system for the specified management entity.
      */

@@ -26,11 +26,10 @@ import java.util.Map;
  * @author  Chernovsky Oleg
  * @since 1.1.0
  */
-public class IbmWmqConnector extends ManagementConnectorBean {
+class IbmWmqConnector extends ManagementConnectorBean {
     public static final String NAME = "ibm-wmq";
-    public final MQQueueManager mQmgrInstance;
-    public final Map<String, String> mObjectFilter;
-    public final PCFMessageAgent mMonitor;
+    private final Map<String, String> mObjectFilter;
+    private final PCFMessageAgent mMonitor;
 
     /**
      * Initializes a new management connector.
@@ -42,17 +41,16 @@ public class IbmWmqConnector extends ManagementConnectorBean {
     public IbmWmqConnector(String connectionString, Map<String, String> connectionProperties, EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
         super(typeBuilder);
         try {
-            URI address = URI.create(connectionString);
+            final URI address = URI.create(connectionString);
             if(address.getScheme().equals("wmq")) {
                 MQEnvironment.hostname = address.getHost();
                 MQEnvironment.channel = address.getUserInfo();
                 MQEnvironment.port = address.getPort();
 
-                mQmgrInstance = new MQQueueManager(address.getPath().substring(1));
+                //blocking calls, capped by 5 secs, exception on timeout
+                final MQQueueManager mQmgrInstance = new MQQueueManager(address.getPath().substring(1));
                 mMonitor = new PCFMessageAgent(mQmgrInstance);
                 mObjectFilter = connectionProperties;
-
-                getQmgrStatus();
             }
             else
                 throw new IllegalArgumentException("Cannot create IBM Connector: insufficient parameters!");
@@ -118,6 +116,14 @@ public class IbmWmqConnector extends ManagementConnectorBean {
         }
     }
 
+    /**
+     * This function represents the table that holds all the attri butes for channel status
+     * Each row is filled with some channel statistics data
+     * This table is static due to
+     *
+     *
+     * @return Table of queue attributes
+     */
     final public SimpleTable<String> getChannelsStatus() {
         try {
             final PCFMessage inquireChannelStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS);
@@ -129,13 +135,13 @@ public class IbmWmqConnector extends ManagementConnectorBean {
             final PCFMessage[] statistics = mMonitor.send(inquireChannelStatus);
             // TODO: Переделать на новую систему типов
             final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{
-                for(PCFMessage curr : statistics) { // we need to add every parameter that appears at least once to table
+                for(final PCFMessage curr : statistics) { // we need to add every parameter that appears at least once to table
                     final Enumeration paramEnum = curr.getParameters();
                     while (paramEnum.hasMoreElements()) { // fill the columns
-                        PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
+                        final PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
 
                         if(!containsKey(parameter.getParameterName())) {
-                            Class parameterClazz = parameter.getValue().getClass();
+                            final Class parameterClazz = parameter.getValue().getClass();
                             if(!parameterClazz.isArray()) // arrays are converted to their String representation since adapters may not handle nested table types
                                 put(parameter.getParameterName(), parameterClazz);
                             else
@@ -143,15 +149,12 @@ public class IbmWmqConnector extends ManagementConnectorBean {
                         }
                     }
                 }
-
             }};
 
             // then iteratively fill table with data
             final SimpleTable<String> resTable = new SimpleTable<>(columnsAndTypes);
             fillTableData(resTable, statistics);
-
             return resTable;
-
         } catch (IOException | MQDataException e) {
             return null;
         }
@@ -165,13 +168,13 @@ public class IbmWmqConnector extends ManagementConnectorBean {
             final PCFMessage[] statistics = mMonitor.send(inquireQmgrStatus);
             // TODO: Переделать на новую систему типов
             final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{
-                for(PCFMessage curr : statistics) { // we need to add every parameter that appears at least once to table
+                for(final PCFMessage curr : statistics) { // we need to add every parameter that appears at least once to table
                     final Enumeration paramEnum = curr.getParameters();
                     while (paramEnum.hasMoreElements()) { // fill the columns
-                        PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
+                        final PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
 
                         if(!containsKey(parameter.getParameterName())) {
-                            Class parameterClazz = parameter.getValue().getClass();
+                            final Class parameterClazz = parameter.getValue().getClass();
                             if(!parameterClazz.isArray()) // arrays are converted to their String representation since adapters may not handle nested table types
                                 put(parameter.getParameterName(), parameterClazz);
                             else
@@ -204,13 +207,13 @@ public class IbmWmqConnector extends ManagementConnectorBean {
             final PCFMessage[] statistics = mMonitor.send(inquireServiceStatus);
             // TODO: Переделать на новую систему типов
             final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{
-                for(PCFMessage curr : statistics) { // we need to add every parameter that appears at least once to table
+                for(final PCFMessage curr : statistics) { // we need to add every parameter that appears at least once to table
                     final Enumeration paramEnum = curr.getParameters();
                     while (paramEnum.hasMoreElements()) { // fill the columns
-                        PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
+                        final PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
 
                         if(!containsKey(parameter.getParameterName())) {
-                            Class parameterClazz = parameter.getValue().getClass();
+                            final Class parameterClazz = parameter.getValue().getClass();
                             if(!parameterClazz.isArray()) // arrays are converted to their String representation since adapters may not handle nested table types
                                 put(parameter.getParameterName(), parameterClazz);
                             else
