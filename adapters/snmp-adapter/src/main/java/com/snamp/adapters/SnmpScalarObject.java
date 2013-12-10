@@ -23,7 +23,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     /**
      * Represents the type of the attribute.
      */
-    protected final AttributeTypeInfo attributeTypeInfo;
+    protected final ManagementEntityType attributeTypeInfo;
 
     private SnmpScalarObject(final String oid, final ManagementConnector connector, final AttributeMetadata attributeInfo, final T defval, final TimeSpan timeouts){
         super(new OID(oid), getAccessRestrictions(attributeInfo), defval);

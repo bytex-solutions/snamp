@@ -1,5 +1,6 @@
 package com.snamp.connectors;
 
+import com.snamp.Activator;
 import com.snamp.Table;
 
 import java.math.*;
@@ -28,22 +29,19 @@ import java.util.*;
  *     <ul>
  *         <li>Tabular and dictionary data should be convertible to {@link com.snamp.Table} type. An implementation
  *         for this interface is provided by {@link com.snamp.SimpleTable} class. Entity data type
- *         should implements {@link EntityTabularType} interface.</li>
+ *         should implements {@link ManagementEntityTabularType} interface.</li>
  *         <li>Array data should be convertible to Java array and {@link com.snamp.Table} type. Attribute
- *         data type should inherits from {@link AttributeArrayType} class.</li>
+ *         data type should inherits from {@link com.snamp.connectors.ManagementEntityTypeBuilder.ManagementEntityArrayType} class.</li>
  *     </ul>
  * </p>
  * <p>
  * Management entity type system is a set of converters that provides conversion between MIB-specific
  * data types and universal data types. This class provides set of converters between these data types
- * in the form of static public unary methods annotated with {@link EntityTypeInfoBuilder.Converter} interface. Typically,
+ * in the form of static public unary methods annotated with {@link com.snamp.AbstractTypeConverterFactory.Converter} interface. Typically,
  * each custom SNAMP connector contains its own type system converter, inherited from this class.
  * The following example demonstrates your own type system converter:
  * <pre><code>
- * public final class CustomTypeInfoBuilder extends WellKnownTypeSystem&lt;AttributeTypeInfo&gt;{
- *     public CustomTypeInfoBuilder(){
- *       super(AttributeTypeInfo.class);
- *     }
+ * public final class CustomTypeInfoBuilder extends WellKnownTypeSystem{
  *
  *     {@literal @}Converter
  *     public static byte[] stringToByteArray(final String str){
@@ -55,8 +53,8 @@ import java.util.*;
  *         return new String(b, "UTF-8");
  *     }
  *
- *     public final AttributeTypeConverter createByteArrayType(){
- *       return createTypeInfo(getClass(), byte[].class, String.class);
+ *     public final ManagementEntityType createByteArrayType(){
+ *       return createArrayType(createInt8Type());
  *     }
  * }
  *
@@ -69,26 +67,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInfoBuilder<E> {
-
-    /**
-     * Initializes a new type system for the specified management entity.
-     * @param entityType Management entity type. Cannot be {@literal null}.
-     * @throws IllegalArgumentException entityType is {@literal null}.
-     */
-    public WellKnownTypeSystem(final Class<E> entityType){
-        super(entityType);
-    }
-
-    /**
-     * Converts any object to {@link String}.
-     * @param obj An object to convert.
-     * @return A {@link String} representation of the input object.
-     */
-    @Converter
-    public static String toString(final Object obj){
-        return Objects.toString(obj, "");
-    }
+public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
 
     /**
      * Converts {@link String} to {@link Byte}.
@@ -413,18 +392,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Byte}.
      */
-    public final static boolean isInt8(final EntityTypeInfo entityType){
-        return isTypeOf(entityType, Byte.class);
-    }
-
-    /**
-     * Constructs a new type converter that provides conversion between MIB-specific
-     * type and {@link Byte}.
-     * @param sourceType MIB-specific type of the management entity value.
-     * @return A newly constructed type converter.
-     */
-    public final E createInt8Type(final Class<?> sourceType){
-        return createTypeInfo(sourceType, Byte.class);
+    public final static boolean supportsInt8(final ManagementEntityType entityType){
+        return supportsProjection(entityType, Byte.class);
     }
 
     /**
@@ -432,8 +401,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * by {@link Byte}.
      * @return A new type converter.
      */
-    public final E createInt8Type(){
-        return createInt8Type(Byte.class);
+    public final ManagementEntityType createInt8Type(){
+        return createEntitySimpleType(Byte.class);
     }
 
     /**
@@ -443,18 +412,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Short}.
      */
-    public final static boolean isInt16(final EntityTypeInfo entityType){
-        return isTypeOf(entityType, Short.class);
-    }
-
-    /**
-     * Constructs a new type converter that provides conversion between MIB-specific
-     * type and {@link Short}.
-     * @param sourceType MIB-specific type of the management entity value.
-     * @return A newly constructed type converter.
-     */
-    public final E createInt16Type(final Class<?> sourceType){
-        return createTypeInfo(sourceType, Short.class);
+    public final static boolean supportsInt16(final ManagementEntityType entityType){
+        return supportsProjection(entityType, Short.class);
     }
 
     /**
@@ -462,8 +421,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * by {@link Short}.
      * @return A new type converter.
      */
-    public final E createInt16Type(){
-        return createInt16Type(Short.class);
+    public final ManagementEntityType createInt16Type(){
+        return createEntitySimpleType(Short.class);
     }
 
     /**
@@ -473,18 +432,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Integer}.
      */
-    public final static boolean isInt32(final EntityTypeInfo entityType){
-        return isTypeOf(entityType, Integer.class);
-    }
-
-    /**
-     * Constructs a new type converter that provides conversion between MIB-specific
-     * type and {@link Integer}.
-     * @param sourceType MIB-specific type of the management entity value.
-     * @return A newly constructed type converter.
-     */
-    public final E createInt32Type(final Class<?> sourceType){
-        return createTypeInfo(sourceType, Integer.class);
+    public final static boolean supportsInt32(final ManagementEntityType entityType){
+        return supportsProjection(entityType, Integer.class);
     }
 
     /**
@@ -492,8 +441,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * by {@link Integer}.
      * @return A new type converter.
      */
-    public final E createInt32Type(){
-        return createInt32Type(Integer.class);
+    public final ManagementEntityType createInt32Type(){
+        return createEntitySimpleType(Integer.class);
     }
 
     /**
@@ -503,18 +452,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Long}.
      */
-    public final static boolean isInt64(final EntityTypeInfo entityType){
-        return isTypeOf(entityType, Long.class);
-    }
-
-    /**
-     * Constructs a new type converter that provides conversion between MIB-specific
-     * type and {@link Long}.
-     * @param sourceType MIB-specific type of the management entity value.
-     * @return A newly constructed type converter.
-     */
-    public final E createInt64Type(final Class<?> sourceType){
-        return createTypeInfo(sourceType, Long.class);
+    public final static boolean supportsInt64(final ManagementEntityType entityType){
+        return supportsProjection(entityType, Long.class);
     }
 
     /**
@@ -522,8 +461,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * by {@link Long}.
      * @return A new type converter.
      */
-    public final E createInt64Type(){
-        return createInt64Type(Long.class);
+    public final ManagementEntityType createInt64Type(){
+        return createEntitySimpleType(Long.class);
     }
 
     /**
@@ -533,18 +472,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link BigInteger}.
      */
-    public final static boolean isInteger(final EntityTypeInfo entityType){
-        return isTypeOf(entityType, BigInteger.class);
-    }
-
-    /**
-     * Constructs a new type converter that provides conversion between MIB-specific
-     * type and {@link BigInteger}.
-     * @param sourceType MIB-specific type of the management entity value.
-     * @return A newly constructed type converter.
-     */
-    public final E createIntegerType(final Class<?> sourceType){
-        return createTypeInfo(sourceType, BigInteger.class);
+    public final static boolean supportsInteger(final ManagementEntityType entityType){
+        return supportsProjection(entityType, BigInteger.class);
     }
 
     /**
@@ -552,8 +481,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * by {@link BigInteger}.
      * @return A new type converter.
      */
-    public final E createIntegerType(){
-        return createIntegerType(BigInteger.class);
+    public final ManagementEntityType createIntegerType(){
+        return createEntitySimpleType(BigInteger.class);
     }
 
     /**
@@ -563,18 +492,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link BigDecimal}.
      */
-    public final static boolean isDecimal(final EntityTypeInfo entityType){
-        return isTypeOf(entityType, BigDecimal.class);
-    }
-
-    /**
-     * Constructs a new type converter that provides conversion between MIB-specific
-     * type and {@link BigDecimal}.
-     * @param sourceType MIB-specific type of the management entity value.
-     * @return A newly constructed type converter.
-     */
-    public final E createDecimalType(final Class<?> sourceType){
-        return createTypeInfo(sourceType, BigDecimal.class);
+    public final static boolean supportsDecimal(final ManagementEntityType entityType){
+        return supportsProjection(entityType, BigDecimal.class);
     }
 
     /**
@@ -582,8 +501,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * by {@link BigDecimal}.
      * @return A new type converter.
      */
-    public final E createDecimalType(){
-        return createDecimalType(BigDecimal.class);
+    public final ManagementEntityType createDecimalType(){
+        return createEntitySimpleType(BigDecimal.class);
     }
 
     /**
@@ -593,18 +512,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Date}.
      */
-    public final static boolean isUnixTime(final EntityTypeInfo entityType){
-        return isTypeOf(entityType, Date.class);
-    }
-
-    /**
-     * Constructs a new type converter that provides conversion between MIB-specific
-     * type and {@link Date}.
-     * @param sourceType MIB-specific type of the management entity value.
-     * @return A newly constructed type converter.
-     */
-    public final E createUnixTimeType(final Class<?> sourceType){
-        return createTypeInfo(sourceType, Date.class);
+    public final static boolean supportsUnixTime(final ManagementEntityType entityType){
+        return supportsProjection(entityType, Date.class);
     }
 
     /**
@@ -612,8 +521,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * by {@link Date}.
      * @return A new type converter.
      */
-    public final E createUnixTimeType(){
-        return createUnixTimeType(Date.class);
+    public final ManagementEntityType createUnixTimeType(){
+        return createEntitySimpleType(Date.class);
     }
 
     /**
@@ -623,18 +532,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Boolean}.
      */
-    public final static boolean isBoolean(final EntityTypeInfo entityType){
-        return isTypeOf(entityType, Boolean.class);
-    }
-
-    /**
-     * Constructs a new type converter that provides conversion between MIB-specific
-     * type and {@link Boolean}.
-     * @param sourceType MIB-specific type of the management entity value.
-     * @return A newly constructed type converter.
-     */
-    public final E createBooleanType(final Class<?> sourceType){
-        return createTypeInfo(sourceType, Boolean.class);
+    public final static boolean supportsBoolean(final ManagementEntityType entityType){
+        return supportsProjection(entityType, Boolean.class);
     }
 
     /**
@@ -642,8 +541,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * by {@link Boolean}.
      * @return A new type converter.
      */
-    public final E createBooleanType(){
-        return createBooleanType(Boolean.class);
+    public final ManagementEntityType createBooleanType(){
+        return createEntitySimpleType(Boolean.class);
     }
 
     /**
@@ -653,18 +552,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link String}.
      */
-    public final static boolean isString(final EntityTypeInfo entityType){
-        return isTypeOf(entityType, String.class);
-    }
-
-    /**
-     * Constructs a new type converter that provides conversion between MIB-specific
-     * type and {@link String}.
-     * @param sourceType MIB-specific type of the management entity value.
-     * @return A newly constructed type converter.
-     */
-    public final E createStringType(final Class<?> sourceType){
-        return createTypeInfo(sourceType, String.class);
+    public final static boolean supportsString(final ManagementEntityType entityType){
+        return supportsProjection(entityType, String.class);
     }
 
     /**
@@ -672,8 +561,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * by {@link String}.
      * @return A new type converter.
      */
-    public final E createStringType(){
-        return createStringType(String.class);
+    public final ManagementEntityType createStringType(){
+        return createEntitySimpleType(String.class);
     }
 
     /**
@@ -683,18 +572,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Float}.
      */
-    public final static boolean isFloat(final EntityTypeInfo entityType){
-        return isTypeOf(entityType, Float.class);
-    }
-
-    /**
-     * Constructs a new type converter that provides conversion between MIB-specific
-     * type and {@link Float}.
-     * @param sourceType MIB-specific type of the management entity value.
-     * @return A newly constructed type converter.
-     */
-    public final E createFloatType(final Class<?> sourceType){
-        return createTypeInfo(sourceType, Float.class);
+    public final static boolean supportsFloat(final ManagementEntityType entityType){
+        return supportsProjection(entityType, Float.class);
     }
 
     /**
@@ -702,8 +581,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * by {@link Float}.
      * @return A new type converter.
      */
-    public final E createFloatType(){
-        return createFloatType(Float.class);
+    public final ManagementEntityType createFloatType(){
+        return createEntitySimpleType(Float.class);
     }
 
     /**
@@ -713,18 +592,8 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Double}.
      */
-    public final static boolean isDouble(final EntityTypeInfo entityType){
-        return isTypeOf(entityType, Double.class);
-    }
-
-    /**
-     * Constructs a new type converter that provides conversion between MIB-specific
-     * type and {@link Double}.
-     * @param sourceType MIB-specific type of the management entity value.
-     * @return A newly constructed type converter.
-     */
-    public final E createDoubleType(final Class<?> sourceType){
-        return createTypeInfo(sourceType, Double.class);
+    public final static boolean supportsDouble(final ManagementEntityType entityType){
+        return supportsProjection(entityType, Double.class);
     }
 
     /**
@@ -732,27 +601,108 @@ public class WellKnownTypeSystem<E extends EntityTypeInfo> extends EntityTypeInf
      * by {@link Double}.
      * @return A new type converter.
      */
-    public final E createDoubleType(){
-        return createDoubleType(Double.class);
+    public final ManagementEntityType createDoubleType(){
+        return createEntitySimpleType(Double.class);
     }
 
     /**
-     * Determines whether the specified management entity is a table.
-     * @param entityType Type of the management entity.
-     * @return {@literal true}, if the specified management entity is convertible to {@link Table} class;
-     * otherwise, {@literal false}.
+     * Creates a new array type that can be converted into {@link Object[]}.
+     * @param elementType An element type of the array.
+     * @return A new array type that can be converted into {@link Object[]}.
      */
-    public static boolean isTable(final EntityTypeInfo entityType){
-        return (entityType != null) && (entityType instanceof EntityTabularType || entityType.canConvertTo(Table.class));
+    private final ManagementEntityType createEntityArrayType(final ManagementEntityType elementType){
+        return createEntityType(new Activator<ManagementEntityArrayType>(){
+
+            /**
+             * Creates a new instance of the specified type.
+             *
+             * @return A new instance of the specified type.
+             */
+            @Override
+            public ManagementEntityArrayType newInstance() {
+                return new ManagementEntityArrayType(elementType);
+            }
+        }, Object[].class);
     }
 
     /**
-     * Determines whether the specified management entity is an array.
-     * @param entityType Type of the management entity.
-     * @return {@literal true}, if the specified management entity is convertible to {@link Object}[] class;
-     * otherwise, {@literal false}.
+     * Creates a new tabular type that can be converted into {@link Table}.
+     * <p>
+     *  The returned {@link ManagementEntityTabularType} instance throws {@link UnsupportedOperationException}
+     *  exception when {@link com.snamp.connectors.ManagementEntityTabularType#getRowCount()} is invoked.
+     * </p>
+     * @param columns A collection of columns.
+     * @return A new instance of the tabular type.
      */
-    public static boolean isArray(final EntityTypeInfo entityType){
-        return entityType != null && entityType.canConvertTo(Object[].class);
+    public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns){
+        final Map<String, ManagementEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
+        return createEntityType(new Activator<AbstractManagementEntityTabularType>(){
+
+            /**
+             * Creates a new instance of the specified type.
+             *
+             * @return A new instance of the specified type.
+             */
+            @Override
+            public AbstractManagementEntityTabularType newInstance() {
+                return new AbstractManagementEntityTabularType() {
+                    @Override
+                    public final Collection<String> getColumns() {
+                        return readonlyColumns.keySet();
+                    }
+
+                    @Override
+                    public final ManagementEntityType getColumnType(final String column) {
+                        return readonlyColumns.get(column);
+                    }
+
+                    @Override
+                    public final long getRowCount() throws UnsupportedOperationException {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+        }, Table.class);
+    }
+
+    /**
+     * Creates a new tabular type that can be converted into {@link Table}.
+     * <p>
+     *  The returned {@link ManagementEntityTabularType} returns {@code rowCount} from
+     *  {@link com.snamp.connectors.ManagementEntityTabularType#getRowCount()} method.
+     * </p>
+     * @param columns A collection of columns.
+     * @param rowCount A row count in the table.
+     * @return A new instance of the tabular type.
+     */
+    public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns, final int rowCount){
+        final Map<String, ManagementEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
+        return createEntityType(new Activator<AbstractManagementEntityTabularType>(){
+
+            /**
+             * Creates a new instance of the specified type.
+             *
+             * @return A new instance of the specified type.
+             */
+            @Override
+            public AbstractManagementEntityTabularType newInstance() {
+                return new AbstractManagementEntityTabularType() {
+                    @Override
+                    public final Collection<String> getColumns() {
+                        return readonlyColumns.keySet();
+                    }
+
+                    @Override
+                    public final ManagementEntityType getColumnType(final String column) {
+                        return readonlyColumns.get(column);
+                    }
+
+                    @Override
+                    public final long getRowCount() {
+                        return rowCount;
+                    }
+                };
+            }
+        }, Table.class);
     }
 }

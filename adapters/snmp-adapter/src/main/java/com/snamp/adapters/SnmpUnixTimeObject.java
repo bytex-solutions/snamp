@@ -3,6 +3,7 @@ package com.snamp.adapters;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.smi.*;
+import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 
 import java.util.Date;
 
@@ -13,13 +14,13 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<TimeTicks>{
         super(oid, connector, new TimeTicks(defaultValue), timeouts);
     }
 
-    public static TimeTicks convert(final Object value, final AttributeTypeInfo attributeTypeInfo){
-        return new TimeTicks(attributeTypeInfo.convertTo(value, Long.class));
+    public static TimeTicks convert(final Object value, final ManagementEntityType attributeTypeInfo){
+        return new TimeTicks(convertFrom(attributeTypeInfo, value, Long.class));
     }
 
-    public static Object convert(final Variable value, final AttributeTypeInfo attributeTypeInfo){
-        if(attributeTypeInfo.canConvertFrom(Long.class)) return value.toLong();
-        else if(attributeTypeInfo.canConvertFrom(Date.class)) return new Date(value.toLong());
+    public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
+        if(supportsProjection(attributeTypeInfo, Long.class)) return value.toLong();
+        else if(supportsProjection(attributeTypeInfo, Date.class)) return new Date(value.toLong());
         else return new Date();
     }
 

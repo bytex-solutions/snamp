@@ -13,7 +13,7 @@ import com.snamp.connectors.*;
 import com.snamp.connectors.util.AttributeValue;
 import com.snamp.connectors.util.AttributesRegistryReader;
 import com.sun.jersey.spi.resource.Singleton;
-
+import static com.snamp.connectors.ManagementEntityTypeBuilder.AbstractManagementEntityArrayType.*;
 import static com.snamp.connectors.WellKnownTypeSystem.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -43,7 +43,7 @@ public final class RestAdapterService extends AbstractPlatformService {
     }
 
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    private final JsonElement toJsonTable(final AttributeValue<AttributeTabularType> table){
+    private final JsonElement toJsonTable(final AttributeValue<ManagementEntityTabularType> table){
         final JsonArray result = new JsonArray();
         final Table<String> tableReader = table.convertTo(Table.class);
         //table representation in JSON: [{column: value}, {column: value}]
@@ -55,43 +55,59 @@ public final class RestAdapterService extends AbstractPlatformService {
                 row.add(columnName, toJson(new AttributeValue<>(tableReader.getCell(columnName, rowIndex), table.type.getColumnType(columnName))));
             result.add(row);
         }
-        return result.size() == 1 ? result.get(0) : result;
-    }
-
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    private final JsonArray toJsonArray(final AttributeValue<AttributeArrayType> array){
-        final JsonArray result = new JsonArray();
-        //read all elements and converts each of them to JSON
-        for(final Object rawValue: array.convertTo(Object[].class)){
-            result.add(toJson(new AttributeValue<>(rawValue, array.type.getColumnType(AttributeArrayType.VALUE_COLUMN_NAME))));
-        }
         return result;
     }
 
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    private final JsonElement toJson(final AttributeValue<? extends AttributeTypeInfo> value){
+    private final JsonArray toJsonArray(final AttributeValue<ManagementEntityTabularType> array){
+        final JsonArray result = new JsonArray();
+        //read all elements and converts each of them to JSON
+        for(final Object rawValue: array.convertTo(Object[].class)){
+            result.add(toJson(new AttributeValue<>(rawValue, array.type.getColumnType(VALUE_COLUMN_NAME))));
+        }
+        return result;
+    }
+
+    private JsonObject toJsonMap(final AttributeValue<ManagementEntityTabularType> map){
+        final JsonObject result = new JsonObject();
+        final Map<String, Object> value = map.convertTo(Map.class);
+        for(final String column: value.keySet())
+            result.add(column, toJson(new AttributeValue<>(value.get(column), map.type.getColumnType(column))));
+        return result;
+    }
+
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    private final JsonElement toJson(final AttributeValue<? extends ManagementEntityType> value){
         if(value == null || value.rawValue == null)
             return JsonNull.INSTANCE;
-        else if(isString(value.type))
+        else if(supportsString(value.type))
             return new JsonPrimitive(value.convertTo(String.class));
-        else if(isBoolean(value.type))
+        else if(supportsBoolean(value.type))
             return new JsonPrimitive(value.convertTo(Boolean.class));
-        else if(isUnixTime(value.type))
+        else if(supportsUnixTime(value.type))
             return jsonFormatter.toJsonTree(value.convertTo(Date.class));
-        else if(isInt8(value.type) ||
-                isInt16(value.type) ||
-                isInt32(value.type) ||
-                isInt64(value.type) ||
-                isInteger(value.type) ||
-                isDecimal(value.type) ||
-                isFloat(value.type) ||
-                isDouble(value.type) ||
-                value.canConvertTo(Number.class))
-            return new JsonPrimitive(value.convertTo(Number.class));
-        else if(value.isTypeOf(AttributeArrayType.class))
-            return toJsonArray(value.cast(AttributeArrayType.class));
-        else if(value.isTypeOf(AttributeTabularType.class))
-            return toJsonTable(value.cast(AttributeTabularType.class));
+        else if(supportsInt8(value.type))
+            return new JsonPrimitive(value.convertTo(Byte.class));
+        else if(supportsInt16(value.type))
+            return new JsonPrimitive(value.convertTo(Short.class));
+        else if(supportsInt32(value.type))
+            return new JsonPrimitive(value.convertTo(Integer.class));
+        else if(supportsInt64(value.type))
+            return new JsonPrimitive(value.convertTo(Long.class));
+        else if(supportsInteger(value.type))
+            return new JsonPrimitive(value.convertTo(BigInteger.class));
+        else if(supportsDecimal(value.type))
+            return new JsonPrimitive(value.convertTo(BigDecimal.class));
+        else if(supportsFloat(value.type))
+            return new JsonPrimitive(value.convertTo(Float.class));
+        else if(supportsDouble(value.type))
+            return new JsonPrimitive(value.convertTo(Double.class));
+        else if(isArray(value.type))
+            return toJsonArray(value.cast(ManagementEntityTabularType.class));
+        else if(isMap(value.type))
+            return toJsonMap(value.cast(ManagementEntityTabularType.class));
+        else if(value.isTypeOf(ManagementEntityTabularType.class))
+            return toJsonTable(value.cast(ManagementEntityTabularType.class));
         else return new JsonPrimitive(value.convertTo(String.class));
     }
 
@@ -105,7 +121,7 @@ public final class RestAdapterService extends AbstractPlatformService {
         return jsonFormatter.toJson(toJson(attributes.getAttribute(namespace, attributeId, READ_WRITE_TIMEOUT)));
     }
 
-    private Object fromJson(final JsonArray attributeValue, final AttributeTypeInfo elementType){
+    private Object fromArrayJson(final JsonArray attributeValue, final ManagementEntityType elementType){
         final Object[] result = new Object[attributeValue.size()];
         for(int i = 0; i < attributeValue.size(); i++){
             result[i] = fromJson(jsonFormatter.toJson(attributeValue.get(i)), elementType);
@@ -113,20 +129,20 @@ public final class RestAdapterService extends AbstractPlatformService {
         return result;
     }
 
-    private Object fromJson(final JsonElement attributeValue, final AttributeTypeInfo elementType){
+    private Object fromArrayJson(final JsonElement attributeValue, final ManagementEntityType elementType){
         if(attributeValue instanceof JsonArray)
-            return fromJson((JsonArray)attributeValue, elementType);
+            return fromArrayJson((JsonArray) attributeValue, elementType);
         else {
             throwAndLog(Level.WARNING, new JsonSyntaxException(String.format("Expected JSON array, but actually found %s", jsonFormatter.toJson(attributeValue))));
             return null;
         }
     }
 
-    private Object fromJson(final String attributeValue, final AttributeArrayType attributeType){
-        return fromJson(jsonParser.parse(attributeValue), attributeType.getColumnType(AttributeArrayType.VALUE_COLUMN_NAME));
+    private Object fromArrayJson(final String attributeValue, final ManagementEntityTabularType attributeType){
+        return fromArrayJson(jsonParser.parse(attributeValue), attributeType.getColumnType(VALUE_COLUMN_NAME));
     }
 
-    private void insertRow(final Table<String> table, final JsonObject row, final AttributeTabularType attributeType){
+    private void insertRow(final Table<String> table, final JsonObject row, final ManagementEntityTabularType attributeType){
         final Map<String, Object> insertedRow = new HashMap<>(10);
         //iterates through each column
         for(final Map.Entry<String, JsonElement> column: row.entrySet()){
@@ -136,7 +152,7 @@ public final class RestAdapterService extends AbstractPlatformService {
         table.addRow(insertedRow);
     }
 
-    private Table<String> fromJson(final JsonArray attributeValue, final AttributeTabularType attributeType){
+    private Table<String> fromTableJson(final JsonArray attributeValue, final ManagementEntityTabularType attributeType){
         final Table<String> result = new SimpleTable<>(new HashMap<String, Class<?>>(){{
             for(final String columnName: attributeType.getColumns())
                 put(columnName, Object.class);
@@ -148,13 +164,13 @@ public final class RestAdapterService extends AbstractPlatformService {
         return result;
     }
 
-    private Table<String> fromJson(final JsonElement attributeValue, final AttributeTabularType attributeType){
+    private Table<String> fromTableJson(final JsonElement attributeValue, final ManagementEntityTabularType attributeType){
         if(attributeValue instanceof JsonArray)
-            return fromJson((JsonArray)attributeValue, attributeType);
+            return fromTableJson((JsonArray) attributeValue, attributeType);
         else if(attributeValue instanceof JsonObject){
             final JsonArray array = new JsonArray();
             array.add(attributeValue);
-            return fromJson(array, attributeType);
+            return fromTableJson(array, attributeType);
         }
         else {
             throwAndLog(Level.WARNING, new JsonSyntaxException(String.format("Expected JSON array, but actually found %s", jsonFormatter.toJson(attributeValue))));
@@ -162,52 +178,62 @@ public final class RestAdapterService extends AbstractPlatformService {
         }
     }
 
-    private Object fromJson(final String attributeValue, final AttributeTabularType attributeType){
-        return fromJson(jsonParser.parse(attributeValue), attributeType);
+    private Table<String> fromTableJson(final String attributeValue, final ManagementEntityTabularType attributeType){
+        return fromTableJson(jsonParser.parse(attributeValue), attributeType);
+    }
+
+    private Map<String, Object> fromMapJson(final JsonObject attributeValue, final ManagementEntityTabularType attributeType){
+        final Map<String, Object> result = new HashMap<>(10);
+        for(final String column: attributeType.getColumns())
+            if(attributeValue.has(column))
+                result.put(column, fromJson(jsonFormatter.toJson(attributeValue.get(column)), attributeType.getColumnType(column)));
+            else throwAndLog(Level.WARNING, new JsonSyntaxException(String.format("JSON key %s not found.", column)));
+        return result;
+    }
+
+    private Map<String, Object> fromMapJson(final JsonElement attributeValue, final ManagementEntityTabularType attributeType){
+        if(attributeValue instanceof JsonObject)
+            return fromMapJson((JsonObject)attributeValue, attributeType);
+        else {
+            throwAndLog(Level.WARNING, new JsonSyntaxException(String.format("Expected JSON object, but actually found %s", jsonFormatter.toJson(attributeValue))));
+            return null;
+        }
+    }
+
+    private Map<String, Object> fromMapJson(final String attributeValue, final ManagementEntityTabularType attributeType){
+        return fromMapJson(jsonParser.parse(attributeValue), attributeType);
     }
 
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    private Object fromJson(final String attributeValue, final AttributeTypeInfo attributeType){
-        if(isBoolean(attributeType))
+    private Object fromJson(final String attributeValue, final ManagementEntityType attributeType){
+        if(supportsBoolean(attributeType))
             return jsonFormatter.fromJson(attributeValue, Boolean.class);
-        else if(isString(attributeType))
+        else if(supportsString(attributeType))
             return jsonFormatter.fromJson(attributeValue, String.class);
-        else if(isInt8(attributeType))
+        else if(supportsInt8(attributeType))
             return jsonFormatter.fromJson(attributeValue, Byte.class);
-        else if(isInt16(attributeType))
+        else if(supportsInt16(attributeType))
             return jsonFormatter.fromJson(attributeValue, Short.class);
-        else if(isInt32(attributeType))
+        else if(supportsInt32(attributeType))
             return jsonFormatter.fromJson(attributeValue, Integer.class);
-        else if(isInt64(attributeType))
+        else if(supportsInt64(attributeType))
             return jsonFormatter.fromJson(attributeValue, Long.class);
-        else if(isInteger(attributeType))
+        else if(supportsInteger(attributeType))
             return jsonFormatter.fromJson(attributeValue, BigInteger.class);
-        else if(isDecimal(attributeType))
+        else if(supportsDecimal(attributeType))
             return jsonFormatter.fromJson(attributeValue, BigDecimal.class);
-        else if(isDouble(attributeType))
+        else if(supportsDouble(attributeType))
             return jsonFormatter.fromJson(attributeValue, Double.class);
-        else if(isFloat(attributeType))
+        else if(supportsFloat(attributeType))
             return jsonFormatter.fromJson(attributeValue, Float.class);
-        else if(isUnixTime(attributeType))
+        else if(supportsUnixTime(attributeType))
             return jsonFormatter.fromJson(attributeValue, Date.class);
-        else if(attributeType.canConvertFrom(Object[].class) && attributeType instanceof AttributeArrayType)
-            return fromJson(attributeValue, (AttributeArrayType)attributeType);
-        else if(attributeType.canConvertFrom(Table.class) && attributeType instanceof AttributeTabularType)
-            return fromJson(attributeValue, (AttributeTabularType) attributeType);
-        else if(attributeType.canConvertFrom(Byte.class))
-            return jsonFormatter.fromJson(attributeValue, Byte.class);
-        else if(attributeType.canConvertFrom(Short.class))
-            return jsonFormatter.fromJson(attributeValue, Short.class);
-        else if(attributeType.canConvertFrom(Integer.class))
-            return jsonFormatter.fromJson(attributeValue, Integer.class);
-        else if(attributeType.canConvertFrom(Long.class))
-            return jsonFormatter.fromJson(attributeValue, Long.class);
-        else if(attributeType.canConvertFrom(BigInteger.class))
-            return jsonFormatter.fromJson(attributeValue, BigInteger.class);
-        else if(attributeType.canConvertFrom(BigDecimal.class))
-            return jsonFormatter.fromJson(attributeValue, BigDecimal.class);
-        else if(attributeType.canConvertFrom(Boolean.class))
-            return jsonFormatter.fromJson(attributeValue, Boolean.class);
+        else if(isArray(attributeType))
+            return fromArrayJson(attributeValue, (ManagementEntityTabularType) attributeType);
+        else if(isMap(attributeType))
+            return fromMapJson(attributeValue, (ManagementEntityTabularType)attributeType);
+        else if(isTable(attributeType))
+            return fromTableJson(attributeValue, (ManagementEntityTabularType) attributeType);
         else {
             throwAndLog(Level.WARNING, new UnsupportedOperationException(String.format("Unsupported conversion from %s value", attributeValue)));
             return null;
@@ -224,7 +250,7 @@ public final class RestAdapterService extends AbstractPlatformService {
                                    @PathParam(attributeIdParam)final String attributeId,
                                    final String attributeValue,
                                    @Context HttpServletResponse response) throws IOException {
-        final AttributeTypeInfo attributeType = attributes.getAttributeType(namespace, attributeId);
+        final ManagementEntityType attributeType = attributes.getAttributeType(namespace, attributeId);
         if(attributeType == null) return jsonFormatter.toJson(new JsonPrimitive(false));
         try{
             attributes.setAttribute(namespace, attributeId, fromJson(attributeValue, attributeType), READ_WRITE_TIMEOUT);

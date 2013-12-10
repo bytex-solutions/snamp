@@ -18,12 +18,11 @@ public abstract class AbstractManagementConnector implements ManagementConnector
 
     /**
      * Represents default implementation of the attribute descriptor.
-     * @param <T> Type of the attribute type descriptor.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class GenericAttributeMetadata<T extends AttributeTypeInfo> implements AttributeMetadata {
+    protected static abstract class GenericAttributeMetadata<T extends ManagementEntityType> implements AttributeMetadata {
         private final String attributeName;
         private final String namespace;
         private T attributeType;
@@ -387,6 +386,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     protected abstract GenericAttributeMetadata<?> connectAttributeCore(final String attributeName, final Map<String, String> options);
 
     /**
+     * Connects to the specified attribute.
      * Connects to the specified attribute.
      * @param id A key string that is used to read attribute from this connector.
      * @param attributeName The name of the attribute.

@@ -1,9 +1,6 @@
 package com.snamp.connectors;
 
-import static com.snamp.connectors.EntityTypeInfoBuilder.AttributeTypeConverter;
-
 import java.beans.*;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.rmi.*;
 import java.rmi.registry.*;
@@ -32,7 +29,7 @@ final class RmiConnector extends ManagementConnectorBean {
     }
 
     public RmiConnector(final String host, final int port, final String objectName, final Logger logger) throws RemoteException, NotBoundException, IntrospectionException {
-        super(LocateRegistry.getRegistry(host, port).lookup(objectName), new RemoteBeanIntrospector(), new WellKnownTypeSystem<>(AttributeTypeConverter.class));
+        super(LocateRegistry.getRegistry(host, port).lookup(objectName), new RemoteBeanIntrospector(), new WellKnownTypeSystem());
         this.logger = logger;
     }
 }

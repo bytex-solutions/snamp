@@ -6,7 +6,6 @@ import java.util.logging.*;
 
 import com.snamp.connectors.ManagementConnector;
 import com.snamp.connectors.Notification;
-import com.snamp.connectors.NotificationAttachmentTypeInfo;
 import com.snamp.connectors.util.AbstractNotificationListener;
 import net.xeoh.plugins.base.annotations.*;
 import org.snmp4j.TransportMapping;

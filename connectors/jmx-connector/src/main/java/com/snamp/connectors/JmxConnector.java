@@ -144,7 +144,7 @@ final class JmxConnector extends AbstractManagementConnector {
      * Represents JMX attribute metadata.
      */
     public static interface JmxAttributeMetadata extends AttributeMetadata {
-        static final String ownerOption = "owner";
+        static final String OWNER_OPTION = "owner";
         /**
          * Returns the object name in which the current attribute is located.
          * @return
@@ -156,14 +156,13 @@ final class JmxConnector extends AbstractManagementConnector {
          * @return The type of the attribute value.
          */
         @Override
-        public EntityTypeInfoBuilder.AttributeTypeConverter getAttributeType();
+        public JmxManagementEntityType getAttributeType();
     }
 
     /**
      * Represents an abstract class for building JMX attribute providers.
      */
-    private abstract static class JmxAttributeProvider extends GenericAttributeMetadata<EntityTypeInfoBuilder.AttributeTypeConverter> implements JmxAttributeMetadata {
-
+    private abstract static class JmxAttributeProvider extends GenericAttributeMetadata<JmxManagementEntityType> implements JmxAttributeMetadata {
         private final ObjectName namespace;
         private MBeanServerConnectionHandler<Object> attributeValueReader;
         private final JmxConnectionManager connectionManager;
@@ -188,23 +187,23 @@ final class JmxConnector extends AbstractManagementConnector {
 
         @Override
         public final boolean containsKey(final Object option) {
-            return ownerOption.equals(option);
+            return OWNER_OPTION.equals(option);
         }
 
         @Override
-        public final boolean containsValue(Object o) {
+        public final boolean containsValue(final Object o) {
             return namespace.equals(o);
         }
 
         @Override
-        public final String get(Object o) {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
+        public final String get(final Object o) {
+            return Objects.equals(o, OWNER_OPTION) ? namespace.toString() : null;
         }
 
         @Override
         public final Set<String> keySet() {
             return new HashSet<String>(1){{
-                add(ownerOption);
+                add(OWNER_OPTION);
             }};
         }
 
@@ -222,7 +221,7 @@ final class JmxConnector extends AbstractManagementConnector {
 
                     @Override
                     public final String getKey() {
-                        return ownerOption;
+                        return OWNER_OPTION;
                     }
 
                     @Override
@@ -276,11 +275,17 @@ final class JmxConnector extends AbstractManagementConnector {
          * @param value
          * @return
          */
-        public final boolean setValue(final Object value){
-            final EntityTypeInfoBuilder.AttributeTypeConverter typeInfo = getAttributeType();
-            if(canWrite() && value != null && typeInfo.canConvertFrom(value.getClass())){
-                return connectionManager.handleConnection(createAttributeValueWriter(typeInfo.convertFrom(value)), false);
-            }
+        public final boolean setValue(Object value){
+            final JmxManagementEntityType typeInfo = getAttributeType();
+            if(canWrite() && value != null)
+                try{
+                    value = typeInfo.convertToJmxType(value);
+                    return connectionManager.handleConnection(createAttributeValueWriter(value), false);
+                }
+                catch (final IllegalArgumentException e){
+                    log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+                    return false;
+                }
             else return false;
         }
     }
@@ -367,10 +372,10 @@ final class JmxConnector extends AbstractManagementConnector {
         }, null);
         return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace){
             @Override
-            protected final EntityTypeInfoBuilder.AttributeTypeConverter detectAttributeType() {
+            protected final JmxManagementEntityType detectAttributeType() {
                 if(targetAttr instanceof OpenMBeanAttributeInfoSupport)
-                    return typeSystem.createJmxType(((OpenMBeanAttributeInfoSupport) targetAttr).getOpenType());
-                else return typeSystem.createJmxType(targetAttr.getType());
+                    return typeSystem.createEntityType(((OpenMBeanAttributeInfoSupport) targetAttr).getOpenType());
+                else return typeSystem.createEntityType(targetAttr.getType());
             }
 
             /**
@@ -480,13 +485,13 @@ final class JmxConnector extends AbstractManagementConnector {
             }
 
             @Override
-            protected final EntityTypeInfoBuilder.AttributeTypeConverter detectAttributeType() {
+            protected final JmxManagementEntityType detectAttributeType() {
                 final Object attributeType = navigator.getType(compositeType);
-                if(attributeType instanceof OpenType)
-                    return typeSystem.createJmxType((OpenType<?>)attributeType);
+                if(attributeType instanceof OpenType<?>)
+                    return typeSystem.createEntityType((OpenType<?>)attributeType);
                 else if(attributeType instanceof Class<?>)
-                    return typeSystem.createJmxType((Class<?>)attributeType);
-                else return typeSystem.createJmxType(Objects.toString(attributeType, ""));
+                    return typeSystem.createEntityType((Class<?>)attributeType);
+                else return typeSystem.createEntityType(Objects.toString(attributeType, ""));
             }
         } : null;
     }
@@ -690,20 +695,8 @@ final class JmxConnector extends AbstractManagementConnector {
          * attachment is not supported.
          */
         @Override
-        public final NotificationAttachmentTypeInfo getAttachmentType(final Object attachment) {
-            if(attachment == null) return null;
-            final EntityTypeInfoBuilder.AttributeTypeConverter converter = typeSystem.createJmxType(attachment.getClass());
-            return new NotificationAttachmentTypeInfo() {
-                @Override
-                public <T> boolean canConvertTo(final Class<T> target) {
-                    return converter.canConvertTo(target);
-                }
-
-                @Override
-                public <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException {
-                    return converter.convertTo(value, target);
-                }
-            };
+        public final ManagementEntityType getAttachmentType(final Object attachment) {
+            return attachment != null ? typeSystem.createEntityType(attachment.getClass()) : null;
         }
 
         @Override

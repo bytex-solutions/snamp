@@ -1,7 +1,6 @@
 package com.snamp.licensing;
 
-import com.snamp.Activator;
-import com.snamp.ConcurrentResourceAccess;
+import com.snamp.*;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import static com.snamp.ConcurrentResourceAccess.ConsistentWriter;
@@ -17,8 +16,7 @@ import javax.xml.parsers.*;
 import java.io.*;
 import java.math.BigInteger;
 import java.security.*;
-import java.security.interfaces.DSAParams;
-import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.*;
 import java.util.*;
 import java.util.logging.*;
 
@@ -45,7 +43,7 @@ public final class LicenseReader {
         public Document loadedLicense;
 
         public LicensingContext(){
-            loadedLimitations = new WeakHashMap<>(10);
+            loadedLimitations = new SoftMap<>(10);
             loadedLicense = null;
         }
     }
@@ -53,7 +51,7 @@ public final class LicenseReader {
     private static final ConcurrentResourceAccess<LicensingContext> licensingContext;
 
     static {
-        licensingContext = new ConcurrentResourceAccess<LicensingContext>(new LicensingContext());
+        licensingContext = new ConcurrentResourceAccess<>(new LicensingContext());
     }
 
     private LicenseReader(){

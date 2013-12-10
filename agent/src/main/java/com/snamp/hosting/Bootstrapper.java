@@ -12,7 +12,7 @@ import java.util.*;
  * Represents application startup.
  * @author Roman Sakno
  */
-final class Startup implements HostingContext {
+final class Bootstrapper implements HostingContext {
     private static final String CONFIG_STORAGE_LOG_NAME = "com.snamp.configuration.storage";
 
     /**
@@ -170,7 +170,7 @@ final class Startup implements HostingContext {
     private final Agent agnt;
     private final AgentConfigurationStorage configurationStorage;
 
-    public Startup(final String configFile, final String configFormat) throws IOException {
+    public Bootstrapper(final String configFile, final String configFormat) throws IOException {
         configurationStorage = new FileConfigurationStorage(configFile, ConfigurationFormat.parse(configFormat));
         try(final InputStream stream = new FileInputStream(configFile)){
             this.agnt = Agent.start(configurationStorage.getStoredAgentConfiguration(AgentConfigurationStorage.TAG_LAST).restore());
@@ -189,7 +189,7 @@ final class Startup implements HostingContext {
                 return;
         }
         try(final AgentManager manager = HostingServices.getAgentManager(true)){
-            final Startup snampEntryPoint = new Startup(args[0], args[1]);
+            final Bootstrapper snampEntryPoint = new Bootstrapper(args[0], args[1]);
             //executes the manager
             manager.start(snampEntryPoint);
         }

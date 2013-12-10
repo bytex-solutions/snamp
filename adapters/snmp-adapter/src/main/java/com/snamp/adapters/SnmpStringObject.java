@@ -3,6 +3,7 @@ package com.snamp.adapters;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.smi.*;
+import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
 
@@ -14,11 +15,11 @@ final class SnmpStringObject extends SnmpScalarObject<OctetString>{
         super(oid, connector, new OctetString(defaultValue), timeouts);
     }
 
-    public static OctetString convert(final Object value, final AttributeTypeInfo attributeTypeInfo){
-        return new OctetString(attributeTypeInfo.convertTo(value, String.class));
+    public static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo){
+        return new OctetString(convertFrom(attributeTypeInfo, value, String.class));
     }
 
-    public static String convert(final Variable value, final AttributeTypeInfo attributeTypeInfo){
+    public static String convert(final Variable value, final ManagementEntityType attributeTypeInfo){
         return value.toString();
     }
 

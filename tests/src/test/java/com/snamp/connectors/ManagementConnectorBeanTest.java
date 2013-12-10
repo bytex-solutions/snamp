@@ -22,7 +22,7 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Managem
         private boolean field3;
 
         public TestManagementConnectorBeanTest() throws IntrospectionException {
-            super(new WellKnownTypeSystem<>(EntityTypeInfoBuilder.AttributeTypeConverter.class));
+            super(new WellKnownTypeSystem());
         }
 
         public final String getProperty1(){
@@ -77,7 +77,7 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Managem
         assertTrue(md.canRead());
         assertTrue(md.canWrite());
         assertEquals("property1", md.getAttributeName());
-        assertTrue(md.getAttributeType().canConvertFrom(String.class));
+        assertNotNull(md.getAttributeType().getProjection(String.class));
     }
 
     @Test
@@ -92,7 +92,7 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Managem
             public final void setProperty(int value) {
                 simpleField = value;
             }
-        }, new WellKnownTypeSystem<>(EntityTypeInfoBuilder.AttributeTypeConverter.class));
+        }, new WellKnownTypeSystem());
         mc.connectAttribute("1", "property", new HashMap<String, String>());
         mc.setAttribute("1", TimeSpan.INFINITE, 42);
         assertEquals(42, mc.getAttribute("1", TimeSpan.INFINITE, 0));

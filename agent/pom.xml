@@ -25,7 +25,7 @@
             <addMavenDescriptor>false</addMavenDescriptor>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>com.snamp.hosting.Startup</mainClass>
+              <mainClass>com.snamp.hosting.Bootstrapper</mainClass>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
               <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
             </manifest>
@@ -57,7 +57,7 @@
               <archive>
                 <manifest>
                   <addClasspath>true</addClasspath>
-                  <mainClass>com.snamp.hosting.Startup</mainClass>
+                  <mainClass>com.snamp.hosting.Bootstrapper</mainClass>
                 </manifest>
               </archive>
             </configuration>

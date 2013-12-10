@@ -3,6 +3,7 @@ package com.snamp.adapters;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.smi.*;
+import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_INTEGER32;
 
@@ -14,11 +15,11 @@ final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
         super(oid, connector, new Integer32(defaultValue), timeouts);
     }
 
-    public static Integer32 convert(final Object value, final AttributeTypeInfo attributeTypeInfo){
-        return new Integer32(attributeTypeInfo.convertTo(value, Integer.class));
+    public static Integer32 convert(final Object value, final ManagementEntityType attributeTypeInfo){
+        return new Integer32(convertFrom(attributeTypeInfo, value, Integer.class));
     }
 
-    public static Boolean convert(final Variable value, final AttributeTypeInfo attributeTypeInfo){
+    public static Boolean convert(final Variable value, final ManagementEntityType attributeTypeInfo){
         return value.toLong() != 0;
     }
 
