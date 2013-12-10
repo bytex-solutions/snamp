@@ -1,5 +1,6 @@
 package com.snamp.adapters;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.mp.SnmpConstants;
@@ -24,9 +25,13 @@ public final class SNMPManager {
      * Constructor
      * @param add
      */
-    public SNMPManager(String add)
-    {
+    public SNMPManager(String add) {
         address = add;
+        try {
+            start();
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
     }
 
 
@@ -70,6 +75,12 @@ public final class SNMPManager {
             return event;
         }
         throw new RuntimeException("GET timed out");
+    }
+
+
+    public ResponseEvent set(PDU pdu) throws IOException {
+
+        return snmp.set(pdu, getTarget());
     }
 
     /**

@@ -10,7 +10,7 @@ import java.util.*;
  * @since 1.0
  * @version 1.0
  */
-abstract class AbstractAgentConfiguration implements AgentConfiguration {
+public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     /**
      * Initializes a new empty agent configuration.
      */
