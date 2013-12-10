@@ -27,11 +27,14 @@ import java.util.*;
  *     For non-scalar data types such as arrays, dictionaries and tables it is recommended to use the
  *     following mapping:
  *     <ul>
- *         <li>Tabular and dictionary data should be convertible to {@link com.snamp.Table} type. An implementation
+ *         <li>Tabular data should be convertible to {@link com.snamp.Table} type. An implementation
  *         for this interface is provided by {@link com.snamp.SimpleTable} class. Entity data type
  *         should implements {@link ManagementEntityTabularType} interface.</li>
  *         <li>Array data should be convertible to Java array and {@link com.snamp.Table} type. Attribute
  *         data type should inherits from {@link com.snamp.connectors.ManagementEntityTypeBuilder.ManagementEntityArrayType} class.</li>
+ *         <li>Map data should be convertible to {@link com.snamp.Table} type, and, optionally,
+ *         to {@link Map} type. Map is a special case of tabular data when table has single row
+ *         and multiple columns, where each column represents map key.</li>
  *     </ul>
  * </p>
  * <p>
