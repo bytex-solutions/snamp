@@ -14,6 +14,7 @@ import java.util.concurrent.locks.*;
  * @version 1.0
  */
 @Lifecycle(InstanceLifecycle.NORMAL)
+@SuppressWarnings("try")
 public abstract class AbstractManagementConnector implements ManagementConnector {
 
     /**
@@ -113,7 +114,8 @@ public abstract class AbstractManagementConnector implements ManagementConnector
         }
 
         /**
-         * By default, returns {@literal true}.
+         * By default, returns {@literal true}, but you can override this method
+         * in the derived class.
          * @return {@literal true}
          */
         @Override
@@ -533,7 +535,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     /**
      * Writes a set of attributes inside of the transaction.
      * @param values The dictionary of attributes keys and its values.
-     * @param writeTimeout
+     * @param writeTimeout Batch write timeout.
      * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
      * @throws TimeoutException
      */

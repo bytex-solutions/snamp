@@ -1,6 +1,5 @@
 package com.snamp.adapters;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.mp.SnmpConstants;

@@ -9,7 +9,6 @@ import java.util.Map;
  * @version 1.0
  */
 public interface AttributeMetadata extends Map<String, String> {
-
     /**
      * Returns the attribute name.
      * @return The attribute name.

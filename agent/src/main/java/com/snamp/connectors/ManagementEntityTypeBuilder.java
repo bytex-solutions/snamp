@@ -241,7 +241,7 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterF
         /**
          * Returns the type of the array
          *
-         * @return
+         * @return The type of the array element.
          */
         @Override
         public final ManagementEntityType getValueColumnType() {

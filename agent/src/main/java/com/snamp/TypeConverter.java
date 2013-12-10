@@ -15,14 +15,14 @@ public interface TypeConverter<T> {
     public Class<T> getType();
 
     /**
-     * Determines whether the value of the specified type can be converted into {@link T}.
+     * Determines whether the value of the specified type can be converted into {@code T}.
      * @param source The type of the source value.
-     * @return {@literal true}, if the value of the specified type can be converted into {@link T}; otherwise, {@literal false}.
+     * @return {@literal true}, if the value of the specified type can be converted into {@code T}; otherwise, {@literal false}.
      */
     public boolean canConvertFrom(final Class<?> source);
 
     /**
-     * Converts the value into an instance of {@link T} class.
+     * Converts the value into an instance of {@code T} class.
      * @param value The value to convert.
      * @return The value of the original type described by this converter.
      * @throws IllegalArgumentException Unsupported type of the source value. Check the type with {@link #canConvertFrom(Class)} method.

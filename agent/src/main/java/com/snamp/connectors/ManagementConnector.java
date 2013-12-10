@@ -13,6 +13,7 @@ import java.util.concurrent.*;
  * @version 1.0
  */
 @Lifecycle(InstanceLifecycle.NORMAL)
+@SuppressWarnings("try")
 public interface ManagementConnector extends Iterable<String>, AutoCloseable {
 
     /**
