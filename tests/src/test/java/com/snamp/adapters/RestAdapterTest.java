@@ -288,7 +288,7 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
 
         attribute = new EmbeddedAttributeConfiguration("boolean");
         attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
-        attributes.put(git"booleanProperty", attribute);
+        attributes.put("booleanProperty", attribute);
 
         attribute = new EmbeddedAttributeConfiguration("int32");
         attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
