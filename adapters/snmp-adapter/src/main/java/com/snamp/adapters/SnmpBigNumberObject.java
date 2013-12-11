@@ -4,6 +4,9 @@ import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.smi.*;
 
+import java.math.*;
+import java.util.Objects;
+
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
 import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 
@@ -16,7 +19,7 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
     }
 
     public static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo){
-        return new OctetString(convertFrom(attributeTypeInfo, value, String.class));
+        return new OctetString(Objects.toString(convertFrom(attributeTypeInfo, value, Number.class, BigInteger.class, BigDecimal.class), defaultValue.toString()));
     }
 
     public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){

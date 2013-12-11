@@ -16,7 +16,7 @@ final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
     }
 
     public static Integer32 convert(final Object value, final ManagementEntityType attributeTypeInfo){
-        return new Integer32(convertFrom(attributeTypeInfo, value, Integer.class));
+        return new Integer32(convertFrom(attributeTypeInfo, value, Boolean.class) ? 1 : 0);
     }
 
     public static Boolean convert(final Variable value, final ManagementEntityType attributeTypeInfo){
