@@ -19,6 +19,7 @@ public final class SNMPManager {
 
     private Snmp snmp = null;
     private final String address;
+    private  CommunityTarget target = null;
 
     /**
      * Constructor
@@ -79,7 +80,7 @@ public final class SNMPManager {
 
     public ResponseEvent set(PDU pdu) throws IOException {
 
-        return snmp.set(pdu, getTarget());
+        return snmp.send(pdu, getTarget(), null);
     }
 
     /**
@@ -88,13 +89,15 @@ public final class SNMPManager {
      * @return
      */
     private Target getTarget() {
-        final Address targetAddress = GenericAddress.parse(address);
-        final CommunityTarget target = new CommunityTarget();
-        target.setCommunity(new OctetString("public"));
-        target.setAddress(targetAddress);
-        target.setRetries(2);
-        target.setTimeout(1500);
-        target.setVersion(SnmpConstants.version2c);
+        if (target == null) {
+            final Address targetAddress = GenericAddress.parse(address);
+            target = new CommunityTarget();
+            target.setCommunity(new OctetString("public"));
+            target.setAddress(targetAddress);
+            target.setRetries(2);
+            target.setTimeout(1500);
+            target.setVersion(SnmpConstants.version2c);
+        }
         return target;
     }
 

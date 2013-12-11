@@ -46,13 +46,13 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         final Object result;
 
         if (var instanceof UnsignedInteger32)
-            result = ((UnsignedInteger32) var).getValue();
+            result = var.toInt();
         else if (var instanceof OctetString)
-            result = ((OctetString) var).getValue();
+            result = var.toString();
         else if (var instanceof IpAddress)
-            result = ((IpAddress) var).toString();
+            result = var.toString();
         else if (var instanceof Counter64)
-            result = ((Counter64) var).getValue();
+            result = var.toLong();
         else result = null;
 
         assertNotNull(result);
@@ -68,7 +68,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         final PDU pdu = new PDU();
 
         // Setting the Oid and Value for sysContact variable
-        final OID oid = new OID(postfix);
+        final OID oid = new OID(prefix + "." +postfix);
         final Variable var;
 
         if (valueType == int.class || valueType == Integer.class || valueType == short.class)
@@ -95,10 +95,21 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     }
 
 
+    /**
+     * snmpset -c public -v 2c 127.0.0.1:3222 iso.1.1.0 s ddd
+     * snmpwalk -Os -c public -v 2c 127.0.0.1:3222 1
+
+     * @throws IOException
+     */
     @Test
     public final void testForStringProperty() throws IOException {
-        writeAttribute("1.1", "SETTED VALUE", String.class);
-        assertEquals("SETTED VALUE", readAttribute("1.1", String.class));
+        writeAttribute("1.0", "SETTED VALUE", String.class);
+        try {
+            Thread.sleep(1000000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        assertEquals("SETTED VALUE", readAttribute("1.0", String.class));
     }
 
     /* @Test
@@ -196,30 +207,30 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     protected final void fillAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attributes) {
         EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("string");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("1.1", attribute);
+        attributes.put("1.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("boolean");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("1.2", attribute);
+        attributes.put("2.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("int32");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("1.3", attribute);
+        attributes.put("3.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("bigint");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("1.4", attribute);
+        attributes.put("4.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("array");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("1.5", attribute);
+        attributes.put("5.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("dictionary");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("1.6", attribute);
+        attributes.put("6.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("table");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("1.7", attribute);
+        attributes.put("7.0", attribute);
     }
 }
