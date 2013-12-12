@@ -635,10 +635,12 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      *  exception when {@link com.snamp.connectors.ManagementEntityTabularType#getRowCount()} is invoked.
      * </p>
      * @param columns A collection of columns.
+     * @param index An array of indexed columns.
      * @return A new instance of the tabular type.
      */
-    public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns){
+    public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns, final String... index){
         final Map<String, ManagementEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
+        final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
         return createEntityType(new Activator<AbstractManagementEntityTabularType>(){
 
             /**
@@ -652,6 +654,17 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
                     @Override
                     public final Collection<String> getColumns() {
                         return readonlyColumns.keySet();
+                    }
+
+                    /**
+                     * Determines whether the specified column is indexed.
+                     *
+                     * @param column The name of the column.
+                     * @return {@literal true}, if the specified column is indexed; otherwise, {@literal false}.
+                     */
+                    @Override
+                    public final boolean isIndexed(final String column) {
+                        return readonlyIndex.contains(column);
                     }
 
                     @Override
@@ -676,10 +689,12 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * </p>
      * @param columns A collection of columns.
      * @param rowCount A row count in the table.
+     * @param index An array of indexed columns.
      * @return A new instance of the tabular type.
      */
-    public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns, final int rowCount){
+    public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns, final int rowCount, final String... index){
         final Map<String, ManagementEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
+        final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
         return createEntityType(new Activator<AbstractManagementEntityTabularType>(){
 
             /**
@@ -693,6 +708,17 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
                     @Override
                     public final Collection<String> getColumns() {
                         return readonlyColumns.keySet();
+                    }
+
+                    /**
+                     * Determines whether the specified column is indexed.
+                     *
+                     * @param column The name of the column.
+                     * @return {@literal true}, if the specified column is indexed; otherwise, {@literal false}.
+                     */
+                    @Override
+                    public final boolean isIndexed(final String column) {
+                        return readonlyIndex.contains(column);
                     }
 
                     @Override

@@ -28,7 +28,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     private SnmpScalarObject(final String oid, final ManagementConnector connector, final AttributeMetadata attributeInfo, final T defval, final TimeSpan timeouts){
         super(new OID(oid), getAccessRestrictions(attributeInfo), defval);
         if(connector == null) throw new IllegalArgumentException("connector is null.");
-        this.connector = new WeakReference<ManagementConnector>(connector);
+        this.connector = new WeakReference<>(connector);
         defaultValue = defval;
         this.timeouts = timeouts;
         this.attributeTypeInfo = attributeInfo.getAttributeType();

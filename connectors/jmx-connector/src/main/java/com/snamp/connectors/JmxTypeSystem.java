@@ -158,6 +158,17 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
 
         /**
+         * Determines whether the specified column is indexed.
+         *
+         * @param column The name of the column.
+         * @return {@literal true}, if the specified column is indexed; otherwise, {@literal false}.
+         */
+        @Override
+        public final boolean isIndexed(final String column) {
+            return getOpenType().getIndexNames().contains(column);
+        }
+
+        /**
          * Returns a set of column names.
          *
          * @return The set of column names.
@@ -240,6 +251,38 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         protected AbstractJmxEntityCompositeType(final CompositeType ctype){
             super(ctype);
         }
+
+        /**
+         * Determines whether the specified column is indexed.
+         *
+         * @param column The name of the column.
+         * @return {@literal true}, if the specified column is indexed; otherwise, {@literal false}.
+         */
+        @Override
+        public final boolean isIndexed(final String column) {
+            return false;
+        }
+
+        /**
+         * Returns a set of column names.
+         *
+         * @return The set of column names.
+         */
+        @Override
+        public final Collection<String> getColumns() {
+            return getOpenType().keySet();
+        }
+
+        /**
+         * Returns the number of rows if this information is available.
+         *
+         * @return The count of rows.
+         * @throws UnsupportedOperationException Row count is not supported.
+         */
+        @Override
+        public final long getRowCount() {
+            return 1L;
+        }
     }
 
     private final class JmxManagementEntityCompositeType extends AbstractJmxEntityCompositeType{
@@ -293,16 +336,6 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
 
         /**
-         * Returns a set of column names.
-         *
-         * @return The set of column names.
-         */
-        @Override
-        public final Collection<String> getColumns() {
-            return getOpenType().keySet();
-        }
-
-        /**
          * Returns the column type.
          *
          * @param column The name of the column.
@@ -311,17 +344,6 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         @Override
         public final ManagementEntityType getColumnType(final String column) {
             return createEntityType(getOpenType().getType(column));
-        }
-
-        /**
-         * Returns the number of rows if this information is available.
-         *
-         * @return The count of rows.
-         * @throws UnsupportedOperationException Row count is not supported.
-         */
-        @Override
-        public final long getRowCount() {
-            return 1L;
         }
     }
 
@@ -362,6 +384,17 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
 
         public abstract JmxManagementEntityType getElementType();
+
+        /**
+         * Determines whether the specified column is indexed.
+         *
+         * @param column The name of the column.
+         * @return {@literal true}, if the specified column is indexed; otherwise, {@literal false}.
+         */
+        @Override
+        public final boolean isIndexed(final String column) {
+            return ManagementEntityArrayType.isIndexedColumn(column);
+        }
     }
 
     private final class JmxManagementEntityArrayType<T> extends AbstractJmxEntityArrayType<T>{

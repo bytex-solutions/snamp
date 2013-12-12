@@ -1,9 +1,9 @@
 package com.snamp.connectors.util;
 
 import com.snamp.TypeConverter;
-import com.snamp.connectors.ManagementEntityType;
+import com.snamp.connectors.*;
 
-import java.util.Arrays;
+import java.util.*;
 
 /**
  * Represents additional helpers methods that simplifies communication
@@ -86,5 +86,18 @@ public final class ManagementEntityTypeHelper {
             else return converter.convertFrom(value);
         }
         throw new IllegalArgumentException(String.format("Projections %s are not supported by %s management entity type.", Arrays.toString(projections), entityType));
+    }
+
+    /**
+     * Returns a read-only collection of indexed columns inside of the tabular management entity.
+     * @param entityType Tabular management entity type. Cannot be {@literal null}.
+     * @return A read-onyl collection of indexed columns.
+     */
+    public static Collection<String> getIndexedColumns(final ManagementEntityTabularType entityType){
+        final Collection<String> index = new ArrayList<>(entityType.getColumns().size());
+        for(final String indexedColumn: entityType.getColumns())
+            if(entityType.isIndexed(indexedColumn))
+                index.add(indexedColumn);
+        return Collections.unmodifiableCollection(index);
     }
 }

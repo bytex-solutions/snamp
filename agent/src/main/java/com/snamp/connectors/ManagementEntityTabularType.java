@@ -20,6 +20,13 @@ public interface ManagementEntityTabularType extends ManagementEntityType {
     public Collection<String> getColumns();
 
     /**
+     * Determines whether the specified column is indexed.
+     * @param column The name of the column.
+     * @return {@literal true}, if the specified column is indexed; otherwise, {@literal false}.
+     */
+    public boolean isIndexed(final String column);
+
+    /**
      * Returns the column type.
      * @param column The name of the column.
      * @return The type of the column; or {@literal null} if the specified column doesn't exist.

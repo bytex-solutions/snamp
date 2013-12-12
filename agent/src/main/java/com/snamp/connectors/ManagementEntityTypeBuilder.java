@@ -155,6 +155,27 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterF
         }
 
         /**
+         * Determines whether the specified column is indexed.
+         *
+         * @param column The name of the column.
+         * @return {@literal true}, if the specified column is indexed; otherwise, {@literal false}.
+         */
+        @Override
+        public final boolean isIndexed(final String column) {
+            return isIndexedColumn(column);
+        }
+
+        /**
+         * Determines whether the specified column is indexed.
+         *
+         * @param column The name of the column.
+         * @return {@literal true}, if the specified column is indexed; otherwise, {@literal false}.
+         */
+        public static boolean isIndexedColumn(final String column){
+            return Objects.equals(INDEX_COLUMN_NAME, column);
+        }
+
+        /**
          * Returns the type of the array {@link #INDEX_COLUMN_NAME} column.
          * @return The type of the array index column.
          */
