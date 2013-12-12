@@ -2,6 +2,7 @@ package com.snamp.adapters;
 
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
+import org.snmp4j.event.ResponseListener;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
@@ -19,8 +20,8 @@ public final class SNMPManager {
 
     private Snmp snmp = null;
     private final String address;
-    private  CommunityTarget target = null;
-
+    private CommunityTarget target = null;
+    private TransportMapping transport = null;
     /**
      * Constructor
      * @param add
@@ -42,9 +43,9 @@ public final class SNMPManager {
      * @throws java.io.IOException
      */
     public void start() throws IOException {
-        final TransportMapping transport = new DefaultUdpTransportMapping();
-        snmp = new Snmp(transport);
+        transport = new DefaultUdpTransportMapping();
         transport.listen();
+        snmp = new Snmp(transport);
     }
 
     /**
@@ -80,9 +81,14 @@ public final class SNMPManager {
 
     public ResponseEvent set(PDU pdu) throws IOException {
 
-        return snmp.send(pdu, getTarget(), null);
+        return snmp.set(pdu, getTarget());
     }
 
+    public void set(PDU pdu, ResponseListener listenerResp) throws IOException {
+
+        snmp.send(pdu, getTarget(), null, listenerResp);
+        return;
+    }
     /**
      * This method returns a Target, which contains information about
      * where the data should be fetched and how.
