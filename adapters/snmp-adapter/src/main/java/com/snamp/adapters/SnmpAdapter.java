@@ -31,7 +31,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
     /**
      * Represents a collection of MO's with OID postfixes.
      */
-    private static final class ManagementAttributes extends HashMap<String, ManagedObject>{
+    private static final class ManagementAttributes extends HashMap<String, SnmpAttributeMapping>{
         public ManagementAttributes(){
             super(5);
         }
@@ -127,12 +127,24 @@ final class SnmpAdapter extends SnmpAdapterBase {
         this.senders = new ArrayList<>(10);
 	}
 
-    private static void registerManagedObjects(final MOServer server, final VacmMIB mib, final String prefix, Iterable<ManagedObject> mos){
-        mib.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
+    private static void registerManagedObjects(final MOServer server, final VacmMIB mib, final String prefix, Iterable<SnmpAttributeMapping> mos){
+       /* mib.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
                 new OctetString(), VacmMIB.vacmViewIncluded,
                 StorageType.nonVolatile);
-        for(final ManagedObject mo: mos)
+        mib.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
+                new OctetString(), VacmMIB.vacmViewIncluded,
+                StorageType.nonVolatile);                */
+        for(final SnmpAttributeMapping mo: mos)
             try {
+                if (mo.getMetadata().canRead())
+                    mib.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
+                            new OctetString(), VacmMIB.vacmViewIncluded,
+                            StorageType.nonVolatile);
+                if (mo.getMetadata().canWrite())
+                    mib.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
+                            new OctetString(), VacmMIB.vacmViewIncluded,
+                            StorageType.nonVolatile);
+
                 server.register(mo, null);
             } catch (final DuplicateRegistrationException e) {
                 log.log(Level.WARNING, e.getLocalizedMessage(), e);
@@ -142,7 +154,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
 	@Override
 	protected void registerManagedObjects() {
         for(final String prefix: attributes.keySet())
-            registerManagedObjects(this.getServer(), this.getVacmMIB(), prefix, attributes.get(prefix).values());
+            registerManagedObjects(this.getServer(), this.getVacmMIB(), prefix, (Iterable<SnmpAttributeMapping>)attributes.get(prefix).values());
 	}
 
     private static String combineOID(final String prefix, final String postfix){
@@ -278,7 +290,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
 
     private void exposeAttribute(final ManagementConnector connector, final String prefix, final String postfix, AttributeConfiguration attribute){
         final String oid = combineOID(prefix, postfix);
-        final ManagedObject mo = SnmpType.createManagedObject(connector, oid, attribute.getAttributeName(), attribute.getAdditionalElements(), attribute.getReadWriteTimeout());
+        final SnmpAttributeMapping mo = SnmpType.createManagedObject(connector, oid, attribute.getAttributeName(), attribute.getAdditionalElements(), attribute.getReadWriteTimeout());
         if(mo == null)
             log.warning(String.format("Unable to expose %s attribute with OID %s", attribute.getAttributeName(), oid));
         else {
