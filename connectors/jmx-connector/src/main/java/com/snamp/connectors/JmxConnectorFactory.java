@@ -25,7 +25,7 @@ final class JmxConnectorFactory extends AbstractManagementConnectorFactory<JmxCo
     public JmxConnectorFactory(){
         super(connectorName);
         //TODO: Package.getImplementationVersion() returns null, I don't know why...
-        //JmxConnectorLimitations.current().verifyPluginVersion(getClass());
+        JmxConnectorLimitations.current().verifyPluginVersion(getClass());
     }
 
     /**

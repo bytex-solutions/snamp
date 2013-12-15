@@ -3,8 +3,11 @@ package com.snamp.licensing;
 import com.snamp.*;
 
 import javax.xml.bind.annotation.adapters.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.jar.*;
 
 /**
  * Represents an abstract class for all licensed objects.
@@ -150,7 +153,7 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
         public final boolean validate(final String actualValue) {
             switch (requiredValue){
                 case "*": return true;
-                default: return requiredValue.compareTo(actualValue) >= 0;
+                default: return Version.compare(requiredValue, actualValue) >= 0;
             }
         }
     }
@@ -232,5 +235,36 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
     @Override
     public final Limitation<?> getLimitation(final String limitationName) {
         return getLimitationCore(limitationName);
+    }
+
+    private static String getActualPluginVersion(final Class<? extends PlatformPlugin> pluginType){
+        final Package p = pluginType.getPackage();
+        if(p == null || p.getImplementationVersion() == null){
+            //information from package definition is not available
+            //propably, pluginType class loaded from the file system (not from JAR file)
+            //attempts to obtain MANIFEST.MF from resources
+            if(pluginType.getResource(JarFile.MANIFEST_NAME) != null)
+                try(final InputStream is = pluginType.getResourceAsStream(JarFile.MANIFEST_NAME)){
+                    final Manifest man = new Manifest(is);
+                    return man.getMainAttributes().getValue(Attributes.Name.IMPLEMENTATION_VERSION);
+                }
+                catch (IOException e) {
+                    return null;
+                }
+            else return null;
+        }
+        else return p.getImplementationVersion();
+    }
+
+    /**
+     * Throws {@link com.snamp.licensing.LicensingException} if the actual plugin version is greater than the specified in
+     * the license limitation.
+     * @param expectedImplVersion The version defined in the license.
+     * @param pluginType The plug-in to check.
+     * @throws LicensingException The plugin has greater implementation version than the specified implementation version in the
+     * license limitation.
+     */
+    protected final static void verifyPluginVersion(final VersionLimitation expectedImplVersion, final Class<? extends PlatformPlugin> pluginType) throws LicensingException{
+        verify(expectedImplVersion, getActualPluginVersion(pluginType));
     }
 }
