@@ -22,9 +22,8 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
         return new OctetString(Objects.toString(convertFrom(attributeTypeInfo, value, Number.class, BigInteger.class, BigDecimal.class), defaultValue.toString()));
     }
 
-    public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
-        if(supportsProjection(attributeTypeInfo, String.class)) return value.toString();
-        else return defaultValue;
+    public static Number convert(final Variable value, final ManagementEntityType attributeTypeInfo){
+        return convertFrom(attributeTypeInfo, value.toString(), Number.class, fallbackWithDefaultValue(defaultValue, value, attributeTypeInfo), BigDecimal.class, BigInteger.class);
     }
 
     /**

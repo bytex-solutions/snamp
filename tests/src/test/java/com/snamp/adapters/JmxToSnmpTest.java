@@ -44,13 +44,16 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
     private <T>T readAttribute(final String postfix, Class<T> className) throws IOException {
         final ResponseEvent value = client.get(new OID[]{new OID(prefix + "." + postfix)});
+
+        assertNotNull(value);
+
         final Variable var = value.getResponse().getVariable(new OID(prefix + "." + postfix));
         final Object result;
 
-        if (var instanceof UnsignedInteger32)
-            result = var.toInt();
+        if (var instanceof UnsignedInteger32 || var instanceof Integer32)
+            result = (className == Boolean.class)?(var.toInt() == 1):var.toInt();
         else if (var instanceof OctetString)
-            result = var.toString();
+            result = (className == BigInteger.class)?new BigInteger(var.toString()):var.toString();
         else if (var instanceof IpAddress)
             result = var.toString();
         else if (var instanceof Counter64)
@@ -64,11 +67,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     }
 
     private <T>void writeAttribute(final String postfix, final T value, final Class<T> valueType) throws IOException{
-
-    //    final SNMPManager client = new SNMPManager("udp:127.0.0.1/"+portForSNMP);
-        // Create the PDU object
         final PDU pdu = new PDU();
-
         // Setting the Oid and Value for sysContact variable
         final OID oid = new OID(prefix + "." +postfix);
         final Variable var;
@@ -81,20 +80,24 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         {
              var = new Counter64(Long.class.cast(value));
         }
+        else if (valueType == Boolean.class || valueType == boolean.class)
+        {
+            var = new Integer32((Boolean.class.cast(value) == Boolean.TRUE)?1:0);
+        }
         else
         {
             var = new OctetString(value.toString());
         }
 
-        VariableBinding varBind = new VariableBinding(oid,var);
-        pdu.add(varBind);
+        final VariableBinding varBind = new VariableBinding(oid,var);
 
+        pdu.add(varBind);
         pdu.setType(PDU.SET);
 
-        ResponseListener listener = new ResponseListener() {
+        final ResponseListener listener = new ResponseListener() {
             public void onResponse(ResponseEvent event) {
-                PDU strResponse;
-                String result;
+                final PDU strResponse;
+                final String result;
                 ((Snmp)event.getSource()).cancel(event.getRequest(), this);
                 strResponse = event.getResponse();
                 if (strResponse!= null) {
@@ -106,15 +109,19 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
         client.set(pdu, listener);
 
-     //   ResponseEvent response = client.set(pdu);
-
-       // assertEquals(response.getResponse().getErrorStatusText(),PDU.noError);
     }
 
 
     /**
+     * To check the attribute you need use following commands:
+     *
      * snmpset -c public -v 2c 127.0.0.1:3222 iso.1.1.0 s ddd
      * snmpwalk -Os -c public -v 2c 127.0.0.1:3222 1
+     *
+     *
+     * To check it via JMX Bean you can use jConsole:
+     *
+     * service:jmx:rmi:///jndi/rmi://localhost:3334/jmxrmi
 
      * @throws IOException
      */
@@ -138,8 +145,8 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
     @Test
     public final void testForBigIntProperty() throws IOException{
-        writeAttribute("4.0", new BigInteger("100500000"), BigInteger.class);
-        assertEquals(new BigInteger("100500000"), readAttribute("4.0", BigInteger.class));
+        writeAttribute("4.0", new BigInteger("100500"), BigInteger.class);
+        assertEquals(new BigInteger("100500"), readAttribute("4.0", BigInteger.class));
     }
     /*
 

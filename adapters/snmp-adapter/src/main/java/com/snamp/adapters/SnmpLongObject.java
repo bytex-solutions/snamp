@@ -21,7 +21,7 @@ final class SnmpLongObject extends SnmpScalarObject<Counter64>{
 
     public static Long convert(final Variable value, final ManagementEntityType attributeTypeInfo){
         if(supportsProjection(attributeTypeInfo, Long.class)) return value.toLong();
-        else return defaultValue;
+        else return logAndReturnDefaultValue(defaultValue, value, attributeTypeInfo);
     }
 
     /**

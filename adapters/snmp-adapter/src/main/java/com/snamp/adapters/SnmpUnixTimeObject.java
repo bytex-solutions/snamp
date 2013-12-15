@@ -21,7 +21,7 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<TimeTicks>{
     public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
         if(supportsProjection(attributeTypeInfo, Long.class)) return value.toLong();
         else if(supportsProjection(attributeTypeInfo, Date.class)) return new Date(value.toLong());
-        else return new Date();
+        else return logAndReturnDefaultValue(new Date(), value, attributeTypeInfo);
     }
 
     /**
