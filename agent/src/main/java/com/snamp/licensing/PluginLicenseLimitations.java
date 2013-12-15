@@ -1,7 +1,6 @@
 package com.snamp.licensing;
 
 import com.snamp.*;
-import net.xeoh.plugins.base.Plugin;
 
 /**
  * Represents an interface for describing plugin license limitations.
@@ -10,7 +9,7 @@ import net.xeoh.plugins.base.Plugin;
  * @version 1.0
  */
 @Internal
-public interface PluginLicenseLimitations<T extends Plugin> {
+public interface PluginLicenseLimitations<T extends PlatformPlugin> {
     /**
      *
      * @param pluginImpl
