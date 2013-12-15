@@ -1,5 +1,6 @@
 package com.snamp.connectors;
 
+import com.snamp.licensing.JmxConnectorLimitations;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 import javax.management.remote.JMXServiceURL;
