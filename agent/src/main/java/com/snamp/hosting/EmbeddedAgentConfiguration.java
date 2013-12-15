@@ -15,6 +15,7 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
 
     /**
      * Represents adapter settings. This class cannot be inherited.
+     * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */

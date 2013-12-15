@@ -10,8 +10,6 @@ import java.util.concurrent.TimeoutException;
 import java.lang.reflect.*;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.snamp.connectors.EntityTypeInfoBuilder.AttributeTypeConverter;
-
 /**
  * Represents SNAMP in-process management connector that exposes Java Bean properties through connector attributes.
  * <p>
@@ -23,7 +21,7 @@ import static com.snamp.connectors.EntityTypeInfoBuilder.AttributeTypeConverter;
  *       private String prop1;
  *
  *       public CustomConnector(){
- *           super(new WellKnownAttributeTypeSystem());
+ *           super(new WellKnownTypeSystem());
  *           prop1 = "Hello, world!";
  *       }
  *
@@ -41,6 +39,30 @@ import static com.snamp.connectors.EntityTypeInfoBuilder.AttributeTypeConverter;
  *     System.out.println(c.getAttribute("001", TimeSpan.INFINITE, ""));//output is: Hello, world!
  *     }</pre>
  * </p>
+ * <p>
+ *     By default, {@link WellKnownTypeSystem} supports only primitive types. Therefore, if you use
+ *     this type system then your Java Bean properties should have only primitive types:
+ *     <ul>
+ *         <li>{@link Byte}</li>
+ *         <li>{@link Short}</li>
+ *         <li>{@link Integer}</li>
+ *         <li>{@link Long}</li>
+ *         <li>{@link Boolean}</li>
+ *         <li>{@link Date}</li>
+ *         <li>{@link String}</li>
+ *         <li>{@link Float}</li>
+ *         <li>{@link Double}</li>
+ *         <li>{@link java.math.BigInteger}</li>
+ *         <li>{@link java.math.BigDecimal}</li>
+ *     </ul>
+ *     To support custom type (such as {@link Table}, {@link Map} or array) you apply do the following steps:
+ *     <ul>
+ *      <li>Creates your own type system provider that derives from {@link WellKnownTypeSystem}.</li>
+ *      <li>Declares public instance parameterless method that have {@link ManagementEntityType} return type in custom type system provider.</li>
+ *      <li>Annotates property getter or setter with {@link AttributeInfo} annotation and specify method name(declared
+ *      and implemented in custom type system  provider) in {@link AttributeInfo#typeProvider()} parameter.</li>
+ *     </ul>
+ * </p>
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
@@ -49,40 +71,72 @@ import static com.snamp.connectors.EntityTypeInfoBuilder.AttributeTypeConverter;
 public class ManagementConnectorBean extends AbstractManagementConnector {
 
     /**
-     * Determines whether the Java Bean property is cacheable.
-     * <p>
-     * This annotation should be applied to the property getter.
-     * </p>
+     * Associated additional attribute info with the bean property getter and setter.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
-    protected static @interface Cacheable{
+    protected static @interface AttributeInfo{
+        /**
+         * Determines whether the attribute if cached.
+         * @return {@literal true}, if attribute value is cached in the private field; otherwise, {@literal false}.
+         */
+        public boolean cached() default false;
 
+        /**
+         * Gets the name of the public instance parameterless method in {@link WellKnownTypeSystem} class that returns
+         * {@link ManagementEntityType} for the specified bean property.
+         * @return The name of the public instance method that produces {@link WellKnownTypeSystem} instance
+         * for the annotated bean property.
+         */
+        public String typeProvider() default "";
     }
 
-    private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<AttributeTypeConverter>{
+    private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<WellKnownTypeSystem.AbstractManagementEntityType>{
         private final Map<String, String> properties;
         private final Class<?> propertyType;
         private final Method getter;
         private final Method setter;
-        private final Reference<EntityTypeInfoFactory<AttributeTypeConverter>> typeBuilder;
+        private final Reference<WellKnownTypeSystem> typeBuilder;
 
-        public JavaBeanPropertyMetadata(final PropertyDescriptor descriptor, final EntityTypeInfoFactory<AttributeTypeConverter> typeBuilder, final Map<String, String> props){
+        public JavaBeanPropertyMetadata(final PropertyDescriptor descriptor, final WellKnownTypeSystem typeBuilder, final Map<String, String> props){
             super(descriptor.getName(), "");
             properties = new HashMap<>(props);
             properties.put("displayName", descriptor.getDisplayName());
             properties.put("shortDescription", descriptor.getShortDescription());
             propertyType = descriptor.getPropertyType();
             getter = descriptor.getReadMethod();
-            if(getter != null && !getter.isAccessible())
-                getter.setAccessible(true);
+            if(getter != null && !getter.isAccessible()) getter.setAccessible(true);
             setter = descriptor.getWriteMethod();
-            if(setter != null && !setter.isAccessible())
-                setter.setAccessible(true);
+            if(setter != null && !setter.isAccessible()) setter.setAccessible(true);
             this.typeBuilder = new WeakReference<>(typeBuilder);
+        }
+
+        private final AttributeInfo getAttributeInfo(){
+            final AttributeInfo info;
+            if(getter != null && getter.isAnnotationPresent(AttributeInfo.class))
+                info = getter.getAnnotation(AttributeInfo.class);
+            else if(setter != null && setter.isAnnotationPresent(AttributeInfo.class))
+                info = setter.getAnnotation(AttributeInfo.class);
+            else info = new AttributeInfo(){
+                    @Override
+                    public boolean cached() {
+                        return false;
+                    }
+
+                    @Override
+                    public String typeProvider() {
+                        return "";
+                    }
+
+                    @Override
+                    public Class<? extends Annotation> annotationType() {
+                        return AttributeInfo.class;
+                    }
+                };
+            return info;
         }
 
         /**
@@ -93,7 +147,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
          */
         @Override
         public final boolean cacheable() {
-            return getter != null && getter.isAnnotationPresent(Cacheable.class);
+            return getAttributeInfo().cached();
         }
 
         public final Object getValue(final Object beanInstance) throws ReflectiveOperationException {
@@ -102,7 +156,9 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
         }
 
         public final void setValue(final Object beanInstance, final Object value) throws ReflectiveOperationException {
-            setter.invoke(beanInstance, getAttributeType().convertFrom(value));
+            final TypeConverter<?> converter = getAttributeType().getProjection(propertyType);
+            if(converter != null)
+                setter.invoke(beanInstance, converter.convertFrom(value));
         }
 
         /**
@@ -131,9 +187,20 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
          * @return Detected attribute type.
          */
         @Override
-        protected final AttributeTypeConverter detectAttributeType() {
-            final AttributeTypeConverter typeInfo = typeBuilder.get().createTypeInfo(propertyType, propertyType);
-            typeBuilder.clear();
+        protected final WellKnownTypeSystem.AbstractManagementEntityType detectAttributeType() {
+            WellKnownTypeSystem.AbstractManagementEntityType typeInfo = null;
+            final String typeProviderMethodName = getAttributeInfo().typeProvider();
+            final WellKnownTypeSystem typeBuilder = this.typeBuilder.get();
+            try {
+                final Method typeProviderImpl = typeBuilder.getClass().getMethod(typeProviderMethodName);
+                typeInfo = (WellKnownTypeSystem.AbstractManagementEntityType)typeProviderImpl.invoke(typeBuilder);
+            }
+            catch (final ReflectiveOperationException e) {
+                typeInfo = typeBuilder.createEntitySimpleType(propertyType);
+            }
+            finally {
+                this.typeBuilder.clear();
+            }
             return typeInfo;
         }
 
@@ -183,10 +250,10 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
         private final Severity severity;
         private final long seqnum;
         private final String message;
-        private final EntityTypeInfoFactory<AttributeTypeConverter> typeSystem;
+        private final WellKnownTypeSystem typeSystem;
         private final Map<String, Object> attachments;
 
-        public JavaBeanNotification(final EntityTypeInfoFactory<AttributeTypeConverter> typeSys,
+        public JavaBeanNotification(final WellKnownTypeSystem typeSys,
                                     final Severity severity,
                                     final long sequenceNumber,
                                     final String message,
@@ -258,10 +325,10 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
 
     private static final class JavaBeanEventMetadata extends GenericNotificationMetadata{
         private final AtomicLong sequenceCounter;
-        private final EntityTypeInfoFactory<AttributeTypeConverter> typeSystem;
+        private final WellKnownTypeSystem typeSystem;
         private final Map<String, String> options;
 
-        public JavaBeanEventMetadata(final EntityTypeInfoFactory<AttributeTypeConverter> typeSys,
+        public JavaBeanEventMetadata(final WellKnownTypeSystem typeSys,
                                      final String category,
                                      final Map<String, String> options){
             super(category);
@@ -293,19 +360,10 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
          *         attachment is not supported.
          */
         @Override
-        public final NotificationAttachmentTypeInfo getAttachmentType(final Object attachment) {
-            final EntityTypeInfo typeInfo = typeSystem.createTypeInfo(attachment.getClass(), attachment.getClass());
-            return typeInfo != null ? new NotificationAttachmentTypeInfo() {
-                @Override
-                public <T> boolean canConvertTo(final Class<T> target) {
-                    return typeInfo.canConvertTo(target);
-                }
-
-                @Override
-                public <T> T convertTo(final Object value, final Class<T> target) throws IllegalArgumentException {
-                    return typeInfo.convertTo(value, target);
-                }
-            }: null;
+        public final ManagementEntityType getAttachmentType(final Object attachment) {
+            if(attachment == null) return typeSystem.createFallbackEntityType();
+            final ManagementEntityType typeInfo = typeSystem.createEntitySimpleType(attachment.getClass());
+            return typeInfo != null ? typeInfo: typeSystem.createFallbackEntityType();
         }
 
         @Override
@@ -352,7 +410,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
 
 
     private final BeanInfo beanMetadata;
-    private final EntityTypeInfoFactory<AttributeTypeConverter> typeInfoBuilder;
+    private final WellKnownTypeSystem typeInfoBuilder;
     private final Object beanInstance;
 
     /**
@@ -404,7 +462,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @param typeBuilder Type information provider that provides property type converter.
      * @throws IllegalArgumentException typeBuilder is {@literal null}.
      */
-    protected ManagementConnectorBean(final EntityTypeInfoFactory<AttributeTypeConverter> typeBuilder) throws IntrospectionException {
+    protected ManagementConnectorBean(final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
         if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.typeInfoBuilder = typeBuilder;
         this.beanMetadata = Introspector.getBeanInfo(getClass(), ManagementConnectorBean.class);
@@ -421,7 +479,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @throws IntrospectionException Cannot reflect the specified instance.
      * @throws IllegalArgumentException At least one of the specified arguments is {@literal null}.
      */
-    protected <T> ManagementConnectorBean(final T beanInstance, final BeanIntrospector<T> introspector, final EntityTypeInfoFactory<AttributeTypeConverter> typeBuilder) throws IntrospectionException {
+    protected <T> ManagementConnectorBean(final T beanInstance, final BeanIntrospector<T> introspector, final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
         if(beanInstance == null) throw new IllegalArgumentException("beanInstance is null.");
         else if(introspector == null) throw new IllegalArgumentException("introspector is null.");
         else if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
@@ -438,7 +496,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @return A new instance of the management connector that wraps the Java Bean.
      * @throws IntrospectionException
      */
-    public static <T> ManagementConnectorBean wrap(final T beanInstance, final EntityTypeInfoFactory<AttributeTypeConverter> typeBuilder) throws IntrospectionException {
+    public static <T> ManagementConnectorBean wrap(final T beanInstance, final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
         return new ManagementConnectorBean(beanInstance, new StandardBeanIntrospector<>(), typeBuilder);
     }
 
@@ -467,7 +525,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @param options Additional connection options.
      * @return An information about registered attribute.
      */
-    protected final GenericAttributeMetadata<?> connectAttribute(final PropertyDescriptor property, final Map<String, String> options){
+    protected final GenericAttributeMetadata connectAttribute(final PropertyDescriptor property, final Map<String, String> options){
         return new JavaBeanPropertyMetadata(property, typeInfoBuilder, options);
     }
 
@@ -479,7 +537,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @return The description of the attribute.
      */
     @Override
-    protected final GenericAttributeMetadata<?> connectAttributeCore(final String attributeName, final Map<String, String> options) {
+    protected final GenericAttributeMetadata connectAttributeCore(final String attributeName, final Map<String, String> options) {
         for(final PropertyDescriptor pd: beanMetadata.getPropertyDescriptors())
             if(Objects.equals(pd.getName(), attributeName))
                 return connectAttribute(pd, options);

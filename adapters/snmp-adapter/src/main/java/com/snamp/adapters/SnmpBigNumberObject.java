@@ -4,7 +4,11 @@ import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.smi.*;
 
+import java.math.*;
+import java.util.Objects;
+
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
+import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 
 @MOSyntax(SYNTAX_OCTET_STRING)
 final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
@@ -14,12 +18,12 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
         super(oid, connector, new OctetString(defaultValue.toString()), timeouts);
     }
 
-    public static OctetString convert(final Object value, final AttributeTypeInfo attributeTypeInfo){
-        return new OctetString(attributeTypeInfo.convertTo(value, String.class));
+    public static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo){
+        return new OctetString(Objects.toString(convertFrom(attributeTypeInfo, value, Number.class, BigInteger.class, BigDecimal.class), defaultValue.toString()));
     }
 
-    public static Object convert(final Variable value, final AttributeTypeInfo attributeTypeInfo){
-        if(attributeTypeInfo.canConvertFrom(String.class)) return value.toString();
+    public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
+        if(supportsProjection(attributeTypeInfo, String.class)) return value.toString();
         else return defaultValue;
     }
 
@@ -30,7 +34,7 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
      * @return
      */
     @Override
-    protected OctetString convert(final Object value) {
+    protected final OctetString convert(final Object value) {
         return convert(value, attributeTypeInfo);
     }
 
@@ -41,7 +45,7 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
      * @return
      */
     @Override
-    protected Object convert(final OctetString value) {
+    protected final Object convert(final OctetString value) {
         return convert(value, attributeTypeInfo);
     }
 }

@@ -23,20 +23,6 @@
           <useReleaseProfile>false</useReleaseProfile>  <!-- This should be reviewed when we will have javadocs -->
         </configuration>
       </plugin>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.9.1</version>
-            <executions>
-                <execution>
-                    <id>bundle-sources</id>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>jar</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
     </plugins>
   </build>
   <modules>
@@ -45,6 +31,7 @@
     <module>connectors</module>
     <module>licensing</module>
     <module>tests</module>
+    <module>rest-manager</module>
     <module>examples</module>
   </modules>
     <repositories>

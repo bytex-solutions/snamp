@@ -1,11 +1,17 @@
 package com.snamp.hosting;
 
 import com.snamp.FileExtensionFilter;
-import com.snamp.adapters.*;
-import com.snamp.connectors.*;
-import com.snamp.hosting.management.*;
+import com.snamp.adapters.AbstractAdapter;
+import com.snamp.adapters.Adapter;
+import com.snamp.connectors.AbstractManagementConnectorFactory;
+import com.snamp.connectors.ManagementConnector;
+import com.snamp.connectors.ManagementConnectorFactory;
+import com.snamp.hosting.management.AbstractAgentManager;
+import com.snamp.hosting.management.AgentManager;
+import com.snamp.hosting.management.ConsoleAgentManager;
 import net.xeoh.plugins.base.PluginManager;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
+import net.xeoh.plugins.base.options.addpluginsfrom.OptionReportAfter;
 import net.xeoh.plugins.base.options.getplugin.OptionCapabilities;
 
 import java.io.File;
@@ -47,6 +53,10 @@ final class HostingServices {
         return new File(System.getProperty(PLUGINS_DIR, "plugins"));
     }
 
+    public static String getManagerName() {
+        return System.getProperty(AgentManager.MANAGER_NAME);
+    }
+
     static {
         log = Logger.getLogger("snamp.log");
         manager = PluginManagerFactory.createPluginManager();
@@ -57,8 +67,8 @@ final class HostingServices {
         //load external plugins
         final File pluginDir = getPluginsDirectory();
         if(pluginDir.exists() && pluginDir.isDirectory())
-            for(final File plugin: pluginDir.listFiles(new FileExtensionFilter(".jar")))
-                if(plugin.isFile()) manager.addPluginsFrom(plugin.toURI());
+            for(final File plugin: pluginDir.listFiles(new FileExtensionFilter("jar")))
+                if(plugin.isFile()) manager.addPluginsFrom(plugin.toURI(), new OptionReportAfter());
         else log.severe("No plugins are loaded.");
     }
 
@@ -90,7 +100,7 @@ final class HostingServices {
      * @return
      */
     public static AgentManager getAgentManager(final boolean defaultIfNotAvailable){
-        final AgentManager am =  getAgentManager(AgentManager.MANAGER_NAME);
+        final AgentManager am =  getAgentManager(getManagerName());
         return am == null && defaultIfNotAvailable ? new ConsoleAgentManager() : am;
     }
 }

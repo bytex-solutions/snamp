@@ -159,13 +159,14 @@ public final class LicenseManager {
             case "-v":
             case "--verify":
                 verifyLicense(arg0, arg1);
+                return;
             default: System.out.println("Unknown command"); return;
         }
     }
 
     public static void main(final String[] args){
         switch (args.length){
-            default: System.out.println("snmplicgen [command] [args]");
+            default: System.out.println("snmplicgen [command] [args]");return;
             case 1: doCommand(args[0]); return;
             case 2: doCommand(args[0], args[1]); return;
             case 3: doCommand(args[0], args[1], args[2]); return;

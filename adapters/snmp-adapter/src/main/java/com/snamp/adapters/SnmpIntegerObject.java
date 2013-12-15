@@ -4,6 +4,7 @@ import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.smi.*;
 import static org.snmp4j.smi.SMIConstants.SYNTAX_INTEGER32;
+import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 
 /**
  * Represents Integer SNMP mapping,
@@ -16,14 +17,14 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
         super(oid, connector, new Integer32(defaultValue), timeouts);
     }
 
-    public static Integer32 convert(final Object value, final AttributeTypeInfo attributeTypeInfo){
-        return new Integer32(attributeTypeInfo.convertTo(value, Integer.class));
+    public static Integer32 convert(final Object value, final ManagementEntityType attributeTypeInfo){
+        return new Integer32(convertFrom(attributeTypeInfo, value, Integer.class));
     }
 
-    public static Object convert(final Variable value, final AttributeTypeInfo attributeTypeInfo){
-        if(attributeTypeInfo.canConvertFrom(Long.class)) return value.toLong();
-        else if(attributeTypeInfo.canConvertFrom(Integer.class)) return value.toInt();
-        else if(attributeTypeInfo.canConvertFrom(String.class)) return value.toString();
+    public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
+        if(supportsProjection(attributeTypeInfo, Long.class)) return value.toLong();
+        else if(supportsProjection(attributeTypeInfo, Integer.class)) return value.toInt();
+        else if(supportsProjection(attributeTypeInfo, String.class)) return value.toString();
         else return defaultValue;
     }
 

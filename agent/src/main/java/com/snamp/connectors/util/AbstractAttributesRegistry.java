@@ -1,9 +1,8 @@
 package com.snamp.connectors.util;
 
 import com.snamp.*;
-import com.snamp.connectors.AttributeMetadata;
-import com.snamp.connectors.AttributeTypeInfo;
-import com.snamp.connectors.ManagementConnector;
+import com.snamp.connectors.*;
+
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
 import java.util.*;
@@ -54,7 +53,10 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
             final ConnectedAttributes binding = get(prefix);
             if(binding.containsKey(postfix))
                 try {
-                    return binding.get(postfix).getAttributeType().convertTo(binding.getConnector().getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, defaultValue), attributeType);
+                    final TypeConverter<T> converter = binding.get(postfix).getAttributeType().getProjection(attributeType);
+                    return converter != null ?
+                            converter.convertFrom(binding.getConnector().getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, defaultValue)):
+                            defaultValue;
                 }
                 catch (final TimeoutException e) {
                     return defaultValue;
@@ -70,7 +72,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
             final ConnectedAttributes binding = get(prefix);
             if(binding.containsKey(postfix))
                 try {
-                    final AttributeTypeInfo attributeType = binding.get(postfix).getAttributeType();
+                    final ManagementEntityType attributeType = binding.get(postfix).getAttributeType();
                     final Object value = binding.getConnector().getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, null);
                     return new AttributeValue(value, attributeType);
                 }
@@ -83,7 +85,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
 
     @Override
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
-    public final AttributeTypeInfo getAttributeType(final String prefix, final String postfix){
+    public final ManagementEntityType getAttributeType(final String prefix, final String postfix){
         if(containsKey(prefix)){
             final ConnectedAttributes binding = get(prefix);
             return binding.containsKey(postfix) ? binding.get(postfix).getAttributeType() : null;

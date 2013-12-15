@@ -11,6 +11,7 @@ import java.util.HashMap;
  * @since 1.0
  */
 public class SubscriptionList extends HashMap<Object, NotificationListener> {
+    private static final long serialVersionUID = 12L;
 
     /**
      * Removes the notification listener from the specified connector.

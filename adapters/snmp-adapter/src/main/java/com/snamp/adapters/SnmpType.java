@@ -52,6 +52,9 @@ enum SnmpType {
      */
     TEXT(SnmpStringObject.class),
 
+    /**
+     * Represents SNMP table mapping.
+     */
     TABLE(SnmpTableObject.class);
 
     private final Class<? extends SnmpAttributeMapping> mapping;
@@ -101,10 +104,10 @@ enum SnmpType {
      * @param valueType The value type.
      * @return SNMP-compliant value.
      */
-    public Variable convert(final Object value, final AttributeTypeInfo valueType){
+    public Variable convert(final Object value, final ManagementEntityType valueType){
         if(toVariableConverter == null)
             try {
-                toVariableConverter = mapping.getMethod("convert", Object.class, AttributeTypeInfo.class);
+                toVariableConverter = mapping.getMethod("convert", Object.class, ManagementEntityType.class);
             }
             catch (final NoSuchMethodException e) {
                 return new Null();
@@ -118,10 +121,10 @@ enum SnmpType {
         }
     }
 
-    public Object convert(final Variable value, final AttributeTypeInfo valueType){
+    public Object convert(final Variable value, final ManagementEntityType valueType){
         if(fromVariableConverter == null)
             try {
-                fromVariableConverter = mapping.getMethod("convert", Variable.class, AttributeTypeInfo.class);
+                fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagementEntityType.class);
             }
             catch (final NoSuchMethodException e) {
                 return null;
@@ -140,20 +143,20 @@ enum SnmpType {
      * @param attributeType
      * @return
      */
-    public static SnmpType map(final AttributeTypeInfo attributeType){
-        if(isBoolean(attributeType))
+    public static SnmpType map(final ManagementEntityType attributeType){
+        if(supportsBoolean(attributeType))
             return BOOLEAN;
-        else if(isInt8(attributeType) || isInt16(attributeType) || isInt32(attributeType))
+        else if(supportsInt8(attributeType) || supportsInt16(attributeType) || supportsInt32(attributeType))
             return INTEGER;
-        else if(isInt64(attributeType))
+        else if(supportsInt64(attributeType))
             return LONG;
-        else if(isFloat(attributeType) || isDouble(attributeType))
+        else if(supportsFloat(attributeType) || supportsDouble(attributeType))
             return FLOAT;
-        else if(isInteger(attributeType) || isDecimal(attributeType))
+        else if(supportsInteger(attributeType) || supportsDecimal(attributeType))
             return NUMBER;
-        else if(isUnixTime(attributeType))
+        else if(supportsUnixTime(attributeType))
             return UNIX_TIME;
-        else if(attributeType instanceof AttributeTabularType)
+        else if(isTable(attributeType))
             return TABLE;
         else return TEXT;
     }
@@ -183,7 +186,7 @@ enum SnmpType {
      * @param typeInfo
      * @return
      */
-    public static int getSyntax(final AttributeTypeInfo typeInfo){
+    public static int getSyntax(final ManagementEntityType typeInfo){
         return map(typeInfo).getSyntax();
     }
 }

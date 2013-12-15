@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Represents console-based Agent manager.
  * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public class ConsoleAgentManager extends AbstractAgentManager {
     public static final String MANAGER_NAME = "console";

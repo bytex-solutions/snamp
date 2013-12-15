@@ -14,16 +14,16 @@ import java.util.concurrent.locks.*;
  * @version 1.0
  */
 @Lifecycle(InstanceLifecycle.NORMAL)
+@SuppressWarnings("try")
 public abstract class AbstractManagementConnector implements ManagementConnector {
 
     /**
      * Represents default implementation of the attribute descriptor.
-     * @param <T> Type of the attribute type descriptor.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class GenericAttributeMetadata<T extends AttributeTypeInfo> implements AttributeMetadata {
+    protected static abstract class GenericAttributeMetadata<T extends ManagementEntityType> implements AttributeMetadata {
         private final String attributeName;
         private final String namespace;
         private T attributeType;
@@ -114,7 +114,8 @@ public abstract class AbstractManagementConnector implements ManagementConnector
         }
 
         /**
-         * By default, returns {@literal true}.
+         * By default, returns {@literal true}, but you can override this method
+         * in the derived class.
          * @return {@literal true}
          */
         @Override
@@ -389,6 +390,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
 
     /**
      * Connects to the specified attribute.
+     * Connects to the specified attribute.
      * @param id A key string that is used to read attribute from this connector.
      * @param attributeName The name of the attribute.
      * @param options Attribute discovery options.
@@ -534,7 +536,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     /**
      * Writes a set of attributes inside of the transaction.
      * @param values The dictionary of attributes keys and its values.
-     * @param writeTimeout
+     * @param writeTimeout Batch write timeout.
      * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
      * @throws TimeoutException
      */

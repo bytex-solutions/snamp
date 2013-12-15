@@ -11,6 +11,8 @@ import com.snamp.hosting.HostingContext;
  *     to administrators or tools, such as Web console, or command-line string.
  * </p>
  * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public interface AgentManager extends PlatformPlugin, AutoCloseable {
     /**

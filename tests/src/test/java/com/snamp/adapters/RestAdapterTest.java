@@ -186,7 +186,7 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         dic.add("col3", new JsonPrimitive("Hello, world!"));
         writeAttributeAsJson("dictionaryProperty", dic);
         //now read dictionary and test
-        JsonElement elem = readAttributeAsJson("dictionaryProperty");
+        final JsonElement elem = readAttributeAsJson("dictionaryProperty");
         assertTrue(elem instanceof JsonObject);
         dic = (JsonObject)elem;
         assertEquals(new JsonPrimitive(true), dic.get("col1"));

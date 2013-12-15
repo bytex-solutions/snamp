@@ -58,5 +58,5 @@ public interface NotificationMetadata extends Map<String, String> {
      * @return The type descriptor for the specified attachment; or {@literal null} if the specified
      * attachment is not supported.
      */
-    public NotificationAttachmentTypeInfo getAttachmentType(final Object attachment);
+    public ManagementEntityType getAttachmentType(final Object attachment);
 }

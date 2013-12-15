@@ -13,6 +13,8 @@ import java.util.concurrent.CountDownLatch;
  * @since 1.0
  */
 public class NotificationInputBox extends ArrayList<Notification> implements NotificationListener {
+    static final long serialVersionUID = 34444;
+
     /**
      * Initializes a new empty collection for notifications.
      */

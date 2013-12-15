@@ -5,228 +5,246 @@ package com.snamp.adapters; /**
  * Time: 17:26
  */
 
-import com.google.gson.*;
 import com.snamp.connectors.JmxConnectorTest;
-import com.snamp.hosting.Agent;
-import com.snamp.hosting.AgentConfiguration;
 import com.snamp.hosting.EmbeddedAgentConfiguration;
-import junit.framework.Assert;
 import org.junit.Test;
-import org.snmp4j.smi.OID;
+import org.snmp4j.PDU;
+import org.snmp4j.Snmp;
+import org.snmp4j.event.ResponseEvent;
+import org.snmp4j.event.ResponseListener;
+import org.snmp4j.smi.*;
 
-import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
-import javax.ws.rs.core.MediaType;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.lang.management.ManagementFactory;
 import java.math.BigInteger;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
 public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
-    private static final Map<String, String> restAdapterSettings = new HashMap<String, String>(2){{
-        put(Adapter.portParamName, "3222");
-        put(Adapter.addressParamName, "127.0.0.1");
+    private static final String portForSNMP = "3222";
+    private static final String addressForSNMP = "127.0.0.1";
+    private static final String prefix = "1.1";
+    private static final SNMPManager client = new SNMPManager("udp:"+addressForSNMP+"/"+portForSNMP);
+
+    private static final Map<String, String> snmpAdapterSettings = new HashMap<String, String>(2){{
+        put(Adapter.portParamName, portForSNMP);
+        put(Adapter.addressParamName, addressForSNMP);
     }};
     private static final String BEAN_NAME = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
 
-    private final Gson jsonFormatter;
-
     public JmxToSnmpTest() throws MalformedObjectNameException {
-        super("rest", restAdapterSettings, new TestManagementBean(), new ObjectName(BEAN_NAME));
-        jsonFormatter = new Gson();
+        super("snmp", snmpAdapterSettings, new TestManagementBean(), new ObjectName(BEAN_NAME));
     }
 
     @Override
     protected String getAttributesNamespace() {
-        return "test";
+        return prefix;
     }
 
-    private URL buildAttributeURL(final String postfix) throws MalformedURLException {
-        return new URL(String.format("http://%s:%s/snamp/management/attribute/%s/%s", restAdapterSettings.get(Adapter.addressParamName), restAdapterSettings.get(Adapter.portParamName), getAttributesNamespace(), postfix));
+    private <T>T readAttribute(final String postfix, Class<T> className) throws IOException {
+        final ResponseEvent value = client.get(new OID[]{new OID(prefix + "." + postfix)});
+        final Variable var = value.getResponse().getVariable(new OID(prefix + "." + postfix));
+        final Object result;
+
+        if (var instanceof UnsignedInteger32)
+            result = var.toInt();
+        else if (var instanceof OctetString)
+            result = var.toString();
+        else if (var instanceof IpAddress)
+            result = var.toString();
+        else if (var instanceof Counter64)
+            result = var.toLong();
+        else result = null;
+
+        assertNotNull(result);
+        assertTrue(className.isInstance(result));
+        return className.cast(result);
+
     }
 
-    private String readAttribute(final String postfix) throws IOException {
-        final URL attributeGetter = buildAttributeURL(postfix);
-        final HttpURLConnection connection = (HttpURLConnection)attributeGetter.openConnection();
-        connection.setRequestMethod("GET");
-        assertEquals(MediaType.APPLICATION_JSON, connection.getContentType());
-        final StringBuilder result = new StringBuilder();
-        try(final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))){
-            String line = null;
-            while ((line = reader.readLine()) != null) result.append(line);
+    private <T>void writeAttribute(final String postfix, final T value, final Class<T> valueType) throws IOException{
+
+    //    final SNMPManager client = new SNMPManager("udp:127.0.0.1/"+portForSNMP);
+        // Create the PDU object
+        final PDU pdu = new PDU();
+
+        // Setting the Oid and Value for sysContact variable
+        final OID oid = new OID(prefix + "." +postfix);
+        final Variable var;
+
+        if (valueType == int.class || valueType == Integer.class || valueType == short.class)
+        {
+             var = new Integer32(Integer.class.cast(value));
         }
-        finally {
-            connection.disconnect();
+        else if (valueType == long.class || valueType == Long.class)
+        {
+             var = new Counter64(Long.class.cast(value));
         }
-        assertEquals(200, connection.getResponseCode());
-        return result.toString();
-    }
-
-    private final  <T> T readAttribute(final String postfix, final Class<T> attributeType) throws IOException {
-        return jsonFormatter.fromJson(readAttribute(postfix), attributeType);
-    }
-
-    private final JsonElement readAttributeAsJson(final String postfix) throws IOException{
-        final JsonParser reader = new JsonParser();
-        return reader.parse(readAttribute(postfix));
-    }
-
-    private void writeAttribute(final String postfix, final String attributeValue) throws IOException{
-        final URL attributeSetter = buildAttributeURL(postfix);
-        final HttpURLConnection connection = (HttpURLConnection)attributeSetter.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("content-type", MediaType.APPLICATION_JSON);
-        connection.setDoOutput(true);
-        try(final OutputStream os = connection.getOutputStream()){
-            os.write(attributeValue.getBytes("UTF-8"));
+        else
+        {
+            var = new OctetString(value.toString());
         }
-        finally {
-            connection.disconnect();
-        }
-        assertEquals(200, connection.getResponseCode());
+
+        VariableBinding varBind = new VariableBinding(oid,var);
+        pdu.add(varBind);
+
+        pdu.setType(PDU.SET);
+
+        ResponseListener listener = new ResponseListener() {
+            public void onResponse(ResponseEvent event) {
+                PDU strResponse;
+                String result;
+                ((Snmp)event.getSource()).cancel(event.getRequest(), this);
+                strResponse = event.getResponse();
+                if (strResponse!= null) {
+                    result = strResponse.getErrorStatusText();
+                    System.out.println("Set Status is: "+result);
+                }
+                assertNotNull(strResponse);
+            }};
+
+        client.set(pdu, listener);
+
+     //   ResponseEvent response = client.set(pdu);
+
+       // assertEquals(response.getResponse().getErrorStatusText(),PDU.noError);
     }
 
-    private <T> void writeAttribute(final String postfix, final T value, final Class<T> valueType) throws IOException {
-        writeAttribute(postfix, jsonFormatter.toJson(value, valueType));
-    }
 
-    private void writeAttributeAsJson(final String postfix, final JsonElement value) throws IOException {
-        writeAttribute(postfix, jsonFormatter.toJson(value));
-    }
+    /**
+     * snmpset -c public -v 2c 127.0.0.1:3222 iso.1.1.0 s ddd
+     * snmpwalk -Os -c public -v 2c 127.0.0.1:3222 1
 
+     * @throws IOException
+     */
     @Test
     public final void testForStringProperty() throws IOException {
-        writeAttribute("stringProperty", "NO VALUE", String.class);
-        assertEquals("NO VALUE", readAttribute("stringProperty", String.class));
+        writeAttribute("1.0", "SETTED VALUE", String.class);
+        assertEquals("SETTED VALUE", readAttribute("1.0", String.class));
     }
+    /*
+@Test
+public final void testForBooleanProperty() throws IOException{
+    writeAttribute("2.0", true, Boolean.class);
+    assertTrue((boolean) readAttribute("2.0", Boolean.class));
+}
 
-    @Test
-    public final void testForBooleanProperty() throws IOException{
-        writeAttribute("booleanProperty", true, Boolean.class);
-        assertTrue(readAttribute("booleanProperty", Boolean.class));
-    }
+@Test
+public final void testForInt32Property() throws IOException{
+    writeAttribute("3.0", 42, Integer.class);
+    assertEquals(42, (int) readAttribute("3.0", Integer.class));
+}
 
-    @Test
-    public final void testForInt32Property() throws IOException{
-        writeAttribute("int32Property", 42, Integer.class);
-        assertEquals(42, (int) readAttribute("int32Property", Integer.class));
-    }
+@Test
+public final void testForBigIntProperty() throws IOException{
+    writeAttribute("4.0", new BigInteger("100500000"), BigInteger.class);
+    assertEquals(new BigInteger("100500000"), readAttribute("4.0", BigInteger.class));
+}
 
-    @Test
-    public final void testForBigIntProperty() throws IOException{
-        writeAttribute("bigintProperty", new BigInteger("100500"), BigInteger.class);
-        assertEquals(new BigInteger("100500"), readAttribute("bigintProperty", BigInteger.class));
-    }
 
-    @Test
-    public final void testForArrayProperty() throws IOException{
-        writeAttribute("arrayProperty", new short[]{1, 2, 3}, short[].class);
-        assertArrayEquals(new short[]{1, 2, 3}, readAttribute("arrayProperty", short[].class));
-    }
+@Test
+public final void testForArrayProperty() throws IOException{
+ writeAttribute("1.5", new short[]{1, 2, 3}, short[].class);
+ assertArrayEquals(new short[]{1, 2, 3}, readAttribute("1.5", short[].class));
+}
 
-    @Test
-    public final void testForDictionaryProperty() throws IOException{
-        JsonObject dic = new JsonObject();
-        dic.add("col1", new JsonPrimitive(true));
-        dic.add("col2", new JsonPrimitive(42));
-        dic.add("col3", new JsonPrimitive("Hello, world!"));
-        writeAttributeAsJson("dictionaryProperty", dic);
-        //now read dictionary and test
-        JsonElement elem = readAttributeAsJson("dictionaryProperty");
-        assertTrue(elem instanceof JsonObject);
-        dic = (JsonObject)elem;
-        assertEquals(new JsonPrimitive(true), dic.get("col1"));
-        assertEquals(new JsonPrimitive(42), dic.get("col2"));
-        assertEquals(new JsonPrimitive("Hello, world!"), dic.get("col3"));
-    }
+@Test
+public final void testForDictionaryProperty() throws IOException{
+ JsonObject dic = new JsonObject();
+ dic.add("col1", new JsonPrimitive(true));
+ dic.add("col2", new JsonPrimitive(42));
+ dic.add("col3", new JsonPrimitive("Hello, world!"));
+ writeAttributeAsJson("1.6", dic);
+ //now read dictionary and test
+ JsonElement elem = readAttributeAsJson("dictionaryProperty");
+ assertTrue(elem instanceof JsonObject);
+ dic = (JsonObject)elem;
+ assertEquals(new JsonPrimitive(true), dic.get("col1"));
+ assertEquals(new JsonPrimitive(42), dic.get("col2"));
+ assertEquals(new JsonPrimitive("Hello, world!"), dic.get("col3"));
+}
 
-    @Test
-    public final void testForTableProperty() throws IOException{
-        JsonArray table = new JsonArray();
-        //row 1
-        JsonObject row = new JsonObject();
-        table.add(row);
-        row.add("col1", new JsonPrimitive(true));
-        row.add("col2", new JsonPrimitive(100500));
-        row.add("col3", new JsonPrimitive("Row 1"));
-        //row 2
-        row = new JsonObject();
-        table.add(row);
-        row.add("col1", new JsonPrimitive(true));
-        row.add("col2", new JsonPrimitive(100501));
-        row.add("col3", new JsonPrimitive("Row 2"));
-        //row 3
-        row = new JsonObject();
-        table.add(row);
-        row.add("col1", new JsonPrimitive(true));
-        row.add("col2", new JsonPrimitive(100502));
-        row.add("col3", new JsonPrimitive("Row 3"));
-        //row 4
-        row = new JsonObject();
-        table.add(row);
-        row.add("col1", new JsonPrimitive(true));
-        row.add("col2", new JsonPrimitive(100503));
-        row.add("col3", new JsonPrimitive("Row 4"));
-        writeAttributeAsJson("tableProperty", table);
-        //read table
-        JsonElement elem = readAttributeAsJson("tableProperty");
-        assertTrue(elem instanceof JsonArray);
-        table = (JsonArray)elem;
-        assertEquals(4, table.size());
-        //row 1
-        assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(0)).get("col1"));
-        assertEquals(new JsonPrimitive(100500), ((JsonObject)table.get(0)).get("col2"));
-        assertEquals(new JsonPrimitive("Row 1"), ((JsonObject)table.get(0)).get("col3"));
-        //row 2
-        assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(1)).get("col1"));
-        assertEquals(new JsonPrimitive(100501), ((JsonObject)table.get(1)).get("col2"));
-        assertEquals(new JsonPrimitive("Row 2"), ((JsonObject)table.get(1)).get("col3"));
-        //row 3
-        assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(2)).get("col1"));
-        assertEquals(new JsonPrimitive(100502), ((JsonObject)table.get(2)).get("col2"));
-        assertEquals(new JsonPrimitive("Row 3"), ((JsonObject)table.get(2)).get("col3"));
-        //row 4
-        assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(3)).get("col1"));
-        assertEquals(new JsonPrimitive(100503), ((JsonObject)table.get(3)).get("col2"));
-        assertEquals(new JsonPrimitive("Row 4"), ((JsonObject)table.get(3)).get("col3"));
-    }
-
+@Test
+public final void testForTableProperty() throws IOException{
+ JsonArray table = new JsonArray();
+ //row 1
+ JsonObject row = new JsonObject();
+ table.add(row);
+ row.add("col1", new JsonPrimitive(true));
+ row.add("col2", new JsonPrimitive(100500));
+ row.add("col3", new JsonPrimitive("Row 1"));
+ //row 2
+ row = new JsonObject();
+ table.add(row);
+ row.add("col1", new JsonPrimitive(true));
+ row.add("col2", new JsonPrimitive(100501));
+ row.add("col3", new JsonPrimitive("Row 2"));
+ //row 3
+ row = new JsonObject();
+ table.add(row);
+ row.add("col1", new JsonPrimitive(true));
+ row.add("col2", new JsonPrimitive(100502));
+ row.add("col3", new JsonPrimitive("Row 3"));
+ //row 4
+ row = new JsonObject();
+ table.add(row);
+ row.add("col1", new JsonPrimitive(true));
+ row.add("col2", new JsonPrimitive(100503));
+ row.add("col3", new JsonPrimitive("Row 4"));
+ writeAttributeAsJson("1.7", table);
+ //read table
+ JsonElement elem = readAttributeAsJson("tableProperty");
+ assertTrue(elem instanceof JsonArray);
+ table = (JsonArray)elem;
+ assertEquals(4, table.size());
+ //row 1
+ assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(0)).get("col1"));
+ assertEquals(new JsonPrimitive(100500), ((JsonObject)table.get(0)).get("col2"));
+ assertEquals(new JsonPrimitive("Row 1"), ((JsonObject)table.get(0)).get("col3"));
+ //row 2
+ assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(1)).get("col1"));
+ assertEquals(new JsonPrimitive(100501), ((JsonObject)table.get(1)).get("col2"));
+ assertEquals(new JsonPrimitive("Row 2"), ((JsonObject)table.get(1)).get("col3"));
+ //row 3
+ assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(2)).get("col1"));
+ assertEquals(new JsonPrimitive(100502), ((JsonObject)table.get(2)).get("col2"));
+ assertEquals(new JsonPrimitive("Row 3"), ((JsonObject)table.get(2)).get("col3"));
+ //row 4
+ assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(3)).get("col1"));
+ assertEquals(new JsonPrimitive(100503), ((JsonObject)table.get(3)).get("col2"));
+ assertEquals(new JsonPrimitive("Row 4"), ((JsonObject)table.get(3)).get("col3"));
+}
+     */
     @Override
     protected final void fillAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attributes) {
         EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("string");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("stringProperty", attribute);
+        attributes.put("1.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("boolean");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("booleanProperty", attribute);
+        attributes.put("2.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("int32");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("int32Property", attribute);
+        attributes.put("3.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("bigint");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("bigintProperty", attribute);
+        attributes.put("4.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("array");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("arrayProperty", attribute);
+        attributes.put("5.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("dictionary");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("dictionaryProperty", attribute);
+        attributes.put("6.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("table");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("tableProperty", attribute);
+        attributes.put("7.0", attribute);
     }
+
 }

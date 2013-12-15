@@ -1,7 +1,7 @@
 package com.snamp.connectors.util;
 
 import com.snamp.*;
-import com.snamp.connectors.AttributeTypeInfo;
+import com.snamp.connectors.ManagementEntityType;
 
 /**
  * Represents utility class that represents raw attribute value and its type.
@@ -10,7 +10,7 @@ import com.snamp.connectors.AttributeTypeInfo;
  * @version 1.0
  */
 @Internal
-public final class AttributeValue<T extends AttributeTypeInfo> {
+public final class AttributeValue<T extends ManagementEntityType> {
     /**
      * Represents attribute value.
      */
@@ -43,7 +43,7 @@ public final class AttributeValue<T extends AttributeTypeInfo> {
      */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final <G> boolean canConvertTo(final Class<G> target) {
-        return type.canConvertTo(target);
+        return type.getProjection(target) != null;
     }
 
     /**
@@ -56,19 +56,9 @@ public final class AttributeValue<T extends AttributeTypeInfo> {
      */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final <G> G convertTo(final Class<G> target) throws IllegalArgumentException {
-        return type.convertTo(rawValue, target);
-    }
-
-    /**
-     * Determines whether the value of the specified type can be passed as attribute value.
-     *
-     * @param source The type of the value that can be converted to the attribute value.
-     * @param <G>    The type of the value.
-     * @return {@literal true}, if conversion from the specified type is supported; otherwise, {@literal false}.
-     */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    public final <G> boolean canConvertFrom(final Class<G> source) {
-        return type.canConvertFrom(source);
+        final TypeConverter<G> converter = type.getProjection(target);
+        if(converter == null) throw new IllegalArgumentException(String.format("Type %s is not supported", target));
+        return converter.convertFrom(rawValue);
     }
 
     /**
@@ -77,7 +67,7 @@ public final class AttributeValue<T extends AttributeTypeInfo> {
      * @return {@literal true}, if the current attribute type is compliant with the specified attribute type; otherwise, {@literal false}.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    public final boolean isTypeOf(final Class<? extends AttributeTypeInfo> attributeType){
+    public final boolean isTypeOf(final Class<? extends ManagementEntityType> attributeType){
         return attributeType.isInstance(type);
     }
 
@@ -88,7 +78,7 @@ public final class AttributeValue<T extends AttributeTypeInfo> {
      * @return A new instance of attribute value. Field {@link #rawValue} will not be changed.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    public final <G extends AttributeTypeInfo> AttributeValue<G> cast(final Class<G> attributeType){
-        return new AttributeValue<G>(rawValue, attributeType.cast(type));
+    public final <G extends ManagementEntityType> AttributeValue<G> cast(final Class<G> attributeType){
+        return new AttributeValue<>(rawValue, attributeType.cast(type));
     }
 }
