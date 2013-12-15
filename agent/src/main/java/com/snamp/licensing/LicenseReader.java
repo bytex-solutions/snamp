@@ -191,7 +191,7 @@ public final class LicenseReader {
             final JAXBContext context = JAXBContext.newInstance(limitationsDescriptor);
             if(limitationsDescriptor.isAnnotationPresent(XmlRootElement.class)){
                 final XmlRootElement rootElement = limitationsDescriptor.getAnnotation(XmlRootElement.class);
-                result = LicenseReader.<T>getLimitations(rootElement.name(), context.createUnmarshaller());
+                result = LicenseReader.getLimitations(rootElement.name(), context.createUnmarshaller());
                 //writes result to the cache
                 licensingContext.write(new ConsistentWriter<LicensingContext, T, Void>() {
                     @Override

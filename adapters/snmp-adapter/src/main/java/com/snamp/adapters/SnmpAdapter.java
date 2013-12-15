@@ -6,6 +6,7 @@ import java.util.logging.*;
 
 import com.snamp.connectors.*;
 import com.snamp.connectors.util.AbstractNotificationListener;
+import com.snamp.licensing.SnmpAdapterLimitations;
 import net.xeoh.plugins.base.annotations.*;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
@@ -27,6 +28,7 @@ import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration
  */
 @PluginImplementation
 final class SnmpAdapter extends SnmpAdapterBase {
+    private static final String PASSWORD_PARAM = "password";
     /**
      * Represents a collection of MO's with OID postfixes.
      */
@@ -123,6 +125,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
 		super(new File("conf.agent"), null,
 				new CommandProcessor(
 						new OctetString(MPv3.createLocalEngineID())));
+        SnmpAdapterLimitations.current().verifyPluginVersion(getClass());
         coldStart = true;
         port = defaultPort;
         address = defaultAddress;
@@ -284,6 +287,8 @@ final class SnmpAdapter extends SnmpAdapterBase {
         switch (agentState){
             case STATE_CREATED:
             case STATE_STOPPED:
+                if(parameters.containsKey(PASSWORD_PARAM))
+                    SnmpAdapterLimitations.current().verifyAuthenticationFeature();
                 return start(Integer.valueOf(parameters.get(portParamName)), parameters.get(addressParamName));
             default:return false;
         }
