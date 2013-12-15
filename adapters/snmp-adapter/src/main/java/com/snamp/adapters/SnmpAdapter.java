@@ -360,9 +360,10 @@ final class SnmpAdapter extends SnmpAdapterBase {
         switch (agentState){
             case STATE_RUNNING:
                 super.stop();
-                unregisterManagedObjects();
                 break;
             default:return;
         }
+        unregisterManagedObjects();
+        attributes.clear();
     }
 }
