@@ -292,10 +292,10 @@ final class SnmpAdapter extends SnmpAdapterBase {
         switch (agentState){
             case STATE_RUNNING:
                 super.stop();
+                unregisterSnmpMIBs();
+                removeNotificationTargets();
                 if(!saveAttributes) {
-                    unregisterManagedObjects();
                     attributes.clear();
-                    removeNotificationTargets();
                     senders.clear();
                 }
                 return true;
@@ -370,7 +370,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
     @Override
     public void close() {
         if (agentState == STATE_RUNNING) super.stop();
-        unregisterManagedObjects();
+        unregisterSnmpMIBs();
         attributes.clear();
         removeNotificationTargets();
         senders.clear();
