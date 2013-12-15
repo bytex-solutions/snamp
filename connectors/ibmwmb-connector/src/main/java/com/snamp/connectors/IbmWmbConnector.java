@@ -40,11 +40,10 @@ class IbmWmbConnector extends ManagementConnectorBean
     /**
      * Initializes a new management connector for IBM WMB.
      *
-     * @param typeBuilder Type information provider that provides property type converter.
      * @throws IllegalArgumentException
      */
-    public IbmWmbConnector(String connectionString, Map<String, String> env, EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
-        super(typeBuilder);
+    public IbmWmbConnector(String connectionString, Map<String, String> env) throws IntrospectionException {
+        super(new IbmWmbTypeSystem());
         try {
             final URI address = URI.create(connectionString);
             if(address.getScheme().equals("wmb"))

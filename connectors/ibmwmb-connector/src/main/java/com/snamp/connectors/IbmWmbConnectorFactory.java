@@ -30,7 +30,7 @@ public class IbmWmbConnectorFactory extends AbstractManagementConnectorFactory<I
     public IbmWmbConnector newInstance(String connectionString, Map<String, String> env)
     {
         try {
-            return new IbmWmbConnector(connectionString, env, new IbmWmbTypeSystem());
+            return new IbmWmbConnector(connectionString, env);
         }
         catch (Exception e) {
             getLogger().log(Level.SEVERE, "Unable to create IBM WMB connector", e);

@@ -38,8 +38,8 @@ class IbmWmqConnector extends ManagementConnectorBean {
      * @throws IllegalArgumentException
      *          typeBuilder is {@literal null}.
      */
-    public IbmWmqConnector(String connectionString, Map<String, String> connectionProperties, EntityTypeInfoFactory typeBuilder) throws IntrospectionException {
-        super(typeBuilder);
+    public IbmWmqConnector(String connectionString, Map<String, String> connectionProperties) throws IntrospectionException {
+        super(new WellKnownTypeSystem());
         try {
             final URI address = URI.create(connectionString);
             if(address.getScheme().equals("wmq")) {
