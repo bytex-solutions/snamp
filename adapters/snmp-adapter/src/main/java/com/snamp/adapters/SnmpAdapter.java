@@ -128,22 +128,27 @@ final class SnmpAdapter extends SnmpAdapterBase {
 	}
 
     private static void registerManagedObjects(final MOServer server, final VacmMIB mib, final String prefix, Iterable<SnmpAttributeMapping> mos){
-       /* mib.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
-                new OctetString(), VacmMIB.vacmViewIncluded,
-                StorageType.nonVolatile);
-        mib.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
-                new OctetString(), VacmMIB.vacmViewIncluded,
-                StorageType.nonVolatile);                */
+
+        boolean wasReadViewAdded = false;
+        boolean wasWriteViewAdded = false;
+
         for(final SnmpAttributeMapping mo: mos)
             try {
-                if (mo.getMetadata().canRead())
+
+                if (mo.getMetadata().canRead() && !wasReadViewAdded)
+                {
                     mib.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
                             new OctetString(), VacmMIB.vacmViewIncluded,
                             StorageType.nonVolatile);
-                if (mo.getMetadata().canWrite())
+                    wasReadViewAdded = true;
+                }
+                if (mo.getMetadata().canWrite() && !wasWriteViewAdded)
+                {
                     mib.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
                             new OctetString(), VacmMIB.vacmViewIncluded,
                             StorageType.nonVolatile);
+                    wasWriteViewAdded = true;
+                }
 
                 server.register(mo, null);
             } catch (final DuplicateRegistrationException e) {
@@ -172,6 +177,10 @@ final class SnmpAdapter extends SnmpAdapterBase {
                 final ManagedObject mo = server.getManagedObject(new OID(combineOID(prefix, postfix)), null);
                 if(mo != null) server.unregister(mo, null);
             }
+        }
+        for(final String prefix: attributes.keySet()){
+            this.getVacmMIB().removeViewTreeFamily(new OctetString("fullReadView"), new OID(prefix));
+            this.getVacmMIB().removeViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix));
         }
     }
 
@@ -358,7 +367,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
     @Override
     public void close() {
         if (agentState == STATE_RUNNING) super.stop();
-        unregisterManagedObjects();
+        unregisterSnmpMIBs();
         attributes.clear();
     }
 }

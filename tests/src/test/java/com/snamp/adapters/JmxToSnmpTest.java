@@ -233,7 +233,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("bigint");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
         attributes.put("4.0", attribute);
-
+                          /*
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("array");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
         attributes.put("5.0", attribute);
@@ -244,7 +244,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("table");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("7.0", attribute);
+        attributes.put("7.0", attribute);  */
     }
 
 }
