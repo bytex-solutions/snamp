@@ -282,7 +282,10 @@ final class SnmpAdapter extends SnmpAdapterBase {
         switch (agentState){
             case STATE_RUNNING:
                 super.stop();
-                if(!saveAttributes) attributes.clear();
+                if(!saveAttributes) {
+                    unregisterManagedObjects();
+                    attributes.clear();
+                }
                 return true;
             default:return false;
         }
@@ -355,5 +358,6 @@ final class SnmpAdapter extends SnmpAdapterBase {
     @Override
     public void close() {
         super.stop();
+        unregisterManagedObjects();
     }
 }
