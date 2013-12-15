@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import static com.snamp.adapters.SnmpHelpers.getAccessRestrictions;
+import static com.snamp.connectors.util.ManagementEntityTypeHelper.ConversionFallback;
 
 /**
  * Represents a base class for scalar SNMP managed objects.
@@ -32,6 +33,20 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
         defaultValue = defval;
         this.timeouts = timeouts;
         this.attributeTypeInfo = attributeInfo.getAttributeType();
+    }
+
+    protected static <T> T logAndReturnDefaultValue(final T defaultValue, final Variable originalValue, final ManagementEntityType attributeType){
+        log.log(Level.WARNING, String.format("Cannot convert '%s' value to '%s' attribute type.", originalValue, attributeType));
+        return defaultValue;
+    }
+
+    protected static  <T> ConversionFallback<T> fallbackWithDefaultValue(final T defaultValue, final Variable originalValue, final ManagementEntityType attributeType){
+        return new ConversionFallback<T>() {
+            @Override
+            public T call() {
+                return logAndReturnDefaultValue(defaultValue, originalValue, attributeType);
+            }
+        };
     }
 
     /**

@@ -25,7 +25,7 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
         if(supportsProjection(attributeTypeInfo, Long.class)) return value.toLong();
         else if(supportsProjection(attributeTypeInfo, Integer.class)) return value.toInt();
         else if(supportsProjection(attributeTypeInfo, String.class)) return value.toString();
-        else return defaultValue;
+        else return logAndReturnDefaultValue(defaultValue, value, attributeTypeInfo);
     }
 
     @Override
