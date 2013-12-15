@@ -123,99 +123,99 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         writeAttribute("1.0", "SETTED VALUE", String.class);
         assertEquals("SETTED VALUE", readAttribute("1.0", String.class));
     }
+
+    @Test
+    public final void testForBooleanProperty() throws IOException{
+        writeAttribute("2.0", true, Boolean.class);
+        assertTrue((boolean) readAttribute("2.0", Boolean.class));
+    }
+
+    @Test
+    public final void testForInt32Property() throws IOException{
+        writeAttribute("3.0", 42, Integer.class);
+        assertEquals(42, (int) readAttribute("3.0", Integer.class));
+    }
+
+    @Test
+    public final void testForBigIntProperty() throws IOException{
+        writeAttribute("4.0", new BigInteger("100500000"), BigInteger.class);
+        assertEquals(new BigInteger("100500000"), readAttribute("4.0", BigInteger.class));
+    }
     /*
-@Test
-public final void testForBooleanProperty() throws IOException{
-    writeAttribute("2.0", true, Boolean.class);
-    assertTrue((boolean) readAttribute("2.0", Boolean.class));
-}
 
-@Test
-public final void testForInt32Property() throws IOException{
-    writeAttribute("3.0", 42, Integer.class);
-    assertEquals(42, (int) readAttribute("3.0", Integer.class));
-}
+  @Test
+  public final void testForArrayProperty() throws IOException{
+   writeAttribute("1.5", new short[]{1, 2, 3}, short[].class);
+   assertArrayEquals(new short[]{1, 2, 3}, readAttribute("1.5", short[].class));
+  }
 
-@Test
-public final void testForBigIntProperty() throws IOException{
-    writeAttribute("4.0", new BigInteger("100500000"), BigInteger.class);
-    assertEquals(new BigInteger("100500000"), readAttribute("4.0", BigInteger.class));
-}
+  @Test
+  public final void testForDictionaryProperty() throws IOException{
+   JsonObject dic = new JsonObject();
+   dic.add("col1", new JsonPrimitive(true));
+   dic.add("col2", new JsonPrimitive(42));
+   dic.add("col3", new JsonPrimitive("Hello, world!"));
+   writeAttributeAsJson("1.6", dic);
+   //now read dictionary and test
+   JsonElement elem = readAttributeAsJson("dictionaryProperty");
+   assertTrue(elem instanceof JsonObject);
+   dic = (JsonObject)elem;
+   assertEquals(new JsonPrimitive(true), dic.get("col1"));
+   assertEquals(new JsonPrimitive(42), dic.get("col2"));
+   assertEquals(new JsonPrimitive("Hello, world!"), dic.get("col3"));
+  }
 
-
-@Test
-public final void testForArrayProperty() throws IOException{
- writeAttribute("1.5", new short[]{1, 2, 3}, short[].class);
- assertArrayEquals(new short[]{1, 2, 3}, readAttribute("1.5", short[].class));
-}
-
-@Test
-public final void testForDictionaryProperty() throws IOException{
- JsonObject dic = new JsonObject();
- dic.add("col1", new JsonPrimitive(true));
- dic.add("col2", new JsonPrimitive(42));
- dic.add("col3", new JsonPrimitive("Hello, world!"));
- writeAttributeAsJson("1.6", dic);
- //now read dictionary and test
- JsonElement elem = readAttributeAsJson("dictionaryProperty");
- assertTrue(elem instanceof JsonObject);
- dic = (JsonObject)elem;
- assertEquals(new JsonPrimitive(true), dic.get("col1"));
- assertEquals(new JsonPrimitive(42), dic.get("col2"));
- assertEquals(new JsonPrimitive("Hello, world!"), dic.get("col3"));
-}
-
-@Test
-public final void testForTableProperty() throws IOException{
- JsonArray table = new JsonArray();
- //row 1
- JsonObject row = new JsonObject();
- table.add(row);
- row.add("col1", new JsonPrimitive(true));
- row.add("col2", new JsonPrimitive(100500));
- row.add("col3", new JsonPrimitive("Row 1"));
- //row 2
- row = new JsonObject();
- table.add(row);
- row.add("col1", new JsonPrimitive(true));
- row.add("col2", new JsonPrimitive(100501));
- row.add("col3", new JsonPrimitive("Row 2"));
- //row 3
- row = new JsonObject();
- table.add(row);
- row.add("col1", new JsonPrimitive(true));
- row.add("col2", new JsonPrimitive(100502));
- row.add("col3", new JsonPrimitive("Row 3"));
- //row 4
- row = new JsonObject();
- table.add(row);
- row.add("col1", new JsonPrimitive(true));
- row.add("col2", new JsonPrimitive(100503));
- row.add("col3", new JsonPrimitive("Row 4"));
- writeAttributeAsJson("1.7", table);
- //read table
- JsonElement elem = readAttributeAsJson("tableProperty");
- assertTrue(elem instanceof JsonArray);
- table = (JsonArray)elem;
- assertEquals(4, table.size());
- //row 1
- assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(0)).get("col1"));
- assertEquals(new JsonPrimitive(100500), ((JsonObject)table.get(0)).get("col2"));
- assertEquals(new JsonPrimitive("Row 1"), ((JsonObject)table.get(0)).get("col3"));
- //row 2
- assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(1)).get("col1"));
- assertEquals(new JsonPrimitive(100501), ((JsonObject)table.get(1)).get("col2"));
- assertEquals(new JsonPrimitive("Row 2"), ((JsonObject)table.get(1)).get("col3"));
- //row 3
- assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(2)).get("col1"));
- assertEquals(new JsonPrimitive(100502), ((JsonObject)table.get(2)).get("col2"));
- assertEquals(new JsonPrimitive("Row 3"), ((JsonObject)table.get(2)).get("col3"));
- //row 4
- assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(3)).get("col1"));
- assertEquals(new JsonPrimitive(100503), ((JsonObject)table.get(3)).get("col2"));
- assertEquals(new JsonPrimitive("Row 4"), ((JsonObject)table.get(3)).get("col3"));
-}
-     */
+  @Test
+  public final void testForTableProperty() throws IOException{
+   JsonArray table = new JsonArray();
+   //row 1
+   JsonObject row = new JsonObject();
+   table.add(row);
+   row.add("col1", new JsonPrimitive(true));
+   row.add("col2", new JsonPrimitive(100500));
+   row.add("col3", new JsonPrimitive("Row 1"));
+   //row 2
+   row = new JsonObject();
+   table.add(row);
+   row.add("col1", new JsonPrimitive(true));
+   row.add("col2", new JsonPrimitive(100501));
+   row.add("col3", new JsonPrimitive("Row 2"));
+   //row 3
+   row = new JsonObject();
+   table.add(row);
+   row.add("col1", new JsonPrimitive(true));
+   row.add("col2", new JsonPrimitive(100502));
+   row.add("col3", new JsonPrimitive("Row 3"));
+   //row 4
+   row = new JsonObject();
+   table.add(row);
+   row.add("col1", new JsonPrimitive(true));
+   row.add("col2", new JsonPrimitive(100503));
+   row.add("col3", new JsonPrimitive("Row 4"));
+   writeAttributeAsJson("1.7", table);
+   //read table
+   JsonElement elem = readAttributeAsJson("tableProperty");
+   assertTrue(elem instanceof JsonArray);
+   table = (JsonArray)elem;
+   assertEquals(4, table.size());
+   //row 1
+   assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(0)).get("col1"));
+   assertEquals(new JsonPrimitive(100500), ((JsonObject)table.get(0)).get("col2"));
+   assertEquals(new JsonPrimitive("Row 1"), ((JsonObject)table.get(0)).get("col3"));
+   //row 2
+   assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(1)).get("col1"));
+   assertEquals(new JsonPrimitive(100501), ((JsonObject)table.get(1)).get("col2"));
+   assertEquals(new JsonPrimitive("Row 2"), ((JsonObject)table.get(1)).get("col3"));
+   //row 3
+   assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(2)).get("col1"));
+   assertEquals(new JsonPrimitive(100502), ((JsonObject)table.get(2)).get("col2"));
+   assertEquals(new JsonPrimitive("Row 3"), ((JsonObject)table.get(2)).get("col3"));
+   //row 4
+   assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(3)).get("col1"));
+   assertEquals(new JsonPrimitive(100503), ((JsonObject)table.get(3)).get("col2"));
+   assertEquals(new JsonPrimitive("Row 4"), ((JsonObject)table.get(3)).get("col3"));
+  }
+       */
     @Override
     protected final void fillAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attributes) {
         EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("string");

@@ -357,7 +357,12 @@ final class SnmpAdapter extends SnmpAdapterBase {
      */
     @Override
     public void close() {
-        super.stop();
-        unregisterManagedObjects();
+        switch (agentState){
+            case STATE_RUNNING:
+                super.stop();
+                unregisterManagedObjects();
+                break;
+            default:return;
+        }
     }
 }
