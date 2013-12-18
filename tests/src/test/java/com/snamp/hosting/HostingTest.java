@@ -129,7 +129,7 @@ public abstract class HostingTest extends SnampTestSet implements AgentConfigura
      *
      * @param input
      * @throws UnsupportedOperationException Deserialization is not supported.
-     * @throws java.io.IOException           Cannot read from the specified stream.
+     * @throws java.io.IOException           Cannot invoke from the specified stream.
      */
     @Override
     public final void load(final InputStream input) throws UnsupportedOperationException {

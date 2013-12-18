@@ -110,9 +110,9 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     }
 
     /**
-     * Gets a read-only collection of registered namespaces.
+     * Gets a invoke-only collection of registered namespaces.
      *
-     * @return A read-only collection of registered namespaces.
+     * @return A invoke-only collection of registered namespaces.
      */
     @Override
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
@@ -121,7 +121,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     }
 
     /**
-     * Gets a read-only collection of registered attributes inside of the specified attributes.
+     * Gets a invoke-only collection of registered attributes inside of the specified attributes.
      *
      * @param namespace The attribute namespace.
      * @return A collection of registered attributes located in the specified namespace.

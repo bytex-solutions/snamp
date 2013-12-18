@@ -3,9 +3,8 @@ package com.snamp.licensing;
 import com.snamp.*;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
-import static com.snamp.ConcurrentResourceAccess.ConsistentWriter;
-import static com.snamp.ConcurrentResourceAccess.ConsistentReader;
-import static com.snamp.ConcurrentResourceAccess.Reader;
+import static com.snamp.ConcurrentResourceAccess.ConsistentAction;
+import static com.snamp.ConcurrentResourceAccess.Action;
 
 import javax.xml.bind.*;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -146,20 +145,20 @@ public final class LicenseReader {
      */
     public static void reloadCurrentLicense(){
         final Document newLicenseContent = loadLicense();
-        licensingContext.write(new ConsistentWriter<LicensingContext, Void, Void>() {
+        licensingContext.write(new ConsistentAction<LicensingContext, Void>() {
             @Override
-            public Void write(final LicensingContext resource, final Void value) {
+            public final Void invoke(final LicensingContext resource) {
                 resource.loadedLimitations.clear();
                 resource.loadedLicense = newLicenseContent;
                 return null;
             }
-        }, null);
+        });
     }
 
     private static <T extends LicenseLimitations> T getLimitations(final String licensedObject, final Unmarshaller deserializer) throws JAXBException {
-        return licensingContext.read(new Reader<LicensingContext, T, JAXBException>() {
+        return licensingContext.read(new Action<LicensingContext, T, JAXBException>() {
             @Override
-            public T read(final LicensingContext resource) throws JAXBException {
+            public T invoke(final LicensingContext resource) throws JAXBException {
                 final NodeList target = resource.loadedLicense.getElementsByTagName(licensedObject);
                 return target.getLength() > 0 ? (T)deserializer.unmarshal(target.item(0)) : null;
             }
@@ -176,9 +175,9 @@ public final class LicenseReader {
     public static <T extends LicenseLimitations> T getLimitations(final Class<T> limitationsDescriptor, final Activator<T> fallback){
         T result = null;
         if(limitationsDescriptor == null) return fallback.newInstance();
-        result = licensingContext.read(new ConsistentReader<LicensingContext, T>() {
+        result = licensingContext.read(new ConcurrentResourceAccess.ConsistentAction<LicensingContext, T>() {
             @Override
-            public T read(final LicensingContext resource) {
+            public T invoke(final LicensingContext resource) {
                 if (resource.loadedLicense == null) return fallback.newInstance();
                 else if (resource.loadedLimitations.containsKey(limitationsDescriptor))
                     return (T) resource.loadedLimitations.get(limitationsDescriptor);
@@ -191,15 +190,15 @@ public final class LicenseReader {
             final JAXBContext context = JAXBContext.newInstance(limitationsDescriptor);
             if(limitationsDescriptor.isAnnotationPresent(XmlRootElement.class)){
                 final XmlRootElement rootElement = limitationsDescriptor.getAnnotation(XmlRootElement.class);
-                result = LicenseReader.getLimitations(rootElement.name(), context.createUnmarshaller());
+                final LicenseLimitations limits = result = LicenseReader.getLimitations(rootElement.name(), context.createUnmarshaller());
                 //writes result to the cache
-                licensingContext.write(new ConsistentWriter<LicensingContext, T, Void>() {
+                licensingContext.write(new ConsistentAction<LicensingContext, Void>() {
                     @Override
-                    public Void write(final LicensingContext resource, final T value) {
-                        resource.loadedLimitations.put(limitationsDescriptor, value);
+                    public final Void invoke(final LicensingContext resource) {
+                        resource.loadedLimitations.put(limitationsDescriptor, limits);
                         return null;
                     }
-                }, result);
+                });
             }
             else result = fallback.newInstance();
         }

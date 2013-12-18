@@ -251,7 +251,7 @@
 <div class="block">Sets cell value.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>column</code> - The column identifier.</dd><dd><code>row</code> - The row number (zero-based).</dd><dd><code>value</code> - The cell value to set.</dd>
 <dt><span class="strong">Throws:</span></dt>
-<dd><code>java.lang.UnsupportedOperationException</code> - Operation is not supported because this table is read-only.</dd>
+<dd><code>java.lang.UnsupportedOperationException</code> - Operation is not supported because this table is invoke-only.</dd>
 <dd><code>java.lang.ClassCastException</code> - The value type is not compliant with column type.</dd></dl>
 </li>
 </ul>
@@ -268,7 +268,7 @@
 <div class="block">Adds a new row to the end of the table.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>values</code> - The values of the row.</dd>
 <dt><span class="strong">Throws:</span></dt>
-<dd><code>java.lang.UnsupportedOperationException</code> - Operation is not supported because this table is read-only.</dd>
+<dd><code>java.lang.UnsupportedOperationException</code> - Operation is not supported because this table is invoke-only.</dd>
 <dd><code>java.lang.ClassCastException</code> - The value type is not compliant with column type.</dd>
 <dd><code>java.lang.IllegalArgumentException</code> - The count of values doesn't match to column count.</dd></dl>
 </li>
@@ -284,7 +284,7 @@
 <div class="block">Removes the row from this table.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>rowIndex</code> - An index of the row to remove.</dd>
 <dt><span class="strong">Throws:</span></dt>
-<dd><code>java.lang.UnsupportedOperationException</code> - Operation is not supported because this table is read-only.</dd></dl>
+<dd><code>java.lang.UnsupportedOperationException</code> - Operation is not supported because this table is invoke-only.</dd></dl>
 </li>
 </ul>
 </li>

@@ -108,7 +108,7 @@ public interface Notification extends Map<String, Object> {
      * <p>
      *     The key of the returned map contains name of the attachment.
      * </p>
-     * @return A read-only collection of attachments associated with this notification.
+     * @return A invoke-only collection of attachments associated with this notification.
      */
     public Map<String, Object> getAttachments();
 }

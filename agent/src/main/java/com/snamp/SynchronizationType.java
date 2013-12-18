@@ -15,7 +15,7 @@ public enum SynchronizationType {
     NO_LOCK_REQUIRED,
 
     /**
-     * Indicates that the target method requires read lock on the instance for safe invocation.
+     * Indicates that the target method requires invoke lock on the instance for safe invocation.
      */
     READ_LOCK,
 

@@ -232,9 +232,9 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
             }
 
             /**
-             * Gets attribute value read/write operation timeout.
+             * Gets attribute value invoke/write operation timeout.
              *
-             * @return The attribute read/write operation timeout.
+             * @return The attribute invoke/write operation timeout.
              */
             @Override
             public final TimeSpan getReadWriteTimeout() {
@@ -242,8 +242,8 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
             }
 
             /**
-             * Sets attribute value read/write operation timeout.
-             * @param timeout A new value read/write operation timeout.
+             * Sets attribute value invoke/write operation timeout.
+             * @param timeout A new value invoke/write operation timeout.
              */
             @Override
             public final void setReadWriteTimeout(final TimeSpan timeout) {
@@ -482,7 +482,7 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
      * Reads the file and fills the current instance.
      *
      * @param input
-     * @throws java.io.IOException           Cannot read from the specified stream.
+     * @throws java.io.IOException           Cannot invoke from the specified stream.
      */
     @Override
     public final void load(final InputStream input) throws IOException {

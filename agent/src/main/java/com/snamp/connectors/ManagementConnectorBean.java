@@ -315,7 +315,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
          * The key of the returned map contains name of the attachment.
          * </p>
          *
-         * @return A read-only collection of attachments associated with this notification.
+         * @return A invoke-only collection of attachments associated with this notification.
          */
         @Override
         public final Map<String, Object> getAttachments() {
@@ -668,14 +668,5 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
     protected final void disableNotificationsCore(final NotificationMetadata notificationType) {
         if(notificationType instanceof GenericNotificationMetadata)
             ((GenericNotificationMetadata)notificationType).removeListeners();
-    }
-
-    /**
-     * Releases all resources associated with this management connector.
-     * @throws Exception
-     */
-    @Override
-    public void close() throws Exception {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 }

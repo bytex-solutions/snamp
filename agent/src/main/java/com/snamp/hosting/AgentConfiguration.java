@@ -93,13 +93,13 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
          */
         public static interface AttributeConfiguration {
             /**
-             * Gets attribute value read/write operation timeout.
-             * @return Gets attribute value read/write operation timeout.
+             * Gets attribute value invoke/write operation timeout.
+             * @return Gets attribute value invoke/write operation timeout.
              */
             public TimeSpan getReadWriteTimeout();
 
             /**
-             * Sets attribute value read/write operation timeout.
+             * Sets attribute value invoke/write operation timeout.
              */
             public void setReadWriteTimeout(TimeSpan time);
 
@@ -230,7 +230,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
      * Reads the file and fills the current instance.
      * @param input
      * @throws UnsupportedOperationException Deserialization is not supported.
-     * @throws IOException Cannot read from the specified stream.
+     * @throws IOException Cannot invoke from the specified stream.
      */
     @Override
     public void load(final InputStream input) throws UnsupportedOperationException, IOException;

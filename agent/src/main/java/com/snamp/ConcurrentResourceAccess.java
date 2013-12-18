@@ -19,8 +19,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *           new ConcurrentResourceAccess<>(new HashMap<>());
  *
  *         public String get(final String key){
- *           return map.read(new ConcurrentResourceAccess.ConsistentReader<Map<String, String>, String>(){
- *             public String read(final Map<String, String> map){
+ *           return map.invoke(new ConcurrentResourceAccess.ConsistentAction<Map<String, String>, String>(){
+ *             public String invoke(final Map<String, String> map){
  *               return map.get(key);
  *             }
  *           });
@@ -57,87 +57,52 @@ public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock {
     }
 
     /**
-     * Represents resource reader that can throws an exception during reading operation.
-     * @param <R> Type of the resource to read.
+     * Represents resource action that can throws an exception during execution.
+     * @param <R> Type of the resource to handle.
      * @param <V> Type of the result of reading operation.
      * @since 1.0
      * @version 1.0
      */
-    public static interface Reader<R, V, E extends Throwable>{
+    public static interface Action<R, V, E extends Throwable>{
         /**
-         * Reads the resource.
-         * @param resource The resource to read.
+         * Handles the resource.
+         * @param resource The resource to handle.
          * @return The value obtained from the specified resource.
-         * @throws E An exception that can be raised by reading operation.
+         * @throws E An exception that can be raised by action.
          */
-        public V read(final R resource) throws E;
+        public V invoke(final R resource) throws E;
     }
 
     /**
-     * Represents resource reader that cannot throws an exception during reading operation.
-     * @param <R> Type of the resource to read.
-     * @param <V> Type of result of reading operation.
+     * Represents resource action that cannot throws an exception during execution.
+     * @param <R> Type of the resource to handle.
+     * @param <V> Type of the resource handling.
      */
-    public static interface ConsistentReader<R, V> extends Reader<R, V, Exception>{
+    public static interface ConsistentAction<R, V> extends Action<R, V, Exception> {
         /**
-         * Reads the resource.
-         * @param resource The resource to read.
+         * Handles the resource.
+         * @param resource The resource to handle.
          * @return The value obtained from the specified resource.
          */
         @Override
-        public V read(final R resource);
+        public V invoke(final R resource);
     }
 
     /**
-     * Represents resource writer that can throws an exception during writing operation.
-     * @param <R> Type of the resource to change.
-     * @param <I> Type of the input value to be written into the resource.
-     * @param <O> Type of the write result.
-     * @param <E> Type of the exception that can be raised by writing operation.
-     */
-    public static interface Writer<R, I, O, E extends Throwable>{
-        /**
-         * Writes the specified value into the resource.
-         * @param resource The resource to change.
-         * @param value The value to be written into the resource.
-         * @return The result of the writing operation.
-         * @throws E An exception that can be raised by writing operation.
-         */
-        public O write(final R resource, final I value) throws E;
-    }
-
-    /**
-     * Represents resource writer that cannot throws an exception.
-     * @param <R> Type of the resource to change.
-     * @param <I> Type of the value to be written into the resource.
-     * @param <O> Type of the writing result.
-     */
-    public static interface ConsistentWriter<R, I, O> extends Writer<R, I, O, Exception>{
-        /**
-         * Writes the specified value into the resource.
-         * @param resource The resource to change.
-         * @param value The value to be written into the resource.
-         * @return Writing operation result.
-         */
-        @Override
-        public O write(final R resource, final I value);
-    }
-
-    /**
-     * Provides consistent read on the resource.
+     * Provides consistent invoke on the resource.
      * <p>
-     *     This operation acquires read-lock on the resource.
+     *     This operation acquires invoke-lock on the resource.
      * </p>
      * @param reader The resource reader.
      * @param <V> Type of the resource reading value operation.
      * @return The value obtained from the resource.
      */
-    public final <V> V read(final ConsistentReader<R, V> reader){
+    public final <V> V read(final ConsistentAction<R, V> reader){
         if(reader == null) return null;
         final ReadLock rl = readLock();
         rl.lock();
         try{
-            return reader.read(resource);
+            return reader.invoke(resource);
         }
         finally {
             rl.unlock();
@@ -145,9 +110,9 @@ public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock {
     }
 
     /**
-     * Provides inconsistent read on the resource.
+     * Provides inconsistent invoke on the resource.
      * <p>
-     *    This operation acquires read-lock on the resource.
+     *    This operation acquires invoke-lock on the resource.
      * </p>
      * @param reader The resource reader.
      * @param <V> Type of the resource reading value operation.
@@ -155,44 +120,40 @@ public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock {
      * @return The reading operation result.
      * @throws E Type of the exception that can be raised by reader.
      */
-    public final <V, E extends Throwable> V read(final Reader<R, V, E> reader) throws E{
+    public final <V, E extends Throwable> V read(final Action<R, V, E> reader) throws E{
         if(reader == null) return null;
         final ReadLock rl = readLock();
         rl.lock();
         try{
-            return reader.read(resource);
+            return reader.invoke(resource);
         }
         finally {
             rl.unlock();
         }
     }
 
-    public final <I, O> O write(final ConsistentWriter<R, I, O> writer, final I value){
+    public final <O> O write(final ConsistentAction<R, O> writer){
         if(writer == null) return null;
         final WriteLock wl = writeLock();
         wl.lock();
         try{
-            return writer.write(resource, value);
+            return writer.invoke(resource);
         }
         finally {
             wl.unlock();
         }
     }
 
-    public final <I, O, E extends Throwable> O write(final Writer<R, I, O, E> writer, final I value) throws E{
+    public final <O, E extends Throwable> O write(final Action<R, O, E> writer) throws E{
         if(writer == null) return null;
         final WriteLock wl = writeLock();
         wl.lock();
         try{
-            return writer.write(resource, value);
+            return writer.invoke(resource);
         }
         finally {
             wl.unlock();
         }
-    }
-
-    public final <I, O, E extends Throwable> void readAndWrite(final Reader<R, I, E> reader, final Writer<R, I, O, E> writer) throws E{
-        write(writer, read(reader));
     }
 
     /**

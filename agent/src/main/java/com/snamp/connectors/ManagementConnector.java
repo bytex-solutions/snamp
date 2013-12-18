@@ -14,11 +14,11 @@ import java.util.concurrent.*;
  */
 @Lifecycle(InstanceLifecycle.NORMAL)
 @SuppressWarnings("try")
-public interface ManagementConnector extends Iterable<String>, AutoCloseable {
+public interface ManagementConnector extends AutoCloseable {
 
     /**
      * Connects to the specified attribute.
-     * @param id A key string that is used to read attribute from this connector.
+     * @param id A key string that is used to invoke attribute from this connector.
      * @param attributeName The name of the attribute.
      * @param options The attribute discovery options.
      * @return The description of the attribute.
@@ -27,20 +27,20 @@ public interface ManagementConnector extends Iterable<String>, AutoCloseable {
 
     /**
      * Returns the attribute value.
-     * @param id  A key string that is used to read attribute from this connector.
-     * @param readTimeout The attribute value read operation timeout.
+     * @param id  A key string that is used to invoke attribute from this connector.
+     * @param readTimeout The attribute value invoke operation timeout.
      * @param defaultValue The default value of the attribute if it is real value is not available.
      * @return The value of the attribute, or default value.
-     * @throws TimeoutException The attribute value cannot be read in the specified duration.
+     * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
      */
     public Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException;
 
     /**
      * Reads a set of attributes.
-     * @param output The dictionary with set of attribute keys to read and associated default values.
-     * @param readTimeout The attribute value read operation timeout.
+     * @param output The dictionary with set of attribute keys to invoke and associated default values.
+     * @param readTimeout The attribute value invoke operation timeout.
      * @return The set of attributes ids really written to the dictionary.
-     * @throws TimeoutException The attribute value cannot be read in the specified duration.
+     * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
      */
     public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException;
 
@@ -76,6 +76,12 @@ public interface ManagementConnector extends Iterable<String>, AutoCloseable {
      * @return The attribute descriptor; or {@literal null} if attribute is not connected.
      */
     public AttributeMetadata getAttributeInfo(final String id);
+
+    /**
+     * Returns a read-only collection of registered attributes.
+     * @return A read-only collection of registered attributes.
+     */
+    public Collection<String> getRegisteredAttributes();
 
     /**
      * Executes remote action.

@@ -185,7 +185,7 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         dic.add("col2", new JsonPrimitive(42));
         dic.add("col3", new JsonPrimitive("Hello, world!"));
         writeAttributeAsJson("dictionaryProperty", dic);
-        //now read dictionary and test
+        //now invoke dictionary and test
         final JsonElement elem = readAttributeAsJson("dictionaryProperty");
         assertTrue(elem instanceof JsonObject);
         dic = (JsonObject)elem;
@@ -256,7 +256,7 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
     public final void testForTableProperty() throws IOException{
         JsonArray table = createTestTable1();
         writeAttributeAsJson("tableProperty", table);
-        //read table
+        //invoke table
         JsonElement elem = readAttributeAsJson("tableProperty");
         assertTrue(elem instanceof JsonArray);
         table = (JsonArray)elem;
