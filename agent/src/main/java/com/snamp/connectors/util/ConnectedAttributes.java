@@ -16,14 +16,14 @@ import java.util.*;
  */
 @Internal
 public abstract class ConnectedAttributes extends HashMap<String, AttributeMetadata> {
-    private final Reference<ManagementConnector> connector;
+    private final Reference<AttributeSupport> connector;
 
-    protected ConnectedAttributes(final ManagementConnector connector){
+    protected ConnectedAttributes(final AttributeSupport connector){
         if(connector == null) throw new IllegalArgumentException("connector is null.");
-        this.connector = new WeakReference<ManagementConnector>(connector);
+        this.connector = new WeakReference<>(connector);
     }
 
-    final ManagementConnector getConnector(){
+    final AttributeSupport getAttributeSupport(){
         return connector.get();
     }
 

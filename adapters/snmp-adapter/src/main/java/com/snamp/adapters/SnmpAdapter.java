@@ -317,7 +317,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
         }
     }
 
-    private void exposeAttribute(final ManagementConnector connector, final String prefix, final String postfix, AttributeConfiguration attribute){
+    private void exposeAttribute(final AttributeSupport connector, final String prefix, final String postfix, AttributeConfiguration attribute){
         final String oid = combineOID(prefix, postfix);
         final SnmpAttributeMapping mo = SnmpType.createManagedObject(connector, oid, attribute.getAttributeName(), attribute.getAdditionalElements(), attribute.getReadWriteTimeout());
         if(mo == null)
@@ -340,7 +340,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
      * @param attributes The dictionary of attributes.
      */
     @Override
-    public final void exposeAttributes(final ManagementConnector connector, final String namespace, final Map<String, AttributeConfiguration> attributes) {
+    public final void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AttributeConfiguration> attributes) {
         for(final String postfix: attributes.keySet())
             exposeAttribute(connector, namespace, postfix, attributes.get(postfix));
     }

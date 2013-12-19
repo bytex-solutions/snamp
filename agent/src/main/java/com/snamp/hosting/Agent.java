@@ -121,7 +121,7 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
             else connectors.put(targetConfig.getConnectionType(), connector);
         }
         //register attributes
-        adapter.exposeAttributes(connector, targetConfig.getNamespace(), targetConfig.getAttributes());
+        adapter.exposeAttributes(ReflectionUtils.isolate(connector, AttributeSupport.class), targetConfig.getNamespace(), targetConfig.getAttributes());
         //register events
         adapter.exposeEvents(connector, targetConfig.getNamespace(), targetConfig.getEvents());
     }

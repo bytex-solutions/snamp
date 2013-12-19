@@ -1,6 +1,7 @@
 package com.snamp.adapters;
 
 import com.snamp.*;
+import com.snamp.connectors.AttributeSupport;
 import com.snamp.connectors.ManagementConnector;
 
 import java.io.IOException;
@@ -54,7 +55,7 @@ public interface Adapter extends AutoCloseable, PlatformPlugin {
      * @param attributes The dictionary of attributes.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
-    public void exposeAttributes(final ManagementConnector connector, final String namespace, final Map<String, AttributeConfiguration> attributes);
+    public void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AttributeConfiguration> attributes);
 
     /**
      * Exposes monitoring events.

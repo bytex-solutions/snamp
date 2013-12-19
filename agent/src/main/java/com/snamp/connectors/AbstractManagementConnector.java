@@ -16,8 +16,7 @@ import java.util.concurrent.locks.*;
  * @version 1.0
  */
 @Lifecycle(InstanceLifecycle.NORMAL)
-@SuppressWarnings("try")
-public abstract class AbstractManagementConnector implements ManagementConnector {
+public abstract class AbstractManagementConnector extends AbstractAggregator implements ManagementConnector {
 
     /**
      * Represents default implementation of the attribute descriptor.

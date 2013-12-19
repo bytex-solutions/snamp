@@ -14,7 +14,7 @@ import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
     public static final Number defaultValue = 0;
 
-    public SnmpBigNumberObject(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
+    public SnmpBigNumberObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
         super(oid, connector, new OctetString(defaultValue.toString()), timeouts);
     }
 

@@ -1,9 +1,7 @@
 package com.snamp.adapters;
 
-import com.snamp.connectors.ManagementConnector;
-import com.snamp.connectors.util.AbstractAttributesRegistry;
-import com.snamp.connectors.util.AttributesRegistry;
-import com.snamp.connectors.util.ConnectedAttributes;
+import com.snamp.connectors.AttributeSupport;
+import com.snamp.connectors.util.*;
 import com.snamp.hosting.AgentConfiguration;
 import com.snamp.licensing.RestAdapterLimitations;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
@@ -31,7 +29,7 @@ final class RestAdapter extends AbstractAdapter {
         jettyServer = new Server();
         exposedAttributes = new AbstractAttributesRegistry() {
             @Override
-            protected ConnectedAttributes createBinding(final ManagementConnector connector) {
+            protected ConnectedAttributes createBinding(final AttributeSupport connector) {
                 return new ConnectedAttributes(connector) {
                     @Override
                     public String makeAttributeId(final String prefix, final String postfix) {
@@ -117,7 +115,7 @@ final class RestAdapter extends AbstractAdapter {
      * @param attributes The dictionary of attributes.
      */
     @Override
-    public final void exposeAttributes(final ManagementConnector connector, final String namespace, final Map<String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attributes) {
+    public final void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attributes) {
         exposedAttributes.putAll(connector, namespace, attributes);
     }
 

@@ -12,7 +12,11 @@ import java.io.IOException;
 import java.util.*;
 
 /**
+ * Represents embedded adapter that can be used to embed communication with
+ * management connector into your application.
  * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 public class EmbeddedAdapter extends AbstractAdapter {
     private final AbstractAttributesRegistry attributes;
@@ -27,7 +31,7 @@ public class EmbeddedAdapter extends AbstractAdapter {
         super(adapterName);
         attributes = new AbstractAttributesRegistry() {
             @Override
-            protected ConnectedAttributes createBinding(final ManagementConnector connector) {
+            protected ConnectedAttributes createBinding(final AttributeSupport connector) {
                 return new ConnectedAttributes(connector) {
                     @Override
                     public String makeAttributeId(final String prefix, final String postfix) {
@@ -86,7 +90,7 @@ public class EmbeddedAdapter extends AbstractAdapter {
      * @param attributes The dictionary of attributes.
      */
     @Override
-    public final void exposeAttributes(final ManagementConnector connector, final String namespace, final Map<String, AttributeConfiguration> attributes) {
+    public final void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AttributeConfiguration> attributes) {
         this.attributes.putAll(connector, namespace, attributes);
     }
 

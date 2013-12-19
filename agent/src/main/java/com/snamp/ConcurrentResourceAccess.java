@@ -27,12 +27,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *         }
  *
  *         public void put(final Entry<String, String> entry){
- *           map.write(new ConcurrentResourceAccess.ConsistentWriter<Map<String, String>, Entry<String, String>, Void>(){
- *             public Void write(final Map<String, String> m, final Entry<String, String> entry){
+ *           map.write(new ConcurrentResourceAccess.ConsistentAction<Map<String, String>, Void>(){
+ *             public Void write(final Map<String, String> m){
  *               m.put(entry.getKey(), entry.getValue());
  *               return null;
  *             }
- *           }, entry);
+ *           });
  *         }
  *     }
  *     }</pre>

@@ -1,6 +1,7 @@
 package com.snamp.connectors.util;
 
 import com.snamp.*;
+import com.snamp.connectors.AttributeSupport;
 import com.snamp.connectors.ManagementConnector;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
@@ -16,6 +17,6 @@ import java.util.Map;
 @Internal
 public interface AttributesRegistryWriter {
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
-    public Collection<String> putAll(final ManagementConnector connector, final String prefix, final Map<String, AttributeConfiguration> attributes);
+    public Collection<String> putAll(final AttributeSupport connector, final String prefix, final Map<String, AttributeConfiguration> attributes);
 
 }
