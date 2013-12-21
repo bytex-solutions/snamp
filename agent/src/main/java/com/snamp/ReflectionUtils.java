@@ -76,4 +76,18 @@ public final class ReflectionUtils {
             }
         }));
     }
+
+    /**
+     * Casts the specified object to a another class and isolates interface
+     * from the conversion result.
+     * @param obj An object to cast. Cannot be {@literal null}.
+     * @param castResult Type of the conversion result.
+     * @param iface An interface to isolate.
+     * @param <I> Type of the interface to isolate.
+     * @param <T> Type of the conversion result.
+     * @return Isolated reference to an interface.
+     */
+    public static <I, T extends I> I castAndIsolate(final Object obj, final Class<T> castResult, final Class<I> iface){
+        return isolate(castResult.cast(obj), iface);
+    }
 }

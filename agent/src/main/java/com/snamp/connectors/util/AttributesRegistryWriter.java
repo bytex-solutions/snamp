@@ -19,4 +19,5 @@ public interface AttributesRegistryWriter {
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public Collection<String> putAll(final AttributeSupport connector, final String prefix, final Map<String, AttributeConfiguration> attributes);
 
+    public void clear();
 }

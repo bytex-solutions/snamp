@@ -337,8 +337,211 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
         }
     }
 
+    /**
+     * Represents a base class that allows to enable notification support for the management connector.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static abstract class AbstractNotificationSupport implements NotificationSupport{
+        private final ConcurrentResourceAccess<Map<String, GenericNotificationMetadata>> notifications;
+
+        /**
+         * Initializes a new notification manager.
+         */
+        protected AbstractNotificationSupport(){
+            this.notifications = new ConcurrentResourceAccess<Map<String, GenericNotificationMetadata>>(new HashMap<String, GenericNotificationMetadata>(10));
+        }
+
+        /**
+         * Returns all notifications associated with the specified category.
+         * @param category The category of the event.
+         * @param metadataType The type of requested notification metadata.
+         * @param <T> The type of requested notification metadata.
+         * @return A map of registered notifications and subscription lists.
+         */
+        @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+        protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType){
+            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Map<String, T>>() {
+                @Override
+                public final Map<String, T> invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    final Map<String, T> result = new HashMap<>(10);
+                    for(final Map.Entry<String, GenericNotificationMetadata> metadata: notifications.entrySet())
+                        if(Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
+                            result.put(metadata.getKey(), metadataType.cast(metadata.getValue()));
+                    return result;
+                }
+            });
+        }
+
+        /**
+         * Enables event listening for the specified category of events.
+         * <p>
+         *     In the default implementation this method does nothing.
+         * </p>
+         * @param category The name of the category to listen.
+         * @param options  Event discovery options.
+         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+         */
+        protected abstract GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options);
+
+        /**
+         * Enables event listening for the specified category of events.
+         * @param listId An identifier of the subscription list.
+         * @param category A name of the category to listen.
+         * @param options  Event discovery options.
+         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+         */
+        @Override
+        public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
+            return notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, NotificationMetadata>() {
+                @Override
+                public final NotificationMetadata invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    if(notifications.containsKey(category)) return notifications.get(category);
+                    final GenericNotificationMetadata metadata = enableNotificationsCore(category, options);
+                    if(metadata != null) notifications.put(listId, metadata);
+                    return metadata;
+                }
+            });
+        }
+
+        /**
+         * Disable all notifications associated with the specified event.
+         * <p>
+         *     In the default implementation this method does nothing.
+         * </p>
+         * @param notificationType The event descriptor.
+         */
+        protected void disableNotificationsCore(final NotificationMetadata notificationType){
+        }
+
+        /**
+         * Disables event listening for the specified category of events.
+         *
+         * @param listId An identifier of the subscription list.
+         * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+         */
+        @Override
+        public final boolean disableNotifications(final String listId) {
+            return notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, Boolean>() {
+                @Override
+                public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    if (notifications.containsKey(listId)) {
+                        disableNotificationsCore(notifications.remove(listId));
+                        return true;
+                    } else return false;
+                }
+            });
+        }
+
+        /**
+         * Gets the notification metadata by its category.
+         *
+         * @param listId An identifier of the subscription list.
+         * @return The metadata of the specified notification category; or {@literal null}, if notifications
+         *         for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
+         */
+        @Override
+        public final NotificationMetadata getNotificationInfo(final String listId) {
+            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, NotificationMetadata>() {
+                @Override
+                public final NotificationMetadata invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    return notifications.get(listId);
+                }
+            });
+        }
+
+        /**
+         * Adds a new listener for the specified notification.
+         * @param notificationType The event type.
+         * @param listener The event listener.
+         * @return Any custom data associated with the subscription.
+         */
+        protected abstract Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener);
+
+        /**
+         * Attaches the notification listener.
+         *
+         * @param listId An identifier of the subscription list.
+         * @param listener The notification listener.
+         * @return An identifier of the notification listener generated by this connector.
+         */
+        @Override
+        public final Long subscribe(final String listId, final NotificationListener listener) {
+            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Long>() {
+                @Override
+                public final Long invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    final GenericNotificationMetadata metadata = notifications.get(listId);
+                    if(metadata == null) return null;
+                    final Object userData = subscribeCore(metadata, listener);
+                    return metadata.addListener(listener, userData);
+                }
+            });
+        }
+
+        /**
+         * Cancels the notification listening.
+         * @param metadata The event type.
+         * @param listener The notification listener to remove.
+         * @param data The custom data associated with subscription that returned from {@link #subscribeCore(NotificationMetadata, NotificationListener)}
+         *             method.
+         */
+        protected abstract void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data);
+
+        /**
+         * Removes the notification listener.
+         * @param listenerId An identifier of the notification listener previously returned
+         *                   by {@link #subscribe(String, NotificationListener)} method.
+         * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
+         */
+        public final boolean unsubscribe(final Long listenerId){
+            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Boolean>() {
+                @Override
+                public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    for(final GenericNotificationMetadata metadata: notifications.values()){
+                        if(metadata.hasListener(listenerId)){
+                            final Pair<NotificationListener, Object> pair = metadata.getListener(listenerId);
+                            if(pair == null) return false;
+                            unsubscribeCore(metadata, pair.first, pair.second);
+                            return metadata.removeListener(listenerId);
+                        }
+                    }
+                    return false;
+                }
+            });
+        }
+
+        /**
+         * Removes the notification listener.
+         *
+         * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationListener)}.
+         * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
+         */
+        @Override
+        public final boolean unsubscribe(final Object listenerId)  {
+            return listenerId instanceof Long && unsubscribe((Long)listenerId);
+        }
+
+        /**
+         * Removes all listeners from this notification manager.
+         * <p>
+         *     It is recommended to call this method in the implementation of {@link AutoCloseable#close()}
+         *     method in your management connector.
+         * </p>
+         */
+        public final void clear(){
+            notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, Void>() {
+                @Override
+                public final Void invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    notifications.clear();
+                    return null;
+                }
+            });
+        }
+    }
+
     private final ConcurrentResourceAccess<Map<String, GenericAttributeMetadata<?>>> attributes;
-    private final ConcurrentResourceAccess<Map<String, GenericNotificationMetadata>> notifications;
+
     private final IllegalStateFlag closed = new IllegalStateFlag() {
         @Override
         public final IllegalStateException newInstance() {
@@ -351,29 +554,9 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
      */
     protected AbstractManagementConnector(){
         this.attributes = new ConcurrentResourceAccess<Map<String, GenericAttributeMetadata<?>>>(new HashMap<String, GenericAttributeMetadata<?>>(10));
-        this.notifications = new ConcurrentResourceAccess<Map<String, GenericNotificationMetadata>>(new HashMap<String, GenericNotificationMetadata>(10));
     }
 
-    /**
-     * Returns all notifications associated with the specified category.
-     * @param category The category of the event.
-     * @param metadataType The type of requested notification metadata.
-     * @param <T> The type of requested notification metadata.
-     * @return A map of registered notifications and subscription lists.
-     */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType){
-        return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Map<String, T>>() {
-            @Override
-            public final Map<String, T> invoke(final Map<String, GenericNotificationMetadata> notifications) {
-                final Map<String, T> result = new HashMap<>(10);
-                for(final Map.Entry<String, GenericNotificationMetadata> metadata: notifications.entrySet())
-                    if(Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
-                        result.put(metadata.getKey(), metadataType.cast(metadata.getValue()));
-                return result;
-            }
-        });
-    }
+
 
     /**
      * Returns a count of connected attributes.
@@ -608,165 +791,6 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
     }
 
     /**
-     * Enables event listening for the specified category of events.
-     * <p>
-     *     In the default implementation this method does nothing.
-     * </p>
-     * @param category The name of the category to listen.
-     * @param options  Event discovery options.
-     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-     */
-    protected GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options){
-        return null;
-    }
-
-    /**
-     * Enables event listening for the specified category of events.
-     * @param listId An identifier of the subscription list.
-     * @param category A name of the category to listen.
-     * @param options  Event discovery options.
-     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-     */
-    @Override
-    public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
-        verifyInitialization();
-        return notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, NotificationMetadata>() {
-            @Override
-            public final NotificationMetadata invoke(final Map<String, GenericNotificationMetadata> notifications) {
-                if(notifications.containsKey(category)) return notifications.get(category);
-                final GenericNotificationMetadata metadata = enableNotificationsCore(category, options);
-                if(metadata != null) notifications.put(listId, metadata);
-                return metadata;
-            }
-        });
-    }
-
-    /**
-     * Disable all notifications associated with the specified event.
-     * <p>
-     *     In the default implementation this method does nothing.
-     * </p>
-     * @param notificationType The event descriptor.
-     */
-    protected void disableNotificationsCore(final NotificationMetadata notificationType){
-    }
-
-    /**
-     * Disables event listening for the specified category of events.
-     *
-     * @param listId An identifier of the subscription list.
-     * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
-     */
-    @Override
-    public final boolean disableNotifications(final String listId) {
-        verifyInitialization();
-        return notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, Boolean>() {
-            @Override
-            public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
-                if(notifications.containsKey(listId)){
-                    disableNotificationsCore(notifications.remove(listId));
-                    return true;
-                }
-                else return false;
-            }
-        });
-    }
-
-    /**
-     * Gets the notification metadata by its category.
-     *
-     * @param listId An identifier of the subscription list.
-     * @return The metadata of the specified notification category; or {@literal null}, if notifications
-     *         for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
-     */
-    @Override
-    public final NotificationMetadata getNotificationInfo(final String listId) {
-        return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, NotificationMetadata>() {
-            @Override
-            public final NotificationMetadata invoke(final Map<String, GenericNotificationMetadata> notifications) {
-                return notifications.get(listId);
-            }
-        });
-    }
-
-    /**
-     * Adds a new listener for the specified notification.
-     * @param notificationType The event type.
-     * @param listener The event listener.
-     * @return Any custom data associated with the subscription.
-     */
-    protected Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener){
-        return null;
-    }
-
-    /**
-     * Attaches the notification listener.
-     *
-     * @param listId An identifier of the subscription list.
-     * @param listener The notification listener.
-     * @return An identifier of the notification listener generated by this connector.
-     */
-    @Override
-    public final Long subscribe(final String listId, final NotificationListener listener) {
-        verifyInitialization();
-        return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Long>() {
-            @Override
-            public final Long invoke(final Map<String, GenericNotificationMetadata> notifications) {
-                final GenericNotificationMetadata metadata = notifications.get(listId);
-                if(metadata == null) return null;
-                final Object userData = subscribeCore(metadata, listener);
-                return metadata.addListener(listener, userData);
-            }
-        });
-    }
-
-    /**
-     * Cancels the notification listening.
-     * @param metadata The event type.
-     * @param listener The notification listener to remove.
-     * @param data The custom data associated with subscription that returned from {@link #subscribeCore(NotificationMetadata, NotificationListener)}
-     *             method.
-     */
-    protected void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data){
-
-    }
-
-    /**
-     * Removes the notification listener.
-     * @param listenerId An identifier of the notification listener previously returned
-     *                   by {@link #subscribe(String, NotificationListener)} method.
-     * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
-     */
-    public final boolean unsubscribe(final Long listenerId){
-        verifyInitialization();
-        return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Boolean>() {
-            @Override
-            public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
-                for(final GenericNotificationMetadata metadata: notifications.values()){
-                    if(metadata.hasListener(listenerId)){
-                        final Pair<NotificationListener, Object> pair = metadata.getListener(listenerId);
-                        if(pair == null) return false;
-                        unsubscribeCore(metadata, pair.first, pair.second);
-                        return metadata.removeListener(listenerId);
-                    }
-                }
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Removes the notification listener.
-     *
-     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationListener)}.
-     * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
-     */
-    @Override
-    public final boolean unsubscribe(final Object listenerId)  {
-        return listenerId instanceof Long && unsubscribe((Long)listenerId);
-    }
-
-    /**
      * Releases all resources associated with this connector.
      * @throws Exception
      */
@@ -777,14 +801,6 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             @Override
             public final Void invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
                 attributes.clear();
-                return null;
-            }
-        });
-        //remove all registered notification listeners
-        notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, Void>() {
-            @Override
-            public final Void invoke(final Map<String, GenericNotificationMetadata> notifications) {
-                notifications.clear();
                 return null;
             }
         });

@@ -3,6 +3,7 @@ package com.snamp.hosting;
 import com.snamp.*;
 import com.snamp.adapters.*;
 import com.snamp.connectors.*;
+import static com.snamp.ReflectionUtils.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -121,9 +122,10 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
             else connectors.put(targetConfig.getConnectionType(), connector);
         }
         //register attributes
-        adapter.exposeAttributes(ReflectionUtils.isolate(connector, AttributeSupport.class), targetConfig.getNamespace(), targetConfig.getAttributes());
+        adapter.exposeAttributes(isolate(connector, AttributeSupport.class), targetConfig.getNamespace(), targetConfig.getAttributes());
         //register events
-        adapter.exposeEvents(connector, targetConfig.getNamespace(), targetConfig.getEvents());
+        if(connector instanceof NotificationSupport && adapter instanceof NotificationPublisher)
+            ((NotificationPublisher)adapter).exposeEvents(castAndIsolate(connector, NotificationSupport.class, NotificationSupport.class), targetConfig.getNamespace(), targetConfig.getEvents());
     }
 
     /**

@@ -3,7 +3,6 @@ package com.snamp.adapters;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import com.snamp.connectors.util.*;
-import com.snamp.hosting.AgentConfiguration;
 
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
@@ -18,7 +17,7 @@ import java.util.*;
  * @since 1.0
  * @version 1.0
  */
-public class EmbeddedAdapter extends AbstractAdapter {
+public class EmbeddedAdapter extends AbstractAdapter implements NotificationPublisher {
     private final AbstractAttributesRegistry attributes;
     private final AbstractSubscriptionList notifications;
 
@@ -42,7 +41,7 @@ public class EmbeddedAdapter extends AbstractAdapter {
         };
         notifications = new AbstractSubscriptionList() {
             @Override
-            protected EnabledNotification createBinding(final ManagementConnector connector) {
+            protected EnabledNotification createBinding(final NotificationSupport connector) {
                 return new EnabledNotification(connector) {
                     @Override
                     public String makeListId(final String prefix, final String postfix) {
@@ -71,12 +70,12 @@ public class EmbeddedAdapter extends AbstractAdapter {
     /**
      * Stops the connector hosting.
      *
-     * @param saveAttributes {@literal true} to save previously exposed attributes for reuse; otherwise,
+     * @param saveState {@literal true} to save previously exposed attributes for reuse; otherwise,
      *                       clear internal list of exposed attributes.
      * @return {@literal true}, if adapter is previously started; otherwise, {@literal false}.
      */
     @Override
-    public final boolean stop(final boolean saveAttributes) {
+    public final boolean stop(final boolean saveState) {
         return true;
     }
 
@@ -126,7 +125,7 @@ public class EmbeddedAdapter extends AbstractAdapter {
      * @param events    The collection of configured notifications.
      */
     @Override
-    public final void exposeEvents(final ManagementConnector connector, final String namespace, final Map<String, EventConfiguration> events) {
+    public final void exposeEvents(final NotificationSupport connector, final String namespace, final Map<String, EventConfiguration> events) {
         notifications.putAll(connector, namespace, events);
     }
 

@@ -12,14 +12,14 @@ import java.util.HashMap;
  * @since 1.0
  */
 public abstract class EnabledNotification extends HashMap<String, NotificationMetadata> {
-    private final Reference<ManagementConnector> connector;
+    private final Reference<NotificationSupport> connector;
 
-    protected EnabledNotification(final ManagementConnector connector){
+    protected EnabledNotification(final NotificationSupport connector){
         if(connector == null) throw new IllegalArgumentException("connector is null.");
         this.connector = new WeakReference<>(connector);
     }
 
-    final ManagementConnector getConnector(){
+    final NotificationSupport getConnector(){
         return connector.get();
     }
 

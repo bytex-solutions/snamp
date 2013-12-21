@@ -72,7 +72,7 @@ public abstract class AbstractNotificationListener implements NotificationListen
      * @param connector The notification subscription provider. Cannot be {@literal null}.
      * @throws IllegalStateException This listener was previously attached to the management connector.
      */
-    public synchronized final void attachTo(final ManagementConnector connector){
+    public synchronized final void attachTo(final NotificationSupport connector){
         if(isAttached()) throw new IllegalStateException(String.format("This listener is already attached with %s identifier.", listenerId));
         this.listenerId = connector.subscribe(subscriptionList, this);
         this.metadata = connector.getNotificationInfo(subscriptionList);
@@ -83,7 +83,7 @@ public abstract class AbstractNotificationListener implements NotificationListen
      * @param connector The notification subscription provider. Cannot be {@literal null}.
      * @throws IllegalStateException This listener was not previously attached to the connector.
      */
-    public synchronized final void detachFrom(final ManagementConnector connector){
+    public synchronized final void detachFrom(final NotificationSupport connector){
         if(this.listenerId == null) throw new IllegalArgumentException("This listener already detached.");
         if(connector.unsubscribe(this)) {
             this.metadata = null;

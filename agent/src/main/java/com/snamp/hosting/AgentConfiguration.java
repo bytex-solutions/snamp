@@ -32,9 +32,18 @@ import java.util.*;
  */
 public interface AgentConfiguration extends BinarySerializable, Cloneable {
     /**
+     * Represents a root interface for all agent configuration entities.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static interface ConfigurationEntity{
+    }
+
+    /**
      * Represents hosting configuration (front-end configuration).
      */
-    public static interface HostingConfiguration {
+    public static interface HostingConfiguration extends ConfigurationEntity {
         /**
          * Gets the hosting adapter name.
          * @return The hosting adapter name.
@@ -63,12 +72,12 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
     /**
      * Represents management target configuration (back-end management information providers).
      */
-    public static interface ManagementTargetConfiguration {
+    public static interface ManagementTargetConfiguration extends ConfigurationEntity {
 
         /**
          * Represents event configuration.
          */
-        public static interface EventConfiguration{
+        public static interface EventConfiguration extends ConfigurationEntity{
             /**
              * Gets the event category.
              * @return The event category.
@@ -91,7 +100,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
         /**
          * Represents attribute configuration.
          */
-        public static interface AttributeConfiguration {
+        public static interface AttributeConfiguration extends ConfigurationEntity {
             /**
              * Gets attribute value invoke/write operation timeout.
              * @return Gets attribute value invoke/write operation timeout.

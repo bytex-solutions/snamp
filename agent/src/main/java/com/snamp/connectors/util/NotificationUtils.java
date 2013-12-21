@@ -2,9 +2,7 @@ package com.snamp.connectors.util;
 
 import com.snamp.SynchronizationEvent;
 import com.snamp.TimeSpan;
-import com.snamp.connectors.ManagementConnector;
-import com.snamp.connectors.Notification;
-import com.snamp.connectors.NotificationListener;
+import com.snamp.connectors.*;
 
 import java.util.concurrent.TimeoutException;
 
@@ -75,7 +73,7 @@ public final class NotificationUtils {
      * or {@literal null} if notifications for the specified event category is not supported
      * by connector.
      */
-    public static Awaitor<Notification> createAwaitor(final ManagementConnector connector, final String listId, final NotificationListener listener){
+    public static Awaitor<Notification> createAwaitor(final NotificationSupport connector, final String listId, final NotificationListener listener){
         if(connector == null) throw new IllegalArgumentException("connector is null.");
         else if(listener == null) throw new IllegalArgumentException("listener is null.");
         final SynchronizationEvent<Notification> ev = new SynchronizationEvent<>();
@@ -128,7 +126,7 @@ public final class NotificationUtils {
      * or {@literal null} if notifications for the specified event category is not supported
      * by connector.
      */
-    public static Awaitor<Notification> createAwaitor(final ManagementConnector connector, final String listId){
+    public static Awaitor<Notification> createAwaitor(final NotificationSupport connector, final String listId){
         return createAwaitor(connector, listId, new NotificationListener() {
             @Override
             public boolean handle(final Notification n) {

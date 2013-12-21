@@ -88,12 +88,12 @@ final class RestAdapter extends AbstractAdapter {
     /**
      * Stops the connector hosting.
      *
-     * @param saveAttributes {@literal true} to save previously exposed attributes for reuse; otherwise,
+     * @param saveState {@literal true} to save previously exposed attributes for reuse; otherwise,
      *                       clear internal list of exposed attributes.
      * @return {@literal true}, if adapter is previously started; otherwise, {@literal false}.
      */
     @Override
-    public boolean stop(final boolean saveAttributes) {
+    public boolean stop(final boolean saveState) {
         if(started)
             try {
                 jettyServer.stop();
@@ -158,5 +158,7 @@ final class RestAdapter extends AbstractAdapter {
     @Override
     public final void close() throws Exception {
         jettyServer.stop();
+        exposedAttributes.clear();
+        started = false;
     }
 }
