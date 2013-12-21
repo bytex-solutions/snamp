@@ -12,15 +12,19 @@ import java.util.HashMap;
  * @since 1.0
  */
 public abstract class EnabledNotification extends HashMap<String, NotificationMetadata> {
-    private final Reference<NotificationSupport> connector;
+   private final NotificationSupport connector;
 
     protected EnabledNotification(final NotificationSupport connector){
         if(connector == null) throw new IllegalArgumentException("connector is null.");
-        this.connector = new WeakReference<>(connector);
+        this.connector = connector;
     }
 
-    final NotificationSupport getConnector(){
-        return connector.get();
+    Object subscribe(final String listId, final NotificationListener listener){
+        return connector.subscribe(listId, listener);
+    }
+
+    boolean unsubscribe(final Object listenerId){
+        return connector.unsubscribe(listenerId);
     }
 
     /**

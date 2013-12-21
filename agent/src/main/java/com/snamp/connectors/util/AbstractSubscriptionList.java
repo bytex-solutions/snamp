@@ -88,11 +88,11 @@ public abstract class AbstractSubscriptionList extends HashMap<String, EnabledNo
         if(containsKey(namespace)){
             final EnabledNotification notifications = get(namespace);
             if(notifications.containsKey(postfix)){
-                final Object listenerId = notifications.getConnector().subscribe(notifications.makeListId(namespace, postfix), listener);
+                final Object listenerId = notifications.subscribe(notifications.makeListId(namespace, postfix), listener);
                 return new Subscription() {
                     @Override
                     public final boolean unsubscribe() {
-                        return notifications.getConnector().unsubscribe(listenerId);
+                        return notifications.unsubscribe(listenerId);
                     }
 
                     @Override

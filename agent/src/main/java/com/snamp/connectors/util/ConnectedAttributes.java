@@ -5,6 +5,7 @@ import com.snamp.connectors.*;
 
 import java.lang.ref.*;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Represents a map of exposed attributes to the adapter.
@@ -16,15 +17,19 @@ import java.util.*;
  */
 @Internal
 public abstract class ConnectedAttributes extends HashMap<String, AttributeMetadata> {
-    private final Reference<AttributeSupport> connector;
+    private final AttributeSupport connector;
 
     protected ConnectedAttributes(final AttributeSupport connector){
         if(connector == null) throw new IllegalArgumentException("connector is null.");
-        this.connector = new WeakReference<>(connector);
+        this.connector = connector;
     }
 
-    final AttributeSupport getAttributeSupport(){
-        return connector.get();
+    Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException{
+        return connector.getAttribute(id, readTimeout, defaultValue);
+    }
+
+    boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException{
+        return connector.setAttribute(id, writeTimeout, value);
     }
 
     /**
