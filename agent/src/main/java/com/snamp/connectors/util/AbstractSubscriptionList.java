@@ -2,6 +2,7 @@ package com.snamp.connectors.util;
 
 import com.snamp.*;
 import com.snamp.connectors.*;
+import static com.snamp.connectors.NotificationSupport.NotificationListener;
 
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 
@@ -72,7 +73,7 @@ public abstract class AbstractSubscriptionList extends HashMap<String, EnabledNo
 
         /**
          * Returns a listener identifier associated with this subscription.
-         * @return An identifier of the listener returned by {@link com.snamp.connectors.NotificationSupport#subscribe(String, com.snamp.connectors.NotificationListener)},
+         * @return An identifier of the listener returned by {@link com.snamp.connectors.NotificationSupport#subscribe(String, com.snamp.connectors.NotificationSupport.NotificationListener)},
          */
         public Object getListenerId();
     }

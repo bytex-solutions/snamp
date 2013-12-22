@@ -3,6 +3,7 @@ package com.snamp.connectors;
 import com.snamp.SnampClassTestSet;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.util.NotificationUtils;
+import static com.snamp.connectors.NotificationSupport.Notification;
 import org.junit.Test;
 
 import java.beans.IntrospectionException;

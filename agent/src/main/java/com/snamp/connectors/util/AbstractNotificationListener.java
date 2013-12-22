@@ -1,6 +1,8 @@
 package com.snamp.connectors.util;
 
 import com.snamp.connectors.*;
+import com.snamp.connectors.NotificationSupport.NotificationListener;
+import com.snamp.connectors.NotificationSupport.Notification;
 
 /**
  * Represents base implementation of the notification listener that simplify

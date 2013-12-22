@@ -19,6 +19,7 @@ import org.snmp4j.smi.*;
 import org.snmp4j.transport.TransportMappings;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.snamp.connectors.NotificationSupport.Notification;
 
 /**
  * Represents SNMP Agent.

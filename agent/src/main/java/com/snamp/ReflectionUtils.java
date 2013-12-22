@@ -62,11 +62,11 @@ public final class ReflectionUtils {
 
     /**
      * Wraps the reference to an object into the specified interface.
-     * @param obj
-     * @param iface
-     * @param <I>
-     * @param <T>
-     * @return
+     * @param obj A reference to wrap.
+     * @param iface An information about wrapper type.
+     * @param <I> Method return type.
+     * @param <T> Type of the referenced object.
+     * @return A strong reference wrapper for the specified reference (soft, weak, phantom).
      */
     public static <I, T extends I> I wrapReference(final Reference<T> obj, final Class<I> iface){
         return iface.cast(Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {

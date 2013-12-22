@@ -3,6 +3,8 @@ package com.snamp.connectors;
 import com.snamp.*;
 import static com.snamp.ConcurrentResourceAccess.ConsistentAction;
 import static com.snamp.ConcurrentResourceAccess.Action;
+import static com.snamp.connectors.NotificationSupport.Notification;
+import static com.snamp.connectors.NotificationSupport.NotificationListener;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -514,7 +516,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
         /**
          * Removes the notification listener.
          *
-         * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationListener)}.
+         * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationSupport.NotificationListener)}.
          * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
          */
         @Override

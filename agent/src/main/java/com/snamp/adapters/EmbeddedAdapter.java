@@ -3,6 +3,8 @@ package com.snamp.adapters;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import com.snamp.connectors.util.*;
+import static com.snamp.connectors.NotificationSupport.NotificationListener;
+
 
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
@@ -142,7 +144,7 @@ public class EmbeddedAdapter extends AbstractAdapter implements NotificationPubl
 
     /**
      * Removes the subscription.
-     * @param listenerId An identifier of the subscription returned by {@link #subscribe(String, String, com.snamp.connectors.NotificationListener)} method.
+     * @param listenerId An identifier of the subscription returned by {@link #subscribe(String, String, com.snamp.connectors.NotificationSupport.NotificationListener)} method.
      * @return {@literal true}, if the specified subscription is removed successfully; otherwise, {@literal false}.
      */
     protected final boolean unsubscribe(final Object listenerId){

@@ -3,6 +3,8 @@ package com.snamp.connectors.util;
 import com.snamp.SynchronizationEvent;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
+import com.snamp.connectors.NotificationSupport.Notification;
+import com.snamp.connectors.NotificationSupport.NotificationListener;
 
 import java.util.concurrent.TimeoutException;
 

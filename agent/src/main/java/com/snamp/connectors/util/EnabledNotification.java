@@ -2,8 +2,8 @@ package com.snamp.connectors.util;
 
 import com.snamp.*;
 import com.snamp.connectors.*;
+import com.snamp.connectors.NotificationSupport.NotificationListener;
 
-import java.lang.ref.*;
 import java.util.HashMap;
 
 /**

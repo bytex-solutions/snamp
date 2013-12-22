@@ -1,10 +1,9 @@
 package com.snamp.connectors.util;
 
-import com.snamp.connectors.Notification;
-import com.snamp.connectors.NotificationListener;
+import com.snamp.connectors.NotificationSupport.Notification;
+import com.snamp.connectors.NotificationSupport.NotificationListener;
 
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Helps to collect notification into a single collection.
