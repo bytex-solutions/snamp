@@ -13,9 +13,7 @@ import com.snamp.SimpleTable;
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * In order to use this class you need for this jar to be present in your classpath
@@ -66,7 +64,8 @@ class IbmWmqConnector extends ManagementConnectorBean {
      *
      * @return Table of queue attributes
      */
-    final public SimpleTable<String> getQueuesStatus() {
+    @AttributeInfo(typeProvider = "createQueueStatusTableType")
+    final public IbmWmqTypeSystem.QueueStatusTable getQueuesStatus() {
         try {
             final PCFMessage inquireQueueStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS);
             if(mObjectFilter.containsKey("queueFilter"))
@@ -82,34 +81,10 @@ class IbmWmqConnector extends ManagementConnectorBean {
                 CMQC.MQIA_OPEN_OUTPUT_COUNT, CMQCFC.MQIACF_UNCOMMITTED_MSGS });
 
             final PCFMessage[] statistics = mMonitor.send(inquireQueueStatus);
-            final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{
-                put("QueueName", String.class);
-                put("CurrentDepth", Integer.class);
-                put("LastDequeueDate", String.class);
-                put("LastDequeueTime", String.class);
-                put("LastEnqueueDate", String.class);
-                put("LastEnqueueTime", String.class);
-                put("OldestMessageAge", String.class);
-                put("OpenInputCount", Integer.class);
-                put("OpenOutputCount", Integer.class);
-                put("UncommittedMessagesCount", Integer.class);
-            }};
-            final SimpleTable<String> resTable = new SimpleTable<>(columnsAndTypes);
-            for(final PCFMessage queueStatus : statistics)
-                resTable.addRow(new HashMap<String, Object>() {{
-                    put("QueueName", queueStatus.getStringParameterValue(CMQC.MQCA_Q_NAME));
-                    put("CurrentDepth", queueStatus.getIntParameterValue(CMQC.MQIA_CURRENT_Q_DEPTH));
-                    put("LastDequeueDate", queueStatus.getStringParameterValue(CMQCFC.MQCACF_LAST_GET_DATE));
-                    put("LastDequeueTime", queueStatus.getStringParameterValue(CMQCFC.MQCACF_LAST_GET_TIME));
-                    put("LastEnqueueDate", queueStatus.getStringParameterValue(CMQCFC.MQCACF_LAST_PUT_DATE));
-                    put("LastEnqueueTime", queueStatus.getStringParameterValue(CMQCFC.MQCACF_LAST_PUT_DATE));
-                    put("OldestMessageAge", queueStatus.getIntParameterValue(CMQCFC.MQIACF_OLDEST_MSG_AGE));
-                    put("OpenInputCount", queueStatus.getIntParameterValue(CMQC.MQIA_OPEN_INPUT_COUNT));
-                    put("OpenOutputCount", queueStatus.getIntParameterValue(CMQC.MQIA_OPEN_OUTPUT_COUNT));
-                    put("UncommittedMessagesCount", queueStatus.getIntParameterValue(CMQCFC.MQIACF_UNCOMMITTED_MSGS));
-                }});
+            /*
+               */
 
-            return resTable;
+            return new IbmWmqTypeSystem.QueueStatusTable(Arrays.asList(statistics));
 
         } catch (IOException | MQDataException e) {
             return null;
@@ -117,14 +92,14 @@ class IbmWmqConnector extends ManagementConnectorBean {
     }
 
     /**
-     * This function represents the table that holds all the attri butes for channel status
+     * This function represents the table that holds all the attributes for channel status
      * Each row is filled with some channel statistics data
      * This table is static due to
      *
      *
      * @return Table of queue attributes
      */
-    final public SimpleTable<String> getChannelsStatus() {
+    final public IbmWmqTypeSystem.ChannelStatusTable getChannelsStatus() {
         try {
             final PCFMessage inquireChannelStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS);
             if(mObjectFilter.containsKey("channelFilter"))
@@ -133,8 +108,9 @@ class IbmWmqConnector extends ManagementConnectorBean {
                 inquireChannelStatus.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, "*");
             //inquireChannelStatus.addParameter(CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, new int[] { CMQCFC.MQIACF_ALL  }); // this is the default
             final PCFMessage[] statistics = mMonitor.send(inquireChannelStatus);
-            // TODO: Переделать на новую систему типов
-            final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{
+
+            return new IbmWmqTypeSystem.ChannelStatusTable(Arrays.asList(statistics));
+            /*final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{
                 for(final PCFMessage curr : statistics) { // we need to add every parameter that appears at least once to table
                     final Enumeration paramEnum = curr.getParameters();
                     while (paramEnum.hasMoreElements()) { // fill the columns
@@ -154,7 +130,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
             // then iteratively fill table with data
             final SimpleTable<String> resTable = new SimpleTable<>(columnsAndTypes);
             fillTableData(resTable, statistics);
-            return resTable;
+            */
         } catch (IOException | MQDataException e) {
             return null;
         }

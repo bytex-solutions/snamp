@@ -238,19 +238,14 @@ class IbmWmbConnector extends ManagementConnectorBean
      * Function that retrieves table of all defined broker parameters
      * Note that this includes both simple properties and advanced properties
      *
-     * @return properties in form of table of "Key : Value" pairs
+     * @return properties hashtable
      * @see SimpleTable
      */
-    final public SimpleTable<String> getProperties() {
+    @AttributeInfo(typeProvider = "createPropertiesMap")
+    final public Properties getProperties() {
         try {
             final AdministeredObject entity = getAdministeredObject();
-            final Properties propsNativeTable = entity.getProperties();
-            final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{ put("Key", String.class); put("Value", String.class); }};
-            final SimpleTable<String> resTable = new SimpleTable<>(columnsAndTypes);
-            for(final Map.Entry<Object, Object> property : propsNativeTable.entrySet())
-                resTable.addRow(new HashMap<String, Object>() {{ put("Key", property.getKey().toString()); put("Value", property.getValue().toString()); }});
-
-            return resTable;
+            return entity.getProperties();
 
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
             return null;
