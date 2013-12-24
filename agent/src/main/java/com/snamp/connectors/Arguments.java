@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * Represents action invocation arguments,
+ * Represents action invocation arguments.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
@@ -16,10 +16,18 @@ public final class Arguments extends HashMap<String, Object> implements Serializ
      * Initializes a new argument list.
      * @param args An array of arguments.
      */
-    public Arguments(Object... args){
+    public Arguments(final Object... args){
         super(args.length);
         for(int i = 0; i < args.length; i++)
             put(i, args[i]);
+    }
+
+    /**
+     * Initializes a new argument list.
+     * @param args A collection of names and associated values.
+     */
+    public Arguments(final Map<String, ?> args){
+        super(args);
     }
 
     /**

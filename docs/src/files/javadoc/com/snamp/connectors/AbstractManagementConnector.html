@@ -467,7 +467,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 <dl>
 <dt><strong>Specified by:</strong></dt>
 <dd><code><a href="../../../com/snamp/connectors/ManagementConnector.html#connectAttribute(java.lang.String, java.lang.String, java.util.Map)">connectAttribute</a></code>&nbsp;in interface&nbsp;<code><a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.snamp.connectors">ManagementConnector</a></code></dd>
-<dt><span class="strong">Parameters:</span></dt><dd><code>id</code> - A key string that is used to read attribute from this connector.</dd><dd><code>attributeName</code> - The name of the attribute.</dd><dd><code>options</code> - Attribute discovery options.</dd>
+<dt><span class="strong">Parameters:</span></dt><dd><code>id</code> - A key string that is used to invoke attribute from this connector.</dd><dd><code>attributeName</code> - The name of the attribute.</dd><dd><code>options</code> - Attribute discovery options.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The description of the attribute.</dd></dl>
 </li>
 </ul>
@@ -502,10 +502,10 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 <dl>
 <dt><strong>Specified by:</strong></dt>
 <dd><code><a href="../../../com/snamp/connectors/ManagementConnector.html#getAttribute(java.lang.String, com.snamp.TimeSpan, java.lang.Object)">getAttribute</a></code>&nbsp;in interface&nbsp;<code><a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.snamp.connectors">ManagementConnector</a></code></dd>
-<dt><span class="strong">Parameters:</span></dt><dd><code>id</code> - A key string that is used to read attribute from this connector.</dd><dd><code>readTimeout</code> - The attribute value read operation timeout.</dd><dd><code>defaultValue</code> - The default value of the attribute if it is real value is not available.</dd>
+<dt><span class="strong">Parameters:</span></dt><dd><code>id</code> - A key string that is used to invoke attribute from this connector.</dd><dd><code>readTimeout</code> - The attribute value invoke operation timeout.</dd><dd><code>defaultValue</code> - The default value of the attribute if it is real value is not available.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The value of the attribute, or default value.</dd>
 <dt><span class="strong">Throws:</span></dt>
-<dd><code>java.util.concurrent.TimeoutException</code> - The attribute value cannot be read in the specified duration.</dd></dl>
+<dd><code>java.util.concurrent.TimeoutException</code> - The attribute value cannot be invoke in the specified duration.</dd></dl>
 </li>
 </ul>
 <a name="getAttributes(java.util.Map, com.snamp.TimeSpan)">
@@ -521,10 +521,10 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 <dl>
 <dt><strong>Specified by:</strong></dt>
 <dd><code><a href="../../../com/snamp/connectors/ManagementConnector.html#getAttributes(java.util.Map, com.snamp.TimeSpan)">getAttributes</a></code>&nbsp;in interface&nbsp;<code><a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.snamp.connectors">ManagementConnector</a></code></dd>
-<dt><span class="strong">Parameters:</span></dt><dd><code>output</code> - The dictionary with set of attribute keys to read and associated default values.</dd><dd><code>readTimeout</code> - The attribute value read operation timeout.</dd>
+<dt><span class="strong">Parameters:</span></dt><dd><code>output</code> - The dictionary with set of attribute keys to invoke and associated default values.</dd><dd><code>readTimeout</code> - The attribute value invoke operation timeout.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The set of attributes ids really written to the dictionary.</dd>
 <dt><span class="strong">Throws:</span></dt>
-<dd><code>java.util.concurrent.TimeoutException</code> - The attribute value cannot be read in the specified duration.</dd></dl>
+<dd><code>java.util.concurrent.TimeoutException</code> - The attribute value cannot be invoke in the specified duration.</dd></dl>
 </li>
 </ul>
 <a name="setAttributeValue(com.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">

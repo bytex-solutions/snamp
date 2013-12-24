@@ -163,7 +163,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
    dic.add("col2", new JsonPrimitive(42));
    dic.add("col3", new JsonPrimitive("Hello, world!"));
    writeAttributeAsJson("1.6", dic);
-   //now read dictionary and test
+   //now invoke dictionary and test
    JsonElement elem = readAttributeAsJson("dictionaryProperty");
    assertTrue(elem instanceof JsonObject);
    dic = (JsonObject)elem;
@@ -200,7 +200,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
    row.add("col2", new JsonPrimitive(100503));
    row.add("col3", new JsonPrimitive("Row 4"));
    writeAttributeAsJson("1.7", table);
-   //read table
+   //invoke table
    JsonElement elem = readAttributeAsJson("tableProperty");
    assertTrue(elem instanceof JsonArray);
    table = (JsonArray)elem;

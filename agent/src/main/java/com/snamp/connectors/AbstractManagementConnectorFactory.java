@@ -89,4 +89,17 @@ public abstract class AbstractManagementConnectorFactory<TConnector extends Mana
     public final boolean equals(final Object factory){
         return factory instanceof AbstractManagementConnectorFactory && equals((AbstractManagementConnectorFactory<?>)factory);
     }
+
+    /**
+     * Determines whether the specified feature is supported.
+     *
+     * @param feature Type of the feature to check, such as {@link com.snamp.connectors.NotificationSupport}.
+     * @return {@literal true}, if the specified management connector feature is supported; otherwise, {@literal false}.
+     * @see com.snamp.connectors.AttributeSupport
+     * @see com.snamp.connectors.NotificationSupport
+     */
+    @Override
+    public boolean supportsFeature(final Class<?> feature) {
+        return feature == null ? false : AttributeSupport.class.isAssignableFrom(feature);
+    }
 }

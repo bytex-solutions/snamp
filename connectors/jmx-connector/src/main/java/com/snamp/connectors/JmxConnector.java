@@ -19,7 +19,7 @@ import java.util.logging.*;
  * @author Roman Sakno
  */
 @SuppressWarnings("unchecked")
-final class JmxConnector extends AbstractManagementConnector {
+final class JmxConnector extends AbstractManagementConnector implements NotificationSupport {
     /**
      * Represents JMX connector name.
      */
@@ -28,12 +28,251 @@ final class JmxConnector extends AbstractManagementConnector {
     private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
     private static final String objectNameOption = "objectName";
 
+
+    private static final javax.management.NotificationListener createJmxListener(final NotificationListener listener, final String category, final Notification.Severity severity){
+            return new javax.management.NotificationListener() {
+                @Override
+                public void handleNotification(final javax.management.Notification notification, final Object handback) {
+                    if(Objects.equals(category, notification.getType()))
+                        listener.handle(new JmxNotificationWrapper(severity, notification));
+                }
+            };
+    }
+
+    private final static class JmxNotificationMetadata extends GenericNotificationMetadata implements MBeanServerConnectionHandler<Void>{
+        private final static String severityOption = "severity";
+        private final Map<String, String> options;
+        private final JmxConnectionManager connectionManager;
+
+        /**
+         * Represents owner of this notification metadata.
+         */
+        public final ObjectName eventOwner;
+        private final MBeanNotificationInfo eventMetadata;
+
+        public JmxNotificationMetadata(final JmxConnectionManager manager,
+                                       final String notifType,
+                                       final MBeanNotificationInfo notificationInfo,
+                                       final ObjectName eventOwner,
+                                       final Map<String, String> options){
+            super(notifType);
+            this.options = Collections.unmodifiableMap(options);
+            this.eventOwner = eventOwner;
+            this.eventMetadata = notificationInfo;
+            this.connectionManager = manager;
+            manager.addReconnectionHandler(this);
+        }
+
+        public final Notification.Severity getSeverity(){
+            if(options.containsKey(severityOption))
+                switch (options.get(severityOption)){
+                    case "panic": return Notification.Severity.PANIC;
+                    case "alert": return Notification.Severity.ALERT;
+                    case "critical": return Notification.Severity.CRITICAL;
+                    case "error": return Notification.Severity.ERROR;
+                    case "warning": return Notification.Severity.WARNING;
+                    case "notice": return Notification.Severity.NOTICE;
+                    case "info": return Notification.Severity.INFO;
+                    case "debug": return Notification.Severity.DEBUG;
+                    default: return Notification.Severity.UNKNOWN;
+
+                }
+            else return Notification.Severity.UNKNOWN;
+        }
+
+        /**
+         * Gets listeners invocation model for this notification type.
+         *
+         * @return Listeners invocation model for this notification type.
+         */
+        @Override
+        public final NotificationModel getNotificationModel() {
+            return NotificationModel.MULTICAST;
+        }
+
+        /**
+         * Returns the attachment type descriptor.
+         * @param attachment The notification attachment.
+         * @return The attachment type descriptor for the specified attachment; or {@literal null} if
+         * attachment is not supported.
+         */
+        @Override
+        public final ManagementEntityType getAttachmentType(final Object attachment) {
+            return attachment != null ? typeSystem.createEntityType(attachment.getClass()) : null;
+        }
+
+        @Override
+        public final int size() {
+            return options.size();
+        }
+
+        @Override
+        public final boolean isEmpty() {
+            return options.isEmpty();
+        }
+
+        @Override
+        public final boolean containsKey(final Object key) {
+            return options.containsKey(key);
+        }
+
+        @Override
+        public final boolean containsValue(final Object value) {
+            return options.containsValue(value);
+        }
+
+        @Override
+        public final String get(final Object key) {
+            return options.get(key);
+        }
+
+        @Override
+        public final Set<String> keySet() {
+            return options.keySet();
+        }
+
+        @Override
+        public final Collection<String> values() {
+            return options.values();
+        }
+
+        @Override
+        public final Set<Entry<String, String>> entrySet() {
+            return options.entrySet();
+        }
+
+        public final javax.management.NotificationListener subscribe(final NotificationListener listener){
+            final javax.management.NotificationListener wrapper = createJmxListener(listener, getCategory(), getSeverity());
+            return connectionManager.handleConnection(new MBeanServerConnectionHandler<javax.management.NotificationListener>() {
+                @Override
+                public javax.management.NotificationListener handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    connection.addNotificationListener(eventOwner, wrapper, null, null);
+                    return wrapper;
+                }
+            }, wrapper);
+        }
+
+        /**
+         * Re-registers notification listeners.
+         * @param connection
+         * @return
+         * @throws IOException
+         * @throws JMException
+         */
+        @Override
+        public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
+            for(final Pair<NotificationListener, Object> listener: getListeners())
+                if(listener.second instanceof javax.management.NotificationListener)
+                    connection.addNotificationListener(eventOwner, (javax.management.NotificationListener)listener.second, null, null);
+            return null;
+        }
+
+        private final void removeJmxListener(final javax.management.NotificationListener listener){
+            connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
+                @Override
+                public Void handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    connection.removeNotificationListener(eventOwner, listener);
+                    return null;
+                }
+            }, null);
+        }
+
+        public final void disableNotifications(){
+            //remove all listeners
+            for(final Pair<NotificationListener, Object> listener: removeListeners())
+                if(listener.second instanceof javax.management.NotificationListener)
+                    removeJmxListener((javax.management.NotificationListener)listener.second);
+        }
+    }
+
+    private static final class JmxNotificationSupport extends AbstractNotificationSupport{
+        private final JmxConnectionManager connectionManager;
+
+        public JmxNotificationSupport(final JmxConnectionManager connectionManager){
+            this.connectionManager = connectionManager;
+        }
+
+        /**
+         * Adds a new listener for the specified notification.
+         *
+         * @param notificationType The event type.
+         * @param listener         The event listener.
+         */
+        @Override
+        protected final Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener) {
+            return notificationType instanceof JmxNotificationMetadata ?
+                    ((JmxNotificationMetadata)notificationType).subscribe(listener):
+                    null;
+        }
+
+        private final void unsubscribeCore(final JmxNotificationMetadata md, final javax.management.NotificationListener listener){
+            connectionManager.handleConnection(new MBeanServerConnectionHandler<Object>() {
+                @Override
+                public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    connection.removeNotificationListener(md.eventOwner, listener);
+                    return null;
+                }
+            }, null);
+        }
+
+        /**
+         * Cancels the notification listening.
+         *
+         * @param metadata The event type.
+         * @param listener The notification listener to remove.
+         * @param data     The custom data associated with subscription that returned from {@link #subscribeCore(com.snamp.connectors.NotificationMetadata, com.snamp.connectors.NotificationSupport.NotificationListener)}
+         *                 method.
+         */
+        @Override
+        protected final void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data) {
+            if(metadata instanceof JmxNotificationMetadata && data instanceof javax.management.NotificationListener)
+                unsubscribeCore((JmxNotificationMetadata)metadata, (javax.management.NotificationListener)data);
+            else log.warning(String.format("JMX-incompliant listener detected %s", data));
+        }
+
+        /**
+         * Disable all notifications associated with the specified event.
+         *
+         * @param notificationType The event descriptor.
+         */
+        @Override
+        protected final void disableNotificationsCore(final NotificationMetadata notificationType) {
+            if(notificationType instanceof JmxNotificationMetadata)
+                ((JmxNotificationMetadata)notificationType).disableNotifications();
+        }
+
+        /**
+         * Enables event listening for the specified category of events.
+         *
+         * @param category The name of the category to listen.
+         * @param options  Event discovery options.
+         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+         */
+        @Override
+        protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
+            return connectionManager.handleConnection(new MBeanServerConnectionHandler<JmxNotificationMetadata>() {
+                @Override
+                public JmxNotificationMetadata handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    if (options.containsKey(objectNameOption)) {
+                        final ObjectName on = new ObjectName(options.get(objectNameOption));
+                        for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(on).getNotifications())
+                            for (final String notifType : notificationInfo.getNotifTypes())
+                                if (Objects.equals(notifType, category))
+                                    return new JmxNotificationMetadata(connectionManager, notifType, notificationInfo, on, options);
+                        return null;
+                    } else return null;
+                }
+            }, null);
+        }
+    }
+
     /**
      * Represents count of instantiated connectors.
      */
     private static final AtomicLong instanceCounter = new AtomicLong(0);
 
     private final JmxConnectionManager connectionManager;
+    private final JmxNotificationSupport notifications;
 
     /**
      * Represents field navigator in the composite JMX data.
@@ -156,7 +395,7 @@ final class JmxConnector extends AbstractManagementConnector {
          * @return The type of the attribute value.
          */
         @Override
-        public JmxManagementEntityType getAttributeType();
+        public JmxManagementEntityType getType();
     }
 
     /**
@@ -173,6 +412,11 @@ final class JmxConnector extends AbstractManagementConnector {
             super(attributeName, namespace.toString());
             this.connectionManager = manager;
             this.namespace = namespace;
+        }
+
+        @Override
+        public String getDisplayName(final Locale locale) {
+            return getName();
         }
 
         @Override
@@ -276,7 +520,7 @@ final class JmxConnector extends AbstractManagementConnector {
          * @return
          */
         public final boolean setValue(Object value){
-            final JmxManagementEntityType typeInfo = getAttributeType();
+            final JmxManagementEntityType typeInfo = getType();
             if(canWrite() && value != null)
                 try{
                     value = typeInfo.convertToJmxType(value);
@@ -344,7 +588,7 @@ final class JmxConnector extends AbstractManagementConnector {
         /**
          * Gets attachments associated with this notification.
          *
-         * @return A read-only collection of attachments associated with this notification.
+         * @return A invoke-only collection of attachments associated with this notification.
          */
         @Override
         public synchronized final Map<String, Object> getAttachments() {
@@ -408,7 +652,7 @@ final class JmxConnector extends AbstractManagementConnector {
                 return new MBeanServerConnectionHandler<Object>(){
                     @Override
                     public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
-                        return connection.getAttribute(namespace, getAttributeName());
+                        return connection.getAttribute(namespace, getName());
                     }
                 };
             }
@@ -422,10 +666,15 @@ final class JmxConnector extends AbstractManagementConnector {
                 return new MBeanServerConnectionHandler<Boolean>(){
                     @Override
                     public Boolean handle(final MBeanServerConnection connection) throws IOException, JMException {
-                        connection.setAttribute(namespace, new Attribute(getAttributeName(), value));
+                        connection.setAttribute(namespace, new Attribute(getName(), value));
                         return true;
                     }
                 };
+            }
+
+            @Override
+            public final String getDescription(final Locale locale) {
+                return targetAttr.getDescription();
             }
         } : null;
     }
@@ -452,6 +701,11 @@ final class JmxConnector extends AbstractManagementConnector {
             @Override
             public final boolean canWrite(){
                 return false;
+            }
+
+            @Override
+            public final String getDescription(final Locale locale) {
+                return targetAttr.getDescription();
             }
 
             /**
@@ -518,6 +772,7 @@ final class JmxConnector extends AbstractManagementConnector {
     public JmxConnector(final JMXServiceURL serviceURL, final Map<String, Object> connectionProperties){
         if(serviceURL == null) throw new IllegalArgumentException("serviceURL is null.");
         this.connectionManager = new JmxConnectionManager(log, serviceURL, connectionProperties);
+        this.notifications = new JmxNotificationSupport(this.connectionManager);
         JmxConnectorLimitations.current().verifyMaxInstanceCount(instanceCounter.incrementAndGet());
     }
 
@@ -548,14 +803,6 @@ final class JmxConnector extends AbstractManagementConnector {
         finally {
             JmxConnectorLimitations.current().verifyMaxAttributeCount(attributesCount());
         }
-    }
-
-    /**
-     * Throws an exception if the connector is not initialized.
-     */
-    @Override
-    protected void verifyInitialization() {
-        //do nothing, because this connector doesn't store connection session.
     }
 
     /**
@@ -604,13 +851,90 @@ final class JmxConnector extends AbstractManagementConnector {
     }
 
     /**
-     * Releases all resources associated with this connector.
-     * @throws IOException Some I/O error occurs.
+     * Enables event listening for the specified category of events.
+     * <p>
+     * categoryId can be used for enabling notifications for the same category
+     * but with different options.
+     * </p>
+     *
+     * @param listId   An identifier of the subscription list.
+     * @param category The name of the category to listen.
+     * @param options  Event discovery options.
+     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
      */
     @Override
-    public final void close() throws IOException{
-        connectionManager.close();
-        instanceCounter.decrementAndGet();
+    public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
+        verifyInitialization();
+        return notifications.enableNotifications(listId, category, options);
+    }
+
+    /**
+     * Disables event listening for the specified category of events.
+     * <p>
+     * This method removes all listeners associated with the specified subscription list.
+     * </p>
+     *
+     * @param listId The identifier of the subscription list.
+     * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+     */
+    @Override
+    public final boolean disableNotifications(final String listId) {
+        verifyInitialization();
+        return notifications.disableNotifications(listId);
+    }
+
+    /**
+     * Gets the notification metadata by its category.
+     *
+     * @param listId The identifier of the subscription list.
+     * @return The metadata of the specified notification category; or {@literal null}, if notifications
+     * for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
+     */
+    @Override
+    public final NotificationMetadata getNotificationInfo(final String listId) {
+        verifyInitialization();
+        return notifications.getNotificationInfo(listId);
+    }
+
+    /**
+     * Attaches the notification listener.
+     *
+     * @param listId   The identifier of the subscription list.
+     * @param listener The notification listener.
+     * @return An identifier of the notification listener generated by this connector.
+     */
+    @Override
+    public final Object subscribe(final String listId, final NotificationListener listener) {
+        verifyInitialization();
+        return notifications.subscribe(listId, listener);
+    }
+
+    /**
+     * Removes the notification listener.
+     *
+     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationListener)}.
+     * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
+     */
+    @Override
+    public final boolean unsubscribe(final Object listenerId) {
+        verifyInitialization();
+        return notifications.unsubscribe(listenerId);
+    }
+
+    /**
+     * Releases all resources associated with this connector.
+     * @throws java.lang.Exception Some I/O error occurs.
+     */
+    @Override
+    public final void close() throws Exception{
+        super.close();
+        notifications.clear();
+        try{
+            connectionManager.close();
+        }
+        finally {
+            instanceCounter.decrementAndGet();
+        }
     }
 
     /**
@@ -619,241 +943,6 @@ final class JmxConnector extends AbstractManagementConnector {
     @Override
     protected final void finalize() {
         instanceCounter.decrementAndGet();
-    }
-
-    private static final class JmxNotificationUtils{
-        private JmxNotificationUtils(){
-
-        }
-
-        public static final javax.management.NotificationListener createJmxListener(final NotificationListener listener, final String category, final Notification.Severity severity){
-            return new javax.management.NotificationListener() {
-                @Override
-                public void handleNotification(final javax.management.Notification notification, final Object handback) {
-                    if(Objects.equals(category, notification.getType()))
-                        listener.handle(new JmxNotificationWrapper(severity, notification));
-                }
-            };
-        }
-    }
-
-    private final static class JmxNotificationMetadata extends GenericNotificationMetadata implements MBeanServerConnectionHandler<Void>{
-        private final static String severityOption = "severity";
-        private final Map<String, String> options;
-        private final JmxConnectionManager connectionManager;
-
-        /**
-         * Represents owner of this notification metadata.
-         */
-        public final ObjectName eventOwner;
-        private final MBeanNotificationInfo eventMetadata;
-
-        public JmxNotificationMetadata(final JmxConnectionManager manager,
-                                       final String notifType,
-                                       final MBeanNotificationInfo notificationInfo,
-                                       final ObjectName eventOwner,
-                                       final Map<String, String> options){
-            super(notifType);
-            this.options = Collections.unmodifiableMap(options);
-            this.eventOwner = eventOwner;
-            this.eventMetadata = notificationInfo;
-            this.connectionManager = manager;
-            manager.addReconnectionHandler(this);
-        }
-
-        public final Notification.Severity getSeverity(){
-            if(options.containsKey(severityOption))
-                switch (options.get(severityOption)){
-                    case "panic": return Notification.Severity.PANIC;
-                    case "alert": return Notification.Severity.ALERT;
-                    case "critical": return Notification.Severity.CRITICAL;
-                    case "error": return Notification.Severity.ERROR;
-                    case "warning": return Notification.Severity.WARNING;
-                    case "notice": return Notification.Severity.NOTICE;
-                    case "info": return Notification.Severity.INFO;
-                    case "debug": return Notification.Severity.DEBUG;
-                    default: return Notification.Severity.UNKNOWN;
-
-                }
-            else return Notification.Severity.UNKNOWN;
-        }
-
-        /**
-         * Gets listeners invocation model for this notification type.
-         *
-         * @return Listeners invocation model for this notification type.
-         */
-        @Override
-        public final NotificationModel getNotificationModel() {
-            return NotificationModel.MULTICAST;
-        }
-
-        /**
-         * Returns the attachment type descriptor.
-         * @param attachment The notification attachment.
-         * @return The attachment type descriptor for the specified attachment; or {@literal null} if
-         * attachment is not supported.
-         */
-        @Override
-        public final ManagementEntityType getAttachmentType(final Object attachment) {
-            return attachment != null ? typeSystem.createEntityType(attachment.getClass()) : null;
-        }
-
-        @Override
-        public final int size() {
-            return options.size();
-        }
-
-        @Override
-        public final boolean isEmpty() {
-            return options.isEmpty();
-        }
-
-        @Override
-        public final boolean containsKey(final Object key) {
-            return options.containsKey(key);
-        }
-
-        @Override
-        public final boolean containsValue(final Object value) {
-            return options.containsValue(value);
-        }
-
-        @Override
-        public final String get(final Object key) {
-            return options.get(key);
-        }
-
-        @Override
-        public final Set<String> keySet() {
-            return options.keySet();
-        }
-
-        @Override
-        public final Collection<String> values() {
-            return options.values();
-        }
-
-        @Override
-        public final Set<Entry<String, String>> entrySet() {
-            return options.entrySet();
-        }
-
-        public final javax.management.NotificationListener subscribe(final NotificationListener listener){
-            final javax.management.NotificationListener wrapper = JmxNotificationUtils.createJmxListener(listener, getCategory(), getSeverity());
-            return connectionManager.handleConnection(new MBeanServerConnectionHandler<javax.management.NotificationListener>() {
-                @Override
-                public javax.management.NotificationListener handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    connection.addNotificationListener(eventOwner, wrapper, null, null);
-                    return wrapper;
-                }
-            }, wrapper);
-        }
-
-        /**
-         * Re-registers notification listeners.
-         * @param connection
-         * @return
-         * @throws IOException
-         * @throws JMException
-         */
-        @Override
-        public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
-            for(final Pair<NotificationListener, Object> listener: getListeners())
-                if(listener.second instanceof javax.management.NotificationListener)
-                    connection.addNotificationListener(eventOwner, (javax.management.NotificationListener)listener.second, null, null);
-            return null;
-        }
-
-        private final void removeJmxListener(final javax.management.NotificationListener listener){
-            connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
-                @Override
-                public Void handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    connection.removeNotificationListener(eventOwner, listener);
-                    return null;
-                }
-            }, null);
-        }
-
-        public final void disableNotifications(){
-            //remove all listeners
-            for(final Pair<NotificationListener, Object> listener: removeListeners())
-                if(listener.second instanceof javax.management.NotificationListener)
-                    removeJmxListener((javax.management.NotificationListener)listener.second);
-        }
-    }
-
-    /**
-     * Enables event listening for the specified category of events.
-     *
-     * @param category The name of the category to listen.
-     * @param options  Event discovery options.
-     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-     */
-    @Override
-    protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
-        return connectionManager.handleConnection(new MBeanServerConnectionHandler<JmxNotificationMetadata>() {
-            @Override
-            public JmxNotificationMetadata handle(final MBeanServerConnection connection) throws IOException, JMException {
-                if (options.containsKey(objectNameOption)) {
-                    final ObjectName on = new ObjectName(options.get(objectNameOption));
-                    for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(on).getNotifications())
-                        for (final String notifType : notificationInfo.getNotifTypes())
-                            if (Objects.equals(notifType, category))
-                                return new JmxNotificationMetadata(connectionManager, notifType, notificationInfo, on, options);
-                    return null;
-                } else return null;
-            }
-        }, null);
-    }
-
-    /**
-     * Adds a new listener for the specified notification.
-     *
-     * @param notificationType The event type.
-     * @param listener         The event listener.
-     */
-    @Override
-    protected final Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener) {
-        return notificationType instanceof JmxNotificationMetadata ?
-                ((JmxNotificationMetadata)notificationType).subscribe(listener):
-                null;
-    }
-
-    private final void unsubscribeCore(final JmxNotificationMetadata md, final javax.management.NotificationListener listener){
-        connectionManager.handleConnection(new MBeanServerConnectionHandler<Object>() {
-            @Override
-            public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
-                connection.removeNotificationListener(md.eventOwner, listener);
-                return null;
-            }
-        }, null);
-    }
-
-    /**
-     * Cancels the notification listening.
-     *
-     * @param metadata The event type.
-     * @param listener The notification listener to remove.
-     * @param data     The custom data associated with subscription that returned from {@link #subscribeCore(com.snamp.connectors.NotificationMetadata, com.snamp.connectors.NotificationListener)}
-     *                 method.
-     */
-    @Override
-    protected final void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data) {
-        if(metadata instanceof JmxNotificationMetadata && data instanceof javax.management.NotificationListener)
-            unsubscribeCore((JmxNotificationMetadata)metadata, (javax.management.NotificationListener)data);
-        else log.warning(String.format("JMX-incompliant listener detected %s", data));
-    }
-
-    /**
-     * Disable all notifications associated with the specified event.
-     *
-     * @param notificationType The event descriptor.
-     */
-    @Override
-    protected final void disableNotificationsCore(final NotificationMetadata notificationType) {
-        if(notificationType instanceof JmxNotificationMetadata)
-            ((JmxNotificationMetadata)notificationType).disableNotifications();
     }
 
     /**

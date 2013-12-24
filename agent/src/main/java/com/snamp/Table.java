@@ -48,7 +48,7 @@ public interface Table<COLUMN> {
      * @param column The column identifier.
      * @param row The row number (zero-based).
      * @param value The cell value to set.
-     * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
+     * @throws UnsupportedOperationException Operation is not supported because this table is invoke-only.
      * @throws ClassCastException The value type is not compliant with column type.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
@@ -57,7 +57,7 @@ public interface Table<COLUMN> {
     /**
      * Adds a new row to the end of the table.
      * @param values The values of the row.
-     * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
+     * @throws UnsupportedOperationException Operation is not supported because this table is invoke-only.
      * @throws ClassCastException The value type is not compliant with column type.
      * @throws IllegalArgumentException The count of values doesn't match to column count.
      */
@@ -67,7 +67,7 @@ public interface Table<COLUMN> {
     /**
      * Removes the row from this table.
      * @param rowIndex An index of the row to remove.
-     * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
+     * @throws UnsupportedOperationException Operation is not supported because this table is invoke-only.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public void removeRow(final int rowIndex) throws UnsupportedOperationException;

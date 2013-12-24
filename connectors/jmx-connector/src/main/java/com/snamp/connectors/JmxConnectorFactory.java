@@ -61,4 +61,17 @@ final class JmxConnectorFactory extends AbstractManagementConnectorFactory<JmxCo
             return null;
         }
     }
+
+    /**
+     * Determines whether the specified feature is supported.
+     *
+     * @param feature Type of the feature to check, such as {@link com.snamp.connectors.NotificationSupport}.
+     * @return {@literal true}, if the specified management connector feature is supported; otherwise, {@literal false}.
+     * @see com.snamp.connectors.AttributeSupport
+     * @see com.snamp.connectors.NotificationSupport
+     */
+    @Override
+    public final boolean supportsFeature(final Class<?> feature) {
+        return feature == null ? false : feature.isAssignableFrom(JmxConnector.class);
+    }
 }

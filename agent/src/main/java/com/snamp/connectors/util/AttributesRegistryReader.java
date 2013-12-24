@@ -14,14 +14,14 @@ import java.util.Collection;
 @Internal
 public interface AttributesRegistryReader {
     /**
-     * Gets a read-only collection of registered namespaces.
-     * @return A read-only collection of registered namespaces.
+     * Gets a invoke-only collection of registered namespaces.
+     * @return A invoke-only collection of registered namespaces.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public Collection<String> getNamespaces();
 
     /**
-     * Gets a read-only collection of registered attributes inside of the specified attributes.
+     * Gets a invoke-only collection of registered attributes inside of the specified attributes.
      * @param namespace A namespace of registered attributes.
      * @return A collection of registered attributes in the specified namespace.
      */

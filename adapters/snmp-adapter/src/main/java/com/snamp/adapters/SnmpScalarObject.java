@@ -6,7 +6,6 @@ import org.snmp4j.agent.mo.*;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 
-import java.lang.ref.*;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -19,20 +18,20 @@ import static com.snamp.connectors.util.ManagementEntityTypeHelper.ConversionFal
  */
 abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implements SnmpAttributeMapping {
     private final T defaultValue;
-    private final Reference<ManagementConnector> connector;
+    private final AttributeSupport connector;
     private final TimeSpan timeouts;
     /**
      * Represents the type of the attribute.
      */
     protected final ManagementEntityType attributeTypeInfo;
 
-    private SnmpScalarObject(final String oid, final ManagementConnector connector, final AttributeMetadata attributeInfo, final T defval, final TimeSpan timeouts){
+    private SnmpScalarObject(final String oid, final AttributeSupport connector, final AttributeMetadata attributeInfo, final T defval, final TimeSpan timeouts){
         super(new OID(oid), getAccessRestrictions(attributeInfo), defval);
         if(connector == null) throw new IllegalArgumentException("connector is null.");
-        this.connector = new WeakReference<>(connector);
         defaultValue = defval;
+        this.connector = connector;
         this.timeouts = timeouts;
-        this.attributeTypeInfo = attributeInfo.getAttributeType();
+        this.attributeTypeInfo = attributeInfo.getType();
     }
 
     protected static <T> T logAndReturnDefaultValue(final T defaultValue, final Variable originalValue, final ManagementEntityType attributeType){
@@ -57,7 +56,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
      * @param timeouts Read/write timeout.
      * @exception IllegalArgumentException connector is null.
      */
-    protected SnmpScalarObject(final String oid, final ManagementConnector connector, final T defval, final TimeSpan timeouts)
+    protected SnmpScalarObject(final String oid, final AttributeSupport connector, final T defval, final TimeSpan timeouts)
     {
         this(oid, connector, connector.getAttributeInfo(oid), defval, timeouts);
     }
@@ -76,7 +75,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
      */
     protected abstract Object convert(final T value);
 
-    private final T getValue(final ManagementConnector connector){
+    private final T getValue(final AttributeSupport connector){
         if(connector == null) return defaultValue;
         Object result = null;
         try{
@@ -96,10 +95,10 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
      */
     @Override
     public final T getValue() {
-        return getValue(connector.get());
+        return getValue(connector);
     }
 
-    private final int setValue(final T value, final ManagementConnector connector) {
+    private final int setValue(final T value, final AttributeSupport connector) {
         if(connector == null) return SnmpConstants.SNMP_ERROR_RESOURCE_UNAVAILABLE;
         int result = SnmpConstants.SNMP_ERROR_SUCCESS;
         try {
@@ -118,10 +117,10 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
      */
     @Override
     public final int setValue(final T value) {
-        return setValue(value, connector.get());
+        return setValue(value, connector);
     }
 
-    private final AttributeMetadata getMetadata(final ManagementConnector connector){
+    private final AttributeMetadata getMetadata(final AttributeSupport connector){
         return connector != null ? connector.getAttributeInfo(Objects.toString(getID(), "")) : null;
     }
 
@@ -132,6 +131,6 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
      */
     @Override
     public final AttributeMetadata getMetadata() {
-        return getMetadata(connector.get());
+        return getMetadata(connector);
     }
 }

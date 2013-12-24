@@ -1,9 +1,7 @@
 package com.snamp.adapters;
 
-import com.snamp.connectors.ManagementConnector;
-import com.snamp.connectors.util.AbstractAttributesRegistry;
-import com.snamp.connectors.util.AttributesRegistry;
-import com.snamp.connectors.util.ConnectedAttributes;
+import com.snamp.connectors.AttributeSupport;
+import com.snamp.connectors.util.*;
 import com.snamp.hosting.AgentConfiguration;
 import com.snamp.licensing.RestAdapterLimitations;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
@@ -31,7 +29,7 @@ final class RestAdapter extends AbstractAdapter {
         jettyServer = new Server();
         exposedAttributes = new AbstractAttributesRegistry() {
             @Override
-            protected ConnectedAttributes createBinding(final ManagementConnector connector) {
+            protected ConnectedAttributes createBinding(final AttributeSupport connector) {
                 return new ConnectedAttributes(connector) {
                     @Override
                     public String makeAttributeId(final String prefix, final String postfix) {
@@ -90,12 +88,12 @@ final class RestAdapter extends AbstractAdapter {
     /**
      * Stops the connector hosting.
      *
-     * @param saveAttributes {@literal true} to save previously exposed attributes for reuse; otherwise,
+     * @param saveState {@literal true} to save previously exposed attributes for reuse; otherwise,
      *                       clear internal list of exposed attributes.
      * @return {@literal true}, if adapter is previously started; otherwise, {@literal false}.
      */
     @Override
-    public boolean stop(final boolean saveAttributes) {
+    public boolean stop(final boolean saveState) {
         if(started)
             try {
                 jettyServer.stop();
@@ -117,7 +115,7 @@ final class RestAdapter extends AbstractAdapter {
      * @param attributes The dictionary of attributes.
      */
     @Override
-    public final void exposeAttributes(final ManagementConnector connector, final String namespace, final Map<String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attributes) {
+    public final void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attributes) {
         exposedAttributes.putAll(connector, namespace, attributes);
     }
 
@@ -160,5 +158,7 @@ final class RestAdapter extends AbstractAdapter {
     @Override
     public final void close() throws Exception {
         jettyServer.stop();
+        exposedAttributes.clear();
+        started = false;
     }
 }

@@ -143,9 +143,9 @@ public final class ManagementEntityTypeHelper {
     }
 
     /**
-     * Returns a read-only collection of indexed columns inside of the tabular management entity.
+     * Returns a invoke-only collection of indexed columns inside of the tabular management entity.
      * @param entityType Tabular management entity type. Cannot be {@literal null}.
-     * @return A read-onyl collection of indexed columns.
+     * @return A invoke-onyl collection of indexed columns.
      */
     public static Collection<String> getIndexedColumns(final ManagementEntityTabularType entityType){
         final Collection<String> index = new ArrayList<>(entityType.getColumns().size());

@@ -10,7 +10,7 @@ import java.util.Date;
 final class SnmpUnixTimeObject extends SnmpScalarObject<TimeTicks>{
     public static final long defaultValue = -1;
 
-    public SnmpUnixTimeObject(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
+    public SnmpUnixTimeObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
         super(oid, connector, new TimeTicks(defaultValue), timeouts);
     }
 

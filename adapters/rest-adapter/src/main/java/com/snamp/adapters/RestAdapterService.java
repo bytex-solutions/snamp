@@ -61,7 +61,7 @@ public final class RestAdapterService extends AbstractPlatformService {
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     private final JsonArray toJsonArray(final AttributeValue<ManagementEntityTabularType> array){
         final JsonArray result = new JsonArray();
-        //read all elements and converts each of them to JSON
+        //invoke all elements and converts each of them to JSON
         for(final Object rawValue: array.convertTo(Object[].class)){
             result.add(toJson(new AttributeValue<>(rawValue, array.type.getColumnType(VALUE_COLUMN_NAME))));
         }

@@ -21,7 +21,7 @@ public interface BinarySerializable {
      * Restores the state of this object from the specified stream.
      * @param input An input streams that contains the serialized state of this object.
      * @throws UnsupportedOperationException Deserialization is not supported.
-     * @throws IOException Cannot read from the specified stream.
+     * @throws IOException Cannot invoke from the specified stream.
      */
     public void load(final InputStream input) throws IOException;
 }

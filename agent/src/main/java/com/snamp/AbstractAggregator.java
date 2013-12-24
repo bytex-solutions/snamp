@@ -68,6 +68,7 @@ public abstract class AbstractAggregator implements Aggregator {
      */
     @Override
     public <T> T queryObject(final Class<T> objectType) {
+        if(objectType == null) return null;
         //iterates through all derived classes
         Class<?> lookup = getClass();
         while (lookup != null){
@@ -75,6 +76,6 @@ public abstract class AbstractAggregator implements Aggregator {
             if(serviceInstance == null) lookup = lookup.getSuperclass();
             else return serviceInstance;
         }
-        return null;
+        return objectType.isInstance(this) ? objectType.cast(this) : null;
     }
 }

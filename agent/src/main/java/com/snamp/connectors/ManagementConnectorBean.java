@@ -68,7 +68,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  */
 @Lifecycle(InstanceLifecycle.NORMAL)
-public class ManagementConnectorBean extends AbstractManagementConnector {
+public class ManagementConnectorBean extends AbstractManagementConnector implements NotificationSupport {
 
     /**
      * Associated additional attribute info with the bean property getter and setter.
@@ -156,7 +156,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
         }
 
         public final void setValue(final Object beanInstance, final Object value) throws ReflectiveOperationException {
-            final TypeConverter<?> converter = getAttributeType().getProjection(propertyType);
+            final TypeConverter<?> converter = getType().getProjection(propertyType);
             if(converter != null)
                 setter.invoke(beanInstance, converter.convertFrom(value));
         }
@@ -315,7 +315,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
          * The key of the returned map contains name of the attachment.
          * </p>
          *
-         * @return A read-only collection of attachments associated with this notification.
+         * @return A invoke-only collection of attachments associated with this notification.
          */
         @Override
         public final Map<String, Object> getAttachments() {
@@ -408,10 +408,84 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
         }
     }
 
+    private static final class JavaBeanNotificationSupport extends AbstractNotificationSupport{
+        private final WellKnownTypeSystem attachmentTypeSystem;
+
+        public JavaBeanNotificationSupport(final WellKnownTypeSystem typeSystem){
+            this.attachmentTypeSystem = typeSystem;
+        }
+
+
+        /**
+         * Raises notification.
+         * @param category The category of the event to raise.
+         * @param severity The severity of the event to raise.
+         * @param message Human-readable description of the event.
+         * @param attachments A set of notification attachments. May be {@literal null}.
+         */
+        public final void emitNotification(final String category, final Notification.Severity severity, final String message, final Map<String, Object> attachments){
+            for(final JavaBeanEventMetadata eventMetadata: getEnabledNotifications(category, JavaBeanEventMetadata.class).values())
+                eventMetadata.fireListeners(severity, message, attachments);
+        }
+
+        /**
+         * Enables event listening for the specified category of events.
+         *
+         * @param category The name of the category to listen.
+         * @param options  Event discovery options.
+         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+         */
+        @Override
+        protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
+            return new JavaBeanEventMetadata(attachmentTypeSystem, category, options);
+        }
+
+        /**
+         * Disable all notifications associated with the specified event.
+         * <p>
+         * In the default implementation this method does nothing.
+         * </p>
+         *
+         * @param notificationType The event descriptor.
+         */
+        @Override
+        protected final void disableNotificationsCore(final NotificationMetadata notificationType) {
+            if(notificationType instanceof GenericNotificationMetadata)
+                ((GenericNotificationMetadata)notificationType).removeListeners();
+        }
+
+        /**
+         * Adds a new listener for the specified notification.
+         *
+         * @param notificationType The event type.
+         * @param listener         The event listener.
+         * @return Any custom data associated with the subscription.
+         */
+        @Override
+        @MethodStub
+        protected Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener) {
+            return null;
+        }
+
+        /**
+         * Cancels the notification listening.
+         *
+         * @param metadata The event type.
+         * @param listener The notification listener to remove.
+         * @param data     The custom data associated with subscription that returned from {@link #subscribeCore(NotificationMetadata, NotificationListener)}
+         */
+        @Override
+        @MethodStub
+        protected void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data) {
+
+        }
+    }
+
 
     private final BeanInfo beanMetadata;
     private final WellKnownTypeSystem typeInfoBuilder;
     private final Object beanInstance;
+    private final JavaBeanNotificationSupport notifications;
 
     /**
      * Provides introspection for the specified bean instance.
@@ -467,6 +541,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
         this.typeInfoBuilder = typeBuilder;
         this.beanMetadata = Introspector.getBeanInfo(getClass(), ManagementConnectorBean.class);
         this.beanInstance = null;
+        this.notifications = new JavaBeanNotificationSupport(typeBuilder);
     }
 
     /**
@@ -486,6 +561,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
         this.beanInstance = beanInstance;
         this.beanMetadata = introspector.getBeanInfo(beanInstance);
         this.typeInfoBuilder = typeBuilder;
+        this.notifications = new JavaBeanNotificationSupport(typeBuilder);
     }
 
     /**
@@ -498,13 +574,6 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      */
     public static <T> ManagementConnectorBean wrap(final T beanInstance, final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
         return new ManagementConnectorBean(beanInstance, new StandardBeanIntrospector<>(), typeBuilder);
-    }
-
-    /**
-     * Throws an exception if the connector is not initialized.
-     */
-    @Override
-    protected void verifyInitialization() {
     }
 
     /**
@@ -619,6 +688,24 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
     }
 
     /**
+     * Enables event listening for the specified category of events.
+     * <p>
+     * categoryId can be used for enabling notifications for the same category
+     * but with different options.
+     * </p>
+     *
+     * @param listId   An identifier of the subscription list.
+     * @param category The name of the category to listen.
+     * @param options  Event discovery options.
+     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+     */
+    @Override
+    public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
+        verifyInitialization();
+        return notifications.enableNotifications(listId, category, options);
+    }
+
+    /**
      * Raises notification.
      * <p>
      *     In the derived class you should write your own emitter for each notification category,
@@ -640,42 +727,70 @@ public class ManagementConnectorBean extends AbstractManagementConnector {
      * @param attachments A set of notification attachments. May be {@literal null}.
      */
     protected final void emitNotification(final String category, final Notification.Severity severity, final String message, final Map<String, Object> attachments){
-        for(final JavaBeanEventMetadata eventMetadata: getEnabledNotifications(category, JavaBeanEventMetadata.class).values())
-            eventMetadata.fireListeners(severity, message, attachments);
+        notifications.emitNotification(category, severity, message, attachments);
     }
 
     /**
-     * Enables event listening for the specified category of events.
-     *
-     * @param category The name of the category to listen.
-     * @param options  Event discovery options.
-     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-     */
-    @Override
-    protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
-        return new JavaBeanEventMetadata(typeInfoBuilder, category, options);
-    }
-
-    /**
-     * Disable all notifications associated with the specified event.
+     * Disables event listening for the specified category of events.
      * <p>
-     * In the default implementation this method does nothing.
+     * This method removes all listeners associated with the specified subscription list.
      * </p>
      *
-     * @param notificationType The event descriptor.
+     * @param listId The identifier of the subscription list.
+     * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
      */
     @Override
-    protected final void disableNotificationsCore(final NotificationMetadata notificationType) {
-        if(notificationType instanceof GenericNotificationMetadata)
-            ((GenericNotificationMetadata)notificationType).removeListeners();
+    public final boolean disableNotifications(final String listId) {
+        verifyInitialization();
+        return notifications.disableNotifications(listId);
     }
 
     /**
-     * Releases all resources associated with this management connector.
+     * Gets the notification metadata by its category.
+     *
+     * @param listId The identifier of the subscription list.
+     * @return The metadata of the specified notification category; or {@literal null}, if notifications
+     * for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
+     */
+    @Override
+    public final NotificationMetadata getNotificationInfo(final String listId) {
+        verifyInitialization();
+        return notifications.getNotificationInfo(listId);
+    }
+
+    /**
+     * Attaches the notification listener.
+     *
+     * @param listId   The identifier of the subscription list.
+     * @param listener The notification listener.
+     * @return An identifier of the notification listener generated by this connector.
+     */
+    @Override
+    public final Object subscribe(final String listId, final NotificationListener listener) {
+        verifyInitialization();
+        return notifications.subscribe(listId, listener);
+    }
+
+    /**
+     * Removes the notification listener.
+     *
+     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationListener)}.
+     * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
+     */
+    @Override
+    public final boolean unsubscribe(final Object listenerId) {
+        verifyInitialization();
+        return notifications.unsubscribe(listenerId);
+    }
+
+    /**
+     * Releases all resources associated with this connector.
+     *
      * @throws Exception
      */
     @Override
     public void close() throws Exception {
-        //To change body of implemented methods use File | Settings | File Templates.
+        super.close();
+        notifications.clear();
     }
 }

@@ -140,7 +140,7 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterF
         public static final String VALUE_COLUMN_NAME = "Value";
 
         /**
-         * Represents read-only collection of columns.
+         * Represents invoke-only collection of columns.
          */
         public static final Collection<String> COLUMNS = Collections.unmodifiableList(Arrays.asList(INDEX_COLUMN_NAME, VALUE_COLUMN_NAME));
 

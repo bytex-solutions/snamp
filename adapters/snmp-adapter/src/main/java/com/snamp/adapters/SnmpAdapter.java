@@ -19,6 +19,7 @@ import org.snmp4j.smi.*;
 import org.snmp4j.transport.TransportMappings;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.snamp.connectors.NotificationSupport.Notification;
 
 /**
  * Represents SNMP Agent.
@@ -297,18 +298,18 @@ final class SnmpAdapter extends SnmpAdapterBase {
     /**
      * Stops the connector hosting.
      *
-     * @param saveAttributes {@literal true} to save previously exposed attributes for reuse; otherwise,
+     * @param saveState {@literal true} to save previously exposed attributes for reuse; otherwise,
      *                       clear internal list of exposed attributes.
      * @return {@literal true}, if adapter is previously started; otherwise, {@literal false}.
      */
     @Override
-    public boolean stop(final boolean saveAttributes) {
+    public boolean stop(final boolean saveState) {
         switch (agentState){
             case STATE_RUNNING:
                 super.stop();
                 unregisterSnmpMIBs();
                 removeNotificationTargets();
-                if(!saveAttributes) {
+                if(!saveState) {
                     attributes.clear();
                     senders.clear();
                 }
@@ -317,7 +318,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
         }
     }
 
-    private void exposeAttribute(final ManagementConnector connector, final String prefix, final String postfix, AttributeConfiguration attribute){
+    private void exposeAttribute(final AttributeSupport connector, final String prefix, final String postfix, AttributeConfiguration attribute){
         final String oid = combineOID(prefix, postfix);
         final SnmpAttributeMapping mo = SnmpType.createManagedObject(connector, oid, attribute.getAttributeName(), attribute.getAdditionalElements(), attribute.getReadWriteTimeout());
         if(mo == null)
@@ -340,12 +341,12 @@ final class SnmpAdapter extends SnmpAdapterBase {
      * @param attributes The dictionary of attributes.
      */
     @Override
-    public final void exposeAttributes(final ManagementConnector connector, final String namespace, final Map<String, AttributeConfiguration> attributes) {
+    public final void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AttributeConfiguration> attributes) {
         for(final String postfix: attributes.keySet())
             exposeAttribute(connector, namespace, postfix, attributes.get(postfix));
     }
 
-    private final void exposeEvent(final ManagementConnector connector, final String namespace, final String postfix, final EventConfiguration eventInfo){
+    private final void exposeEvent(final NotificationSupport connector, final String namespace, final String postfix, final EventConfiguration eventInfo){
         final Map<String, String> eventOptions = eventInfo.getAdditionalElements();
         if(eventOptions.containsKey(TrapSender.EVENT_TARGET_ADDRESS) && eventOptions.containsKey(TrapSender.EVENT_TARGET_NAME)){
             final int timeout = eventOptions.containsKey(TrapSender.EVENT_TARGET_NOTIF_TIMEOUT) ?
@@ -373,7 +374,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
     }
 
     @Override
-    public final void exposeEvents(final ManagementConnector connector, final String namespace, final Map<String, EventConfiguration> events) {
+    public final void exposeEvents(final NotificationSupport connector, final String namespace, final Map<String, EventConfiguration> events) {
         for(final String postfix: events.keySet())
             exposeEvent(connector, namespace, postfix, events.get(postfix));
     }

@@ -10,11 +10,10 @@ import static com.snamp.adapters.SnmpHelpers.getAccessRestrictions;
 import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 
 import com.snamp.*;
-import java.lang.ref.*;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Represents SNMP table.
@@ -67,7 +66,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
         }
     }
 
-    private final Reference<ManagementConnector> _connector;
+    private final AttributeSupport _connector;
     private final ManagementEntityTabularType _tabularType;
     private final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table;
     private final TimeSpan readWriteTimeout;
@@ -99,9 +98,9 @@ final class SnmpTableObject implements SnmpAttributeMapping{
         return new OID(String.format("%s.%s", table.getOID(), rowIndex + 1));
     }
 
-    private SnmpTableObject(final String oid, final ManagementConnector connector, final TimeSpan timeouts, final AttributeMetadata attribute){
-        _connector = new WeakReference<>(connector);
-        _tabularType = (ManagementEntityTabularType)attribute.getAttributeType();
+    private SnmpTableObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts, final AttributeMetadata attribute){
+        _connector = connector;
+        _tabularType = (ManagementEntityTabularType)attribute.getType();
         //creates column structure
         table = createEmptyTable(new OID(oid), _tabularType, getAccessRestrictions(attribute));
         readWriteTimeout = timeouts;
@@ -126,11 +125,11 @@ final class SnmpTableObject implements SnmpAttributeMapping{
      * @param connector
      * @param timeouts
      */
-    public SnmpTableObject(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
+    public SnmpTableObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
         this(oid, connector, timeouts, connector.getAttributeInfo(oid));
     }
 
-    private static AttributeMetadata getMetadata(final ManagementConnector connector, final OID attributeId){
+    private static AttributeMetadata getMetadata(final AttributeSupport connector, final OID attributeId){
         return connector != null ? connector.getAttributeInfo(attributeId.toString()) : null;
     }
 
@@ -141,7 +140,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
      */
     @Override
     public AttributeMetadata getMetadata() {
-        return getMetadata(_connector.get(), table.getOID());
+        return getMetadata(_connector, table.getOID());
     }
 
     private static boolean isEmpty(final MOTable<? extends MOTableRow, ? extends MOColumn, ? extends MOTableModel> table){
@@ -177,7 +176,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
         }
     }
 
-    private static void fill(final ManagementConnector connector, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final TimeSpan rwTimeout) throws TimeoutException {
+    private static void fill(final AttributeSupport connector, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final TimeSpan rwTimeout) throws TimeoutException {
         if(supportsProjection(type, Table.class))
             fill(convertFrom(type, connector.getAttribute(table.getOID().toString(), rwTimeout, new SimpleTable<String>()), Table.class), table, type);
         else if(supportsProjection(type, Map[].class))
@@ -187,7 +186,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
 
     private void fillTableIfNecessary() throws TimeoutException {
         if(isEmpty(table)) try{
-            fill(_connector.get(), table, _tabularType, readWriteTimeout);
+            fill(_connector, table, _tabularType, readWriteTimeout);
         }
         finally {
             tableCacheTimer.stop();
@@ -199,7 +198,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
             try{
                 if(tableCacheTimer.isEmpty()){
                     table.removeAll();
-                    fill(_connector.get(), table, _tabularType, readWriteTimeout);
+                    fill(_connector, table, _tabularType, readWriteTimeout);
                     tableCacheTimer.reset();
                 }
             }
@@ -310,7 +309,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
     @Override
     public synchronized void prepare(final SubRequest request) {
         try{
-            commit(_connector.get(), table, _tabularType, readWriteTimeout);
+            commit(_connector, table, _tabularType, readWriteTimeout);
             table.prepare(request);
         }
         catch (final TimeoutException e){
@@ -324,7 +323,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
 
     }
 
-    private static void commit(final ManagementConnector connector, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final TimeSpan writeTimeout) throws TimeoutException {
+    private static void commit(final AttributeSupport connector, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final TimeSpan writeTimeout) throws TimeoutException {
         if(connector == null) return;
         final Map<String, Object>[] rows = new HashMap[table.getModel().getRowCount()];
         for(int rowIndex = 0; rowIndex < rows.length; rowIndex++){

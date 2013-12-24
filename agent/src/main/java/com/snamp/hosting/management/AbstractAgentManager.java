@@ -2,8 +2,7 @@ package com.snamp.hosting.management;
 
 import com.snamp.*;
 
-import static com.snamp.ConcurrentResourceAccess.ConsistentReader;
-import static com.snamp.ConcurrentResourceAccess.Reader;
+import static com.snamp.ConcurrentResourceAccess.Action;
 
 import com.snamp.MethodThreadSafety;
 import com.snamp.ThreadSafety;
@@ -64,12 +63,12 @@ public abstract class AbstractAgentManager extends AbstractPlatformService imple
      * @throws E
      */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    protected final <T, E extends Throwable> T readContext(final Reader<HostingContext, T, E> reader) throws E{
+    protected final <T, E extends Throwable> T readContext(final Action<HostingContext, T, E> reader) throws E{
         return contextHolder.read(reader);
     }
 
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    protected final <T> T readContext(final ConsistentReader<HostingContext, T> reader) {
+    protected final <T> T readContext(final ConcurrentResourceAccess.ConsistentAction<HostingContext, T> reader) {
         return contextHolder.read(reader);
     }
 

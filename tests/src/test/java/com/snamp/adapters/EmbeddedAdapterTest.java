@@ -7,7 +7,7 @@ import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration
 
 import static com.snamp.connectors.util.NotificationUtils.SynchronizationListener;
 
-import com.snamp.connectors.Notification;
+import static com.snamp.connectors.NotificationSupport.Notification;
 import com.snamp.hosting.Agent;
 import org.junit.Test;
 
