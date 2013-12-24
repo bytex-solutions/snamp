@@ -128,6 +128,11 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     @Test
     public final void testForStringProperty() throws IOException {
         writeAttribute("1.0", "SETTED VALUE", String.class);
+        try {
+            Thread.sleep(1000000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
         assertEquals("SETTED VALUE", readAttribute("1.0", String.class));
     }
 
@@ -136,7 +141,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         writeAttribute("2.0", true, Boolean.class);
         assertTrue((boolean) readAttribute("2.0", Boolean.class));
     }
-
+                /*
     @Test
     public final void testForInt32Property() throws IOException{
         writeAttribute("3.0", 42, Integer.class);
@@ -240,18 +245,18 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("bigint");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
         attributes.put("4.0", attribute);
-                          /*
+
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("array");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("5.0", attribute);
+        attributes.put("5", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("dictionary");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("6.0", attribute);
+        attributes.put("6", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("table");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("7.0", attribute);  */
+        attributes.put("7", attribute);
     }
 
 }
