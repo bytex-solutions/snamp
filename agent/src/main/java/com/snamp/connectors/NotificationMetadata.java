@@ -1,6 +1,6 @@
 package com.snamp.connectors;
 
-import java.util.Map;
+import java.util.Locale;
 
 /**
  * Represents metadata of the notification.
@@ -8,7 +8,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-public interface NotificationMetadata extends Map<String, String> {
+public interface NotificationMetadata extends ManagementEntityMetadata {
     /**
      * Represents model of the notification organization.
      * @author Roman Sakno

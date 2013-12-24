@@ -53,7 +53,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
             final ConnectedAttributes binding = get(prefix);
             if(binding.containsKey(postfix))
                 try {
-                    final TypeConverter<T> converter = binding.get(postfix).getAttributeType().getProjection(attributeType);
+                    final TypeConverter<T> converter = binding.get(postfix).getType().getProjection(attributeType);
                     return converter != null ?
                             converter.convertFrom(binding.getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, defaultValue)):
                             defaultValue;
@@ -72,7 +72,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
             final ConnectedAttributes binding = get(prefix);
             if(binding.containsKey(postfix))
                 try {
-                    final ManagementEntityType attributeType = binding.get(postfix).getAttributeType();
+                    final ManagementEntityType attributeType = binding.get(postfix).getType();
                     final Object value = binding.getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, null);
                     return new AttributeValue(value, attributeType);
                 }
@@ -88,7 +88,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     public final ManagementEntityType getAttributeType(final String prefix, final String postfix){
         if(containsKey(prefix)){
             final ConnectedAttributes binding = get(prefix);
-            return binding.containsKey(postfix) ? binding.get(postfix).getAttributeType() : null;
+            return binding.containsKey(postfix) ? binding.get(postfix).getType() : null;
         }
         else return null;
     }

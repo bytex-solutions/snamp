@@ -3,7 +3,6 @@ package com.snamp.connectors;
 import com.snamp.*;
 import static com.snamp.ConcurrentResourceAccess.ConsistentAction;
 import static com.snamp.ConcurrentResourceAccess.Action;
-import static com.snamp.connectors.NotificationSupport.Notification;
 import static com.snamp.connectors.NotificationSupport.NotificationListener;
 
 import java.util.*;
@@ -27,6 +26,28 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
      * @version 1.0
      */
     protected static abstract class GenericAttributeMetadata<T extends ManagementEntityType> implements AttributeMetadata {
+        /**
+         * Represents the name of the attribute configuration parameter that assigns the display
+         * name for the attribute.
+         * <p>
+         *     If you want to store display names for each language then you should use the following notation:
+         *     displayName.en-US,
+         *     display.ru-RU
+         * </p>
+         */
+        public static final String DISPLAY_NAME_PARAM = "displayName";
+
+        /**
+         * Represents the name of the attribute configuration parameters that assigns the
+         * description for the attribute.
+         * <p>
+         *     If you want to store display names for each language then you should use the following notation:
+         *     description.en-US,
+         *     description.ru-RU
+         * </p>
+         */
+        public static final String DESCRIPTION_PARAM = "description";
+
         private final String attributeName;
         private final String namespace;
         private T attributeType;
@@ -44,6 +65,47 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             this.namespace = namespace;
         }
 
+        private String readLocalizedParam(String paramName, final Locale locale, final String defaultValue){
+            if(locale == null)
+                return containsKey(paramName) ? get(paramName) : defaultValue;
+            else{
+                paramName = String.format("%s.%s", paramName, locale.toLanguageTag());
+                return containsKey(paramName) ? get(paramName) : defaultValue;
+            }
+        }
+
+        /**
+         * Returns the localized description of this attribute.
+         * <p>
+         *     In the default implementation, this method reads description from {@link #DESCRIPTION_PARAM}
+         *     attribute configuration parameter.
+         * </p>
+         * @param locale The locale of the description. If it is {@literal null} then returns description
+         *               in the default locale.
+         * @return The localized description of this attribute.
+         * @see #DESCRIPTION_PARAM
+         */
+        @Override
+        public String getDescription(final Locale locale) {
+            return readLocalizedParam(DESCRIPTION_PARAM, locale, "");
+        }
+
+        /**
+         * Returns the localized name of this attribute.
+         * <p>
+         *     In the default implementation, this method reads description from {@link #DISPLAY_NAME_PARAM}
+         *     attribute configuration parameter.
+         * </p>
+         * @param locale The locale of the display name. If it is {@literal null} then returns display name
+         *               in the default locale.
+         * @return The localized name of this attribute.
+         * @see #DISPLAY_NAME_PARAM
+         */
+        @Override
+        public String getDisplayName(final Locale locale) {
+            return readLocalizedParam(DISPLAY_NAME_PARAM, locale, attributeName);
+        }
+
         /**
          * Detects the attribute type (this method will be called by infrastructure once).
          * @return Detected attribute type.
@@ -56,7 +118,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          * @return The type of the attribute value.
          */
         @Override
-        public final T getAttributeType() {
+        public final T getType() {
             if(attributeType == null) attributeType = detectAttributeType();
             return attributeType;
         }
@@ -112,7 +174,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          * @return The attribute name.
          */
         @Override
-        public final String getAttributeName() {
+        public final String getName() {
             return attributeName;
         }
 
@@ -185,6 +247,20 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             this.listeners = new HashMap<>(10);
             this.coordinator = new ReentrantReadWriteLock();
             this.counter = useGlobalIdGen ? globalCounter : new AtomicLong(0L);
+        }
+
+        /**
+         * Returns the localized description of this management entity.
+         * <p>
+         *     In the default implementation, this method returns an empty string.
+         * </p>
+         * @param locale The locale of the description. If it is {@literal null} then returns description
+         *               in the default locale.
+         * @return The localized description of this management entity.
+         */
+        @Override
+        public final String getDescription(final Locale locale) {
+            return "";
         }
 
         final boolean hasListener(final Long listenerId){

@@ -179,7 +179,7 @@ enum SnmpType {
                                                    final TimeSpan timeouts){
         final AttributeMetadata attribute = connector.connectAttribute(oid, attributeName, options);
         if(attribute == null) return null;
-        final SnmpType type = map(attribute.getAttributeType());
+        final SnmpType type = map(attribute.getType());
         return type != null ? type.createManagedObject(oid, connector, timeouts) : null;
     }
 

@@ -156,7 +156,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         }
 
         public final void setValue(final Object beanInstance, final Object value) throws ReflectiveOperationException {
-            final TypeConverter<?> converter = getAttributeType().getProjection(propertyType);
+            final TypeConverter<?> converter = getType().getProjection(propertyType);
             if(converter != null)
                 setter.invoke(beanInstance, converter.convertFrom(value));
         }

@@ -220,7 +220,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
          *
          * @param metadata The event type.
          * @param listener The notification listener to remove.
-         * @param data     The custom data associated with subscription that returned from {@link #subscribeCore(com.snamp.connectors.NotificationMetadata, com.snamp.connectors.NotificationListener)}
+         * @param data     The custom data associated with subscription that returned from {@link #subscribeCore(com.snamp.connectors.NotificationMetadata, com.snamp.connectors.NotificationSupport.NotificationListener)}
          *                 method.
          */
         @Override
@@ -395,7 +395,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
          * @return The type of the attribute value.
          */
         @Override
-        public JmxManagementEntityType getAttributeType();
+        public JmxManagementEntityType getType();
     }
 
     /**
@@ -412,6 +412,11 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             super(attributeName, namespace.toString());
             this.connectionManager = manager;
             this.namespace = namespace;
+        }
+
+        @Override
+        public String getDisplayName(final Locale locale) {
+            return getName();
         }
 
         @Override
@@ -515,7 +520,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
          * @return
          */
         public final boolean setValue(Object value){
-            final JmxManagementEntityType typeInfo = getAttributeType();
+            final JmxManagementEntityType typeInfo = getType();
             if(canWrite() && value != null)
                 try{
                     value = typeInfo.convertToJmxType(value);
@@ -647,7 +652,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                 return new MBeanServerConnectionHandler<Object>(){
                     @Override
                     public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
-                        return connection.getAttribute(namespace, getAttributeName());
+                        return connection.getAttribute(namespace, getName());
                     }
                 };
             }
@@ -661,10 +666,15 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                 return new MBeanServerConnectionHandler<Boolean>(){
                     @Override
                     public Boolean handle(final MBeanServerConnection connection) throws IOException, JMException {
-                        connection.setAttribute(namespace, new Attribute(getAttributeName(), value));
+                        connection.setAttribute(namespace, new Attribute(getName(), value));
                         return true;
                     }
                 };
+            }
+
+            @Override
+            public final String getDescription(final Locale locale) {
+                return targetAttr.getDescription();
             }
         } : null;
     }
@@ -691,6 +701,11 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             @Override
             public final boolean canWrite(){
                 return false;
+            }
+
+            @Override
+            public final String getDescription(final Locale locale) {
+                return targetAttr.getDescription();
             }
 
             /**

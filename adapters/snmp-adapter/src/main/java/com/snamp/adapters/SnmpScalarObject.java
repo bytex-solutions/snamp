@@ -6,7 +6,6 @@ import org.snmp4j.agent.mo.*;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 
-import java.lang.ref.*;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -32,7 +31,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
         defaultValue = defval;
         this.connector = connector;
         this.timeouts = timeouts;
-        this.attributeTypeInfo = attributeInfo.getAttributeType();
+        this.attributeTypeInfo = attributeInfo.getType();
     }
 
     protected static <T> T logAndReturnDefaultValue(final T defaultValue, final Variable originalValue, final ManagementEntityType attributeType){

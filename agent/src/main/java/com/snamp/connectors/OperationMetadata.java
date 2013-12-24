@@ -8,7 +8,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public interface OperationMetadata extends Map<String, String> {
+public interface OperationMetadata extends ManagementEntityMetadata {
 
     /**
      * Represents consistency contract for the operation.
@@ -77,4 +77,18 @@ public interface OperationMetadata extends Map<String, String> {
      * no return value.
      */
     public ManagementEntityType getOutputMessageType();
+
+    /**
+     * Returns the system name of the operation.
+     * @return The system name of the operation.
+     */
+    public String getName();
+
+    /**
+     * Returns the localized display name of this operation.
+     * @param locale The locale of the display name. If it is {@literal null} then returns display name
+     *               in the default locale.
+     * @return The localized name of this operation.
+     */
+    public String getDisplayName(final Locale locale);
 }

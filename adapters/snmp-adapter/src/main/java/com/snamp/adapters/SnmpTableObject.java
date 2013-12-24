@@ -10,11 +10,10 @@ import static com.snamp.adapters.SnmpHelpers.getAccessRestrictions;
 import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 
 import com.snamp.*;
-import java.lang.ref.*;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Represents SNMP table.
@@ -101,7 +100,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
 
     private SnmpTableObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts, final AttributeMetadata attribute){
         _connector = connector;
-        _tabularType = (ManagementEntityTabularType)attribute.getAttributeType();
+        _tabularType = (ManagementEntityTabularType)attribute.getType();
         //creates column structure
         table = createEmptyTable(new OID(oid), _tabularType, getAccessRestrictions(attribute));
         readWriteTimeout = timeouts;
