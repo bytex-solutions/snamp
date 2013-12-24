@@ -125,7 +125,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Always throws {@link UnsupportedOperationException} exception because
-         * this map is invoke-only.
+         * this map is read-only.
          * @param option The name of the option to put.
          * @param value The value of the option to put.
          * @return The previously option value.
@@ -138,7 +138,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Always throws {@link UnsupportedOperationException} exception because
-         * this map is invoke-only.
+         * this map is read-only.
          * @param option The name of the option to remove.
          * @return The value of the remove option.
          * @throws UnsupportedOperationException This operation is not supported.
@@ -150,7 +150,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Always throws {@link UnsupportedOperationException} exception because
-         * this map is invoke-only.
+         * this map is read-only.
          * @param options A map of attribute discovery options.
          * @throws UnsupportedOperationException This operation is not supported.
          */
@@ -161,7 +161,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Always throws {@link UnsupportedOperationException} exception because
-         * this map is invoke-only.
+         * this map is read-only.
          * @throws UnsupportedOperationException This operation is not supported.
          */
         @Override
@@ -370,7 +370,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Always throws {@link UnsupportedOperationException} exception because
-         * this map is invoke-only.
+         * this map is read-only.
          * @param option The name of the event option.
          * @param value The value of the event option.
          * @return The previous value of the event option.
@@ -383,7 +383,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Always throws {@link UnsupportedOperationException} exception because
-         * this map is invoke-only.
+         * this map is read-only.
          * @param option The name of the event option to remove.
          * @return The value of the removed option.
          * @throws UnsupportedOperationException This operation is not supported.
@@ -395,7 +395,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Always throws {@link UnsupportedOperationException} exception
-         * because this map is invoke-only.
+         * because this map is read-only.
          * @param options The map of event options to add.
          * @throws UnsupportedOperationException This operation is not supported.
          */
@@ -406,7 +406,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Always throws {@link UnsupportedOperationException} exception because
-         * this map is invoke-only.
+         * this map is read-only.
          * @throws UnsupportedOperationException This operation is not supported.
          */
         @Override

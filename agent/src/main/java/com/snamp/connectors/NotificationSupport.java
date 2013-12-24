@@ -120,7 +120,7 @@ public interface NotificationSupport {
          * <p>
          *     The key of the returned map contains name of the attachment.
          * </p>
-         * @return A invoke-only collection of attachments associated with this notification.
+         * @return A read-only collection of attachments associated with this notification.
          */
         public Map<String, Object> getAttachments();
     }

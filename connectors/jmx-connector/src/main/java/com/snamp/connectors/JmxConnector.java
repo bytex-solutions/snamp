@@ -588,7 +588,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
         /**
          * Gets attachments associated with this notification.
          *
-         * @return A invoke-only collection of attachments associated with this notification.
+         * @return A read-only collection of attachments associated with this notification.
          */
         @Override
         public synchronized final Map<String, Object> getAttachments() {

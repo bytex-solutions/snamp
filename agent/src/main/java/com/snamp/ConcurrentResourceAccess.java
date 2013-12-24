@@ -91,7 +91,7 @@ public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock {
     /**
      * Provides consistent invoke on the resource.
      * <p>
-     *     This operation acquires invoke-lock on the resource.
+     *     This operation acquires read-lock on the resource.
      * </p>
      * @param reader The resource reader.
      * @param <V> Type of the resource reading value operation.
@@ -112,7 +112,7 @@ public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock {
     /**
      * Provides inconsistent invoke on the resource.
      * <p>
-     *    This operation acquires invoke-lock on the resource.
+     *    This operation acquires read-lock on the resource.
      * </p>
      * @param reader The resource reader.
      * @param <V> Type of the resource reading value operation.
