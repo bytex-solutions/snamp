@@ -180,11 +180,28 @@ final class SnmpTableObject implements SnmpAttributeMapping{
         }
     }
 
+    private static void fill(final Object[] values, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type){
+        @Temporary
+        final Table<String> tempTable = new SimpleTable<String>(new HashMap<String, Class<?>>(2){{
+            put(ManagementEntityTypeBuilder.ManagementEntityArrayType.INDEX_COLUMN_NAME, Integer.class);
+            put(ManagementEntityTypeBuilder.ManagementEntityArrayType.VALUE_COLUMN_NAME, Object.class);
+        }});
+        for(int arrayIndex = 0; arrayIndex < values.length; arrayIndex++){
+            @Temporary
+            final int firstColumnValue = arrayIndex;
+            tempTable.addRow(new HashMap<String, Object>(2){{
+                put(ManagementEntityTypeBuilder.ManagementEntityArrayType.INDEX_COLUMN_NAME, firstColumnValue);
+                put(ManagementEntityTypeBuilder.ManagementEntityArrayType.VALUE_COLUMN_NAME, values[firstColumnValue]);
+            }});
+        }
+        fill(tempTable, table, type);
+    }
+
     private static void fill(final AttributeSupport connector, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final TimeSpan rwTimeout) throws TimeoutException {
         if(supportsProjection(type, Table.class))
             fill(convertFrom(type, connector.getAttribute(table.getOID().toString(), rwTimeout, new SimpleTable<String>()), Table.class), table, type);
-        else if(supportsProjection(type, Map[].class))
-            fill(SimpleTable.fromArray(convertFrom(type, connector.getAttribute(table.getOID().toString(), rwTimeout, new Map[0]), Map[].class)), table, type);
+        else if(supportsProjection(type, Object[].class) && ManagementEntityTypeBuilder.isArray(type))
+            fill(convertFrom(type, connector.getAttribute(table.getOID().toString(), rwTimeout, new Object[0]), Object[].class), table, type);
         else log.warning(String.format("Source attribute table %s is not supported", table.getOID()));
     }
 

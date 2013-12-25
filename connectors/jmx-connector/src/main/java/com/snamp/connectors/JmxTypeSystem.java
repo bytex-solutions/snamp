@@ -246,7 +246,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
     }
 
     private static abstract class AbstractJmxEntityCompositeType extends AbstractJmxEntityType<CompositeData, CompositeType> implements JmxManagementEntityOpenType<CompositeData>, ManagementEntityTabularType{
-        public static final Class<Map> WELL_KNOWN_TYPE = Map.class;
+        public static final Class<?>[] WELL_KNOWN_TYPES = new Class<?>[]{Map.class, Table.class};
 
         protected AbstractJmxEntityCompositeType(final CompositeType ctype){
             super(ctype);
@@ -529,7 +529,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
                 public final AbstractJmxEntityCompositeType newInstance() {
                     return new JmxManagementEntityCompositeType((CompositeType)attributeType);
                 }
-            }, AbstractJmxEntityCompositeType.WELL_KNOWN_TYPE);
+            }, AbstractJmxEntityCompositeType.WELL_KNOWN_TYPES);
         else if(attributeType instanceof ArrayType<?>)
             return createEntityArrayType((ArrayType) attributeType);
         else if(attributeType instanceof TabularType)

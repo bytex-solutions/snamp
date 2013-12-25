@@ -116,7 +116,7 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
         sequenceCounter = new AtomicLong(0);
         chosenString = "NO VALUE";
         aBigInt = BigInteger.ZERO;
-        array = new Short[0];
+        array = new Short[]{42,100,43,99};
         try{
             dictionary = new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), new HashMap<String, Object>() {{
                 put("col1", true);
