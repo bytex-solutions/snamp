@@ -77,7 +77,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
 
     private static MONamedColumn<Variable>[] createColumns(final ManagementEntityTabularType tableType, final MOAccess access){
         final List<MONamedColumn<Variable>> columns = new ArrayList<>(tableType.getColumns().size());
-        int columnID = 0;
+        int columnID = 2;
         for(final String columnName: tableType.getColumns())
             columns.add(new MONamedColumn<>(columnID++, columnName, tableType, access));
         return columns.toArray(new MONamedColumn[columns.size()]);
@@ -87,15 +87,19 @@ final class SnmpTableObject implements SnmpAttributeMapping{
                                                                                                                           final ManagementEntityTabularType tabularType,
                                                                                                                           final MOAccess access){
 
-
-        return new DefaultMOTable<>(tableId,
-                new MOTableIndex(new MOTableSubIndex[]{new MOTableSubIndex(SMIConstants.SYNTAX_INTEGER32)}),
+         final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table_ = new DefaultMOTable<>(tableId,
+                new MOTableIndex(new MOTableSubIndex[]{new MOTableSubIndex(null, SMIConstants.SYNTAX_INTEGER, 1, 1)}),
                 createColumns(tabularType, access)
         );
+        DefaultMOMutableTableModel<MOTableRow<Variable>> model_ = new DefaultMOMutableTableModel<>();
+        model_.setRowFactory(new DefaultMOMutableRow2PCFactory());
+        table_.setModel(model_);
+
+        return  table_;
     }
 
-    private static OID makeRowID(final MOTable table, final int rowIndex){
-        return new OID(String.format("%s.%s", table.getOID(), rowIndex + 1));
+    private static OID makeRowID(final int rowIndex){
+        return new OID(new int[]{rowIndex+1});
     }
 
     private SnmpTableObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts, final AttributeMetadata attribute){
@@ -113,10 +117,10 @@ final class SnmpTableObject implements SnmpAttributeMapping{
             fixedRowStructure = false;
         }
         this.fixedRowStructure = fixedRowStructure;
-        //default table refresh is 5 minutes
+        //default table refresh is 5 seconds
         tableCacheTimer = new RefreshTimer( attribute.containsKey(tableCacheTimeKey) ?
                 new TimeSpan(Integer.valueOf(attribute.get(tableCacheTimeKey))):
-                new TimeSpan(5, TimeUnit.MINUTES));
+                new TimeSpan(5, TimeUnit.SECONDS));
     }
 
     /**
@@ -170,7 +174,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
     private static void fill(final Table<String> values, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type){
         //create rows
         for(int rowIndex = 0; rowIndex < values.getRowCount(); rowIndex++){
-            final OID rowID = makeRowID(table, rowIndex);
+            final OID rowID = makeRowID(rowIndex);
             final MOTableRow<Variable> newRow = table.createRow(rowID, createRow(rowIndex, values, table.getColumns(), type));
             table.addRow(newRow);
         }
@@ -263,7 +267,14 @@ final class SnmpTableObject implements SnmpAttributeMapping{
      */
     @Override
     public OID find(final MOScope range) {
-        return table.find(range);
+        try {
+            fillTableIfNecessary();
+        } catch (final TimeoutException e) {
+            log.warning(e.getLocalizedMessage());
+        }
+        finally {
+            return table.find(range);
+        }
     }
 
     /**
@@ -332,7 +343,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
             //iterates through cells
             for(int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++){
                 final MONamedColumn<Variable> columnDef = table.getColumn(columnIndex);
-                final Variable cellValue = table.getValue(makeRowID(table, columnIndex));
+                final Variable cellValue = table.getValue(makeRowID(columnIndex));
                 final ManagementEntityType columnType = type.getColumnType(columnDef.columnName);
                 final SnmpType converter = SnmpType.map(columnType);
                 row.put(columnDef.columnName, converter.convert(cellValue, columnType));
