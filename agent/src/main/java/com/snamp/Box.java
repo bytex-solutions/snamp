@@ -30,6 +30,13 @@ public class Box<T> implements Serializable {
     }
 
     /**
+     * Clears this box.
+     */
+    public final void clear(){
+        this.value = null;
+    }
+
+    /**
      * Overwrites the value inside of this box.
      * @param val A new value for the box.
      */
