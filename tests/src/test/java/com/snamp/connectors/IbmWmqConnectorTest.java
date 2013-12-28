@@ -23,7 +23,7 @@ public final class IbmWmqConnectorTest extends SnampClassTestSet<IbmWmqConnector
             put("executionGroup", "Siebel");
             put("application", "SiebelSubscriberAPP");
         }};
-        final IbmWmqConnector connector = new IbmWmqConnectorFactory().newInstance("wmq://SYSTEM.BKR.CONFIG@10.200.100.113:1450/OEC_QMGR", env);
+        final IbmWmqConnector connector = new IbmWmqConnectorFactory().newInstance("wmq://SYSTEM.BKR.CONFIG@192.168.0.69:1450/TEST_QMGR", env);
         while(true)
             try {
                 connector.connectAttribute("0", "name", new HashMap<String, String>());

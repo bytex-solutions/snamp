@@ -7,13 +7,12 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.ibm.mq.headers.pcf.PCFParameter;
-import com.snamp.SimpleTable;
 
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * In order to use this class you need for this jar to be present in your classpath
@@ -32,12 +31,12 @@ class IbmWmqConnector extends ManagementConnectorBean {
     /**
      * Initializes a new management connector.
      *
-     * @param typeBuilder Type information provider that provides property type converter.
+     * @param  connectionString string with address of the MQ and channel
      * @throws IllegalArgumentException
      *          typeBuilder is {@literal null}.
      */
     public IbmWmqConnector(String connectionString, Map<String, String> connectionProperties) throws IntrospectionException {
-        super(new WellKnownTypeSystem());
+        super(new IbmWmqTypeSystem());
         try {
             final URI address = URI.create(connectionString);
             if(address.getScheme().equals("wmq")) {
@@ -49,6 +48,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
                 final MQQueueManager mQmgrInstance = new MQQueueManager(address.getPath().substring(1));
                 mMonitor = new PCFMessageAgent(mQmgrInstance);
                 mObjectFilter = connectionProperties;
+                getQueuesStatus();
             }
             else
                 throw new IllegalArgumentException("Cannot create IBM Connector: insufficient parameters!");
@@ -73,17 +73,8 @@ class IbmWmqConnector extends ManagementConnectorBean {
             else
                 inquireQueueStatus.addParameter(CMQC.MQCA_Q_NAME, "*");
             inquireQueueStatus.addParameter(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS);
-            inquireQueueStatus.addParameter(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[] {
-                CMQC.MQCA_Q_NAME, CMQC.MQIA_CURRENT_Q_DEPTH,
-                CMQCFC.MQCACF_LAST_GET_DATE, CMQCFC.MQCACF_LAST_GET_TIME,
-                CMQCFC.MQCACF_LAST_PUT_DATE, CMQCFC.MQCACF_LAST_PUT_TIME,
-                CMQCFC.MQIACF_OLDEST_MSG_AGE, CMQC.MQIA_OPEN_INPUT_COUNT,
-                CMQC.MQIA_OPEN_OUTPUT_COUNT, CMQCFC.MQIACF_UNCOMMITTED_MSGS });
 
             final PCFMessage[] statistics = mMonitor.send(inquireQueueStatus);
-            /*
-               */
-
             return new IbmWmqTypeSystem.QueueStatusTable(Arrays.asList(statistics));
 
         } catch (IOException | MQDataException e) {
@@ -99,6 +90,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
      *
      * @return Table of queue attributes
      */
+    @AttributeInfo(typeProvider = "createChannelStatusTableType")
     final public IbmWmqTypeSystem.ChannelStatusTable getChannelsStatus() {
         try {
             final PCFMessage inquireChannelStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS);
@@ -108,121 +100,41 @@ class IbmWmqConnector extends ManagementConnectorBean {
                 inquireChannelStatus.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, "*");
             //inquireChannelStatus.addParameter(CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, new int[] { CMQCFC.MQIACF_ALL  }); // this is the default
             final PCFMessage[] statistics = mMonitor.send(inquireChannelStatus);
-
             return new IbmWmqTypeSystem.ChannelStatusTable(Arrays.asList(statistics));
-            /*final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{
-                for(final PCFMessage curr : statistics) { // we need to add every parameter that appears at least once to table
-                    final Enumeration paramEnum = curr.getParameters();
-                    while (paramEnum.hasMoreElements()) { // fill the columns
-                        final PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
 
-                        if(!containsKey(parameter.getParameterName())) {
-                            final Class parameterClazz = parameter.getValue().getClass();
-                            if(!parameterClazz.isArray()) // arrays are converted to their String representation since adapters may not handle nested table types
-                                put(parameter.getParameterName(), parameterClazz);
-                            else
-                                put(parameter.getParameterName(), String.class);
-                        }
-                    }
-                }
-            }};
-
-            // then iteratively fill table with data
-            final SimpleTable<String> resTable = new SimpleTable<>(columnsAndTypes);
-            fillTableData(resTable, statistics);
-            */
         } catch (IOException | MQDataException e) {
             return null;
         }
     }
 
-    final public SimpleTable<String> getQmgrStatus() {
+    @AttributeInfo(typeProvider = "createQmgrStatusTableType")
+    final public IbmWmqTypeSystem.QMgrStatusTable getQmgrStatus() {
         try {
             final PCFMessage inquireQmgrStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR_STATUS);
 
             //inquireQmgrStatus.addParameter(CMQCFC.MQIACF_Q_MGR_STATUS_ATTRS, new int[] { CMQCFC.MQIACF_ALL  }); // this is the default
             final PCFMessage[] statistics = mMonitor.send(inquireQmgrStatus);
-            // TODO: Переделать на новую систему типов
-            final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{
-                for(final PCFMessage curr : statistics) { // we need to add every parameter that appears at least once to table
-                    final Enumeration paramEnum = curr.getParameters();
-                    while (paramEnum.hasMoreElements()) { // fill the columns
-                        final PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
-
-                        if(!containsKey(parameter.getParameterName())) {
-                            final Class parameterClazz = parameter.getValue().getClass();
-                            if(!parameterClazz.isArray()) // arrays are converted to their String representation since adapters may not handle nested table types
-                                put(parameter.getParameterName(), parameterClazz);
-                            else
-                                put(parameter.getParameterName(), String.class);
-                        }
-                    }
-                }
-
-            }};
-
-            // then iteratively fill table with data
-            final SimpleTable<String> resTable = new SimpleTable<>(columnsAndTypes);
-            fillTableData(resTable, statistics);
-
-            return resTable;
+            return new IbmWmqTypeSystem.QMgrStatusTable(Arrays.asList(statistics));
 
         } catch (IOException | MQDataException e) {
             return null;
         }
     }
 
-    final public SimpleTable<String> getServiceStatus() {
+    @AttributeInfo(typeProvider = "createServiceStatusTableType")
+    final public IbmWmqTypeSystem.ServiceStatusTable getServicesStatus() {
         try {
-            final PCFMessage inquireServiceStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_SERVICE_STATUS);
+            final PCFMessage inquireServiceStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_SERVICE);
             if(mObjectFilter.containsKey("channelFilter"))
                 inquireServiceStatus.addParameter(CMQC.MQCA_SERVICE_NAME, mObjectFilter.get("channelFilter"));
             else
                 inquireServiceStatus.addParameter(CMQC.MQCA_SERVICE_NAME, "*");
             //inquireServiceStatus.addParameter(CMQCFC.MQIACF_SERVICE_ATTRS, new int[] { CMQCFC.MQIACF_ALL  }); // this is the default
             final PCFMessage[] statistics = mMonitor.send(inquireServiceStatus);
-            // TODO: Переделать на новую систему типов
-            final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{
-                for(final PCFMessage curr : statistics) { // we need to add every parameter that appears at least once to table
-                    final Enumeration paramEnum = curr.getParameters();
-                    while (paramEnum.hasMoreElements()) { // fill the columns
-                        final PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
-
-                        if(!containsKey(parameter.getParameterName())) {
-                            final Class parameterClazz = parameter.getValue().getClass();
-                            if(!parameterClazz.isArray()) // arrays are converted to their String representation since adapters may not handle nested table types
-                                put(parameter.getParameterName(), parameterClazz);
-                            else
-                                put(parameter.getParameterName(), String.class);
-                        }
-                    }
-                }
-
-            }};
-
-            // then iteratively fill table with data
-            final SimpleTable<String> resTable = new SimpleTable<>(columnsAndTypes);
-            fillTableData(resTable, statistics);
-
-            return resTable;
+            return new IbmWmqTypeSystem.ServiceStatusTable(Arrays.asList(statistics));
 
         } catch (IOException | MQDataException e) {
             return null;
         }
-    }
-
-    private void fillTableData(final SimpleTable<String> table, final PCFMessage[] stats) {
-        for(final PCFMessage curr : stats) // each row
-            table.addRow(new HashMap<String, Object>() {{
-                final Enumeration paramEnum = curr.getParameters();
-                while (paramEnum.hasMoreElements()) { // each column
-                    PCFParameter parameter = (PCFParameter) paramEnum.nextElement();
-                    Class parameterClazz = parameter.getValue().getClass();
-                    if(!parameterClazz.isArray())
-                        put(parameter.getParameterName(), parameter.getValue());
-                    else
-                        put(parameter.getParameterName(), parameter.getStringValue());
-                }
-            }});
     }
 }

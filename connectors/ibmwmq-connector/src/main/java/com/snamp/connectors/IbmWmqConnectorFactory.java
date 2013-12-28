@@ -24,7 +24,7 @@ public class IbmWmqConnectorFactory extends AbstractManagementConnectorFactory<I
     @Override
     public IbmWmqConnector newInstance(String connectionString, Map<String, String> connectionProperties) {
         try {
-            return new IbmWmqConnector(connectionString, connectionProperties, new WellKnownTypeSystem<>(EntityTypeInfoBuilder.AttributeTypeConverter.class));
+            return new IbmWmqConnector(connectionString, connectionProperties);
         } catch (IntrospectionException e) {
             getLogger().log(Level.SEVERE, "Unable to create IBM MQ connector", e);
             return null;
