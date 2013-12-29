@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @version 1.0
  * @since 1.0
  */
-public class WriteOnceRef<T> {
+public class WriteOnceRef<T> implements Wrapper<T> {
     private volatile T value;
     private final AtomicBoolean locked;
 
@@ -91,5 +91,16 @@ public class WriteOnceRef<T> {
                 equals(((WriteOnceRef<?>) obj).get()) :
                 Objects.equals(value, obj);
 
+    }
+
+    /**
+     * Handles the wrapped object.
+     *
+     * @param handler The wrapped object handler.
+     * @return The wrapped object handling result.
+     */
+    @Override
+    public final  <R> R handle(final WrappedObjectHandler<T, R> handler) {
+        return handler != null ? handler.invoke(value) : null;
     }
 }

@@ -13,14 +13,4 @@ import java.util.concurrent.*;
  */
 @Lifecycle(InstanceLifecycle.NORMAL)
 public interface ManagementConnector extends AutoCloseable, Aggregator, AttributeSupport {
-
-
-    /**
-     * Executes remote action.
-     * @param actionName The name of the action,
-     * @param args The invocation arguments.
-     * @param timeout The Invocation timeout.
-     * @return The invocation result.
-     */
-    public Object doAction(final String actionName, final Arguments args, final TimeSpan timeout) throws UnsupportedOperationException, TimeoutException;
 }

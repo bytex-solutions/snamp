@@ -38,7 +38,7 @@ public final class LicenseReader {
      * Represents licensing context.
      */
     private static final class LicensingContext{
-        public final Map<Class<? extends LicenseLimitations>, LicenseLimitations> loadedLimitations;
+        public final SoftMap<Class<? extends LicenseLimitations>, LicenseLimitations> loadedLimitations;
         public Document loadedLicense;
 
         public LicensingContext(){
@@ -178,10 +178,9 @@ public final class LicenseReader {
         result = licensingContext.read(new ConcurrentResourceAccess.ConsistentAction<LicensingContext, T>() {
             @Override
             public T invoke(final LicensingContext resource) {
-                if (resource.loadedLicense == null) return fallback.newInstance();
-                else if (resource.loadedLimitations.containsKey(limitationsDescriptor))
-                    return (T) resource.loadedLimitations.get(limitationsDescriptor);
-                else return null;
+                return resource.loadedLicense == null ?
+                        fallback.newInstance() :
+                        limitationsDescriptor.cast(resource.loadedLimitations.get(limitationsDescriptor));
             }
         });
         //limitations is not in cache, creates a new limitations reader

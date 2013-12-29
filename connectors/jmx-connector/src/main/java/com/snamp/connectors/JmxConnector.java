@@ -19,7 +19,7 @@ import java.util.logging.*;
  * @author Roman Sakno
  */
 @SuppressWarnings("unchecked")
-final class JmxConnector extends AbstractManagementConnector implements NotificationSupport {
+final class JmxConnector extends AbstractManagementConnector implements NotificationSupport, JmxMaintenanceSupport {
     /**
      * Represents JMX connector name.
      */
@@ -834,23 +834,6 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     }
 
     /**
-     * Executes remote action.
-     *
-     * @param actionName The name of the action,
-     * @param args       The invocation arguments.
-     * @param timeout    The Invocation timeout.
-     * @return The invocation result.
-     */
-    @Override
-    public Object doAction(final String actionName, final Arguments args, final TimeSpan timeout) throws UnsupportedOperationException, TimeoutException {
-        switch (actionName){
-            //internal action
-            case "simulateConnectionAbort": simulateConnectionAbort(); return null;
-            default: return null;
-        }
-    }
-
-    /**
      * Enables event listening for the specified category of events.
      * <p>
      * categoryId can be used for enabling notifications for the same category
@@ -912,7 +895,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     /**
      * Removes the notification listener.
      *
-     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationListener)}.
+     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationSupport.NotificationListener)}.
      * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
      */
     @Override
@@ -952,7 +935,8 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
      * </p>
      */
     @Internal
-    private final void simulateConnectionAbort(){
+    @Override
+    public final void simulateConnectionAbort(){
         connectionManager.simulateConnectionAbort();
     }
 }

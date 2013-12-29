@@ -50,6 +50,9 @@ public class TransactionalResourceAccess<R, S, C> extends ConcurrentResourceAcce
      * @param <R> Type of the resource to process in the transaction phase.
      * @param <D> Type of the additional data associated with transaction phase.
      * @param <V> Type of the resource processing result.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
     public static interface TransactionPhaseProcessor<R, D, V>{
         /**

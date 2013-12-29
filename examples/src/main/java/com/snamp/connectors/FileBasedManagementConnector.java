@@ -73,19 +73,6 @@ final class FileBasedManagementConnector extends AbstractManagementConnector {
     }
 
     /**
-     * Executes remote action.
-     *
-     * @param actionName The name of the action,
-     * @param args       The invocation arguments.
-     * @param timeout    The Invocation timeout.
-     * @return The invocation result.
-     */
-    @Override
-    public Object doAction(final String actionName, final Arguments args, final TimeSpan timeout) throws UnsupportedOperationException, TimeoutException {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
      * Closes this resource, relinquishing any underlying resources.
      * This method is invoked automatically on objects managed by the
      * {@code try}-with-resources statement.

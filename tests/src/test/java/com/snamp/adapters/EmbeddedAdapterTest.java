@@ -8,12 +8,12 @@ import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration
 import static com.snamp.connectors.util.NotificationUtils.SynchronizationListener;
 
 import static com.snamp.connectors.NotificationSupport.Notification;
+
 import com.snamp.hosting.Agent;
 import org.junit.Test;
 
 import javax.management.*;
 import java.math.BigInteger;
-import java.security.Permission;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -89,7 +89,8 @@ public final class EmbeddedAdapterTest extends JmxConnectorTest<TestManagementBe
         final ManagementConnector jmxConnector = connectors.get("jmx");
         assertNotNull(jmxConnector);
         //aborts the connection
-        jmxConnector.doAction("simulateConnectionAbort", new Arguments(), TimeSpan.INFINITE);
+        assertTrue(jmxConnector instanceof JmxMaintenanceSupport);
+        ((JmxMaintenanceSupport)jmxConnector).simulateConnectionAbort();
         //modify property for firing property-changed event
         adapter.setBigIntProperty(BigInteger.TEN);
         //wait for notification (25 sec) after connection abort

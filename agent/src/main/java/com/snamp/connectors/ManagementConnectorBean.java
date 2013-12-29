@@ -481,8 +481,10 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         }
     }
 
-
-    private final BeanInfo beanMetadata;
+    /**
+     * Represents meta information about Java bean wrapped as management connector.
+     */
+    protected final BeanInfo beanMetadata;
     private final WellKnownTypeSystem typeInfoBuilder;
     private final Object beanInstance;
     private final JavaBeanNotificationSupport notifications;
@@ -658,36 +660,6 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
     }
 
     /**
-     * Invokes the Java Bean method.
-     * @param action An action to execute.
-     * @param args Action invocation arguments.
-     * @return The invocation result.
-     */
-    protected final Object doAction(final MethodDescriptor action, final Arguments args){
-        try {
-            return action.getMethod().invoke(beanInstance != null ? beanInstance : this, args.values().toArray());
-        } catch (final ReflectiveOperationException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Executes remote action.
-     *
-     * @param actionName The name of the action,
-     * @param args       The invocation arguments.
-     * @param timeout    The Invocation timeout.
-     * @return The invocation result.
-     */
-    @Override
-    public final Object doAction(final String actionName, final Arguments args, final TimeSpan timeout) throws UnsupportedOperationException, TimeoutException {
-        for(final MethodDescriptor md: beanMetadata.getMethodDescriptors())
-            if(Objects.equals(md.getName(), actionName))
-                return doAction(md, args);
-        return null;
-    }
-
-    /**
      * Enables event listening for the specified category of events.
      * <p>
      * categoryId can be used for enabling notifications for the same category
@@ -774,7 +746,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
     /**
      * Removes the notification listener.
      *
-     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationListener)}.
+     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationSupport.NotificationListener)}.
      * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
      */
     @Override

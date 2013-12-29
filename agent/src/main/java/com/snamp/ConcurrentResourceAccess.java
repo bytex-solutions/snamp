@@ -43,7 +43,7 @@ import java.util.concurrent.locks.*;
  * @since 1.0
  * @version 1.0
  */
-public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock {
+public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock implements Wrapper<R> {
     /**
      * Represents coordinated resource.
      */
@@ -55,6 +55,26 @@ public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock {
      */
     public ConcurrentResourceAccess(final R resource){
         this.resource = resource;
+    }
+
+    /**
+     * Acquires write lock and process the resource.
+     * <p>
+     *     You should use {@link #read(com.snamp.ConcurrentResourceAccess.ConsistentAction)}
+     *     or {@link #write(com.snamp.ConcurrentResourceAccess.ConsistentAction)} instead of this method.
+     * </p>
+     * @param handler The wrapped resource handler.
+     * @return The wrapped resource handler.
+     */
+    @Override
+    public final  <RESULT> RESULT handle(final WrappedObjectHandler<R, RESULT> handler) {
+        return handler != null ?
+                write(new ConsistentAction<R, RESULT>() {
+                    @Override
+                    public final RESULT invoke(final R resource) {
+                        return handler.invoke(resource);
+                    }
+                }) : null;
     }
 
     /**

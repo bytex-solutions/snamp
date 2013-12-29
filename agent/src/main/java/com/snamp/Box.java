@@ -11,7 +11,7 @@ import java.util.Objects;
  * @since 1.0
  */
 @Internal
-public class Box<T> implements Serializable {
+public class Box<T> implements Serializable, Wrapper<T> {
     private T value;
 
     /**
@@ -114,5 +114,16 @@ public class Box<T> implements Serializable {
      */
     public final boolean isEmpty(){
         return value == null;
+    }
+
+    /**
+     * Handles the wrapped object.
+     *
+     * @param handler The wrapped object handler.
+     * @return The wrapped object handling result.
+     */
+    @Override
+    public final  <R> R handle(final WrappedObjectHandler<T, R> handler) {
+        return handler != null ? handler.invoke(value) : null;
     }
 }

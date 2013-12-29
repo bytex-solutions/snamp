@@ -53,10 +53,6 @@ final class HostingServices {
         return new File(System.getProperty(PLUGINS_DIR, "plugins"));
     }
 
-    public static String getManagerName() {
-        return System.getProperty(AgentManager.MANAGER_NAME);
-    }
-
     static {
         log = Logger.getLogger("snamp.log");
         manager = PluginManagerFactory.createPluginManager();
@@ -69,7 +65,7 @@ final class HostingServices {
         if(pluginDir.exists() && pluginDir.isDirectory())
             for(final File plugin: pluginDir.listFiles(new FileExtensionFilter("jar")))
                 if(plugin.isFile()) manager.addPluginsFrom(plugin.toURI(), new OptionReportAfter());
-        else log.severe("No plugins are loaded.");
+        else log.warning("No plugins are loaded.");
     }
 
     public static Adapter getAdapter(final String adapterName){
@@ -100,7 +96,7 @@ final class HostingServices {
      * @return
      */
     public static AgentManager getAgentManager(final boolean defaultIfNotAvailable){
-        final AgentManager am =  getAgentManager(getManagerName());
+        final AgentManager am =  getAgentManager(System.getProperty(AgentManager.MANAGER_NAME));
         return am == null && defaultIfNotAvailable ? new ConsoleAgentManager() : am;
     }
 }
