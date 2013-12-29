@@ -7,10 +7,15 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 /**
+ * Represents advanced reflection subroutines.
+ * <p>
+ *     You should not use this class directly in your code.
+ * </p>
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
+@Internal
 public final class ReflectionUtils {
     private ReflectionUtils(){
 
