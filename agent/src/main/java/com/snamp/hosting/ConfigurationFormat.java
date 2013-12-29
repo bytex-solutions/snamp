@@ -45,6 +45,18 @@ public enum ConfigurationFormat {
     }
 
     /**
+     * Returns MIME type for this SNAMP configuration format.
+     * @return MIME type for this SNAMP configuration format.
+     */
+    public final String getMimeType(){
+        switch (_formatName){
+            case "yaml": return "application/x-yaml";
+            case "bin": return "application/x-java-serialized-object";
+            default: return "application/octet-stream";
+        }
+    }
+
+    /**
      * Returns a string representation of this file format.
      * @return The name of the format.
      */
@@ -1080,15 +1092,12 @@ public enum ConfigurationFormat {
      * @param format The configuration file format name.
      * @param fileName The path to the configuration file.
      * @return The parsed configuration.
+     * @throws java.io.IOException Unable to load the SNAMP configuration from the specified file.
      */
     public static AgentConfiguration load(final String format, final String fileName) throws IOException {
         final AgentConfiguration config = newAgentConfiguration(format);
         try(final InputStream stream = new FileInputStream(fileName)){
             config.load(stream);
-        }
-        catch(final FileNotFoundException ignored) {
-            System.out.println("No input configuration file specified!");
-            System.exit(0);
         }
         return config;
     }

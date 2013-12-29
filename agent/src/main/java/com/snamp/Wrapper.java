@@ -27,6 +27,9 @@ public interface Wrapper<T> {
 
     /**
      * Handles the wrapped object.
+     * <p>
+     *     It is not recommended to return the original wrapped object from the handler.
+     * </p>
      * @param handler The wrapped object handler.
      * @param <R> Type of the wrapped object handling result.
      * @return The wrapped object handling result.
