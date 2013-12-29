@@ -6,7 +6,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Represents embedded agent configuration.
+ * Represents embedded agent configuration that can be stored as serialized Java object.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
@@ -418,6 +418,9 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
     private final EmbeddedHostingConfiguration hostingConfig;
     private final Map<String, ManagementTargetConfiguration> targets;
 
+    /**
+     * Initializes a new empty agent configuration.
+     */
     public EmbeddedAgentConfiguration(){
         hostingConfig = new EmbeddedHostingConfiguration();
         targets = new HashMap<>(10);

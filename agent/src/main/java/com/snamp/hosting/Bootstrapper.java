@@ -166,14 +166,22 @@ final class Bootstrapper implements HostingContext {
         }
     }
 
-    private static final Map<String, AgentConfiguration.ManagementTargetConfiguration> nullTargetsMap = null;
     private final Agent agnt;
     private final AgentConfigurationStorage configurationStorage;
 
     public Bootstrapper(final String configFile, final String configFormat) throws IOException {
         configurationStorage = new FileConfigurationStorage(configFile, ConfigurationFormat.parse(configFormat));
-        try(final InputStream stream = new FileInputStream(configFile)){
-            this.agnt = Agent.start(configurationStorage.getStoredAgentConfiguration(AgentConfigurationStorage.TAG_LAST).restore());
+        this.agnt = Agent.start(configurationStorage.getStoredAgentConfiguration(AgentConfigurationStorage.TAG_LAST).restore());
+    }
+
+    private static void printHelp(final PrintStream output, final PrintStream err){
+        try(final InputStream help = Bootstrapper.class.getResourceAsStream("cmd_help.txt")){
+            int b = -1;
+            while ((b = help.read()) >= 0)
+                output.write(b);
+        }
+        catch (final IOException e) {
+            err.println(e.getLocalizedMessage());
         }
     }
 
@@ -183,9 +191,7 @@ final class Bootstrapper implements HostingContext {
             case 1: args = new String[]{args[0], ""}; break;
             case 2: break;
             default:
-                System.out.println("Usage:");
-                System.out.println("\tjava snamp config-format config-file");
-                System.out.println("\tExample: java snamp yaml mon.yaml");
+                printHelp(System.out, System.err);
                 return;
         }
         try(final AgentManager manager = HostingServices.getAgentManager(true)){
@@ -204,8 +210,9 @@ final class Bootstrapper implements HostingContext {
      */
     @Override
     public final  <T> T queryObject(final Class<T> objectType) {
-        if(AGENT == objectType) return (T)agnt;
-        else if(CONFIG_STORAGE == objectType) return (T)configurationStorage;
+        if(objectType == null) return null;
+        if(objectType.isInstance(agnt)) return objectType.cast(agnt);
+        else if(objectType.isInstance(configurationStorage)) return objectType.cast(configurationStorage);
         else return null;
     }
 }
