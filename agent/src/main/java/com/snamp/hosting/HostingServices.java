@@ -99,10 +99,17 @@ final class HostingServices {
     /**
      * Returns the predefined (through system property) Agent manager.
      * @param defaultIfNotAvailable {@literal true} to return default Agent manager if it is unavailable as plug-in; otherwise, {@link false} for {@literal null}.
-     * @return A new instance of the SNAMP agent manager,
+     * @return A new instance of the SNAMP agent manager.
      */
     public static AgentManager getAgentManager(final boolean defaultIfNotAvailable){
         final AgentManager am =  getAgentManager(System.getProperty(AgentManager.MANAGER_NAME));
         return am == null && defaultIfNotAvailable ? new ConsoleAgentManager() : am;
+    }
+
+    /**
+     * Unloads all plugins.
+     */
+    public static void unloadPlugins(){
+        manager.shutdown();
     }
 }

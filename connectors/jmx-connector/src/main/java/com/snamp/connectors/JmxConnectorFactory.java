@@ -2,6 +2,7 @@ package com.snamp.connectors;
 
 import com.snamp.licensing.JmxConnectorLimitations;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
+import net.xeoh.plugins.base.annotations.meta.Author;
 
 import javax.management.remote.JMXServiceURL;
 import java.util.*;
@@ -12,6 +13,7 @@ import java.util.logging.*;
  * @author Roman Sakno
  */
 @PluginImplementation
+@Author(name = "Roman Sakno")
 final class JmxConnectorFactory extends AbstractManagementConnectorFactory<JmxConnector> {
 
     /**

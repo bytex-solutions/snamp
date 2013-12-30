@@ -5,6 +5,7 @@ import com.snamp.connectors.util.*;
 import com.snamp.hosting.AgentConfiguration;
 import com.snamp.licensing.RestAdapterLimitations;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
+import net.xeoh.plugins.base.annotations.meta.Author;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.*;
 
@@ -17,6 +18,7 @@ import java.util.logging.Level;
  * @author Roman Sakno
  */
 @PluginImplementation
+@Author(name = "Roman Sakno")
 final class RestAdapter extends AbstractAdapter {
     public static final String NAME = "rest";
     private final Server jettyServer;

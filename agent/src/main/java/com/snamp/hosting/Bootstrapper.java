@@ -176,7 +176,7 @@ final class Bootstrapper implements HostingContext {
 
     private static void printHelp(final PrintStream output, final PrintStream err){
         try(final InputStream help = Bootstrapper.class.getResourceAsStream("cmd_help.txt")){
-            int b = -1;
+            int b;
             while ((b = help.read()) >= 0)
                 output.write(b);
         }
@@ -198,6 +198,9 @@ final class Bootstrapper implements HostingContext {
             final Bootstrapper snampEntryPoint = new Bootstrapper(args[0], args[1]);
             //executes the manager
             manager.start(snampEntryPoint);
+        }
+        finally {
+            HostingServices.unloadPlugins();
         }
     }
 

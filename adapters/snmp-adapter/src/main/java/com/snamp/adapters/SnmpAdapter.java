@@ -8,6 +8,7 @@ import com.snamp.connectors.*;
 import com.snamp.connectors.util.AbstractNotificationListener;
 import com.snamp.licensing.SnmpAdapterLimitations;
 import net.xeoh.plugins.base.annotations.*;
+import net.xeoh.plugins.base.annotations.meta.Author;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
@@ -28,6 +29,7 @@ import static com.snamp.connectors.NotificationSupport.Notification;
  * 
  */
 @PluginImplementation
+@Author(name = "Roman Sakno")
 final class SnmpAdapter extends SnmpAdapterBase {
     private static final String PASSWORD_PARAM = "password";
     /**
