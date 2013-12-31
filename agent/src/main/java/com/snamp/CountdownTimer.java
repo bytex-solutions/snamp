@@ -26,6 +26,17 @@ public class CountdownTimer {
     }
 
     /**
+     * Starts a new countdown timer.
+     * @param initial The initial timer value.
+     * @return A new instance of the started countdown timer.
+     */
+    public static CountdownTimer start(final TimeSpan initial){
+        final CountdownTimer timer = new CountdownTimer(initial);
+        timer.start();
+        return timer;
+    }
+
+    /**
      * Sets the current timer value.
      * @param current The new value for the timer.
      * @throws IllegalStateException The timer should be stopped.
@@ -40,6 +51,7 @@ public class CountdownTimer {
      * Returns the elapsed time.
      * @return The elapsed time.
      */
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final TimeSpan getElapsedTime(){
         return elapsed;
     }
@@ -80,6 +92,15 @@ public class CountdownTimer {
         if(timeoutException == null) return start();
         else if(isEmpty()) throw timeoutException.newInstance();
         else return start();
+    }
+
+    /**
+     * Composes {@link #stop()} and {@link #getElapsedTime()} methods.
+     * @return The elapsed time.
+     */
+    public final TimeSpan stopAndGetElapsedTime(){
+        stop();
+        return getElapsedTime();
     }
 
     /**

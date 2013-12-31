@@ -4,9 +4,9 @@ import java.io.*;
 import java.util.*;
 import java.util.logging.*;
 
-import com.snamp.connectors.ManagementConnector;
-import com.snamp.connectors.Notification;
+import com.snamp.connectors.*;
 import com.snamp.connectors.util.AbstractNotificationListener;
+import com.snamp.licensing.SnmpAdapterLimitations;
 import net.xeoh.plugins.base.annotations.*;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
@@ -19,6 +19,7 @@ import org.snmp4j.smi.*;
 import org.snmp4j.transport.TransportMappings;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.snamp.connectors.NotificationSupport.Notification;
 
 /**
  * Represents SNMP Agent.
@@ -28,6 +29,7 @@ import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration
  */
 @PluginImplementation
 final class SnmpAdapter extends SnmpAdapterBase {
+    private static final String PASSWORD_PARAM = "password";
     /**
      * Represents a collection of MO's with OID postfixes.
      */
@@ -91,6 +93,10 @@ final class SnmpAdapter extends SnmpAdapterBase {
                     StorageType.nonVolatile);
         }
 
+        public final boolean unregisterTrap(final SnmpTargetMIB targetMIB){
+            return targetMIB.removeTargetAddress(receiverName) != null;
+        }
+
         private final VariableBinding[] getVariableBindings(final Notification n){
             final VariableBinding[] result = new VariableBinding[3];
             result[0] = new VariableBinding(new OID(combineOID(eventId.toString(), "1")),
@@ -120,6 +126,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
 		super(new File("conf.agent"), null,
 				new CommandProcessor(
 						new OctetString(MPv3.createLocalEngineID())));
+        SnmpAdapterLimitations.current().verifyPluginVersion(getClass());
         coldStart = true;
         port = defaultPort;
         address = defaultAddress;
@@ -128,22 +135,27 @@ final class SnmpAdapter extends SnmpAdapterBase {
 	}
 
     private static void registerManagedObjects(final MOServer server, final VacmMIB mib, final String prefix, Iterable<SnmpAttributeMapping> mos){
-       /* mib.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
-                new OctetString(), VacmMIB.vacmViewIncluded,
-                StorageType.nonVolatile);
-        mib.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
-                new OctetString(), VacmMIB.vacmViewIncluded,
-                StorageType.nonVolatile);                */
+
+        boolean wasReadViewAdded = false;
+        boolean wasWriteViewAdded = false;
+
         for(final SnmpAttributeMapping mo: mos)
             try {
-                if (mo.getMetadata().canRead())
+
+                if (mo.getMetadata().canRead() && !wasReadViewAdded)
+                {
                     mib.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
                             new OctetString(), VacmMIB.vacmViewIncluded,
                             StorageType.nonVolatile);
-                if (mo.getMetadata().canWrite())
+                    wasReadViewAdded = true;
+                }
+                if (mo.getMetadata().canWrite() && !wasWriteViewAdded)
+                {
                     mib.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
                             new OctetString(), VacmMIB.vacmViewIncluded,
                             StorageType.nonVolatile);
+                    wasWriteViewAdded = true;
+                }
 
                 server.register(mo, null);
             } catch (final DuplicateRegistrationException e) {
@@ -154,7 +166,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
 	@Override
 	protected void registerManagedObjects() {
         for(final String prefix: attributes.keySet())
-            registerManagedObjects(this.getServer(), this.getVacmMIB(), prefix, (Iterable<SnmpAttributeMapping>)attributes.get(prefix).values());
+            registerManagedObjects(this.getServer(), this.getVacmMIB(), prefix, attributes.get(prefix).values());
 	}
 
     private static String combineOID(final String prefix, final String postfix){
@@ -165,7 +177,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
      * Unregisters additional managed objects from the agent's server.
      */
     @Override
-    protected void unregisterManagedObjects() {
+    protected final void unregisterManagedObjects() {
         for(final String prefix: attributes.keySet()){
             final ManagementAttributes attrs = attributes.get(prefix);
             for(final String postfix: attrs.keySet()){
@@ -173,14 +185,19 @@ final class SnmpAdapter extends SnmpAdapterBase {
                 if(mo != null) server.unregister(mo, null);
             }
         }
+        for(final String prefix: attributes.keySet()){
+            this.getVacmMIB().removeViewTreeFamily(new OctetString("fullReadView"), new OID(prefix));
+            this.getVacmMIB().removeViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix));
+        }
     }
 
     /**
-	 * Доступ видимости (Minimal View based Access Control)
-	 * http://www.faqs.org/rfcs/rfc2575.html
+	 * Setup minimal View-based Access Control.
+     * @param vacm View-based Access Control.
+     * @see <a href='http://www.faqs.org/rfcs/rfc2575.html'>RFC-2575</a>
 	 */
 	@Override
-	protected void addViews(final VacmMIB vacm) {
+	protected final void addViews(final VacmMIB vacm) {
             vacm.addGroup(SecurityModel.SECURITY_MODEL_SNMPv2c, new OctetString(
                     "cpublic"), new OctetString("v1v2group"),
                     StorageType.nonVolatile);
@@ -194,9 +211,10 @@ final class SnmpAdapter extends SnmpAdapterBase {
 
 	/**
 	 * Initializes SNMPv3 users.
+     * @param usm User-based security model.
 	 */
 	protected final void addUsmUser(final USM usm) {
-	}
+    }
 
     /**
      * Adds initial notification targets and filters.
@@ -209,6 +227,11 @@ final class SnmpAdapter extends SnmpAdapterBase {
     protected final void addNotificationTargets(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB) {
         for(final TrapSender sender: senders)
             sender.registerTrap(targetMIB);
+    }
+
+    private void removeNotificationTargets(){
+        for(final TrapSender sender: senders)
+            sender.unregisterTrap(getSnmpTargetMIB());
     }
 
     /**
@@ -265,6 +288,8 @@ final class SnmpAdapter extends SnmpAdapterBase {
         switch (agentState){
             case STATE_CREATED:
             case STATE_STOPPED:
+                if(parameters.containsKey(PASSWORD_PARAM))
+                    SnmpAdapterLimitations.current().verifyAuthenticationFeature();
                 return start(Integer.valueOf(parameters.get(portParamName)), parameters.get(addressParamName));
             default:return false;
         }
@@ -273,22 +298,27 @@ final class SnmpAdapter extends SnmpAdapterBase {
     /**
      * Stops the connector hosting.
      *
-     * @param saveAttributes {@literal true} to save previously exposed attributes for reuse; otherwise,
+     * @param saveState {@literal true} to save previously exposed attributes for reuse; otherwise,
      *                       clear internal list of exposed attributes.
      * @return {@literal true}, if adapter is previously started; otherwise, {@literal false}.
      */
     @Override
-    public boolean stop(final boolean saveAttributes) {
+    public boolean stop(final boolean saveState) {
         switch (agentState){
             case STATE_RUNNING:
                 super.stop();
-                if(!saveAttributes) attributes.clear();
+                unregisterSnmpMIBs();
+                removeNotificationTargets();
+                if(!saveState) {
+                    attributes.clear();
+                    senders.clear();
+                }
                 return true;
             default:return false;
         }
     }
 
-    private void exposeAttribute(final ManagementConnector connector, final String prefix, final String postfix, AttributeConfiguration attribute){
+    private void exposeAttribute(final AttributeSupport connector, final String prefix, final String postfix, AttributeConfiguration attribute){
         final String oid = combineOID(prefix, postfix);
         final SnmpAttributeMapping mo = SnmpType.createManagedObject(connector, oid, attribute.getAttributeName(), attribute.getAdditionalElements(), attribute.getReadWriteTimeout());
         if(mo == null)
@@ -311,12 +341,12 @@ final class SnmpAdapter extends SnmpAdapterBase {
      * @param attributes The dictionary of attributes.
      */
     @Override
-    public final void exposeAttributes(final ManagementConnector connector, final String namespace, final Map<String, AttributeConfiguration> attributes) {
+    public final void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AttributeConfiguration> attributes) {
         for(final String postfix: attributes.keySet())
             exposeAttribute(connector, namespace, postfix, attributes.get(postfix));
     }
 
-    private final void exposeEvent(final ManagementConnector connector, final String namespace, final String postfix, final EventConfiguration eventInfo){
+    private final void exposeEvent(final NotificationSupport connector, final String namespace, final String postfix, final EventConfiguration eventInfo){
         final Map<String, String> eventOptions = eventInfo.getAdditionalElements();
         if(eventOptions.containsKey(TrapSender.EVENT_TARGET_ADDRESS) && eventOptions.containsKey(TrapSender.EVENT_TARGET_NAME)){
             final int timeout = eventOptions.containsKey(TrapSender.EVENT_TARGET_NOTIF_TIMEOUT) ?
@@ -344,7 +374,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
     }
 
     @Override
-    public final void exposeEvents(final ManagementConnector connector, final String namespace, final Map<String, EventConfiguration> events) {
+    public final void exposeEvents(final NotificationSupport connector, final String namespace, final Map<String, EventConfiguration> events) {
         for(final String postfix: events.keySet())
             exposeEvent(connector, namespace, postfix, events.get(postfix));
     }
@@ -354,6 +384,10 @@ final class SnmpAdapter extends SnmpAdapterBase {
      */
     @Override
     public void close() {
-        super.stop();
+        if (agentState == STATE_RUNNING) super.stop();
+        unregisterSnmpMIBs();
+        attributes.clear();
+        removeNotificationTargets();
+        senders.clear();
     }
 }

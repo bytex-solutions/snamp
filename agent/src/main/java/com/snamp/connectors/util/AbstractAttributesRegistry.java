@@ -25,11 +25,11 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     }
 
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    protected abstract ConnectedAttributes createBinding(final ManagementConnector connector);
+    protected abstract ConnectedAttributes createBinding(final AttributeSupport connector);
 
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
     @Override
-    public final Collection<String> putAll(final ManagementConnector connector, final String prefix, final Map<String, AttributeConfiguration> attributes){
+    public final Collection<String> putAll(final AttributeSupport connector, final String prefix, final Map<String, AttributeConfiguration> attributes){
         final ConnectedAttributes binding;
         if(containsKey(prefix))
             binding = get(prefix);
@@ -53,9 +53,9 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
             final ConnectedAttributes binding = get(prefix);
             if(binding.containsKey(postfix))
                 try {
-                    final TypeConverter<T> converter = binding.get(postfix).getAttributeType().getProjection(attributeType);
+                    final TypeConverter<T> converter = binding.get(postfix).getType().getProjection(attributeType);
                     return converter != null ?
-                            converter.convertFrom(binding.getConnector().getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, defaultValue)):
+                            converter.convertFrom(binding.getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, defaultValue)):
                             defaultValue;
                 }
                 catch (final TimeoutException e) {
@@ -72,8 +72,8 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
             final ConnectedAttributes binding = get(prefix);
             if(binding.containsKey(postfix))
                 try {
-                    final ManagementEntityType attributeType = binding.get(postfix).getAttributeType();
-                    final Object value = binding.getConnector().getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, null);
+                    final ManagementEntityType attributeType = binding.get(postfix).getType();
+                    final Object value = binding.getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, null);
                     return new AttributeValue(value, attributeType);
                 }
                 catch (final TimeoutException e) {
@@ -88,7 +88,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     public final ManagementEntityType getAttributeType(final String prefix, final String postfix){
         if(containsKey(prefix)){
             final ConnectedAttributes binding = get(prefix);
-            return binding.containsKey(postfix) ? binding.get(postfix).getAttributeType() : null;
+            return binding.containsKey(postfix) ? binding.get(postfix).getType() : null;
         }
         else return null;
     }
@@ -100,7 +100,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
             final ConnectedAttributes binding = get(prefix);
             if(binding.containsKey(postfix))
                 try {
-                    return binding.getConnector().setAttribute(binding.makeAttributeId(prefix, postfix), writeTimeout, value);
+                    return binding.setAttribute(binding.makeAttributeId(prefix, postfix), writeTimeout, value);
                 }
                 catch (final TimeoutException e) {
                     return false;

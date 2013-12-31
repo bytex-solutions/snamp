@@ -1,6 +1,9 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
+import static com.snamp.ConcurrentResourceAccess.ConsistentAction;
+import static com.snamp.ConcurrentResourceAccess.Action;
+import static com.snamp.connectors.NotificationSupport.NotificationListener;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -14,8 +17,7 @@ import java.util.concurrent.locks.*;
  * @version 1.0
  */
 @Lifecycle(InstanceLifecycle.NORMAL)
-@SuppressWarnings("try")
-public abstract class AbstractManagementConnector implements ManagementConnector {
+public abstract class AbstractManagementConnector extends AbstractAggregator implements ManagementConnector {
 
     /**
      * Represents default implementation of the attribute descriptor.
@@ -24,6 +26,28 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      * @version 1.0
      */
     protected static abstract class GenericAttributeMetadata<T extends ManagementEntityType> implements AttributeMetadata {
+        /**
+         * Represents the name of the attribute configuration parameter that assigns the display
+         * name for the attribute.
+         * <p>
+         *     If you want to store display names for each language then you should use the following notation:
+         *     displayName.en-US,
+         *     display.ru-RU
+         * </p>
+         */
+        public static final String DISPLAY_NAME_PARAM = "displayName";
+
+        /**
+         * Represents the name of the attribute configuration parameters that assigns the
+         * description for the attribute.
+         * <p>
+         *     If you want to store display names for each language then you should use the following notation:
+         *     description.en-US,
+         *     description.ru-RU
+         * </p>
+         */
+        public static final String DESCRIPTION_PARAM = "description";
+
         private final String attributeName;
         private final String namespace;
         private T attributeType;
@@ -41,6 +65,47 @@ public abstract class AbstractManagementConnector implements ManagementConnector
             this.namespace = namespace;
         }
 
+        private String readLocalizedParam(String paramName, final Locale locale, final String defaultValue){
+            if(locale == null)
+                return containsKey(paramName) ? get(paramName) : defaultValue;
+            else{
+                paramName = String.format("%s.%s", paramName, locale.toLanguageTag());
+                return containsKey(paramName) ? get(paramName) : defaultValue;
+            }
+        }
+
+        /**
+         * Returns the localized description of this attribute.
+         * <p>
+         *     In the default implementation, this method reads description from {@link #DESCRIPTION_PARAM}
+         *     attribute configuration parameter.
+         * </p>
+         * @param locale The locale of the description. If it is {@literal null} then returns description
+         *               in the default locale.
+         * @return The localized description of this attribute.
+         * @see #DESCRIPTION_PARAM
+         */
+        @Override
+        public String getDescription(final Locale locale) {
+            return readLocalizedParam(DESCRIPTION_PARAM, locale, "");
+        }
+
+        /**
+         * Returns the localized name of this attribute.
+         * <p>
+         *     In the default implementation, this method reads description from {@link #DISPLAY_NAME_PARAM}
+         *     attribute configuration parameter.
+         * </p>
+         * @param locale The locale of the display name. If it is {@literal null} then returns display name
+         *               in the default locale.
+         * @return The localized name of this attribute.
+         * @see #DISPLAY_NAME_PARAM
+         */
+        @Override
+        public String getDisplayName(final Locale locale) {
+            return readLocalizedParam(DISPLAY_NAME_PARAM, locale, attributeName);
+        }
+
         /**
          * Detects the attribute type (this method will be called by infrastructure once).
          * @return Detected attribute type.
@@ -53,7 +118,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
          * @return The type of the attribute value.
          */
         @Override
-        public final T getAttributeType() {
+        public final T getType() {
             if(attributeType == null) attributeType = detectAttributeType();
             return attributeType;
         }
@@ -109,7 +174,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
          * @return The attribute name.
          */
         @Override
-        public final String getAttributeName() {
+        public final String getName() {
             return attributeName;
         }
 
@@ -182,6 +247,20 @@ public abstract class AbstractManagementConnector implements ManagementConnector
             this.listeners = new HashMap<>(10);
             this.coordinator = new ReentrantReadWriteLock();
             this.counter = useGlobalIdGen ? globalCounter : new AtomicLong(0L);
+        }
+
+        /**
+         * Returns the localized description of this management entity.
+         * <p>
+         *     In the default implementation, this method returns an empty string.
+         * </p>
+         * @param locale The locale of the description. If it is {@literal null} then returns description
+         *               in the default locale.
+         * @return The localized description of this management entity.
+         */
+        @Override
+        public final String getDescription(final Locale locale) {
+            return "";
         }
 
         final boolean hasListener(final Long listenerId){
@@ -336,49 +415,251 @@ public abstract class AbstractManagementConnector implements ManagementConnector
         }
     }
 
-    private final ReadWriteLock coordinator; //transaction coordinator
-    private final Map<String, GenericAttributeMetadata<?>> attributes;
-    private final Map<String, GenericNotificationMetadata> notifications;
+    /**
+     * Represents a base class that allows to enable notification support for the management connector.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static abstract class AbstractNotificationSupport implements NotificationSupport{
+        private final ConcurrentResourceAccess<Map<String, GenericNotificationMetadata>> notifications;
+
+        /**
+         * Initializes a new notification manager.
+         */
+        protected AbstractNotificationSupport(){
+            this.notifications = new ConcurrentResourceAccess<Map<String, GenericNotificationMetadata>>(new HashMap<String, GenericNotificationMetadata>(10));
+        }
+
+        /**
+         * Returns all notifications associated with the specified category.
+         * @param category The category of the event.
+         * @param metadataType The type of requested notification metadata.
+         * @param <T> The type of requested notification metadata.
+         * @return A map of registered notifications and subscription lists.
+         */
+        @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+        protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType){
+            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Map<String, T>>() {
+                @Override
+                public final Map<String, T> invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    final Map<String, T> result = new HashMap<>(10);
+                    for(final Map.Entry<String, GenericNotificationMetadata> metadata: notifications.entrySet())
+                        if(Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
+                            result.put(metadata.getKey(), metadataType.cast(metadata.getValue()));
+                    return result;
+                }
+            });
+        }
+
+        /**
+         * Enables event listening for the specified category of events.
+         * <p>
+         *     In the default implementation this method does nothing.
+         * </p>
+         * @param category The name of the category to listen.
+         * @param options  Event discovery options.
+         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+         */
+        protected abstract GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options);
+
+        /**
+         * Enables event listening for the specified category of events.
+         * @param listId An identifier of the subscription list.
+         * @param category A name of the category to listen.
+         * @param options  Event discovery options.
+         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+         */
+        @Override
+        public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
+            return notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, NotificationMetadata>() {
+                @Override
+                public final NotificationMetadata invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    if(notifications.containsKey(category)) return notifications.get(category);
+                    final GenericNotificationMetadata metadata = enableNotificationsCore(category, options);
+                    if(metadata != null) notifications.put(listId, metadata);
+                    return metadata;
+                }
+            });
+        }
+
+        /**
+         * Disable all notifications associated with the specified event.
+         * <p>
+         *     In the default implementation this method does nothing.
+         * </p>
+         * @param notificationType The event descriptor.
+         */
+        protected void disableNotificationsCore(final NotificationMetadata notificationType){
+        }
+
+        /**
+         * Disables event listening for the specified category of events.
+         *
+         * @param listId An identifier of the subscription list.
+         * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+         */
+        @Override
+        public final boolean disableNotifications(final String listId) {
+            return notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, Boolean>() {
+                @Override
+                public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    if (notifications.containsKey(listId)) {
+                        disableNotificationsCore(notifications.remove(listId));
+                        return true;
+                    } else return false;
+                }
+            });
+        }
+
+        /**
+         * Gets the notification metadata by its category.
+         *
+         * @param listId An identifier of the subscription list.
+         * @return The metadata of the specified notification category; or {@literal null}, if notifications
+         *         for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
+         */
+        @Override
+        public final NotificationMetadata getNotificationInfo(final String listId) {
+            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, NotificationMetadata>() {
+                @Override
+                public final NotificationMetadata invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    return notifications.get(listId);
+                }
+            });
+        }
+
+        /**
+         * Adds a new listener for the specified notification.
+         * @param notificationType The event type.
+         * @param listener The event listener.
+         * @return Any custom data associated with the subscription.
+         */
+        protected abstract Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener);
+
+        /**
+         * Attaches the notification listener.
+         *
+         * @param listId An identifier of the subscription list.
+         * @param listener The notification listener.
+         * @return An identifier of the notification listener generated by this connector.
+         */
+        @Override
+        public final Long subscribe(final String listId, final NotificationListener listener) {
+            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Long>() {
+                @Override
+                public final Long invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    final GenericNotificationMetadata metadata = notifications.get(listId);
+                    if(metadata == null) return null;
+                    final Object userData = subscribeCore(metadata, listener);
+                    return metadata.addListener(listener, userData);
+                }
+            });
+        }
+
+        /**
+         * Cancels the notification listening.
+         * @param metadata The event type.
+         * @param listener The notification listener to remove.
+         * @param data The custom data associated with subscription that returned from {@link #subscribeCore(NotificationMetadata, NotificationListener)}
+         *             method.
+         */
+        protected abstract void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data);
+
+        /**
+         * Removes the notification listener.
+         * @param listenerId An identifier of the notification listener previously returned
+         *                   by {@link #subscribe(String, NotificationListener)} method.
+         * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
+         */
+        public final boolean unsubscribe(final Long listenerId){
+            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Boolean>() {
+                @Override
+                public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    for(final GenericNotificationMetadata metadata: notifications.values()){
+                        if(metadata.hasListener(listenerId)){
+                            final Pair<NotificationListener, Object> pair = metadata.getListener(listenerId);
+                            if(pair == null) return false;
+                            unsubscribeCore(metadata, pair.first, pair.second);
+                            return metadata.removeListener(listenerId);
+                        }
+                    }
+                    return false;
+                }
+            });
+        }
+
+        /**
+         * Removes the notification listener.
+         *
+         * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationSupport.NotificationListener)}.
+         * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
+         */
+        @Override
+        public final boolean unsubscribe(final Object listenerId)  {
+            return listenerId instanceof Long && unsubscribe((Long)listenerId);
+        }
+
+        /**
+         * Removes all listeners from this notification manager.
+         * <p>
+         *     It is recommended to call this method in the implementation of {@link AutoCloseable#close()}
+         *     method in your management connector.
+         * </p>
+         */
+        public final void clear(){
+            notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, Void>() {
+                @Override
+                public final Void invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    notifications.clear();
+                    return null;
+                }
+            });
+        }
+    }
+
+    private final ConcurrentResourceAccess<Map<String, GenericAttributeMetadata<?>>> attributes;
+
+    private final IllegalStateFlag closed = new IllegalStateFlag() {
+        @Override
+        public final IllegalStateException newInstance() {
+            return new IllegalStateException("Management connector is closed.");
+        }
+    };
 
     /**
      * Initializes a new management connector.
      */
     protected AbstractManagementConnector(){
-        this.attributes = new HashMap<>();
-        this.coordinator = new ReentrantReadWriteLock();
-        this.notifications = new HashMap<>();
+        this.attributes = new ConcurrentResourceAccess<Map<String, GenericAttributeMetadata<?>>>(new HashMap<String, GenericAttributeMetadata<?>>(10));
     }
 
-    /**
-     * Returns all notifications associated with the specified category.
-     * @param category The category of the event.
-     * @param metadataType The type of requested notification metadata.
-     * @param <T> The type of requested notification metadata.
-     * @return A map of registered notifications and subscription lists.
-     */
-    protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType){
-        final Map<String, T> result = new HashMap<>(10);
-        for(final Map.Entry<String, GenericNotificationMetadata> metadata: notifications.entrySet())
-            if(Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
-                result.put(metadata.getKey(), metadataType.cast(metadata.getValue()));
-        return result;
-    }
+
 
     /**
      * Returns a count of connected attributes.
      * @return The count of connected attributes.
      */
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
+    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     protected final int attributesCount(){
-        return attributes.size();
+        return attributes.read(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Integer>() {
+            @Override
+            public final Integer invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
+                return attributes.size();
+            }
+        });
     }
 
     /**
      *  Throws an {@link IllegalStateException} if the connector is not initialized.
+     *  <p>
+     *      You should call the base implementation from the overridden method.
+     *  </p>
      *  @throws IllegalStateException Connector is not initialized.
      */
-    // TODO: Architecture bug? Why no "throw" at declaration?
-    protected abstract void verifyInitialization(); //throws Exception;
+    protected void verifyInitialization() throws IllegalStateException{
+        closed.verify();
+    }
 
     /**
      * Connects to the specified attribute.
@@ -391,7 +672,7 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     /**
      * Connects to the specified attribute.
      * Connects to the specified attribute.
-     * @param id A key string that is used to read attribute from this connector.
+     * @param id A key string that is used to invoke attribute from this connector.
      * @param attributeName The name of the attribute.
      * @param options Attribute discovery options.
      * @return The description of the attribute.
@@ -399,19 +680,17 @@ public abstract class AbstractManagementConnector implements ManagementConnector
     @Override
     public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) {
         verifyInitialization();
-        final Lock writeLock =  coordinator.writeLock();
-        writeLock.lock();
-        try {
-            //return existed attribute without exception to increase flexibility of the API
-            if(attributes.containsKey(id)) return attributes.get(id);
-            final GenericAttributeMetadata<?> attr;
-            if((attr = connectAttributeCore(attributeName, options)) != null)
-                attributes.put(id, attr);
-            return attr;
-        }
-        finally {
-            writeLock.unlock();
-        }
+        return attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, AttributeMetadata>() {
+            @Override
+            public final AttributeMetadata invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
+                //return existed attribute without exception to increase flexibility of the API
+                if(attributes.containsKey(id)) return attributes.get(id);
+                final GenericAttributeMetadata<?> attr;
+                if((attr = connectAttributeCore(attributeName, options)) != null)
+                    attributes.put(id, attr);
+                return attr;
+            }
+        });
     }
 
     /**
@@ -426,73 +705,53 @@ public abstract class AbstractManagementConnector implements ManagementConnector
 
     /**
      * Returns the attribute value.
-     * @param id  A key string that is used to read attribute from this connector.
-     * @param readTimeout The attribute value read operation timeout.
+     * @param id  A key string that is used to invoke attribute from this connector.
+     * @param readTimeout The attribute value invoke operation timeout.
      * @param defaultValue The default value of the attribute if it is real value is not available.
      * @return The value of the attribute, or default value.
-     * @throws TimeoutException The attribute value cannot be read in the specified duration.
+     * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
      */
     @Override
     public final Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException{
-        final CountdownTimer timer = new CountdownTimer(readTimeout);
-        final Lock readLock = coordinator.readLock();
-        timer.start();
-        if(readTimeout == TimeSpan.INFINITE) readLock.lock();
-        else try {
-            if(!readLock.tryLock(readTimeout.duration, readTimeout.unit))
-                throw new TimeoutException("The connector runs read/write operation too long");
-        } catch (InterruptedException e) {
-           return defaultValue;
-        }
-        timer.stop();
-        //read lock is acquired, forces the custom reading operation
-        try{
-            return getAttributeValue(attributes.get(id), timer.getElapsedTime(), defaultValue);
-        }
-        finally {
-            readLock.unlock();
-        }
+        verifyInitialization();
+        final CountdownTimer timer = CountdownTimer.start(readTimeout);
+        return attributes.read(new Action<Map<String, GenericAttributeMetadata<?>>, Object, TimeoutException>() {
+            @Override
+            public final Object invoke(final Map<String, GenericAttributeMetadata<?>> attributes) throws TimeoutException {
+                return getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), defaultValue);
+            }
+        });
     }
 
     /**
      * Reads a set of attributes.
-     * @param output The dictionary with set of attribute keys to read and associated default values.
-     * @param readTimeout The attribute value read operation timeout.
+     * @param output The dictionary with set of attribute keys to invoke and associated default values.
+     * @param readTimeout The attribute value invoke operation timeout.
      * @return The set of attributes ids really written to the dictionary.
-     * @throws TimeoutException The attribute value cannot be read in the specified duration.
+     * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
      */
     @Override
     public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException {
-        final Lock readLock = coordinator.readLock();
-        final CountdownTimer timer = new CountdownTimer(readTimeout);
-        timer.start();
-        if(readTimeout == TimeSpan.INFINITE) readLock.lock();
-        else try {
-            if(!readLock.tryLock(readTimeout.duration, readTimeout.unit))
-                throw new TimeoutException("The connector runs read/write operation too long");
-        } catch (InterruptedException e) {
-            return new HashSet<>();
-        }
-        timer.stop();
-        //accumulator for really existed attribute IDs
-        final Set<String> result = new HashSet<>();
-        try{
-            final Object missing = new Object(); //this object represents default value for understanding
-            //whether the attribute value is unavailable
-            for(final String id: output.keySet()){
-                timer.start();
-                final Object value = getAttributeValue(attributes.get(id), timer.getElapsedTime(), missing);
-                if(value != missing) { //attribute value is available
-                    result.add(id);
-                    output.put(id, value);
-                }
+        final CountdownTimer timer = CountdownTimer.start(readTimeout);
+        return attributes.read(new Action<Map<String, GenericAttributeMetadata<?>>, Set<String>, TimeoutException>() {
+            @Override
+            public final Set<String> invoke(final Map<String, GenericAttributeMetadata<?>> attributes) throws TimeoutException {
+                //accumulator for really existed attribute IDs
+                final Set<String> result = new HashSet<>(attributes.size());
+                final Object missing = new Object(); //this object represents default value for understanding
+                //whether the attribute value is unavailable
                 timer.stop();
+                for(final String id: output.keySet()){
+                    timer.start();
+                    final Object value = getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), missing);
+                    if(value != missing) { //attribute value is available
+                        result.add(id);
+                        output.put(id, value);
+                    }
+                }
+                return result;
             }
-        }
-        finally {
-            readLock.unlock();
-        }
-        return result;
+        });
     }
 
     /**
@@ -514,23 +773,14 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      */
     @Override
     public final boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException {
-        final Lock writeLock = coordinator.writeLock();
-        final CountdownTimer timer = new CountdownTimer(writeTimeout);
-        timer.start();
-        if(writeTimeout == TimeSpan.INFINITE) writeLock.lock();
-        else try {
-            if(!writeLock.tryLock(writeTimeout.duration, writeTimeout.unit))
-                throw new TimeoutException("The connector runs read/write operation too long");
-        } catch (InterruptedException e) {
-            return false;
-        }
-        timer.stop();
-        try{
-            return attributes.containsKey(id) ? setAttributeValue(attributes.get(id), timer.getElapsedTime(), value) : false;
-        }
-        finally {
-            writeLock.unlock();
-        }
+        verifyInitialization();
+        final CountdownTimer timer = CountdownTimer.start(writeTimeout);
+        return attributes.write(new Action<Map<String, GenericAttributeMetadata<?>>, Boolean, TimeoutException>() {
+            @Override
+            public final Boolean invoke(final Map<String, GenericAttributeMetadata<?>> attributes) throws TimeoutException {
+                return attributes.containsKey(id) ? setAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), value) : false;
+            }
+        });
     }
 
     /**
@@ -542,31 +792,21 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      */
     @Override
     public boolean setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException {
-        final Lock writeLock = coordinator.writeLock();
-        final CountdownTimer timer = new CountdownTimer(writeTimeout);
-        timer.start();
-        if(writeTimeout == TimeSpan.INFINITE) writeLock.lock();
-        else try {
-            if(!writeLock.tryLock(writeTimeout.duration, writeTimeout.unit))
-                throw new TimeoutException("The connector runs read/write operation too long");
-        } catch (InterruptedException e) {
-            return false;
-        }
-        timer.stop();
-        boolean result = true;
-        try{
-            final Object missing = new Object(); //this object represents default value for understanding
-            //whether the attribute value is unavailable
-            for(final Map.Entry<String, Object> entry: values.entrySet()){
-                timer.start();
-                result &= setAttributeValue(attributes.get(entry.getKey()), timer.getElapsedTime(), entry.getValue());
+        final CountdownTimer timer = CountdownTimer.start(writeTimeout);
+        return attributes.write(new Action<Map<String, GenericAttributeMetadata<?>>, Boolean, TimeoutException>() {
+            @Override
+            public final Boolean invoke(final Map<String, GenericAttributeMetadata<?>> attributes) throws TimeoutException {
+                boolean result = true;
+                final Object missing = new Object(); //this object represents default value for understanding
+                //whether the attribute value is unavailable
                 timer.stop();
+                for(final Map.Entry<String, Object> entry: values.entrySet()){
+                    timer.start();
+                    result &= setAttributeValue(attributes.get(entry.getKey()), timer.stopAndGetElapsedTime(), entry.getValue());
+                }
+                return result;
             }
-        }
-        finally {
-            writeLock.unlock();
-        }
-        return result;
+        });
     }
 
     /**
@@ -585,18 +825,16 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      */
     @Override
     public final boolean disconnectAttribute(final String id) {
-        final Lock writeLock = coordinator.writeLock();
-        writeLock.lock();
-        try{
-            if(attributes.containsKey(id) && disconnectAttributeCore(id)){
-                attributes.remove(id);
-                return true;
+        verifyInitialization();
+        return attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Boolean>() {
+            @Override
+            public final Boolean invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
+                if (attributes.containsKey(id) && disconnectAttributeCore(id)) {
+                    attributes.remove(id);
+                    return true;
+                } else return false;
             }
-            else return false;
-        }
-        finally {
-            writeLock.unlock();
-        }
+        });
     }
 
     /**
@@ -606,188 +844,45 @@ public abstract class AbstractManagementConnector implements ManagementConnector
      */
     @Override
     public final AttributeMetadata getAttributeInfo(final String id) {
-        final Lock readLock = coordinator.readLock();
-        readLock.lock();
-        try {
-            return attributes.get(id);
-        }
-        finally {
-            readLock.unlock();
-        }
-    }
-
-    /**
-     * Returns an iterator through attribute identifiers.
-     * @return An iterator through attribute identifiers.
-     */
-    @Override
-    public final Iterator<String> iterator() {
-        return attributes.keySet().iterator();
-    }
-
-    /**
-     * Enables event listening for the specified category of events.
-     * <p>
-     *     In the default implementation this method does nothing.
-     * </p>
-     * @param category The name of the category to listen.
-     * @param options  Event discovery options.
-     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-     */
-    protected GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options){
-        return null;
-    }
-
-    /**
-     * Enables event listening for the specified category of events.
-     * @param listId An identifier of the subscription list.
-     * @param category A name of the category to listen.
-     * @param options  Event discovery options.
-     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-     */
-    @Override
-    public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
-        final Lock writeLock = coordinator.writeLock();
-        writeLock.lock();
-        try{
-            if(notifications.containsKey(category)) return notifications.get(category);
-            final GenericNotificationMetadata metadata = enableNotificationsCore(category, options);
-            if(metadata != null) notifications.put(listId, metadata);
-            return metadata;
-        }
-        finally {
-            writeLock.unlock();
-        }
-    }
-
-    /**
-     * Disable all notifications associated with the specified event.
-     * <p>
-     *     In the default implementation this method does nothing.
-     * </p>
-     * @param notificationType The event descriptor.
-     */
-    protected void disableNotificationsCore(final NotificationMetadata notificationType){
-    }
-
-    /**
-     * Disables event listening for the specified category of events.
-     *
-     * @param listId An identifier of the subscription list.
-     * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
-     */
-    @Override
-    public final boolean disableNotifications(final String listId) {
-        final Lock writeLock = coordinator.writeLock();
-        writeLock.lock();
-        try{
-            if(notifications.containsKey(listId)){
-                disableNotificationsCore(notifications.remove(listId));
-                return true;
+        verifyInitialization();
+        return attributes.read(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, AttributeMetadata>() {
+            @Override
+            public final AttributeMetadata invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
+                return attributes.get(id);
             }
-            else return false;
-        }
-        finally {
-            writeLock.unlock();
-        }
+        });
     }
 
     /**
-     * Gets the notification metadata by its category.
+     * Returns a read-only collection of registered attributes.
      *
-     * @param listId An identifier of the subscription list.
-     * @return The metadata of the specified notification category; or {@literal null}, if notifications
-     *         for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
+     * @return A read-only collection of registered attributes.
      */
     @Override
-    public final NotificationMetadata getNotificationInfo(final String listId) {
-        final Lock readLock = coordinator.readLock();
-        readLock.lock();
-        try{
-            return notifications.get(listId);
-        }
-        finally {
-            readLock.unlock();
-        }
-    }
-
-    /**
-     * Adds a new listener for the specified notification.
-     * @param notificationType The event type.
-     * @param listener The event listener.
-     * @return Any custom data associated with the subscription.
-     */
-    protected Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener){
-        return null;
-    }
-
-    /**
-     * Attaches the notification listener.
-     *
-     * @param listId An identifier of the subscription list.
-     * @param listener The notification listener.
-     * @return An identifier of the notification listener generated by this connector.
-     */
-    @Override
-    public final Long subscribe(final String listId, final NotificationListener listener) {
-        final Lock readLock = coordinator.readLock();
-        readLock.lock();
-        try{
-            final GenericNotificationMetadata metadata = notifications.get(listId);
-            if(metadata == null) return null;
-            final Object userData = subscribeCore(metadata, listener);
-            return metadata.addListener(listener, userData);
-        }
-        finally {
-            readLock.unlock();
-        }
-    }
-
-    /**
-     * Cancels the notification listening.
-     * @param metadata The event type.
-     * @param listener The notification listener to remove.
-     * @param data The custom data associated with subscription that returned from {@link #subscribeCore(NotificationMetadata, NotificationListener)}
-     *             method.
-     */
-    protected void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data){
-
-    }
-
-    /**
-     * Removes the notification listener.
-     * @param listenerId An identifier of the notification listener previously returned
-     *                   by {@link #subscribe(String, NotificationListener)} method.
-     * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
-     */
-    public final boolean unsubscribe(final Long listenerId){
-        final Lock readLock = coordinator.readLock();
-        readLock.lock();
-        try{
-            for(final GenericNotificationMetadata metadata: notifications.values()){
-                if(metadata.hasListener(listenerId)){
-                    final Pair<NotificationListener, Object> pair = metadata.getListener(listenerId);
-                    if(pair == null) return false;
-                    unsubscribeCore(metadata, pair.first, pair.second);
-                    return metadata.removeListener(listenerId);
-                }
+    public final Collection<String> getRegisteredAttributes() {
+        return attributes.read(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Collection<String>>() {
+            @Override
+            public final Collection<String> invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
+                return Collections.unmodifiableCollection(attributes.keySet());
             }
-
-        }
-        finally {
-            readLock.unlock();
-        }
-        return false;
+        });
     }
 
     /**
-     * Removes the notification listener.
-     *
-     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationListener)}.
-     * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
+     * Releases all resources associated with this connector.
+     * @throws Exception
      */
     @Override
-    public final boolean unsubscribe(final Object listenerId)  {
-        return listenerId instanceof Long && unsubscribe((Long)listenerId);
+    public void close() throws Exception {
+        //remove all registered attributes
+        attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Void>() {
+            @Override
+            public final Void invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
+                attributes.clear();
+                return null;
+            }
+        });
+        //change state of the connector
+        closed.set();
     }
 }

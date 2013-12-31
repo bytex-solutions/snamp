@@ -11,7 +11,7 @@ import static org.snmp4j.smi.SMIConstants.SYNTAX_INTEGER32;
 final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
     public static final int defaultValue = -1;
 
-    public SnmpBooleanObject(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
+    public SnmpBooleanObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
         super(oid, connector, new Integer32(defaultValue), timeouts);
     }
 

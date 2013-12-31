@@ -9,7 +9,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public class SoftMap<K, V> implements Map<K, V> {
+public class SoftMap<K, V> implements Map<K, V>, Wrapper<Map<K, V>> {
     private Reference<Map<K, V>> map;
     private final int capacity;
 
@@ -287,5 +287,16 @@ public class SoftMap<K, V> implements Map<K, V> {
     @Override
     public final Set<Entry<K, V>> entrySet() {
         return getOrCreateMap().entrySet();
+    }
+
+    /**
+     * Handles the wrapped object.
+     *
+     * @param handler The wrapped object handler.
+     * @return The wrapped object handling result.
+     */
+    @Override
+    public final  <R> R handle(final WrappedObjectHandler<Map<K, V>, R> handler) {
+        return handler != null ? handler.invoke(getOrCreateMap()) : null;
     }
 }

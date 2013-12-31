@@ -14,7 +14,7 @@ import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
     public static final Number defaultValue = 0;
 
-    public SnmpBigNumberObject(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
+    public SnmpBigNumberObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
         super(oid, connector, new OctetString(defaultValue.toString()), timeouts);
     }
 
@@ -22,9 +22,8 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
         return new OctetString(Objects.toString(convertFrom(attributeTypeInfo, value, Number.class, BigInteger.class, BigDecimal.class), defaultValue.toString()));
     }
 
-    public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
-        if(supportsProjection(attributeTypeInfo, String.class)) return value.toString();
-        else return defaultValue;
+    public static Number convert(final Variable value, final ManagementEntityType attributeTypeInfo){
+        return convertFrom(attributeTypeInfo, value.toString(), Number.class, fallbackWithDefaultValue(defaultValue, value, attributeTypeInfo), BigDecimal.class, BigInteger.class);
     }
 
     /**

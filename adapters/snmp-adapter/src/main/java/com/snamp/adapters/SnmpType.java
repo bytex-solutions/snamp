@@ -1,5 +1,6 @@
 package com.snamp.adapters;
 
+import static com.snamp.ReflectionUtils.wrapReference;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.smi.Null;
@@ -7,6 +8,7 @@ import org.snmp4j.smi.Variable;
 
 import static com.snamp.connectors.WellKnownTypeSystem.*;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.*;
 import static org.snmp4j.smi.SMIConstants.EXCEPTION_NO_SUCH_OBJECT;
 
@@ -80,10 +82,10 @@ enum SnmpType {
      * @param timeouts
      * @return
      */
-    public SnmpAttributeMapping createManagedObject(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
+    public SnmpAttributeMapping createManagedObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
         try {
-            final Constructor<? extends SnmpAttributeMapping> ctor = mapping.getConstructor(String.class, ManagementConnector.class, TimeSpan.class);
-            return ctor.newInstance(oid, connector, timeouts);
+            final Constructor<? extends SnmpAttributeMapping> ctor = mapping.getConstructor(String.class, AttributeSupport.class, TimeSpan.class);
+            return ctor.newInstance(oid, wrapReference(new WeakReference<>(connector), AttributeSupport.class), timeouts);
         }
         catch (final ReflectiveOperationException e) {
             return null;
@@ -170,14 +172,14 @@ enum SnmpType {
      * @param timeouts
      * @return
      */
-    public static SnmpAttributeMapping createManagedObject(final ManagementConnector connector,
+    public static SnmpAttributeMapping createManagedObject(final AttributeSupport connector,
                                                     final String oid,
                                                     final String attributeName,
                                                     final Map<String, String> options,
                                                    final TimeSpan timeouts){
         final AttributeMetadata attribute = connector.connectAttribute(oid, attributeName, options);
         if(attribute == null) return null;
-        final SnmpType type = map(attribute.getAttributeType());
+        final SnmpType type = map(attribute.getType());
         return type != null ? type.createManagedObject(oid, connector, timeouts) : null;
     }
 

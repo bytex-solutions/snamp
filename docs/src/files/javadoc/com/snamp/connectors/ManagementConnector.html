@@ -144,7 +144,7 @@ extends java.lang.Iterable&lt;java.lang.String&gt;, java.lang.AutoCloseable</pre
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>java.lang.Object</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnector.html#doAction(java.lang.String, com.snamp.connectors.Arguments, com.snamp.TimeSpan)">doAction</a></strong>(java.lang.String&nbsp;actionName,
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnector.html#doAction(java.lang.String, com.snamp.connectors.util.Arguments, com.snamp.TimeSpan)">doAction</a></strong>(java.lang.String&nbsp;actionName,
         <a href="../../../com/snamp/connectors/Arguments.html" title="class in com.snamp.connectors">Arguments</a>&nbsp;args,
         <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;timeout)</code>
 <div class="block">Executes remote action.</div>
@@ -252,7 +252,7 @@ extends java.lang.Iterable&lt;java.lang.String&gt;, java.lang.AutoCloseable</pre
                                  java.lang.String&nbsp;attributeName,
                                  java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;options)</pre>
 <div class="block">Connects to the specified attribute.</div>
-<dl><dt><span class="strong">Parameters:</span></dt><dd><code>id</code> - A key string that is used to read attribute from this connector.</dd><dd><code>attributeName</code> - The name of the attribute.</dd><dd><code>options</code> - The attribute discovery options.</dd>
+<dl><dt><span class="strong">Parameters:</span></dt><dd><code>id</code> - A key string that is used to invoke attribute from this connector.</dd><dd><code>attributeName</code> - The name of the attribute.</dd><dd><code>options</code> - The attribute discovery options.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The description of the attribute.</dd></dl>
 </li>
 </ul>
@@ -267,10 +267,10 @@ extends java.lang.Iterable&lt;java.lang.String&gt;, java.lang.AutoCloseable</pre
                             java.lang.Object&nbsp;defaultValue)
                               throws java.util.concurrent.TimeoutException</pre>
 <div class="block">Returns the attribute value.</div>
-<dl><dt><span class="strong">Parameters:</span></dt><dd><code>id</code> - A key string that is used to read attribute from this connector.</dd><dd><code>readTimeout</code> - The attribute value read operation timeout.</dd><dd><code>defaultValue</code> - The default value of the attribute if it is real value is not available.</dd>
+<dl><dt><span class="strong">Parameters:</span></dt><dd><code>id</code> - A key string that is used to invoke attribute from this connector.</dd><dd><code>readTimeout</code> - The attribute value invoke operation timeout.</dd><dd><code>defaultValue</code> - The default value of the attribute if it is real value is not available.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The value of the attribute, or default value.</dd>
 <dt><span class="strong">Throws:</span></dt>
-<dd><code>java.util.concurrent.TimeoutException</code> - The attribute value cannot be read in the specified duration.</dd></dl>
+<dd><code>java.util.concurrent.TimeoutException</code> - The attribute value cannot be invoke in the specified duration.</dd></dl>
 </li>
 </ul>
 <a name="getAttributes(java.util.Map, com.snamp.TimeSpan)">
@@ -283,10 +283,10 @@ extends java.lang.Iterable&lt;java.lang.String&gt;, java.lang.AutoCloseable</pre
                                             <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;readTimeout)
                                               throws java.util.concurrent.TimeoutException</pre>
 <div class="block">Reads a set of attributes.</div>
-<dl><dt><span class="strong">Parameters:</span></dt><dd><code>output</code> - The dictionary with set of attribute keys to read and associated default values.</dd><dd><code>readTimeout</code> - The attribute value read operation timeout.</dd>
+<dl><dt><span class="strong">Parameters:</span></dt><dd><code>output</code> - The dictionary with set of attribute keys to invoke and associated default values.</dd><dd><code>readTimeout</code> - The attribute value invoke operation timeout.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The set of attributes ids really written to the dictionary.</dd>
 <dt><span class="strong">Throws:</span></dt>
-<dd><code>java.util.concurrent.TimeoutException</code> - The attribute value cannot be read in the specified duration.</dd></dl>
+<dd><code>java.util.concurrent.TimeoutException</code> - The attribute value cannot be invoke in the specified duration.</dd></dl>
 </li>
 </ul>
 <a name="setAttribute(java.lang.String, com.snamp.TimeSpan, java.lang.Object)">
@@ -346,7 +346,7 @@ extends java.lang.Iterable&lt;java.lang.String&gt;, java.lang.AutoCloseable</pre
 <dt><span class="strong">Returns:</span></dt><dd>The attribute descriptor; or null if attribute is not connected.</dd></dl>
 </li>
 </ul>
-<a name="doAction(java.lang.String, com.snamp.connectors.Arguments, com.snamp.TimeSpan)">
+<a name="doAction(java.lang.String, com.snamp.connectors.util.Arguments, com.snamp.TimeSpan)">
 <!--   -->
 </a>
 <ul class="blockList">

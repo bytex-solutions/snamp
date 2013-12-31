@@ -2,6 +2,7 @@ package com.snamp.connectors.util;
 
 import com.snamp.*;
 import com.snamp.connectors.*;
+import static com.snamp.connectors.NotificationSupport.NotificationListener;
 
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 
@@ -28,7 +29,7 @@ public abstract class AbstractSubscriptionList extends HashMap<String, EnabledNo
      * @return A new instance of subscription list.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    protected abstract EnabledNotification createBinding(final ManagementConnector connector);
+    protected abstract EnabledNotification createBinding(final NotificationSupport connector);
 
     /**
      * Enables notifications for all specified events.
@@ -37,7 +38,7 @@ public abstract class AbstractSubscriptionList extends HashMap<String, EnabledNo
      * @param events A collection of events to enable.
      * @return A collection of enabled notifications (its postfixes).
      */
-    public final Collection<String> putAll(final ManagementConnector connector, final String namespace, final Map<String, EventConfiguration> events){
+    public final Collection<String> putAll(final NotificationSupport connector, final String namespace, final Map<String, EventConfiguration> events){
         final Set<String> enabledNotifs = new HashSet<>(events.size());
         for(final String postfix: events.keySet()){
             final EnabledNotification notifs;
@@ -72,7 +73,7 @@ public abstract class AbstractSubscriptionList extends HashMap<String, EnabledNo
 
         /**
          * Returns a listener identifier associated with this subscription.
-         * @return An identifier of the listener returned by {@link ManagementConnector#subscribe(String, com.snamp.connectors.NotificationListener)},
+         * @return An identifier of the listener returned by {@link com.snamp.connectors.NotificationSupport#subscribe(String, com.snamp.connectors.NotificationSupport.NotificationListener)},
          */
         public Object getListenerId();
     }
@@ -88,11 +89,11 @@ public abstract class AbstractSubscriptionList extends HashMap<String, EnabledNo
         if(containsKey(namespace)){
             final EnabledNotification notifications = get(namespace);
             if(notifications.containsKey(postfix)){
-                final Object listenerId = notifications.getConnector().subscribe(notifications.makeListId(namespace, postfix), listener);
+                final Object listenerId = notifications.subscribe(notifications.makeListId(namespace, postfix), listener);
                 return new Subscription() {
                     @Override
                     public final boolean unsubscribe() {
-                        return notifications.getConnector().unsubscribe(listenerId);
+                        return notifications.unsubscribe(listenerId);
                     }
 
                     @Override

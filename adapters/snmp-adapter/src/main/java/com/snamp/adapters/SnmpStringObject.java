@@ -11,7 +11,7 @@ import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
 final class SnmpStringObject extends SnmpScalarObject<OctetString>{
     public static final String defaultValue = "";
 
-    public SnmpStringObject(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
+    public SnmpStringObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
         super(oid, connector, new OctetString(defaultValue), timeouts);
     }
 

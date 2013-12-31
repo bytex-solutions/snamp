@@ -2,8 +2,8 @@ package com.snamp.connectors.util;
 
 import com.snamp.*;
 import com.snamp.connectors.*;
+import com.snamp.connectors.NotificationSupport.NotificationListener;
 
-import java.lang.ref.*;
 import java.util.HashMap;
 
 /**
@@ -12,15 +12,19 @@ import java.util.HashMap;
  * @since 1.0
  */
 public abstract class EnabledNotification extends HashMap<String, NotificationMetadata> {
-    private final Reference<ManagementConnector> connector;
+   private final NotificationSupport connector;
 
-    protected EnabledNotification(final ManagementConnector connector){
+    protected EnabledNotification(final NotificationSupport connector){
         if(connector == null) throw new IllegalArgumentException("connector is null.");
-        this.connector = new WeakReference<>(connector);
+        this.connector = connector;
     }
 
-    final ManagementConnector getConnector(){
-        return connector.get();
+    Object subscribe(final String listId, final NotificationListener listener){
+        return connector.subscribe(listId, listener);
+    }
+
+    boolean unsubscribe(final Object listenerId){
+        return connector.unsubscribe(listenerId);
     }
 
     /**

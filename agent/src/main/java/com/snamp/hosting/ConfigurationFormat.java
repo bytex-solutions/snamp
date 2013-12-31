@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * Represents configuration file parser.
  * <p>
  *     This enum is an entry point for organizing agent configuration persistence.
- *     The following example demonstrates how to read agent configuration stored in YAML file:<br/>
+ *     The following example demonstrates how to invoke agent configuration stored in YAML file:<br/>
  *     <pre>{@code
  *     final AgentConfiguration config = ConfigurationFormat.load("yaml", "~/docs/snamp.yaml");
  *     }</pre><br/>
@@ -42,6 +42,18 @@ public enum ConfigurationFormat {
 
     private ConfigurationFormat(String formatName) {
         _formatName = formatName;
+    }
+
+    /**
+     * Returns MIME type for this SNAMP configuration format.
+     * @return MIME type for this SNAMP configuration format.
+     */
+    public final String getMimeType(){
+        switch (_formatName){
+            case "yaml": return "application/x-yaml";
+            case "bin": return "application/x-java-serialized-object";
+            default: return "application/octet-stream";
+        }
     }
 
     /**
@@ -1080,15 +1092,12 @@ public enum ConfigurationFormat {
      * @param format The configuration file format name.
      * @param fileName The path to the configuration file.
      * @return The parsed configuration.
+     * @throws java.io.IOException Unable to load the SNAMP configuration from the specified file.
      */
     public static AgentConfiguration load(final String format, final String fileName) throws IOException {
         final AgentConfiguration config = newAgentConfiguration(format);
         try(final InputStream stream = new FileInputStream(fileName)){
             config.load(stream);
-        }
-        catch(final FileNotFoundException ignored) {
-            System.out.println("No input configuration file specified!");
-            System.exit(0);
         }
         return config;
     }

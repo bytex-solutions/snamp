@@ -122,8 +122,8 @@ extends java.util.concurrent.locks.ReentrantReadWriteLock</pre>
            new ConcurrentResourceAccess&lt;&gt;(new HashMap&lt;&gt;());
 
          public String get(final String key){
-           return map.read(new ConcurrentResourceAccess.ConsistentReader&lt;Map&lt;String, String&gt;, String&gt;(){
-             public String read(final Map&lt;String, String&gt; map){
+           return map.invoke(new ConcurrentResourceAccess.ConsistentReader&lt;Map&lt;String, String&gt;, String&gt;(){
+             public String invoke(final Map&lt;String, String&gt; map){
                return map.get(key);
              }
            });
@@ -265,19 +265,19 @@ extends java.util.concurrent.locks.ReentrantReadWriteLock</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>&lt;V&gt;&nbsp;V</code></td>
-<td class="colLast"><code><strong><a href="../../com/snamp/ConcurrentResourceAccess.html#read(com.snamp.ConcurrentResourceAccess.ConsistentReader)">read</a></strong>(<a href="../../com/snamp/ConcurrentResourceAccess.ConsistentReader.html" title="interface in com.snamp">ConcurrentResourceAccess.ConsistentReader</a>&lt;<a href="../../com/snamp/ConcurrentResourceAccess.html" title="type parameter in ConcurrentResourceAccess">R</a>,V&gt;&nbsp;reader)</code>
-<div class="block">Provides consistent read on the resource.</div>
+<td class="colLast"><code><strong><a href="../../com/snamp/ConcurrentResourceAccess.html#invoke(com.snamp.ConcurrentResourceAccess.ConsistentAction)">invoke</a></strong>(<a href="../../com/snamp/ConcurrentResourceAccess.ConsistentReader.html" title="interface in com.snamp">ConcurrentResourceAccess.ConsistentReader</a>&lt;<a href="../../com/snamp/ConcurrentResourceAccess.html" title="type parameter in ConcurrentResourceAccess">R</a>,V&gt;&nbsp;reader)</code>
+<div class="block">Provides consistent invoke on the resource.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>&lt;V,E extends java.lang.Throwable&gt;&nbsp;<br>V</code></td>
-<td class="colLast"><code><strong><a href="../../com/snamp/ConcurrentResourceAccess.html#read(com.snamp.ConcurrentResourceAccess.Reader)">read</a></strong>(<a href="../../com/snamp/ConcurrentResourceAccess.Reader.html" title="interface in com.snamp">ConcurrentResourceAccess.Reader</a>&lt;<a href="../../com/snamp/ConcurrentResourceAccess.html" title="type parameter in ConcurrentResourceAccess">R</a>,V,E&gt;&nbsp;reader)</code>
-<div class="block">Provides inconsistent read on the resource.</div>
+<td class="colLast"><code><strong><a href="../../com/snamp/ConcurrentResourceAccess.html#invoke(com.snamp.ConcurrentResourceAccess.Action)">invoke</a></strong>(<a href="../../com/snamp/ConcurrentResourceAccess.Reader.html" title="interface in com.snamp">ConcurrentResourceAccess.Reader</a>&lt;<a href="../../com/snamp/ConcurrentResourceAccess.html" title="type parameter in ConcurrentResourceAccess">R</a>,V,E&gt;&nbsp;reader)</code>
+<div class="block">Provides inconsistent invoke on the resource.</div>
 </td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>&lt;I,O,E extends java.lang.Throwable&gt;&nbsp;<br>void</code></td>
-<td class="colLast"><code><strong><a href="../../com/snamp/ConcurrentResourceAccess.html#readAndWrite(com.snamp.ConcurrentResourceAccess.Reader, com.snamp.ConcurrentResourceAccess.Writer)">readAndWrite</a></strong>(<a href="../../com/snamp/ConcurrentResourceAccess.Reader.html" title="interface in com.snamp">ConcurrentResourceAccess.Reader</a>&lt;<a href="../../com/snamp/ConcurrentResourceAccess.html" title="type parameter in ConcurrentResourceAccess">R</a>,I,E&gt;&nbsp;reader,
+<td class="colLast"><code><strong><a href="../../com/snamp/ConcurrentResourceAccess.html#readAndWrite(com.snamp.ConcurrentResourceAccess.Action, com.snamp.ConcurrentResourceAccess.Writer)">readAndWrite</a></strong>(<a href="../../com/snamp/ConcurrentResourceAccess.Reader.html" title="interface in com.snamp">ConcurrentResourceAccess.Reader</a>&lt;<a href="../../com/snamp/ConcurrentResourceAccess.html" title="type parameter in ConcurrentResourceAccess">R</a>,I,E&gt;&nbsp;reader,
             <a href="../../com/snamp/ConcurrentResourceAccess.Writer.html" title="interface in com.snamp">ConcurrentResourceAccess.Writer</a>&lt;<a href="../../com/snamp/ConcurrentResourceAccess.html" title="type parameter in ConcurrentResourceAccess">R</a>,I,O,E&gt;&nbsp;writer)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
@@ -358,32 +358,32 @@ extends java.util.concurrent.locks.ReentrantReadWriteLock</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="read(com.snamp.ConcurrentResourceAccess.ConsistentReader)">
+<a name="invoke(com.snamp.ConcurrentResourceAccess.ConsistentAction)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>read</h4>
-<pre>public final&nbsp;&lt;V&gt;&nbsp;V&nbsp;read(<a href="../../com/snamp/ConcurrentResourceAccess.ConsistentReader.html" title="interface in com.snamp">ConcurrentResourceAccess.ConsistentReader</a>&lt;<a href="../../com/snamp/ConcurrentResourceAccess.html" title="type parameter in ConcurrentResourceAccess">R</a>,V&gt;&nbsp;reader)</pre>
-<div class="block">Provides consistent read on the resource.
+<h4>invoke</h4>
+<pre>public final&nbsp;&lt;V&gt;&nbsp;V&nbsp;invoke(<a href="../../com/snamp/ConcurrentResourceAccess.ConsistentReader.html" title="interface in com.snamp">ConcurrentResourceAccess.ConsistentReader</a>&lt;<a href="../../com/snamp/ConcurrentResourceAccess.html" title="type parameter in ConcurrentResourceAccess">R</a>,V&gt;&nbsp;reader)</pre>
+<div class="block">Provides consistent invoke on the resource.
  <p>
-     This operation acquires read-lock on the resource.
+     This operation acquires invoke-lock on the resource.
  </p></div>
 <dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>V</code> - Type of the resource reading value operation.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>reader</code> - The resource reader.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The value obtained from the resource.</dd></dl>
 </li>
 </ul>
-<a name="read(com.snamp.ConcurrentResourceAccess.Reader)">
+<a name="invoke(com.snamp.ConcurrentResourceAccess.Action)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>read</h4>
-<pre>public final&nbsp;&lt;V,E extends java.lang.Throwable&gt;&nbsp;V&nbsp;read(<a href="../../com/snamp/ConcurrentResourceAccess.Reader.html" title="interface in com.snamp">ConcurrentResourceAccess.Reader</a>&lt;<a href="../../com/snamp/ConcurrentResourceAccess.html" title="type parameter in ConcurrentResourceAccess">R</a>,V,E&gt;&nbsp;reader)
+<h4>invoke</h4>
+<pre>public final&nbsp;&lt;V,E extends java.lang.Throwable&gt;&nbsp;V&nbsp;invoke(<a href="../../com/snamp/ConcurrentResourceAccess.Reader.html" title="interface in com.snamp">ConcurrentResourceAccess.Reader</a>&lt;<a href="../../com/snamp/ConcurrentResourceAccess.html" title="type parameter in ConcurrentResourceAccess">R</a>,V,E&gt;&nbsp;reader)
              throws E extends java.lang.Throwable</pre>
-<div class="block">Provides inconsistent read on the resource.
+<div class="block">Provides inconsistent invoke on the resource.
  <p>
-    This operation acquires read-lock on the resource.
+    This operation acquires invoke-lock on the resource.
  </p></div>
 <dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>V</code> - Type of the resource reading value operation.</dd><dd><code>E</code> - Type of the exception that can be raised by reader.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>reader</code> - The resource reader.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The reading operation result.</dd>
@@ -419,7 +419,7 @@ extends java.util.concurrent.locks.ReentrantReadWriteLock</pre>
 <dd><code>E extends java.lang.Throwable</code></dd></dl>
 </li>
 </ul>
-<a name="readAndWrite(com.snamp.ConcurrentResourceAccess.Reader, com.snamp.ConcurrentResourceAccess.Writer)">
+<a name="readAndWrite(com.snamp.ConcurrentResourceAccess.Action, com.snamp.ConcurrentResourceAccess.Writer)">
 <!--   -->
 </a>
 <ul class="blockList">

@@ -116,9 +116,9 @@ public class ConsoleAgentManager extends AbstractAgentManager {
     }
 
     protected boolean doCommand(final String commmand, final PrintStream output) {
-        return readContext(new ConcurrentResourceAccess.ConsistentReader<HostingContext, Boolean>() {
+        return readContext(new ConcurrentResourceAccess.ConsistentAction<HostingContext, Boolean>() {
             @Override
-            public Boolean read(final HostingContext context) {
+            public Boolean invoke(final HostingContext context) {
                 if(context == null) return false;
                 else switch (commmand){
                     case "uptime": displayAgentUptime( output); return true;

@@ -44,13 +44,16 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
     private <T>T readAttribute(final String postfix, Class<T> className) throws IOException {
         final ResponseEvent value = client.get(new OID[]{new OID(prefix + "." + postfix)});
+
+        assertNotNull(value);
+
         final Variable var = value.getResponse().getVariable(new OID(prefix + "." + postfix));
         final Object result;
 
-        if (var instanceof UnsignedInteger32)
-            result = var.toInt();
+        if (var instanceof UnsignedInteger32 || var instanceof Integer32)
+            result = (className == Boolean.class)?(var.toInt() == 1):var.toInt();
         else if (var instanceof OctetString)
-            result = var.toString();
+            result = (className == BigInteger.class)?new BigInteger(var.toString()):var.toString();
         else if (var instanceof IpAddress)
             result = var.toString();
         else if (var instanceof Counter64)
@@ -64,11 +67,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     }
 
     private <T>void writeAttribute(final String postfix, final T value, final Class<T> valueType) throws IOException{
-
-    //    final SNMPManager client = new SNMPManager("udp:127.0.0.1/"+portForSNMP);
-        // Create the PDU object
         final PDU pdu = new PDU();
-
         // Setting the Oid and Value for sysContact variable
         final OID oid = new OID(prefix + "." +postfix);
         final Variable var;
@@ -81,20 +80,24 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         {
              var = new Counter64(Long.class.cast(value));
         }
+        else if (valueType == Boolean.class || valueType == boolean.class)
+        {
+            var = new Integer32((Boolean.class.cast(value) == Boolean.TRUE)?1:0);
+        }
         else
         {
             var = new OctetString(value.toString());
         }
 
-        VariableBinding varBind = new VariableBinding(oid,var);
-        pdu.add(varBind);
+        final VariableBinding varBind = new VariableBinding(oid,var);
 
+        pdu.add(varBind);
         pdu.setType(PDU.SET);
 
-        ResponseListener listener = new ResponseListener() {
+        final ResponseListener listener = new ResponseListener() {
             public void onResponse(ResponseEvent event) {
-                PDU strResponse;
-                String result;
+                final PDU strResponse;
+                final String result;
                 ((Snmp)event.getSource()).cancel(event.getRequest(), this);
                 strResponse = event.getResponse();
                 if (strResponse!= null) {
@@ -106,116 +109,125 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
         client.set(pdu, listener);
 
-     //   ResponseEvent response = client.set(pdu);
-
-       // assertEquals(response.getResponse().getErrorStatusText(),PDU.noError);
     }
 
 
     /**
+     * To check the attribute you need use following commands:
+     *
      * snmpset -c public -v 2c 127.0.0.1:3222 iso.1.1.0 s ddd
      * snmpwalk -Os -c public -v 2c 127.0.0.1:3222 1
+     *
+     *
+     * To check it via JMX Bean you can use jConsole:
+     *
+     * service:jmx:rmi:///jndi/rmi://localhost:3334/jmxrmi
 
      * @throws IOException
      */
     @Test
     public final void testForStringProperty() throws IOException {
         writeAttribute("1.0", "SETTED VALUE", String.class);
+        try {
+            Thread.sleep(1000000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
         assertEquals("SETTED VALUE", readAttribute("1.0", String.class));
     }
+
+    @Test
+    public final void testForBooleanProperty() throws IOException{
+        writeAttribute("2.0", true, Boolean.class);
+        assertTrue((boolean) readAttribute("2.0", Boolean.class));
+    }
+                /*
+    @Test
+    public final void testForInt32Property() throws IOException{
+        writeAttribute("3.0", 42, Integer.class);
+        assertEquals(42, (int) readAttribute("3.0", Integer.class));
+    }
+
+    @Test
+    public final void testForBigIntProperty() throws IOException{
+        writeAttribute("4.0", new BigInteger("100500"), BigInteger.class);
+        assertEquals(new BigInteger("100500"), readAttribute("4.0", BigInteger.class));
+    }
     /*
-@Test
-public final void testForBooleanProperty() throws IOException{
-    writeAttribute("2.0", true, Boolean.class);
-    assertTrue((boolean) readAttribute("2.0", Boolean.class));
-}
 
-@Test
-public final void testForInt32Property() throws IOException{
-    writeAttribute("3.0", 42, Integer.class);
-    assertEquals(42, (int) readAttribute("3.0", Integer.class));
-}
+  @Test
+  public final void testForArrayProperty() throws IOException{
+   writeAttribute("1.5", new short[]{1, 2, 3}, short[].class);
+   assertArrayEquals(new short[]{1, 2, 3}, readAttribute("1.5", short[].class));
+  }
 
-@Test
-public final void testForBigIntProperty() throws IOException{
-    writeAttribute("4.0", new BigInteger("100500000"), BigInteger.class);
-    assertEquals(new BigInteger("100500000"), readAttribute("4.0", BigInteger.class));
-}
+  @Test
+  public final void testForDictionaryProperty() throws IOException{
+   JsonObject dic = new JsonObject();
+   dic.add("col1", new JsonPrimitive(true));
+   dic.add("col2", new JsonPrimitive(42));
+   dic.add("col3", new JsonPrimitive("Hello, world!"));
+   writeAttributeAsJson("1.6", dic);
+   //now invoke dictionary and test
+   JsonElement elem = readAttributeAsJson("dictionaryProperty");
+   assertTrue(elem instanceof JsonObject);
+   dic = (JsonObject)elem;
+   assertEquals(new JsonPrimitive(true), dic.get("col1"));
+   assertEquals(new JsonPrimitive(42), dic.get("col2"));
+   assertEquals(new JsonPrimitive("Hello, world!"), dic.get("col3"));
+  }
 
-
-@Test
-public final void testForArrayProperty() throws IOException{
- writeAttribute("1.5", new short[]{1, 2, 3}, short[].class);
- assertArrayEquals(new short[]{1, 2, 3}, readAttribute("1.5", short[].class));
-}
-
-@Test
-public final void testForDictionaryProperty() throws IOException{
- JsonObject dic = new JsonObject();
- dic.add("col1", new JsonPrimitive(true));
- dic.add("col2", new JsonPrimitive(42));
- dic.add("col3", new JsonPrimitive("Hello, world!"));
- writeAttributeAsJson("1.6", dic);
- //now read dictionary and test
- JsonElement elem = readAttributeAsJson("dictionaryProperty");
- assertTrue(elem instanceof JsonObject);
- dic = (JsonObject)elem;
- assertEquals(new JsonPrimitive(true), dic.get("col1"));
- assertEquals(new JsonPrimitive(42), dic.get("col2"));
- assertEquals(new JsonPrimitive("Hello, world!"), dic.get("col3"));
-}
-
-@Test
-public final void testForTableProperty() throws IOException{
- JsonArray table = new JsonArray();
- //row 1
- JsonObject row = new JsonObject();
- table.add(row);
- row.add("col1", new JsonPrimitive(true));
- row.add("col2", new JsonPrimitive(100500));
- row.add("col3", new JsonPrimitive("Row 1"));
- //row 2
- row = new JsonObject();
- table.add(row);
- row.add("col1", new JsonPrimitive(true));
- row.add("col2", new JsonPrimitive(100501));
- row.add("col3", new JsonPrimitive("Row 2"));
- //row 3
- row = new JsonObject();
- table.add(row);
- row.add("col1", new JsonPrimitive(true));
- row.add("col2", new JsonPrimitive(100502));
- row.add("col3", new JsonPrimitive("Row 3"));
- //row 4
- row = new JsonObject();
- table.add(row);
- row.add("col1", new JsonPrimitive(true));
- row.add("col2", new JsonPrimitive(100503));
- row.add("col3", new JsonPrimitive("Row 4"));
- writeAttributeAsJson("1.7", table);
- //read table
- JsonElement elem = readAttributeAsJson("tableProperty");
- assertTrue(elem instanceof JsonArray);
- table = (JsonArray)elem;
- assertEquals(4, table.size());
- //row 1
- assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(0)).get("col1"));
- assertEquals(new JsonPrimitive(100500), ((JsonObject)table.get(0)).get("col2"));
- assertEquals(new JsonPrimitive("Row 1"), ((JsonObject)table.get(0)).get("col3"));
- //row 2
- assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(1)).get("col1"));
- assertEquals(new JsonPrimitive(100501), ((JsonObject)table.get(1)).get("col2"));
- assertEquals(new JsonPrimitive("Row 2"), ((JsonObject)table.get(1)).get("col3"));
- //row 3
- assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(2)).get("col1"));
- assertEquals(new JsonPrimitive(100502), ((JsonObject)table.get(2)).get("col2"));
- assertEquals(new JsonPrimitive("Row 3"), ((JsonObject)table.get(2)).get("col3"));
- //row 4
- assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(3)).get("col1"));
- assertEquals(new JsonPrimitive(100503), ((JsonObject)table.get(3)).get("col2"));
- assertEquals(new JsonPrimitive("Row 4"), ((JsonObject)table.get(3)).get("col3"));
-}
-     */
+  @Test
+  public final void testForTableProperty() throws IOException{
+   JsonArray table = new JsonArray();
+   //row 1
+   JsonObject row = new JsonObject();
+   table.add(row);
+   row.add("col1", new JsonPrimitive(true));
+   row.add("col2", new JsonPrimitive(100500));
+   row.add("col3", new JsonPrimitive("Row 1"));
+   //row 2
+   row = new JsonObject();
+   table.add(row);
+   row.add("col1", new JsonPrimitive(true));
+   row.add("col2", new JsonPrimitive(100501));
+   row.add("col3", new JsonPrimitive("Row 2"));
+   //row 3
+   row = new JsonObject();
+   table.add(row);
+   row.add("col1", new JsonPrimitive(true));
+   row.add("col2", new JsonPrimitive(100502));
+   row.add("col3", new JsonPrimitive("Row 3"));
+   //row 4
+   row = new JsonObject();
+   table.add(row);
+   row.add("col1", new JsonPrimitive(true));
+   row.add("col2", new JsonPrimitive(100503));
+   row.add("col3", new JsonPrimitive("Row 4"));
+   writeAttributeAsJson("1.7", table);
+   //invoke table
+   JsonElement elem = readAttributeAsJson("tableProperty");
+   assertTrue(elem instanceof JsonArray);
+   table = (JsonArray)elem;
+   assertEquals(4, table.size());
+   //row 1
+   assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(0)).get("col1"));
+   assertEquals(new JsonPrimitive(100500), ((JsonObject)table.get(0)).get("col2"));
+   assertEquals(new JsonPrimitive("Row 1"), ((JsonObject)table.get(0)).get("col3"));
+   //row 2
+   assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(1)).get("col1"));
+   assertEquals(new JsonPrimitive(100501), ((JsonObject)table.get(1)).get("col2"));
+   assertEquals(new JsonPrimitive("Row 2"), ((JsonObject)table.get(1)).get("col3"));
+   //row 3
+   assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(2)).get("col1"));
+   assertEquals(new JsonPrimitive(100502), ((JsonObject)table.get(2)).get("col2"));
+   assertEquals(new JsonPrimitive("Row 3"), ((JsonObject)table.get(2)).get("col3"));
+   //row 4
+   assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(3)).get("col1"));
+   assertEquals(new JsonPrimitive(100503), ((JsonObject)table.get(3)).get("col2"));
+   assertEquals(new JsonPrimitive("Row 4"), ((JsonObject)table.get(3)).get("col3"));
+  }
+       */
     @Override
     protected final void fillAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attributes) {
         EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("string");
@@ -236,15 +248,15 @@ public final void testForTableProperty() throws IOException{
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("array");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("5.0", attribute);
+        attributes.put("5.1", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("dictionary");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("6.0", attribute);
+        attributes.put("6.1", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("table");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("7.0", attribute);
+        attributes.put("7.1", attribute);
     }
 
 }

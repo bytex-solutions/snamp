@@ -3,7 +3,7 @@ package com.snamp.adapters;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 
-import com.snamp.connectors.NotificationListener;
+import static com.snamp.connectors.NotificationSupport.NotificationListener;
 import com.snamp.hosting.EmbeddedAgentConfiguration;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 

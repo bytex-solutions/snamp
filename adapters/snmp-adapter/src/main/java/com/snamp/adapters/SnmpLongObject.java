@@ -11,7 +11,7 @@ import static org.snmp4j.smi.SMIConstants.SYNTAX_COUNTER64;
 final class SnmpLongObject extends SnmpScalarObject<Counter64>{
     public static final long defaultValue = -1;
 
-    public SnmpLongObject(final String oid, final ManagementConnector connector, final TimeSpan timeouts){
+    public SnmpLongObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
         super(oid, connector, new Counter64(defaultValue), timeouts);
     }
 
@@ -21,7 +21,7 @@ final class SnmpLongObject extends SnmpScalarObject<Counter64>{
 
     public static Long convert(final Variable value, final ManagementEntityType attributeTypeInfo){
         if(supportsProjection(attributeTypeInfo, Long.class)) return value.toLong();
-        else return defaultValue;
+        else return logAndReturnDefaultValue(defaultValue, value, attributeTypeInfo);
     }
 
     /**

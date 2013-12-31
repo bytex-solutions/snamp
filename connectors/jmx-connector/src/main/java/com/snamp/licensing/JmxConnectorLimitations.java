@@ -120,6 +120,6 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
      */
     @Override
     public final void verifyPluginVersion(final Class<? extends AbstractManagementConnectorFactory> pluginImpl) throws LicensingException {
-        verify(maxVersion, pluginImpl.getPackage().getImplementationVersion());
+        verifyPluginVersion(maxVersion, pluginImpl);
     }
 }

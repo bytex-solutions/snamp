@@ -22,4 +22,13 @@ public interface ManagementConnectorFactory extends PlatformPlugin {
      * @return A new instance of the management connector.
      */
     public ManagementConnector newInstance(final String connectionString, final Map<String, String> connectionProperties);
+
+    /**
+     * Determines whether the specified feature is supported.
+     * @param feature Type of the feature to check, such as {@link com.snamp.connectors.NotificationSupport}.
+     * @return {@literal true}, if the specified management connector feature is supported; otherwise, {@literal false}.
+     * @see com.snamp.connectors.AttributeSupport
+     * @see com.snamp.connectors.NotificationSupport
+     */
+    public boolean supportsFeature(final Class<?> feature);
 }

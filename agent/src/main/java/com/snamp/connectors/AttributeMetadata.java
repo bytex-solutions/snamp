@@ -1,6 +1,6 @@
 package com.snamp.connectors;
 
-import java.util.Map;
+import java.util.Locale;
 
 /**
  * Represents attribute metadata,
@@ -8,12 +8,20 @@ import java.util.Map;
  * @since 1.0
  * @version 1.0
  */
-public interface AttributeMetadata extends Map<String, String> {
+public interface AttributeMetadata extends ManagementEntityMetadata {
     /**
-     * Returns the attribute name.
+     * Returns the system name of the attribute.
      * @return The attribute name.
      */
-    public String getAttributeName();
+    public String getName();
+
+    /**
+     * Returns the localized name of this attribute.
+     * @param locale The locale of the display name. If it is {@literal null} then returns display name
+     *               in the default locale.
+     * @return The localized name of this attribute.
+     */
+    public String getDisplayName(final Locale locale);
 
     /**
      * Determines whether the value of this attribute can be obtained.
@@ -38,5 +46,5 @@ public interface AttributeMetadata extends Map<String, String> {
      * Returns the type of the attribute value.
      * @return The type of the attribute value.
      */
-    public ManagementEntityType getAttributeType();
+    public ManagementEntityType getType();
 }

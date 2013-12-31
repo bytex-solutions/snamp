@@ -3,6 +3,7 @@ package com.snamp.connectors;
 import com.snamp.SnampClassTestSet;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.util.NotificationUtils;
+import static com.snamp.connectors.NotificationSupport.Notification;
 import org.junit.Test;
 
 import java.beans.IntrospectionException;
@@ -76,8 +77,8 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Managem
         final AttributeMetadata md = connector.getAttributeInfo("0");
         assertTrue(md.canRead());
         assertTrue(md.canWrite());
-        assertEquals("property1", md.getAttributeName());
-        assertNotNull(md.getAttributeType().getProjection(String.class));
+        assertEquals("property1", md.getName());
+        assertNotNull(md.getType().getProjection(String.class));
     }
 
     @Test

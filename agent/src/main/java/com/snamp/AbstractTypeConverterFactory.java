@@ -12,7 +12,7 @@ import java.util.*;
  * @since 1.0
  */
 public abstract class AbstractTypeConverterFactory implements TypeConverterFactory {
-    private final SoftMap<Class<?>, TypeConverter<?>> converters;
+    private final Wrapper<Map<Class<?>, TypeConverter<?>>> converters;
 
     /**
      * Initializes a new type converter factory.
@@ -129,16 +129,21 @@ public abstract class AbstractTypeConverterFactory implements TypeConverterFacto
     public synchronized final <T> TypeConverter<T> getTypeConverter(final Class<T> t) {
         if(t == null) return null;
         else if(shouldNormalize(t)) return (TypeConverter<T>)getTypeConverter(normalizeClass(t));
-        TypeConverter<T> converter = (TypeConverter<T>)converters.get(t);
-        if(converter != null) return converter;
-        final List<Method> methods = new ArrayList<>();
-        for(final Method m: getClass().getMethods())
-            if(m.isAnnotationPresent(Converter.class) && isPublicStatic(m) && t.isAssignableFrom(m.getReturnType()))
-                methods.add(m);
-        if(methods.size() > 0)
-            converters.put(t, converter = new TypeConverterImpl<>(t, methods));
-        else converter = null;
-        return converter;
+        return converters.handle(new Wrapper.WrappedObjectHandler<Map<Class<?>, TypeConverter<?>>, TypeConverter<T>>() {
+            @Override
+            public final TypeConverter<T> invoke(final Map<Class<?>, TypeConverter<?>> converters) {
+                TypeConverter<T> converter = (TypeConverter<T>)converters.get(t);
+                if(converter != null) return converter;
+                final List<Method> methods = new ArrayList<>();
+                for(final Method m: getClass().getMethods())
+                    if(m.isAnnotationPresent(Converter.class) && isPublicStatic(m) && t.isAssignableFrom(m.getReturnType()))
+                        methods.add(m);
+                if(methods.size() > 0)
+                    converters.put(t, converter = new TypeConverterImpl<>(t, methods));
+                else converter = null;
+                return converter;
+            }
+        });
     }
 
     private static final boolean shouldNormalize(final Class<?> classInfo){

@@ -53,10 +53,6 @@ final class HostingServices {
         return new File(System.getProperty(PLUGINS_DIR, "plugins"));
     }
 
-    public static String getManagerName() {
-        return System.getProperty(AgentManager.MANAGER_NAME);
-    }
-
     static {
         log = Logger.getLogger("snamp.log");
         manager = PluginManagerFactory.createPluginManager();
@@ -69,9 +65,14 @@ final class HostingServices {
         if(pluginDir.exists() && pluginDir.isDirectory())
             for(final File plugin: pluginDir.listFiles(new FileExtensionFilter("jar")))
                 if(plugin.isFile()) manager.addPluginsFrom(plugin.toURI(), new OptionReportAfter());
-        else log.severe("No plugins are loaded.");
+        else log.warning("No plugins are loaded.");
     }
 
+    /**
+     * Returns the adapter instance.
+     * @param adapterName The name of the adapter to return.
+     * @return An instance of the adapter.
+     */
     public static Adapter getAdapter(final String adapterName){
         return manager.getPlugin(Adapter.class, new OptionCapabilities(AbstractAdapter.makeCapabilities(adapterName)));
     }
@@ -82,6 +83,7 @@ final class HostingServices {
      * @return A new instance of the management connector factory,
      */
     public static ManagementConnectorFactory getManagementConnectorFactory(final String connectorName){
+
         return manager.getPlugin(ManagementConnectorFactory.class, new OptionCapabilities(AbstractManagementConnectorFactory.makeCapabilities(connectorName)));
     }
 
@@ -97,10 +99,10 @@ final class HostingServices {
     /**
      * Returns the predefined (through system property) Agent manager.
      * @param defaultIfNotAvailable {@literal true} to return default Agent manager if it is unavailable as plug-in; otherwise, {@link false} for {@literal null}.
-     * @return
+     * @return A new instance of the SNAMP agent manager,
      */
     public static AgentManager getAgentManager(final boolean defaultIfNotAvailable){
-        final AgentManager am =  getAgentManager(getManagerName());
+        final AgentManager am =  getAgentManager(System.getProperty(AgentManager.MANAGER_NAME));
         return am == null && defaultIfNotAvailable ? new ConsoleAgentManager() : am;
     }
 }
