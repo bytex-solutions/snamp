@@ -48,7 +48,6 @@ class IbmWmqConnector extends ManagementConnectorBean {
                 final MQQueueManager mQmgrInstance = new MQQueueManager(address.getPath().substring(1));
                 mMonitor = new PCFMessageAgent(mQmgrInstance);
                 mObjectFilter = connectionProperties;
-                getQueuesStatus();
             }
             else
                 throw new IllegalArgumentException("Cannot create IBM Connector: insufficient parameters!");
@@ -125,8 +124,8 @@ class IbmWmqConnector extends ManagementConnectorBean {
     final public IbmWmqTypeSystem.ServiceStatusTable getServicesStatus() {
         try {
             final PCFMessage inquireServiceStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_SERVICE);
-            if(mObjectFilter.containsKey("channelFilter"))
-                inquireServiceStatus.addParameter(CMQC.MQCA_SERVICE_NAME, mObjectFilter.get("channelFilter"));
+            if(mObjectFilter.containsKey("serviceFilter"))
+                inquireServiceStatus.addParameter(CMQC.MQCA_SERVICE_NAME, mObjectFilter.get("serviceFilter"));
             else
                 inquireServiceStatus.addParameter(CMQC.MQCA_SERVICE_NAME, "*");
             //inquireServiceStatus.addParameter(CMQCFC.MQIACF_SERVICE_ATTRS, new int[] { CMQCFC.MQIACF_ALL  }); // this is the default

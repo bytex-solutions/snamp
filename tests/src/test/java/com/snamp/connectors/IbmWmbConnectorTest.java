@@ -20,10 +20,11 @@ public final class IbmWmbConnectorTest extends SnampClassTestSet<IbmWmbConnector
     public final void testConnectorBean() throws IntrospectionException, TimeoutException {
         final Map<String, String> env = new HashMap<String, String>()
         {{
-            put("executionGroup", "Siebel");
-            put("application", "SiebelSubscriberAPP");
+            put("executionGroup", "TEST");
+            //put("application", "TEST_APP");
+            //put("messageFlow", "TEST_FLOW");
         }};
-        final IbmWmbConnector connector = new IbmWmbConnectorFactory().newInstance("wmb://10.200.100.113:1450/OEC_QMGR", env);
+        final IbmWmbConnector connector = new IbmWmbConnectorFactory().newInstance("wmb://anticitizen.dhis.org:8000/TEST_QMGR", env);
         while(true)
             try {
                 connector.connectAttribute("0", "name", new HashMap<String, String>());
@@ -33,7 +34,7 @@ public final class IbmWmbConnectorTest extends SnampClassTestSet<IbmWmbConnector
             } catch (IllegalStateException e) { Thread.yield(); }  // ждем пока коннектор инициализируется
 
         final AttributeMetadata md = connector.getAttributeInfo("0");
-        assertEquals("name", md.getAttributeName());
-        assertEquals(connector.getAttributeValue(md, TimeSpan.autoScale(10, TimeUnit.SECONDS), ""), "SiebelSubscriberAPP");
+        assertEquals("name", md.getName());
+        assertEquals(connector.getAttributeValue(md, TimeSpan.autoScale(10, TimeUnit.SECONDS), ""), "TEST");
     }
 }
