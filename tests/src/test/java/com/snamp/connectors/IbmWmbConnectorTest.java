@@ -2,6 +2,10 @@ package com.snamp.connectors;
 
 import com.snamp.SnampClassTestSet;
 import com.snamp.TimeSpan;
+import com.snamp.hosting.Agent;
+import com.snamp.hosting.AgentConfiguration;
+import com.snamp.hosting.EmbeddedAgentConfiguration;
+import com.snamp.hosting.HostingTest;
 import org.junit.Test;
 
 import java.beans.IntrospectionException;
@@ -14,27 +18,50 @@ import java.util.concurrent.TimeoutException;
  * Represents tests for {@link com.snamp.connectors.ManagementConnectorBean} class.
  * @author Roman Sakno
  */
-public final class IbmWmbConnectorTest extends SnampClassTestSet<IbmWmbConnector> {
+public abstract class IbmWmbConnectorTest extends HostingTest {
+    private static final String CONNECTOR_NAME = "ibm-wmb";
 
-    @Test
-    public final void testConnectorBean() throws IntrospectionException, TimeoutException {
-        final Map<String, String> env = new HashMap<String, String>()
-        {{
-            put("executionGroup", "TEST");
-            //put("application", "TEST_APP");
-            //put("messageFlow", "TEST_FLOW");
+    protected IbmWmbConnectorTest(final String adapterName, final Map<String, String> adapterParams) {
+        super(adapterName, adapterParams);
+    }
+
+    @Override
+    final protected void beforeAgentStart(final Agent agent) {
+    }
+
+    @Override
+    final protected void afterAgentStart(final Agent agent) {
+
+    }
+
+    @Override
+    final protected void beforeAgentStop(final Agent agent) {
+    }
+
+    @Override
+    final public Map<String, ManagementTargetConfiguration> getTargets() {
+        return new HashMap<String, ManagementTargetConfiguration>(1){{
+            final ManagementTargetConfiguration targetConfig = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration();
+            targetConfig.setConnectionString("wmb://anticitizen.dhis.org:8000/TEST_QMGR");
+            targetConfig.setConnectionType(CONNECTOR_NAME);
+            targetConfig.setNamespace(getAttributesNamespace());
+            fillAttributes(targetConfig.getAttributes());
+            fillEvents(targetConfig.getEvents());
+            put("test-ibm-wmb", targetConfig);
         }};
-        final IbmWmbConnector connector = new IbmWmbConnectorFactory().newInstance("wmb://anticitizen.dhis.org:8000/TEST_QMGR", env);
-        while(true)
-            try {
-                connector.connectAttribute("0", "name", new HashMap<String, String>());
-                connector.connectAttribute("1", "runningChildrenNames", new HashMap<String, String>());
-                connector.connectAttribute("2", "properties", new HashMap<String, String>());
-                break;
-            } catch (IllegalStateException e) { Thread.yield(); }  // ждем пока коннектор инициализируется
+    }
 
-        final AttributeMetadata md = connector.getAttributeInfo("0");
-        assertEquals("name", md.getName());
-        assertEquals(connector.getAttributeValue(md, TimeSpan.autoScale(10, TimeUnit.SECONDS), ""), "TEST");
+    protected abstract void fillAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attributes);
+
+    protected void fillEvents(final Map<String, ManagementTargetConfiguration.EventConfiguration> events){
+
+    }
+
+    protected String getAttributesNamespace(){
+        return "test";
+    }
+
+    @Override
+    final protected void afterAgentStop(final Agent agent) {
     }
 }

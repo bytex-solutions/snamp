@@ -67,8 +67,11 @@ class IbmWmbConnector extends ManagementConnectorBean
     @Override
     protected void verifyInitialization() {
         super.verifyInitialization();
-        if(!mBrokerInstance.hasBeenPopulatedByBroker()) // still not initialized
-            throw new IllegalStateException("Broker instance is not populated, please wait!");
+        while(!mBrokerInstance.hasBeenPopulatedByBroker())
+            Thread.yield();
+
+        /* if(!mBrokerInstance.hasBeenPopulatedByBroker()) // still not initialized
+            throw new IllegalStateException("Broker instance is not populated, please wait!"); */
     }
 
     private AdministeredObject getAdministeredObject() throws ConfigManagerProxyPropertyNotInitializedException {

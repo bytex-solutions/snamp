@@ -24,19 +24,6 @@ class IbmWmbTypeSystem extends WellKnownTypeSystem {
         return result;
     }
 
-    @Converter
-    public static Table<String> convertToTable(final String[] lines) {
-        final Map<String, Class<?>> columnsAndTypes = new HashMap<String, Class<?>>() {{ put("Index", Integer.class); put("Value", String.class); }};
-        final SimpleTable<String> result = new SimpleTable<>(columnsAndTypes);
-        for(int i = 0; i < lines.length; ++i)
-        {
-            final int index = i;
-            result.addRow(new HashMap<String, Object>() {{ put("Index", index); put("Value", lines[index]); }});
-        }
-
-        return result;
-    }
-
     public ManagementEntityType createPropertiesMap() {
         return createEntityTabularType(new HashMap<String, ManagementEntityType>() {{
             put("Key", createStringType());
