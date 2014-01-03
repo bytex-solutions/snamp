@@ -118,6 +118,23 @@ public abstract class AbstractTypeConverterFactory implements TypeConverterFacto
     }
 
     /**
+     * Returns the converter for the specified type constructed from the
+     * public static methods annotated with {@link com.snamp.AbstractTypeConverterFactory.Converter}
+     * and declared in the specified converter factory.
+     * @param factory The class that contains declaration of converters. Cannot be {@literal null}.
+     * @param t The type for which the converter should be constructed. Cannot be {@literal null}.
+     * @param <T> Conversion result type.
+     * @return An instance of the converter; or {@literal null}, if conversion is not supported.
+     */
+    protected static <T> TypeConverter<T> getTypeConverter(final Class<? extends AbstractTypeConverterFactory> factory, final Class<T> t){
+        final List<Method> methods = new ArrayList<>();
+        for(final Method m: factory.getMethods())
+            if(m.isAnnotationPresent(Converter.class) && isPublicStatic(m) && t.isAssignableFrom(m.getReturnType()))
+                methods.add(m);
+        return methods.size() > 0 ? new TypeConverterImpl<>(t, methods) : null;
+    }
+
+    /**
      * Returns the converter for the specified type.
      *
      * @param t   The type for which the converter should be created.
@@ -129,18 +146,15 @@ public abstract class AbstractTypeConverterFactory implements TypeConverterFacto
     public synchronized final <T> TypeConverter<T> getTypeConverter(final Class<T> t) {
         if(t == null) return null;
         else if(shouldNormalize(t)) return (TypeConverter<T>)getTypeConverter(normalizeClass(t));
+        final Class<? extends AbstractTypeConverterFactory> thisClass = getClass();
         return converters.handle(new Wrapper.WrappedObjectHandler<Map<Class<?>, TypeConverter<?>>, TypeConverter<T>>() {
             @Override
             public final TypeConverter<T> invoke(final Map<Class<?>, TypeConverter<?>> converters) {
                 TypeConverter<T> converter = (TypeConverter<T>)converters.get(t);
                 if(converter != null) return converter;
-                final List<Method> methods = new ArrayList<>();
-                for(final Method m: getClass().getMethods())
-                    if(m.isAnnotationPresent(Converter.class) && isPublicStatic(m) && t.isAssignableFrom(m.getReturnType()))
-                        methods.add(m);
-                if(methods.size() > 0)
-                    converters.put(t, converter = new TypeConverterImpl<>(t, methods));
-                else converter = null;
+                converter = getTypeConverter(thisClass, t);
+                if(converter != null)
+                    converters.put(t, converter);
                 return converter;
             }
         });
