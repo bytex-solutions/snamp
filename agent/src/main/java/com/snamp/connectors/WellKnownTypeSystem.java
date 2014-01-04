@@ -1,7 +1,9 @@
 package com.snamp.connectors;
 
 import com.snamp.Activator;
+import com.snamp.SimpleTable;
 import com.snamp.Table;
+import com.snamp.TypeConverter;
 
 import java.math.*;
 import java.util.*;
@@ -613,7 +615,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @param elementType An element type of the array.
      * @return A new array type that can be converted into {@link Object[]}.
      */
-    private final ManagementEntityType createEntityArrayType(final ManagementEntityType elementType){
+    public final AbstractManagementEntityType createEntityArrayType(final ManagementEntityType elementType){
         return createEntityType(new Activator<ManagementEntityArrayType>(){
 
             /**

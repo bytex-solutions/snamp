@@ -56,9 +56,13 @@ public final class AttributeValue<T extends ManagementEntityType> {
      */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final <G> G convertTo(final Class<G> target) throws IllegalArgumentException {
-        final TypeConverter<G> converter = type.getProjection(target);
-        if(converter == null) throw new IllegalArgumentException(String.format("Type %s is not supported", target));
-        return converter.convertFrom(rawValue);
+        if(target == null) throw new IllegalArgumentException("target is null.");
+        else if(target.isInstance(rawValue)) return target.cast(rawValue);
+        else {
+            final TypeConverter<G> converter = type.getProjection(target);
+            if(converter == null) throw new IllegalArgumentException(String.format("Type %s is not supported", target));
+            return converter.convertFrom(rawValue);
+        }
     }
 
     /**

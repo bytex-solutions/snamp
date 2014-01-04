@@ -196,7 +196,10 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
                 typeInfo = (WellKnownTypeSystem.AbstractManagementEntityType)typeProviderImpl.invoke(typeBuilder);
             }
             catch (final ReflectiveOperationException e) {
-                typeInfo = typeBuilder.createEntitySimpleType(propertyType);
+                if(propertyType.isArray())
+                    typeInfo = typeBuilder.createEntityArrayType(typeBuilder.createEntitySimpleType(propertyType.getComponentType()));
+                else
+                    typeInfo = typeBuilder.createEntitySimpleType(propertyType);
             }
             finally {
                 this.typeBuilder.clear();
