@@ -227,6 +227,13 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
    assertEquals(new JsonPrimitive(100503), ((JsonObject)table.get(3)).get("col2"));
    assertEquals(new JsonPrimitive("Row 4"), ((JsonObject)table.get(3)).get("col3"));
   }
+
+
+      @Test
+    public final void testForFloatProperty() throws IOException{
+        writeAttribute("3.0", 42, Integer.class);
+        assertEquals(42, (float) readAttribute("3.0", Integer.class));
+    }
        */
     @Override
     protected final void fillAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attributes) {
@@ -257,6 +264,29 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("table");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
         attributes.put("7.1", attribute);
+
+        attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("float");
+        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attributes.put("8.0", attribute);
+
+        attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("date");
+        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attributes.put("9.0", attribute);
+
+        attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("date");
+        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        attributes.put("10.0", attribute);
+
+        attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("date");
+        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("displayFormat", "rfc1903-human-readable");
+        attributes.put("11.0", attribute);
+
+        attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("date");
+        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("displayFormat", "rfc1903");
+        attributes.put("12.0", attribute);
     }
 
 }

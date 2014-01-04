@@ -16,7 +16,8 @@ final class SnmpLongObject extends SnmpScalarObject<Counter64>{
     }
 
     public static Counter64 convert(final Object value, final ManagementEntityType attributeTypeInfo){
-        return new Counter64(convertFrom(attributeTypeInfo, value, Long.class));
+        final Number convertedValue = convertFrom(attributeTypeInfo, value, Number.class, Byte.class, Short.class, Integer.class, Long.class);
+        return new Counter64(convertedValue.longValue());
     }
 
     public static Long convert(final Variable value, final ManagementEntityType attributeTypeInfo){

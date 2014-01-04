@@ -2,6 +2,8 @@ package com.snamp.adapters;
 
 import com.snamp.connectors.AttributeMetadata;
 import org.snmp4j.agent.ManagedObjectValueAccess;
+
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -16,4 +18,9 @@ interface SnmpAttributeMapping extends ManagedObjectValueAccess {
      */
     public AttributeMetadata getMetadata();
 
+    /**
+     * Processes the additional mapping options.
+     * @param options A map of additional mapping options.
+     */
+    public void setAttributeOptions(final Map<String, String> options);
 }

@@ -63,6 +63,7 @@ public final class ManagementEntityTypeHelper {
      */
     public static <T> T convertFrom(final ManagementEntityType entityType, final Object value, final Class<T> nativeType) throws IllegalArgumentException{
         if(entityType == null) throw new IllegalArgumentException("entityType is null.");
+        else if(nativeType.isInstance(value)) return nativeType.cast(value);
         final TypeConverter<T> converter = entityType.getProjection(nativeType);
         if(converter == null) throw new IllegalArgumentException(String.format("Projection %s is not supported of management entity %s", nativeType, entityType));
         return converter.convertFrom(value);
@@ -96,7 +97,9 @@ public final class ManagementEntityTypeHelper {
     public static <T> T convertFrom(final ManagementEntityType entityType, final Object value, final Class<T> baseType, final ConversionFallback<T> fallback, final Class<? extends T>... projections){
         if(entityType == null) throw new IllegalArgumentException("entityType is null.");
         else if(projections == null || projections.length == 0) return convertFrom(entityType, value, baseType);
-        else for(final Class<? extends T> proj: projections){
+        else for(final Class<? extends T> proj: projections)
+            if(proj.isInstance(value)) return proj.cast(value);
+            else {
                 final TypeConverter<? extends T> converter = entityType.getProjection(proj);
                 if(converter == null) continue;
                 else return converter.convertFrom(value);

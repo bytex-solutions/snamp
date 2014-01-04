@@ -1,11 +1,13 @@
 package com.snamp.adapters;
 
+import com.snamp.MethodStub;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -132,5 +134,18 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     @Override
     public final AttributeMetadata getMetadata() {
         return getMetadata(connector);
+    }
+
+    /**
+     * Processes the mapping options.
+     * <p>
+     *     In the default implementation this method does nothing.
+     * </p>
+     * @param options A map of additional mapping options.
+     */
+    @Override
+    @MethodStub
+    public void setAttributeOptions(Map<String, String> options) {
+
     }
 }

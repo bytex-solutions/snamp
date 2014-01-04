@@ -16,7 +16,8 @@ final class SnmpFloatObject extends SnmpScalarObject<OctetString>{
     }
 
     public static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo){
-        return new OctetString(convertFrom(attributeTypeInfo, value, String.class));
+        final Number convertedValue = convertFrom(attributeTypeInfo, value, Number.class, Float.class, Double.class);
+        return new OctetString(convertedValue.toString());
     }
 
     public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
