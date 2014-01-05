@@ -1,7 +1,5 @@
 package com.snamp.connectors;
 
-import java.util.Locale;
-
 /**
  * Represents metadata of the notification.
  * @author Roman Sakno

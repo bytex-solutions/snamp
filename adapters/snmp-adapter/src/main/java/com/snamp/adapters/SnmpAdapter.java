@@ -6,6 +6,7 @@ import java.util.logging.*;
 
 import com.snamp.connectors.*;
 import com.snamp.connectors.util.AbstractNotificationListener;
+import com.snamp.licensing.LicensedPlatformPlugin;
 import com.snamp.licensing.SnmpAdapterLimitations;
 import net.xeoh.plugins.base.annotations.*;
 import net.xeoh.plugins.base.annotations.meta.Author;
@@ -30,8 +31,19 @@ import static com.snamp.connectors.NotificationSupport.Notification;
  */
 @PluginImplementation
 @Author(name = "Roman Sakno")
-final class SnmpAdapter extends SnmpAdapterBase {
+final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugin<SnmpAdapterLimitations> {
     private static final String PASSWORD_PARAM = "password";
+
+    /**
+     * Returns license limitations associated with this plugin.
+     *
+     * @return The license limitations applied to this plugin.
+     */
+    @Override
+    public final SnmpAdapterLimitations getLimitations() {
+        return SnmpAdapterLimitations.current();
+    }
+
     /**
      * Represents a collection of MO's with OID postfixes.
      */

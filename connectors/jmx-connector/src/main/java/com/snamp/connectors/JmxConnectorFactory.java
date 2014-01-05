@@ -1,6 +1,7 @@
 package com.snamp.connectors;
 
 import com.snamp.licensing.JmxConnectorLimitations;
+import com.snamp.licensing.LicensedPlatformPlugin;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import net.xeoh.plugins.base.annotations.meta.Author;
 
@@ -14,7 +15,7 @@ import java.util.logging.*;
  */
 @PluginImplementation
 @Author(name = "Roman Sakno")
-final class JmxConnectorFactory extends AbstractManagementConnectorFactory<JmxConnector> {
+final class JmxConnectorFactory extends AbstractManagementConnectorFactory<JmxConnector> implements LicensedPlatformPlugin<JmxConnectorLimitations> {
 
     /**
      * Represents JMX connector name.
@@ -75,5 +76,15 @@ final class JmxConnectorFactory extends AbstractManagementConnectorFactory<JmxCo
     @Override
     public final boolean supportsFeature(final Class<?> feature) {
         return feature == null ? false : feature.isAssignableFrom(JmxConnector.class);
+    }
+
+    /**
+     * Returns license limitations associated with this plugin.
+     *
+     * @return The license limitations applied to this plugin.
+     */
+    @Override
+    public final JmxConnectorLimitations getLimitations() {
+        return JmxConnectorLimitations.current();
     }
 }

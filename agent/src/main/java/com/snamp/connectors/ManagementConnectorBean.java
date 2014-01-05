@@ -254,7 +254,6 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         private final long seqnum;
         private final String message;
         private final WellKnownTypeSystem typeSystem;
-        private final Map<String, Object> attachments;
 
         public JavaBeanNotification(final WellKnownTypeSystem typeSys,
                                     final Severity severity,
@@ -266,8 +265,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
             this.seqnum = sequenceNumber;
             this.message = message != null ? message : "";
             this.typeSystem = typeSys;
-            this.attachments = attachments != null ? Collections.unmodifiableMap(attachments) : new HashMap<String, Object>();
-
+            putAll(attachments);
         }
 
 
@@ -310,19 +308,6 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         @Override
         public final String getMessage() {
             return message;
-        }
-
-        /**
-         * Gets attachments associated with this notification.
-         * <p>
-         * The key of the returned map contains name of the attachment.
-         * </p>
-         *
-         * @return A read-only collection of attachments associated with this notification.
-         */
-        @Override
-        public final Map<String, Object> getAttachments() {
-            return attachments;
         }
     }
 

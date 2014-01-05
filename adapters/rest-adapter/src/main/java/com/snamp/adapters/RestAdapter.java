@@ -3,7 +3,7 @@ package com.snamp.adapters;
 import com.snamp.connectors.AttributeSupport;
 import com.snamp.connectors.util.*;
 import com.snamp.hosting.AgentConfiguration;
-import com.snamp.licensing.RestAdapterLimitations;
+import com.snamp.licensing.*;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import net.xeoh.plugins.base.annotations.meta.Author;
 import org.eclipse.jetty.server.*;
@@ -19,7 +19,7 @@ import java.util.logging.Level;
  */
 @PluginImplementation
 @Author(name = "Roman Sakno")
-final class RestAdapter extends AbstractAdapter {
+final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugin<RestAdapterLimitations> {
     private static final String DATE_FORMAT_PARAM_NAME = "dateFormat";
     public static final String NAME = "rest";
     private final Server jettyServer;
@@ -165,5 +165,15 @@ final class RestAdapter extends AbstractAdapter {
         jettyServer.stop();
         exposedAttributes.clear();
         started = false;
+    }
+
+    /**
+     * Returns license limitations associated with this plugin.
+     *
+     * @return The license limitations applied to this plugin.
+     */
+    @Override
+    public final RestAdapterLimitations getLimitations() {
+        return RestAdapterLimitations.current();
     }
 }

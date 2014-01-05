@@ -537,12 +537,17 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     private final static class JmxNotificationWrapper extends HashMap<String, Object> implements Notification{
         private final javax.management.Notification jmxNotification;
         private final Severity notificationSeverity;
-        private Map<String, Object> attachments;
 
         public JmxNotificationWrapper(final Severity severity, final javax.management.Notification jmxNotification){
             this.jmxNotification = jmxNotification;
             notificationSeverity = severity != null ? severity : Severity.UNKNOWN;
-            this.attachments = null;
+            //loads notification as Java Bean and explore each JB property as attachment
+            try {
+                putAll(new BeanPropertyAccessor<>(jmxNotification, javax.management.Notification.class));
+            }
+            catch (final IntrospectionException e) {
+                log.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);
+            }
         }
 
         /**
@@ -583,24 +588,6 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
         @Override
         public final String getMessage() {
             return jmxNotification.getMessage();
-        }
-
-        /**
-         * Gets attachments associated with this notification.
-         *
-         * @return A read-only collection of attachments associated with this notification.
-         */
-        @Override
-        public synchronized final Map<String, Object> getAttachments() {
-            //loads notification as Java Bean and explore each JB property as attachment
-            if(attachments == null)
-                try {
-                    attachments = new BeanPropertyAccessor<javax.management.Notification>(jmxNotification, javax.management.Notification.class);
-                } catch (final IntrospectionException e) {
-                    attachments = new HashMap<>();
-                    log.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);
-                }
-            return attachments;
         }
     }
 
