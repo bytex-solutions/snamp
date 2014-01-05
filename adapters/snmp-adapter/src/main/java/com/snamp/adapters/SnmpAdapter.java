@@ -193,13 +193,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
     @Override
     protected final void unregisterManagedObjects() {
         for(final String prefix: attributes.keySet()){
-            final ManagementAttributes attrs = attributes.get(prefix);
-            for(final String postfix: attrs.keySet()){
-                final ManagedObject mo = server.getManagedObject(new OID(combineOID(prefix, postfix)), null);
-                if(mo != null) server.unregister(mo, null);
-            }
-        }
-        for(final String prefix: attributes.keySet()){
+            for(final SnmpAttributeMapping mo: attributes.get(prefix).values()) if(mo != null) server.unregister(mo, null);
             this.getVacmMIB().removeViewTreeFamily(new OctetString("fullReadView"), new OID(prefix));
             this.getVacmMIB().removeViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix));
         }

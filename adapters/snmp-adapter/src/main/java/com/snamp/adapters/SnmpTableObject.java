@@ -81,11 +81,16 @@ final class SnmpTableObject implements SnmpAttributeMapping{
     private Map<String, String> conversionOptions;
 
     private static MONamedColumn<Variable>[] createColumns(final ManagementEntityTabularType tableType, final MOAccess access){
-        final List<MONamedColumn<Variable>> columns = new ArrayList<>(tableType.getColumns().size());
         int columnID = 2;
-        for(final String columnName: tableType.getColumns())
-            columns.add(new MONamedColumn<>(columnID++, columnName, tableType, access));
-        return columns.toArray(new MONamedColumn[columns.size()]);
+        if(WellKnownTypeSystem.isArray(tableType)) //hides column with array indexes
+            return new MONamedColumn[]{new MONamedColumn<>(columnID, ManagementEntityTypeBuilder.AbstractManagementEntityArrayType.VALUE_COLUMN_NAME, tableType, access)};
+
+        else {
+            final List<MONamedColumn<Variable>> columns = new ArrayList<>(tableType.getColumns().size());
+            for(final String columnName: tableType.getColumns())
+                columns.add(new MONamedColumn<>(columnID++, columnName, tableType, access));
+            return columns.toArray(new MONamedColumn[columns.size()]);
+        }
     }
 
     private static DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> createEmptyTable(final OID tableId,
@@ -96,7 +101,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
                 new MOTableIndex(new MOTableSubIndex[]{new MOTableSubIndex(null, SMIConstants.SYNTAX_INTEGER, 1, 1)}),
                 createColumns(tabularType, access)
         );
-        DefaultMOMutableTableModel<MOTableRow<Variable>> model_ = new DefaultMOMutableTableModel<>();
+        final DefaultMOMutableTableModel<MOTableRow<Variable>> model_ = new DefaultMOMutableTableModel<>();
         model_.setRowFactory(new DefaultMOMutableRow2PCFactory());
         table_.setModel(model_);
 
@@ -193,15 +198,13 @@ final class SnmpTableObject implements SnmpAttributeMapping{
 
     private static void fill(final Object[] values, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final Map<String, String> conversionOptions){
         @Temporary
-        final Table<String> tempTable = new SimpleTable<>(new HashMap<String, Class<?>>(2){{
-            put(ManagementEntityTypeBuilder.ManagementEntityArrayType.INDEX_COLUMN_NAME, Integer.class);
+        final Table<String> tempTable = new SimpleTable<>(new HashMap<String, Class<?>>(1){{
             put(ManagementEntityTypeBuilder.ManagementEntityArrayType.VALUE_COLUMN_NAME, Object.class);
         }});
         for(int arrayIndex = 0; arrayIndex < values.length; arrayIndex++){
             @Temporary
             final int firstColumnValue = arrayIndex;
-            tempTable.addRow(new HashMap<String, Object>(2){{
-                put(ManagementEntityTypeBuilder.ManagementEntityArrayType.INDEX_COLUMN_NAME, firstColumnValue);
+            tempTable.addRow(new HashMap<String, Object>(1){{
                 put(ManagementEntityTypeBuilder.ManagementEntityArrayType.VALUE_COLUMN_NAME, values[firstColumnValue]);
             }});
         }

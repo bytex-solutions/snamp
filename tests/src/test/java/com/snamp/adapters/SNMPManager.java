@@ -6,8 +6,13 @@ import org.snmp4j.event.ResponseListener;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
+import org.snmp4j.util.DefaultPDUFactory;
+import org.snmp4j.util.TableEvent;
+import org.snmp4j.util.TableUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -46,6 +51,29 @@ public final class SNMPManager {
         transport = new DefaultUdpTransportMapping();
         transport.listen();
         snmp = new Snmp(transport);
+    }
+
+    private static OID[] makeColumnIDs(final OID baseID, final int columnCount){
+        final OID[] result = new OID[columnCount];
+        for(int i = 0; i <columnCount; i++)
+            result[i] = new OID(baseID + "." + (i + 2));
+        return result;
+    }
+
+    public final List<Variable[]> getTable(final OID oidTable, final int columnCount, final int rowCount) throws Exception{
+        final TableUtils utils = new TableUtils(snmp, new DefaultPDUFactory(PDU.GETBULK));
+        final List<TableEvent> events = utils.getTable(getTarget(), makeColumnIDs(oidTable, columnCount), null, null);
+        final List<Variable[]> result = new ArrayList<>(events.size());
+        for(final TableEvent ev: events)
+            if(ev.isError()) throw new Exception(ev.getErrorMessage());
+            else {
+                final VariableBinding[] columns = ev.getColumns();
+                final Variable[] cells = new Variable[columns.length];
+                for(int i = 0; i < columns.length; i++)
+                    cells[i] = columns[i].getVariable();
+                result.add(cells);
+            }
+        return result;
     }
 
     /**
@@ -101,7 +129,7 @@ public final class SNMPManager {
             target.setCommunity(new OctetString("public"));
             target.setAddress(targetAddress);
             target.setRetries(2);
-            target.setTimeout(1500);
+            target.setTimeout(5000);
             target.setVersion(SnmpConstants.version2c);
         }
         return target;
