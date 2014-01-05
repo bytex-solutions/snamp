@@ -13,6 +13,7 @@ import java.lang.reflect.*;
 import static org.snmp4j.smi.SMIConstants.EXCEPTION_NO_SUCH_OBJECT;
 
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * Represents SNMP managed object factory.
@@ -88,6 +89,7 @@ enum SnmpType {
             return ctor.newInstance(oid, wrapReference(new WeakReference<>(connector), AttributeSupport.class), timeouts);
         }
         catch (final ReflectiveOperationException e) {
+            SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
             return null;
         }
     }
@@ -100,6 +102,33 @@ enum SnmpType {
         return syntax != null ? syntax.value() : EXCEPTION_NO_SUCH_OBJECT;
     }
 
+    public Variable convert(final Object value, final ManagementEntityType valueType, final Map<String, String> options){
+        if(toVariableConverter == null)
+            try {
+                toVariableConverter = mapping.getMethod("convert", Object.class, ManagementEntityType.class);
+            }
+            catch (final NoSuchMethodException e) {
+                try {
+                    toVariableConverter = mapping.getMethod("convert", Object.class, ManagementEntityType.class, Map.class);
+                } catch (NoSuchMethodException e1) {
+                    SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
+                    return new Null();
+                }
+            }
+        //attempts to invoke the converter.
+        try {
+            switch (toVariableConverter.getParameterTypes().length){
+                case 2: return (Variable)toVariableConverter.invoke(null, new Object[]{value, valueType});
+                case 3: return (Variable)toVariableConverter.invoke(null, new Object[]{value, valueType, options});
+                default: throw new ReflectiveOperationException("SnmpAdapter: java-to-snmp converter not found.");
+            }
+        }
+        catch (final ReflectiveOperationException e) {
+            SnmpAttributeMapping.log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+            return new Null();
+        }
+    }
+
     /**
      * Converts the specified value to the SNMP-compliant value.
      * @param value The value to convert.
@@ -107,19 +136,34 @@ enum SnmpType {
      * @return SNMP-compliant value.
      */
     public Variable convert(final Object value, final ManagementEntityType valueType){
-        if(toVariableConverter == null)
+        return convert(value, valueType, Collections.<String, String>emptyMap());
+    }
+
+    public Object convert(final Variable value, final ManagementEntityType valueType, final Map<String, String> options){
+        if(fromVariableConverter == null)
             try {
-                toVariableConverter = mapping.getMethod("convert", Object.class, ManagementEntityType.class);
+                fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagementEntityType.class);
             }
             catch (final NoSuchMethodException e) {
-                return new Null();
+                try {
+                    fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagementEntityType.class);
+                } catch (final NoSuchMethodException e1) {
+                    SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
+                    return null;
+                }
+
             }
         //attempts to invoke the converter.
         try {
-            return (Variable)toVariableConverter.invoke(null, new Object[]{value, valueType});
+            switch (fromVariableConverter.getParameterTypes().length){
+                case 2: return fromVariableConverter.invoke(null, new Object[]{value, valueType});
+                case 3: return fromVariableConverter.invoke(null, new Object[]{value, valueType, options});
+                default: throw new ReflectiveOperationException("java-to-snmp converter not found.");
+            }
         }
         catch (final ReflectiveOperationException e) {
-            return new Null();
+            SnmpAttributeMapping.log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+            return null;
         }
     }
 
@@ -129,6 +173,7 @@ enum SnmpType {
                 fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagementEntityType.class);
             }
             catch (final NoSuchMethodException e) {
+                SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
                 return null;
             }
         //attempts to invoke the converter.
@@ -136,6 +181,7 @@ enum SnmpType {
             return fromVariableConverter.invoke(null, new Object[]{value, valueType});
         }
         catch (final ReflectiveOperationException e) {
+            SnmpAttributeMapping.log.log(Level.SEVERE, e.getLocalizedMessage(), e);
             return null;
         }
     }
@@ -180,7 +226,9 @@ enum SnmpType {
         final AttributeMetadata attribute = connector.connectAttribute(oid, attributeName, options);
         if(attribute == null) return null;
         final SnmpType type = map(attribute.getType());
-        return type != null ? type.createManagedObject(oid, connector, timeouts) : null;
+        final SnmpAttributeMapping mapping = type != null ? type.createManagedObject(oid, connector, timeouts) : null;
+        if(mapping != null) mapping.setAttributeOptions(options);
+        return mapping;
     }
 
     /**

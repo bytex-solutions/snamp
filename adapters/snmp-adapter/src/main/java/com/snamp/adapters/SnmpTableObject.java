@@ -78,6 +78,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
     private final boolean fixedRowStructure;
     private static final String tableCacheTimeKey = "tableCacheTime";
     private final RefreshTimer tableCacheTimer;
+    private Map<String, String> conversionOptions;
 
     private static MONamedColumn<Variable>[] createColumns(final ManagementEntityTabularType tableType, final MOAccess access){
         final List<MONamedColumn<Variable>> columns = new ArrayList<>(tableType.getColumns().size());
@@ -125,6 +126,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
         tableCacheTimer = new RefreshTimer( attribute.containsKey(tableCacheTimeKey) ?
                 new TimeSpan(Integer.valueOf(attribute.get(tableCacheTimeKey))):
                 new TimeSpan(5, TimeUnit.SECONDS));
+        conversionOptions = Collections.emptyMap();
     }
 
     /**
@@ -160,38 +162,38 @@ final class SnmpTableObject implements SnmpAttributeMapping{
         return table.getModel().getRowCount() == 0;
     }
 
-    private static Variable convert(final Object cellValue, final ManagementEntityType cellType){
+    private static Variable convert(final Object cellValue, final ManagementEntityType cellType, final Map<String, String> options){
         final SnmpType typeProvider = SnmpType.map(cellType);
-        return typeProvider.convert(cellValue, cellType);
+        return typeProvider.convert(cellValue, cellType, options);
     }
 
-    private static Object convert(final Variable cellValue, final ManagementEntityType cellType){
+    private static Object convert(final Variable cellValue, final ManagementEntityType cellType, final Map<String, String> options){
         final SnmpType typeProvider = SnmpType.map(cellType);
-        return typeProvider.convert(cellValue, cellType);
+        return typeProvider.convert(cellValue, cellType, options);
     }
 
-    private static Variable[] createRow(final int rowIndex, final Table<String> values, final MONamedColumn<Variable>[] columns, final ManagementEntityTabularType type){
+    private static Variable[] createRow(final int rowIndex, final Table<String> values, final MONamedColumn<Variable>[] columns, final ManagementEntityTabularType type, final Map<String, String> conversionOptions){
         final Variable[] result = new Variable[columns.length];
         for(int columnIndex = 0; columnIndex < result.length; columnIndex++){
             final MONamedColumn<Variable> columnDef = columns[columnIndex];
-            final Variable cellValue = convert(values.getCell(columnDef.columnName, rowIndex), type.getColumnType(columnDef.columnName));
+            final Variable cellValue = convert(values.getCell(columnDef.columnName, rowIndex), type.getColumnType(columnDef.columnName), conversionOptions);
             result[columnIndex] = cellValue;
         }
         return result;
     }
 
-    private static void fill(final Table<String> values, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type){
+    private static void fill(final Table<String> values, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final Map<String, String> conversionOptions){
         //create rows
         for(int rowIndex = 0; rowIndex < values.getRowCount(); rowIndex++){
             final OID rowID = makeRowID(rowIndex);
-            final MOTableRow<Variable> newRow = table.createRow(rowID, createRow(rowIndex, values, table.getColumns(), type));
+            final MOTableRow<Variable> newRow = table.createRow(rowID, createRow(rowIndex, values, table.getColumns(), type, conversionOptions));
             table.addRow(newRow);
         }
     }
 
-    private static void fill(final Object[] values, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type){
+    private static void fill(final Object[] values, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final Map<String, String> conversionOptions){
         @Temporary
-        final Table<String> tempTable = new SimpleTable<String>(new HashMap<String, Class<?>>(2){{
+        final Table<String> tempTable = new SimpleTable<>(new HashMap<String, Class<?>>(2){{
             put(ManagementEntityTypeBuilder.ManagementEntityArrayType.INDEX_COLUMN_NAME, Integer.class);
             put(ManagementEntityTypeBuilder.ManagementEntityArrayType.VALUE_COLUMN_NAME, Object.class);
         }});
@@ -203,14 +205,14 @@ final class SnmpTableObject implements SnmpAttributeMapping{
                 put(ManagementEntityTypeBuilder.ManagementEntityArrayType.VALUE_COLUMN_NAME, values[firstColumnValue]);
             }});
         }
-        fill(tempTable, table, type);
+        fill(tempTable, table, type, conversionOptions);
     }
 
-    private static void fill(final AttributeSupport connector, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final TimeSpan rwTimeout) throws TimeoutException {
+    private static void fill(final AttributeSupport connector, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final TimeSpan rwTimeout, final Map<String, String> conversionOptions) throws TimeoutException {
         if(supportsProjection(type, Table.class))
-            fill(convertFrom(type, connector.getAttribute(table.getOID().toString(), rwTimeout, new SimpleTable<String>()), Table.class), table, type);
+            fill(convertFrom(type, connector.getAttribute(table.getOID().toString(), rwTimeout, new SimpleTable<String>()), Table.class), table, type, conversionOptions);
         else if(supportsProjection(type, Object[].class) && ManagementEntityTypeBuilder.isArray(type))
-            fill(convertFrom(type, connector.getAttribute(table.getOID().toString(), rwTimeout, new Object[0]), Object[].class), table, type);
+            fill(convertFrom(type, connector.getAttribute(table.getOID().toString(), rwTimeout, new Object[0]), Object[].class), table, type, conversionOptions);
         else log.warning(String.format("Source attribute table %s is not supported", table.getOID()));
     }
 
@@ -219,7 +221,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
             @Override
             public final Void invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) throws TimeoutException {
                 if(isEmpty(table)) try{
-                    fill(_connector, table, _tabularType, readWriteTimeout);
+                    fill(_connector, table, _tabularType, readWriteTimeout, conversionOptions);
                 }
                 finally {
                     tableCacheTimer.stop();
@@ -231,7 +233,7 @@ final class SnmpTableObject implements SnmpAttributeMapping{
                     try{
                         if(tableCacheTimer.isEmpty()){
                             table.removeAll();
-                            fill(_connector, table, _tabularType, readWriteTimeout);
+                            fill(_connector, table, _tabularType, readWriteTimeout, conversionOptions);
                             tableCacheTimer.reset();
                         }
                     }
@@ -501,5 +503,10 @@ final class SnmpTableObject implements SnmpAttributeMapping{
                 return null;
             }
         });
+    }
+
+    @Override
+    public final void setAttributeOptions(Map<String, String> options) {
+        this.conversionOptions = options;
     }
 }

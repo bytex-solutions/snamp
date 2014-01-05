@@ -4,6 +4,7 @@ package com.snamp.adapters;
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.math.BigInteger;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
@@ -46,6 +47,19 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
     private static final MBeanAttributeInfo ARRAY_PROPERTY = new OpenMBeanAttributeInfoSupport("array",
             "Sample description",
             ArrayType.getPrimitiveArrayType(short[].class),
+            true,
+            true,
+            false);
+    private static final MBeanAttributeInfo FLOAT_PROPERTY = new OpenMBeanAttributeInfoSupport("float",
+            "Sample description",
+            SimpleType.FLOAT,
+            true,
+            true,
+            false);
+
+    private static final MBeanAttributeInfo DATE_PROPERTY = new OpenMBeanAttributeInfoSupport("date",
+            "Sample description",
+            SimpleType.DATE,
             true,
             true,
             false);
@@ -97,7 +111,10 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
                     BIGINT_PROPERTY,
                     ARRAY_PROPERTY,
                     DICTIONARY_PROPERTY,
-                    TABLE_PROPERTY},
+                    TABLE_PROPERTY,
+                    FLOAT_PROPERTY,
+                    DATE_PROPERTY
+            },
             new MBeanConstructorInfo[0],
             new MBeanOperationInfo[0],
             new MBeanNotificationInfo[]{PROPERTY_CHANGED_EVENT});
@@ -110,6 +127,8 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
     private CompositeData dictionary;
     private TabularData table;
     private final AtomicLong sequenceCounter;
+    private  float aFloat;
+    private Date aDate;
 
     public TestManagementBean() {
         super(PROPERTY_CHANGED_EVENT);
@@ -117,6 +136,8 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
         chosenString = "NO VALUE";
         aBigInt = BigInteger.ZERO;
         array = new Short[]{42,100,43,99};
+        aFloat = 0F;
+        aDate = new Date();
         try{
             dictionary = new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), new HashMap<String, Object>() {{
                 put("col1", true);
@@ -185,6 +206,22 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
         aBoolean = value;
     }
 
+    public float getFloat() {
+        return aFloat;
+    }
+
+    public void setFloat(final float aFloat) {
+        this.aFloat = aFloat;
+    }
+
+    public Date getDate() {
+        return aDate;
+    }
+
+    public void setDate(final Date aDate) {
+        this.aDate = aDate;
+    }
+
     /**
      * Obtain the value of a specific attribute of the Dynamic MBean.
      *
@@ -214,6 +251,10 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
             return dictionary;
         else if(Objects.equals(attribute, TABLE_PROPERTY.getName()))
             return table;
+        else if(Objects.equals(attribute, FLOAT_PROPERTY.getName()))
+            return aFloat;
+        else if(Objects.equals(attribute, DATE_PROPERTY.getName()))
+            return aDate;
         else throw new AttributeNotFoundException();
     }
 
@@ -282,6 +323,16 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
             oldValue = table;
             newValue = table = (TabularData)attribute.getValue();
             attributeType = TABLE_PROPERTY.getType();
+        }
+        else if(Objects.equals(attribute.getName(), FLOAT_PROPERTY.getName())){
+            oldValue = aFloat;
+            attributeType = FLOAT_PROPERTY.getType();
+            newValue = aFloat = Float.valueOf(Objects.toString(attribute.getValue()));
+        }
+        else if(Objects.equals(attribute.getName(), DATE_PROPERTY.getName())){
+            oldValue = aDate;
+            attributeType = DATE_PROPERTY.getType();
+            newValue = aDate = (Date) attribute.getValue();
         }
         else throw new AttributeNotFoundException();
         propertyChanged(attribute.getName(), attributeType, oldValue, newValue);

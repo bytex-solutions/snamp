@@ -18,7 +18,8 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
     }
 
     public static Integer32 convert(final Object value, final ManagementEntityType attributeTypeInfo){
-        return new Integer32(convertFrom(attributeTypeInfo, value, Integer.class));
+        final Number convertedValue = convertFrom(attributeTypeInfo, value, Number.class, Byte.class, Short.class, Integer.class);
+        return new Integer32(convertedValue.intValue());
     }
 
     public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
