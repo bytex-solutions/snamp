@@ -27,12 +27,12 @@ public interface Adapter extends AutoCloseable, PlatformPlugin, AttributePublish
     /**
      * Represents name of the port definition parameter.
      */
-    static final String portParamName = "port";
+    static final String PORT_PARAM_NAME = "port";
 
     /**
      * Represents name of the hosting address definition parameter.
      */
-    static final String addressParamName = "address";
+    static final String ADDRESS_PARAM_NAME = "address";
 
     /**
      * Exposes the connector to the world.

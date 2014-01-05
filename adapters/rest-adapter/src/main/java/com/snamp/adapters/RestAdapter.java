@@ -20,10 +20,12 @@ import java.util.logging.Level;
 @PluginImplementation
 @Author(name = "Roman Sakno")
 final class RestAdapter extends AbstractAdapter {
+    private static final String DATE_FORMAT_PARAM_NAME = "dateFormat";
     public static final String NAME = "rest";
     private final Server jettyServer;
     private final AttributesRegistry exposedAttributes;
     private boolean started = false;
+
 
     public RestAdapter(){
         super(NAME);
@@ -43,13 +45,14 @@ final class RestAdapter extends AbstractAdapter {
         started = false;
     }
 
-    private Servlet createRestServlet(){
-        return new RestAdapterServlet(exposedAttributes, getLogger());
+    private Servlet createRestServlet(final String dateFormat){
+        return new RestAdapterServlet(dateFormat, exposedAttributes, getLogger());
     }
 
     private final boolean initializeServer(final Server s, final Map<String, String> parameters){
-        final int port = parameters.containsKey(portParamName) ? Integer.valueOf(parameters.get(portParamName)) : 8080;
-        final String host = parameters.containsKey(addressParamName) ? parameters.get(addressParamName) : "0.0.0.0";
+        final int port = parameters.containsKey(PORT_PARAM_NAME) ? Integer.valueOf(parameters.get(PORT_PARAM_NAME)) : 8080;
+        final String host = parameters.containsKey(ADDRESS_PARAM_NAME) ? parameters.get(ADDRESS_PARAM_NAME) : "0.0.0.0";
+        final String dateFormat = parameters.containsKey(DATE_FORMAT_PARAM_NAME) ? parameters.get(DATE_FORMAT_PARAM_NAME) : "";
         //remove all connectors.
         for(final Connector c: s.getConnectors())
             if(c instanceof NetworkConnector) ((NetworkConnector)c).close();
@@ -62,7 +65,7 @@ final class RestAdapter extends AbstractAdapter {
         final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
         s.setHandler(contextHandler);
         contextHandler.setContextPath("/snamp/management");
-        final ServletHolder holder = new ServletHolder(createRestServlet());
+        final ServletHolder holder = new ServletHolder(createRestServlet(dateFormat));
         contextHandler.addServlet(holder, "/*");
         return true;
     }

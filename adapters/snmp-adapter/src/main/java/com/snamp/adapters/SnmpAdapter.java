@@ -292,7 +292,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
             case STATE_STOPPED:
                 if(parameters.containsKey(PASSWORD_PARAM))
                     SnmpAdapterLimitations.current().verifyAuthenticationFeature();
-                return start(Integer.valueOf(parameters.get(portParamName)), parameters.get(addressParamName));
+                return start(Integer.valueOf(parameters.get(PORT_PARAM_NAME)), parameters.get(ADDRESS_PARAM_NAME));
             default:return false;
         }
     }

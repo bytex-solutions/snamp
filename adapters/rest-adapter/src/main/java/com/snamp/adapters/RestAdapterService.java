@@ -3,6 +3,7 @@ package com.snamp.adapters;
 import java.io.IOException;
 import java.math.*;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.*;
@@ -32,12 +33,15 @@ public final class RestAdapterService extends AbstractPlatformService {
     private final Logger logger;
     private static final TimeSpan READ_WRITE_TIMEOUT = new TimeSpan(60, TimeUnit.SECONDS);
 
-    RestAdapterService(final AttributesRegistryReader registeredAttributes, final Logger logger){
+    RestAdapterService(final String dateFormat, final AttributesRegistryReader registeredAttributes, final Logger logger){
         super(logger);
         this.attributes = registeredAttributes;
-        jsonFormatter = new GsonBuilder()
-                .serializeNulls()
-                .setDateFormat(DateFormat.LONG).create();
+        final GsonBuilder builder = new GsonBuilder();
+        if(dateFormat == null || dateFormat.isEmpty())
+            builder.setDateFormat(DateFormat.FULL);
+        else builder.setDateFormat(dateFormat);
+        builder.serializeNulls();
+        jsonFormatter = builder.create();
         jsonParser = new JsonParser();
         this.logger = logger;
     }
