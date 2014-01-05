@@ -65,7 +65,7 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
         private static byte[] convert(final Calendar value){
             try(final ByteArrayOutputStream output = new ByteArrayOutputStream(); final DataOutputStream dataStream = new DataOutputStream(output)){
                 dataStream.writeShort(value.get(Calendar.YEAR));
-                dataStream.writeByte(value.get(Calendar.MONTH));
+                dataStream.writeByte(value.get(Calendar.MONTH)+1);
                 dataStream.writeByte(value.get(Calendar.DAY_OF_MONTH));
                 dataStream.writeByte(value.get(Calendar.HOUR_OF_DAY));
                 dataStream.writeByte(value.get(Calendar.MINUTE));
@@ -73,12 +73,12 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
                 dataStream.writeByte(second == 0 ? 60 : second);
                 dataStream.writeByte(value.get(Calendar.MILLISECOND) / 100);
 
-                int offsetInMillis = value.get(Calendar.ZONE_OFFSET);
+                int offsetInMillis = value.getTimeZone().getRawOffset();
                 char directionFromUTC = '+';
                 if (offsetInMillis < 0)
                 {
                     directionFromUTC = '-';
-                    offsetInMillis = offsetInMillis * (-1);
+                    offsetInMillis = -offsetInMillis;
                 }
 
                 dataStream.writeByte(directionFromUTC);
@@ -105,13 +105,13 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
             try(final DataInputStream input = new DataInputStream(new ByteArrayInputStream(value))){
                 final CalendarBuilder builder = new CalendarBuilder();
                 builder.setYear(input.readShort());
-                builder.setMonth(input.readByte());
+                builder.setMonth(input.readByte()-1);
                 builder.setDayOfMonth(input.readByte());
                 builder.setHourOfDay(input.readByte());
                 builder.setMinute(input.readByte());
                 builder.setSecond(input.readByte());
                 builder.setDeciseconds(input.readByte());
-                builder.setDirectionFromUTCPlus(input.readChar() == '+');
+                builder.setDirectionFromUTCPlus(input.readByte() == '+');
                 builder.setOffsetInHours(input.readByte());
                 builder.setOffsetInMinutes(input.readByte());
                 return builder.build().getTime();
@@ -176,11 +176,12 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
 
         public final Calendar build(){
             final Calendar cal = Calendar.getInstance();
-            cal.set(year, month, dayOfMonth, hourOfDay, minute, second == 60 ? 0 : second);
-            cal.set(Calendar.MILLISECOND, deciseconds*100);
             int offsetMills = offsetInHours * 3600000 + offsetInMinutes * 60000;
             if(!directionFromUTCPlus) offsetMills = -offsetMills;
             cal.setTimeZone(new SimpleTimeZone(offsetMills, "UTC"));
+
+            cal.set(year, month, dayOfMonth, hourOfDay, minute, second == 60 ? 0 : second);
+            cal.set(Calendar.MILLISECOND, deciseconds*100);
             return cal;
         }
     }
@@ -214,7 +215,7 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
             final String minute = addLeadingZeroes(Integer.toString(value.get(Calendar.MINUTE)), 2);
             final String second = addLeadingZeroes(Integer.toString(replace(value.get(Calendar.SECOND), 0, 60)), 2);
             final String deciseconds = Integer.toString(value.get(Calendar.MILLISECOND) / 100);
-            int offsetInMillis = value.get(Calendar.ZONE_OFFSET);
+            int offsetInMillis = value.getTimeZone().getRawOffset();
             char directionFromUTC = '+';
             if (offsetInMillis < 0)
             {
@@ -240,16 +241,16 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
             if (matcher.matches())
             {
                 final CalendarBuilder builder = new CalendarBuilder();
-                builder.setYear(Integer.valueOf(matcher.group(0)));
-                builder.setMonth(Integer.valueOf(matcher.group(1)));
-                builder.setDayOfMonth(Integer.valueOf(matcher.group(2)));
-                builder.setHourOfDay(Integer.valueOf(matcher.group(3)));
-                builder.setMinute(Integer.valueOf(matcher.group(4)));
-                builder.setSecond(Integer.valueOf(matcher.group(5)));
-                builder.setDeciseconds(Integer.valueOf(matcher.group(6)));
-                builder.setDirectionFromUTCPlus(matcher.group(7).equals("+"));
-                builder.setOffsetInHours(Integer.valueOf(matcher.group(8)));
-                builder.setOffsetInMinutes(Integer.valueOf(matcher.group(9)));
+                builder.setYear(Integer.valueOf(matcher.group(1)));
+                builder.setMonth(Integer.valueOf(matcher.group(2))-1);
+                builder.setDayOfMonth(Integer.valueOf(matcher.group(3)));
+                builder.setHourOfDay(Integer.valueOf(matcher.group(4)));
+                builder.setMinute(Integer.valueOf(matcher.group(5)));
+                builder.setSecond(Integer.valueOf(matcher.group(6)));
+                builder.setDeciseconds(Integer.valueOf(matcher.group(7)));
+                builder.setDirectionFromUTCPlus(matcher.group(8).equals("+"));
+                builder.setOffsetInHours(Integer.valueOf(matcher.group(9)));
+                builder.setOffsetInMinutes(Integer.valueOf(matcher.group(10)));
                 return builder.build().getTime();
             }
             else

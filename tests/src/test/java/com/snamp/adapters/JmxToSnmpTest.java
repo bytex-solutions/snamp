@@ -1,8 +1,7 @@
-package com.snamp.adapters; /**
- * Created with IntelliJ IDEA.
- * User: temni
- * Date: 20.10.13
- * Time: 17:26
+package com.snamp.adapters;
+
+/**
+ * @author Evgeniy Kirichenko
  */
 
 import com.snamp.connectors.JmxConnectorTest;
@@ -17,7 +16,11 @@ import org.snmp4j.smi.*;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,7 +56,16 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         if (var instanceof UnsignedInteger32 || var instanceof Integer32)
             result = (className == Boolean.class)?(var.toInt() == 1):var.toInt();
         else if (var instanceof OctetString)
-            result = (className == BigInteger.class)?new BigInteger(var.toString()):var.toString();
+        {
+           if (className == BigInteger.class)
+               result = new BigInteger(var.toString());
+           else if (className == Float.class)
+               result = Float.valueOf(var.toString());
+           else if (className == byte[].class)
+               result = ((OctetString) var).toByteArray();
+           else
+               result = var.toString();
+        }
         else if (var instanceof IpAddress)
             result = var.toString();
         else if (var instanceof Counter64)
@@ -83,6 +95,10 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         else if (valueType == Boolean.class || valueType == boolean.class)
         {
             var = new Integer32((Boolean.class.cast(value) == Boolean.TRUE)?1:0);
+        }
+        else if (valueType == byte[].class)
+        {
+            var = new OctetString((byte[])value);
         }
         else
         {
@@ -127,32 +143,77 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
      */
     @Test
     public final void testForStringProperty() throws IOException {
-        writeAttribute("1.0", "SETTED VALUE", String.class);
-        try {
-            Thread.sleep(1000000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-        assertEquals("SETTED VALUE", readAttribute("1.0", String.class));
+        final String valueToCheck = "SETTED VALUE";
+        writeAttribute("1.0", valueToCheck, String.class);
+        assertEquals(valueToCheck, readAttribute("1.0", String.class));
     }
 
     @Test
     public final void testForBooleanProperty() throws IOException{
-        writeAttribute("2.0", true, Boolean.class);
+        final boolean valueToCheck = true;
+        writeAttribute("2.0", valueToCheck, Boolean.class);
         assertTrue((boolean) readAttribute("2.0", Boolean.class));
     }
-                /*
+
     @Test
     public final void testForInt32Property() throws IOException{
-        writeAttribute("3.0", 42, Integer.class);
-        assertEquals(42, (int) readAttribute("3.0", Integer.class));
+        final int valueToCheck = 42;
+        writeAttribute("3.0", valueToCheck, Integer.class);
+        assertEquals(valueToCheck, (int) readAttribute("3.0", Integer.class));
     }
 
     @Test
     public final void testForBigIntProperty() throws IOException{
-        writeAttribute("4.0", new BigInteger("100500"), BigInteger.class);
-        assertEquals(new BigInteger("100500"), readAttribute("4.0", BigInteger.class));
+        final BigInteger valueToCheck = new BigInteger("100500");
+        writeAttribute("4.0", valueToCheck, BigInteger.class);
+        assertEquals(valueToCheck, readAttribute("4.0", BigInteger.class));
     }
+
+    @Test
+    public final void testForFloatProperty() throws IOException{
+        final float valueToCheck = 31.337F;
+        writeAttribute("8.0", valueToCheck, Float.class);
+        assertEquals(valueToCheck, (float) readAttribute("8.0", Float.class), 0.000001);
+    }
+
+    @Test
+    public final void testForDatePropertyCustomDisplayFormat() throws IOException{
+        final Calendar cal = Calendar.getInstance(); cal.set(1994, 3, 5); // Kurt Donald Cobain, good night, sweet prince
+        final String valueToCheck = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(cal.getTime());
+        writeAttribute("9.0", valueToCheck, String.class);
+        assertEquals(valueToCheck, readAttribute("9.0", String.class));
+    }
+
+    @Test
+    public final void testForDatePropertyRFC1903HumaReadable() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        final Calendar cal = Calendar.getInstance(); cal.set(1994, 3, 5); // Kurt Donald Cobain, good night, sweet prince
+
+        Class<?> c = Class.forName("com.snamp.adapters.SnmpUnixTimeObject$Rfc1903HumanReadableDateTimeFormatter");
+        Method method = c.getDeclaredMethod ("convert", Calendar.class);
+        method.setAccessible(true);
+
+        final String valueToCheck = (String) method.invoke (null, cal);
+
+        writeAttribute("10.0", valueToCheck, String.class);
+        assertEquals(valueToCheck, readAttribute("10.0", String.class));
+    }
+
+
+    @Test
+    public final void testForDatePropertyRFC1903() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        final Calendar cal = Calendar.getInstance(); cal.set(1994, 3, 5); // Kurt Donald Cobain, good night, sweet prince
+
+        Class<?> c = Class.forName("com.snamp.adapters.SnmpUnixTimeObject$Rfc1903BinaryDateTimeFormatter");
+        Method method = c.getDeclaredMethod ("convert", Calendar.class);
+        method.setAccessible(true);
+
+        final byte[] byteString = (byte[]) method.invoke (null, cal);
+        writeAttribute("11.0", byteString, byte[].class);
+        assertArrayEquals(byteString, readAttribute("11.0", byte[].class));
+    }
+
+
+
     /*
 
   @Test
@@ -229,11 +290,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
   }
 
 
-      @Test
-    public final void testForFloatProperty() throws IOException{
-        writeAttribute("3.0", 42, Integer.class);
-        assertEquals(42, (float) readAttribute("3.0", Integer.class));
-    }
+
        */
     @Override
     protected final void fillAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attributes) {
@@ -271,22 +328,18 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("date");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
+        attribute.getAdditionalElements().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         attributes.put("9.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("date");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attribute.getAdditionalElements().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        attribute.getAdditionalElements().put("displayFormat", "rfc1903-human-readable");
         attributes.put("10.0", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("date");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attribute.getAdditionalElements().put("displayFormat", "rfc1903-human-readable");
-        attributes.put("11.0", attribute);
-
-        attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("date");
-        attribute.getAdditionalElements().put("objectName", BEAN_NAME);
         attribute.getAdditionalElements().put("displayFormat", "rfc1903");
-        attributes.put("12.0", attribute);
+        attributes.put("11.0", attribute);
     }
 
 }
