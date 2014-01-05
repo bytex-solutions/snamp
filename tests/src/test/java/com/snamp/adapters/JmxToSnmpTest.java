@@ -31,8 +31,8 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     private static final SNMPManager client = new SNMPManager("udp:"+addressForSNMP+"/"+portForSNMP);
 
     private static final Map<String, String> snmpAdapterSettings = new HashMap<String, String>(2){{
-        put(Adapter.portParamName, portForSNMP);
-        put(Adapter.addressParamName, addressForSNMP);
+        put(Adapter.PORT_PARAM_NAME, portForSNMP);
+        put(Adapter.ADDRESS_PARAM_NAME, addressForSNMP);
     }};
     private static final String BEAN_NAME = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
 

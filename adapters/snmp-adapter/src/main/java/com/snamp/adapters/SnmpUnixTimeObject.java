@@ -267,7 +267,7 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
 
     public SnmpUnixTimeObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
         super(oid, connector, new OctetString(defaultValue), timeouts);
-        formatter = new CustomDateTimeFormatter();
+        formatter = new Rfc1903BinaryDateTimeFormatter();
     }
 
     private static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo, final DateTimeFormatter formatter){
@@ -323,7 +323,7 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
                 case Rfc1903HumanReadableDateTimeFormatter.FORMATTER_NAME: return new Rfc1903HumanReadableDateTimeFormatter();
                 default: return new CustomDateTimeFormatter(formatterName);
             }
-        else return new CustomDateTimeFormatter();
+        else return new Rfc1903BinaryDateTimeFormatter();
     }
 
     @Override

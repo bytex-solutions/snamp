@@ -17,6 +17,10 @@ public interface NotificationSupport {
 
     /**
      * Represents notification.
+     * <p>
+     *     Through map interface you can obtain additional notification parameters
+     *     called attachments.
+     * </p>
      * @author Roman Sakno
      * @version 1.0
      * @since 1.0
@@ -114,15 +118,6 @@ public interface NotificationSupport {
          * @return The message description of this notification.
          */
         public String getMessage();
-
-        /**
-         * Gets attachments associated with this notification.
-         * <p>
-         *     The key of the returned map contains name of the attachment.
-         * </p>
-         * @return A read-only collection of attachments associated with this notification.
-         */
-        public Map<String, Object> getAttachments();
     }
 
     /**

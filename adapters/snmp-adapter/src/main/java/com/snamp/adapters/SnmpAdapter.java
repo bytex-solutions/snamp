@@ -6,8 +6,10 @@ import java.util.logging.*;
 
 import com.snamp.connectors.*;
 import com.snamp.connectors.util.AbstractNotificationListener;
+import com.snamp.licensing.LicensedPlatformPlugin;
 import com.snamp.licensing.SnmpAdapterLimitations;
 import net.xeoh.plugins.base.annotations.*;
+import net.xeoh.plugins.base.annotations.meta.Author;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
@@ -28,8 +30,20 @@ import static com.snamp.connectors.NotificationSupport.Notification;
  * 
  */
 @PluginImplementation
-final class SnmpAdapter extends SnmpAdapterBase {
+@Author(name = "Roman Sakno")
+final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugin<SnmpAdapterLimitations> {
     private static final String PASSWORD_PARAM = "password";
+
+    /**
+     * Returns license limitations associated with this plugin.
+     *
+     * @return The license limitations applied to this plugin.
+     */
+    @Override
+    public final SnmpAdapterLimitations getLimitations() {
+        return SnmpAdapterLimitations.current();
+    }
+
     /**
      * Represents a collection of MO's with OID postfixes.
      */
@@ -284,7 +298,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
             case STATE_STOPPED:
                 if(parameters.containsKey(PASSWORD_PARAM))
                     SnmpAdapterLimitations.current().verifyAuthenticationFeature();
-                return start(Integer.valueOf(parameters.get(portParamName)), parameters.get(addressParamName));
+                return start(Integer.valueOf(parameters.get(PORT_PARAM_NAME)), parameters.get(ADDRESS_PARAM_NAME));
             default:return false;
         }
     }
