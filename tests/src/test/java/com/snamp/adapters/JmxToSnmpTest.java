@@ -144,22 +144,25 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
      */
     @Test
     public final void testForArrayProperty() throws Exception{
-       // List<Variable[]> table = client.getTable(new OID(prefix + "." + "5.1"), 1, 4);
-     //   table.toString();
+
+       // Thread.sleep(10000000);
+
+      //  List<Variable[]> table = client.getTable(new OID(prefix + "." + "5.1"), 1, 4);
+      // table.toString();
         //writeAttribute("1.5", new short[]{1, 2, 3}, short[].class);
-        Integer f = readAttribute("5.1.2.1", Integer.class);
-        f.toString();
+       // Integer f = readAttribute("5.1.2.1", Integer.class);
+       // f.toString();
         //assertArrayEquals(new short[]{1, 2, 3}, readAttribute("1.5", short[].class));
     }
 
-  /*  @Test
+    @Test
     public final void testForStringProperty() throws IOException {
         final String valueToCheck = "SETTED VALUE";
         writeAttribute("1.0", valueToCheck, String.class);
         assertEquals(valueToCheck, readAttribute("1.0", String.class));
     }
 
-    @Test
+   /* @Test
     public final void testForBooleanProperty() throws IOException{
         final boolean valueToCheck = true;
         writeAttribute("2.0", valueToCheck, Boolean.class);
@@ -221,9 +224,8 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         final byte[] byteString = (byte[]) method.invoke (null, cal);
         writeAttribute("11.0", byteString, byte[].class);
         assertArrayEquals(byteString, readAttribute("11.0", byte[].class));
-    }
+    }*/
 
-*/
 
     /*
  @Test
