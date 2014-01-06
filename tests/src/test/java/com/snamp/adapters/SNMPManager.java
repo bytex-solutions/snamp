@@ -61,7 +61,7 @@ public final class SNMPManager {
     }
 
     public final List<Variable[]> getTable(final OID oidTable, final int columnCount, final int rowCount) throws Exception{
-        final TableUtils utils = new TableUtils(snmp, new DefaultPDUFactory(PDU.GETBULK));
+        final TableUtils utils = new TableUtils(snmp, new DefaultPDUFactory(PDU.GETNEXT));
         final List<TableEvent> events = utils.getTable(getTarget(), makeColumnIDs(oidTable, columnCount), null, null);
         final List<Variable[]> result = new ArrayList<>(events.size());
         for(final TableEvent ev: events)

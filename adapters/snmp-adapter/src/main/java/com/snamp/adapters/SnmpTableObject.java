@@ -2,6 +2,8 @@ package com.snamp.adapters;
 
 import com.snamp.connectors.*;
 import org.snmp4j.agent.*;
+import org.snmp4j.agent.io.MOInput;
+import org.snmp4j.agent.io.MOOutput;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.agent.request.SubRequest;
 import org.snmp4j.mp.SnmpConstants;
@@ -14,6 +16,7 @@ import static com.snamp.TransactionalResourceAccess.TransactionPhaseProcessor;
 
 import com.snamp.*;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -23,7 +26,7 @@ import java.util.logging.Level;
  * Represents SNMP table.
  * @author Roman Sakno
  */
-final class SnmpTableObject implements SnmpAttributeMapping{
+final class SnmpTableObject implements SnmpAttributeMapping, MOScope{
     /**
      * Represents named column value.
      * @param <V>
@@ -511,5 +514,122 @@ final class SnmpTableObject implements SnmpAttributeMapping{
     @Override
     public final void setAttributeOptions(Map<String, String> options) {
         this.conversionOptions = options;
+    }
+
+    /**
+     * Gets the lower bound OID of the scope. Whether the lower bound is included
+     * or excluded from the scope's region is determined by
+     * {@link #isLowerIncluded()}.
+     *
+     * @return an OID.
+     */
+    @Override
+    public final OID getLowerBound() {
+        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, OID>() {
+            @Override
+            public final OID invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
+                return table.getLowerBound();
+            }
+        });
+    }
+
+    /**
+     * Gets the upper bound OID of the scope. Whether the upper bound is included
+     * or excluded from the scope's region is determined by
+     * {@link #isUpperIncluded()}.
+     *
+     * @return OID
+     */
+    @Override
+    public final OID getUpperBound() {
+        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, OID>() {
+            @Override
+            public final OID invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
+                return table.getUpperBound();
+            }
+        });
+    }
+
+    /**
+     * Indicates whether the lower bound OID is included in the scope or not.
+     *
+     * @return <code>true</code> if the lower bound is included.
+     */
+    @Override
+    public final boolean isLowerIncluded() {
+        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
+            @Override
+            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
+                return table.isLowerIncluded();
+            }
+        });
+    }
+
+    /**
+     * Indicates whether the upper bound OID is included in the scope or not.
+     *
+     * @return <code>true</code> if the upper bound is included.
+     */
+    @Override
+    public final boolean isUpperIncluded() {
+        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
+            @Override
+            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
+                return table.isUpperIncluded();
+            }
+        });
+    }
+
+    /**
+     * Checks whether the supplied scope is covered by this scope.
+     *
+     * @param other the <code>MOScope</code> to check
+     * @return <code>true</code> if the lower bound of <code>other</code> is greater
+     * or equal than the lower bound of this scope and if the upper bound of
+     * <code>other</code> is lower or equal than the upper bound of this scope.
+     */
+    @Override
+    public final boolean isCovered(final MOScope other) {
+        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
+            @Override
+            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
+                return table.isCovered(other);
+            }
+        });
+    }
+
+    /**
+     * Checks whether the supplied scope overlap with this one, thus sharing at
+     * least one OID with the supplied one.
+     *
+     * @param other a <code>MOScope</code>.
+     * @return <code>true</code> if there exists at least one OID that is included in
+     * both scopes.
+     */
+    @Override
+    public final boolean isOverlapping(final MOScope other) {
+        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
+            @Override
+            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
+                return table.isOverlapping(other);
+            }
+        });
+    }
+
+    /**
+     * Checks if this scope covers the supplied OID.
+     *
+     * @param oid an OID.
+     * @return <code>true</code> if <code>oid</code> is greater or equal the scope's
+     * lower bound and if it is less or equal its upper bound.
+     */
+    @Override
+    public final boolean covers(final OID oid) {
+        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
+            @Override
+            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
+                return table.covers(oid);
+            }
+        });
     }
 }
