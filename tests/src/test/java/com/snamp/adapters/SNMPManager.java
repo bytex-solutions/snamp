@@ -95,10 +95,13 @@ public final class SNMPManager {
      */
     public ResponseEvent get(OID oids[]) throws IOException {
         final PDU pdu = new PDU();
+        pdu.setType(PDU.GETBULK);
+        pdu.setMaxRepetitions(50);
+        pdu.setNonRepeaters(1);
         for (OID oid : oids) {
             pdu.add(new VariableBinding(oid));
         }
-        pdu.setType(PDU.GET);
+
         final ResponseEvent event = snmp.send(pdu, getTarget(), null);
         if(event != null) {
             return event;
@@ -123,13 +126,14 @@ public final class SNMPManager {
      * @return
      */
     private Target getTarget() {
-        if (target == null) {
+        if (target == null)
+        {
             final Address targetAddress = GenericAddress.parse(address);
             target = new CommunityTarget();
             target.setCommunity(new OctetString("public"));
             target.setAddress(targetAddress);
-            target.setRetries(1);
-            target.setTimeout(500000);
+            target.setRetries(3);
+            target.setTimeout(1000L);
             target.setVersion(SnmpConstants.version2c);
         }
         return target;
