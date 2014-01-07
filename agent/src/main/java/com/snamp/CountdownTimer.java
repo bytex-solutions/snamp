@@ -6,6 +6,9 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Represents countdown timer that can be used to compute time intervals.
+ * <p>
+ *     This class is not thread safe.
+ * </p>
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -41,7 +44,6 @@ public class CountdownTimer {
      * @param current The new value for the timer.
      * @throws IllegalStateException The timer should be stopped.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     protected final void setTimerValue(final TimeSpan current) throws IllegalStateException{
         if(isStarted()) throw new IllegalStateException("The timer should be stopped.");
         elapsed = current != null ? current : new TimeSpan(Long.MAX_VALUE);
@@ -76,7 +78,8 @@ public class CountdownTimer {
      * Starts the timer.
      * @return {@literal true}, if timer is started successfully; otherwise, {@literal false}.
      */
-    public synchronized final boolean start(){
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    public final boolean start(){
         if(isEmpty()) return false;
         beginning = new Date();
         return true;
@@ -88,6 +91,7 @@ public class CountdownTimer {
      * @return {@literal true}, if timer started successfully; otherwise, {@literal false}.
      * @throws TimeoutException Attempts to start empty timer.
      */
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
     public final boolean start(final Activator<TimeoutException> timeoutException) throws TimeoutException{
         if(timeoutException == null) return start();
         else if(isEmpty()) throw timeoutException.newInstance();
@@ -98,6 +102,7 @@ public class CountdownTimer {
      * Composes {@link #stop()} and {@link #getElapsedTime()} methods.
      * @return The elapsed time.
      */
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
     public final TimeSpan stopAndGetElapsedTime(){
         stop();
         return getElapsedTime();
@@ -107,6 +112,7 @@ public class CountdownTimer {
      * Stops the timer.
      * @return {@literal}
      */
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
     public final boolean stop(){
         if(beginning == null) return false;
         elapsed = TimeSpan.diff(new Date(), beginning, TimeUnit.MILLISECONDS);
@@ -120,6 +126,7 @@ public class CountdownTimer {
      * @return {@literal true}, if timer is stopped successfully but not empty; otherwise, {@literal false}.
      * @throws TimeoutException The timer is empty.
      */
+    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
     public final boolean stop(final Activator<TimeoutException> timeoutException) throws TimeoutException{
         if(timeoutException == null) return stop();
         else if(stop())
