@@ -2,21 +2,13 @@ package com.snamp.adapters;
 
 import com.snamp.connectors.*;
 import org.snmp4j.agent.*;
-import org.snmp4j.agent.io.MOInput;
-import org.snmp4j.agent.io.MOOutput;
 import org.snmp4j.agent.mo.*;
-import org.snmp4j.agent.request.SubRequest;
-import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import static com.snamp.adapters.SnmpHelpers.getAccessRestrictions;
 import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
-import static com.snamp.ConcurrentResourceAccess.Action;
-import static com.snamp.ConcurrentResourceAccess.ConsistentAction;
-import static com.snamp.TransactionalResourceAccess.TransactionPhaseProcessor;
 
 import com.snamp.*;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -26,61 +18,42 @@ import java.util.logging.Level;
  * Represents SNMP table.
  * @author Roman Sakno
  */
-final class SnmpTableObject implements SnmpAttributeMapping, MOScope{
-    /**
-     * Represents named column value.
-     * @param <V>
-     */
-    private static class MONamedColumn<V extends Variable> extends MOMutableColumn<V>{
-        /**
-         * Represents the name of the column.
-         */
-        public final String columnName;
-        /**
-         * Determines whether this column is indexed.
-         */
-        public final boolean isIndexed;
+final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> implements SnmpAttributeMapping, UpdatableManagedObject{
 
-        protected MONamedColumn(final int columnID, final String columnName, final ManagementEntityType columnType, final MOAccess access, final boolean isIndexed){
-            super(columnID, SnmpType.getSyntax(columnType), access);
-            this.columnName = columnName;
-            this.isIndexed = isIndexed;
-        }
 
-        public MONamedColumn(final int columnID, final String columnName, final ManagementEntityTabularType type, final MOAccess access) {
-            this(columnID, columnName, type.getColumnType(columnName), access, type.isIndexed(columnName));
-        }
-
-        /**
-         * Determines whether this column is syntetic and doesn't contain any payload.
-         * @return
-         */
-        public boolean isSyntetic(){
-            return false;
-        }
-    }
-
-    private static final class RefreshTimer extends CountdownTimer{
+    private static final class UpdateManager extends CountdownTimer{
         public final TimeSpan tableCacheTime;
+        private Object updateSource;
+        private Date updateTimeStamp;
 
-        public RefreshTimer(final TimeSpan initial){
+        public UpdateManager(final TimeSpan initial){
             super(initial);
             this.tableCacheTime = initial;
         }
 
-        public void reset(){
+        public final void reset(){
             setTimerValue(tableCacheTime);
+        }
+
+        public final void updateCompleted(final Object source){
+            this.updateSource = source;
+            this.updateTimeStamp = new Date();
+        }
+
+        public final Object getUpdateSource(){
+            return updateSource;
+        }
+
+        public final Date getUpdateTimeStamp(){
+            return updateTimeStamp;
         }
     }
 
     private final AttributeSupport _connector;
-    private final ManagementEntityTabularType _tabularType;
-    private final TransactionalResourceAccess<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, MOTableRow<Variable>[], Map<String, Object>[]> table;
+    private final AttributeMetadata attributeInfo;
     private final TimeSpan readWriteTimeout;
-    //can add or remove rows from the table
-    private final boolean fixedRowStructure;
-    private static final String tableCacheTimeKey = "tableCacheTime";
-    private final RefreshTimer tableCacheTimer;
+    private static final String TABLE_CACHE_TIME_PARAM = "tableCacheTime";
+    private final UpdateManager cacheManager;
     private Map<String, String> conversionOptions;
 
     private static MONamedColumn<Variable>[] createColumns(final ManagementEntityTabularType tableType, final MOAccess access){
@@ -96,44 +69,27 @@ final class SnmpTableObject implements SnmpAttributeMapping, MOScope{
         }
     }
 
-    private static DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> createEmptyTable(final OID tableId,
-                                                                                                                          final ManagementEntityTabularType tabularType,
-                                                                                                                          final MOAccess access){
-
-         final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table_ = new DefaultMOTable<>(tableId,
-                new MOTableIndex(new MOTableSubIndex[]{new MOTableSubIndex(null, SMIConstants.SYNTAX_INTEGER, 1, 1)}),
-                createColumns(tabularType, access)
-        );
-        final DefaultMOMutableTableModel<MOTableRow<Variable>> model_ = new DefaultMOMutableTableModel<>();
-        model_.setRowFactory(new DefaultMOMutableRow2PCFactory());
-        table_.setModel(model_);
-
-        return  table_;
-    }
-
     private static OID makeRowID(final int rowIndex){
         return new OID(new int[]{rowIndex+1});
     }
 
     private SnmpTableObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts, final AttributeMetadata attribute){
+        super(new OID(oid),
+                new MOTableIndex(new MOTableSubIndex[]{new MOTableSubIndex(null, SMIConstants.SYNTAX_INTEGER, 1, 1)}),
+                createColumns((ManagementEntityTabularType)attribute.getType(), getAccessRestrictions(attribute))
+        );
+        //setup table model
+        final DefaultMOMutableTableModel<MOTableRow<Variable>> tableModel = new DefaultMOMutableTableModel<>();
+        tableModel.setRowFactory(new DefaultMOMutableRow2PCFactory());
+        this.setModel(tableModel);
+        //save additional fields
         _connector = connector;
-        _tabularType = (ManagementEntityTabularType)attribute.getType();
-        //creates column structure
-        table = new TransactionalResourceAccess<>(createEmptyTable(new OID(oid), _tabularType, getAccessRestrictions(attribute)));
         readWriteTimeout = timeouts;
-        boolean fixedRowStructure = false;
-        try{
-            _tabularType.getRowCount();
-            fixedRowStructure = true;
-        }
-        catch (final UnsupportedOperationException e){
-            fixedRowStructure = false;
-        }
-        this.fixedRowStructure = fixedRowStructure;
+        attributeInfo = attribute;
         //default table refresh is 5 seconds
-        tableCacheTimer = new RefreshTimer( attribute.containsKey(tableCacheTimeKey) ?
-                new TimeSpan(Integer.valueOf(attribute.get(tableCacheTimeKey))):
-                new TimeSpan(5, TimeUnit.SECONDS));
+        cacheManager = new UpdateManager( attribute.containsKey(TABLE_CACHE_TIME_PARAM) ?
+                new TimeSpan(Integer.valueOf(attribute.get(TABLE_CACHE_TIME_PARAM))):
+                new TimeSpan(5, TimeUnit.HOURS));
         conversionOptions = Collections.emptyMap();
     }
 
@@ -147,10 +103,6 @@ final class SnmpTableObject implements SnmpAttributeMapping, MOScope{
         this(oid, connector, timeouts, connector.getAttributeInfo(oid));
     }
 
-    private static AttributeMetadata getMetadata(final AttributeSupport connector, final OID attributeId){
-        return connector != null ? connector.getAttributeInfo(attributeId.toString()) : null;
-    }
-
     /**
      * Returns the metadata of the underlying attribute.
      *
@@ -158,16 +110,23 @@ final class SnmpTableObject implements SnmpAttributeMapping, MOScope{
      */
     @Override
     public final AttributeMetadata getMetadata() {
-        return getMetadata(_connector, table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, OID>() {
-            @Override
-            public final OID invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                return table.getOID();
-            }
-        }));
+        return attributeInfo;
     }
 
-    private static boolean isEmpty(final MOTable<? extends MOTableRow, ? extends MOColumn, ? extends MOTableModel> table){
-        return table.getModel().getRowCount() == 0;
+    /**
+     * Determines whether this table is empty.
+     * @return {@literal true}, if this table is empty; otherwise, {@literal false}.
+     */
+    public final boolean isEmpty(){
+        return getModel().getRowCount() == 0;
+    }
+
+    /**
+     * Returns management type of this table.
+     * @return The management type of this table.
+     */
+    public final ManagementEntityTabularType getTableType(){
+        return (ManagementEntityTabularType)attributeInfo.getType();
     }
 
     private static Variable convert(final Object cellValue, final ManagementEntityType cellType, final Map<String, String> options){
@@ -214,301 +173,41 @@ final class SnmpTableObject implements SnmpAttributeMapping, MOScope{
         fill(tempTable, table, type, conversionOptions);
     }
 
-    private static void fill(final AttributeSupport connector, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final TimeSpan rwTimeout, final Map<String, String> conversionOptions) throws TimeoutException {
+    private static Object fill(final AttributeSupport connector, final MOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final ManagementEntityTabularType type, final TimeSpan rwTimeout, final Map<String, String> conversionOptions) throws TimeoutException {
+        final Object lastUpdateSource;
         if(supportsProjection(type, Table.class))
-            fill(convertFrom(type, connector.getAttribute(table.getOID().toString(), rwTimeout, new SimpleTable<String>()), Table.class), table, type, conversionOptions);
+            fill(convertFrom(type, lastUpdateSource = connector.getAttribute(table.getOID().toString(), rwTimeout, new SimpleTable<String>()), Table.class), table, type, conversionOptions);
         else if(supportsProjection(type, Object[].class) && ManagementEntityTypeBuilder.isArray(type))
-            fill(convertFrom(type, connector.getAttribute(table.getOID().toString(), rwTimeout, new Object[0]), Object[].class), table, type, conversionOptions);
-        else log.warning(String.format("Source attribute table %s is not supported", table.getOID()));
+            fill(convertFrom(type, lastUpdateSource = connector.getAttribute(table.getOID().toString(), rwTimeout, new Object[0]), Object[].class), table, type, conversionOptions);
+        else {
+            log.warning(String.format("Source attribute table %s is not supported", table.getOID()));
+            lastUpdateSource = null;
+        }
+        return lastUpdateSource;
     }
 
     private void fillTableIfNecessary() throws TimeoutException {
-        table.write(new Action<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Void, TimeoutException>() {
-            @Override
-            public final Void invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) throws TimeoutException {
-                if(isEmpty(table)) try{
-                    fill(_connector, table, _tabularType, readWriteTimeout, conversionOptions);
-                }
-                finally {
-                    tableCacheTimer.stop();
-                    tableCacheTimer.reset();
-                    tableCacheTimer.start();
-                }
-                else {
-                    tableCacheTimer.stop();
-                    try{
-                        if(tableCacheTimer.isEmpty()){
-                            table.removeAll();
-                            fill(_connector, table, _tabularType, readWriteTimeout, conversionOptions);
-                            tableCacheTimer.reset();
-                        }
-                    }
-                    finally{
-                        tableCacheTimer.start();
-                    }
-                }
-                return null;
-            }
-        });
-    }
-
-    /**
-     * Returns the variable (a copy thereof) with the specified instance OID
-     * managed by this {@link org.snmp4j.agent.ManagedObject}.
-     *
-     * @param instanceOID the instance OID of the value. Thus, for scalar values with .0 suffix
-     *                    and for tabular objects with table index suffix.
-     * @return a copy of the requested <code>Variable</code> or <code>null</code> if
-     *         such a variable does not exist.
-     */
-    @Override
-    public final Variable getValue(final OID instanceOID) {
-        try {
-            fillTableIfNecessary();
-            return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Variable>() {
-                @Override
-                public final Variable invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                    return table.getValue(instanceOID);
-                }
-            });
-        } catch (final TimeoutException e) {
-            log.warning(e.getLocalizedMessage());
-            return new Null(SMIConstants.EXCEPTION_NO_SUCH_INSTANCE);
+        if(isEmpty()) try{
+            cacheManager.updateCompleted(fill(_connector, this, getTableType(), readWriteTimeout, conversionOptions));
         }
-    }
-
-    /**
-     * Sets the value of a particular MIB object instance managed by
-     * this {@link org.snmp4j.agent.ManagedObject}. This is a low level operation, thus
-     * no change events will be fired.
-     *
-     * @param newValueAndInstanceOID a <code>VariableBinding</code> identifying the object instance to modify
-     *                               by its OID and the new value by its variable part.
-     * @return <code>true</code> if the object instance exists and has been modified
-     *         successfully, <code>false</code> otherwise.
-     */
-    @Override
-    public final boolean setValue(final VariableBinding newValueAndInstanceOID) {
-        return table.write(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
-            @Override
-            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                return table.setValue(newValueAndInstanceOID);
-            }
-        });
-    }
-
-    /**
-     * Returns the scope of object identifiers this managed object is managing.
-     *
-     * @return the <code>MOScope</code> that defines a range (possibly also a single
-     *         or none instance OID) of object IDs managed by this managed object.
-     */
-    @Override
-    public final MOScope getScope() {
-        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, MOScope>() {
-            @Override
-            public final MOScope invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                return table.getScope();
-            }
-        });
-    }
-
-    /**
-     * Finds the first object ID (OID) in the specified search range.
-     *
-     * @param range the <code>MOScope</code> for the search.
-     * @return the <code>OID</code> that is included in the search <code>range</code>
-     *         and <code>null</code> if no such instances could be found.
-     */
-    @Override
-    public final OID find(final MOScope range) {
-        try {
-            fillTableIfNecessary();
+        finally {
+            cacheManager.stop();
+            cacheManager.reset();
+            cacheManager.start();
         }
-        catch (final TimeoutException e) {
-            log.warning(e.getLocalizedMessage());
+        else {
+            cacheManager.stop();
+            try{
+                if(cacheManager.isEmpty()){
+                    removeAll();
+                    cacheManager.updateCompleted(fill(_connector, this, getTableType(), readWriteTimeout, conversionOptions));
+                    cacheManager.reset();
+                }
+            }
+            finally{
+                cacheManager.start();
+            }
         }
-        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, OID>() {
-                @Override
-                public final OID invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                    return table.find(range);
-                }
-        });
-    }
-
-    /**
-     * Processes a GET request and return the result in the supplied sub-request.
-     *
-     * @param request the <code>SubRequest</code> to process.
-     */
-    @Override
-    public final void get(final SubRequest request) {
-        try {
-            fillTableIfNecessary();
-        }
-        catch (final TimeoutException e) {
-            log.warning(e.getLocalizedMessage());
-            request.setErrorStatus(SMIConstants.EXCEPTION_NO_SUCH_OBJECT);
-            request.completed();
-            return;
-        }
-        table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Void>() {
-            @Override
-            public Void invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                table.get(request);
-                return null;
-            }
-        });
-    }
-
-    /**
-     * Finds the successor instance for the object instance ID (OID) given
-     * by the supplied sub-request and returns it within the supplied sub-request
-     * object.
-     *
-     * @param request the <code>SubRequest</code> to process.
-     * @return <code>true</code> if the search request found an appropriate instance,
-     *         <code>false</code> otherwise.
-     */
-    @Override
-    public final boolean next(final SubRequest request) {
-        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
-            @Override
-            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                return table.next(request);
-            }
-        });
-    }
-
-    /**
-     * Prepares a SET (sub)request. This method represents the first phase of a
-     * two phase commit. During preparation all necessary resources should be
-     * locked in order to be able to execute the commit without claiming
-     * additional resources.
-     *
-     * @param request the <code>SubRequest</code> to process.
-     */
-    @Override
-    public final void prepare(final SubRequest request) {
-        //creates changeset and saves the table rows
-        if(!table.prepare(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>,MONamedColumn<Variable>,MOTableModel<MOTableRow<Variable>>>, Map<String, Object>[]>() {
-            @Override
-            public final Map<String, Object>[] invoke(final DefaultMOTable<MOTableRow<Variable>,MONamedColumn<Variable>,MOTableModel<MOTableRow<Variable>>> table) {
-                final Map<String, Object>[] rows = new HashMap[table.getModel().getRowCount()];
-                for(int rowIndex = 0; rowIndex < rows.length; rowIndex++){
-                    //creates a new row
-                    final Map<String, Object> row = rows[rowIndex] = new HashMap<>();
-                    //iterates through cells
-                    for(int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++){
-                        final MONamedColumn<Variable> columnDef = table.getColumn(columnIndex);
-                        final Variable cellValue = table.getValue(makeRowID(columnIndex));
-                        final ManagementEntityType columnType = _tabularType.getColumnType(columnDef.columnName);
-                        final SnmpType converter = SnmpType.map(columnType);
-                        row.put(columnDef.columnName, converter.convert(cellValue, columnType));
-                    }
-                }
-                return rows;
-            }
-        },
-        new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, MOTableRow<Variable>[]>() {
-            @Override
-            public final MOTableRow<Variable>[] invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                final List<MOTableRow<Variable>> result = new ArrayList<>(table.getModel().getRowCount());
-                final Iterator<MOTableRow<Variable>> iter = table.getModel().iterator();
-                while(iter.hasNext())
-                    result.add(iter.next());
-                table.prepare(request);
-                return result.toArray(new MOTableRow[result.size()]);
-            }
-        }))
-            request.setErrorStatus(SnmpConstants.SNMP_ERROR_COMMIT_FAILED);
-        /*table.write(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Void>() {
-            @Override
-            public final Void invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                try{
-                    commit(_connector, table, _tabularType, readWriteTimeout);
-                    table.prepare(request);
-                }
-                catch (final TimeoutException e){
-                    request.setErrorStatus(SnmpConstants.SNMP_ERROR_COMMIT_FAILED);
-                }
-                finally {
-                    tableCacheTimer.stop();
-                    tableCacheTimer.reset();
-                    tableCacheTimer.start();
-                }
-                return null;
-            }
-        });*/
-    }
-
-    /**
-     * Commits a previously prepared SET (sub)request. This is the second phase
-     * of a two phase commit. The change is committed but the resources locked
-     * during prepare not freed yet.
-     *
-     * @param request the <code>SubRequest</code> to process.
-     */
-    @Override
-    public final void commit(final SubRequest request) {
-        if(!table.commit(new TransactionPhaseProcessor<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Map<String, Object>[], Boolean>() {
-            @Override
-            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final Map<String, Object>[] rows) {
-                boolean successCommit = false;
-                //commits to the management connector
-                try{
-                    if(supportsProjection(_tabularType, Map[].class))
-                        successCommit = _connector.setAttribute(table.getOID().toString(), readWriteTimeout, rows);
-                    else if(supportsProjection(_tabularType, Table.class))
-                        successCommit = _connector.setAttribute(table.getOID().toString(), readWriteTimeout, SimpleTable.fromArray(rows));
-                    else {
-                        log.severe(String.format("Table %s cannot be written. The appropriate conversion type is not founded", table.getOID()));
-                        successCommit = false;
-                    }
-                }
-                catch (final TimeoutException e) {
-                    log.log(Level.SEVERE, "Unable to write a table. Timeout exceeded.", e);
-                    successCommit = false;
-                }
-                if(successCommit) table.commit(request);
-                return successCommit;
-            }
-        })) request.setErrorStatus(SnmpConstants.SNMP_ERROR_COMMIT_FAILED);
-    }
-
-    /**
-     * Compensates (undo) a (sub)request when a commit of another subrequest
-     * failed with an error. This also frees any resources locked during
-     * the preparation phase.
-     *
-     * @param request the <code>SubRequest</code> to process.
-     */
-    @Override
-    public final void undo(final SubRequest request) {
-        table.rollback(new TransactionPhaseProcessor<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, MOTableRow<Variable>[], Boolean>() {
-            @Override
-            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table, final MOTableRow<Variable>[] rows) {
-                table.undo(request);
-                return true;
-            }
-        });
-    }
-
-    /**
-     * Cleanup a (sub)request and frees all resources locked during
-     * the preparation phase.
-     *
-     * @param request the <code>SubRequest</code> to process.
-     */
-    @Override
-    public final void cleanup(final SubRequest request) {
-        table.write(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Void>() {
-            @Override
-            public final Void invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                table.cleanup(request);
-                return null;
-            }
-        });
     }
 
     @Override
@@ -517,119 +216,50 @@ final class SnmpTableObject implements SnmpAttributeMapping, MOScope{
     }
 
     /**
-     * Gets the lower bound OID of the scope. Whether the lower bound is included
-     * or excluded from the scope's region is determined by
-     * {@link #isLowerIncluded()}.
+     * Gets the date and time of the last update. If that time cannot be
+     * determined <code>null</code> is returned.
      *
-     * @return an OID.
+     * @return the Date when the last {@link #update(org.snmp4j.agent.MOQuery updateScope)} has
+     * been called.
      */
     @Override
-    public final OID getLowerBound() {
-        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, OID>() {
-            @Override
-            public final OID invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                return table.getLowerBound();
-            }
-        });
+    public final Date getLastUpdate() {
+        return cacheManager.getUpdateTimeStamp();
     }
 
     /**
-     * Gets the upper bound OID of the scope. Whether the upper bound is included
-     * or excluded from the scope's region is determined by
-     * {@link #isUpperIncluded()}.
+     * Gets the object that triggered the last update of this managed object.
+     * The returned object reference may be used to check if an update has
+     * already been performed for the specified source, which is typically a
+     * SNMP request.
      *
-     * @return OID
+     * @return an object or <code>null</code> if the source of the last update is
+     * unknown/undefined.
      */
     @Override
-    public final OID getUpperBound() {
-        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, OID>() {
-            @Override
-            public final OID invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                return table.getUpperBound();
-            }
-        });
+    public final Object getLastUpdateSource() {
+        return cacheManager.getUpdateSource();
     }
 
     /**
-     * Indicates whether the lower bound OID is included in the scope or not.
+     * Update the content of the managed object that is covered by the supplied
+     * scope.
      *
-     * @return <code>true</code> if the lower bound is included.
+     * @param updateScope the query that triggered the update and thus defining the update scope.
+     *                    If <code>null</code> the whole managed object has to be updated.
      */
     @Override
-    public final boolean isLowerIncluded() {
-        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
-            @Override
-            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                return table.isLowerIncluded();
-            }
-        });
+    public final void update(final MOQuery updateScope) {
+        update((MOScope)updateScope);
     }
 
-    /**
-     * Indicates whether the upper bound OID is included in the scope or not.
-     *
-     * @return <code>true</code> if the upper bound is included.
-     */
     @Override
-    public final boolean isUpperIncluded() {
-        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
-            @Override
-            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                return table.isUpperIncluded();
-            }
-        });
-    }
-
-    /**
-     * Checks whether the supplied scope is covered by this scope.
-     *
-     * @param other the <code>MOScope</code> to check
-     * @return <code>true</code> if the lower bound of <code>other</code> is greater
-     * or equal than the lower bound of this scope and if the upper bound of
-     * <code>other</code> is lower or equal than the upper bound of this scope.
-     */
-    @Override
-    public final boolean isCovered(final MOScope other) {
-        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
-            @Override
-            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                return table.isCovered(other);
-            }
-        });
-    }
-
-    /**
-     * Checks whether the supplied scope overlap with this one, thus sharing at
-     * least one OID with the supplied one.
-     *
-     * @param other a <code>MOScope</code>.
-     * @return <code>true</code> if there exists at least one OID that is included in
-     * both scopes.
-     */
-    @Override
-    public final boolean isOverlapping(final MOScope other) {
-        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
-            @Override
-            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                return table.isOverlapping(other);
-            }
-        });
-    }
-
-    /**
-     * Checks if this scope covers the supplied OID.
-     *
-     * @param oid an OID.
-     * @return <code>true</code> if <code>oid</code> is greater or equal the scope's
-     * lower bound and if it is less or equal its upper bound.
-     */
-    @Override
-    public final boolean covers(final OID oid) {
-        return table.read(new ConsistentAction<DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>>, Boolean>() {
-            @Override
-            public final Boolean invoke(final DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> table) {
-                return table.covers(oid);
-            }
-        });
+    public final void update(final MOScope updateScope){
+        try {
+            fillTableIfNecessary();
+        }
+        catch (final TimeoutException e) {
+            log.log(Level.SEVERE, "Unable to update SNMP table.", e);
+        }
     }
 }

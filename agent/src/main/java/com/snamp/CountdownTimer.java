@@ -76,7 +76,7 @@ public class CountdownTimer {
      * Starts the timer.
      * @return {@literal true}, if timer is started successfully; otherwise, {@literal false}.
      */
-    public final boolean start(){
+    public synchronized final boolean start(){
         if(isEmpty()) return false;
         beginning = new Date();
         return true;
@@ -110,6 +110,7 @@ public class CountdownTimer {
     public final boolean stop(){
         if(beginning == null) return false;
         elapsed = TimeSpan.diff(new Date(), beginning, TimeUnit.MILLISECONDS);
+        beginning = null;
         return true;
     }
 

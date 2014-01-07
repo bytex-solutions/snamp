@@ -144,8 +144,13 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
      */
     @Test
     public final void testForArrayProperty() throws Exception{
-        List<Variable[]> table = client.getTable(new OID(prefix + "." + "5.1"), 1, 4);
-        table.toString();
+        for(int i = 0; i < 100; i++){
+            List<Variable[]> table = client.getTable(new OID(prefix + "." + "5.1"), 1);
+            table.toString();
+        }
+        //Thread.sleep(6000000);
+
+        //Thread.sleep(1000000L);
         //writeAttribute("1.5", new short[]{1, 2, 3}, short[].class);
         //assertArrayEquals(new short[]{1, 2, 3}, readAttribute("1.5", short[].class));
     }
@@ -316,13 +321,13 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
         attributes.put("5.1", attribute);
 
-        attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("dictionary");
+        /*attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("dictionary");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("6.1", attribute);
+        attributes.put("6.1", attribute);*/
 
-        attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("table");
+        /*attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("table");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("7.1", attribute);
+        attributes.put("7.1", attribute);*/
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("float");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);

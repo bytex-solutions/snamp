@@ -60,8 +60,8 @@ public final class SNMPManager {
         return result;
     }
 
-    public final List<Variable[]> getTable(final OID oidTable, final int columnCount, final int rowCount) throws Exception{
-        final TableUtils utils = new TableUtils(snmp, new DefaultPDUFactory(PDU.GETNEXT));
+    public final List<Variable[]> getTable(final OID oidTable, final int columnCount) throws Exception{
+        final TableUtils utils = new TableUtils(snmp, new DefaultPDUFactory(PDU.GETBULK));
         final List<TableEvent> events = utils.getTable(getTarget(), makeColumnIDs(oidTable, columnCount), null, null);
         final List<Variable[]> result = new ArrayList<>(events.size());
         for(final TableEvent ev: events)
@@ -128,8 +128,8 @@ public final class SNMPManager {
             target = new CommunityTarget();
             target.setCommunity(new OctetString("public"));
             target.setAddress(targetAddress);
-            target.setRetries(2);
-            target.setTimeout(5000);
+            target.setRetries(1);
+            target.setTimeout(500000);
             target.setVersion(SnmpConstants.version2c);
         }
         return target;
