@@ -29,7 +29,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     private static final String portForSNMP = "3222";
     private static final String addressForSNMP = "127.0.0.1";
     private static final String prefix = "1.1";
-    private static final SNMPManager client = new SNMPManager("udp:"+addressForSNMP+"/"+portForSNMP);
+    private final SNMPManager client;
 
     private static final Map<String, String> snmpAdapterSettings = new HashMap<String, String>(2){{
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
@@ -39,6 +39,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
     public JmxToSnmpTest() throws MalformedObjectNameException {
         super("snmp", snmpAdapterSettings, new TestManagementBean(), new ObjectName(BEAN_NAME));
+        client = new SNMPManager("udp:"+addressForSNMP+"/"+portForSNMP);
     }
 
     @Override
@@ -46,8 +47,8 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         return prefix;
     }
 
-    private <T>T readAttribute(final String postfix, Class<T> className) throws IOException {
-        final ResponseEvent value = client.get(new OID[]{new OID(prefix + "." + postfix)});
+    private <T>T readAttribute(final SNMPManager.ReadMethod method, final String postfix, Class<T> className) throws IOException {
+        final ResponseEvent value = client.get(method, new OID[]{new OID(prefix + "." + postfix)});
 
         assertNotNull(value);
 
@@ -142,7 +143,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
      * @throws IOException
      */
-    @Test
+/*    @Test
     public final void testForArrayProperty() throws Exception{
         for(int i = 0; i < 100; i++){
             List<Variable[]> table = client.getTable(new OID(prefix + "." + "5.1"), 1);
@@ -158,44 +159,49 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
       //  List<Variable[]> table = client.getTable(new OID(prefix + "." + "5.1"), 1, 4);
       // table.toString();
         //writeAttribute("1.5", new short[]{1, 2, 3}, short[].class);
-       // Integer f = readAttribute("5.1.2.1", Integer.class);
+       // Integer f = readAttribute(SNMPManager.ReadMethod.GET, "5.1.2.1", Integer.class);
        // f.toString();
-        //assertArrayEquals(new short[]{1, 2, 3}, readAttribute("1.5", short[].class));
-    }
+        //assertArrayEquals(new short[]{1, 2, 3}, readAttribute(SNMPManager.ReadMethod.GET, "1.5", short[].class));
+    }*/
 
     @Test
     public final void testForStringProperty() throws IOException {
         final String valueToCheck = "SETTED VALUE";
         writeAttribute("1.0", valueToCheck, String.class);
-        assertEquals(valueToCheck, readAttribute("1.0", String.class));
+        assertEquals(valueToCheck, readAttribute(SNMPManager.ReadMethod.GET, "1.0", String.class));
+        assertEquals(valueToCheck, readAttribute(SNMPManager.ReadMethod.GETBULK, "1.0", String.class));
     }
 
-   /* @Test
+    @Test
     public final void testForBooleanProperty() throws IOException{
         final boolean valueToCheck = true;
         writeAttribute("2.0", valueToCheck, Boolean.class);
-        assertTrue((boolean) readAttribute("2.0", Boolean.class));
+        assertTrue((boolean) readAttribute(SNMPManager.ReadMethod.GET, "2.0", Boolean.class));
+        assertTrue((boolean) readAttribute(SNMPManager.ReadMethod.GETBULK, "2.0", Boolean.class));
     }
 
     @Test
     public final void testForInt32Property() throws IOException{
         final int valueToCheck = 42;
         writeAttribute("3.0", valueToCheck, Integer.class);
-        assertEquals(valueToCheck, (int) readAttribute("3.0", Integer.class));
+        assertEquals(valueToCheck, (int) readAttribute(SNMPManager.ReadMethod.GET, "3.0", Integer.class));
+        assertEquals(valueToCheck, (int) readAttribute(SNMPManager.ReadMethod.GETBULK, "3.0", Integer.class));
     }
 
     @Test
     public final void testForBigIntProperty() throws IOException{
         final BigInteger valueToCheck = new BigInteger("100500");
         writeAttribute("4.0", valueToCheck, BigInteger.class);
-        assertEquals(valueToCheck, readAttribute("4.0", BigInteger.class));
+        assertEquals(valueToCheck, readAttribute(SNMPManager.ReadMethod.GET, "4.0", BigInteger.class));
+        assertEquals(valueToCheck, readAttribute(SNMPManager.ReadMethod.GETBULK, "4.0", BigInteger.class));
     }
 
     @Test
     public final void testForFloatProperty() throws IOException{
         final float valueToCheck = 31.337F;
         writeAttribute("8.0", valueToCheck, Float.class);
-        assertEquals(valueToCheck, (float) readAttribute("8.0", Float.class), 0.000001);
+        assertEquals(valueToCheck, (float) readAttribute(SNMPManager.ReadMethod.GET, "8.0", Float.class), 0.000001);
+        assertEquals(valueToCheck, (float) readAttribute(SNMPManager.ReadMethod.GETBULK, "8.0", Float.class), 0.000001);
     }
 
     @Test
@@ -203,7 +209,8 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         final Calendar cal = Calendar.getInstance(); cal.set(1994, 3, 5); // Kurt Donald Cobain, good night, sweet prince
         final String valueToCheck = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(cal.getTime());
         writeAttribute("9.0", valueToCheck, String.class);
-        assertEquals(valueToCheck, readAttribute("9.0", String.class));
+        assertEquals(valueToCheck, readAttribute(SNMPManager.ReadMethod.GET, "9.0", String.class));
+        assertEquals(valueToCheck, readAttribute(SNMPManager.ReadMethod.GETBULK, "9.0", String.class));
     }
 
     @Test
@@ -217,7 +224,8 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         final String valueToCheck = (String) method.invoke (null, cal);
 
         writeAttribute("10.0", valueToCheck, String.class);
-        assertEquals(valueToCheck, readAttribute("10.0", String.class));
+        assertEquals(valueToCheck, readAttribute(SNMPManager.ReadMethod.GET, "10.0", String.class));
+        assertEquals(valueToCheck, readAttribute(SNMPManager.ReadMethod.GETBULK, "10.0", String.class));
     }
 
 
@@ -231,8 +239,9 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
         final byte[] byteString = (byte[]) method.invoke (null, cal);
         writeAttribute("11.0", byteString, byte[].class);
-        assertArrayEquals(byteString, readAttribute("11.0", byte[].class));
-    }*/
+        assertArrayEquals(byteString, readAttribute(SNMPManager.ReadMethod.GET, "11.0", byte[].class));
+        assertArrayEquals(byteString, readAttribute(SNMPManager.ReadMethod.GETBULK, "11.0", byte[].class));
+    }
 
 
     /*
@@ -328,13 +337,13 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
         attributes.put("5.1", attribute);
 
-        /*attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("dictionary");
+        attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("dictionary");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("6.1", attribute);*/
+        attributes.put("6.1", attribute);
 
-        /*attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("table");
+        attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("table");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);
-        attributes.put("7.1", attribute);*/
+        attributes.put("7.1", attribute);
 
         attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("float");
         attribute.getAdditionalElements().put("objectName", BEAN_NAME);

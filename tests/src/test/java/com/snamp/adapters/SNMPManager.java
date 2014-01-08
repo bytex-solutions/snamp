@@ -7,6 +7,7 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.util.DefaultPDUFactory;
+import org.snmp4j.util.PDUFactory;
 import org.snmp4j.util.TableEvent;
 import org.snmp4j.util.TableUtils;
 
@@ -27,6 +28,46 @@ public final class SNMPManager {
     private final String address;
     private CommunityTarget target = null;
     private TransportMapping transport = null;
+
+    public static enum ReadMethod{
+        GET(PDU.GET),
+        GETBULK(PDU.GETBULK);
+
+        private final int method;
+
+        private ReadMethod(final int m){
+            method = m;
+        }
+
+        public final void setPduType(final PDU pdu){
+            pdu.setType(method);
+        }
+
+        public final PDUFactory createPduFactory(){
+            return new DefaultPDUFactory(method);
+        }
+
+        public final void prepareOIDs(final OID[] oids) {
+            switch (method){
+                case PDU.GETBULK:
+                    for(int i = 0; i < oids.length; i++)
+                        oids[i] = prepareOidForGetBulk(oids[i]);
+            }
+        }
+
+        private static OID prepareOidForGetBulk(final OID oid) {
+            //if ends with '0' then remove it
+            final String result = oid.toString();
+            if(result.endsWith(".0"))
+                return new OID(result.substring(0, result.length() - 2));
+            else {
+                final int lastDot = result.lastIndexOf('.');
+                final int num = Integer.valueOf(result.substring(lastDot + 1)) + 1;
+                return new OID(result.substring(0, lastDot) + "." + num);
+            }
+        }
+    }
+
     /**
      * Constructor
      * @param add
@@ -60,8 +101,8 @@ public final class SNMPManager {
         return result;
     }
 
-    public final List<Variable[]> getTable(final OID oidTable, final int columnCount) throws Exception{
-        final TableUtils utils = new TableUtils(snmp, new DefaultPDUFactory(PDU.GETBULK));
+    public final List<Variable[]> getTable(final ReadMethod method, final OID oidTable, final int columnCount) throws Exception{
+        final TableUtils utils = new TableUtils(snmp, method.createPduFactory());
         final List<TableEvent> events = utils.getTable(getTarget(), makeColumnIDs(oidTable, columnCount), null, null);
         final List<Variable[]> result = new ArrayList<>(events.size());
         for(final TableEvent ev: events)
@@ -82,8 +123,8 @@ public final class SNMPManager {
      * @return
      * @throws IOException
      */
-    public String getAsString(OID oid) throws IOException {
-        final ResponseEvent event = get(new OID[] { oid });
+    public String getAsString(final ReadMethod method, final OID oid) throws IOException {
+        final ResponseEvent event = get(method, new OID[] { oid });
         return event.getResponse().get(0).getVariable().toString();
     }
 
@@ -93,9 +134,10 @@ public final class SNMPManager {
      * @return
      * @throws IOException
      */
-    public ResponseEvent get(OID oids[]) throws IOException {
+    public ResponseEvent get(final ReadMethod method, final OID[] oids) throws IOException {
+        method.prepareOIDs(oids);
         final PDU pdu = new PDU();
-        pdu.setType(PDU.GETBULK);
+        method.setPduType(pdu);
         pdu.setMaxRepetitions(50);
         pdu.setNonRepeaters(1);
         for (OID oid : oids) {
@@ -133,7 +175,7 @@ public final class SNMPManager {
             target.setCommunity(new OctetString("public"));
             target.setAddress(targetAddress);
             target.setRetries(3);
-            target.setTimeout(1000L);
+            target.setTimeout(5000000);
             target.setVersion(SnmpConstants.version2c);
         }
         return target;
