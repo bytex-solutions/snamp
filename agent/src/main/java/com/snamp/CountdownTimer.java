@@ -7,7 +7,9 @@ import java.util.concurrent.TimeoutException;
 /**
  * Represents countdown timer that can be used to compute time intervals.
  * <p>
- *     This class is not thread safe.
+ *     The precision of this countdown timer is 1 milliseconds. Any time intervals
+ *     between {@link #start()} and {@link #stop()} invocations that less that 1 ms will
+ *     not be recognized by timer.
  * </p>
  * @author Roman Sakno
  * @version 1.0

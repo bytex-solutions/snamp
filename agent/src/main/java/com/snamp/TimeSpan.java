@@ -14,6 +14,9 @@ import java.util.concurrent.TimeUnit;
  *     System.out.println(t.duration); //10000
  * }</pre>
  * </p>
+ * <p>
+ *     Note that the precision of this time interval is 1 nanosecond.
+ * </p>
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
