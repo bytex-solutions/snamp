@@ -33,6 +33,14 @@ public final class AttributeValue<T extends ManagementEntityType> {
         type = attributeType;
     }
 
+    /**
+     * Determines whether this value is trivial and projection will be available for rawValue's
+     * {@link Object#getClass()} method invocation result.
+     * @return
+     */
+    public final boolean isTrivial(){
+        return rawValue != null && type.getProjection(rawValue.getClass()) != null;
+    }
 
     /**
      * Determines whether the attribute value can be converted into the specified type.
@@ -43,13 +51,14 @@ public final class AttributeValue<T extends ManagementEntityType> {
      */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final <G> boolean canConvertTo(final Class<G> target) {
-        return type.getProjection(target) != null;
+        return target != null &&
+                (target.isInstance(rawValue) || type.getProjection(target) != null);
     }
 
     /**
      * Converts the attribute value to the specified type.
      *
-     * @param target The type of the conversion result.
+     * @param target The type of the conversion result. Cannot be {@literal null}.
      * @param <G>    Type of the conversion result.
      * @return The conversion result.
      * @throws IllegalArgumentException The target type is not supported.

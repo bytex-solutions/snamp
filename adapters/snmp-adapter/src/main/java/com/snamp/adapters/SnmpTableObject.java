@@ -89,7 +89,7 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
         //default table refresh is 5 seconds
         cacheManager = new UpdateManager( attribute.containsKey(TABLE_CACHE_TIME_PARAM) ?
                 new TimeSpan(Integer.valueOf(attribute.get(TABLE_CACHE_TIME_PARAM))):
-                new TimeSpan(5, TimeUnit.HOURS));
+                new TimeSpan(5, TimeUnit.SECONDS));
         conversionOptions = Collections.emptyMap();
     }
 
