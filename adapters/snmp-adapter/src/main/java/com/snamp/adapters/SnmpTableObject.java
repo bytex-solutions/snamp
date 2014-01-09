@@ -3,6 +3,7 @@ package com.snamp.adapters;
 import com.snamp.connectors.*;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
+import org.snmp4j.agent.request.*;
 import org.snmp4j.smi.*;
 import static com.snamp.adapters.SnmpHelpers.getAccessRestrictions;
 import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
@@ -10,8 +11,7 @@ import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 import com.snamp.*;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 
 /**
@@ -20,6 +20,141 @@ import java.util.logging.Level;
  */
 final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamedColumn<Variable>, MOTableModel<MOTableRow<Variable>>> implements SnmpAttributeMapping, UpdatableManagedObject{
 
+    /**
+     * Represents transaction state.
+     */
+    private static enum TransactionState{
+        PREPARE((byte)0),
+        COMMIT((byte)1),
+        ROLLBACK((byte)2),
+        CLEANUP((byte)3);
+
+        private final byte stateId;
+
+        private TransactionState(final byte sid){
+            this.stateId = sid;
+        }
+
+        private boolean isValidTransition(final byte nextState){
+            switch (nextState){
+                case 0: return nextState == 0 || nextState == 1 || nextState == 2;
+                case 1: return nextState == 1 || nextState == 3;
+                case 2: return nextState == 2 || nextState == 3;
+                case 3: return nextState == 3;
+                default: return false;
+            }
+        }
+
+        public final boolean isValidTransition(final TransactionState nextState){
+            return isValidTransition(nextState.stateId);
+        }
+    }
+
+    private static enum TransactionCompletionState{
+        INCOMPLETED,
+        SUCCESS,
+        ROLLED_BACK
+    }
+
+    /**
+     * Represents information about SNMP transaction. This class cannot be inherited.
+     */
+    private static final class TransactionInfo{
+        private static final String TRANSACTION_INFO_HOLDER = "snampTransactionInfo";
+        private TransactionState state;
+
+        /**
+         * Represents transaction identifier.
+         */
+        public final long transactionId;
+
+        //state pending counters
+        private volatile long prepareCounter;
+        private volatile long commitCounter;
+        private volatile long rollbackCounter;
+        private volatile long cleanupCounter;
+
+        /**
+         * Initializes a new instance of the transaction descriptor.
+         */
+        public TransactionInfo(final long transactionId){
+            state = null;
+            this.transactionId = transactionId;
+            prepareCounter = commitCounter = rollbackCounter = cleanupCounter = 0L;
+        }
+
+        /**
+         * Returns the state of this transaction.
+         * @return The state of this transaction.
+         */
+        public final TransactionState getState(){
+            return state;
+        }
+
+        /**
+         * Changes state of this transaction.
+         * @param newState A new state of this transaction.
+         * @throws IllegalArgumentException Invalid new state for this transaction.
+         */
+        public final void setState(final TransactionState newState) throws IllegalArgumentException{
+            if(newState == null) throw new IllegalArgumentException("newState is null.");
+            else if(state == null)
+                switch (newState){
+                    case PREPARE:
+                    case COMMIT:
+                    case ROLLBACK:
+                        state = newState;
+                    break;
+                    default: throw new IllegalArgumentException(String.format("Invalid transaction state %s", newState));
+                }
+            else if(state.isValidTransition(newState))
+                state = newState;
+            else throw new IllegalArgumentException(String.format("Invalid transaction state transition from %s to %s.", state, newState));
+            pending();
+        }
+
+        public final void pending(){
+            if(state == null) return;
+            switch (state){
+                case PREPARE: prepareCounter += 1; return;
+                case COMMIT: commitCounter += 1; return;
+                case ROLLBACK: rollbackCounter += 1; return;
+                case CLEANUP: cleanupCounter += 1; return;
+            }
+        }
+
+        public final boolean isCommitCompleted(){
+            return commitCounter >= prepareCounter;
+        }
+
+        public final boolean isRollbackCompleted(){
+            return rollbackCounter >= prepareCounter;
+        }
+
+        public final TransactionCompletionState getCompletionState(){
+            if(rollbackCounter > 0)
+                return cleanupCounter >= rollbackCounter ? TransactionCompletionState.ROLLED_BACK : TransactionCompletionState.INCOMPLETED;
+            else if(commitCounter > 0)
+                return cleanupCounter >= commitCounter ? TransactionCompletionState.SUCCESS : TransactionCompletionState.INCOMPLETED;
+            else return TransactionCompletionState.INCOMPLETED;
+        }
+
+        private static TransactionInfo pendingState(final Request<?, ?> request, final TransactionState state){
+            final TransactionInfo info;
+            final Object untypedInfo = request.getProcessingUserObject(TRANSACTION_INFO_HOLDER);
+            if(untypedInfo instanceof TransactionInfo)
+                info = (TransactionInfo)untypedInfo;
+            else request.setProcessingUserObject(TRANSACTION_INFO_HOLDER, info = new TransactionInfo(request.getTransactionID()));
+            synchronized (info){
+                info.setState(state);
+            }
+            return info;
+        }
+
+        public static TransactionInfo pendingState(final SubRequest<?, ?> subreq, final TransactionState state){
+            return pendingState(subreq.getRequest(), state);
+        }
+    }
 
     private static final class UpdateManager extends CountdownTimer{
         public final TimeSpan tableCacheTime;
@@ -29,6 +164,10 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
         public UpdateManager(final TimeSpan initial){
             super(initial);
             this.tableCacheTime = initial;
+        }
+
+        public UpdateManager(){
+            this(new TimeSpan(5, TimeUnit.SECONDS));
         }
 
         public final void reset(){
@@ -53,8 +192,10 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
     private final AttributeMetadata attributeInfo;
     private final TimeSpan readWriteTimeout;
     private static final String TABLE_CACHE_TIME_PARAM = "tableCacheTime";
+    private static final String USE_ROW_STATUS_PARAM = "useRowStatus";
     private final UpdateManager cacheManager;
-    private Map<String, String> conversionOptions;
+    private final Map<String, String> conversionOptions;
+    private final boolean useRowStatus;
 
     private static MONamedColumn<Variable>[] createColumns(final ManagementEntityTabularType tableType, final MOAccess access){
         int columnID = 2;
@@ -76,7 +217,7 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
     private SnmpTableObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts, final AttributeMetadata attribute){
         super(new OID(oid),
                 new MOTableIndex(new MOTableSubIndex[]{new MOTableSubIndex(null, SMIConstants.SYNTAX_INTEGER, 1, 1)}),
-                createColumns((ManagementEntityTabularType)attribute.getType(), getAccessRestrictions(attribute))
+                createColumns((ManagementEntityTabularType)attribute.getType(), getAccessRestrictions(attribute, true))
         );
         //setup table model
         final DefaultMOMutableTableModel<MOTableRow<Variable>> tableModel = new DefaultMOMutableTableModel<>();
@@ -86,11 +227,13 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
         _connector = connector;
         readWriteTimeout = timeouts;
         attributeInfo = attribute;
-        //default table refresh is 5 seconds
-        cacheManager = new UpdateManager( attribute.containsKey(TABLE_CACHE_TIME_PARAM) ?
-                new TimeSpan(Integer.valueOf(attribute.get(TABLE_CACHE_TIME_PARAM))):
-                new TimeSpan(5, TimeUnit.SECONDS));
-        conversionOptions = Collections.emptyMap();
+        conversionOptions = new HashMap<>(attribute);
+        cacheManager = conversionOptions.containsKey(TABLE_CACHE_TIME_PARAM) ?
+                new UpdateManager(new TimeSpan(Integer.valueOf(conversionOptions.get(TABLE_CACHE_TIME_PARAM)))):
+                new UpdateManager();
+        useRowStatus = conversionOptions.containsKey(USE_ROW_STATUS_PARAM) ?
+                Boolean.valueOf(conversionOptions.get(USE_ROW_STATUS_PARAM)):
+                false;
     }
 
     /**
@@ -210,11 +353,6 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
         }
     }
 
-    @Override
-    public final void setAttributeOptions(Map<String, String> options) {
-        this.conversionOptions = options;
-    }
-
     /**
      * Gets the date and time of the last update. If that time cannot be
      * determined <code>null</code> is returned.
@@ -260,6 +398,38 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
         }
         catch (final TimeoutException e) {
             log.log(Level.SEVERE, "Unable to update SNMP table.", e);
+        }
+    }
+
+    private void dumpTable(){
+
+    }
+
+    @Override
+    public final void prepare(final SubRequest request) {
+        TransactionInfo.pendingState(request, TransactionState.PREPARE);
+        super.prepare(request);
+    }
+
+    @Override
+    public final void commit(final SubRequest request) {
+        TransactionInfo.pendingState(request, TransactionState.COMMIT);
+        super.commit(request);
+    }
+
+    @Override
+    public final void undo(final SubRequest request) {
+        TransactionInfo.pendingState(request, TransactionState.ROLLBACK);
+        super.undo(request);
+    }
+
+    @Override
+    public final void cleanup(final SubRequest request) {
+        final TransactionInfo info = TransactionInfo.pendingState(request, TransactionState.CLEANUP);
+        super.cleanup(request);
+        switch (info.getCompletionState()){
+            case SUCCESS: dumpTable(); return;
+            case ROLLED_BACK: log.severe(String.format("Transaction for table %s aborted.", this)); return;
         }
     }
 }

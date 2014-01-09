@@ -17,10 +17,4 @@ interface SnmpAttributeMapping extends ManagedObjectValueAccess {
      * @return The metadata of the underlying attribute.
      */
     public AttributeMetadata getMetadata();
-
-    /**
-     * Processes the additional mapping options.
-     * @param options A map of additional mapping options.
-     */
-    public void setAttributeOptions(final Map<String, String> options);
 }

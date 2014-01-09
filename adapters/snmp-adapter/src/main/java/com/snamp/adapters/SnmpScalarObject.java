@@ -135,17 +135,4 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     public final AttributeMetadata getMetadata() {
         return getMetadata(connector);
     }
-
-    /**
-     * Processes the mapping options.
-     * <p>
-     *     In the default implementation this method does nothing.
-     * </p>
-     * @param options A map of additional mapping options.
-     */
-    @Override
-    @MethodStub
-    public void setAttributeOptions(Map<String, String> options) {
-
-    }
 }

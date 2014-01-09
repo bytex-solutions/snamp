@@ -227,7 +227,6 @@ enum SnmpType {
         if(attribute == null) return null;
         final SnmpType type = map(attribute.getType());
         final SnmpAttributeMapping mapping = type != null ? type.createManagedObject(oid, connector, timeouts) : null;
-        if(mapping != null) mapping.setAttributeOptions(options);
         return mapping;
     }
 

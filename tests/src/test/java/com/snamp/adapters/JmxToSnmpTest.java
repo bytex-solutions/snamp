@@ -4,6 +4,8 @@ package com.snamp.adapters;
  * @author Evgeniy Kirichenko
  */
 
+import com.snamp.SimpleTable;
+import com.snamp.Table;
 import com.snamp.connectors.JmxConnectorTest;
 import com.snamp.hosting.EmbeddedAgentConfiguration;
 import org.junit.Test;
@@ -11,7 +13,9 @@ import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
+import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
+import org.snmp4j.util.TableUtils;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
@@ -80,7 +84,23 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
     }
 
-    private <T>void writeAttribute(final String postfix, final T value, final Class<T> valueType) throws IOException{
+    private void writeTable(final String postfix, final Table<Integer> table) throws IOException {
+        final PDU pdu = new PDU();
+        pdu.setType(PDU.SET);
+        //add rows
+        for(int i = 0; i < table.getRowCount(); i++){
+            //iterate through each column
+            final Integer rowIndex = i;
+            for(final Integer column: table.getColumns()){
+                final OID rowId = new OID(prefix + "." + postfix + "." + column + "." + (rowIndex + 1));
+                pdu.add(new VariableBinding(rowId, (Variable)table.getCell(column, rowIndex)));
+            }
+        }
+        final PDU response = client.set(pdu).getResponse();
+        assertEquals(response.getErrorStatusText(), SnmpConstants.SNMP_ERROR_SUCCESS, response.getErrorStatus());
+    }
+
+    private <T> void writeAttribute(final String postfix, final T value, final Class<T> valueType) throws IOException{
         final PDU pdu = new PDU();
         // Setting the Oid and Value for sysContact variable
         final OID oid = new OID(prefix + "." +postfix);
@@ -126,7 +146,6 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
             }};
 
         client.set(pdu, listener);
-
     }
 
 
@@ -143,12 +162,24 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
      * @throws IOException
      */
-/*    @Test
+    @Test
     public final void testForArrayProperty() throws Exception{
-        for(int i = 0; i < 100; i++){
+        //client.getTable(SNMPManager.ReadMethod.GETBULK, new OID("1.1.5.1"), 1);
+        final Table<Integer> table = new SimpleTable<Integer>(new HashMap<Integer, Class<?>>(1){{
+            put(2, Variable.class);
+        }});
+        table.addRow(new HashMap<Integer, Object>(2){{
+            put(2, new Integer32(20));
+        }});
+        table.addRow(new HashMap<Integer, Object>(2){{
+            put(2, new Integer32(30));
+        }});
+        writeTable("5.1", table);
+        Thread.sleep(1000000);
+        /*for(int i = 0; i < 100; i++){
             List<Variable[]> table = client.getTable(new OID(prefix + "." + "5.1"), 1);
             table.toString();
-        }
+        }*/
         //Thread.sleep(6000000);
 
         //Thread.sleep(1000000L);
@@ -162,7 +193,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
        // Integer f = readAttribute(SNMPManager.ReadMethod.GET, "5.1.2.1", Integer.class);
        // f.toString();
         //assertArrayEquals(new short[]{1, 2, 3}, readAttribute(SNMPManager.ReadMethod.GET, "1.5", short[].class));
-    }*/
+    }
 
     @Test
     public final void testForStringProperty() throws IOException {
