@@ -4,6 +4,7 @@ import com.snamp.connectors.*;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.agent.request.*;
+import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import static com.snamp.adapters.SnmpHelpers.getAccessRestrictions;
 import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
@@ -51,7 +52,7 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
     }
 
     private static enum TransactionCompletionState{
-        INCOMPLETED,
+        IN_PROGRESS,
         SUCCESS,
         ROLLED_BACK
     }
@@ -133,10 +134,10 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
 
         public final TransactionCompletionState getCompletionState(){
             if(rollbackCounter > 0)
-                return cleanupCounter >= rollbackCounter ? TransactionCompletionState.ROLLED_BACK : TransactionCompletionState.INCOMPLETED;
+                return cleanupCounter >= rollbackCounter ? TransactionCompletionState.ROLLED_BACK : TransactionCompletionState.IN_PROGRESS;
             else if(commitCounter > 0)
-                return cleanupCounter >= commitCounter ? TransactionCompletionState.SUCCESS : TransactionCompletionState.INCOMPLETED;
-            else return TransactionCompletionState.INCOMPLETED;
+                return cleanupCounter >= commitCounter ? TransactionCompletionState.SUCCESS : TransactionCompletionState.IN_PROGRESS;
+            else return TransactionCompletionState.IN_PROGRESS;
         }
 
         private static TransactionInfo pendingState(final Request<?, ?> request, final TransactionState state){
@@ -199,7 +200,7 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
 
     private static MONamedColumn<Variable>[] createColumns(final ManagementEntityTabularType tableType, final MOAccess access){
         int columnID = 2;
-        if(WellKnownTypeSystem.isArray(tableType)) //hides column with array indexes
+        if(ManagementEntityTypeBuilder.isArray(tableType)) //hides column with array indexes
             return new MONamedColumn[]{new MONamedColumn<>(columnID, ManagementEntityTypeBuilder.AbstractManagementEntityArrayType.VALUE_COLUMN_NAME, tableType, access)};
 
         else {
@@ -211,7 +212,7 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
     }
 
     private static OID makeRowID(final int rowIndex){
-        return new OID(new int[]{rowIndex+1});
+        return new OID(new int[]{rowIndex + 1});
     }
 
     private SnmpTableObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts, final AttributeMetadata attribute){
@@ -286,7 +287,7 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
         final Variable[] result = new Variable[columns.length];
         for(int columnIndex = 0; columnIndex < result.length; columnIndex++){
             final MONamedColumn<Variable> columnDef = columns[columnIndex];
-            final Variable cellValue = convert(values.getCell(columnDef.columnName, rowIndex), type.getColumnType(columnDef.columnName), conversionOptions);
+            final Variable cellValue = convert(values.getCell(columnDef.name, rowIndex), type.getColumnType(columnDef.name), conversionOptions);
             result[columnIndex] = cellValue;
         }
         return result;
@@ -401,8 +402,44 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
         }
     }
 
-    private void dumpTable(){
+    private void dumpArray(final ManagementEntityType elementType) throws TimeoutException {
+        final MOTableModel<MOTableRow<Variable>> model = getModel();
+        final Object[] array = new Object[model.getRowCount()];
+        for(int i = 0; i < model.getRowCount(); i++){
+            final MOTableRow<Variable> row = model.getRow(makeRowID(i));
+            if(row == null){ //cancels row sending
+                log.severe(String.format("Row %s is null. Sending array is cancelled", makeRowID(i)));
+                return;
+            }
+            array[i] = convert(row.getValue(0), elementType, conversionOptions);
+        }
+        _connector.setAttribute(getID().toString(), readWriteTimeout, array);
+    }
 
+    //this method is synchronized because sending table rows to connector is atomic
+    private synchronized void dumpTable() throws TimeoutException {
+        if(ManagementEntityTypeBuilder.isArray(getTableType()))
+            dumpArray(getTableType().getColumnType(ManagementEntityTypeBuilder.AbstractManagementEntityArrayType.VALUE_COLUMN_NAME));
+        else {
+            final Table<String> table = new SimpleTable<>(new HashMap<String, Class<?>>(model.getColumnCount()){{
+                for(int i = 0; i < getColumnCount(); i++)
+                    put(getColumn(i).name, Object.class);
+            }});
+            for(int i = 0; i < model.getRowCount(); i++){
+                final MOTableRow<Variable> row = model.getRow(makeRowID(i));
+                if(row == null){ //cancels row sending
+                    log.severe(String.format("Row %s is null. Sending table is cancelled", makeRowID(i)));
+                    return;
+                }
+                table.addRow(new HashMap<String, Object>(getColumnCount()){{
+                    for(int i = 0; i < getColumnCount(); i++){
+                        final MONamedColumn<Variable> column = getColumn(i);
+                        put(column.name, convert(row.getValue(i), getTableType().getColumnType(column.name), conversionOptions));
+                    }
+                }});
+            }
+            _connector.setAttribute(getID().toString(), readWriteTimeout, table);
+        }
     }
 
     @Override
@@ -426,10 +463,20 @@ final class SnmpTableObject extends DefaultMOTable<MOTableRow<Variable>, MONamed
     @Override
     public final void cleanup(final SubRequest request) {
         final TransactionInfo info = TransactionInfo.pendingState(request, TransactionState.CLEANUP);
-        super.cleanup(request);
         switch (info.getCompletionState()){
-            case SUCCESS: dumpTable(); return;
-            case ROLLED_BACK: log.severe(String.format("Transaction for table %s aborted.", this)); return;
+            case SUCCESS:
+                try {
+                    dumpTable();
+                }
+                catch (final TimeoutException e) {
+                    log.log(Level.SEVERE, "Timeout when sending table to management connector.", e);
+                    request.setErrorStatus(SnmpConstants.SNMP_ERROR_COMMIT_FAILED);
+                    request.completed();
+                    return;
+                }
+                break;
+            case ROLLED_BACK: log.severe(String.format("Transaction for table %s aborted.", this)); break;
         }
+        super.cleanup(request);
     }
 }

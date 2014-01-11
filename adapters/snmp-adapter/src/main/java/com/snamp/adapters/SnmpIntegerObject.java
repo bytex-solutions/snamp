@@ -24,7 +24,9 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
 
     public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
         if(supportsProjection(attributeTypeInfo, Long.class)) return value.toLong();
+        else if(supportsProjection(attributeTypeInfo, Short.class)) return new Short((short)value.toLong());
         else if(supportsProjection(attributeTypeInfo, Integer.class)) return value.toInt();
+        else if(supportsProjection(attributeTypeInfo, Byte.class)) return new Byte((byte)value.toLong());
         else if(supportsProjection(attributeTypeInfo, String.class)) return value.toString();
         else return logAndReturnDefaultValue(defaultValue, value, attributeTypeInfo);
     }

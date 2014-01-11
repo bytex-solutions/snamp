@@ -165,7 +165,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     @Test
     public final void testForArrayProperty() throws Exception{
         //client.getTable(SNMPManager.ReadMethod.GETBULK, new OID("1.1.5.1"), 1);
-        final Table<Integer> table = new SimpleTable<Integer>(new HashMap<Integer, Class<?>>(1){{
+        final Table<Integer> table = new SimpleTable<>(new HashMap<Integer, Class<?>>(1){{
             put(2, Variable.class);
         }});
         table.addRow(new HashMap<Integer, Object>(2){{

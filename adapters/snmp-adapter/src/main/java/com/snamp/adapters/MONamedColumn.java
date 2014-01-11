@@ -14,16 +14,20 @@ class MONamedColumn<V extends Variable> extends MOMutableColumn<V> {
     /**
      * Represents the name of the column.
      */
-    public final String columnName;
+    public final String name;
     /**
      * Determines whether this column is indexed.
      */
     public final boolean isIndexed;
 
-    protected MONamedColumn(final int columnID, final String columnName, final ManagementEntityType columnType, final MOAccess access, final boolean isIndexed){
-        super(columnID, SnmpType.getSyntax(columnType), access);
-        this.columnName = columnName;
+    protected MONamedColumn(final int columnID, final String columnName, final int columnType, final MOAccess access, final boolean isIndexed){
+        super(columnID, columnType, access);
+        this.name = columnName;
         this.isIndexed = isIndexed;
+    }
+
+    protected MONamedColumn(final int columnID, final String columnName, final ManagementEntityType columnType, final MOAccess access, final boolean isIndexed){
+        this(columnID, columnName, SnmpType.getSyntax(columnType), access, isIndexed);
     }
 
     public MONamedColumn(final int columnID, final String columnName, final ManagementEntityTabularType type, final MOAccess access) {
@@ -31,10 +35,10 @@ class MONamedColumn<V extends Variable> extends MOMutableColumn<V> {
     }
 
     /**
-     * Determines whether this column is syntetic and doesn't contain any payload.
-     * @return
+     * Determines whether this column is synthetic and doesn't contain any payload.
+     * @return {@literal true}, if this column is synthetic and doesn't contain any payload; otherwise, {@literal false}.
      */
-    public boolean isSyntetic(){
+    public boolean isSynthetic(){
         return false;
     }
 }
