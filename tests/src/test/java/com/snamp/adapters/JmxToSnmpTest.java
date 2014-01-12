@@ -24,10 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     private static final String portForSNMP = "3222";
@@ -51,37 +48,47 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         return prefix;
     }
 
-    private <T>T readAttribute(final SNMPManager.ReadMethod method, final String postfix, Class<T> className) throws IOException {
-        final ResponseEvent value = client.get(method, new OID[]{new OID(prefix + "." + postfix)});
-
-        assertNotNull(value);
-
-        final Variable var = value.getResponse().getVariable(new OID(prefix + "." + postfix));
+    private static <T> T deserialize(final Variable var, final Class<T> className){
         final Object result;
-
         if (var instanceof UnsignedInteger32 || var instanceof Integer32)
             result = (className == Boolean.class)?(var.toInt() == 1):var.toInt();
         else if (var instanceof OctetString)
         {
-           if (className == BigInteger.class)
-               result = new BigInteger(var.toString());
-           else if (className == Float.class)
-               result = Float.valueOf(var.toString());
-           else if (className == byte[].class)
-               result = ((OctetString) var).toByteArray();
-           else
-               result = var.toString();
+            if (className == BigInteger.class)
+                result = new BigInteger(var.toString());
+            else if (className == Float.class)
+                result = Float.valueOf(var.toString());
+            else if (className == byte[].class)
+                result = ((OctetString) var).toByteArray();
+            else
+                result = var.toString();
         }
         else if (var instanceof IpAddress)
             result = var.toString();
         else if (var instanceof Counter64)
             result = var.toLong();
         else result = null;
-
-        assertNotNull(result);
-        assertTrue(className.isInstance(result));
         return className.cast(result);
+    }
 
+    private <T>T readAttribute(final SNMPManager.ReadMethod method, final String postfix, final Class<T> className) throws IOException {
+        final ResponseEvent value = client.get(method, new OID[]{new OID(prefix + "." + postfix)});
+        assertNotNull(value);
+        return deserialize(value.getResponse().getVariable(new OID(prefix + "." + postfix)), className);
+
+    }
+
+    private Table<Integer> readTable(final SNMPManager.ReadMethod method, final String postfix, final Map<Integer, Class<?>> columns) throws Exception {
+        final Table<Integer> table = new SimpleTable<>(columns);
+        final Collection<Variable[]> rows = client.getTable(method, new OID(prefix + "." + postfix), columns.size());
+        for(final Variable[] row: rows)
+            table.addRow(new HashMap<Integer, Object>(){{
+                for(int i = 0; i < row.length; i++){
+                    final Integer column = new Integer(i + 2);
+                    put(column, deserialize(row[i], columns.get(column)));
+                }
+            }});
+        return table;
     }
 
     private void writeTable(final String postfix, final Table<Integer> table) throws IOException {
@@ -164,35 +171,50 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
      */
     @Test
     public final void testForArrayProperty() throws Exception{
-        //client.getTable(SNMPManager.ReadMethod.GETBULK, new OID("1.1.5.1"), 1);
-        final Table<Integer> table = new SimpleTable<>(new HashMap<Integer, Class<?>>(1){{
+        final String POSTFIX = "5.1";
+        Table<Integer> array = new SimpleTable<>(new HashMap<Integer, Class<?>>(1){{
             put(2, Variable.class);
         }});
-        table.addRow(new HashMap<Integer, Object>(2){{
+        array.addRow(new HashMap<Integer, Object>(2){{
             put(2, new Integer32(20));
         }});
-        table.addRow(new HashMap<Integer, Object>(2){{
+        array.addRow(new HashMap<Integer, Object>(2){{
             put(2, new Integer32(30));
         }});
-        writeTable("5.1", table);
-        Thread.sleep(1000000);
-        /*for(int i = 0; i < 100; i++){
-            List<Variable[]> table = client.getTable(new OID(prefix + "." + "5.1"), 1);
-            table.toString();
-        }*/
-        //Thread.sleep(6000000);
+        writeTable(POSTFIX, array);
+        array = readTable(SNMPManager.ReadMethod.GETBULK, POSTFIX, new HashMap<Integer, Class<?>>(){{
+            put(2, Integer.class);
+        }});
+        assertEquals(2, array.getRowCount());
+        assertEquals(1, array.getColumns().size());
+        assertEquals(20, array.getCell(2, 0));
+        assertEquals(30, array.getCell(2, 1));
+    }
 
-        //Thread.sleep(1000000L);
-        //writeAttribute("1.5", new short[]{1, 2, 3}, short[].class);
-
-       // Thread.sleep(10000000);
-
-      //  List<Variable[]> table = client.getTable(new OID(prefix + "." + "5.1"), 1, 4);
-      // table.toString();
-        //writeAttribute("1.5", new short[]{1, 2, 3}, short[].class);
-       // Integer f = readAttribute(SNMPManager.ReadMethod.GET, "5.1.2.1", Integer.class);
-       // f.toString();
-        //assertArrayEquals(new short[]{1, 2, 3}, readAttribute(SNMPManager.ReadMethod.GET, "1.5", short[].class));
+    @Test
+    public final void testForDictionaryProperty() throws Exception{
+        final String POSTFIX = "6.1";
+        Table<Integer> dict = new SimpleTable<>(new HashMap<Integer, Class<?>>(){{
+            put(2, Variable.class);
+            put(3, Variable.class);
+            put(4, Variable.class);
+        }});
+        dict.addRow(new HashMap<Integer, Object>(){{
+            put(2, new Integer32(0));//false
+            put(3, new Integer32(4230));
+            put(4, new OctetString("Test for dictionary property"));
+        }});
+        writeTable(POSTFIX, dict);
+        dict = readTable(SNMPManager.ReadMethod.GETBULK, POSTFIX, new HashMap<Integer, Class<?>>(){{
+            put(2, Boolean.class);
+            put(3, Integer.class);
+            put(4, String.class);
+        }});
+        assertEquals(3, dict.getColumns().size());
+        assertEquals(1, dict.getRowCount());
+        assertEquals(false, dict.getCell(2, 0));
+        assertEquals(4230, dict.getCell(3, 0));
+        assertEquals("Test for dictionary property", dict.getCell(4, 0));
     }
 
     @Test
@@ -204,11 +226,57 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     }
 
     @Test
+    public final void testForTableProperty() throws Exception{
+        final String POSTFIX = "7.1";
+        Table<Integer> table = new SimpleTable<>(new HashMap<Integer, Class<?>>(){{
+            put(2, Variable.class);//bool
+            put(3, Variable.class);//int
+            put(4, Variable.class);//str
+        }});
+        table.addRow(new HashMap<Integer, Object>(){{
+            put(2, new Integer32(0));//false
+            put(3, new Integer32(4230));
+            put(4, new OctetString("Row #1"));
+        }});
+        table.addRow(new HashMap<Integer, Object>(){{
+            put(2, new Integer32(1));//true
+            put(3, new Integer32(4231));
+            put(4, new OctetString("Row #2"));
+        }});
+        table.addRow(new HashMap<Integer, Object>(){{
+            put(2, new Integer32(1));//true
+            put(3, new Integer32(4232));
+            put(4, new OctetString("Row #3"));
+        }});
+        table.addRow(new HashMap<Integer, Object>(){{
+            put(2, new Integer32(1));//true
+            put(3, new Integer32(4233));
+            put(4, new OctetString("Row #4"));
+        }});
+        writeTable(POSTFIX, table);
+        table = readTable(SNMPManager.ReadMethod.GETBULK, POSTFIX, new HashMap<Integer, Class<?>>(){{
+            put(2, Boolean.class);//bool
+            put(3, Integer.class);//int
+            put(4, String.class);//str
+        }});
+        assertEquals(4, table.getRowCount());
+        assertEquals(3, table.getColumns().size());
+
+        assertEquals(false, table.getCell(2, 0));
+        assertEquals(4230, table.getCell(3, 0));
+        assertEquals("Row #1", table.getCell(4, 0));
+
+        assertEquals(true, table.getCell(2, 3));
+        assertEquals(4233, table.getCell(3, 3));
+        assertEquals("Row #4", table.getCell(4, 3));
+    }
+
+    @Test
     public final void testForBooleanProperty() throws IOException{
         final boolean valueToCheck = true;
         writeAttribute("2.0", valueToCheck, Boolean.class);
-        assertTrue((boolean) readAttribute(SNMPManager.ReadMethod.GET, "2.0", Boolean.class));
-        assertTrue((boolean) readAttribute(SNMPManager.ReadMethod.GETBULK, "2.0", Boolean.class));
+        assertTrue(readAttribute(SNMPManager.ReadMethod.GET, "2.0", Boolean.class));
+        assertTrue(readAttribute(SNMPManager.ReadMethod.GETBULK, "2.0", Boolean.class));
     }
 
     @Test
@@ -274,78 +342,6 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         assertArrayEquals(byteString, readAttribute(SNMPManager.ReadMethod.GETBULK, "11.0", byte[].class));
     }
 
-
-    /*
- @Test
- public final void testForDictionaryProperty() throws IOException{
-  JsonObject dic = new JsonObject();
-  dic.add("col1", new JsonPrimitive(true));
-  dic.add("col2", new JsonPrimitive(42));
-  dic.add("col3", new JsonPrimitive("Hello, world!"));
-  writeAttributeAsJson("1.6", dic);
-  //now invoke dictionary and test
-  JsonElement elem = readAttributeAsJson("dictionaryProperty");
-  assertTrue(elem instanceof JsonObject);
-  dic = (JsonObject)elem;
-  assertEquals(new JsonPrimitive(true), dic.get("col1"));
-  assertEquals(new JsonPrimitive(42), dic.get("col2"));
-  assertEquals(new JsonPrimitive("Hello, world!"), dic.get("col3"));
- }
-
- @Test
- public final void testForTableProperty() throws IOException{
-  JsonArray table = new JsonArray();
-  //row 1
-  JsonObject row = new JsonObject();
-  table.add(row);
-  row.add("col1", new JsonPrimitive(true));
-  row.add("col2", new JsonPrimitive(100500));
-  row.add("col3", new JsonPrimitive("Row 1"));
-  //row 2
-  row = new JsonObject();
-  table.add(row);
-  row.add("col1", new JsonPrimitive(true));
-  row.add("col2", new JsonPrimitive(100501));
-  row.add("col3", new JsonPrimitive("Row 2"));
-  //row 3
-  row = new JsonObject();
-  table.add(row);
-  row.add("col1", new JsonPrimitive(true));
-  row.add("col2", new JsonPrimitive(100502));
-  row.add("col3", new JsonPrimitive("Row 3"));
-  //row 4
-  row = new JsonObject();
-  table.add(row);
-  row.add("col1", new JsonPrimitive(true));
-  row.add("col2", new JsonPrimitive(100503));
-  row.add("col3", new JsonPrimitive("Row 4"));
-  writeAttributeAsJson("1.7", table);
-  //invoke table
-  JsonElement elem = readAttributeAsJson("tableProperty");
-  assertTrue(elem instanceof JsonArray);
-  table = (JsonArray)elem;
-  assertEquals(4, table.size());
-  //row 1
-  assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(0)).get("col1"));
-  assertEquals(new JsonPrimitive(100500), ((JsonObject)table.get(0)).get("col2"));
-  assertEquals(new JsonPrimitive("Row 1"), ((JsonObject)table.get(0)).get("col3"));
-  //row 2
-  assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(1)).get("col1"));
-  assertEquals(new JsonPrimitive(100501), ((JsonObject)table.get(1)).get("col2"));
-  assertEquals(new JsonPrimitive("Row 2"), ((JsonObject)table.get(1)).get("col3"));
-  //row 3
-  assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(2)).get("col1"));
-  assertEquals(new JsonPrimitive(100502), ((JsonObject)table.get(2)).get("col2"));
-  assertEquals(new JsonPrimitive("Row 3"), ((JsonObject)table.get(2)).get("col3"));
-  //row 4
-  assertEquals(new JsonPrimitive(true), ((JsonObject)table.get(3)).get("col1"));
-  assertEquals(new JsonPrimitive(100503), ((JsonObject)table.get(3)).get("col2"));
-  assertEquals(new JsonPrimitive("Row 4"), ((JsonObject)table.get(3)).get("col3"));
- }
-
-
-
-      */
     @Override
     protected final void fillAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attributes) {
         EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("string");
