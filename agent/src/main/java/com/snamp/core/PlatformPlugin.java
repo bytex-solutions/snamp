@@ -1,4 +1,4 @@
-package com.snamp;
+package com.snamp.core;
 
 import net.xeoh.plugins.base.Plugin;
 

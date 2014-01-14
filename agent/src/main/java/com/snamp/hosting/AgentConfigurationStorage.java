@@ -1,6 +1,6 @@
 package com.snamp.hosting;
 
-import com.snamp.PlatformService;
+import com.snamp.core.PlatformService;
 
 import java.io.IOException;
 import java.util.Date;

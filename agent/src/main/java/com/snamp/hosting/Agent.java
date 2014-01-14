@@ -1,11 +1,25 @@
 package com.snamp.hosting;
 
-import com.snamp.*;
 import com.snamp.adapters.*;
 import com.snamp.connectors.*;
-import static com.snamp.ReflectionUtils.*;
+import com.snamp.core.AbstractPlatformService;
+import com.snamp.hosting.management.AbstractAgentManager;
+import com.snamp.hosting.management.AgentManager;
+import com.snamp.hosting.management.ConsoleAgentManager;
+import com.snamp.internal.FileExtensionFilter;
+import com.snamp.internal.InstanceLifecycle;
+import com.snamp.internal.Internal;
+import com.snamp.internal.Lifecycle;
+import net.xeoh.plugins.base.PluginManager;
+import net.xeoh.plugins.base.impl.PluginManagerFactory;
+import net.xeoh.plugins.base.options.addpluginsfrom.OptionReportAfter;
+import net.xeoh.plugins.base.options.getplugin.OptionCapabilities;
 
+import static com.snamp.internal.ReflectionUtils.*;
+
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.*;
 import java.util.logging.*;
 
@@ -35,6 +49,11 @@ import java.util.logging.*;
 public final class Agent extends AbstractPlatformService implements AutoCloseable {
     private static final Logger logger = Logger.getLogger("com.snamp");
     /**
+     * Represents name of the system property that contains path to the folder with SNAMP plugins.
+     */
+    public static final String PLUGINS_DIR = "com.snamp.plugindir";
+
+    /**
      * Represents a map of instantiated management connector.
      */
     public static interface InstantiatedConnectors extends Map<String, ManagementConnector>{
@@ -51,14 +70,21 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
     private final Map<String, String> params;
     private final InstantiatedConnectors connectors;
     private boolean started;
+    private final PluginManager pluginManager;
 
-    private Agent(final Adapter adapter, final Map<String, String> hostingParams){
-        super(logger);
-        if(adapter == null) throw new IllegalArgumentException("Adapter is not available");
-        else this.adapter = adapter;
-        this.params = hostingParams != null ? new HashMap<>(hostingParams) : new HashMap<String, String>();
-        this.connectors = new InstantiatedConnectorsImpl();
-        started = false;
+    private static PluginManager loadPlugins(){
+        final PluginManager pluginManager = PluginManagerFactory.createPluginManager();
+        //load standard plug-ins
+        pluginManager.addPluginsFrom(URI.create("classpath://com.snamp.connectors.**"));
+        pluginManager.addPluginsFrom(URI.create("classpath://com.snamp.adapters.**"));
+        pluginManager.addPluginsFrom(URI.create("classpath://com.snamp.hosting.management.**"));
+        //load external plugins
+        final File pluginDir = getPluginsDirectory();
+        if(pluginDir.exists() && pluginDir.isDirectory())
+            for(final File plugin: pluginDir.listFiles(new FileExtensionFilter("jar")))
+                if(plugin.isFile()) pluginManager.addPluginsFrom(plugin.toURI(), new OptionReportAfter());
+                else logger.warning("No plugins are loaded.");
+        return pluginManager;
     }
 
     /**
@@ -67,7 +93,108 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
      * @throws IllegalArgumentException Adapter cannot be resolved.
      */
     public Agent(final AgentConfiguration.HostingConfiguration hostingConfig){
-        this(HostingServices.getAdapter(hostingConfig.getAdapterName()), hostingConfig.getHostingParams());
+        super(logger);
+        pluginManager = loadPlugins();
+        adapter = getAdapter(pluginManager, hostingConfig.getAdapterName());
+        if(adapter == null) throw new IllegalArgumentException("Adapter is not available");
+        this.params = new HashMap<>(hostingConfig.getHostingParams());
+        this.connectors = new InstantiatedConnectorsImpl();
+        started = false;
+    }
+
+    /**
+     * Returns the adapter instance.
+     * @param manager SNAMP plugin manager.
+     * @param adapterName The name of the adapter to return.
+     * @return An instance of the adapter.
+     */
+    private static Adapter getAdapter(final PluginManager manager, final String adapterName){
+        return manager.getPlugin(Adapter.class, new OptionCapabilities(AbstractAdapter.makeCapabilities(adapterName)));
+    }
+
+    /**
+     * Returns the adapter instance.
+     * @param adapterName The name of the adapter to return.
+     * @return An instance of the adapter.
+     */
+    public final Adapter getAdapter(final String adapterName){
+        return getAdapter(pluginManager, adapterName);
+    }
+
+    /**
+     * Returns the management connector factory already loaded as plugin.
+     * @param manager SNAMP plugin manager.
+     * @param connectorName The name of the connector.
+     * @return A new instance of the management connector factory,
+     */
+    private static ManagementConnectorFactory getManagementConnectorFactory(final PluginManager manager, final String connectorName){
+        return manager.getPlugin(ManagementConnectorFactory.class, new OptionCapabilities(AbstractManagementConnectorFactory.makeCapabilities(connectorName)));
+    }
+
+    /**
+     * Returns the management connector factory already loaded as plugin.
+     * @param connectorName The name of the connector.
+     * @return A new instance of the management connector factory,
+     */
+    public final ManagementConnectorFactory getManagementConnectorFactory(final String connectorName){
+        return getManagementConnectorFactory(pluginManager, connectorName);
+    }
+
+    private static ManagementConnector createConnector(final PluginManager manager, final AgentConfiguration.ManagementTargetConfiguration target){
+        if(target == null) throw new IllegalArgumentException("target is null.");
+        final ManagementConnectorFactory factory = getManagementConnectorFactory(manager, target.getConnectionType());
+        if(factory == null){
+            logger.severe(String.format("Unsupported management connector '%s'", target.getConnectionType()));
+            return null;
+        }
+        return factory.newInstance(target.getConnectionString(), target.getAdditionalElements());
+    }
+
+    /**
+     * Returns the Agent manager.
+     * @param manager SNAMP plugin manager.
+     * @param managerName The name of the manager.
+     * @return
+     */
+    private static AgentManager getAgentManager(final PluginManager manager, final String managerName){
+        return manager.getPlugin(AgentManager.class, new OptionCapabilities(AbstractAgentManager.makeCapabilities(managerName)));
+    }
+
+    /**
+     * Returns the Agent manager.
+     * @param managerName The name of the manager.
+     * @return
+     */
+    public final AgentManager getAgentManager(final String managerName){
+        return getAgentManager(pluginManager, managerName);
+    }
+
+    /**
+     * Returns the predefined (through system property) Agent manager.
+     * @param manager SNAMP plugin manager.
+     * @param defaultIfNotAvailable {@literal true} to return default Agent manager if it is unavailable as plug-in; otherwise, {@link false} for {@literal null}.
+     * @return A new instance of the SNAMP agent manager.
+     */
+    private static AgentManager getAgentManager(final PluginManager manager, final boolean defaultIfNotAvailable){
+        final AgentManager am =  getAgentManager(manager, System.getProperty(AgentManager.MANAGER_NAME));
+        return am == null && defaultIfNotAvailable ? new ConsoleAgentManager() : am;
+    }
+
+    /**
+     * Returns the predefined (through system property) Agent manager.
+     * @param defaultIfNotAvailable {@literal true} to return default Agent manager if it is unavailable as plug-in; otherwise, {@link false} for {@literal null}.
+     * @return A new instance of the SNAMP agent manager.
+     */
+    public final AgentManager getAgentManager(final boolean defaultIfNotAvailable){
+        return getAgentManager(pluginManager, defaultIfNotAvailable);
+    }
+
+    /**
+     * Returns a directory with plugins.
+     * @return A directory with plugins.
+     */
+    public static File getPluginsDirectory(){
+        return new File(System.getProperty(PLUGINS_DIR, "plugins"));
     }
 
     /**
@@ -76,6 +203,11 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
      */
     public final Map<String, ManagementConnector> getConnectors(){
         return Collections.unmodifiableMap(connectors);
+    }
+
+    private static void releaseConnectors(final Collection<ManagementConnector> connectors) throws Exception{
+        for(final ManagementConnector mc: connectors)
+            mc.close();
     }
 
     /**
@@ -87,15 +219,17 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
      * @throws IllegalArgumentException hostingConfig is {@literal null}.
      * @throws IllegalStateException Attempts to reconfigure agent in the started state.
      */
-    public final void reconfigure(final AgentConfiguration.HostingConfiguration hostingConfig) {
+    public final void reconfigure(final AgentConfiguration.HostingConfiguration hostingConfig) throws Exception {
         if(hostingConfig == null) throw new IllegalArgumentException("hostingConfig is null.");
         if(started) throw new IllegalStateException("The agent must be in stopped state.");
-        final Adapter ad = HostingServices.getAdapter(hostingConfig.getAdapterName());
+        final Adapter ad = getAdapter(hostingConfig.getAdapterName());
         if(ad == null) throw new IllegalStateException("Adapter is not available");
         this.adapter = ad;
         params.clear();
+        releaseConnectors(connectors.values());
         connectors.clear();
         params.putAll(hostingConfig.getHostingParams());
+        System.gc();
     }
 
     private void registerTarget(final AgentConfiguration.ManagementTargetConfiguration targetConfig){
@@ -105,20 +239,11 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
         }
         //loads the management connector
         final ManagementConnector connector;
-        if(connectors.containsKey(targetConfig.getConnectionType())){
+        if(connectors.containsKey(targetConfig.getConnectionType()))
             connector = connectors.get(targetConfig.getConnectionType());
-        }
         else {
-            final ManagementConnectorFactory factory = HostingServices.getManagementConnectorFactory(targetConfig.getConnectionType());
-            if(factory == null){
-                logger.warning(String.format("Management connector %s is not installed.", targetConfig.getConnectionType()));
-                return;
-            }
-            connector = factory.newInstance(targetConfig.getConnectionString(), targetConfig.getAdditionalElements());
-            if(connector == null){
-                logger.warning(String.format("Management connector %s is not installed.", targetConfig.getConnectionType()));
-                return;
-            }
+            connector = createConnector(pluginManager, targetConfig);
+            if(connector == null) return;
             else connectors.put(targetConfig.getConnectionType(), connector);
         }
         //register attributes
@@ -179,12 +304,15 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
 
     /**
      * Releases all resources associated with this instance of agent.
+     * @throws Exception An exception occured
      */
     @Override
     public void close() throws Exception{
+        releaseConnectors(connectors.values());
         connectors.clear();
         params.clear();
         adapter.close();
+        pluginManager.shutdown();
     }
 
     /**

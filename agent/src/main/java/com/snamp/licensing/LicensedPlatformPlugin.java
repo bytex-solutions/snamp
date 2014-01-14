@@ -1,8 +1,6 @@
 package com.snamp.licensing;
 
-import com.snamp.PlatformPlugin;
-
-import java.io.InputStream;
+import com.snamp.core.PlatformPlugin;
 
 /**
  * Represents SNAMP platform plugin which functionality managed by commercial license.

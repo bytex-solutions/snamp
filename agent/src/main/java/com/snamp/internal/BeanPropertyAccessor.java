@@ -1,4 +1,8 @@
-package com.snamp;
+package com.snamp.internal;
+
+import com.snamp.internal.InstanceLifecycle;
+import com.snamp.internal.Internal;
+import com.snamp.internal.Lifecycle;
 
 import java.io.Serializable;
 import java.lang.reflect.*;

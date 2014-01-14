@@ -1,5 +1,8 @@
 package com.snamp;
 
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
+
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 

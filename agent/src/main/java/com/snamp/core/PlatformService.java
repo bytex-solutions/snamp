@@ -1,4 +1,9 @@
-package com.snamp;
+package com.snamp.core;
+
+import com.snamp.Aggregator;
+import com.snamp.internal.Internal;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
 
 import java.util.logging.Logger;
 

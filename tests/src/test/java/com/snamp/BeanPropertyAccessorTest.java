@@ -1,5 +1,6 @@
 package com.snamp;
 
+import com.snamp.internal.BeanPropertyAccessor;
 import org.junit.Test;
 
 import java.beans.IntrospectionException;

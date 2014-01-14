@@ -1,6 +1,9 @@
 package com.snamp.connectors;
 
-import com.snamp.*;
+import com.snamp.internal.Internal;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.SynchronizationType;
+import com.snamp.internal.ThreadSafety;
 
 import javax.management.*;
 import javax.management.remote.*;

@@ -1,8 +1,12 @@
 package com.snamp.adapters;
 
+import com.snamp.connectors.ManagementEntityType;
 import org.snmp4j.agent.mo.MOAccessImpl;
-import org.snmp4j.smi.SMIConstants;
+import org.snmp4j.agent.mo.MOMutableColumn;
+import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
+
+import java.util.Map;
 
 /**
  * Represents RowStatus column as described in SMIv2 (RFC 1903). This class cannot be inherited.
@@ -11,7 +15,7 @@ import org.snmp4j.smi.Variable;
  * @since 1.0
  * @see <a href="http://www.ietf.org/rfc/rfc1903.txt">RFC 1903</a>
  */
-final class MORowStatusColumn<V extends Variable> extends MONamedColumn<V> {
+final class MORowStatusColumn extends MONamedColumn<Integer32> {
     /**
      * Represents name of this column.
      */
@@ -22,7 +26,7 @@ final class MORowStatusColumn<V extends Variable> extends MONamedColumn<V> {
      * @param columnId The column identifier.
      */
     public MORowStatusColumn(final int columnId){
-        super(columnId, NAME, SMIConstants.SYNTAX_INTEGER32, MOAccessImpl.ACCESS_READ_WRITE, false);
+        super(columnId, NAME, SnmpType.INTEGER, MOAccessImpl.ACCESS_READ_WRITE, false);
     }
 
     /**
@@ -33,5 +37,23 @@ final class MORowStatusColumn<V extends Variable> extends MONamedColumn<V> {
     @Override
     public final boolean isSynthetic() {
         return true;
+    }
+
+    @Override
+    public final Object parseCellValue(final Integer32 value, final ManagementEntityType ct, final Map<String, String> conversionOptions) {
+        return TableRowStatus.parse(value.toInt());
+    }
+
+    @Override
+    public final Integer32 createCellValue(final Object cell, final ManagementEntityType ct, final Map<String, String> conversionOptions) {
+        return TableRowStatus.ACTIVE.toManagedScalarValue();
+    }
+
+    public static boolean isInstance(final MOMutableColumn<? extends Variable> column){
+        return column instanceof MORowStatusColumn;
+    }
+
+    public static MORowStatusColumn cast(final MONamedColumn<? extends Variable> column) {
+        return (MORowStatusColumn)column;
     }
 }

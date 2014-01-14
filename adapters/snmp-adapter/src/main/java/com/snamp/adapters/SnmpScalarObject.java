@@ -1,13 +1,11 @@
 package com.snamp.adapters;
 
-import com.snamp.MethodStub;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;

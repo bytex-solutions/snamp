@@ -2,6 +2,9 @@ package com.snamp.connectors.util;
 
 import com.snamp.*;
 import com.snamp.connectors.ManagementEntityType;
+import com.snamp.internal.Internal;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
 
 /**
  * Represents utility class that represents raw attribute value and its type.

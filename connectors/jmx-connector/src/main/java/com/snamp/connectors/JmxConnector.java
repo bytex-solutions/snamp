@@ -1,6 +1,8 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
+import com.snamp.internal.BeanPropertyAccessor;
+import com.snamp.internal.Internal;
 import com.snamp.licensing.JmxConnectorLimitations;
 import static com.snamp.connectors.JmxConnectionManager.MBeanServerConnectionHandler;
 

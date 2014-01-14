@@ -1,6 +1,6 @@
 package com.snamp.connectors;
 
-import com.snamp.AbstractPlatformService;
+import com.snamp.core.AbstractPlatformService;
 import net.xeoh.plugins.base.annotations.Capabilities;
 
 import java.util.Map;

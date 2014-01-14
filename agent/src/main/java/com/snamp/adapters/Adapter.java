@@ -1,15 +1,10 @@
 package com.snamp.adapters;
 
-import com.snamp.*;
-import com.snamp.connectors.AttributeSupport;
-import com.snamp.connectors.ManagementConnector;
-import com.snamp.connectors.NotificationSupport;
+import com.snamp.core.PlatformPlugin;
+import com.snamp.internal.*;
 
 import java.io.IOException;
 import java.util.*;
-
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 
 /**
  * Represents hosting adapter, that exposes management information to the outside world.

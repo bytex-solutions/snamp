@@ -1,4 +1,8 @@
-package com.snamp;
+package com.snamp.core;
+
+import com.snamp.AbstractAggregator;
+import com.snamp.Activator;
+import com.snamp.internal.Internal;
 
 import java.util.logging.*;
 

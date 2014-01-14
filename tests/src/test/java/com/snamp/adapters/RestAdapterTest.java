@@ -1,7 +1,7 @@
 package com.snamp.adapters;
 
 import com.google.gson.*;
-import com.snamp.Temporary;
+import com.snamp.internal.Temporary;
 import com.snamp.connectors.*;
 import static com.snamp.hosting.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration;
 import org.junit.Test;

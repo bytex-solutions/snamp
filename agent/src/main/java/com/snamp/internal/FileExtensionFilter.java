@@ -1,4 +1,4 @@
-package com.snamp;
+package com.snamp.internal;
 
 import java.io.*;
 import java.nio.file.FileSystems;

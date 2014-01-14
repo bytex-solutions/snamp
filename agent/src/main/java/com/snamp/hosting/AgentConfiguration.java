@@ -1,6 +1,7 @@
 package com.snamp.hosting;
 
 import com.snamp.*;
+import com.snamp.BinarySerializable;
 
 import java.io.*;
 import java.util.*;

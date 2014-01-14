@@ -1,5 +1,7 @@
 package com.snamp;
 
+import com.snamp.internal.Internal;
+
 import java.io.Serializable;
 import java.util.Objects;
 

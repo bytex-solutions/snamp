@@ -4,8 +4,9 @@ import com.snamp.*;
 
 import static com.snamp.ConcurrentResourceAccess.Action;
 
-import com.snamp.MethodThreadSafety;
-import com.snamp.ThreadSafety;
+import com.snamp.core.AbstractPlatformService;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
 import com.snamp.hosting.HostingContext;
 import net.xeoh.plugins.base.annotations.Capabilities;
 

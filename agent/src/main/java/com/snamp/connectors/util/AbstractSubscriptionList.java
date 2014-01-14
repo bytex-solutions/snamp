@@ -1,7 +1,9 @@
 package com.snamp.connectors.util;
 
-import com.snamp.*;
 import com.snamp.connectors.*;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
+
 import static com.snamp.connectors.NotificationSupport.NotificationListener;
 
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;

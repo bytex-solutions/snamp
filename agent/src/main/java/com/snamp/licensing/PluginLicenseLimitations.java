@@ -1,6 +1,9 @@
 package com.snamp.licensing;
 
-import com.snamp.*;
+import com.snamp.core.PlatformPlugin;
+import com.snamp.internal.Internal;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
 
 /**
  * Represents an interface for describing plugin license limitations.

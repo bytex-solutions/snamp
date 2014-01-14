@@ -1,5 +1,6 @@
 package com.snamp;
 
+import com.snamp.internal.ReflectionUtils;
 import org.junit.Test;
 
 /**

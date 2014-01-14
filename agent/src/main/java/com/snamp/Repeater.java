@@ -1,5 +1,7 @@
 package com.snamp;
 
+import com.snamp.internal.MethodStub;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 

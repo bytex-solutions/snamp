@@ -1,6 +1,9 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
+import com.snamp.internal.InstanceLifecycle;
+import com.snamp.internal.Lifecycle;
+import com.snamp.internal.MethodStub;
 
 import java.beans.*;
 import java.lang.annotation.*;

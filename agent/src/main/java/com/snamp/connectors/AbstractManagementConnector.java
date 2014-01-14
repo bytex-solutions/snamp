@@ -1,6 +1,11 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
+import com.snamp.internal.InstanceLifecycle;
+import com.snamp.internal.Lifecycle;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
+
 import static com.snamp.ConcurrentResourceAccess.ConsistentAction;
 import static com.snamp.ConcurrentResourceAccess.Action;
 import static com.snamp.connectors.NotificationSupport.NotificationListener;

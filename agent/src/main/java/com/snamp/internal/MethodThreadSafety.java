@@ -1,4 +1,4 @@
-package com.snamp;
+package com.snamp.internal;
 
 /**
  * Describes method usage in the multi-threading context.

@@ -1,4 +1,4 @@
-package com.snamp;
+package com.snamp.internal;
 
 import java.lang.annotation.*;
 

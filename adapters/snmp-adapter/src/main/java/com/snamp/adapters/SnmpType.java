@@ -1,6 +1,6 @@
 package com.snamp.adapters;
 
-import static com.snamp.ReflectionUtils.wrapReference;
+import static com.snamp.internal.ReflectionUtils.wrapReference;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.smi.Null;

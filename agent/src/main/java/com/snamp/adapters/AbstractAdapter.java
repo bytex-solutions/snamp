@@ -1,14 +1,8 @@
 package com.snamp.adapters;
 
-import com.snamp.AbstractPlatformService;
-import com.snamp.MethodStub;
-import com.snamp.connectors.ManagementConnector;
-import com.snamp.connectors.NotificationSupport;
-import com.snamp.hosting.AgentConfiguration;
+import com.snamp.core.AbstractPlatformService;
 import net.xeoh.plugins.base.annotations.Capabilities;
 
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 /**
