@@ -449,10 +449,10 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
                     return;
                 }
                 final Map<String, Object> values = new HashMap<>(getColumnCount());
-                boolean allowToAddRow = false;
+                boolean allowToAddRow = true;
                 for(int c = 0; c < getColumnCount(); c++){
                     final MONamedColumn<Variable> column = getColumn(c);
-                    if(column.isSynthetic())
+                    if(column.isSynthetic()){
                         if(MORowStatusColumn.isInstance(column))
                             switch (TableRowStatus.parse(row.getValue(c))){
                                 case CREATE_AND_GO:
@@ -469,6 +469,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
                                     allowToAddRow = true;
                                     break;
                             }
+                    }
                     else values.put(column.name, column.parseCellValue(row.getValue(c), getTableType().getColumnType(column.name), conversionOptions));
                 }
                 if(allowToAddRow) table.addRow(values);

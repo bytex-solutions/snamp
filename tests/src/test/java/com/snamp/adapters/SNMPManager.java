@@ -109,6 +109,8 @@ public final class SNMPManager {
             if(ev.isError()) throw new Exception(ev.getErrorMessage());
             else {
                 final VariableBinding[] columns = ev.getColumns();
+                if(columns == null)
+                    throw new NullPointerException("Columns is null.");
                 final Variable[] cells = new Variable[columns.length];
                 for(int i = 0; i < columns.length; i++)
                     cells[i] = columns[i].getVariable();
