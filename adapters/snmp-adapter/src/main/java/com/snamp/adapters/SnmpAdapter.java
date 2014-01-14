@@ -16,12 +16,14 @@ import org.snmp4j.agent.mo.*;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.*;
 import org.snmp4j.mp.MPv3;
+import org.snmp4j.mp.MessageProcessingModel;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.TransportMappings;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 import static com.snamp.connectors.NotificationSupport.Notification;
+import static com.snamp.adapters.SnmpHelpers.DateTimeFormatter;
 
 /**
  * Represents SNMP Agent.
@@ -60,54 +62,49 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
     private final static class TrapSender extends AbstractNotificationListener{
         public static final int DEFAULT_TIMEOUT = 15000;//default timeout is 15 sec
         public static final int DEFAULT_RETRIES = 3;
-        public static final String DEFAULT_TAG_LIST = "";
-        public static final String DEFAULT_PARAMS = "";
+        public static final String EVENT_TIMESTAMP_FORMAT = "timestampFormat";
         public static final String EVENT_TARGET_NAME = "receiverName";
         public static final String EVENT_TARGET_ADDRESS = "receiverAddress";
         public static final String EVENT_TARGET_NOTIF_TIMEOUT = "sendingTimeout";
         public static final String EVENT_TARGET_RETRY_COUNT = "retryCount";
-        public static final String EVENT_TAG_LIST = "tagList";
-        public static final String EVENT_PARAMS = "params";
         private final OctetString receiverName;
         private final OctetString receiverAddress;
         private final int timeout;
         private final int retries;
-        private final OctetString tagList;
-        private final OctetString params;
         private final OID eventId;
-        private final NotificationOriginator originator;
+        private NotificationOriginator originator;
+        private final DateTimeFormatter timestampFormatter;
 
         public TrapSender(final OID eventId,
                           final OctetString receiverName,
                           final OctetString receiverAddress,
                           final int timeout,
                           final int retries,
-                          final OctetString tagList,
-                          final OctetString params,
-                          final NotificationOriginator originator){
+                          final DateTimeFormatter timestampFormatter){
             super(eventId.toString());
             this.eventId = eventId;
             this.receiverName = receiverName;
             this.receiverAddress = receiverAddress;
             this.timeout = timeout;
             this.retries = retries;
-            this.tagList = tagList;
-            this.params = params;
-            this.originator = originator;
+            this.timestampFormatter = timestampFormatter;
         }
 
-        public final boolean registerTrap(final SnmpTargetMIB targetMIB){
+        public final boolean registerTrap(final SnmpTargetMIB targetMIB, final OctetString paramsGroup, final NotificationOriginator originator){
+            if(this.originator != null || originator == null) return false;
+            else this.originator = originator;
             return targetMIB.addTargetAddress(receiverName,
                     eventId,
                     receiverAddress,
                     timeout,
                     retries,
-                    tagList,
-                    params,
+                    new OctetString("notify"),
+                    paramsGroup,
                     StorageType.nonVolatile);
         }
 
         public final boolean unregisterTrap(final SnmpTargetMIB targetMIB){
+            this.originator = null;
             return targetMIB.removeTargetAddress(receiverName) != null;
         }
 
@@ -118,13 +115,13 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             result[1] = new VariableBinding(new OID(combineOID(eventId.toString(), "2")),
                     new OctetString(n.getSeverity().name()));
             result[2] = new VariableBinding(new OID(combineOID(eventId.toString(), "3")),
-                    new TimeTicks(n.getTimeStamp().getTime()));
+                    new OctetString(timestampFormatter.convert(n.getTimeStamp())));
             return result;
         }
 
         @Override
         public boolean handle(final Notification n) {
-            return originator.notify(null, eventId, getVariableBindings(n)) != null;
+            return originator != null && originator.notify(null, eventId, getVariableBindings(n)) != null;
         }
     }
 
@@ -233,8 +230,34 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
      */
     @Override
     protected final void addNotificationTargets(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB) {
-        for(final TrapSender sender: senders)
-            sender.registerTrap(targetMIB);
+        if(senders.size() > 0){
+            //add default address parsers for transport domains
+            targetMIB.addDefaultTDomains();
+            //register senders
+            final OctetString V2C_TAG = new OctetString("v2c");
+            final OctetString V3NOTIFY_TAG = new OctetString("v3notify");
+            for(final TrapSender sender: senders){
+                sender.registerTrap(targetMIB, V2C_TAG, getNotificationOriginator());
+                sender.registerTrap(targetMIB, V3NOTIFY_TAG, getNotificationOriginator());
+            }
+            //setup internal SNMP settings
+            targetMIB.addTargetParams(V2C_TAG,
+                    MessageProcessingModel.MPv2c,
+                    SecurityModel.SECURITY_MODEL_SNMPv2c,
+                    new OctetString("cpublic"),
+                    SecurityLevel.AUTH_PRIV,
+                    StorageType.permanent);
+            targetMIB.addTargetParams(V3NOTIFY_TAG,
+                    MessageProcessingModel.MPv3,
+                    SecurityModel.SECURITY_MODEL_USM,
+                    new OctetString("v3notify"),
+                    SecurityLevel.NOAUTH_NOPRIV,
+                    StorageType.permanent);
+            notificationMIB.addNotifyEntry(new OctetString("default"),
+                    new OctetString("notify"),
+                    SnmpNotificationMIB.SnmpNotifyTypeEnum.inform,
+                    StorageType.permanent);
+        }
     }
 
     private void removeNotificationTargets(){
@@ -360,20 +383,15 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             final int timeout = eventOptions.containsKey(TrapSender.EVENT_TARGET_NOTIF_TIMEOUT) ?
                     Integer.valueOf(eventOptions.get(TrapSender.EVENT_TARGET_NOTIF_TIMEOUT)):
                     TrapSender.DEFAULT_TIMEOUT;
-            final OctetString tagList = new OctetString(eventOptions.containsKey(TrapSender.EVENT_TAG_LIST) ?
-                    eventOptions.get(TrapSender.EVENT_TAG_LIST) : TrapSender.DEFAULT_TAG_LIST);
-            final OctetString params = new OctetString(eventOptions.containsKey(TrapSender.EVENT_PARAMS) ?
-                    eventOptions.get(TrapSender.EVENT_PARAMS) : TrapSender.DEFAULT_PARAMS);
             final int retryCount = eventOptions.containsKey(TrapSender.EVENT_TARGET_RETRY_COUNT) ?
                     Integer.valueOf(eventOptions.get(TrapSender.EVENT_TARGET_RETRY_COUNT)) : TrapSender.DEFAULT_RETRIES;
+            final DateTimeFormatter timestampFormatter = SnmpHelpers.createDateTimeFormatter(eventOptions.get(TrapSender.EVENT_TIMESTAMP_FORMAT));
             final TrapSender sender = new TrapSender(new OID(combineOID(namespace, postfix)),
                     new OctetString(eventOptions.get(TrapSender.EVENT_TARGET_NAME)),
                     new OctetString(eventOptions.get(TrapSender.EVENT_TARGET_ADDRESS)),
                     timeout,
                     retryCount,
-                    tagList,
-                    params,
-                    this.getNotificationOriginator());
+                    timestampFormatter);
             senders.add(sender);
             //now we should register listener inside of management connector
             connector.enableNotifications(sender.getSubscriptionListId(), eventInfo.getCategory(), eventInfo.getAdditionalElements());
