@@ -1,5 +1,6 @@
 package com.snamp.adapters;
 
+import com.snamp.SynchronizationEvent;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
@@ -79,6 +80,11 @@ public final class SNMPManager {
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
+    }
+
+    public int getClientPort(){
+        final UdpAddress address = (UdpAddress)transport.getListenAddress();
+        return address.getPort();
     }
 
 
@@ -164,6 +170,19 @@ public final class SNMPManager {
         snmp.send(pdu, getTarget(), null, listenerResp);
         return;
     }
+
+    public final SynchronizationEvent.Awaitor<PDU> addNotificationListener(){
+        final SynchronizationEvent<PDU> result = new SynchronizationEvent<>();
+        snmp.addCommandResponder(new CommandResponder() {
+            @Override
+            public void processPdu(final CommandResponderEvent event) {
+                result.fire(event.getPDU());
+                snmp.removeCommandResponder(this);
+            }
+        });
+        return result.getAwaitor();
+    }
+
     /**
      * This method returns a Target, which contains information about
      * where the data should be fetched and how.
@@ -182,5 +201,4 @@ public final class SNMPManager {
         }
         return target;
     }
-
 }

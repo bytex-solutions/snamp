@@ -5,8 +5,11 @@ package com.snamp.adapters;
  */
 
 import com.snamp.SimpleTable;
+import com.snamp.SynchronizationEvent;
 import com.snamp.Table;
+import com.snamp.TimeSpan;
 import com.snamp.connectors.JmxConnectorTest;
+import com.snamp.hosting.AgentConfiguration;
 import com.snamp.hosting.EmbeddedAgentConfiguration;
 import org.junit.Test;
 import org.snmp4j.PDU;
@@ -17,6 +20,7 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import org.snmp4j.util.TableUtils;
 
+import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.IOException;
@@ -25,12 +29,15 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     private static final String portForSNMP = "3222";
     private static final String addressForSNMP = "127.0.0.1";
     private static final String prefix = "1.1";
-    private final SNMPManager client;
+    private static final SNMPManager client =  new SNMPManager("udp:"+addressForSNMP+"/"+portForSNMP);
+
 
     private static final Map<String, String> snmpAdapterSettings = new HashMap<String, String>(2){{
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
@@ -40,7 +47,6 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
     public JmxToSnmpTest() throws MalformedObjectNameException {
         super("snmp", snmpAdapterSettings, new TestManagementBean(), new ObjectName(BEAN_NAME));
-        client = new SNMPManager("udp:"+addressForSNMP+"/"+portForSNMP);
     }
 
     @Override
@@ -226,6 +232,14 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     }
 
     @Test
+    public final void notificationTest() throws IOException, TimeoutException, InterruptedException {
+        final SynchronizationEvent.Awaitor<PDU> awaitor = client.addNotificationListener();
+        writeAttribute("1.0", "NOTIFICATION TEST", String.class);
+        final PDU p = awaitor.await(new TimeSpan(4, TimeUnit.MINUTES));
+        assertNotNull(p);
+    }
+
+    @Test
     public final void testForTableProperty() throws Exception{
         final String POSTFIX = "7.1";
         Table<Integer> table = new SimpleTable<>(new HashMap<Integer, Class<?>>(){{
@@ -392,4 +406,14 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         attributes.put("11.0", attribute);
     }
 
+    @Override
+    protected final void fillEvents(Map<String, ManagementTargetConfiguration.EventConfiguration> events) {
+        EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration event = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration();
+        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event.getAdditionalElements().put("severity", "notice");
+        event.getAdditionalElements().put("objectName", BEAN_NAME);
+        event.getAdditionalElements().put("receiverAddress", addressForSNMP+"/"+client.getClientPort());
+        event.getAdditionalElements().put("receiverName","test-receiver");
+        events.put("19.0", event);
+    }
 }
