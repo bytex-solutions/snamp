@@ -139,20 +139,13 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             return targetMIB.removeTargetAddress(receiver.getAddress()) != null;
         }
 
-        private final VariableBinding[] getVariableBindings(final Notification n){
-            final VariableBinding[] result = new VariableBinding[3];
-            result[0] = new VariableBinding(new OID(combineOID(eventId.toString(), "1")),
-                    new OctetString(n.getMessage()));
-            result[1] = new VariableBinding(new OID(combineOID(eventId.toString(), "2")),
-                    new OctetString(n.getSeverity().name()));
-            result[2] = new VariableBinding(new OID(combineOID(eventId.toString(), "3")),
-                    new OctetString(timestampFormatter.convert(n.getTimeStamp())));
-            return result;
+        private final boolean handle(final SnmpWrappedNotification n){
+            return originator != null && n.send(new OctetString("public"), originator);
         }
 
         @Override
-        public boolean handle(final Notification n) {
-            return originator != null && originator.notify(new OctetString("public"), eventId, getVariableBindings(n)) != null;
+        public final boolean handle(final Notification n) {
+            return handle(new SnmpWrappedNotification(eventId, n, timestampFormatter));
         }
     }
 

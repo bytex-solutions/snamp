@@ -9,7 +9,7 @@ import com.snamp.SynchronizationEvent;
 import com.snamp.Table;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.JmxConnectorTest;
-import com.snamp.hosting.AgentConfiguration;
+import com.snamp.connectors.NotificationSupport;
 import com.snamp.hosting.EmbeddedAgentConfiguration;
 import org.junit.Test;
 import org.snmp4j.PDU;
@@ -18,14 +18,12 @@ import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
-import org.snmp4j.util.TableUtils;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -233,10 +231,13 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
     @Test
     public final void notificationTest() throws IOException, TimeoutException, InterruptedException {
-        final SynchronizationEvent.Awaitor<PDU> awaitor = client.addNotificationListener();
+        final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor = client.addNotificationListener(new OID(prefix + ".19.0"));
         writeAttribute("1.0", "NOTIFICATION TEST", String.class);
-        final PDU p = awaitor.await(new TimeSpan(4, TimeUnit.MINUTES));
+        final SnmpWrappedNotification p = awaitor.await(new TimeSpan(4, TimeUnit.MINUTES));
         assertNotNull(p);
+        assertEquals(NotificationSupport.Notification.Severity.NOTICE, p.getSeverity());
+        assertEquals(0L, p.getSequenceNumber());
+        assertEquals("Property string is changed", p.getMessage());
     }
 
     @Test
@@ -329,28 +330,18 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     @Test
     public final void testForDatePropertyRFC1903HumaReadable() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         final Calendar cal = Calendar.getInstance(); cal.set(1994, 3, 5); // Kurt Donald Cobain, good night, sweet prince
-
-        Class<?> c = Class.forName("com.snamp.adapters.SnmpUnixTimeObject$Rfc1903HumanReadableDateTimeFormatter");
-        Method method = c.getDeclaredMethod ("convert", Calendar.class);
-        method.setAccessible(true);
-
-        final String valueToCheck = (String) method.invoke (null, cal);
-
+        final SnmpHelpers.DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter("rfc1903-human-readable");
+        final String valueToCheck = new String(formatter.convert(cal.getTime()));
         writeAttribute("10.0", valueToCheck, String.class);
         assertEquals(valueToCheck, readAttribute(SNMPManager.ReadMethod.GET, "10.0", String.class));
         assertEquals(valueToCheck, readAttribute(SNMPManager.ReadMethod.GETBULK, "10.0", String.class));
     }
 
-
     @Test
     public final void testForDatePropertyRFC1903() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         final Calendar cal = Calendar.getInstance(); cal.set(1994, 3, 5); // Kurt Donald Cobain, good night, sweet prince
-
-        Class<?> c = Class.forName("com.snamp.adapters.SnmpUnixTimeObject$Rfc1903BinaryDateTimeFormatter");
-        Method method = c.getDeclaredMethod ("convert", Calendar.class);
-        method.setAccessible(true);
-
-        final byte[] byteString = (byte[]) method.invoke (null, cal);
+        final SnmpHelpers.DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter("rfc1903-human-readable");
+        final byte[] byteString = formatter.convert(cal.getTime());
         writeAttribute("11.0", byteString, byte[].class);
         assertArrayEquals(byteString, readAttribute(SNMPManager.ReadMethod.GET, "11.0", byte[].class));
         assertArrayEquals(byteString, readAttribute(SNMPManager.ReadMethod.GETBULK, "11.0", byte[].class));
