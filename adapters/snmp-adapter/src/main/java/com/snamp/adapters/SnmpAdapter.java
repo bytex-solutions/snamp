@@ -1,6 +1,8 @@
 package com.snamp.adapters;
 
 import java.io.*;
+import java.lang.Thread;
+import java.net.BindException;
 import java.util.*;
 import java.util.logging.*;
 
@@ -18,6 +20,7 @@ import org.snmp4j.mp.MPv3;
 import org.snmp4j.mp.MessageProcessingModel;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
+import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.transport.TransportMappings;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
@@ -34,6 +37,7 @@ import static com.snamp.adapters.SnmpHelpers.DateTimeFormatter;
 @Author(name = "Roman Sakno")
 final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugin<SnmpAdapterLimitations> {
     private static final String PASSWORD_PARAM = "password";
+    private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
     private static final OctetString V2C_TAG = new OctetString("v2c");
     private static final OctetString V3NOTIFY_TAG = new OctetString("v3notify");
 
@@ -153,6 +157,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 
 	private String address;
     private int port;
+    private int socketTimeout;
     private boolean coldStart;
     private final Map<String, ManagementAttributes> attributes;
     private final Map<String, TrapSender> senders;
@@ -169,6 +174,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         address = defaultAddress;
         attributes = new HashMap<>();
         this.senders = new HashMap<>(10);
+        this.socketTimeout = 0;
 	}
 
     private static void registerManagedObjects(final MOServer server, final VacmMIB mib, final String prefix, Iterable<SnmpAttributeMapping> mos){
@@ -302,9 +308,16 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 	 * Initializes SNMP transport.
 	 */
 	protected void initTransportMappings() throws IOException {
-		final TransportMapping tm = TransportMappings.getInstance()
-				.createTransportMapping(GenericAddress.parse(String.format("%s/%s", address, port)));
-		transportMappings = new TransportMapping[]{tm};
+        final TransportMappings mappings = TransportMappings.getInstance();
+        try{
+            TransportMapping<?> tm = mappings.createTransportMapping(GenericAddress.parse(String.format("%s/%s", address, port)));
+            if(tm instanceof DefaultUdpTransportMapping)
+                ((DefaultUdpTransportMapping)tm).setSocketTimeout(socketTimeout);
+            transportMappings = new TransportMapping[]{tm};
+        }
+        catch (final RuntimeException e){
+            throw new IOException(String.format("Unable to create SNMP transport for %s/%s address.", address, port), e);
+        }
 	}
 
 	private void start() throws IOException {
@@ -340,9 +353,10 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 		communityMIB.getSnmpCommunityEntry().addRow(row);
 	}
 
-    private boolean start(final Integer port, final String address) throws IOException{
+    private boolean start(final Integer port, final String address, final int socketTimeout) throws IOException{
         this.port = port != null ? port.intValue() : defaultPort;
         this.address = address != null && address.length() > 0 ? address : defaultAddress;
+        this.socketTimeout = socketTimeout;
         start();
         return true;
     }
@@ -360,7 +374,10 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             case STATE_STOPPED:
                 if(parameters.containsKey(PASSWORD_PARAM))
                     SnmpAdapterLimitations.current().verifyAuthenticationFeature();
-                return start(Integer.valueOf(parameters.get(PORT_PARAM_NAME)), parameters.get(ADDRESS_PARAM_NAME));
+                final String port = parameters.containsKey(PORT_PARAM_NAME) ? parameters.get(PORT_PARAM_NAME) : "161";
+                final String address = parameters.containsKey(ADDRESS_PARAM_NAME) ? parameters.get(ADDRESS_PARAM_NAME) : "127.0.0.1";
+                final String socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ? parameters.get(SOCKET_TIMEOUT_PARAM) : "0";
+                return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout));
             default:return false;
         }
     }

@@ -40,6 +40,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     private static final Map<String, String> snmpAdapterSettings = new HashMap<String, String>(2){{
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
         put(Adapter.ADDRESS_PARAM_NAME, addressForSNMP);
+        put("socketTimeout", "5000");
     }};
     private static final String BEAN_NAME = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
 
