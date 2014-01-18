@@ -176,11 +176,15 @@ public final class SNMPManager {
         snmp.addCommandResponder(new CommandResponder() {
             @Override
             public void processPdu(final CommandResponderEvent event) {
-                final SnmpWrappedNotification notif = new SnmpWrappedNotification(notificationID);
-                for(final VariableBinding binding: event.getPDU().getVariableBindings())
-                    notif.put(binding);
-                result.fire(notif);
-                snmp.removeCommandResponder(this);
+                final PDU p = event.getPDU();
+                if(p.getVariableBindings().size() == 0) return;
+                else {
+                    final SnmpWrappedNotification notif = new SnmpWrappedNotification(notificationID);
+                    for(final VariableBinding binding: event.getPDU().getVariableBindings())
+                        if(binding.getOid().startsWith(notificationID)) notif.put(binding);
+                    if(!notif.isEmpty()) result.fire(notif);
+                    snmp.removeCommandResponder(this);
+                }
             }
         });
         return result.getAwaitor();

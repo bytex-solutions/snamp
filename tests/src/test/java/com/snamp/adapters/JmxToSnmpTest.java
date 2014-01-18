@@ -231,13 +231,17 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
 
     @Test
     public final void notificationTest() throws IOException, TimeoutException, InterruptedException {
-        final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor = client.addNotificationListener(new OID(prefix + ".19.0"));
+        final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor1 = client.addNotificationListener(new OID(prefix + ".19.1"));
+        //final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor2 = client.addNotificationListener(new OID(prefix + ".20.1"));
         writeAttribute("1.0", "NOTIFICATION TEST", String.class);
-        final SnmpWrappedNotification p = awaitor.await(new TimeSpan(4, TimeUnit.MINUTES));
-        assertNotNull(p);
-        assertEquals(NotificationSupport.Notification.Severity.NOTICE, p.getSeverity());
-        assertEquals(0L, p.getSequenceNumber());
-        assertEquals("Property string is changed", p.getMessage());
+        final SnmpWrappedNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
+        //final SnmpWrappedNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.SECONDS));
+        assertNotNull(p1);
+        assertEquals(NotificationSupport.Notification.Severity.NOTICE, p1.getSeverity());
+        //assertEquals(NotificationSupport.Notification.Severity.PANIC, p2.getSeverity());
+        assertEquals(0L, p1.getSequenceNumber());
+        assertEquals("Property string is changed", p1.getMessage());
+        //assertEquals("Property string is changed", p2.getMessage());
     }
 
     @Test
@@ -405,6 +409,14 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         event.getAdditionalElements().put("objectName", BEAN_NAME);
         event.getAdditionalElements().put("receiverAddress", addressForSNMP+"/"+client.getClientPort());
         event.getAdditionalElements().put("receiverName","test-receiver");
-        events.put("19.0", event);
+        events.put("19.1", event);
+
+        /*event = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration();
+        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event.getAdditionalElements().put("severity", "panic");
+        event.getAdditionalElements().put("objectName", BEAN_NAME);
+        event.getAdditionalElements().put("receiverAddress", addressForSNMP+"/"+client.getClientPort());
+        event.getAdditionalElements().put("receiverName","test-receiver");
+        events.put("20.1", event);*/
     }
 }
