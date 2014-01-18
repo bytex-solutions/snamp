@@ -308,13 +308,18 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 	}
 
 	private void start() throws IOException {
-		if(agentState == STATE_RUNNING) throw new IOException("SNMP agent already started.");
-        init();
-        if(coldStart) getServer().addContext(new OctetString("public"));
-		finishInit();
-		run();
-        if(coldStart) sendColdStartNotification();
-        coldStart = false;
+		switch (agentState){
+            case STATE_STOPPED:
+            case STATE_CREATED:
+                init();
+                if(coldStart) getServer().addContext(new OctetString("public"));
+                finishInit();
+                run();
+                if(coldStart) sendColdStartNotification();
+                coldStart = false;
+            return;
+            default: throw new IOException(String.format("SNMP agent already started (state %s).", agentState));
+        }
 	}
 
 	/**
@@ -443,9 +448,16 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
      */
     @Override
     public void close() {
-        if (agentState == STATE_RUNNING) super.stop();
-        removeNotificationTargets();
-        unregisterSnmpMIBs();
+        switch (agentState){
+            case STATE_RUNNING: super.stop();
+            case STATE_STOPPED:
+            case STATE_CREATED:
+                removeNotificationTargets();
+                unregisterSnmpMIBs();
+            break;
+            default:
+                log.log(Level.SEVERE, String.format("Unknown SNMP agent state: %s", agentState)); break;
+        }
         attributes.clear();
         senders.clear();
     }
