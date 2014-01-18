@@ -34,6 +34,8 @@ import static com.snamp.adapters.SnmpHelpers.DateTimeFormatter;
 @Author(name = "Roman Sakno")
 final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugin<SnmpAdapterLimitations> {
     private static final String PASSWORD_PARAM = "password";
+    private static final OctetString V2C_TAG = new OctetString("v2c");
+    private static final OctetString V3NOTIFY_TAG = new OctetString("v3notify");
 
     /**
      * Returns license limitations associated with this plugin.
@@ -258,8 +260,6 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             //add default address parsers for transport domains
             targetMIB.addDefaultTDomains();
             //register senders
-            final OctetString V2C_TAG = new OctetString("v2c");
-            final OctetString V3NOTIFY_TAG = new OctetString("v3notify");
             for(final String prefix: senders.keySet()){
                 final TrapSender sender = senders.get(prefix);
                 sender.registerTrap(targetMIB, V2C_TAG, getNotificationOriginator());
@@ -289,6 +289,9 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
     }
 
     private void removeNotificationTargets(){
+        //setup internal SNMP settings
+        getSnmpTargetMIB().removeTargetParams(V2C_TAG);
+        getSnmpTargetMIB().removeTargetParams(V3NOTIFY_TAG);
         for(final String prefix: senders.keySet()){
             senders.get(prefix).unregisterTrap(getSnmpTargetMIB());
             this.getVacmMIB().removeViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix));
@@ -305,7 +308,8 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 	}
 
 	private void start() throws IOException {
-		init();
+		if(agentState == STATE_RUNNING) throw new IOException("SNMP agent already started.");
+        init();
         if(coldStart) getServer().addContext(new OctetString("public"));
 		finishInit();
 		run();
@@ -368,8 +372,8 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         switch (agentState){
             case STATE_RUNNING:
                 super.stop();
-                unregisterSnmpMIBs();
                 removeNotificationTargets();
+                unregisterSnmpMIBs();
                 if(!saveState) {
                     attributes.clear();
                     senders.clear();
@@ -440,9 +444,9 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
     @Override
     public void close() {
         if (agentState == STATE_RUNNING) super.stop();
+        removeNotificationTargets();
         unregisterSnmpMIBs();
         attributes.clear();
-        removeNotificationTargets();
         senders.clear();
     }
 }

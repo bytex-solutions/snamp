@@ -332,7 +332,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     }
 
     @Test
-    public final void testForDatePropertyRFC1903HumaReadable() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public final void testForDatePropertyRFC1903HumanReadable() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         final Calendar cal = Calendar.getInstance(); cal.set(1994, 3, 5); // Kurt Donald Cobain, good night, sweet prince
         final SnmpHelpers.DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter("rfc1903-human-readable");
         final String valueToCheck = new String(formatter.convert(cal.getTime()));
@@ -344,7 +344,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     @Test
     public final void testForDatePropertyRFC1903() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         final Calendar cal = Calendar.getInstance(); cal.set(1994, 3, 5); // Kurt Donald Cobain, good night, sweet prince
-        final SnmpHelpers.DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter("rfc1903-human-readable");
+        final SnmpHelpers.DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter("rfc1903");
         final byte[] byteString = formatter.convert(cal.getTime());
         writeAttribute("11.0", byteString, byte[].class);
         assertArrayEquals(byteString, readAttribute(SNMPManager.ReadMethod.GET, "11.0", byte[].class));

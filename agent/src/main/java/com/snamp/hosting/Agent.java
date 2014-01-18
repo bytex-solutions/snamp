@@ -304,7 +304,7 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
 
     /**
      * Releases all resources associated with this instance of agent.
-     * @throws Exception An exception occured
+     * @throws Exception
      */
     @Override
     public void close() throws Exception{
