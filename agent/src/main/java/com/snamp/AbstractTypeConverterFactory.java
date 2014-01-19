@@ -160,7 +160,12 @@ public abstract class AbstractTypeConverterFactory implements TypeConverterFacto
         });
     }
 
-    private static final boolean shouldNormalize(final Class<?> classInfo){
+    /**
+     * Determines whether the specified Java type should be normalized.
+     * @param classInfo The Java type.
+     * @return The normalized Java type (if it is primitive type or array of primitive types).
+     */
+    protected static final boolean shouldNormalize(final Class<?> classInfo){
         return classInfo.isPrimitive() || classInfo.isArray() && classInfo.getComponentType().isPrimitive();
     }
 

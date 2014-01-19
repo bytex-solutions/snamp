@@ -62,7 +62,9 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterF
          */
         @Override
         public final <T> TypeConverter<T> getProjection(final Class<T> projectionType) {
-            return (TypeConverter<T>)projections.get(projectionType);
+            return shouldNormalize(projectionType) ?
+                    (TypeConverter<T>)getProjection(normalizeClass(projectionType)):
+                    (TypeConverter<T>)projections.get(projectionType);
         }
 
         /**
