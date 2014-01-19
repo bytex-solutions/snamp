@@ -1,5 +1,8 @@
 package com.snamp;
 
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
+
 import java.util.*;
 
 /**
@@ -8,6 +11,7 @@ import java.util.*;
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
+ * @see SimpleTable
  */
 public interface Table<COLUMN> {
     /**

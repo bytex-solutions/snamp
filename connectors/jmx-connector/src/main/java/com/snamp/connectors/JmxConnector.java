@@ -1,6 +1,8 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
+import com.snamp.internal.BeanPropertyAccessor;
+import com.snamp.internal.Internal;
 import com.snamp.licensing.JmxConnectorLimitations;
 import static com.snamp.connectors.JmxConnectionManager.MBeanServerConnectionHandler;
 
@@ -383,7 +385,6 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
      * Represents JMX attribute metadata.
      */
     public static interface JmxAttributeMetadata extends AttributeMetadata {
-        static final String OWNER_OPTION = "owner";
         /**
          * Returns the object name in which the current attribute is located.
          * @return
@@ -405,13 +406,22 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
         private final ObjectName namespace;
         private MBeanServerConnectionHandler<Object> attributeValueReader;
         private final JmxConnectionManager connectionManager;
+        private final Map<String, String> options;
+
+        protected JmxAttributeProvider(final JmxConnectionManager manager,
+                                       final String attributeName,
+                                       final ObjectName namespace,
+                                       final Map<String, String> options){
+            super(attributeName, namespace.toString());
+            this.connectionManager = manager;
+            this.namespace = namespace;
+            this.options = options != null ? Collections.unmodifiableMap(options) : Collections.<String, String>emptyMap();
+        }
 
         protected JmxAttributeProvider(final JmxConnectionManager manager,
                                        final String attributeName,
                                        final ObjectName namespace){
-            super(attributeName, namespace.toString());
-            this.connectionManager = manager;
-            this.namespace = namespace;
+            this(manager, attributeName, namespace, null);
         }
 
         @Override
@@ -421,64 +431,42 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
 
         @Override
         public final int size() {
-            return 1;
+            return options.size();
         }
 
         @Override
         public final boolean isEmpty() {
-            return false;
+            return options.isEmpty();
         }
 
         @Override
         public final boolean containsKey(final Object option) {
-            return OWNER_OPTION.equals(option);
+            return options.containsKey(option);
         }
 
         @Override
         public final boolean containsValue(final Object o) {
-            return namespace.equals(o);
+            return options.containsValue(o);
         }
 
         @Override
-        public final String get(final Object o) {
-            return Objects.equals(o, OWNER_OPTION) ? namespace.toString() : null;
+        public final String get(final Object option) {
+            return options.get(option);
         }
 
         @Override
         public final Set<String> keySet() {
-            return new HashSet<String>(1){{
-                add(OWNER_OPTION);
-            }};
+            return options.keySet();
         }
 
         @Override
         public final Collection<String> values() {
-            return new ArrayList(1){{
-                add(namespace.toString());
-            }};
+            return options.values();
         }
 
         @Override
         public final Set<Entry<String, String>> entrySet() {
-            return new HashSet<Entry<String, String>>(1){{
-                add(new Entry<String, String>(){
-
-                    @Override
-                    public final String getKey() {
-                        return OWNER_OPTION;
-                    }
-
-                    @Override
-                    public final String getValue() {
-                        return namespace.toString();
-                    }
-
-                    @Override
-                    public final String setValue(String s) {
-                        throw new UnsupportedOperationException();
-                    }
-                });
-            }};
+            return options.entrySet();
         }
 
         /**
@@ -537,12 +525,17 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     private final static class JmxNotificationWrapper extends HashMap<String, Object> implements Notification{
         private final javax.management.Notification jmxNotification;
         private final Severity notificationSeverity;
-        private Map<String, Object> attachments;
 
         public JmxNotificationWrapper(final Severity severity, final javax.management.Notification jmxNotification){
             this.jmxNotification = jmxNotification;
             notificationSeverity = severity != null ? severity : Severity.UNKNOWN;
-            this.attachments = null;
+            //loads notification as Java Bean and explore each JB property as attachment
+            try {
+                putAll(new BeanPropertyAccessor<>(jmxNotification, javax.management.Notification.class));
+            }
+            catch (final IntrospectionException e) {
+                log.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);
+            }
         }
 
         /**
@@ -584,27 +577,9 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
         public final String getMessage() {
             return jmxNotification.getMessage();
         }
-
-        /**
-         * Gets attachments associated with this notification.
-         *
-         * @return A read-only collection of attachments associated with this notification.
-         */
-        @Override
-        public synchronized final Map<String, Object> getAttachments() {
-            //loads notification as Java Bean and explore each JB property as attachment
-            if(attachments == null)
-                try {
-                    attachments = new BeanPropertyAccessor<javax.management.Notification>(jmxNotification, javax.management.Notification.class);
-                } catch (final IntrospectionException e) {
-                    attachments = new HashMap<>();
-                    log.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);
-                }
-            return attachments;
-        }
     }
 
-    private JmxAttributeProvider createPlainAttribute(final ObjectName namespace, final String attributeName){
+    private JmxAttributeProvider createPlainAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
         //extracts JMX attribute metadata
         final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
             @Override
@@ -614,7 +589,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                 return null;
             }
         }, null);
-        return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace){
+        return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
             @Override
             protected final JmxManagementEntityType detectAttributeType() {
                 if(targetAttr instanceof OpenMBeanAttributeInfoSupport)
@@ -679,7 +654,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
         } : null;
     }
 
-    private JmxAttributeProvider createCompositeAttribute(final ObjectName namespace, final String attributeName){
+    private JmxAttributeProvider createCompositeAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
         final CompositeValueNavigator navigator = new CompositeValueNavigator(attributeName);
         //получить описатель поля, этот описатель может содержать знак @ для вложенного атрибута
         final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
@@ -690,7 +665,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                 return null;
             }
         }, null);
-        return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace){
+        return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
             private final OpenType<?> compositeType = targetAttr instanceof OpenMBeanAttributeInfoSupport ? ((OpenMBeanAttributeInfoSupport)targetAttr).getOpenType() : SimpleType.STRING;
 
             @Override
@@ -776,13 +751,22 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
         JmxConnectorLimitations.current().verifyMaxInstanceCount(instanceCounter.incrementAndGet());
     }
 
-    private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final boolean useRegexp){
+    private static boolean useRegexpOption(final Map<String, String> options){
+        return options.containsKey("useRegexp") && Boolean.TRUE.equals(options.get("useRegexp"));
+    }
+
+    private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options, final boolean useRegexp){
         //creates JMX attribute provider based on its metadata and connection options.
         if(namespace == null) return null;
         if(CompositeValueNavigator.isCompositeAttribute(attributeName))
-            return createCompositeAttribute(namespace, attributeName);
-        else if(useRegexp) return connectAttribute(findObjectName(namespace), attributeName, false);
-        else return createPlainAttribute(namespace, attributeName);
+            return createCompositeAttribute(namespace, attributeName, options);
+        else if(useRegexpOption(options)) return connectAttribute(findObjectName(namespace), attributeName, options, false);
+        else return createPlainAttribute(namespace, attributeName, options);
+    }
+
+    private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
+        //creates JMX attribute provider based on its metadata and connection options.
+        return connectAttribute(namespace, attributeName, options, useRegexpOption(options));
     }
 
     /**
@@ -795,7 +779,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     protected JmxAttributeProvider connectAttributeCore(final String attributeName, final Map<String, String> options){
         final String namespace = Objects.toString(options.get(objectNameOption), "");
         try {
-            return connectAttribute(new ObjectName(namespace), attributeName, options.containsKey("useRegexp") && Boolean.TRUE.equals(options.get("useRegexp")));
+            return connectAttribute(new ObjectName(namespace), attributeName, options);
         } catch (final MalformedObjectNameException e) {
             log.log(Level.SEVERE, String.format("Unsupported JMX object name: %s", namespace), e);
             return null;

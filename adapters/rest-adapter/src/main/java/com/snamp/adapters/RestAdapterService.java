@@ -12,6 +12,9 @@ import com.snamp.*;
 import com.snamp.connectors.*;
 import com.snamp.connectors.util.AttributeValue;
 import com.snamp.connectors.util.AttributesRegistryReader;
+import com.snamp.core.AbstractPlatformService;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
 import com.sun.jersey.spi.resource.Singleton;
 import static com.snamp.connectors.ManagementEntityTypeBuilder.AbstractManagementEntityArrayType.*;
 import static com.snamp.connectors.WellKnownTypeSystem.*;
@@ -32,12 +35,15 @@ public final class RestAdapterService extends AbstractPlatformService {
     private final Logger logger;
     private static final TimeSpan READ_WRITE_TIMEOUT = new TimeSpan(60, TimeUnit.SECONDS);
 
-    RestAdapterService(final AttributesRegistryReader registeredAttributes, final Logger logger){
+    RestAdapterService(final String dateFormat, final AttributesRegistryReader registeredAttributes, final Logger logger){
         super(logger);
         this.attributes = registeredAttributes;
-        jsonFormatter = new GsonBuilder()
-                .serializeNulls()
-                .setDateFormat(DateFormat.LONG).create();
+        final GsonBuilder builder = new GsonBuilder();
+        if(dateFormat == null || dateFormat.isEmpty())
+            builder.setDateFormat(DateFormat.FULL);
+        else builder.setDateFormat(dateFormat);
+        builder.serializeNulls();
+        jsonFormatter = builder.create();
         jsonParser = new JsonParser();
         this.logger = logger;
     }

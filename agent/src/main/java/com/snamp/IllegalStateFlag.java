@@ -1,5 +1,9 @@
 package com.snamp;
 
+import com.snamp.internal.Internal;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
+
 /**
  * Represents object state flag that can be aggregated inside of stateful objects.
  * @author Roman Sakno

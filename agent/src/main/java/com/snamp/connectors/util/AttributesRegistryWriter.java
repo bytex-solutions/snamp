@@ -1,8 +1,10 @@
 package com.snamp.connectors.util;
 
-import com.snamp.*;
 import com.snamp.connectors.AttributeSupport;
-import com.snamp.connectors.ManagementConnector;
+import com.snamp.internal.Internal;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
+
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
 import java.util.Collection;

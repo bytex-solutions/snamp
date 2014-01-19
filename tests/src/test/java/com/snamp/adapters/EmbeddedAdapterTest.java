@@ -10,6 +10,7 @@ import static com.snamp.connectors.util.NotificationUtils.SynchronizationListene
 import static com.snamp.connectors.NotificationSupport.Notification;
 
 import com.snamp.hosting.Agent;
+import com.snamp.internal.Temporary;
 import org.junit.Test;
 
 import javax.management.*;

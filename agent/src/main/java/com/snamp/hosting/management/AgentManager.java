@@ -1,7 +1,9 @@
 package com.snamp.hosting.management;
 
-import com.snamp.*;
+import com.snamp.core.PlatformPlugin;
 import com.snamp.hosting.HostingContext;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
 
 
 /**

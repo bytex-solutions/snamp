@@ -1,6 +1,7 @@
 package com.snamp.licensing;
 
 import com.snamp.*;
+import com.snamp.core.PlatformPlugin;
 
 import javax.xml.bind.annotation.adapters.*;
 import java.io.IOException;

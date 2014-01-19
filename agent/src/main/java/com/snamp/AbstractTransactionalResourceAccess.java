@@ -11,7 +11,7 @@ import java.util.concurrent.locks.Lock;
  * @version 1.0
  * @since 1.0
  */
-public class TransactionalResourceAccess<R, S, C> extends ConcurrentResourceAccess<R> {
+public abstract class AbstractTransactionalResourceAccess<R, S, C> extends AbstractConcurrentResourceAccess<R> {
     /**
      * Represents a set of data that can be used to commit or undo changes in the resource.
      * This class cannot be inherited.
@@ -38,10 +38,8 @@ public class TransactionalResourceAccess<R, S, C> extends ConcurrentResourceAcce
 
     /**
      * Initializes a new transactional resource accessor.
-     * @param resource Thread-unsafe resource to wrap.
      */
-    public TransactionalResourceAccess(final R resource){
-        super(resource);
+    protected AbstractTransactionalResourceAccess(){
         snapshot = new Box<>();
     }
 
@@ -81,7 +79,7 @@ public class TransactionalResourceAccess<R, S, C> extends ConcurrentResourceAcce
             //at the preparation phase snapshot must be empty
             //if not, then the preparation called twice
             if(!snapshot.isEmpty()) return false;
-            snapshot.setValue(new PreparationData<>(snapshotProvider.invoke(resource), changesetProvider.newInstance()));
+            snapshot.setValue(new PreparationData<>(snapshotProvider.invoke(getResource()), changesetProvider.newInstance()));
             return true;
         }
         finally {
@@ -101,7 +99,7 @@ public class TransactionalResourceAccess<R, S, C> extends ConcurrentResourceAcce
         return prepare(new Activator<C>() {
             @Override
             public final C newInstance() {
-                return changesetProvider.invoke(resource);
+                return changesetProvider.invoke(getResource());
             }
         }, snapshotProvider);
     }
@@ -109,7 +107,7 @@ public class TransactionalResourceAccess<R, S, C> extends ConcurrentResourceAcce
     /**
      * Processes the second phase of the commit action and apply the necessary changes to the resource.
      * <p>
-     *     You should check if this method returns {@literal false} then call {@link #rollback(com.snamp.TransactionalResourceAccess.TransactionPhaseProcessor)} immediately.
+     *     You should check if this method returns {@literal false} then call {@link #rollback(AbstractTransactionalResourceAccess.TransactionPhaseProcessor)} immediately.
      * </p>
      * @param committer The action that apply the changeset to the resource.
      * @return {@literal true}, if second phase of the commit action is completed successfully; otherwise, {@literal false}.
@@ -119,7 +117,7 @@ public class TransactionalResourceAccess<R, S, C> extends ConcurrentResourceAcce
         wl.lock();
         try{
             if(snapshot.isEmpty()) return false;
-            else if(committer.invoke(resource, snapshot.getValue().changeset)){
+            else if(committer.invoke(getResource(), snapshot.getValue().changeset)){
                 snapshot.clear();
                 return true;
             }
@@ -140,7 +138,7 @@ public class TransactionalResourceAccess<R, S, C> extends ConcurrentResourceAcce
         wl.lock();
         try{
             if(snapshot.isEmpty()) return false;
-            else if(restorer.invoke(resource, snapshot.getValue().snapshot)){
+            else if(restorer.invoke(getResource(), snapshot.getValue().snapshot)){
                 snapshot.clear();
                 return true;
             }

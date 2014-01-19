@@ -58,7 +58,7 @@ public class ConsoleAgentManager extends AbstractAgentManager {
             output.println("Starting the agent.");
             agnt.start(currentConfig.getTargets());
         }
-        catch (final IOException e) {
+        catch (final Exception e) {
             output.println(String.format("Failed to start the agent; %s", e));
             return;
         }

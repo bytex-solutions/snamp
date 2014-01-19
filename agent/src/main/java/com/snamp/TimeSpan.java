@@ -1,5 +1,8 @@
 package com.snamp;
 
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
+
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -13,6 +16,9 @@ import java.util.concurrent.TimeUnit;
  *     t = t.convert(TimeUnit.MILLISECONDS); //represents 10 second but in MILLISECONDS representation
  *     System.out.println(t.duration); //10000
  * }</pre>
+ * </p>
+ * <p>
+ *     Note that the precision of this time interval is 1 nanosecond.
  * </p>
  * @author Roman Sakno
  * @version 1.0

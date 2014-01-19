@@ -1,25 +1,31 @@
 package com.snamp.adapters;
 
 import java.io.*;
+import java.lang.Thread;
+import java.net.BindException;
 import java.util.*;
 import java.util.logging.*;
 
 import com.snamp.connectors.*;
 import com.snamp.connectors.util.AbstractNotificationListener;
-import com.snamp.licensing.SnmpAdapterLimitations;
+import com.snamp.licensing.*;
 import net.xeoh.plugins.base.annotations.*;
+import net.xeoh.plugins.base.annotations.meta.Author;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.*;
 import org.snmp4j.mp.MPv3;
+import org.snmp4j.mp.MessageProcessingModel;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
+import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.transport.TransportMappings;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 import static com.snamp.connectors.NotificationSupport.Notification;
+import static com.snamp.adapters.SnmpHelpers.DateTimeFormatter;
 
 /**
  * Represents SNMP Agent.
@@ -28,14 +34,66 @@ import static com.snamp.connectors.NotificationSupport.Notification;
  * 
  */
 @PluginImplementation
-final class SnmpAdapter extends SnmpAdapterBase {
+@Author(name = "Roman Sakno")
+final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugin<SnmpAdapterLimitations> {
     private static final String PASSWORD_PARAM = "password";
+    private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
+    private static final OctetString V2C_TAG = new OctetString("v2c");
+    private static final OctetString V3NOTIFY_TAG = new OctetString("v3notify");
+
+    /**
+     * Returns license limitations associated with this plugin.
+     *
+     * @return The license limitations applied to this plugin.
+     */
+    @Override
+    public final SnmpAdapterLimitations getLimitations() {
+        return SnmpAdapterLimitations.current();
+    }
+
     /**
      * Represents a collection of MO's with OID postfixes.
      */
     private static final class ManagementAttributes extends HashMap<String, SnmpAttributeMapping>{
         public ManagementAttributes(){
             super(5);
+        }
+    }
+
+    private final static class NotificationReceiverInfo {
+        public static final String EVENT_TARGET_NAME = "receiverName";
+        public static final String EVENT_TARGET_ADDRESS = "receiverAddress";
+        private final OctetString name;
+        private final String address;
+
+        public NotificationReceiverInfo(final String name, final String address){
+            this.name = new OctetString(name);
+            this.address = address;
+        }
+
+        public NotificationReceiverInfo(final Map<String, String> options){
+            this(options.get(EVENT_TARGET_NAME), options.get(EVENT_TARGET_ADDRESS));
+        }
+
+        public final OctetString getName(){
+            return name;
+        }
+
+        public final OctetString getAddress(){
+            final TransportIpAddress addr = new UdpAddress(address);
+            return new OctetString(addr.getValue());
+        }
+
+        private static OID kindOfIP(final String addr){
+            if (addr.indexOf(":") >= 0)
+                return TransportDomains.transportDomainUdpIpv6;
+            else if (addr.matches("^\\d+\\.\\d+\\.\\d+\\.\\d+/\\d+"))
+                return TransportDomains.transportDomainUdpIpv4;
+            return TransportDomains.transportDomainUdpDns;
+        }
+
+        public final OID getTransportDomain(){
+            return kindOfIP(address);
         }
     }
 
@@ -46,79 +104,63 @@ final class SnmpAdapter extends SnmpAdapterBase {
     private final static class TrapSender extends AbstractNotificationListener{
         public static final int DEFAULT_TIMEOUT = 15000;//default timeout is 15 sec
         public static final int DEFAULT_RETRIES = 3;
-        public static final String DEFAULT_TAG_LIST = "";
-        public static final String DEFAULT_PARAMS = "";
-        public static final String EVENT_TARGET_NAME = "receiverName";
-        public static final String EVENT_TARGET_ADDRESS = "receiverAddress";
+        public static final String EVENT_TIMESTAMP_FORMAT = "timestampFormat";
         public static final String EVENT_TARGET_NOTIF_TIMEOUT = "sendingTimeout";
         public static final String EVENT_TARGET_RETRY_COUNT = "retryCount";
-        public static final String EVENT_TAG_LIST = "tagList";
-        public static final String EVENT_PARAMS = "params";
-        private final OctetString receiverName;
-        private final OctetString receiverAddress;
+        private final NotificationReceiverInfo receiver;
         private final int timeout;
         private final int retries;
-        private final OctetString tagList;
-        private final OctetString params;
         private final OID eventId;
-        private final NotificationOriginator originator;
+        private NotificationOriginator originator;
+        private final DateTimeFormatter timestampFormatter;
 
         public TrapSender(final OID eventId,
-                          final OctetString receiverName,
-                          final OctetString receiverAddress,
+                          NotificationReceiverInfo receiver,
                           final int timeout,
                           final int retries,
-                          final OctetString tagList,
-                          final OctetString params,
-                          final NotificationOriginator originator){
+                          final DateTimeFormatter timestampFormatter){
             super(eventId.toString());
             this.eventId = eventId;
-            this.receiverName = receiverName;
-            this.receiverAddress = receiverAddress;
+            this.receiver = receiver;
             this.timeout = timeout;
             this.retries = retries;
-            this.tagList = tagList;
-            this.params = params;
-            this.originator = originator;
+            this.timestampFormatter = timestampFormatter;
         }
 
-        public final boolean registerTrap(final SnmpTargetMIB targetMIB){
-            return targetMIB.addTargetAddress(receiverName,
-                    eventId,
-                    receiverAddress,
+        public final boolean registerTrap(final SnmpTargetMIB targetMIB, final OctetString paramsGroup, final NotificationOriginator originator){
+            if(this.originator != null || originator == null) return false;
+            else this.originator = originator;
+            return targetMIB.addTargetAddress(receiver.getName(),
+                    receiver.getTransportDomain(),
+                    receiver.getAddress(),
                     timeout,
                     retries,
-                    tagList,
-                    params,
+                    new OctetString("notify"),
+                    paramsGroup,
                     StorageType.nonVolatile);
         }
 
         public final boolean unregisterTrap(final SnmpTargetMIB targetMIB){
-            return targetMIB.removeTargetAddress(receiverName) != null;
+            originator = null;
+            return targetMIB.removeTargetAddress(receiver.getAddress()) != null;
         }
 
-        private final VariableBinding[] getVariableBindings(final Notification n){
-            final VariableBinding[] result = new VariableBinding[3];
-            result[0] = new VariableBinding(new OID(combineOID(eventId.toString(), "1")),
-                    new OctetString(n.getMessage()));
-            result[1] = new VariableBinding(new OID(combineOID(eventId.toString(), "2")),
-                    new OctetString(n.getSeverity().name()));
-            result[2] = new VariableBinding(new OID(combineOID(eventId.toString(), "3")),
-                    new TimeTicks(n.getTimeStamp().getTime()));
-            return result;
+        private final boolean handle(final SnmpWrappedNotification n){
+            return originator != null && n.send(new OctetString("public"), originator);
         }
 
         @Override
-        public boolean handle(final Notification n) {
-            return originator.notify(null, eventId, getVariableBindings(n)) != null;
+        public final boolean handle(final Notification n) {
+            return handle(new SnmpWrappedNotification(eventId, n, timestampFormatter));
         }
     }
 
 	private String address;
     private int port;
+    private int socketTimeout;
     private boolean coldStart;
     private final Map<String, ManagementAttributes> attributes;
-    private final List<TrapSender> senders;
+    private final Map<String, TrapSender> senders;
 	
 	public SnmpAdapter() throws IOException {
 		// These files does not exist and are not used but has to be specified
@@ -131,7 +173,8 @@ final class SnmpAdapter extends SnmpAdapterBase {
         port = defaultPort;
         address = defaultAddress;
         attributes = new HashMap<>();
-        this.senders = new ArrayList<>(10);
+        this.senders = new HashMap<>(10);
+        this.socketTimeout = 0;
 	}
 
     private static void registerManagedObjects(final MOServer server, final VacmMIB mib, final String prefix, Iterable<SnmpAttributeMapping> mos){
@@ -179,13 +222,7 @@ final class SnmpAdapter extends SnmpAdapterBase {
     @Override
     protected final void unregisterManagedObjects() {
         for(final String prefix: attributes.keySet()){
-            final ManagementAttributes attrs = attributes.get(prefix);
-            for(final String postfix: attrs.keySet()){
-                final ManagedObject mo = server.getManagedObject(new OID(combineOID(prefix, postfix)), null);
-                if(mo != null) server.unregister(mo, null);
-            }
-        }
-        for(final String prefix: attributes.keySet()){
+            for(final SnmpAttributeMapping mo: attributes.get(prefix).values()) if(mo != null) server.unregister(mo, null);
             this.getVacmMIB().removeViewTreeFamily(new OctetString("fullReadView"), new OID(prefix));
             this.getVacmMIB().removeViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix));
         }
@@ -225,31 +262,77 @@ final class SnmpAdapter extends SnmpAdapterBase {
      */
     @Override
     protected final void addNotificationTargets(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB) {
-        for(final TrapSender sender: senders)
-            sender.registerTrap(targetMIB);
+        if(senders.size() > 0){
+            //add default address parsers for transport domains
+            targetMIB.addDefaultTDomains();
+            //register senders
+            for(final String prefix: senders.keySet()){
+                final TrapSender sender = senders.get(prefix);
+                sender.registerTrap(targetMIB, V2C_TAG, getNotificationOriginator());
+                sender.registerTrap(targetMIB, V3NOTIFY_TAG, getNotificationOriginator());
+                getVacmMIB().addViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix),
+                        new OctetString(), VacmMIB.vacmViewIncluded,
+                        StorageType.nonVolatile);
+            }
+            //setup internal SNMP settings
+            targetMIB.addTargetParams(V2C_TAG,
+                    MessageProcessingModel.MPv2c,
+                    SecurityModel.SECURITY_MODEL_SNMPv2c,
+                    new OctetString("cpublic"),
+                    SecurityLevel.AUTH_PRIV,
+                    StorageType.permanent);
+            targetMIB.addTargetParams(V3NOTIFY_TAG,
+                    MessageProcessingModel.MPv3,
+                    SecurityModel.SECURITY_MODEL_USM,
+                    new OctetString("v3notify"),
+                    SecurityLevel.NOAUTH_NOPRIV,
+                    StorageType.permanent);
+            notificationMIB.addNotifyEntry(new OctetString("default"),
+                    new OctetString("notify"),
+                    SnmpNotificationMIB.SnmpNotifyTypeEnum.inform,
+                    StorageType.permanent);
+        }
     }
 
     private void removeNotificationTargets(){
-        for(final TrapSender sender: senders)
-            sender.unregisterTrap(getSnmpTargetMIB());
+        //setup internal SNMP settings
+        getSnmpTargetMIB().removeTargetParams(V2C_TAG);
+        getSnmpTargetMIB().removeTargetParams(V3NOTIFY_TAG);
+        for(final String prefix: senders.keySet()){
+            senders.get(prefix).unregisterTrap(getSnmpTargetMIB());
+            this.getVacmMIB().removeViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix));
+        }
     }
 
     /**
 	 * Initializes SNMP transport.
 	 */
 	protected void initTransportMappings() throws IOException {
-		final TransportMapping tm = TransportMappings.getInstance()
-				.createTransportMapping(GenericAddress.parse(String.format("%s/%s", address, port)));
-		transportMappings = new TransportMapping[]{tm};
+        final TransportMappings mappings = TransportMappings.getInstance();
+        try{
+            TransportMapping<?> tm = mappings.createTransportMapping(GenericAddress.parse(String.format("%s/%s", address, port)));
+            if(tm instanceof DefaultUdpTransportMapping)
+                ((DefaultUdpTransportMapping)tm).setSocketTimeout(socketTimeout);
+            transportMappings = new TransportMapping[]{tm};
+        }
+        catch (final RuntimeException e){
+            throw new IOException(String.format("Unable to create SNMP transport for %s/%s address.", address, port), e);
+        }
 	}
 
 	private void start() throws IOException {
-		init();
-        if(coldStart) getServer().addContext(new OctetString("public"));
-		finishInit();
-		run();
-        if(coldStart) sendColdStartNotification();
-        coldStart = false;
+		switch (agentState){
+            case STATE_STOPPED:
+            case STATE_CREATED:
+                init();
+                if(coldStart) getServer().addContext(new OctetString("public"));
+                finishInit();
+                run();
+                if(coldStart) sendColdStartNotification();
+                coldStart = false;
+            return;
+            default: throw new IOException(String.format("SNMP agent already started (state %s).", agentState));
+        }
 	}
 
 	/**
@@ -270,9 +353,10 @@ final class SnmpAdapter extends SnmpAdapterBase {
 		communityMIB.getSnmpCommunityEntry().addRow(row);
 	}
 
-    private boolean start(final Integer port, final String address) throws IOException{
+    private boolean start(final Integer port, final String address, final int socketTimeout) throws IOException{
         this.port = port != null ? port.intValue() : defaultPort;
         this.address = address != null && address.length() > 0 ? address : defaultAddress;
+        this.socketTimeout = socketTimeout;
         start();
         return true;
     }
@@ -290,7 +374,10 @@ final class SnmpAdapter extends SnmpAdapterBase {
             case STATE_STOPPED:
                 if(parameters.containsKey(PASSWORD_PARAM))
                     SnmpAdapterLimitations.current().verifyAuthenticationFeature();
-                return start(Integer.valueOf(parameters.get(portParamName)), parameters.get(addressParamName));
+                final String port = parameters.containsKey(PORT_PARAM_NAME) ? parameters.get(PORT_PARAM_NAME) : "161";
+                final String address = parameters.containsKey(ADDRESS_PARAM_NAME) ? parameters.get(ADDRESS_PARAM_NAME) : "127.0.0.1";
+                final String socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ? parameters.get(SOCKET_TIMEOUT_PARAM) : "0";
+                return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout));
             default:return false;
         }
     }
@@ -307,8 +394,8 @@ final class SnmpAdapter extends SnmpAdapterBase {
         switch (agentState){
             case STATE_RUNNING:
                 super.stop();
-                unregisterSnmpMIBs();
                 removeNotificationTargets();
+                unregisterSnmpMIBs();
                 if(!saveState) {
                     attributes.clear();
                     senders.clear();
@@ -348,25 +435,19 @@ final class SnmpAdapter extends SnmpAdapterBase {
 
     private final void exposeEvent(final NotificationSupport connector, final String namespace, final String postfix, final EventConfiguration eventInfo){
         final Map<String, String> eventOptions = eventInfo.getAdditionalElements();
-        if(eventOptions.containsKey(TrapSender.EVENT_TARGET_ADDRESS) && eventOptions.containsKey(TrapSender.EVENT_TARGET_NAME)){
+        if(eventOptions.containsKey(NotificationReceiverInfo.EVENT_TARGET_ADDRESS) && eventOptions.containsKey(NotificationReceiverInfo.EVENT_TARGET_NAME)){
             final int timeout = eventOptions.containsKey(TrapSender.EVENT_TARGET_NOTIF_TIMEOUT) ?
                     Integer.valueOf(eventOptions.get(TrapSender.EVENT_TARGET_NOTIF_TIMEOUT)):
                     TrapSender.DEFAULT_TIMEOUT;
-            final OctetString tagList = new OctetString(eventOptions.containsKey(TrapSender.EVENT_TAG_LIST) ?
-                    eventOptions.get(TrapSender.EVENT_TAG_LIST) : TrapSender.DEFAULT_TAG_LIST);
-            final OctetString params = new OctetString(eventOptions.containsKey(TrapSender.EVENT_PARAMS) ?
-                    eventOptions.get(TrapSender.EVENT_PARAMS) : TrapSender.DEFAULT_PARAMS);
             final int retryCount = eventOptions.containsKey(TrapSender.EVENT_TARGET_RETRY_COUNT) ?
                     Integer.valueOf(eventOptions.get(TrapSender.EVENT_TARGET_RETRY_COUNT)) : TrapSender.DEFAULT_RETRIES;
+            final DateTimeFormatter timestampFormatter = SnmpHelpers.createDateTimeFormatter(eventOptions.get(TrapSender.EVENT_TIMESTAMP_FORMAT));
             final TrapSender sender = new TrapSender(new OID(combineOID(namespace, postfix)),
-                    new OctetString(eventOptions.get(TrapSender.EVENT_TARGET_NAME)),
-                    new OctetString(eventOptions.get(TrapSender.EVENT_TARGET_ADDRESS)),
+                    new NotificationReceiverInfo(eventOptions),
                     timeout,
                     retryCount,
-                    tagList,
-                    params,
-                    this.getNotificationOriginator());
-            senders.add(sender);
+                    timestampFormatter);
+            senders.put(namespace, sender);
             //now we should register listener inside of management connector
             connector.enableNotifications(sender.getSubscriptionListId(), eventInfo.getCategory(), eventInfo.getAdditionalElements());
             sender.attachTo(connector);
@@ -384,10 +465,17 @@ final class SnmpAdapter extends SnmpAdapterBase {
      */
     @Override
     public void close() {
-        if (agentState == STATE_RUNNING) super.stop();
-        unregisterSnmpMIBs();
+        switch (agentState){
+            case STATE_RUNNING: super.stop();
+            case STATE_STOPPED:
+            case STATE_CREATED:
+                removeNotificationTargets();
+                unregisterSnmpMIBs();
+            break;
+            default:
+                log.log(Level.SEVERE, String.format("Unknown SNMP agent state: %s", agentState)); break;
+        }
         attributes.clear();
-        removeNotificationTargets();
         senders.clear();
     }
 }

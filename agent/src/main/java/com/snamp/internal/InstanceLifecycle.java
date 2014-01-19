@@ -1,4 +1,4 @@
-package com.snamp;
+package com.snamp.internal;
 
 /**
  * Represents utility class that describes object's instance lifecycle.

@@ -1,7 +1,7 @@
 package com.snamp.adapters;
 
 import com.google.gson.*;
-import com.snamp.Temporary;
+import com.snamp.internal.Temporary;
 import com.snamp.connectors.*;
 import static com.snamp.hosting.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration;
 import org.junit.Test;
@@ -14,6 +14,9 @@ import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration
 import java.io.*;
 import java.math.BigInteger;
 import java.net.*;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -22,8 +25,9 @@ import java.util.concurrent.*;
  */
 public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> {
     private static final Map<String, String> restAdapterSettings = new HashMap<String, String>(2){{
-        put(Adapter.portParamName, "3222");
-        put(Adapter.addressParamName, "127.0.0.1");
+        put(Adapter.PORT_PARAM_NAME, "3222");
+        put(Adapter.ADDRESS_PARAM_NAME, "127.0.0.1");
+        put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
     }};
 
 
@@ -31,7 +35,11 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
 
     public RestAdapterTest() throws MalformedObjectNameException {
         super("rest", restAdapterSettings, new TestManagementBean(), new ObjectName(TestManagementBean.BEAN_NAME));
-        jsonFormatter = new Gson();
+        final GsonBuilder builder = new GsonBuilder();
+        builder.setDateFormat(restAdapterSettings.get("dateFormat"));
+        builder.serializeNulls();
+        jsonFormatter = builder.create();
+
     }
 
     @Override
@@ -40,7 +48,7 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
     }
 
     private URL buildAttributeURL(final String postfix) throws MalformedURLException {
-        return new URL(String.format("http://%s:%s/snamp/management/attribute/%s/%s", restAdapterSettings.get(Adapter.addressParamName), restAdapterSettings.get(Adapter.portParamName), getAttributesNamespace(), postfix));
+        return new URL(String.format("http://%s:%s/snamp/management/attribute/%s/%s", restAdapterSettings.get(Adapter.ADDRESS_PARAM_NAME), restAdapterSettings.get(Adapter.PORT_PARAM_NAME), getAttributesNamespace(), postfix));
     }
 
     private String readAttribute(final String postfix) throws IOException {
@@ -114,6 +122,20 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
     public final void testForBigIntProperty() throws IOException{
         writeAttribute("bigintProperty", new BigInteger("100500"), BigInteger.class);
         assertEquals(new BigInteger("100500"), readAttribute("bigintProperty", BigInteger.class));
+    }
+
+    @Test
+    public final void testForDateProperty() throws IOException, ParseException {
+        Date d = new Date();
+        final DateFormat formatter = new SimpleDateFormat(restAdapterSettings.get("dateFormat"));
+        writeAttribute("dateProperty", d, Date.class);
+        assertEquals(formatter.parse(formatter.format(d)), readAttribute("dateProperty", Date.class));
+    }
+
+    @Test
+    public final void testForFloatProperty() throws IOException{
+        writeAttribute("floatProperty", 64F, Float.class);
+        assertEquals(new Float(64F), readAttribute("floatProperty", Float.class));
     }
 
     @Test
@@ -309,5 +331,13 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         attribute = new EmbeddedAttributeConfiguration("table");
         attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("tableProperty", attribute);
+
+        attribute = new EmbeddedAttributeConfiguration("float");
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        attributes.put("floatProperty", attribute);
+
+        attribute = new EmbeddedAttributeConfiguration("date");
+        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        attributes.put("dateProperty", attribute);
     }
 }

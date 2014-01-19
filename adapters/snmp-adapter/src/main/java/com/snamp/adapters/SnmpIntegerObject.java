@@ -18,12 +18,15 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
     }
 
     public static Integer32 convert(final Object value, final ManagementEntityType attributeTypeInfo){
-        return new Integer32(convertFrom(attributeTypeInfo, value, Integer.class));
+        final Number convertedValue = convertFrom(attributeTypeInfo, value, Number.class, Byte.class, Short.class, Integer.class);
+        return new Integer32(convertedValue.intValue());
     }
 
     public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
         if(supportsProjection(attributeTypeInfo, Long.class)) return value.toLong();
+        else if(supportsProjection(attributeTypeInfo, Short.class)) return new Short((short)value.toLong());
         else if(supportsProjection(attributeTypeInfo, Integer.class)) return value.toInt();
+        else if(supportsProjection(attributeTypeInfo, Byte.class)) return new Byte((byte)value.toLong());
         else if(supportsProjection(attributeTypeInfo, String.class)) return value.toString();
         else return logAndReturnDefaultValue(defaultValue, value, attributeTypeInfo);
     }

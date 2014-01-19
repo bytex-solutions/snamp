@@ -78,7 +78,8 @@ public final class SynchronizationEvent<T> {
         return new Awaitor<T>() {
             @Override
             public final T await(final TimeSpan timeout) throws TimeoutException, InterruptedException {
-                if(!barrier.await(timeout.duration, timeout.unit)) throw new TimeoutException();
+                if(timeout == null) return await();
+                else if(!barrier.await(timeout.duration, timeout.unit)) throw new TimeoutException();
                 else return eventObj;
             }
 

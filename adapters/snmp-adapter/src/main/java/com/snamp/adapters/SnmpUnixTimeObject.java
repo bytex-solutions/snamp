@@ -4,24 +4,46 @@ import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import org.snmp4j.smi.*;
 import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
+import static com.snamp.adapters.SnmpHelpers.DateTimeFormatter;
 
-import java.util.Date;
+import java.text.ParseException;
+import java.util.*;
+import java.util.logging.Level;
 
-final class SnmpUnixTimeObject extends SnmpScalarObject<TimeTicks>{
-    public static final long defaultValue = -1;
+final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
+    public static final String defaultValue = "1970-1-1,00:00:00.0,+0:0";
+    /**
+     * Represents name of the metadata property that specifies unix time display format.
+     */
+    private static final String DATE_TIME_DISPLAY_FORMAT_PROPERTY = "displayFormat";
+
+    private final DateTimeFormatter formatter;
 
     public SnmpUnixTimeObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
-        super(oid, connector, new TimeTicks(defaultValue), timeouts);
+        super(oid, connector, new OctetString(defaultValue), timeouts);
+        formatter = createFormatter(getMetadata());
     }
 
-    public static TimeTicks convert(final Object value, final ManagementEntityType attributeTypeInfo){
-        return new TimeTicks(convertFrom(attributeTypeInfo, value, Long.class));
+    private static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo, final DateTimeFormatter formatter){
+        final Date convertedValue = convertFrom(attributeTypeInfo, value, Date.class);
+        return new OctetString(formatter.convert(convertedValue));
     }
 
-    public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
-        if(supportsProjection(attributeTypeInfo, Long.class)) return value.toLong();
-        else if(supportsProjection(attributeTypeInfo, Date.class)) return new Date(value.toLong());
-        else return logAndReturnDefaultValue(new Date(), value, attributeTypeInfo);
+    public static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo, final Map<String, String> options){
+        return convert(value, attributeTypeInfo, createFormatter(options));
+    }
+
+    private static Object convert(final OctetString value, final ManagementEntityType attributeTypeInfo, final DateTimeFormatter formatter){
+        try {
+            return formatter.convert(value.toByteArray());
+        } catch (final ParseException e) {
+            log.log(Level.WARNING, String.format("Invalid date/time string %s", e));
+            return null;
+        }
+    }
+
+    public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo, final Map<String, String> options){
+        return convert((OctetString)value, attributeTypeInfo, createFormatter(options));
     }
 
     /**
@@ -31,8 +53,8 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<TimeTicks>{
      * @return
      */
     @Override
-    protected TimeTicks convert(final Object value) {
-        return convert(value, attributeTypeInfo);
+    protected OctetString convert(final Object value) {
+        return convert(value, attributeTypeInfo, formatter);
     }
 
     /**
@@ -42,7 +64,11 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<TimeTicks>{
      * @return
      */
     @Override
-    protected Object convert(final TimeTicks value) {
-        return convert(value, attributeTypeInfo);
+    protected Object convert(final OctetString value) {
+        return convert(value, attributeTypeInfo, formatter);
+    }
+
+    private static DateTimeFormatter createFormatter(final Map<String, String> options){
+        return SnmpHelpers.createDateTimeFormatter(options.containsKey(DATE_TIME_DISPLAY_FORMAT_PROPERTY) ? options.get(DATE_TIME_DISPLAY_FORMAT_PROPERTY) : null);
     }
 }

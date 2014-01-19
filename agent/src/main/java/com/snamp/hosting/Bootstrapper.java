@@ -1,6 +1,6 @@
 package com.snamp.hosting;
 
-import com.snamp.AbstractPlatformService;
+import com.snamp.core.AbstractPlatformService;
 import com.snamp.hosting.management.AgentManager;
 
 import java.io.*;
@@ -176,7 +176,7 @@ final class Bootstrapper implements HostingContext {
 
     private static void printHelp(final PrintStream output, final PrintStream err){
         try(final InputStream help = Bootstrapper.class.getResourceAsStream("cmd_help.txt")){
-            int b = -1;
+            int b;
             while ((b = help.read()) >= 0)
                 output.write(b);
         }
@@ -194,9 +194,8 @@ final class Bootstrapper implements HostingContext {
                 printHelp(System.out, System.err);
                 return;
         }
-        try(final AgentManager manager = HostingServices.getAgentManager(true)){
-            final Bootstrapper snampEntryPoint = new Bootstrapper(args[0], args[1]);
-            //executes the manager
+        final Bootstrapper snampEntryPoint = new Bootstrapper(args[0], args[1]);
+        try(final Agent ag = snampEntryPoint.queryObject(AGENT); final AgentManager manager = ag.getAgentManager(true)){
             manager.start(snampEntryPoint);
         }
     }
@@ -209,7 +208,7 @@ final class Bootstrapper implements HostingContext {
      * @return An instance of the requested service; or {@literal null} if service is not available.
      */
     @Override
-    public final  <T> T queryObject(final Class<T> objectType) {
+    public final <T> T queryObject(final Class<T> objectType) {
         if(objectType == null) return null;
         if(objectType.isInstance(agnt)) return objectType.cast(agnt);
         else if(objectType.isInstance(configurationStorage)) return objectType.cast(configurationStorage);

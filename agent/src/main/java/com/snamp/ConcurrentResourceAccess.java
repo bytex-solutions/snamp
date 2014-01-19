@@ -1,8 +1,5 @@
 package com.snamp;
 
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.*;
-
 /**
  * Provides thread-safe access to the thread-unsafe resource.
  * <p>
@@ -43,11 +40,11 @@ import java.util.concurrent.locks.*;
  * @since 1.0
  * @version 1.0
  */
-public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock implements Wrapper<R> {
+public class ConcurrentResourceAccess<R> extends AbstractConcurrentResourceAccess<R> implements Wrapper<R> {
     /**
      * Represents coordinated resource.
      */
-    protected R resource;
+    private volatile R resource;
 
     /**
      * Initializes a new thread safe container for the specified resource.
@@ -58,264 +55,21 @@ public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock implemen
     }
 
     /**
-     * Acquires write lock and process the resource.
-     * <p>
-     *     You should use {@link #read(com.snamp.ConcurrentResourceAccess.ConsistentAction)}
-     *     or {@link #write(com.snamp.ConcurrentResourceAccess.ConsistentAction)} instead of this method.
-     * </p>
-     * @param handler The wrapped resource handler.
-     * @return The wrapped resource handler.
+     * Returns the resource.
+     *
+     * @return The resource to synchronize.
      */
     @Override
-    public final  <RESULT> RESULT handle(final WrappedObjectHandler<R, RESULT> handler) {
-        return handler != null ?
-                write(new ConsistentAction<R, RESULT>() {
-                    @Override
-                    public final RESULT invoke(final R resource) {
-                        return handler.invoke(resource);
-                    }
-                }) : null;
+    protected final R getResource() {
+        return resource;
     }
 
     /**
-     * Represents resource action that can throws an exception during execution.
-     * @param <R> Type of the resource to handle.
-     * @param <V> Type of the result of reading operation.
-     * @since 1.0
-     * @version 1.0
+     * Sets resource in thread unsafe manner.
+     * @param resource The resource to set.
      */
-    public static interface Action<R, V, E extends Throwable>{
-        /**
-         * Handles the resource.
-         * @param resource The resource to handle.
-         * @return The value obtained from the specified resource.
-         * @throws E An exception that can be raised by action.
-         */
-        public V invoke(final R resource) throws E;
-    }
-
-    /**
-     * Represents resource action that cannot throws an exception during execution.
-     * @param <R> Type of the resource to handle.
-     * @param <V> Type of the resource handling.
-     */
-    public static interface ConsistentAction<R, V> extends Action<R, V, Exception> {
-        /**
-         * Handles the resource.
-         * @param resource The resource to handle.
-         * @return The value obtained from the specified resource.
-         */
-        @Override
-        public V invoke(final R resource);
-    }
-
-    /**
-     * Provides consistent read on the resource.
-     * <p>
-     *     This operation acquires read lock (may be infinitely in time) on the resource.
-     * </p>
-     * @param reader The resource reader.
-     * @param <V> Type of the resource reading value operation.
-     * @return The value obtained from the resource.
-     */
-    public final <V> V read(final ConsistentAction<R, V> reader){
-        if(reader == null) return null;
-        final Lock rl = readLock();
-        rl.lock();
-        try{
-            return reader.invoke(resource);
-        }
-        finally {
-            rl.unlock();
-        }
-    }
-
-    /**
-     * Provides consistent read on the resource.
-     * <p>
-     *     This operation acquires read lock on the resource.
-     * </p>
-     * @param reader The resource reader.
-     * @param readTimeout Timeout value used for acquiring read lock.
-     * @param <V> Type of the resource reading value operation.
-     * @return The value obtained from the resource.
-     * @throws java.util.concurrent.TimeoutException Read lock cannot be acquired in the specified time.
-     */
-    public final <V> V read(final ConsistentAction<R, V> reader, final TimeSpan readTimeout) throws TimeoutException{
-        if(reader == null) return null;
-        final Lock rl = readLock();
-        if(readTimeout == TimeSpan.INFINITE) rl.lock();
-        else try {
-            if(!rl.tryLock(readTimeout.duration, readTimeout.unit))
-                throw new TimeoutException(String.format("Read operation cannot be completed in %s time.", readTimeout));
-        }
-        catch (final InterruptedException e) {
-            throw new TimeoutException(e.getMessage());
-        }
-        try{
-            return reader.invoke(resource);
-        }
-        finally {
-            rl.unlock();
-        }
-    }
-
-    /**
-     * Provides inconsistent read on the resource.
-     * <p>
-     *    This operation acquires read lock (may be infinitely in time) on the resource.
-     * </p>
-     * @param reader The resource reader.
-     * @param <V> Type of the resource reading value operation.
-     * @param <E> Type of the exception that can be raised by reader.
-     * @return The reading operation result.
-     * @throws E Type of the exception that can be raised by reader.
-     */
-    public final <V, E extends Throwable> V read(final Action<R, V, E> reader) throws E{
-        if(reader == null) return null;
-        final Lock rl = readLock();
-        rl.lock();
-        try{
-            return reader.invoke(resource);
-        }
-        finally {
-            rl.unlock();
-        }
-    }
-
-    /**
-     * Provides inconsistent invoke on the resource.
-     * <p>
-     *    This operation acquires read lock (may be infinitely in time) on the resource.
-     * </p>
-     * @param reader The resource reader.
-     * @param <V> Type of the resource reading value operation.
-     * @param <E> Type of the exception that can be raised by reader.
-     * @return The reading operation result.
-     * @throws E Type of the exception that can be raised by reader.
-     * @throws java.util.concurrent.TimeoutException Read lock cannot be acquired in the specified time.
-     */
-    public final <V, E extends Throwable> V read(final Action<R, V, E> reader, final TimeSpan readTimeout) throws E, TimeoutException{
-        if(reader == null) return null;
-        final Lock rl = readLock();
-        if(readTimeout == TimeSpan.INFINITE) rl.lock();
-        else try {
-            if(!rl.tryLock(readTimeout.duration, readTimeout.unit))
-                throw new TimeoutException(String.format("Read operation cannot be completed in %s time.", readTimeout));
-        }
-        catch (final InterruptedException e) {
-            throw new TimeoutException(e.getMessage());
-        }
-        try{
-            return reader.invoke(resource);
-        }
-        finally {
-            rl.unlock();
-        }
-    }
-
-    /**
-     * Provides consistent write on the resource.
-     * <p>
-     *     This operation acquires write lock (may be infinitely in time) on the resource.
-     * </p>
-     * @param writer The resource writer.
-     * @param <O> Type of the resource writing operation.
-     * @return The value obtained from the resource.
-     */
-    public final <O> O write(final ConsistentAction<R, O> writer){
-        if(writer == null) return null;
-        final Lock wl = writeLock();
-        wl.lock();
-        try{
-            return writer.invoke(resource);
-        }
-        finally {
-            wl.unlock();
-        }
-    }
-
-    /**
-     * Provides consistent write on the resource.
-     * <p>
-     *     This operation acquires write lock on the resource.
-     * </p>
-     * @param writer The resource writer.
-     * @param <O> Type of the resource writing operation.
-     * @return The value obtained from the resource.
-     * @throws java.util.concurrent.TimeoutException Write lock cannot be acquired in the specified time.
-     */
-    public final <O> O write(final ConsistentAction<R, O> writer, final TimeSpan writeTimeout) throws TimeoutException{
-        if(writer == null) return null;
-        final Lock wl = writeLock();
-        if(writeTimeout == TimeSpan.INFINITE) wl.lock();
-        else try {
-            if(!wl.tryLock(writeTimeout.duration, writeTimeout.unit))
-                throw new TimeoutException(String.format("Write operation cannot be completed in %s time.", writeTimeout));
-        }
-        catch (final InterruptedException e) {
-            throw new TimeoutException(e.getMessage());
-        }
-        try{
-            return writer.invoke(resource);
-        }
-        finally {
-            wl.unlock();
-        }
-    }
-
-    /**
-     * Provides inconsistent write on the resource.
-     * <p>
-     *     This operation acquires write lock (may be infinitely in time) on the resource.
-     * </p>
-     * @param writer The resource writer.
-     * @param <O> Type of the resource writing operation.
-     * @param <E> An exception that can be raised by reader.
-     * @return The value obtained from the resource.
-     * @throws E An exception that can be raised by reader.
-     */
-    public final <O, E extends Throwable> O write(final Action<R, O, E> writer) throws E{
-        if(writer == null) return null;
-        final Lock wl = writeLock();
-        wl.lock();
-        try{
-            return writer.invoke(resource);
-        }
-        finally {
-            wl.unlock();
-        }
-    }
-
-    /**
-     * Provides inconsistent write on the resource.
-     * <p>
-     *     This operation acquires write lock on the resource.
-     * </p>
-     * @param writer The resource writer.
-     * @param <O> Type of the resource writing operation.
-     * @param <E> An exception that can be raised by reader.
-     * @return The value obtained from the resource.
-     * @throws E An exception that can be raised by reader.
-     * @throws java.util.concurrent.TimeoutException Write lock cannot be acquired in the specified time.
-     */
-    public final <O, E extends Throwable> O write(final Action<R, O, E> writer, final TimeSpan writeTimeout) throws E, TimeoutException{
-        if(writer == null) return null;
-        final WriteLock wl = writeLock();
-        if(writeTimeout == TimeSpan.INFINITE) wl.lock();
-        else try {
-            if(!wl.tryLock(writeTimeout.duration, writeTimeout.unit))
-                throw new TimeoutException(String.format("Write operation cannot be completed in %s time.", writeTimeout));
-        }
-        catch (final InterruptedException e) {
-            throw new TimeoutException(e.getMessage());
-        }
-        try{
-            return writer.invoke(resource);
-        }
-        finally {
-            wl.unlock();
-        }
+    protected final void setResource(final R resource){
+        this.resource = resource;
     }
 
     /**
@@ -347,7 +101,7 @@ public class ConcurrentResourceAccess<R> extends ReentrantReadWriteLock implemen
         final WriteLock wl = writeLock();
         wl.lock();
         try{
-            this.resource = newResource.newInstance();
+            setResource(newResource.newInstance());
         }
         finally {
             wl.unlock();

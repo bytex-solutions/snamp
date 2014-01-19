@@ -22,7 +22,7 @@ final class RestAdapterServlet extends ServletContainer {
      * Initializes a new instance of the rest service.
      * @param attributes
      */
-    public RestAdapterServlet(final AttributesRegistryReader attributes, final Logger serviceLogger){
-        super(createResourceConfig(new RestAdapterService(attributes, serviceLogger)));
+    public RestAdapterServlet(final String dateFormat, final AttributesRegistryReader attributes, final Logger serviceLogger){
+        super(createResourceConfig(new RestAdapterService(dateFormat, attributes, serviceLogger)));
     }
 }

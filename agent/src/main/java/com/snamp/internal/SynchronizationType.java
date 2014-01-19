@@ -1,4 +1,6 @@
-package com.snamp;
+package com.snamp.internal;
+
+import com.snamp.internal.Internal;
 
 /**
  * Represents utility enum that can be used as advice for method call synchronization.

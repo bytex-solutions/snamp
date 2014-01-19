@@ -1,5 +1,9 @@
 package com.snamp;
 
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.SynchronizationType;
+import com.snamp.internal.ThreadSafety;
+
 /**
  * Represents an object that aggregates another objects.<br/>
  * <p>

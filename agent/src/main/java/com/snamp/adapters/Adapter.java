@@ -1,15 +1,10 @@
 package com.snamp.adapters;
 
-import com.snamp.*;
-import com.snamp.connectors.AttributeSupport;
-import com.snamp.connectors.ManagementConnector;
-import com.snamp.connectors.NotificationSupport;
+import com.snamp.core.PlatformPlugin;
+import com.snamp.internal.*;
 
 import java.io.IOException;
 import java.util.*;
-
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 
 /**
  * Represents hosting adapter, that exposes management information to the outside world.
@@ -27,12 +22,12 @@ public interface Adapter extends AutoCloseable, PlatformPlugin, AttributePublish
     /**
      * Represents name of the port definition parameter.
      */
-    static final String portParamName = "port";
+    static final String PORT_PARAM_NAME = "port";
 
     /**
      * Represents name of the hosting address definition parameter.
      */
-    static final String addressParamName = "address";
+    static final String ADDRESS_PARAM_NAME = "address";
 
     /**
      * Exposes the connector to the world.

@@ -1,6 +1,8 @@
 package com.snamp.connectors;
 
-import com.snamp.*;
+import com.snamp.core.PlatformPlugin;
+import com.snamp.internal.InstanceLifecycle;
+import com.snamp.internal.Lifecycle;
 
 import java.util.Map;
 

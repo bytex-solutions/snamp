@@ -1,6 +1,6 @@
 package com.snamp.connectors.util;
 
-import com.snamp.Internal;
+import com.snamp.internal.Internal;
 
 /**
  * Represents utility interface for connecting and reading management attributes.

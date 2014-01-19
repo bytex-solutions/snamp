@@ -1,7 +1,7 @@
 package com.snamp.adapters;
 
-import com.snamp.MethodThreadSafety;
-import com.snamp.ThreadSafety;
+import com.snamp.internal.MethodThreadSafety;
+import com.snamp.internal.ThreadSafety;
 import com.snamp.connectors.NotificationSupport;
 import com.snamp.hosting.AgentConfiguration;
 

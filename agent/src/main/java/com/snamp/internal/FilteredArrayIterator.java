@@ -1,4 +1,6 @@
-package com.snamp;
+package com.snamp.internal;
+
+import com.snamp.internal.Internal;
 
 import java.util.Iterator;
 

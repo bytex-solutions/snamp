@@ -1,9 +1,8 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
-
-import java.util.*;
-import java.util.concurrent.*;
+import com.snamp.internal.InstanceLifecycle;
+import com.snamp.internal.Lifecycle;
 
 /**
  * Represents management connector that exposes management attributes of the remote provider.

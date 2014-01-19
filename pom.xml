@@ -39,21 +39,11 @@
             <id>oosnmpRepo</id>
             <name>oosnmp.com Repository</name>
             <url>https://server.oosnmp.net/dist/release</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
         </repository>
         <repository>
             <id>jspfRepo</id>
             <name>formreturn.com Repository</name>
             <url>http://maven.formreturn.com/repository</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
         </repository>
     </repositories>
 </project>

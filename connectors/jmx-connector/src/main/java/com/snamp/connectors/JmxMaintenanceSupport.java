@@ -1,6 +1,6 @@
 package com.snamp.connectors;
 
-import com.snamp.Internal;
+import com.snamp.internal.Internal;
 
 /**
  * Provides additional subroutines for managing the JMX connector.
