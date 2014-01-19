@@ -14,7 +14,7 @@ import javax.management.remote.*;
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.*;
 
@@ -32,20 +32,10 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
     private static final String OBJECT_NAME_OPTION = "objectName";
 
-
-    private static final javax.management.NotificationListener createJmxListener(final NotificationListener listener, final String category, final Notification.Severity severity){
-            return new javax.management.NotificationListener() {
-                @Override
-                public void handleNotification(final javax.management.Notification notification, final Object handback) {
-                    if(Objects.equals(category, notification.getType()))
-                        listener.handle(new JmxNotificationWrapper(severity, notification));
-                }
-            };
-    }
-
     private final static class JmxNotificationMetadata extends GenericNotificationMetadata{
         private final static String severityOption = "severity";
         private final Map<String, String> options;
+        private final ExecutorService executor;
 
         /**
          * Represents owner of this notification metadata.
@@ -61,6 +51,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             this.options = Collections.unmodifiableMap(options);
             this.eventOwner = eventOwner;
             this.eventMetadata = notificationInfo;
+            this.executor = Executors.newSingleThreadExecutor();
         }
 
         public final Notification.Severity getSeverity(){
@@ -85,7 +76,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
          * @param n A notification to emit.
          */
         public final void fire(final javax.management.Notification n){
-            fire(new JmxNotificationWrapper(getSeverity(), n), NotificationListenerInvokerFactory.createExceptionResistantInvoker(new NotificationListenerInvokerFactory.ExceptionHandler() {
+            fire(new JmxNotificationWrapper(getSeverity(), n), NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
                 @Override
                 public final void handle(final Throwable e, final NotificationListener source) {
                     log.log(Level.SEVERE, "Unable to process JMX notification.", e);
@@ -259,10 +250,12 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                     } else return null;
                 }
             }, null);
-            //checks whether the enabled MBean object already listening
-            final Set<ObjectName> listeningContext = getNotificationTargets();
-            if(!listeningContext.contains(eventData.eventOwner))
-                enableListening(eventData.eventOwner);
+            if(eventData != null){
+                //checks whether the enabled MBean object already listening
+                final Set<ObjectName> listeningContext = getNotificationTargets();
+                if(!listeningContext.contains(eventData.eventOwner))
+                    enableListening(eventData.eventOwner);
+            }
             return eventData;
         }
 

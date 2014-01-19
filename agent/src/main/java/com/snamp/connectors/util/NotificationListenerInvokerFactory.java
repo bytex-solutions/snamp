@@ -91,4 +91,24 @@ public final class NotificationListenerInvokerFactory {
             }
         };
     }
+
+    public static NotificationListenerInvoker createParallelExceptionResistantInvoker(final ExecutorService executor, final ExceptionHandler handler){
+        return new NotificationListenerInvoker() {
+            @Override
+            public final void invoke(final Notification n, final Iterable<? extends NotificationListener> listeners) {
+                for(final NotificationListener listener: listeners)
+                    executor.execute(new Runnable() {
+                        @Override
+                        public final void run() {
+                            try{
+                                listener.handle(n);
+                            }
+                            catch (final Throwable e){
+                                handler.handle(e, listener);
+                            }
+                        }
+                    });
+            }
+        };
+    }
 }

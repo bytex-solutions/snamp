@@ -29,7 +29,6 @@ public final class SNMPManager {
     private final String address;
     private CommunityTarget target = null;
     private TransportMapping transport = null;
-    private final Map<OID, SynchronizationEvent<SnmpWrappedNotification>> notifications;
 
     public static enum ReadMethod{
         GET(PDU.GET),
@@ -81,7 +80,6 @@ public final class SNMPManager {
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-        notifications = new HashMap<>(10);
     }
 
     public int getClientPort(){
@@ -100,29 +98,6 @@ public final class SNMPManager {
         transport = new DefaultUdpTransportMapping();
         transport.listen();
         snmp = new Snmp(transport);
-        snmp.addCommandResponder(new CommandResponder(){
-            @Override
-            public final void processPdu(final CommandResponderEvent event) {
-                final PDU p = event.getPDU();
-                if(p.getVariableBindings().size() == 0) return;
-                else {
-                    final Collection<? extends VariableBinding> bindings = p.getVariableBindings();
-                    SnmpWrappedNotification notif = null;
-                    for(final OID notificationID: notifications.keySet()){
-                        for(final VariableBinding binding: bindings)
-                            if(binding.getOid().startsWith(notificationID)){
-                                if(notif == null) notif = new SnmpWrappedNotification(notificationID);
-                                notif.put(binding);
-                            }
-                        if(notif != null && notif.size() > 0 && notifications.containsKey(notificationID)){
-                            notifications.get(notificationID).fire(notif);
-                            break;
-                        }
-                        else notif = null;
-                    }
-                }
-            }
-        });
     }
 
     private static OID[] makeColumnIDs(final OID baseID, final int columnCount){
@@ -196,9 +171,27 @@ public final class SNMPManager {
     }
 
     public final SynchronizationEvent.Awaitor<SnmpWrappedNotification> addNotificationListener(final OID notificationID){
-        final SynchronizationEvent<SnmpWrappedNotification> event = new SynchronizationEvent<>();
-        notifications.put(notificationID, event);
-        return event.getAwaitor();
+        final SynchronizationEvent<SnmpWrappedNotification> signaller = new SynchronizationEvent<>();
+        snmp.addCommandResponder(new CommandResponder() {
+            @Override
+            public final void processPdu(final CommandResponderEvent event) {
+                final PDU p = event.getPDU();
+                if(p.getVariableBindings().size() == 0) return;
+                else {
+                    final Collection<? extends VariableBinding> bindings = p.getVariableBindings();
+                    SnmpWrappedNotification notif = null;
+                    for(final VariableBinding binding: bindings)
+                        if(binding.getOid().startsWith(notificationID)){
+                            if(notif == null) notif = new SnmpWrappedNotification(notificationID);
+                            notif.put(binding);
+                    }
+                    if(notif != null && notif.size() > 0)
+                        signaller.fire(notif);
+                    else notif = null;
+                }
+            }
+        });
+        return signaller.getAwaitor();
     }
 
     /**

@@ -11,6 +11,7 @@ import java.beans.*;
 import java.lang.annotation.*;
 import java.lang.ref.*;
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.lang.reflect.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -324,12 +325,14 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
 
         public JavaBeanEventMetadata(final WellKnownTypeSystem typeSys,
                                      final String category,
-                                     final Map<String, String> options){
+                                     final Map<String, String> options,
+                                     final NotificationListenerInvoker listenerInvoker){
             super(category);
+            if(listenerInvoker == null) throw new IllegalArgumentException("listenerInvoker is null.");
             sequenceCounter = new AtomicLong(0L);
             typeSystem = typeSys;
             this.options = options != null ? Collections.unmodifiableMap(options) : new HashMap<String, String>();
-            listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
+            this.listenerInvoker = listenerInvoker;
         }
 
         public final void fireListeners(final Notification.Severity severity, final String message, final Map<String, Object> attachments){
@@ -422,6 +425,19 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         }
 
         /**
+         * Creates a new listeners invocation strategy.
+         * <p>
+         *     This method automatically calls from {@link #enableNotificationsCore(String, java.util.Map)} method.
+         *     By default, this method uses {@link NotificationListenerInvokerFactory#createParallelInvoker(java.util.concurrent.ExecutorService)}
+         *     strategy.
+         * </p>
+         * @return A new listeners invocation strategy.
+         */
+        protected NotificationListenerInvoker createListenerInvoker(){
+            return NotificationListenerInvokerFactory.createParallelInvoker(Executors.newSingleThreadExecutor());
+        }
+
+        /**
          * Enables event listening for the specified category of events.
          *
          * @param category The name of the category to listen.
@@ -430,7 +446,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
          */
         @Override
         protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
-            return new JavaBeanEventMetadata(attachmentTypeSystem, category, options);
+            return new JavaBeanEventMetadata(attachmentTypeSystem, category, options, createListenerInvoker());
         }
 
         /**
