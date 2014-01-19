@@ -1,6 +1,8 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
+import com.snamp.connectors.util.NotificationListenerInvoker;
+import com.snamp.connectors.util.NotificationListenerInvokerFactory;
 import com.snamp.internal.InstanceLifecycle;
 import com.snamp.internal.Lifecycle;
 import com.snamp.internal.MethodStub;
@@ -268,7 +270,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
             this.seqnum = sequenceNumber;
             this.message = message != null ? message : "";
             this.typeSystem = typeSys;
-            putAll(attachments);
+            putAll(attachments != null ? attachments : Collections.<String, Object>emptyMap());
         }
 
 
@@ -318,6 +320,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         private final AtomicLong sequenceCounter;
         private final WellKnownTypeSystem typeSystem;
         private final Map<String, String> options;
+        private final NotificationListenerInvoker listenerInvoker;
 
         public JavaBeanEventMetadata(final WellKnownTypeSystem typeSys,
                                      final String category,
@@ -326,12 +329,11 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
             sequenceCounter = new AtomicLong(0L);
             typeSystem = typeSys;
             this.options = options != null ? Collections.unmodifiableMap(options) : new HashMap<String, String>();
+            listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
         }
 
         public final void fireListeners(final Notification.Severity severity, final String message, final Map<String, Object> attachments){
-            final JavaBeanNotification notif = new JavaBeanNotification(typeSystem, severity, sequenceCounter.getAndIncrement(), message, attachments);
-            for(final Pair<NotificationListener, Object> listener: getListeners())
-                listener.first.handle(notif);
+            fire(new JavaBeanNotification(typeSystem, severity, sequenceCounter.getAndIncrement(), message, attachments), listenerInvoker);
         }
 
         /**

@@ -2,6 +2,7 @@ package com.snamp.adapters;
 
 import com.snamp.SynchronizationEvent;
 import org.snmp4j.*;
+import org.snmp4j.agent.CommandProcessor;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
 import org.snmp4j.mp.SnmpConstants;
@@ -13,8 +14,7 @@ import org.snmp4j.util.TableEvent;
 import org.snmp4j.util.TableUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,6 +29,7 @@ public final class SNMPManager {
     private final String address;
     private CommunityTarget target = null;
     private TransportMapping transport = null;
+    private final Map<OID, SynchronizationEvent<SnmpWrappedNotification>> notifications;
 
     public static enum ReadMethod{
         GET(PDU.GET),
@@ -80,6 +81,7 @@ public final class SNMPManager {
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
+        notifications = new HashMap<>(10);
     }
 
     public int getClientPort(){
@@ -98,6 +100,29 @@ public final class SNMPManager {
         transport = new DefaultUdpTransportMapping();
         transport.listen();
         snmp = new Snmp(transport);
+        snmp.addCommandResponder(new CommandResponder(){
+            @Override
+            public final void processPdu(final CommandResponderEvent event) {
+                final PDU p = event.getPDU();
+                if(p.getVariableBindings().size() == 0) return;
+                else {
+                    final Collection<? extends VariableBinding> bindings = p.getVariableBindings();
+                    SnmpWrappedNotification notif = null;
+                    for(final OID notificationID: notifications.keySet()){
+                        for(final VariableBinding binding: bindings)
+                            if(binding.getOid().startsWith(notificationID)){
+                                if(notif == null) notif = new SnmpWrappedNotification(notificationID);
+                                notif.put(binding);
+                            }
+                        if(notif != null && notif.size() > 0 && notifications.containsKey(notificationID)){
+                            notifications.get(notificationID).fire(notif);
+                            break;
+                        }
+                        else notif = null;
+                    }
+                }
+            }
+        });
     }
 
     private static OID[] makeColumnIDs(final OID baseID, final int columnCount){
@@ -166,28 +191,14 @@ public final class SNMPManager {
     }
 
     public void set(PDU pdu, ResponseListener listenerResp) throws IOException {
-
         snmp.send(pdu, getTarget(), null, listenerResp);
         return;
     }
 
     public final SynchronizationEvent.Awaitor<SnmpWrappedNotification> addNotificationListener(final OID notificationID){
-        final SynchronizationEvent<SnmpWrappedNotification> result = new SynchronizationEvent<>();
-        snmp.addCommandResponder(new CommandResponder() {
-            @Override
-            public void processPdu(final CommandResponderEvent event) {
-                final PDU p = event.getPDU();
-                if(p.getVariableBindings().size() == 0) return;
-                else {
-                    final SnmpWrappedNotification notif = new SnmpWrappedNotification(notificationID);
-                    for(final VariableBinding binding: event.getPDU().getVariableBindings())
-                        if(binding.getOid().startsWith(notificationID)) notif.put(binding);
-                    if(!notif.isEmpty()) result.fire(notif);
-                    snmp.removeCommandResponder(this);
-                }
-            }
-        });
-        return result.getAwaitor();
+        final SynchronizationEvent<SnmpWrappedNotification> event = new SynchronizationEvent<>();
+        notifications.put(notificationID, event);
+        return event.getAwaitor();
     }
 
     /**

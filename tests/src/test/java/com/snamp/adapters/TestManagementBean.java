@@ -3,6 +3,7 @@ package com.snamp.adapters;
 
 import javax.management.*;
 import javax.management.openmbean.*;
+import javax.management.timer.TimerNotification;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashMap;
@@ -103,6 +104,12 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
             "Occurs when property is changed"
     );
 
+    private static final MBeanNotificationInfo TIMER_EVENT = new MBeanNotificationInfo(
+            new String[]{"com.snamp.connectors.jmx.testnotif"},
+            TimerNotification.class.getName(),
+            "Occurs when timer is changed"
+    );
+
     private static final MBeanInfo BEAN_INFO = new MBeanInfo(TestManagementBean.class.getName(),
             "Test MBean",
             new MBeanAttributeInfo[]{STRING_PROPERTY,
@@ -117,7 +124,7 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
             },
             new MBeanConstructorInfo[0],
             new MBeanOperationInfo[0],
-            new MBeanNotificationInfo[]{PROPERTY_CHANGED_EVENT});
+            new MBeanNotificationInfo[]{PROPERTY_CHANGED_EVENT, TIMER_EVENT});
 
     private String chosenString;
     private boolean aBoolean;
@@ -131,7 +138,7 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
     private Date aDate;
 
     public TestManagementBean() {
-        super(PROPERTY_CHANGED_EVENT);
+        super(PROPERTY_CHANGED_EVENT, TIMER_EVENT);
         sequenceCounter = new AtomicLong(0);
         chosenString = "NO VALUE";
         aBigInt = BigInteger.ZERO;
@@ -267,6 +274,12 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
                 attributeType,
                 oldValue,
                 newValue));
+        sendNotification(new TimerNotification("com.snamp.connectors.jmx.testnotif",
+                this,
+                sequenceCounter.getAndIncrement(),
+                System.currentTimeMillis(),
+                "Property changed",
+                32));
     }
 
     /**

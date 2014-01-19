@@ -132,17 +132,15 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     private static interface RepeaterThread extends Runnable{
         void start();
         void interrupt();
-        SynchronizationEvent.Awaitor<Void> getAwaitor();
         long getId();
+        void join(final TimeSpan timeout) throws InterruptedException, TimeoutException;
     }
 
     private final static class RepeaterThreadImpl extends Thread implements RepeaterThread{
-        private final SynchronizationEvent<Void> synchronizer;
         private final long period;
 
         public RepeaterThreadImpl(final RepeaterWorker worker, final TimeSpan period){
             super(worker);
-            this.synchronizer = new SynchronizationEvent<>();
             this.period = period.convert(TimeUnit.MILLISECONDS).duration;
             setDaemon(true);
             setUncaughtExceptionHandler(worker);
@@ -156,17 +154,17 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                     Thread.sleep(period);
                 }
                 catch (final InterruptedException e){
-                    synchronizer.fire(null);
                     return;
                 }
                 super.run();
             }
         }
 
-
         @Override
-        public final SynchronizationEvent.Awaitor<Void> getAwaitor() {
-            return synchronizer.getAwaitor();
+        public final void join(final TimeSpan timeout) throws InterruptedException, TimeoutException{
+            if(timeout == TimeSpan.INFINITE) join();
+            else join(timeout.convert(TimeUnit.MILLISECONDS).duration);
+            if(isAlive()) throw new TimeoutException("Thread is not stopped.");
         }
     }
 
@@ -212,13 +210,14 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     public final synchronized void stop(final TimeSpan timeout) throws TimeoutException, InterruptedException{
         switch (state){
             case STOPPING:
-                repeatThread.getAwaitor().await(timeout);
+                repeatThread.join(timeout);
                 return;
             case STARTED:
                 repeatThread.interrupt();
                 state = State.STOPPING;
-                repeatThread.getAwaitor().await(timeout);
+                repeatThread.join(timeout);
                 state = State.STOPPED;
+
                 return;
             default:
                 throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STARTED, state));
