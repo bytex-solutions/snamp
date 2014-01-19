@@ -35,16 +35,17 @@ import java.util.concurrent.TimeUnit;
  */
 class IbmWmbConnector extends ManagementConnectorBean
 {
+    private final static String LOG_CHANGED_NOTIFICATION = "com.snamp.ibm.wmb.log.changed";
+    private final static String ACTIVITY_LOG_CHANGED_NOTIFICATION = "com.snamp.ibm.wmb.activity.log.changed";
+
     final static String NAME = "ibm-wmb";
     private final BrokerProxy mBrokerInstance;
     private final Map<String, String> mObjectFilter;
     private AdministeredObject mEntity = null;  // we cannot get it at the constructor :(
-
-    private final Date lastLogsDate = Calendar.getInstance().getTime();
+    private final UpdateChecker notificationListener;
 
     private final class UpdateChecker extends Repeater {
-
-
+        private Date lastLogDate = null;
         /**
          * Initializes a new repeater.
          *
@@ -56,7 +57,63 @@ class IbmWmbConnector extends ManagementConnectorBean
 
         @Override
         protected void doAction() {
+            try {
+                verifyInitialization(); // assure we have working Broker copy
 
+                final AdministeredObject entity = getAdministeredObject();
+                parseLogs(entity);
+
+                if(entity instanceof MessageFlowProxy) { // additional infos
+                    parseLogs((MessageFlowProxy) entity);
+                }
+
+            } catch (ConfigManagerProxyPropertyNotInitializedException | ConfigManagerProxyLoggedException e) {
+                // ignore
+            }
+        }
+
+        private void parseLogs(AdministeredObject entity) {
+            final List<LogEntry> logsToNotifyAbout = new ArrayList<>();
+            Date maxLogTimestamp = null; // intermediate evaluation of max log timestamp
+
+            for(LogEntry log : entity.getLastBIPMessages()) {
+                if(maxLogTimestamp == null)
+                    maxLogTimestamp = log.getTimestamp();
+
+                if(lastLogDate == null || log.getTimestamp().compareTo(lastLogDate) > 0) // date of log is greater
+                    logsToNotifyAbout.add(log);
+
+                maxLogTimestamp = new Date(Math.max(maxLogTimestamp.getTime(), log.getTimestamp().getTime()));
+            }
+
+            for(LogEntry log : logsToNotifyAbout)
+                emitNotification(LOG_CHANGED_NOTIFICATION, log.isErrorMessage() ? Notification.Severity.ERROR : Notification.Severity.INFO, log.toString(), null);
+
+            if(maxLogTimestamp != null) // predict case with no logs available
+                lastLogDate.setTime(maxLogTimestamp.getTime());
+        }
+
+        private void parseLogs(MessageFlowProxy entity) throws ConfigManagerProxyLoggedException, ConfigManagerProxyPropertyNotInitializedException {
+            final List<ActivityLogEntry> logsToNotifyAbout = new ArrayList<>();
+            Date maxLogTimestamp = null; // intermediate evaluation of max log timestamp
+            final Enumeration<ActivityLogEntry> logsEnum = entity.getActivityLog().elements();
+
+            while(logsEnum.hasMoreElements()) {
+                final ActivityLogEntry log = logsEnum.nextElement();
+                if(maxLogTimestamp == null)
+                    maxLogTimestamp = log.getTimestamp();
+
+                if(lastLogDate == null || log.getTimestamp().compareTo(lastLogDate) > 0) // date of log is greater
+                    logsToNotifyAbout.add(log);
+
+                maxLogTimestamp = new Date(Math.max(maxLogTimestamp.getTime(), log.getTimestamp().getTime()));
+            }
+
+            for(ActivityLogEntry log : logsToNotifyAbout)
+                emitNotification(ACTIVITY_LOG_CHANGED_NOTIFICATION, log.isErrorMessage() ? Notification.Severity.ERROR : Notification.Severity.INFO, log.toString(), null);
+
+            if(maxLogTimestamp != null) // predict case with no logs available
+                lastLogDate.setTime(maxLogTimestamp.getTime());
         }
     }
 
@@ -75,7 +132,7 @@ class IbmWmbConnector extends ManagementConnectorBean
                 final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(address.getHost(), address.getPort(), address.getPath().substring(1));
                 mBrokerInstance = BrokerProxy.getInstance(bcp);
 
-
+                notificationListener = new UpdateChecker();
             }
             else
                 throw new IllegalArgumentException("Cannot create IBM Connector: insufficient parameters!");
@@ -312,6 +369,7 @@ class IbmWmbConnector extends ManagementConnectorBean
     @Override
     public void close() throws Exception {
         super.close();
+        notificationListener.stop(new TimeSpan(5, TimeUnit.SECONDS));
         mBrokerInstance.disconnect();
     }
 }
