@@ -1,6 +1,7 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
+import com.snamp.connectors.util.NotificationListenerInvoker;
 import com.snamp.internal.InstanceLifecycle;
 import com.snamp.internal.Lifecycle;
 import com.snamp.internal.MethodThreadSafety;
@@ -225,10 +226,61 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
      * @version 1.0
      */
     protected static abstract class GenericNotificationMetadata implements Map<String, String>, NotificationMetadata{
+
+        /**
+         * Represents subscribed version of the notification listener. This class cannot be inherited.
+         * @author Roman Sakno
+         * @since 1.0
+         * @version 1.0
+         */
+        protected static final class SubscribedNotificationListener implements NotificationListener{
+            /**
+             * Represents user data associated with the notification listener.
+             */
+            public final Object userData;
+
+            /**
+             * Represents underlying notification listener.
+             */
+            public final NotificationListener listener;
+
+            /**
+             * Initializes a new subscribed version of the notification listener.
+             * @param listener A listener to wrap. Cannot be {@literal null}.
+             * @param userData User data associated with the notification listener.
+             * @throws IllegalArgumentException listener is {@literal null}.
+             */
+            public SubscribedNotificationListener(final NotificationListener listener, final Object userData){
+                if(listener == null) throw new IllegalArgumentException("listener is null.");
+                this.userData = userData;
+                this.listener = listener;
+            }
+
+            /**
+             * Initializes a new subscribed version of the notification listener.
+             * @param listener A listener to wrap. Cannot be {@literal null}.
+             * @throws IllegalArgumentException listener is {@literal null}.
+             */
+            public SubscribedNotificationListener(final NotificationListener listener){
+                this(listener, null);
+            }
+
+            /**
+             * Handles the specified notification.
+             *
+             * @param n The notification to handle.
+             * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
+             */
+            @Override
+            public final boolean handle(final NotificationSupport.Notification n) {
+                return listener.handle(n);
+            }
+        }
+
         private static final AtomicLong globalCounter = new AtomicLong(0L);
         private final String eventCategory;
         private final AtomicLong counter;
-        private final Map<Long, Pair<NotificationListener, Object>> listeners;
+        private final Map<Long, SubscribedNotificationListener> listeners;
         private final ReadWriteLock coordinator;
 
         /**
@@ -268,6 +320,24 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             return "";
         }
 
+        /**
+         * Fires the notification listeners.
+         * @param n The notification to pass into listeners.
+         * @param invoker Notification listener invoker.
+         * @see NotificationListenerInvoker
+         * @see com.snamp.connectors.util.NotificationListenerInvokerFactory
+         */
+        protected final void fire(final NotificationSupport.Notification n, final NotificationListenerInvoker invoker){
+            final Lock readLock = coordinator.readLock();
+            readLock.lock();
+            try{
+                invoker.invoke(n, listeners.values());
+            }
+            finally {
+                readLock.unlock();
+            }
+        }
+
         final boolean hasListener(final Long listenerId){
             final Lock readLock = coordinator.readLock();
             readLock.lock();
@@ -290,31 +360,14 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
         }
 
         /**
-         * Returns all subscribed listeners.
-         * @return A collection of subscribed listeners.
-         */
-        public final Collection<Pair<NotificationListener, Object>> getListeners(){
-            final Lock readLock = coordinator.readLock();
-            readLock.lock();
-            try{
-                return new ArrayList<>(listeners.values());
-            }
-            finally {
-                readLock.unlock();
-            }
-        }
-
-        /**
          * Removes all listeners.
          * @return A collection of removed listeners.
          */
-        public final Collection<Pair<NotificationListener, Object>> removeListeners(){
+        public final void removeListeners(){
             final Lock writeLock = coordinator.readLock();
             writeLock.lock();
             try{
-                final Collection<Pair<NotificationListener, Object>> result = new ArrayList<>(listeners.values());
                 listeners.clear();
-                return result;
             }
             finally {
                 writeLock.unlock();
@@ -326,7 +379,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          * @param listenerId An identifier of the listener.
          * @return An instance of the notification listener.
          */
-        public final Pair<NotificationListener, Object> getListener(final Long listenerId){
+         final SubscribedNotificationListener getListener(final Long listenerId){
             final Lock readLock = coordinator.readLock();
             readLock.lock();
             try{
@@ -348,7 +401,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             final Lock writeLock = coordinator.writeLock();
             writeLock.lock();
             try{
-                listeners.put(listenerId, new Pair<>(listener, userData));
+                listeners.put(listenerId, new SubscribedNotificationListener(listener, userData));
             }
             finally {
                 writeLock.unlock();
@@ -441,18 +494,35 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          * @param category The category of the event.
          * @param metadataType The type of requested notification metadata.
          * @param <T> The type of requested notification metadata.
-         * @return A map of registered notifications and subscription lists.
+         * @return A map of registered notifications (values) and subscription lists (keys).
          */
         @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
         protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType){
             return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Map<String, T>>() {
                 @Override
                 public final Map<String, T> invoke(final Map<String, GenericNotificationMetadata> notifications) {
-                    final Map<String, T> result = new HashMap<>(10);
+                    final Map<String, T> result = new HashMap<>(notifications.size());
                     for(final Map.Entry<String, GenericNotificationMetadata> metadata: notifications.entrySet())
                         if(Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
                             result.put(metadata.getKey(), metadataType.cast(metadata.getValue()));
                     return result;
+                }
+            });
+        }
+
+        /**
+         * Returns a collection of active categories.
+         * @return A collection of active categories.
+         */
+        @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+        protected final Set<String> getCategories(){
+            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Set<String>>() {
+                @Override
+                public Set<String> invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                    final Set<String> categories = new HashSet<>(10);
+                    for(final GenericNotificationMetadata eventData: notifications.values())
+                        categories.add(eventData.getCategory());
+                    return categories;
                 }
             });
         }
@@ -583,9 +653,9 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
                 public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
                     for(final GenericNotificationMetadata metadata: notifications.values()){
                         if(metadata.hasListener(listenerId)){
-                            final Pair<NotificationListener, Object> pair = metadata.getListener(listenerId);
+                            final GenericNotificationMetadata.SubscribedNotificationListener pair = metadata.getListener(listenerId);
                             if(pair == null) return false;
-                            unsubscribeCore(metadata, pair.first, pair.second);
+                            unsubscribeCore(metadata, pair.listener, pair.userData);
                             return metadata.removeListener(listenerId);
                         }
                     }

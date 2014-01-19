@@ -1,6 +1,8 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
+import com.snamp.connectors.util.NotificationListenerInvoker;
+import com.snamp.connectors.util.NotificationListenerInvokerFactory;
 import com.snamp.internal.InstanceLifecycle;
 import com.snamp.internal.Lifecycle;
 import com.snamp.internal.MethodStub;
@@ -9,6 +11,7 @@ import java.beans.*;
 import java.lang.annotation.*;
 import java.lang.ref.*;
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.lang.reflect.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -268,7 +271,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
             this.seqnum = sequenceNumber;
             this.message = message != null ? message : "";
             this.typeSystem = typeSys;
-            putAll(attachments);
+            putAll(attachments != null ? attachments : Collections.<String, Object>emptyMap());
         }
 
 
@@ -318,20 +321,22 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         private final AtomicLong sequenceCounter;
         private final WellKnownTypeSystem typeSystem;
         private final Map<String, String> options;
+        private final NotificationListenerInvoker listenerInvoker;
 
         public JavaBeanEventMetadata(final WellKnownTypeSystem typeSys,
                                      final String category,
-                                     final Map<String, String> options){
+                                     final Map<String, String> options,
+                                     final NotificationListenerInvoker listenerInvoker){
             super(category);
+            if(listenerInvoker == null) throw new IllegalArgumentException("listenerInvoker is null.");
             sequenceCounter = new AtomicLong(0L);
             typeSystem = typeSys;
             this.options = options != null ? Collections.unmodifiableMap(options) : new HashMap<String, String>();
+            this.listenerInvoker = listenerInvoker;
         }
 
         public final void fireListeners(final Notification.Severity severity, final String message, final Map<String, Object> attachments){
-            final JavaBeanNotification notif = new JavaBeanNotification(typeSystem, severity, sequenceCounter.getAndIncrement(), message, attachments);
-            for(final Pair<NotificationListener, Object> listener: getListeners())
-                listener.first.handle(notif);
+            fire(new JavaBeanNotification(typeSystem, severity, sequenceCounter.getAndIncrement(), message, attachments), listenerInvoker);
         }
 
         /**
@@ -420,6 +425,19 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         }
 
         /**
+         * Creates a new listeners invocation strategy.
+         * <p>
+         *     This method automatically calls from {@link #enableNotificationsCore(String, java.util.Map)} method.
+         *     By default, this method uses {@link NotificationListenerInvokerFactory#createParallelInvoker(java.util.concurrent.ExecutorService)}
+         *     strategy.
+         * </p>
+         * @return A new listeners invocation strategy.
+         */
+        protected NotificationListenerInvoker createListenerInvoker(){
+            return NotificationListenerInvokerFactory.createParallelInvoker(Executors.newSingleThreadExecutor());
+        }
+
+        /**
          * Enables event listening for the specified category of events.
          *
          * @param category The name of the category to listen.
@@ -428,7 +446,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
          */
         @Override
         protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
-            return new JavaBeanEventMetadata(attachmentTypeSystem, category, options);
+            return new JavaBeanEventMetadata(attachmentTypeSystem, category, options, createListenerInvoker());
         }
 
         /**

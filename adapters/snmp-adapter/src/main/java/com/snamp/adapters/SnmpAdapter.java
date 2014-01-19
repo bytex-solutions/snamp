@@ -9,6 +9,7 @@ import java.util.logging.*;
 import com.snamp.connectors.*;
 import com.snamp.connectors.util.AbstractNotificationListener;
 import com.snamp.licensing.*;
+import com.sun.org.apache.xml.internal.security.transforms.implementations.TransformXPointer;
 import net.xeoh.plugins.base.annotations.*;
 import net.xeoh.plugins.base.annotations.meta.Author;
 import org.snmp4j.TransportMapping;
@@ -58,6 +59,12 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
     private static final class ManagementAttributes extends HashMap<String, SnmpAttributeMapping>{
         public ManagementAttributes(){
             super(5);
+        }
+    }
+
+    private static final class ManagementNotifications extends ArrayList<TrapSender>{
+        public ManagementNotifications(){
+            super(4);
         }
     }
 
@@ -161,7 +168,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
     private int socketTimeout;
     private boolean coldStart;
     private final Map<String, ManagementAttributes> attributes;
-    private final Map<String, TrapSender> senders;
+    private final Map<String, ManagementNotifications> senders;
 	
 	public SnmpAdapter() throws IOException {
 		// These files does not exist and are not used but has to be specified
@@ -213,10 +220,6 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             registerManagedObjects(this.getServer(), this.getVacmMIB(), prefix, attributes.get(prefix).values());
 	}
 
-    private static String combineOID(final String prefix, final String postfix){
-        return String.format("%s.%s", prefix, postfix);
-    }
-
     /**
      * Unregisters additional managed objects from the agent's server.
      */
@@ -267,8 +270,8 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             //add default address parsers for transport domains
             targetMIB.addDefaultTDomains();
             //register senders
-            for(final String prefix: senders.keySet()){
-                final TrapSender sender = senders.get(prefix);
+            for(final String prefix: senders.keySet())
+                for(final TrapSender sender: senders.get(prefix)){
                 sender.registerTrap(targetMIB, V2C_TAG, getNotificationOriginator());
                 sender.registerTrap(targetMIB, V3NOTIFY_TAG, getNotificationOriginator());
                 getVacmMIB().addViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix),
@@ -300,7 +303,8 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         getSnmpTargetMIB().removeTargetParams(V2C_TAG);
         getSnmpTargetMIB().removeTargetParams(V3NOTIFY_TAG);
         for(final String prefix: senders.keySet()){
-            senders.get(prefix).unregisterTrap(getSnmpTargetMIB());
+            for(final TrapSender sender: senders.get(prefix))
+                    sender.unregisterTrap(getSnmpTargetMIB());
             this.getVacmMIB().removeViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix));
         }
     }
@@ -407,7 +411,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
     }
 
     private void exposeAttribute(final AttributeSupport connector, final String prefix, final String postfix, AttributeConfiguration attribute){
-        final String oid = combineOID(prefix, postfix);
+        final String oid = new OID(prefix).append(postfix).toString();
         final SnmpAttributeMapping mo = SnmpType.createManagedObject(connector, oid, attribute.getAttributeName(), attribute.getAdditionalElements(), attribute.getReadWriteTimeout());
         if(mo == null)
             log.warning(String.format("Unable to expose %s attribute with OID %s", attribute.getAttributeName(), oid));
@@ -443,12 +447,13 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             final int retryCount = eventOptions.containsKey(TrapSender.EVENT_TARGET_RETRY_COUNT) ?
                     Integer.valueOf(eventOptions.get(TrapSender.EVENT_TARGET_RETRY_COUNT)) : TrapSender.DEFAULT_RETRIES;
             final DateTimeFormatter timestampFormatter = SnmpHelpers.createDateTimeFormatter(eventOptions.get(TrapSender.EVENT_TIMESTAMP_FORMAT));
-            final TrapSender sender = new TrapSender(new OID(combineOID(namespace, postfix)),
+            final TrapSender sender = new TrapSender(new OID(namespace).append(postfix),
                     new NotificationReceiverInfo(eventOptions),
                     timeout,
                     retryCount,
                     timestampFormatter);
-            senders.put(namespace, sender);
+            if(!senders.containsKey(namespace)) senders.put(namespace, new ManagementNotifications());
+            senders.get(namespace).add(sender);
             //now we should register listener inside of management connector
             connector.enableNotifications(sender.getSubscriptionListId(), eventInfo.getCategory(), eventInfo.getAdditionalElements());
             sender.attachTo(connector);

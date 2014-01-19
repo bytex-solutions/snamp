@@ -1,8 +1,10 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
+import com.snamp.connectors.util.NotificationListenerInvokerFactory;
 import com.snamp.internal.BeanPropertyAccessor;
 import com.snamp.internal.Internal;
+import com.snamp.internal.MethodStub;
 import com.snamp.licensing.JmxConnectorLimitations;
 import static com.snamp.connectors.JmxConnectionManager.MBeanServerConnectionHandler;
 
@@ -12,7 +14,7 @@ import javax.management.remote.*;
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.*;
 
@@ -25,26 +27,15 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     /**
      * Represents JMX connector name.
      */
-    public static final String connectorName = "jmx";
-    private static final Logger log = AbstractManagementConnectorFactory.getLogger(connectorName);
+    public static final String NAME = "jmx";
+    private static final Logger log = AbstractManagementConnectorFactory.getLogger(NAME);
     private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
-    private static final String objectNameOption = "objectName";
+    private static final String OBJECT_NAME_OPTION = "objectName";
 
-
-    private static final javax.management.NotificationListener createJmxListener(final NotificationListener listener, final String category, final Notification.Severity severity){
-            return new javax.management.NotificationListener() {
-                @Override
-                public void handleNotification(final javax.management.Notification notification, final Object handback) {
-                    if(Objects.equals(category, notification.getType()))
-                        listener.handle(new JmxNotificationWrapper(severity, notification));
-                }
-            };
-    }
-
-    private final static class JmxNotificationMetadata extends GenericNotificationMetadata implements MBeanServerConnectionHandler<Void>{
+    private final static class JmxNotificationMetadata extends GenericNotificationMetadata{
         private final static String severityOption = "severity";
         private final Map<String, String> options;
-        private final JmxConnectionManager connectionManager;
+        private final ExecutorService executor;
 
         /**
          * Represents owner of this notification metadata.
@@ -52,8 +43,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
         public final ObjectName eventOwner;
         private final MBeanNotificationInfo eventMetadata;
 
-        public JmxNotificationMetadata(final JmxConnectionManager manager,
-                                       final String notifType,
+        public JmxNotificationMetadata(final String notifType,
                                        final MBeanNotificationInfo notificationInfo,
                                        final ObjectName eventOwner,
                                        final Map<String, String> options){
@@ -61,8 +51,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             this.options = Collections.unmodifiableMap(options);
             this.eventOwner = eventOwner;
             this.eventMetadata = notificationInfo;
-            this.connectionManager = manager;
-            manager.addReconnectionHandler(this);
+            this.executor = Executors.newSingleThreadExecutor();
         }
 
         public final Notification.Severity getSeverity(){
@@ -80,6 +69,19 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
 
                 }
             else return Notification.Severity.UNKNOWN;
+        }
+
+        /**
+         * Raises the notification associated with this descriptor.
+         * @param n A notification to emit.
+         */
+        public final void fire(final javax.management.Notification n){
+            fire(new JmxNotificationWrapper(getSeverity(), n), NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
+                @Override
+                public final void handle(final Throwable e, final NotificationListener source) {
+                    log.log(Level.SEVERE, "Unable to process JMX notification.", e);
+                }
+            }));
         }
 
         /**
@@ -142,56 +144,44 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
         public final Set<Entry<String, String>> entrySet() {
             return options.entrySet();
         }
+    }
 
-        public final javax.management.NotificationListener subscribe(final NotificationListener listener){
-            final javax.management.NotificationListener wrapper = createJmxListener(listener, getCategory(), getSeverity());
-            return connectionManager.handleConnection(new MBeanServerConnectionHandler<javax.management.NotificationListener>() {
-                @Override
-                public javax.management.NotificationListener handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    connection.addNotificationListener(eventOwner, wrapper, null, null);
-                    return wrapper;
-                }
-            }, wrapper);
+    private static final class JmxNotificationSupport extends AbstractNotificationSupport implements javax.management.NotificationListener, MBeanServerConnectionHandler<Void>{
+        private final JmxConnectionManager connectionManager;
+
+        public JmxNotificationSupport(final JmxConnectionManager connectionManager){
+            this.connectionManager = connectionManager;
+            this.connectionManager.addReconnectionHandler(this);
         }
 
-        /**
-         * Re-registers notification listeners.
-         * @param connection
-         * @return
-         * @throws IOException
-         * @throws JMException
-         */
-        @Override
-        public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
-            for(final Pair<NotificationListener, Object> listener: getListeners())
-                if(listener.second instanceof javax.management.NotificationListener)
-                    connection.addNotificationListener(eventOwner, (javax.management.NotificationListener)listener.second, null, null);
-            return null;
+        private Set<ObjectName> getNotificationTargets(){
+            final Set<ObjectName> targets = new HashSet<>(10);
+            for(final String category: getCategories())
+                for(final JmxNotificationMetadata eventData: getEnabledNotifications(category, JmxNotificationMetadata.class).values())
+                    targets.add(eventData.eventOwner);
+            return targets;
         }
 
-        private final void removeJmxListener(final javax.management.NotificationListener listener){
+        private void enableListening(final ObjectName target){
+            final javax.management.NotificationListener listener = this;
             connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
                 @Override
-                public Void handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    connection.removeNotificationListener(eventOwner, listener);
+                public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    connection.addNotificationListener(target, listener, null, null);
                     return null;
                 }
             }, null);
         }
 
-        public final void disableNotifications(){
-            //remove all listeners
-            for(final Pair<NotificationListener, Object> listener: removeListeners())
-                if(listener.second instanceof javax.management.NotificationListener)
-                    removeJmxListener((javax.management.NotificationListener)listener.second);
-        }
-    }
-
-    private static final class JmxNotificationSupport extends AbstractNotificationSupport{
-        private final JmxConnectionManager connectionManager;
-
-        public JmxNotificationSupport(final JmxConnectionManager connectionManager){
-            this.connectionManager = connectionManager;
+        private void disableListening(final ObjectName target){
+            final javax.management.NotificationListener listener = this;
+            connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
+                @Override
+                public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    connection.removeNotificationListener(target, listener);
+                    return null;
+                }
+            }, null);
         }
 
         /**
@@ -201,20 +191,9 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
          * @param listener         The event listener.
          */
         @Override
+        @MethodStub
         protected final Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener) {
-            return notificationType instanceof JmxNotificationMetadata ?
-                    ((JmxNotificationMetadata)notificationType).subscribe(listener):
-                    null;
-        }
-
-        private final void unsubscribeCore(final JmxNotificationMetadata md, final javax.management.NotificationListener listener){
-            connectionManager.handleConnection(new MBeanServerConnectionHandler<Object>() {
-                @Override
-                public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    connection.removeNotificationListener(md.eventOwner, listener);
-                    return null;
-                }
-            }, null);
+            return null;
         }
 
         /**
@@ -226,10 +205,15 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
          *                 method.
          */
         @Override
+        @MethodStub
         protected final void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data) {
-            if(metadata instanceof JmxNotificationMetadata && data instanceof javax.management.NotificationListener)
-                unsubscribeCore((JmxNotificationMetadata)metadata, (javax.management.NotificationListener)data);
-            else log.warning(String.format("JMX-incompliant listener detected %s", data));
+
+        }
+
+        private void disableNotificationsCore(final JmxNotificationMetadata notificationType){
+            final Set<ObjectName> targets = getNotificationTargets();
+            if(!targets.contains(notificationType.eventOwner))
+                disableListening(notificationType.eventOwner);
         }
 
         /**
@@ -239,8 +223,9 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
          */
         @Override
         protected final void disableNotificationsCore(final NotificationMetadata notificationType) {
+            //remove JMX listener if there is no one active MBean listener
             if(notificationType instanceof JmxNotificationMetadata)
-                ((JmxNotificationMetadata)notificationType).disableNotifications();
+                disableNotificationsCore((JmxNotificationMetadata)notificationType);
         }
 
         /**
@@ -252,19 +237,52 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
          */
         @Override
         protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
-            return connectionManager.handleConnection(new MBeanServerConnectionHandler<JmxNotificationMetadata>() {
+            final JmxNotificationMetadata eventData = connectionManager.handleConnection(new MBeanServerConnectionHandler<JmxNotificationMetadata>() {
                 @Override
                 public JmxNotificationMetadata handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    if (options.containsKey(objectNameOption)) {
-                        final ObjectName on = new ObjectName(options.get(objectNameOption));
+                    if (options.containsKey(OBJECT_NAME_OPTION)) {
+                        final ObjectName on = new ObjectName(options.get(OBJECT_NAME_OPTION));
                         for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(on).getNotifications())
                             for (final String notifType : notificationInfo.getNotifTypes())
                                 if (Objects.equals(notifType, category))
-                                    return new JmxNotificationMetadata(connectionManager, notifType, notificationInfo, on, options);
+                                    return new JmxNotificationMetadata(notifType, notificationInfo, on, options);
                         return null;
                     } else return null;
                 }
             }, null);
+            if(eventData != null){
+                //checks whether the enabled MBean object already listening
+                final Set<ObjectName> listeningContext = getNotificationTargets();
+                if(!listeningContext.contains(eventData.eventOwner))
+                    enableListening(eventData.eventOwner);
+            }
+            return eventData;
+        }
+
+        private final void handleNotification(final ObjectName source, final javax.management.Notification notification){
+            final Map<String, JmxNotificationMetadata> enabledNotifs = getEnabledNotifications(notification.getType(), JmxNotificationMetadata.class);
+            for(final JmxNotificationMetadata eventMetadata: enabledNotifs.values())
+                if(source.equals(eventMetadata.eventOwner)) eventMetadata.fire(notification);
+        }
+
+        @Override
+        public final void handleNotification(final javax.management.Notification notification, final Object handback) {
+            //iterates through all listeners and executes it
+            if(notification.getSource() instanceof ObjectName)
+                handleNotification((ObjectName)notification.getSource(), notification);
+            else log.warning(String.format("Unable to handle notification %s because source is unknown", notification));
+        }
+
+        public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
+            //for each MBean object assigns notification listener
+            for(final ObjectName target: getNotificationTargets())
+                connection.addNotificationListener(target, this, null, null);
+            return null;
+        }
+
+        public final void unsubscribeAll(){
+            for(final ObjectName target: getNotificationTargets())
+                disableListening(target);
         }
     }
 
@@ -777,7 +795,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
      */
     @Override
     protected JmxAttributeProvider connectAttributeCore(final String attributeName, final Map<String, String> options){
-        final String namespace = Objects.toString(options.get(objectNameOption), "");
+        final String namespace = Objects.toString(options.get(OBJECT_NAME_OPTION), "");
         try {
             return connectAttribute(new ObjectName(namespace), attributeName, options);
         } catch (final MalformedObjectNameException e) {
@@ -895,6 +913,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     @Override
     public final void close() throws Exception{
         super.close();
+        notifications.unsubscribeAll();
         notifications.clear();
         try{
             connectionManager.close();
