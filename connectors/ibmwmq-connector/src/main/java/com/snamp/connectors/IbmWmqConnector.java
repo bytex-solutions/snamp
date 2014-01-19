@@ -63,6 +63,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
      *
      * @return list of messages in a options-supplied queue
      */
+    // TODO: Сделать notification-support для getQueueMessages на новое сообщение (фильтр по putDateTime)
     final public List<MQMessage> getQueueMessages() {
         if(mObjectFilter.containsKey("parseQueue")) {
             final List<MQMessage> messages = new ArrayList<>();

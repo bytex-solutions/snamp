@@ -72,7 +72,7 @@ class IbmWmbConnector extends ManagementConnectorBean
             }
         }
 
-        private void parseLogs(AdministeredObject entity) {
+        private void parseLogs(final AdministeredObject entity) {
             final List<LogEntry> logsToNotifyAbout = new ArrayList<>();
             Date maxLogTimestamp = null; // intermediate evaluation of max log timestamp
 
@@ -93,7 +93,7 @@ class IbmWmbConnector extends ManagementConnectorBean
                 lastLogDate.setTime(maxLogTimestamp.getTime());
         }
 
-        private void parseLogs(MessageFlowProxy entity) throws ConfigManagerProxyLoggedException, ConfigManagerProxyPropertyNotInitializedException {
+        private void parseLogs(final MessageFlowProxy entity) throws ConfigManagerProxyLoggedException, ConfigManagerProxyPropertyNotInitializedException {
             final List<ActivityLogEntry> logsToNotifyAbout = new ArrayList<>();
             Date maxLogTimestamp = null; // intermediate evaluation of max log timestamp
             final Enumeration<ActivityLogEntry> logsEnum = entity.getActivityLog().elements();
