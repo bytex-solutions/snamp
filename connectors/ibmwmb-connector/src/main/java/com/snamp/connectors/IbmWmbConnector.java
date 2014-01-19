@@ -222,6 +222,28 @@ class IbmWmbConnector extends ManagementConnectorBean
         }
     }
 
+    final public String[] getActivityLogMessages() {
+        try {
+            final AdministeredObject entity = getAdministeredObject();
+            if(entity instanceof MessageFlowProxy)
+                ((MessageFlowProxy) entity).getActivityLog();
+
+            final List<String> logMessages = new ArrayList<>();
+
+
+            final ActivityLogProxy log = ((MessageFlowProxy) entity).getActivityLog();
+            if(log != null)
+                log.elements().nextElement().
+                for(LogEntry log : logVector)
+                    logMessages.add(log.toString());
+
+            return logMessages.toArray(new String[logMessages.size()]); // type system knows about String[]
+
+        } catch (ConfigManagerProxyPropertyNotInitializedException | ConfigManagerProxyLoggedException e) {
+            return null;
+        }
+    }
+
     /**
      * Function that retrieves last update time of currently looked at administered object
      *
@@ -253,5 +275,11 @@ class IbmWmbConnector extends ManagementConnectorBean
         } catch (ConfigManagerProxyPropertyNotInitializedException e) {
             return null;
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        super.close();
+        mBrokerInstance.disconnect();
     }
 }

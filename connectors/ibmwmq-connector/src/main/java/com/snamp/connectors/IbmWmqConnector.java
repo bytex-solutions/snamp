@@ -1,7 +1,6 @@
 package com.snamp.connectors;
 
-import com.ibm.mq.MQEnvironment;
-import com.ibm.mq.MQQueueManager;
+import com.ibm.mq.*;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
@@ -11,7 +10,9 @@ import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,6 +27,7 @@ import java.util.Map;
 class IbmWmqConnector extends ManagementConnectorBean {
     public static final String NAME = "ibm-wmq";
     private final Map<String, String> mObjectFilter;
+    private final MQQueueManager mQmgrInstance;
     private final PCFMessageAgent mMonitor;
 
     /**
@@ -45,7 +47,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
                 MQEnvironment.port = address.getPort();
 
                 //blocking calls, capped by 5 secs, exception on timeout
-                final MQQueueManager mQmgrInstance = new MQQueueManager(address.getPath().substring(1));
+                mQmgrInstance = new MQQueueManager(address.getPath().substring(1));
                 mMonitor = new PCFMessageAgent(mQmgrInstance);
                 mObjectFilter = connectionProperties;
             }
@@ -54,6 +56,39 @@ class IbmWmqConnector extends ManagementConnectorBean {
         } catch (Exception e) {
             throw new IntrospectionException(e.toString());
         }
+    }
+
+    /**
+     * Function for further groovy investigation
+     *
+     * @return list of messages in a options-supplied queue
+     */
+    final public List<MQMessage> getQueueMessages() {
+        if(mObjectFilter.containsKey("parseQueue")) {
+            final List<MQMessage> messages = new ArrayList<>();
+
+            try {
+                final MQQueue subQueue = mQmgrInstance.accessQueue(mObjectFilter.get("parseQueue"), CMQC.MQOO_BROWSE);
+                MQGetMessageOptions gmo = new MQGetMessageOptions();
+                gmo.options = gmo.options + CMQC.MQGMO_BROWSE_NEXT + CMQC.MQGMO_ACCEPT_TRUNCATED_MSG; // accept only first 4 Kbytes of message
+                MQMessage myMessage = new MQMessage();
+                    while (true) {
+                        myMessage.clearMessage();
+                        myMessage.correlationId = CMQC.MQCI_NONE;
+                        myMessage.messageId     = CMQC.MQMI_NONE;
+                        subQueue.get(myMessage, gmo);
+
+                        messages.add(myMessage);
+                    }
+            } catch (MQException e) {
+                if(e.reasonCode == CMQC.MQRC_NO_MSG_AVAILABLE)
+                    return messages;
+            } catch (IOException ignored) {
+                // cannot clear message
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -135,5 +170,12 @@ class IbmWmqConnector extends ManagementConnectorBean {
         } catch (IOException | MQDataException e) {
             return null;
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        super.close();
+        mMonitor.disconnect();
+        mQmgrInstance.disconnect();
     }
 }
