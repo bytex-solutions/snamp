@@ -4,7 +4,9 @@ import com.snamp.SynchronizationEvent;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
+import org.snmp4j.mp.MPv3;
 import org.snmp4j.mp.SnmpConstants;
+import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.util.DefaultPDUFactory;
@@ -27,8 +29,11 @@ public final class SNMPManager {
 
     private Snmp snmp = null;
     private final String address;
-    private CommunityTarget target = null;
+    private Target target = null;
     private TransportMapping transport = null;
+
+    private String username = "";
+    private String password = "";
 
     public static enum ReadMethod{
         GET(PDU.GET),
@@ -87,6 +92,20 @@ public final class SNMPManager {
         return address.getPort();
     }
 
+    /**
+     * Create usual SNMP client for snmpv3 with auth
+     * @param add
+     */
+    public SNMPManager(final String add, final String username, final String password) {
+        this.address = add;
+        this.username = username;
+        this.password = password;
+        try {
+            start();
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
 
     /**
      * Start the Snmp session. If you forget the listen() method you will not
@@ -98,6 +117,14 @@ public final class SNMPManager {
         transport = new DefaultUdpTransportMapping();
         transport.listen();
         snmp = new Snmp(transport);
+    }
+
+    public void start(final String username, final String password) throws IOException {
+        start();
+        USM usm = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), 0);
+        SecurityModels.getInstance().addSecurityModel(usm);
+        snmp = new Snmp(new DefaultUdpTransportMapping());
+        snmp.getUSM().addUser(new OctetString(username), new UsmUser(new OctetString(username), AuthMD5.ID, new OctetString(password), AuthMD5.ID, null));
     }
 
     private static OID[] makeColumnIDs(final OID baseID, final int columnCount){
@@ -199,12 +226,26 @@ public final class SNMPManager {
         if (target == null)
         {
             final Address targetAddress = GenericAddress.parse(address);
-            target = new CommunityTarget();
-            target.setCommunity(new OctetString("public"));
-            target.setAddress(targetAddress);
-            target.setRetries(3);
-            target.setTimeout(5000000);
-            target.setVersion(SnmpConstants.version2c);
+            //http://stackoverflow.com/questions/6831964/snmp4j-adding-user
+            if (username.equals("") && password.equals(""))  //empty pass and user? it's snmpv2
+            {
+                target = new CommunityTarget();
+                ((CommunityTarget) target).setCommunity(new OctetString("public"));
+                target.setAddress(targetAddress);
+                target.setRetries(3);
+                target.setTimeout(5000000);
+                target.setVersion(SnmpConstants.version2c);
+            }
+            else   // otherwise
+            {
+                target = new UserTarget();
+                ((UserTarget)target).setSecurityLevel(SecurityLevel.AUTH_NOPRIV); //SecurityLevel.AUTH_NOPRIV
+                ((UserTarget)target).setSecurityName(new OctetString(username));
+                target.setAddress(targetAddress);
+                target.setRetries(3);
+                target.setTimeout(5000000);
+                target.setVersion(SnmpConstants.version2c);
+            }
         }
         return target;
     }
