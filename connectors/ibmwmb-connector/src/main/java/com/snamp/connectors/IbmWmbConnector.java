@@ -1,11 +1,14 @@
 package com.snamp.connectors;
 
 import com.ibm.broker.config.proxy.*;
+import com.snamp.Repeater;
 import com.snamp.SimpleTable;
+import com.snamp.TimeSpan;
 
 import java.beans.IntrospectionException;
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 
 /*
@@ -37,6 +40,26 @@ class IbmWmbConnector extends ManagementConnectorBean
     private final Map<String, String> mObjectFilter;
     private AdministeredObject mEntity = null;  // we cannot get it at the constructor :(
 
+    private final Date lastLogsDate = Calendar.getInstance().getTime();
+
+    private final class UpdateChecker extends Repeater {
+
+
+        /**
+         * Initializes a new repeater.
+         *
+         * @throws IllegalArgumentException period is {@literal null}.
+         */
+        protected UpdateChecker() {
+            super(new TimeSpan(5, TimeUnit.SECONDS));
+        }
+
+        @Override
+        protected void doAction() {
+
+        }
+    }
+
     /**
      * Initializes a new management connector for IBM WMB.
      *
@@ -51,6 +74,8 @@ class IbmWmbConnector extends ManagementConnectorBean
                 mObjectFilter = env;
                 final BrokerConnectionParameters bcp = new MQBrokerConnectionParameters(address.getHost(), address.getPort(), address.getPath().substring(1));
                 mBrokerInstance = BrokerProxy.getInstance(bcp);
+
+
             }
             else
                 throw new IllegalArgumentException("Cannot create IBM Connector: insufficient parameters!");
@@ -222,22 +247,29 @@ class IbmWmbConnector extends ManagementConnectorBean
         }
     }
 
+    /**
+     * Represents last activity log messages
+     *
+     * Activity log exists only for message flow proxy objects, so it won't work if administering
+     * anything other.
+     *
+     * @return string array of activity log messages
+     */
     final public String[] getActivityLogMessages() {
         try {
             final AdministeredObject entity = getAdministeredObject();
             if(entity instanceof MessageFlowProxy)
-                ((MessageFlowProxy) entity).getActivityLog();
+            {
+                final List<String> logMessages = new ArrayList<>();
+                final ActivityLogProxy log = ((MessageFlowProxy) entity).getActivityLog();
+                if(log != null)
+                    for(int i = 0; i < log.getSize(); ++i)
+                        logMessages.add(log.getLogEntry(i).toString());
 
-            final List<String> logMessages = new ArrayList<>();
-
-
-            final ActivityLogProxy log = ((MessageFlowProxy) entity).getActivityLog();
-            if(log != null)
-                log.elements().nextElement().
-                for(LogEntry log : logVector)
-                    logMessages.add(log.toString());
-
-            return logMessages.toArray(new String[logMessages.size()]); // type system knows about String[]
+                return logMessages.toArray(new String[logMessages.size()]); // type system knows about String[]
+            }
+            else
+                return null;
 
         } catch (ConfigManagerProxyPropertyNotInitializedException | ConfigManagerProxyLoggedException e) {
             return null;

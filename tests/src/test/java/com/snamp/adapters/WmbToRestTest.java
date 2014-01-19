@@ -1,7 +1,6 @@
 package com.snamp.adapters;
 
 import com.google.gson.*;
-import com.snamp.Temporary;
 import com.snamp.connectors.IbmWmbConnectorTest;
 import com.snamp.hosting.AgentConfiguration;
 import com.snamp.hosting.EmbeddedAgentConfiguration;
@@ -28,8 +27,8 @@ import java.util.Map;
  */
 public class WmbToRestTest extends IbmWmbConnectorTest {
     private static final Map<String, String> restAdapterSettings = new HashMap<String, String>(2){{
-        put(Adapter.portParamName, "3222");
-        put(Adapter.addressParamName, "127.0.0.1");
+        put(Adapter.PORT_PARAM_NAME, "3222");
+        put(Adapter.ADDRESS_PARAM_NAME, "127.0.0.1");
     }};
     private final Gson jsonFormatter;
 
@@ -46,7 +45,7 @@ public class WmbToRestTest extends IbmWmbConnectorTest {
     }
 
     private URL buildAttributeURL(final String postfix) throws MalformedURLException {
-        return new URL(String.format("http://%s:%s/snamp/management/attribute/%s/%s", restAdapterSettings.get(Adapter.addressParamName), restAdapterSettings.get(Adapter.portParamName), getAttributesNamespace(), postfix));
+        return new URL(String.format("http://%s:%s/snamp/management/attribute/%s/%s", restAdapterSettings.get(Adapter.ADDRESS_PARAM_NAME), restAdapterSettings.get(Adapter.PORT_PARAM_NAME), getAttributesNamespace(), postfix));
     }
 
     private String readAttribute(final String postfix) throws IOException {
