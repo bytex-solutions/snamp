@@ -234,8 +234,8 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor1 = client.addNotificationListener(new OID(prefix + ".19.1"));
         final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor2 = client.addNotificationListener(new OID(prefix + ".20.1"));
         writeAttribute("1.0", "NOTIFICATION TEST", String.class);
-        final SnmpWrappedNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
-        final SnmpWrappedNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.MINUTES));
+        final SnmpWrappedNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.SECONDS));
+        final SnmpWrappedNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.SECONDS));
         assertNotNull(p1);
         assertNotNull(p2);
         assertEquals(NotificationSupport.Notification.Severity.NOTICE, p1.getSeverity());

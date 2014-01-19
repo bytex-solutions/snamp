@@ -301,6 +301,26 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         assertEquals(new JsonPrimitive("Row 4"), ((JsonObject)table.get(3)).get("col3"));
     }
 
+    @Test
+    public final void observeRegisteredAttributesTest() throws IOException {
+        final URL url = new URL(String.format("http://%s:%s/snamp/management/attributes", restAdapterSettings.get(Adapter.ADDRESS_PARAM_NAME), restAdapterSettings.get(Adapter.PORT_PARAM_NAME)));
+        final HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        connection.setRequestMethod("GET");
+        final StringBuilder result = new StringBuilder();
+        try(final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))){
+            String line = null;
+            while ((line = reader.readLine()) != null) result.append(line);
+        }
+        finally {
+            connection.disconnect();
+        }
+        assertEquals(200, connection.getResponseCode());
+        final Collection<String> attributes = Arrays.asList(jsonFormatter.<String[]>fromJson(result.toString(), String[].class));
+        assertEquals(9, attributes.size());
+        for(final String postfix: getTargets().get("test-jmx").getAttributes().keySet())
+            assertTrue(attributes.contains(getAttributesNamespace() + "/" + postfix));
+    }
+
     @Override
     protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes) {
         @Temporary

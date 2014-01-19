@@ -37,7 +37,7 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
                 return new ConnectedAttributes(connector) {
                     @Override
                     public String makeAttributeId(final String prefix, final String postfix) {
-                        return String.format("%s/%s", prefix, postfix);
+                        return RestAdapterHelpers.makeAttributeID(prefix, postfix);
                     }
                 };
             }

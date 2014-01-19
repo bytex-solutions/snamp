@@ -246,10 +246,24 @@ public final class RestAdapterService extends AbstractPlatformService {
         }
     }
 
+    /**
+     * Returns a list of available attributes.
+     * @return JSON list of available attributes.
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/attributes")
+    public final String getAttributes(){
+        final JsonArray result = new JsonArray();
+        for(final String prefix: attributes.getNamespaces())
+            for(final String postfix: attributes.getRegisteredAttributes(prefix))
+            result.add(new JsonPrimitive(RestAdapterHelpers.makeAttributeID(prefix, postfix)));
+        return jsonFormatter.toJson(result);
+    }
+
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     @POST
     @Path("/attribute/{" + namespaceParam + "}/{" + attributeIdParam + "}")
-    //@Path("/attribute/test/stringProperty")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public final String setAttribute(@PathParam(namespaceParam)final String namespace,
