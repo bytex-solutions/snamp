@@ -10,7 +10,7 @@ import com.snamp.Table;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.JmxConnectorTest;
 import com.snamp.connectors.NotificationSupport;
-import com.snamp.hosting.EmbeddedAgentConfiguration;
+import com.snamp.configuration.EmbeddedAgentConfiguration;
 import org.junit.Test;
 import org.snmp4j.PDU;
 import org.snmp4j.Snmp;

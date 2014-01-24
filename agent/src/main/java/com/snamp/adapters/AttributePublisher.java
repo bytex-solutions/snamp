@@ -1,7 +1,7 @@
 package com.snamp.adapters;
 
 import com.snamp.connectors.AttributeSupport;
-import com.snamp.hosting.AgentConfiguration;
+import com.snamp.configuration.AgentConfiguration;
 import com.snamp.internal.MethodThreadSafety;
 import com.snamp.internal.ThreadSafety;
 

@@ -1,10 +1,10 @@
 package com.snamp.adapters;
 
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 
 import static com.snamp.connectors.NotificationSupport.NotificationListener;
-import com.snamp.hosting.EmbeddedAgentConfiguration;
+import com.snamp.configuration.EmbeddedAgentConfiguration;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 import javax.management.AttributeChangeNotification;

@@ -1,7 +1,7 @@
 package com.snamp.hosting;
 
 import com.snamp.SnampTestSet;
-import com.snamp.hosting.*;
+import com.snamp.configuration.AgentConfiguration;
 import org.junit.*;
 
 import java.io.*;

@@ -2,7 +2,7 @@ package com.snamp.adapters;
 
 import com.snamp.SnampTestSet;
 import com.snamp.TimeSpan;
-import com.snamp.hosting.AgentConfiguration;
+import com.snamp.configuration.AgentConfiguration;
 
 import java.io.InputStream;
 import java.io.OutputStream;

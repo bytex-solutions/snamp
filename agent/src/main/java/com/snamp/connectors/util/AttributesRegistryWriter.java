@@ -5,7 +5,7 @@ import com.snamp.internal.Internal;
 import com.snamp.internal.MethodThreadSafety;
 import com.snamp.internal.ThreadSafety;
 
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
 import java.util.Collection;
 import java.util.Map;
@@ -22,4 +22,9 @@ public interface AttributesRegistryWriter {
     public Collection<String> putAll(final AttributeSupport connector, final String prefix, final Map<String, AttributeConfiguration> attributes);
 
     public void clear();
+
+    /**
+     * Disconnects all attributes.
+     */
+    public void disconnect();
 }

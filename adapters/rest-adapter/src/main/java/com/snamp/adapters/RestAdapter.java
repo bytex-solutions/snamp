@@ -1,8 +1,11 @@
 package com.snamp.adapters;
 
-import com.snamp.connectors.AttributeSupport;
+import com.snamp.connectors.*;
 import com.snamp.connectors.util.*;
-import com.snamp.hosting.AgentConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+
+import com.snamp.configuration.AgentConfiguration;
 import com.snamp.licensing.*;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import net.xeoh.plugins.base.annotations.meta.Author;
@@ -11,7 +14,7 @@ import org.eclipse.jetty.servlet.*;
 
 import javax.servlet.Servlet;
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -19,30 +22,38 @@ import java.util.logging.Level;
  */
 @PluginImplementation
 @Author(name = "Roman Sakno")
-final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugin<RestAdapterLimitations> {
+final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugin<RestAdapterLimitations>, NotificationPublisher {
+
+
     private static final String DATE_FORMAT_PARAM_NAME = "dateFormat";
     public static final String NAME = "rest";
     private final Server jettyServer;
     private final AttributesRegistry exposedAttributes;
+    private final SubscriptionList notifications;
     private boolean started = false;
-
 
     public RestAdapter(){
         super(NAME);
         RestAdapterLimitations.current().verifyPluginVersion(getClass());
         jettyServer = new Server();
-        exposedAttributes = new AbstractAttributesRegistry() {
+        exposedAttributes = new AbstractAttributesRegistry<AttributeConfiguration>() {
             @Override
-            protected ConnectedAttributes createBinding(final AttributeSupport connector) {
-                return new ConnectedAttributes(connector) {
+            protected ConnectedAttributes<AttributeConfiguration> createBinding(final AttributeSupport connector) {
+                return new ConnectedAttributes<AttributeConfiguration>(connector) {
                     @Override
-                    public String makeAttributeId(final String prefix, final String postfix) {
+                    public final String makeAttributeId(final String prefix, final String postfix) {
                         return RestAdapterHelpers.makeAttributeID(prefix, postfix);
+                    }
+
+                    @Override
+                    public final AttributeConfiguration createDescription(final String prefix, final String postfix, final AttributeConfiguration config) {
+                        return config;
                     }
                 };
             }
         };
         started = false;
+        notifications = new SubscriptionList();
     }
 
     private Servlet createRestServlet(final String dateFormat){
@@ -62,11 +73,13 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
         connector.setPort(port);
         connector.setHost(host);
         s.setConnectors(new Connector[]{connector});
-        final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        s.setHandler(contextHandler);
-        contextHandler.setContextPath("/snamp/management");
-        final ServletHolder holder = new ServletHolder(createRestServlet(dateFormat));
-        contextHandler.addServlet(holder, "/*");
+        final ServletContextHandler resourcesHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        resourcesHandler.setContextPath("/snamp");
+        //attribute getters and setters
+        resourcesHandler.addServlet(new ServletHolder(createRestServlet(dateFormat)), "/management/*");
+        //notification delivery
+        resourcesHandler.addServlet(new ServletHolder(new NotificationSenderServlet(notifications.createSubscriptionManager(), getLogger(), dateFormat)), "/notifications/*");
+        s.setHandler(resourcesHandler);
         return true;
     }
 
@@ -103,6 +116,10 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
             try {
                 jettyServer.stop();
                 started = false;
+                if(!saveState){
+                    exposedAttributes.disconnect();
+                    exposedAttributes.clear();
+                }
                 return true;
             }
             catch (final Exception e) {
@@ -123,6 +140,8 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
     public final void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attributes) {
         exposedAttributes.putAll(connector, namespace, attributes);
     }
+
+
 
     /**
      * Closes this resource, relinquishing any underlying resources.
@@ -163,6 +182,7 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
     @Override
     public final void close() throws Exception {
         jettyServer.stop();
+        exposedAttributes.disconnect();
         exposedAttributes.clear();
         started = false;
     }
@@ -175,5 +195,17 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
     @Override
     public final RestAdapterLimitations getLimitations() {
         return RestAdapterLimitations.current();
+    }
+
+    /**
+     * Exposes monitoring events.
+     *
+     * @param connector The management connector that provides notification listening and subscribing.
+     * @param namespace The events namespace.
+     * @param events    The collection of configured notifications.
+     */
+    @Override
+    public final void exposeEvents(final NotificationSupport connector, final String namespace, final Map<String, EventConfiguration> events) {
+        notifications.putAll(connector, namespace, events);
     }
 }

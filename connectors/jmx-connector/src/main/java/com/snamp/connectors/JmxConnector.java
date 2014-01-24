@@ -7,6 +7,7 @@ import com.snamp.internal.Internal;
 import com.snamp.internal.MethodStub;
 import com.snamp.licensing.JmxConnectorLimitations;
 import static com.snamp.connectors.JmxConnectionManager.MBeanServerConnectionHandler;
+import static com.snamp.configuration.JmxAttributeConfigurationDescriptor.*;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -30,7 +31,6 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     public static final String NAME = "jmx";
     private static final Logger log = AbstractManagementConnectorFactory.getLogger(NAME);
     private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
-    private static final String OBJECT_NAME_OPTION = "objectName";
 
     private final static class JmxNotificationMetadata extends GenericNotificationMetadata{
         private final static String severityOption = "severity";
@@ -240,8 +240,8 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             final JmxNotificationMetadata eventData = connectionManager.handleConnection(new MBeanServerConnectionHandler<JmxNotificationMetadata>() {
                 @Override
                 public JmxNotificationMetadata handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    if (options.containsKey(OBJECT_NAME_OPTION)) {
-                        final ObjectName on = new ObjectName(options.get(OBJECT_NAME_OPTION));
+                    if (options.containsKey(OBJECT_NAME_PROPERTY)) {
+                        final ObjectName on = new ObjectName(options.get(OBJECT_NAME_PROPERTY));
                         for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(on).getNotifications())
                             for (final String notifType : notificationInfo.getNotifTypes())
                                 if (Objects.equals(notifType, category))
@@ -795,7 +795,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
      */
     @Override
     protected JmxAttributeProvider connectAttributeCore(final String attributeName, final Map<String, String> options){
-        final String namespace = Objects.toString(options.get(OBJECT_NAME_OPTION), "");
+        final String namespace = Objects.toString(options.get(OBJECT_NAME_PROPERTY), "");
         try {
             return connectAttribute(new ObjectName(namespace), attributeName, options);
         } catch (final MalformedObjectNameException e) {

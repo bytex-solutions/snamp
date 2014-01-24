@@ -2,12 +2,13 @@ package com.snamp.hosting;
 
 import com.snamp.SnampTestSet;
 import com.snamp.TimeSpan;
+import com.snamp.configuration.AgentConfiguration;
+import com.snamp.configuration.ConfigurationFormat;
 import org.junit.Test;
 
 import java.io.*;
 import java.net.URL;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Test env for YAML configuration object (including r/w from/to files, assertations etc)

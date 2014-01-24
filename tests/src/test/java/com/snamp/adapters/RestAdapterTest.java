@@ -3,13 +3,13 @@ package com.snamp.adapters;
 import com.google.gson.*;
 import com.snamp.internal.Temporary;
 import com.snamp.connectors.*;
-import static com.snamp.hosting.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration;
+import static com.snamp.configuration.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration;
 import org.junit.Test;
 
 import javax.management.*;
 import javax.ws.rs.core.MediaType;
 
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
 import java.io.*;
 import java.math.BigInteger;

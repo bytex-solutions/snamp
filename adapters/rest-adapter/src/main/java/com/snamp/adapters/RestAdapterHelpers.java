@@ -13,4 +13,8 @@ final class RestAdapterHelpers {
     public static String makeAttributeID(final String prefix, final String postfix){
         return String.format("%s/%s", prefix, postfix);
     }
+
+    public static String makeEventID(final String prefix, final String postfix){
+        return String.format("%s/%s", prefix, postfix);
+    }
 }

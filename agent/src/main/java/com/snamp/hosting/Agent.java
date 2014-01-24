@@ -1,15 +1,11 @@
 package com.snamp.hosting;
 
 import com.snamp.adapters.*;
+import com.snamp.configuration.AgentConfiguration;
 import com.snamp.connectors.*;
 import com.snamp.core.AbstractPlatformService;
-import com.snamp.hosting.management.AbstractAgentManager;
-import com.snamp.hosting.management.AgentManager;
-import com.snamp.hosting.management.ConsoleAgentManager;
-import com.snamp.internal.FileExtensionFilter;
-import com.snamp.internal.InstanceLifecycle;
-import com.snamp.internal.Internal;
-import com.snamp.internal.Lifecycle;
+import com.snamp.hosting.management.*;
+import com.snamp.internal.*;
 import net.xeoh.plugins.base.PluginManager;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
 import net.xeoh.plugins.base.options.addpluginsfrom.OptionReportAfter;

@@ -4,9 +4,9 @@ import com.snamp.hosting.*;
 
 import javax.management.*;
 import java.lang.management.*;
-import static com.snamp.hosting.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration;
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.snamp.configuration.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 import java.util.*;
 
 /**

@@ -1,6 +1,6 @@
 package com.snamp.adapters;
 
-import static com.snamp.hosting.AgentConfiguration.ConfigurationEntity;
+import static com.snamp.configuration.AgentConfiguration.ConfigurationEntity;
 
 /**
  * Represents a base interface for all other interfaces that describes

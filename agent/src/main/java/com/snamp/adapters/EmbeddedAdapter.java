@@ -3,11 +3,12 @@ package com.snamp.adapters;
 import com.snamp.TimeSpan;
 import com.snamp.connectors.*;
 import com.snamp.connectors.util.*;
+
 import static com.snamp.connectors.NotificationSupport.NotificationListener;
 
 
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 
 import java.io.IOException;
 import java.util.*;
@@ -20,8 +21,8 @@ import java.util.*;
  * @version 1.0
  */
 public class EmbeddedAdapter extends AbstractAdapter implements NotificationPublisher {
-    private final AbstractAttributesRegistry attributes;
-    private final AbstractSubscriptionList notifications;
+    private final AbstractAttributesRegistry<AttributeConfiguration> attributes;
+    private final AbstractSubscriptionList<EventConfiguration> notifications;
 
     /**
      * Initializes a new instance of the adapter.
@@ -30,24 +31,34 @@ public class EmbeddedAdapter extends AbstractAdapter implements NotificationPubl
      */
     public EmbeddedAdapter(final String adapterName) {
         super(adapterName);
-        attributes = new AbstractAttributesRegistry() {
+        attributes = new AbstractAttributesRegistry<AttributeConfiguration>() {
             @Override
-            protected ConnectedAttributes createBinding(final AttributeSupport connector) {
-                return new ConnectedAttributes(connector) {
+            protected ConnectedAttributes<AttributeConfiguration> createBinding(final AttributeSupport connector) {
+                return new ConnectedAttributes<AttributeConfiguration>(connector) {
                     @Override
-                    public String makeAttributeId(final String prefix, final String postfix) {
+                    public final String makeAttributeId(final String prefix, final String postfix) {
                         return makeEntityId(prefix, postfix);
+                    }
+
+                    @Override
+                    public final AttributeConfiguration createDescription(final String prefix, final String postfix, final AttributeConfiguration config) {
+                        return config;
                     }
                 };
             }
         };
-        notifications = new AbstractSubscriptionList() {
+        notifications = new AbstractSubscriptionList<EventConfiguration>() {
             @Override
-            protected EnabledNotification createBinding(final NotificationSupport connector) {
-                return new EnabledNotification(connector) {
+            protected EnabledNotifications<EventConfiguration> createBinding(final NotificationSupport connector) {
+                return new EnabledNotifications<EventConfiguration>(connector) {
                     @Override
-                    public String makeListId(final String prefix, final String postfix) {
+                    public final String makeListId(final String prefix, final String postfix) {
                         return makeEntityId(prefix, postfix);
+                    }
+
+                    @Override
+                    public final EventConfiguration createDescription(final String prefix, final String postfix, final EventConfiguration config) {
+                        return config;
                     }
                 };
             }
@@ -80,8 +91,6 @@ public class EmbeddedAdapter extends AbstractAdapter implements NotificationPubl
     public final boolean stop(final boolean saveState) {
         return true;
     }
-
-
 
     /**
      * Exposes management attributes.
@@ -158,9 +167,5 @@ public class EmbeddedAdapter extends AbstractAdapter implements NotificationPubl
     @Override
     public void close() {
         attributes.clear();
-    }
-
-    private static final boolean isVoid(final Class<?> t){
-        return t == null || Objects.equals(void.class, t) || Objects.equals(Void.class, t);
     }
 }
