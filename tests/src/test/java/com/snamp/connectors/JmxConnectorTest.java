@@ -31,7 +31,7 @@ public abstract class JmxConnectorTest<ManagementBean> extends HostingTest {
     }
 
     @Override
-    protected final void afterAgentStop(final Agent agent) throws JMException {
+    protected final void afterAgentStop() throws JMException {
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.unregisterMBean(beanName);
     }

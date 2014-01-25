@@ -163,6 +163,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                 vacmMIB.addViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix),
                         new OctetString(), VacmMIB.vacmViewIncluded,
                         StorageType.nonVolatile);
+                if(attach) handler.attachTo(connector);
             }
         }
 

@@ -175,6 +175,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
 
         private void disableListening(final ObjectName target){
             final javax.management.NotificationListener listener = this;
+
             connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
                 @Override
                 public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {

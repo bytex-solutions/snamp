@@ -257,7 +257,7 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
      */
     public final boolean start(final Map<String, AgentConfiguration.ManagementTargetConfiguration> targets) throws IOException {
         if(started) return false;
-        else if(targets == null) return start(new HashMap<String, AgentConfiguration.ManagementTargetConfiguration>());
+        else if(targets == null) return start(Collections.<String, AgentConfiguration.ManagementTargetConfiguration>emptyMap());
         else for(final String targetName: targets.keySet()){
             logger.fine(String.format("Registering %s management target", targetName));
             registerTarget(targets.get(targetName));
@@ -270,7 +270,20 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
      * @return {@literal true}, if agent is stopped successfully; otherwise, {@literal false}.
      */
     public final boolean stop(){
-        return adapter.stop(true);
+        boolean success;
+        try {
+            success = adapter.stop(false);
+            releaseConnectors(connectors.values());
+            connectors.clear();
+        }
+        catch (final Exception e) {
+            logger.log(Level.SEVERE, "Unable to stop SNAMP agent", e);
+            success = false;
+        }
+        finally {
+            System.gc();
+        }
+        return success;
     }
 
     /**
@@ -304,10 +317,10 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
      */
     @Override
     public void close() throws Exception{
-        releaseConnectors(connectors.values());
-        connectors.clear();
         params.clear();
         adapter.close();
+        releaseConnectors(connectors.values());
+        connectors.clear();
         pluginManager.shutdown();
     }
 

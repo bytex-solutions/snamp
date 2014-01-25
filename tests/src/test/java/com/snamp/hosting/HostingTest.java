@@ -54,7 +54,7 @@ public abstract class HostingTest extends SnampTestSet implements AgentConfigura
 
     }
 
-    protected void afterAgentStop(final Agent agent) throws Exception{
+    protected void afterAgentStop() throws Exception{
 
     }
 
@@ -62,7 +62,7 @@ public abstract class HostingTest extends SnampTestSet implements AgentConfigura
     public final void cleanupTestSet() throws Exception{
         beforeAgentStop(agent);
         agent.stop();
-        afterAgentStop(agent);
+        afterAgentStop();
         agent.close();
         agent = null;
     }
