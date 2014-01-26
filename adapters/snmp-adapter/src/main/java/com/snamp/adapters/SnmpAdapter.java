@@ -356,7 +356,8 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 	 */
 	@Override
 	protected final void addViews(final VacmMIB vacm) {
-            vacm.addGroup(this.useAuth?SecurityModel.SECURITY_MODEL_USM:SecurityModel.SECURITY_MODEL_SNMPv2c, new OctetString(
+        if (!this.useAuth){
+            vacm.addGroup(SecurityModel.SECURITY_MODEL_SNMPv2c, new OctetString(
                     "cpublic"), new OctetString("v1v2group"),
                     StorageType.nonVolatile);
 
@@ -365,6 +366,20 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                     MutableVACM.VACM_MATCH_EXACT, new OctetString("fullReadView"),
                     new OctetString("fullWriteView"), new OctetString(
                     "fullNotifyView"), StorageType.nonVolatile);
+        }
+        else{
+            vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, new OctetString(username),
+                    new OctetString("v1v2group"),
+                    StorageType.nonVolatile);
+
+            vacm.addAccess(new OctetString("v1v2group"), new OctetString(),
+                    SecurityModel.SECURITY_MODEL_USM, SecurityLevel.AUTH_NOPRIV,
+                    MutableVACM.VACM_MATCH_EXACT, new OctetString("fullReadView"),
+                    new OctetString("fullWriteView"), new OctetString(
+                    "fullNotifyView"), StorageType.nonVolatile);
+        }
+
+
 	}
 
 	/**
@@ -422,7 +437,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         }
 	}
 
-	/**
+    /**
 	 * Initializes SNMP communities.
 	 */
 	protected void addCommunities(final SnmpCommunityMIB communityMIB) {
