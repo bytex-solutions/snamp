@@ -167,6 +167,10 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
     private int port;
     private int socketTimeout;
     private boolean coldStart;
+    private String username;
+    private String password;
+    private boolean useAuth = false;
+
     private final Map<String, ManagementAttributes> attributes;
     private final Map<String, ManagementNotifications> senders;
 	
@@ -239,7 +243,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 	 */
 	@Override
 	protected final void addViews(final VacmMIB vacm) {
-            vacm.addGroup(SecurityModel.SECURITY_MODEL_SNMPv2c, new OctetString(
+            vacm.addGroup(this.useAuth?SecurityModel.SECURITY_MODEL_USM:SecurityModel.SECURITY_MODEL_SNMPv2c, new OctetString(
                     "cpublic"), new OctetString("v1v2group"),
                     StorageType.nonVolatile);
 
@@ -255,6 +259,11 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
      * @param usm User-based security model.
 	 */
 	protected final void addUsmUser(final USM usm) {
+        if (this.useAuth)
+        {
+            this.getUsm().addUser(new OctetString(username),
+                    new UsmUser(new OctetString(username), AuthMD5.ID, new OctetString(password), AuthMD5.ID, null));
+        }
     }
 
     /**
@@ -366,6 +375,17 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         return true;
     }
 
+    private boolean start(final Integer port, final String address, final int socketTimeout, final String username, final String password) throws IOException{
+        this.port = port != null ? port.intValue() : defaultPort;
+        this.address = address != null && address.length() > 0 ? address : defaultAddress;
+        this.socketTimeout = socketTimeout;
+        this.username = username;
+        this.password = password;
+        this.useAuth = true;
+        start();
+        return true;
+    }
+
     /**
      * Exposes the connector to the world.
      *
@@ -377,11 +397,16 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         switch (agentState){
             case STATE_CREATED:
             case STATE_STOPPED:
-                if(parameters.containsKey(PASSWORD_PARAM))
-                    SnmpAdapterLimitations.current().verifyAuthenticationFeature();
                 final String port = parameters.containsKey(PORT_PARAM_NAME) ? parameters.get(PORT_PARAM_NAME) : "161";
                 final String address = parameters.containsKey(ADDRESS_PARAM_NAME) ? parameters.get(ADDRESS_PARAM_NAME) : "127.0.0.1";
                 final String socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ? parameters.get(SOCKET_TIMEOUT_PARAM) : "0";
+                if(parameters.containsKey(USERNAME_PARAM) || parameters.containsKey(PASSWORD_PARAM))
+                {
+                    SnmpAdapterLimitations.current().verifyAuthenticationFeature();
+                    final String username = parameters.containsKey(USERNAME_PARAM) ? parameters.get(USERNAME_PARAM) : "";
+                    final String password = parameters.containsKey(PASSWORD_PARAM) ? parameters.get(PASSWORD_PARAM) : "";
+                    return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout), username, password);
+                }
                 return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout));
             default:return false;
         }

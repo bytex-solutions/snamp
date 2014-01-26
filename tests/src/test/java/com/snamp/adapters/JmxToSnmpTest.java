@@ -12,12 +12,10 @@ import com.snamp.connectors.JmxConnectorTest;
 import com.snamp.connectors.NotificationSupport;
 import com.snamp.hosting.EmbeddedAgentConfiguration;
 import org.junit.Test;
-import org.snmp4j.PDU;
-import org.snmp4j.Snmp;
-import org.snmp4j.event.ResponseEvent;
-import org.snmp4j.event.ResponseListener;
-import org.snmp4j.mp.SnmpConstants;
-import org.snmp4j.smi.*;
+import org.snmp4j.smi.Integer32;
+import org.snmp4j.smi.OID;
+import org.snmp4j.smi.OctetString;
+import org.snmp4j.smi.Variable;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
@@ -26,7 +24,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -51,114 +51,6 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     protected String getAttributesNamespace() {
         return prefix;
     }
-
-    private static <T> T deserialize(final Variable var, final Class<T> className){
-        final Object result;
-        if (var instanceof UnsignedInteger32 || var instanceof Integer32)
-            result = (className == Boolean.class)?(var.toInt() == 1):var.toInt();
-        else if (var instanceof OctetString)
-        {
-            if (className == BigInteger.class)
-                result = new BigInteger(var.toString());
-            else if (className == Float.class)
-                result = Float.valueOf(var.toString());
-            else if (className == byte[].class)
-                result = ((OctetString) var).toByteArray();
-            else
-                result = var.toString();
-        }
-        else if (var instanceof IpAddress)
-            result = var.toString();
-        else if (var instanceof Counter64)
-            result = var.toLong();
-        else result = null;
-        return className.cast(result);
-    }
-
-    private <T>T readAttribute(final ReadMethod method, final String postfix, final Class<T> className) throws IOException {
-        final ResponseEvent value = client.get(method, new OID[]{new OID(prefix + "." + postfix)});
-        assertNotNull(value);
-        return deserialize(value.getResponse().getVariable(new OID(prefix + "." + postfix)), className);
-
-    }
-
-    private Table<Integer> readTable(final ReadMethod method, final String postfix, final Map<Integer, Class<?>> columns) throws Exception {
-        final Table<Integer> table = new SimpleTable<>(columns);
-        final Collection<Variable[]> rows = client.getTable(method, new OID(prefix + "." + postfix), columns.size());
-        for(final Variable[] row: rows)
-            table.addRow(new HashMap<Integer, Object>(){{
-                for(int i = 0; i < row.length; i++){
-                    final Integer column = new Integer(i + 2);
-                    put(column, deserialize(row[i], columns.get(column)));
-                }
-            }});
-        return table;
-    }
-
-    private void writeTable(final String postfix, final Table<Integer> table) throws IOException {
-        final PDU pdu = new PDU();
-        pdu.setType(PDU.SET);
-        //add rows
-        for(int i = 0; i < table.getRowCount(); i++){
-            //iterate through each column
-            final Integer rowIndex = i;
-            for(final Integer column: table.getColumns()){
-                final OID rowId = new OID(prefix + "." + postfix + "." + column + "." + (rowIndex + 1));
-                pdu.add(new VariableBinding(rowId, (Variable)table.getCell(column, rowIndex)));
-            }
-        }
-        final PDU response = client.set(pdu).getResponse();
-        assertEquals(response.getErrorStatusText(), SnmpConstants.SNMP_ERROR_SUCCESS, response.getErrorStatus());
-    }
-
-    private <T> void writeAttribute(final String postfix, final T value, final Class<T> valueType) throws IOException{
-        final PDU pdu = new PDU();
-        // Setting the Oid and Value for sysContact variable
-        final OID oid = new OID(prefix + "." +postfix);
-        final Variable var;
-
-        if (valueType == int.class || valueType == Integer.class || valueType == short.class)
-        {
-             var = new Integer32(Integer.class.cast(value));
-        }
-        else if (valueType == long.class || valueType == Long.class)
-        {
-             var = new Counter64(Long.class.cast(value));
-        }
-        else if (valueType == Boolean.class || valueType == boolean.class)
-        {
-            var = new Integer32((Boolean.class.cast(value) == Boolean.TRUE)?1:0);
-        }
-        else if (valueType == byte[].class)
-        {
-            var = new OctetString((byte[])value);
-        }
-        else
-        {
-            var = new OctetString(value.toString());
-        }
-
-        final VariableBinding varBind = new VariableBinding(oid,var);
-
-        pdu.add(varBind);
-        pdu.setType(PDU.SET);
-
-        final ResponseListener listener = new ResponseListener() {
-            public void onResponse(ResponseEvent event) {
-                final PDU strResponse;
-                final String result;
-                ((Snmp)event.getSource()).cancel(event.getRequest(), this);
-                strResponse = event.getResponse();
-                if (strResponse!= null) {
-                    result = strResponse.getErrorStatusText();
-                    System.out.println("Set Status is: "+result);
-                }
-                assertNotNull(strResponse);
-            }};
-
-        client.set(pdu, listener);
-    }
-
 
     /**
      * To check the attribute you need use following commands:
@@ -185,8 +77,8 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         array.addRow(new HashMap<Integer, Object>(2){{
             put(2, new Integer32(30));
         }});
-        writeTable(POSTFIX, array);
-        array = readTable(ReadMethod.GETBULK, POSTFIX, new HashMap<Integer, Class<?>>(){{
+        client.writeTable(prefix + "." + POSTFIX, array);
+        array = client.readTable(ReadMethod.GETBULK, new OID(prefix + "." + POSTFIX), new HashMap<Integer, Class<?>>(){{
             put(2, Integer.class);
         }});
         assertEquals(2, array.getRowCount());
@@ -208,8 +100,8 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
             put(3, new Integer32(4230));
             put(4, new OctetString("Test for dictionary property"));
         }});
-        writeTable(POSTFIX, dict);
-        dict = readTable(ReadMethod.GETBULK, POSTFIX, new HashMap<Integer, Class<?>>(){{
+        client.writeTable(prefix + "." + POSTFIX, dict);
+        dict = client.readTable(ReadMethod.GETBULK, new OID(prefix + "." +POSTFIX), new HashMap<Integer, Class<?>>(){{
             put(2, Boolean.class);
             put(3, Integer.class);
             put(4, String.class);
@@ -224,16 +116,17 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     @Test
     public final void testForStringProperty() throws IOException {
         final String valueToCheck = "SETTED VALUE";
-        writeAttribute("1.0", valueToCheck, String.class);
-        assertEquals(valueToCheck, readAttribute(ReadMethod.GET, "1.0", String.class));
-        assertEquals(valueToCheck, readAttribute(ReadMethod.GETBULK, "1.0", String.class));
+        final OID oid = new OID(prefix + "." + "1.0");
+        client.writeAttribute(oid, valueToCheck, String.class);
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
     }
 
     @Test
     public final void notificationTest() throws IOException, TimeoutException, InterruptedException {
         final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor1 = client.addNotificationListener(new OID(prefix + ".19.1"));
         final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor2 = client.addNotificationListener(new OID(prefix + ".20.1"));
-        writeAttribute("1.0", "NOTIFICATION TEST", String.class);
+        client.writeAttribute(new OID(prefix + "." + "1.0"), "NOTIFICATION TEST", String.class);
         final SnmpWrappedNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
         final SnmpWrappedNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.MINUTES));
         assertNotNull(p1);
@@ -273,8 +166,8 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
             put(3, new Integer32(4233));
             put(4, new OctetString("Row #4"));
         }});
-        writeTable(POSTFIX, table);
-        table = readTable(ReadMethod.GETBULK, POSTFIX, new HashMap<Integer, Class<?>>(){{
+        client.writeTable(prefix + "." + POSTFIX, table);
+        table = client.readTable(ReadMethod.GETBULK, new OID(prefix + "." + POSTFIX), new HashMap<Integer, Class<?>>() {{
             put(2, Boolean.class);//bool
             put(3, Integer.class);//int
             put(4, String.class);//str
@@ -294,42 +187,47 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     @Test
     public final void testForBooleanProperty() throws IOException{
         final boolean valueToCheck = true;
-        writeAttribute("2.0", valueToCheck, Boolean.class);
-        assertTrue(readAttribute(ReadMethod.GET, "2.0", Boolean.class));
-        assertTrue(readAttribute(ReadMethod.GETBULK, "2.0", Boolean.class));
+        final OID oid = new OID(prefix + "." + "2.0");
+        client.writeAttribute(oid, valueToCheck, Boolean.class);
+        assertTrue(client.readAttribute(ReadMethod.GET, oid, Boolean.class));
+        assertTrue(client.readAttribute(ReadMethod.GETBULK, oid, Boolean.class));
     }
 
     @Test
     public final void testForInt32Property() throws IOException{
         final int valueToCheck = 42;
-        writeAttribute("3.0", valueToCheck, Integer.class);
-        assertEquals(valueToCheck, (int) readAttribute(ReadMethod.GET, "3.0", Integer.class));
-        assertEquals(valueToCheck, (int) readAttribute(ReadMethod.GETBULK, "3.0", Integer.class));
+        final OID oid = new OID(prefix + "." + "3.0");
+        client.writeAttribute(oid, valueToCheck, Integer.class);
+        assertEquals(valueToCheck, (int) client.readAttribute(ReadMethod.GET, oid, Integer.class));
+        assertEquals(valueToCheck, (int) client.readAttribute(ReadMethod.GETBULK, oid, Integer.class));
     }
 
     @Test
     public final void testForBigIntProperty() throws IOException{
         final BigInteger valueToCheck = new BigInteger("100500");
-        writeAttribute("4.0", valueToCheck, BigInteger.class);
-        assertEquals(valueToCheck, readAttribute(ReadMethod.GET, "4.0", BigInteger.class));
-        assertEquals(valueToCheck, readAttribute(ReadMethod.GETBULK, "4.0", BigInteger.class));
+        final OID oid = new OID(prefix + "." + "4.0");
+        client.writeAttribute(oid, valueToCheck, BigInteger.class);
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, BigInteger.class));
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, BigInteger.class));
     }
 
     @Test
     public final void testForFloatProperty() throws IOException{
         final float valueToCheck = 31.337F;
-        writeAttribute("8.0", valueToCheck, Float.class);
-        assertEquals(valueToCheck, (float) readAttribute(ReadMethod.GET, "8.0", Float.class), 0.000001);
-        assertEquals(valueToCheck, (float) readAttribute(ReadMethod.GETBULK, "8.0", Float.class), 0.000001);
+        final OID oid = new OID(prefix + "." + "8.0");
+        client.writeAttribute(oid, valueToCheck, Float.class);
+        assertEquals(valueToCheck, (float) client.readAttribute(ReadMethod.GET, oid, Float.class), 0.000001);
+        assertEquals(valueToCheck, (float) client.readAttribute(ReadMethod.GETBULK, oid, Float.class), 0.000001);
     }
 
     @Test
     public final void testForDatePropertyCustomDisplayFormat() throws IOException{
         final Calendar cal = Calendar.getInstance(); cal.set(1994, 3, 5); // Kurt Donald Cobain, good night, sweet prince
         final String valueToCheck = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(cal.getTime());
-        writeAttribute("9.0", valueToCheck, String.class);
-        assertEquals(valueToCheck, readAttribute(ReadMethod.GET, "9.0", String.class));
-        assertEquals(valueToCheck, readAttribute(ReadMethod.GETBULK, "9.0", String.class));
+        final OID oid = new OID(prefix + "." + "9.0");
+        client.writeAttribute(oid, valueToCheck, String.class);
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
     }
 
     @Test
@@ -337,9 +235,10 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         final Calendar cal = Calendar.getInstance(); cal.set(1994, 3, 5); // Kurt Donald Cobain, good night, sweet prince
         final SnmpHelpers.DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter("rfc1903-human-readable");
         final String valueToCheck = new String(formatter.convert(cal.getTime()));
-        writeAttribute("10.0", valueToCheck, String.class);
-        assertEquals(valueToCheck, readAttribute(ReadMethod.GET, "10.0", String.class));
-        assertEquals(valueToCheck, readAttribute(ReadMethod.GETBULK, "10.0", String.class));
+        final OID oid = new OID(prefix + "." + "10.0");
+        client.writeAttribute(oid, valueToCheck, String.class);
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
     }
 
     @Test
@@ -347,9 +246,10 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         final Calendar cal = Calendar.getInstance(); cal.set(1994, 3, 5); // Kurt Donald Cobain, good night, sweet prince
         final SnmpHelpers.DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter("rfc1903");
         final byte[] byteString = formatter.convert(cal.getTime());
-        writeAttribute("11.0", byteString, byte[].class);
-        assertArrayEquals(byteString, readAttribute(ReadMethod.GET, "11.0", byte[].class));
-        assertArrayEquals(byteString, readAttribute(ReadMethod.GETBULK, "11.0", byte[].class));
+        final OID oid = new OID(prefix + "." + "11.0");
+        client.writeAttribute(oid, byteString, byte[].class);
+        assertArrayEquals(byteString, client.readAttribute(ReadMethod.GET, oid, byte[].class));
+        assertArrayEquals(byteString, client.readAttribute(ReadMethod.GETBULK, oid, byte[].class));
     }
 
     @Override
