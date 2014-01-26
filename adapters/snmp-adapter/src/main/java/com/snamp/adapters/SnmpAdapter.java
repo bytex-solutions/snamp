@@ -390,7 +390,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         if (this.useAuth)
         {
             this.getUsm().addUser(new OctetString(username),
-                    new UsmUser(new OctetString(username), AuthMD5.ID, new OctetString(password), AuthMD5.ID, null));
+                    new UsmUser(new OctetString(username), AuthMD5.ID, new OctetString(password), null, null));
         }
     }
 

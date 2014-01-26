@@ -42,7 +42,7 @@ public class ClientSnmpV3 extends AbstractSnmpClient {
 
         USM usm = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), 0);
         SecurityModels.getInstance().addSecurityModel(usm);
-        snmp.getUSM().addUser(new OctetString(username), new UsmUser(new OctetString(username), AuthMD5.ID, new OctetString(password), AuthMD5.ID, null));
+        snmp.getUSM().addUser(new OctetString(username), new UsmUser(new OctetString(username), AuthMD5.ID, new OctetString(password), null, null));
         transport.listen();
     }
 
@@ -53,14 +53,15 @@ public class ClientSnmpV3 extends AbstractSnmpClient {
 
     protected UserTarget getTarget() {
         final UserTarget target = new UserTarget();
+        target.setAuthoritativeEngineID(MPv3.createLocalEngineID());
         final Address targetAddress = GenericAddress.parse(address);
         target.setSecurityLevel(SecurityLevel.AUTH_NOPRIV); //SecurityLevel.AUTH_NOPRIV
         target.setSecurityName(new OctetString(username));
+        target.setSecurityModel(SecurityModel.SECURITY_MODEL_USM);
         target.setAddress(targetAddress);
-        target.setRetries(3);
+        target.setRetries(0);
         target.setTimeout(5000000);
         target.setVersion(SnmpConstants.version3);
-        target.setAuthoritativeEngineID(MPv3.createLocalEngineID());
         return target;
     }
 }
