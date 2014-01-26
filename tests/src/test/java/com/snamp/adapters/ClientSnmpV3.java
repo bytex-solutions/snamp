@@ -37,13 +37,13 @@ public class ClientSnmpV3 extends AbstractSnmpClient {
      */
     private void start(final String username, final String password) throws IOException {
         transport = new DefaultUdpTransportMapping();
-        transport.listen();
         snmp = new Snmp(transport);
+        snmp.getMessageDispatcher().addMessageProcessingModel(new MPv3());
 
         USM usm = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), 0);
         SecurityModels.getInstance().addSecurityModel(usm);
-        snmp = new Snmp(new DefaultUdpTransportMapping());
         snmp.getUSM().addUser(new OctetString(username), new UsmUser(new OctetString(username), AuthMD5.ID, new OctetString(password), AuthMD5.ID, null));
+        transport.listen();
     }
 
     /**
@@ -55,12 +55,13 @@ public class ClientSnmpV3 extends AbstractSnmpClient {
         {
             final Address targetAddress = GenericAddress.parse(address);
             target = new UserTarget();
-            ((UserTarget)target).setSecurityLevel(SecurityLevel.AUTH_NOPRIV); //SecurityLevel.AUTH_NOPRIV
-            ((UserTarget)target).setSecurityName(new OctetString(username));
+            target.setSecurityLevel(SecurityLevel.AUTH_NOPRIV); //SecurityLevel.AUTH_NOPRIV
+            target.setSecurityName(new OctetString(username));
             target.setAddress(targetAddress);
             target.setRetries(3);
             target.setTimeout(5000000);
             target.setVersion(SnmpConstants.version3);
+            ((UserTarget)target).setAuthoritativeEngineID(MPv3.createLocalEngineID());
         }
         return target;
     }
