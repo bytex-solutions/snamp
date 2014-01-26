@@ -50,18 +50,15 @@ public class ClientSnmpV3 extends AbstractSnmpClient {
      * SnmpV2 Target based on UserModelCommunity
      * @return
      */
-    protected Target getTarget() {
-        if (target == null)
-        {
-            final Address targetAddress = GenericAddress.parse(address);
-            target = new UserTarget();
-            ((UserTarget)target).setSecurityLevel(SecurityLevel.AUTH_NOPRIV); //SecurityLevel.AUTH_NOPRIV
-            ((UserTarget)target).setSecurityName(new OctetString(username));
-            target.setAddress(targetAddress);
-            target.setRetries(3);
-            target.setTimeout(5000000);
-            target.setVersion(SnmpConstants.version3);
-        }
+    protected UserTarget getTarget() {
+        final UserTarget target = new UserTarget();
+        final Address targetAddress = GenericAddress.parse(address);
+        target.setSecurityLevel(SecurityLevel.AUTH_NOPRIV); //SecurityLevel.AUTH_NOPRIV
+        target.setSecurityName(new OctetString(username));
+        target.setAddress(targetAddress);
+        target.setRetries(3);
+        target.setTimeout(5000000);
+        target.setVersion(SnmpConstants.version3);
         return target;
     }
 }

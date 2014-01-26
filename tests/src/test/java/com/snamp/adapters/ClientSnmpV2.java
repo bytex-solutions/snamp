@@ -43,17 +43,14 @@ public class ClientSnmpV2 extends AbstractSnmpClient {
      * SnmpV3 Target based on UserModelCommunity
      * @return
      */
-    protected Target getTarget() {
-        if (target == null)
-        {
-            final Address targetAddress = GenericAddress.parse(address);
-            target = new CommunityTarget();
-            ((CommunityTarget) target).setCommunity(new OctetString("public"));
-            target.setAddress(targetAddress);
-            target.setRetries(3);
-            target.setTimeout(5000000);
-            target.setVersion(SnmpConstants.version2c);
-        }
+    protected CommunityTarget getTarget() {
+        final CommunityTarget target = new CommunityTarget();
+        final Address targetAddress = GenericAddress.parse(address);
+        target.setCommunity(new OctetString("public"));
+        target.setAddress(targetAddress);
+        target.setRetries(3);
+        target.setTimeout(5000000);
+        target.setVersion(SnmpConstants.version2c);
         return target;
     }
 }

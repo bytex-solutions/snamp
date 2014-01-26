@@ -22,7 +22,6 @@ public abstract class AbstractSnmpClient implements SnmpClient {
 
     protected Snmp snmp = null;
     protected String address;
-    protected Target target = null;
     protected TransportMapping transport = null;
 
     protected abstract Target getTarget();
