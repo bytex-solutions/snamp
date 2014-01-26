@@ -55,6 +55,8 @@ public class ClientSnmpV3 extends AbstractSnmpClient {
         final Address targetAddress = GenericAddress.parse(address);
         target.setSecurityLevel(SecurityLevel.AUTH_NOPRIV); //SecurityLevel.AUTH_NOPRIV
         target.setSecurityName(new OctetString(username));
+        target.setAuthoritativeEngineID(MPv3.createLocalEngineID());
+        target.setSecurityModel(SecurityModel.SECURITY_MODEL_USM);
         target.setAddress(targetAddress);
         target.setRetries(3);
         target.setTimeout(5000000);
