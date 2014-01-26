@@ -133,8 +133,8 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         }
 
         @Override
-        public final boolean handle(final Notification n) {
-            return handle(new SnmpWrappedNotification(new OID(getSubscriptionListId()), n, timestampFormatter));
+        public final boolean handle(final Notification n, final String category) {
+            return handle(new SnmpWrappedNotification(new OID(getSubscriptionListId()), n, category, timestampFormatter));
         }
     }
 

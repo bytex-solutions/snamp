@@ -104,8 +104,8 @@ public abstract class AbstractNotificationListener implements NotificationListen
                 (AbstractNotificationListener)listener:
                 new AbstractNotificationListener(listId) {
                     @Override
-                    public boolean handle(final Notification n) {
-                        return listener.handle(n);
+                    public boolean handle(final Notification n, final String category) {
+                        return listener.handle(n, category);
                     }
                 };
     }

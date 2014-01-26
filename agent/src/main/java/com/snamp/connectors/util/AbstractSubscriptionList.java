@@ -158,7 +158,7 @@ public abstract class AbstractSubscriptionList<TNotificationDescriptor> extends 
     }
 
     public final Map<String, Subscription<TNotificationDescriptor>> subscribeToAll(final NotificationListener listener) {
-        final Map<String, Subscription<TNotificationDescriptor>> result = new HashMap(10);
+        final Map<String, Subscription<TNotificationDescriptor>> result = new HashMap<>(10);
         for(final String prefix: keySet()){
             final EnabledNotifications<TNotificationDescriptor> notifs = get(prefix);
             for(final String postfix: notifs.keySet())

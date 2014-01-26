@@ -18,14 +18,15 @@ import java.util.*;
 import java.util.logging.Level;
 
 /**
+ * Represents HTTP adapter that exposes management information through HTTP and WebSocket to the outside world.
+ * This class cannot be inherited.
  * @author Roman Sakno
  */
 @PluginImplementation
 @Author(name = "Roman Sakno")
 final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugin<RestAdapterLimitations>, NotificationPublisher {
-
-
     private static final String DATE_FORMAT_PARAM_NAME = "dateFormat";
+    private static final String WEB_SOCKET_TIMEOUT_PARAM_NAME = "webSocketIdleTimeout";
     public static final String NAME = "rest";
     private final Server jettyServer;
     private final AttributesRegistry exposedAttributes;
@@ -64,6 +65,7 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
         final int port = parameters.containsKey(PORT_PARAM_NAME) ? Integer.valueOf(parameters.get(PORT_PARAM_NAME)) : 8080;
         final String host = parameters.containsKey(ADDRESS_PARAM_NAME) ? parameters.get(ADDRESS_PARAM_NAME) : "0.0.0.0";
         final String dateFormat = parameters.containsKey(DATE_FORMAT_PARAM_NAME) ? parameters.get(DATE_FORMAT_PARAM_NAME) : "";
+        final int webSocketIdleTimeout = Integer.valueOf(parameters.containsKey(WEB_SOCKET_TIMEOUT_PARAM_NAME) ? parameters.get(WEB_SOCKET_TIMEOUT_PARAM_NAME) : "10000");
         //remove all connectors.
         for(final Connector c: s.getConnectors())
             if(c instanceof NetworkConnector) ((NetworkConnector)c).close();
@@ -75,10 +77,10 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
         s.setConnectors(new Connector[]{connector});
         final ServletContextHandler resourcesHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
         resourcesHandler.setContextPath("/snamp");
+        //notification delivery
+        resourcesHandler.addServlet(new ServletHolder(new NotificationSenderServlet(notifications.createSubscriptionManager(), getLogger(), dateFormat, webSocketIdleTimeout)), "/notifications/*");
         //attribute getters and setters
         resourcesHandler.addServlet(new ServletHolder(createRestServlet(dateFormat)), "/management/*");
-        //notification delivery
-        resourcesHandler.addServlet(new ServletHolder(new NotificationSenderServlet(notifications.createSubscriptionManager(), getLogger(), dateFormat)), "/notifications/*");
         s.setHandler(resourcesHandler);
         return true;
     }
@@ -119,6 +121,7 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
                 if(!saveState){
                     exposedAttributes.disconnect();
                     exposedAttributes.clear();
+                    notifications.disable();
                 }
                 return true;
             }
@@ -184,6 +187,8 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
         jettyServer.stop();
         exposedAttributes.disconnect();
         exposedAttributes.clear();
+        notifications.disable();
+        notifications.clear();
         started = false;
     }
 

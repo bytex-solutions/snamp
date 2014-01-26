@@ -44,10 +44,11 @@ public final class NotificationUtils {
          * Handles the specified notification.
          *
          * @param n The notification to handle.
+         * @param category The event category.
          * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
          */
         @Override
-        public boolean handle(final Notification n) {
+        public boolean handle(final Notification n, final String category) {
             synchronizer.fire(n);
             return true;
         }
@@ -81,9 +82,9 @@ public final class NotificationUtils {
         final SynchronizationEvent<Notification> ev = new SynchronizationEvent<>();
         final Object listenerId = connector.subscribe(listId, new NotificationListener() {
             @Override
-            public final boolean handle(final Notification notification) {
+            public final boolean handle(final Notification notification, final String category) {
                 try{
-                    return listener != null ? listener.handle(notification) : true;
+                    return listener != null ? listener.handle(notification, category) : true;
                 }
                 finally {
                     ev.fire(notification);
@@ -131,7 +132,7 @@ public final class NotificationUtils {
     public static Awaitor<Notification> createAwaitor(final NotificationSupport connector, final String listId){
         return createAwaitor(connector, listId, new NotificationListener() {
             @Override
-            public boolean handle(final Notification n) {
+            public boolean handle(final Notification n, final String category) {
                 return true;
             }
         });

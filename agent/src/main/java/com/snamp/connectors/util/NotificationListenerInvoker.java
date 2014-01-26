@@ -14,7 +14,8 @@ public interface NotificationListenerInvoker {
     /**
      * Invokes a collection of listeners.
      * @param n The notification to pass into listeners.
+     * @param category Event category.
      * @param listeners An array of listeners to invoke.
      */
-    public void invoke(final Notification n, final Iterable<? extends NotificationListener> listeners);
+    public void invoke(final Notification n, final String category, final Iterable<? extends NotificationListener> listeners);
 }

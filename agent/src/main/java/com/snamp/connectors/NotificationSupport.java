@@ -131,9 +131,10 @@ public interface NotificationSupport {
         /**
          * Handles the specified notification.
          * @param n The notification to handle.
+         * @param category Event category.
          * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
          */
-        public boolean handle(final Notification n);
+        public boolean handle(final Notification n, final String category);
     }
 
     /**

@@ -17,6 +17,7 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
     private static final String ASSOCIATION_POSTFIX = "association";
     private static final String EXTENSION_POSTFIX = ".postfix";
     private static final String EXCLUSION_POSTFIX = ".exclusion";
+    private static final String DEFVAL_POSTIFX = ".default";
     private final Class<T> entityType;
 
     /**
@@ -115,6 +116,16 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
     }
 
     /**
+     * Returns the default value for of the specified configuration parameter.
+     * @param parameterName The name of the configuration parameter.
+     * @param loc The localization of the default value.
+     * @return The configuration parameter default value.
+     */
+    protected String getParameterDefaultValue(final String parameterName, final Locale loc){
+        return getBundle(loc).getString(parameterName + DEFVAL_POSTIFX);
+    }
+
+    /**
      * Returns the description of the specified parameter.
      *
      * @param parameterName The name of the parameter.
@@ -154,6 +165,17 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
                     @Override
                     public final Collection<String> getRelatedParameters(final ParameterRelationship relationship) {
                         return getParameterRelations(parameterName, relationship);
+                    }
+
+                    /**
+                     * Returns the default value of this configuration parameter.
+                     *
+                     * @param loc The localization of the default value. May be {@literal null}.
+                     * @return The default value of this configuration parameter; or {@literal null} if value is not available.
+                     */
+                    @Override
+                    public String getDefaultValue(final Locale loc) {
+                        return getParameterDefaultValue(parameterName, loc);
                     }
                 }: null;
     }

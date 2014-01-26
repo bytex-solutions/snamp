@@ -4,20 +4,16 @@ package com.snamp.adapters;
  * @author Evgeniy Kirichenko
  */
 
-import com.snamp.SimpleTable;
-import com.snamp.SynchronizationEvent;
-import com.snamp.Table;
-import com.snamp.TimeSpan;
-import com.snamp.connectors.JmxConnectorTest;
-import com.snamp.connectors.NotificationSupport;
+import com.snamp.*;
+import com.snamp.connectors.*;
 import com.snamp.configuration.EmbeddedAgentConfiguration;
 import org.junit.Test;
-import org.snmp4j.PDU;
-import org.snmp4j.Snmp;
+import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
+import static com.snamp.adapters.TestManagementBean.BEAN_NAME;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
@@ -41,7 +37,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         put(Adapter.ADDRESS_PARAM_NAME, addressForSNMP);
         put("socketTimeout", "5000");
     }};
-    private static final String BEAN_NAME = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
+
 
     public JmxToSnmpTest() throws MalformedObjectNameException {
         super("snmp", snmpAdapterSettings, new TestManagementBean(), new ObjectName(BEAN_NAME));

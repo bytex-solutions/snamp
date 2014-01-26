@@ -89,6 +89,13 @@ public interface ConfigurationEntityDescription<T extends ConfigurationEntity> e
          * @return A read-only collection of related parameters.
          */
         public Collection<String> getRelatedParameters(final ParameterRelationship relationship);
+
+        /**
+         * Returns the default value of this configuration parameter.
+         * @param loc The localization of the default value. May be {@literal null}.
+         * @return The default value of this configuration parameter; or {@literal null} if value is not available.
+         */
+        public String getDefaultValue(final Locale loc);
     }
 
     /**

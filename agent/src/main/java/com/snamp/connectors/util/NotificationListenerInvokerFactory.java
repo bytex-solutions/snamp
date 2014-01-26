@@ -29,9 +29,9 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createSequentialInvoker(){
         return new NotificationListenerInvoker() {
             @Override
-            public final void invoke(final Notification n, final Iterable<? extends NotificationListener> listeners) {
+            public final void invoke(final Notification n, final String category, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
-                    listener.handle(n);
+                    listener.handle(n, category);
             }
         };
     }
@@ -60,10 +60,10 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createExceptionResistantInvoker(final ExceptionHandler handler){
         return new NotificationListenerInvoker() {
             @Override
-            public final void invoke(final Notification n, final Iterable<? extends NotificationListener> listeners) {
+            public final void invoke(final Notification n, final String category, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
                     try{
-                        listener.handle(n);
+                        listener.handle(n, category);
                     }
                     catch (final Throwable e){
                         handler.handle(e, listener);
@@ -80,12 +80,12 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createParallelInvoker(final ExecutorService executor){
         return new NotificationListenerInvoker() {
             @Override
-            public final void invoke(final Notification n, final Iterable<? extends NotificationListener> listeners) {
+            public final void invoke(final Notification n, final String category, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
                     executor.execute(new Runnable() {
                         @Override
                         public final void run() {
-                            listener.handle(n);
+                            listener.handle(n, category);
                         }
                     });
             }
@@ -95,13 +95,13 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createParallelExceptionResistantInvoker(final ExecutorService executor, final ExceptionHandler handler){
         return new NotificationListenerInvoker() {
             @Override
-            public final void invoke(final Notification n, final Iterable<? extends NotificationListener> listeners) {
+            public final void invoke(final Notification n, final String category, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
                     executor.execute(new Runnable() {
                         @Override
                         public final void run() {
                             try{
-                                listener.handle(n);
+                                listener.handle(n, category);
                             }
                             catch (final Throwable e){
                                 handler.handle(e, listener);

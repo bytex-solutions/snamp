@@ -269,11 +269,12 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
              * Handles the specified notification.
              *
              * @param n The notification to handle.
+             * @param category Event category.
              * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
              */
             @Override
-            public final boolean handle(final NotificationSupport.Notification n) {
-                return listener.handle(n);
+            public final boolean handle(final NotificationSupport.Notification n, final String category) {
+                return listener.handle(n, category);
             }
         }
 
@@ -331,7 +332,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             final Lock readLock = coordinator.readLock();
             readLock.lock();
             try{
-                invoker.invoke(n, listeners.values());
+                invoker.invoke(n, getCategory(), listeners.values());
             }
             finally {
                 readLock.unlock();
