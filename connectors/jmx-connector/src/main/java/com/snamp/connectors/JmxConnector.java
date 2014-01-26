@@ -771,7 +771,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     }
 
     private static boolean useRegexpOption(final Map<String, String> options){
-        return options.containsKey("useRegexp") && Boolean.TRUE.equals(options.get("useRegexp"));
+        return options.containsKey("useRegexp") && Boolean.TRUE.toString().equals(options.get("useRegexp"));
     }
 
     private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options, final boolean useRegexp){
