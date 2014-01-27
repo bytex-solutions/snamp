@@ -159,7 +159,7 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @throws IOException
      */
     public <T> void writeAttribute(final OID oid, final T value, final Class<T> valueType) throws IOException{
-        final PDU pdu = DefaultPDUFactory.createPDU(this.getTarget().getVersion());
+        final PDU pdu = DefaultPDUFactory.createPDU(this.getTarget(), PDU.SET);
         final Variable var;
 
         if (valueType == int.class || valueType == Integer.class || valueType == short.class)
@@ -186,7 +186,6 @@ public abstract class AbstractSnmpClient implements SnmpClient {
         final VariableBinding varBind = new VariableBinding(oid,var);
 
         pdu.add(varBind);
-        pdu.setType(PDU.SET);
 
         final ResponseListener listener = new ResponseListener() {
             public void onResponse(ResponseEvent event) {
