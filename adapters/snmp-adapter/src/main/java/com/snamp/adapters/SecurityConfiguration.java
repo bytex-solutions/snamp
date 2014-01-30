@@ -1,8 +1,12 @@
 package com.snamp.adapters;
 
 import static com.snamp.configuration.SnmpAdapterConfigurationDescriptor.*;
+
+import org.snmp4j.agent.mo.snmp.*;
+import org.snmp4j.agent.security.MutableVACM;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.OID;
+import org.snmp4j.smi.OctetString;
 
 import java.util.*;
 
@@ -25,6 +29,7 @@ final class SecurityConfiguration {
         private OID authenticationProtocol;
         private OID privacyProtocol;
         private String password;
+        private String encryptionKey;
 
         /**
          * Initializes a new user security information.
@@ -32,7 +37,7 @@ final class SecurityConfiguration {
         public User(){
             authenticationProtocol = null;
             privacyProtocol = null;
-            password = "";
+            password = encryptionKey = "";
         }
 
         /**
@@ -124,6 +129,30 @@ final class SecurityConfiguration {
                 default: authenticationProtocol = new OID(protocol); return;
             }
         }
+
+        /**
+         * Gets passphrase that is used to encrypt SNMPv3 traffic.
+         * @return The passphrase that is used to encrypt SNMPv3 traffic.
+         */
+        public final String getEncryptionKey() {
+            return encryptionKey;
+        }
+
+        /**
+         * Sets passphrase that is used to encrypt SNMPv3 traffic.
+         * @param passphrase The passphrase that is used to encrypt SNMPv3 traffic.
+         */
+        public final void setEncryptionKey(final String passphrase){
+            encryptionKey = passphrase;
+        }
+
+        public final OctetString getPasswordAsOctectString() {
+            return password == null || password.isEmpty() ? null : new OctetString(password);
+        }
+
+        public final OctetString getEncryptionKeyAsOctetString(){
+            return encryptionKey == null || encryptionKey.isEmpty() ? null : new OctetString(encryptionKey);
+        }
     }
 
     /**
@@ -184,7 +213,7 @@ final class SecurityConfiguration {
         }
 
         public final void setSecurityLevel(final String value){
-            level = (value == null || value.isEmpty()) ? SecurityLevel.noAuthNoPriv : SecurityLevel.valueOf(value);
+            setSecurityLevel((value == null || value.isEmpty()) ? SecurityLevel.noAuthNoPriv : SecurityLevel.valueOf(value));
         }
 
         /**
@@ -194,6 +223,14 @@ final class SecurityConfiguration {
         public final void setAccessRights(final Collection<AccessRights> rights){
             this.rights.clear();
             this.rights.addAll(rights);
+        }
+
+        public final boolean hasAccessRights(final Collection<AccessRights> rights){
+            return this.rights.containsAll(rights);
+        }
+
+        public final boolean hasAccessRights(final AccessRights... rights){
+            return hasAccessRights(Arrays.asList(rights));
         }
 
         /**
@@ -223,7 +260,7 @@ final class SecurityConfiguration {
         }
     }
 
-    private final byte[] securityEngineID;
+    private final OctetString securityEngineID;
     private final Map<String, UserGroup> groups;
 
     /**
@@ -231,7 +268,7 @@ final class SecurityConfiguration {
      * @param securityEngine Security engine ID (authoritative engine).
      */
     public SecurityConfiguration(final byte[] securityEngine){
-        this.securityEngineID = securityEngine;
+        this.securityEngineID = new OctetString(securityEngine);
         this.groups = new HashMap<>(10);
     }
 
@@ -291,5 +328,37 @@ final class SecurityConfiguration {
             return true;
         }
         else return false;
+    }
+
+    public final void setupUserBasedSecurity(final USM security){
+        for(final UserGroup group: groups.values())
+            for(final Map.Entry<String, User> user: group.entrySet()){
+                final OctetString userName = new OctetString(user.getKey());
+                final User userDef = user.getValue();
+                security.addUser(userName, securityEngineID,
+                        new UsmUser(userName,
+                                userDef.getAuthenticationProtocol(),
+                                userDef.getPasswordAsOctectString(),
+                                userDef.getPrivacyProtocol(),
+                                userDef.getEncryptionKeyAsOctetString()));
+            }
+    }
+
+    public final void setupViewBasedAcm(final VacmMIB vacm){
+        for(final Map.Entry<String, UserGroup> group: groups.entrySet()){
+            final UserGroup groupDef = group.getValue();
+            for(final Map.Entry<String, User> user: groupDef.entrySet()){
+                vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, new OctetString(user.getKey()),
+                        new OctetString(group.getKey()),
+                        StorageType.nonVolatile);
+            }
+            vacm.addAccess(new OctetString(group.getKey()), new OctetString(),
+                    SecurityModel.SECURITY_MODEL_USM, groupDef.getSecurityLevel().getSnmpValue(),
+                    MutableVACM.VACM_MATCH_EXACT,
+                    groupDef.hasAccessRights(AccessRights.READ) ? new OctetString("fullReadView") : null,
+                    groupDef.hasAccessRights(AccessRights.WRITE) ? new OctetString("fullWriteView") : null,
+                    groupDef.hasAccessRights(AccessRights.NOTIFY) ? new OctetString("fullNotifyView") : null,
+                    StorageType.nonVolatile);
+        }
     }
 }
