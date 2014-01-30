@@ -9,7 +9,6 @@ import com.snamp.connectors.*;
 import com.snamp.connectors.util.*;
 import com.snamp.licensing.*;
 import net.xeoh.plugins.base.annotations.*;
-import net.xeoh.plugins.base.annotations.meta.Author;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
@@ -29,11 +28,10 @@ import static com.snamp.adapters.SnmpHelpers.DateTimeFormatter;
 /**
  * Represents SNMP Agent.
  * 
- * @author Roman Sakno
+ * @author Roman Sakno, Evgeniy Kirichenko
  * 
  */
 @PluginImplementation
-@Author(name = "Roman Sakno")
 final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugin<SnmpAdapterLimitations> {
     private static final String PASSWORD_PARAM = "password";
     private static final String USERNAME_PARAM = "username";
@@ -444,7 +442,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 		final Variable[] com2sec = new Variable[] { new OctetString("public"), // community
 																			// name
 				new OctetString("cpublic"), // security name
-				getAgent().getContextEngineID(), // local engine ID
+				agent.getContextEngineID(), // local engine ID
 				new OctetString("public"), // default context name
 				new OctetString(), // transport tag
 				new Integer32(StorageType.nonVolatile), // storage type
