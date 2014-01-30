@@ -12,13 +12,13 @@ import java.util.logging.Level;
  * Simple SNMPv2 client
  * @author Evgeniy Kirichenko
  */
-public class ClientSnmpV2 extends AbstractSnmpClient {
+public final class SnmpV2Client extends AbstractSnmpClient {
 
     /**
      * Snmp version 2 constructor
      * @param address
      */
-    public ClientSnmpV2(String address) {
+    public SnmpV2Client(String address) {
         this.address = address;
         try {
             start();

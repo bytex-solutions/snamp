@@ -1,7 +1,5 @@
 package com.snamp.adapters;
 
-import org.snmp4j.mp.SnmpConstants;
-
 /**
  * Represent factory providing instancing of SnmpClient Interface realization
  * @author Evgeniy Kirichenko
@@ -11,12 +9,12 @@ final public class SnmpClientFactory {
 
     public static SnmpClient getSnmpV2(final String address)
     {
-        return new ClientSnmpV2(address);
+        return new SnmpV2Client(address);
     }
 
     public static SnmpClient getSnmpV3(final String address, final String username, final String password)
     {
-        return new ClientSnmpV3(address, username, password);
+        return new SnmpV3Client(address, username, password);
     }
 
 }

@@ -23,6 +23,10 @@ public enum ReadMethod{
         pdu.setType(method);
     }
 
+    public final int getPduType(){
+        return method;
+    }
+
     public final PDUFactory createPduFactory(){
         return new DefaultPDUFactory(method);
     }

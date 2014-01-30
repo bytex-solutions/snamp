@@ -75,8 +75,7 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      */
     private ResponseEvent get(final ReadMethod method, final OID[] oids) throws IOException {
         method.prepareOIDs(oids);
-        final PDU pdu = DefaultPDUFactory.createPDU(getTarget().getVersion());
-        method.setPduType(pdu);
+        final PDU pdu = DefaultPDUFactory.createPDU(getTarget(), method.getPduType());
         pdu.setMaxRepetitions(50);
         pdu.setNonRepeaters(1);
         for (OID oid : oids) {
@@ -145,7 +144,7 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * Default getClientPort implementation
      * @return
      */
-    public int getClientPort(){
+    public final int getClientPort(){
         final UdpAddress address = (UdpAddress)transport.getListenAddress();
         return address.getPort();
     }
@@ -158,8 +157,8 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @param <T>
      * @throws IOException
      */
-    public <T> void writeAttribute(final OID oid, final T value, final Class<T> valueType) throws IOException{
-        final PDU pdu = DefaultPDUFactory.createPDU(this.getTarget().getVersion());
+    public final  <T> void writeAttribute(final OID oid, final T value, final Class<T> valueType) throws IOException{
+        final PDU pdu = DefaultPDUFactory.createPDU(this.getTarget(), PDU.SET);
         final Variable var;
 
         if (valueType == int.class || valueType == Integer.class || valueType == short.class)
@@ -186,7 +185,6 @@ public abstract class AbstractSnmpClient implements SnmpClient {
         final VariableBinding varBind = new VariableBinding(oid,var);
 
         pdu.add(varBind);
-        pdu.setType(PDU.SET);
 
         final ResponseListener listener = new ResponseListener() {
             public void onResponse(ResponseEvent event) {
@@ -246,7 +244,7 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @return
      * @throws IOException
      */
-    public <T>T readAttribute(final ReadMethod method, final OID oid, final Class<T> className) throws IOException {
+    public final  <T>T readAttribute(final ReadMethod method, final OID oid, final Class<T> className) throws IOException {
         final ResponseEvent value = this.get(method, new OID[]{oid});
         //assertNotNull(value);
         return deserialize(value.getResponse().getVariable(oid), className);
@@ -261,7 +259,7 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @return
      * @throws Exception
      */
-    public Table<Integer> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception {
+    public final Table<Integer> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception {
         final Table<Integer> table = new SimpleTable<>(columns);
         final Collection<Variable[]> rows = this.getTable(method, oid, columns.size());
         for(final Variable[] row: rows)
@@ -281,9 +279,8 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @return
      * @throws IOException
      */
-    public PDU writeTable(final String tablePrefix, final Table<Integer> table) throws IOException {
-        final PDU pdu = DefaultPDUFactory.createPDU(this.getTarget().getVersion());
-        pdu.setType(PDU.SET);
+    public final PDU writeTable(final String tablePrefix, final Table<Integer> table) throws IOException {
+        final PDU pdu = DefaultPDUFactory.createPDU(this.getTarget(), PDU.SET);
         //add rows
         for(int i = 0; i < table.getRowCount(); i++){
             //iterate through each column
