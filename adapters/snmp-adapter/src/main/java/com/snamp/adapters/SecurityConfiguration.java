@@ -134,7 +134,7 @@ final class SecurityConfiguration {
          * Gets passphrase that is used to encrypt SNMPv3 traffic.
          * @return The passphrase that is used to encrypt SNMPv3 traffic.
          */
-        public final String getEncryptionKey() {
+        public final String getPrivacyKey() {
             return encryptionKey;
         }
 
@@ -142,7 +142,7 @@ final class SecurityConfiguration {
          * Sets passphrase that is used to encrypt SNMPv3 traffic.
          * @param passphrase The passphrase that is used to encrypt SNMPv3 traffic.
          */
-        public final void setEncryptionKey(final String passphrase){
+        public final void setPrivacyKey(final String passphrase){
             encryptionKey = passphrase;
         }
 
@@ -150,7 +150,7 @@ final class SecurityConfiguration {
             return password == null || password.isEmpty() ? null : new OctetString(password);
         }
 
-        public final OctetString getEncryptionKeyAsOctetString(){
+        public final OctetString getPrivacyKeyAsOctetString(){
             return encryptionKey == null || encryptionKey.isEmpty() ? null : new OctetString(encryptionKey);
         }
     }
@@ -312,12 +312,14 @@ final class SecurityConfiguration {
     private static void fillUsers(final Map<String,String> adapterSettings, final UserGroup groupInfo, final Collection<String> userNames) {
         final String PASSWORD_TEMPLATE = "%s-password";
         final String AUTH_PROTOCOL_TEMPLATE = "%s-auth-protocol";
+        final String PRIVACY_KEY_TEMPLATE = "%s-privacy-key";
         final String PRIVACY_PROTOCOL_TEMPLATE = "%s-privacy-protocol";
         for(final String name: userNames){
             final User userInfo = new User();
             groupInfo.put(name, userInfo);
             userInfo.setPassword(adapterSettings.get(String.format(PASSWORD_TEMPLATE, name)));
             userInfo.setPrivacyProtocol(adapterSettings.get(String.format(PRIVACY_PROTOCOL_TEMPLATE, name)));
+            userInfo.setPrivacyKey(adapterSettings.get(String.format(PRIVACY_KEY_TEMPLATE, name)));
             userInfo.setAuthenticationProtocol(adapterSettings.get(String.format(AUTH_PROTOCOL_TEMPLATE, name)));
         }
     }
@@ -340,7 +342,7 @@ final class SecurityConfiguration {
                                 userDef.getAuthenticationProtocol(),
                                 userDef.getPasswordAsOctectString(),
                                 userDef.getPrivacyProtocol(),
-                                userDef.getEncryptionKeyAsOctetString()));
+                                userDef.getPrivacyKeyAsOctetString()));
             }
     }
 
