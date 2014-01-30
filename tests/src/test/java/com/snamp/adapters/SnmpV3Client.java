@@ -41,7 +41,6 @@ public final class SnmpV3Client extends AbstractSnmpClient {
         //BANANA: need to change the local engine ID, because if it is equal to USM engine ID
         //the security engine ID will be omitted
         ((MPv3)snmp.getMessageDispatcher().getMessageProcessingModel(MessageProcessingModel.MPv3)).setLocalEngineID(new OctetString("blah-blah").toByteArray());
-        transport.listen();
     }
 
     /**
@@ -52,8 +51,8 @@ public final class SnmpV3Client extends AbstractSnmpClient {
     protected UserTarget getTarget() {
 
         final UserTarget target = new UserTarget();
-        target.setAuthoritativeEngineID(MPv3.createLocalEngineID());
         final Address targetAddress = GenericAddress.parse(address);
+        target.setAuthoritativeEngineID(MPv3.createLocalEngineID());
         target.setSecurityLevel(SecurityLevel.AUTH_NOPRIV); //SecurityLevel.AUTH_NOPRIV
         target.setSecurityName(new OctetString(username));
         target.setSecurityModel(SecurityModel.SECURITY_MODEL_USM);

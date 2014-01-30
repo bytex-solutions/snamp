@@ -4,17 +4,24 @@ package com.snamp.adapters;
  * @author Evgeniy Kirichenko
  */
 
-import com.snamp.connectors.JmxConnectorTest;
+import com.snamp.*;
+import com.snamp.connectors.*;
 import com.snamp.configuration.EmbeddedAgentConfiguration;
 import org.junit.Test;
-import org.snmp4j.smi.OID;
-
+import org.snmp4j.smi.*;
+import static com.snamp.adapters.TestManagementBean.BEAN_NAME;
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> {
     private static final String portForSNMP = "3222";
@@ -52,7 +59,7 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
     }
 
- /*
+   /*
     @Test
     public final void testForArrayProperty() throws Exception{
         final String POSTFIX = "5.1";
@@ -239,7 +246,7 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         assertArrayEquals(byteString, client.readAttribute(ReadMethod.GET, oid, byte[].class));
         assertArrayEquals(byteString, client.readAttribute(ReadMethod.GETBULK, oid, byte[].class));
     }
-*/
+        */
 
     @Override
     protected final void fillAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attributes) {
