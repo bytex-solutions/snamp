@@ -15,16 +15,18 @@ import java.util.logging.Level;
 public final class SnmpV3Client extends AbstractSnmpClient {
 
     private final String username;
+    private final SecurityLevel level;
 
     /**
      * Create usual SNMP client for snmpv3 with auth
      * @param address
      */
-    public SnmpV3Client(final String address, final String username, final String password) {
+    public SnmpV3Client(final String address, final String username, final SecurityLevel security) {
         this.address = address;
         this.username = username;
+        this.level = security;
         try {
-            start(username, password);
+            start();
         } catch (IOException e) {
             log.log(Level.SEVERE, "Snmp client initialization error: " + e.getLocalizedMessage());
         }
@@ -35,7 +37,7 @@ public final class SnmpV3Client extends AbstractSnmpClient {
      * and the listen() method listens for answers.
      * @throws java.io.IOException
      */
-    private void start(final String username, final String password) throws IOException {
+    private void start() throws IOException {
         //setup transport
         snmp = new Snmp(transport = new DefaultUdpTransportMapping());
         //BANANA: need to change the local engine ID, because if it is equal to USM engine ID
@@ -56,7 +58,7 @@ public final class SnmpV3Client extends AbstractSnmpClient {
         final UserTarget target = new UserTarget();
         final Address targetAddress = GenericAddress.parse(address);
         target.setAuthoritativeEngineID(MPv3.createLocalEngineID());
-        target.setSecurityLevel(SecurityLevel.AUTH_NOPRIV); //SecurityLevel.AUTH_NOPRIV
+        target.setSecurityLevel(level.getSnmpValue());
         target.setSecurityName(new OctetString(username));
         target.setSecurityModel(SecurityModel.SECURITY_MODEL_USM);
         target.setAddress(targetAddress);

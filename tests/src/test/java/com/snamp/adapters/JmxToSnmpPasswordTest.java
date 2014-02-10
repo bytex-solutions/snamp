@@ -8,16 +8,13 @@ import com.snamp.*;
 import com.snamp.connectors.*;
 import com.snamp.configuration.EmbeddedAgentConfiguration;
 import org.junit.Test;
+import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.*;
-import static com.snamp.adapters.TestManagementBean.BEAN_NAME;
+
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.math.BigInteger;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -27,16 +24,29 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
     private static final String portForSNMP = "3222";
     private static final String addressForSNMP = "127.0.0.1";
     private static final String prefix = "1.1";
-    private static final String username = "Community";
-    private static final String password = "Greendale";
-    private static final SnmpClient client = SnmpClientFactory.getSnmpV3("udp:"+addressForSNMP+"/"+portForSNMP, username, password);
+    private static final String username = "testuser";
+    private static final String password = "1-2-3-4-5-password";
+    private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + addressForSNMP + "/" + portForSNMP, username, SecurityLevel.authPriv);
 
     private static final Map<String, String> snmpAdapterSettings = new HashMap<String, String>(2){{
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
         put(Adapter.ADDRESS_PARAM_NAME, addressForSNMP);
         put("socketTimeout", "5000");
-        put("username", username);
-        put("password", password);
+        put("snmpv3-groups", "group1, group2");
+        //group1 setup
+        put("group1-security-level", "authNoPriv");
+        put("group1-access-rights", "read, write, notify");
+        put("group1-users", username);
+        put(username + "-password", password);
+        put(username + "-auth-protocol", "sha");
+        put(username + "-privacy-key", "6-7-8-9-0-passphrase");
+        put(username + "-privacy-protocol", "AES256");
+        //group2 setup
+        put("group2-security-level", "authNoPriv");
+        put("group2-access-rights", "read");
+        put("group2-users", "testuser2");
+        put("testuser2-password", "1-2-3-4-5-password");
+        put("testuser2-auth-protocol", "sha");
     }};
     private static final String BEAN_NAME = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
 
@@ -66,7 +76,7 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
     }
 
 
-/*    @Test
+    @Test
     public final void testForStringProperty() throws IOException, InterruptedException {
         final String valueToCheck = "SETTED VALUE";
         final OID oid = new OID(prefix + "." + "1.0");
@@ -75,7 +85,7 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
     }
 
-
+    /*
     @Test
     public final void testForArrayProperty() throws Exception{
         final String POSTFIX = "5.1";

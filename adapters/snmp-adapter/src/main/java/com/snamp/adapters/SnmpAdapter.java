@@ -34,9 +34,6 @@ import static com.snamp.configuration.SnmpAdapterConfigurationDescriptor.*;
  */
 @PluginImplementation
 final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugin<SnmpAdapterLimitations> {
-    private static final String PASSWORD_PARAM = "password";
-    private static final String USERNAME_PARAM = "username";
-    ;
     private static final OctetString V2C_TAG = new OctetString("v2c");
     private static final OctetString V3NOTIFY_TAG = new OctetString("v3notify");
 
@@ -316,9 +313,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
     private boolean coldStart;
     private final ManagementAttributes attributes;
     private final ManagementNotifications senders;
-    private String username;
-    private String password;
-    private boolean useAuth = false;
+    private SecurityConfiguration security;
 
 	public SnmpAdapter() throws IOException {
 		// These files does not exist and are not used but has to be specified
@@ -333,6 +328,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         attributes = new ManagementAttributes();
         this.senders = new ManagementNotifications();
         this.socketTimeout = 0;
+        security = null;
 	}
 
 	@Override
@@ -355,7 +351,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 	 */
 	@Override
 	protected final void addViews(final VacmMIB vacm) {
-        if (!this.useAuth){
+        if (security == null){
             vacm.addGroup(SecurityModel.SECURITY_MODEL_SNMPv2c, new OctetString(
                     "cpublic"), new OctetString("v1v2group"),
                     StorageType.nonVolatile);
@@ -366,19 +362,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                     new OctetString("fullWriteView"), new OctetString(
                     "fullNotifyView"), StorageType.nonVolatile);
         }
-        else{
-            vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, new OctetString(username),
-                    new OctetString("v1v2group"),
-                    StorageType.nonVolatile);
-
-            vacm.addAccess(new OctetString("v1v2group"), new OctetString(),
-                    SecurityModel.SECURITY_MODEL_USM, SecurityLevel.AUTH_NOPRIV,
-                    MutableVACM.VACM_MATCH_EXACT, new OctetString("fullReadView"),
-                    new OctetString("fullWriteView"), new OctetString(
-                    "fullNotifyView"), StorageType.nonVolatile);
-        }
-
-
+        else security.setupViewBasedAcm(vacm);
 	}
 
 	/**
@@ -386,11 +370,8 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
      * @param usm User-based security model.
 	 */
 	protected final void addUsmUser(final USM usm) {
-        if (this.useAuth)
-        {
-            usm.addUser(new OctetString(username), new OctetString(MPv3.createLocalEngineID()),
-                    new UsmUser(new OctetString(username), AuthMD5.ID, new OctetString(password), null, null));
-        }
+        if (security != null)
+            security.setupUserBasedSecurity(usm);
     }
 
     /**
@@ -454,21 +435,11 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 		communityMIB.getSnmpCommunityEntry().addRow(row);
 	}
 
-    private boolean start(final Integer port, final String address, final int socketTimeout) throws IOException{
+    private boolean start(final Integer port, final String address, final int socketTimeout, final SecurityConfiguration security) throws IOException{
         this.port = port != null ? port.intValue() : defaultPort;
         this.address = address != null && address.length() > 0 ? address : defaultAddress;
         this.socketTimeout = socketTimeout;
-        start();
-        return true;
-    }
-
-    private boolean start(final Integer port, final String address, final int socketTimeout, final String username, final String password) throws IOException{
-        this.port = port != null ? port.intValue() : defaultPort;
-        this.address = address != null && address.length() > 0 ? address : defaultAddress;
-        this.socketTimeout = socketTimeout;
-        this.username = username;
-        this.password = password;
-        this.useAuth = true;
+        this.security = security;
         start();
         return true;
     }
@@ -487,14 +458,13 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                 final String port = parameters.containsKey(PORT_PARAM_NAME) ? parameters.get(PORT_PARAM_NAME) : "161";
                 final String address = parameters.containsKey(ADDRESS_PARAM_NAME) ? parameters.get(ADDRESS_PARAM_NAME) : "127.0.0.1";
                 final String socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ? parameters.get(SOCKET_TIMEOUT_PARAM) : "0";
-                if(parameters.containsKey(USERNAME_PARAM) || parameters.containsKey(PASSWORD_PARAM))
-                {
+                if(parameters.containsKey(SNMPv3_GROUPS_PROPERTY)){
                     SnmpAdapterLimitations.current().verifyAuthenticationFeature();
-                    final String username = parameters.containsKey(USERNAME_PARAM) ? parameters.get(USERNAME_PARAM) : "";
-                    final String password = parameters.containsKey(PASSWORD_PARAM) ? parameters.get(PASSWORD_PARAM) : "";
-                    return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout), username, password);
+                    final SecurityConfiguration security = new SecurityConfiguration(MPv3.createLocalEngineID());
+                    security.read(parameters);
+                    return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout), security);
                 }
-                return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout));
+                else return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout), null);
             default:return false;
         }
     }

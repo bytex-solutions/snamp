@@ -27,7 +27,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
     private static final String portForSNMP = "3222";
     private static final String addressForSNMP = "127.0.0.1";
     private static final String prefix = "1.1";
-    private static final SnmpClient client = SnmpClientFactory.getSnmpV2("udp:"+addressForSNMP+"/"+portForSNMP);
+    private static final SnmpClient client = SnmpClientFactory.createSnmpV2("udp:" + addressForSNMP + "/" + portForSNMP);
 
     private static final Map<String, String> snmpAdapterSettings = new HashMap<String, String>(2){{
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
