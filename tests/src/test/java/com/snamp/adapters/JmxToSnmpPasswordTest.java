@@ -50,16 +50,32 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
     }
 
     @Test
+    public final void notificationTest() throws IOException, TimeoutException, InterruptedException {
+        final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor1 = client.addNotificationListener(new OID(prefix + ".19.1"));
+        final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor2 = client.addNotificationListener(new OID(prefix + ".20.1"));
+        client.writeAttribute(new OID(prefix + "." + "1.0"), "NOTIFICATION TEST", String.class);
+        final SnmpWrappedNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
+        final SnmpWrappedNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.MINUTES));
+        assertNotNull(p1);
+        assertNotNull(p2);
+        assertEquals(NotificationSupport.Notification.Severity.NOTICE, p1.getSeverity());
+        assertEquals(NotificationSupport.Notification.Severity.PANIC, p2.getSeverity());
+        assertEquals(0L, p1.getSequenceNumber());
+        assertEquals("Property string is changed", p1.getMessage());
+        assertEquals("Property changed", p2.getMessage());
+    }
+
+
+/*    @Test
     public final void testForStringProperty() throws IOException, InterruptedException {
         final String valueToCheck = "SETTED VALUE";
         final OID oid = new OID(prefix + "." + "1.0");
         client.writeAttribute(oid, valueToCheck, String.class);
-        //Thread.sleep(100000000);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
     }
 
-   /*
+
     @Test
     public final void testForArrayProperty() throws Exception{
         final String POSTFIX = "5.1";
@@ -106,15 +122,6 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         assertEquals(false, dict.getCell(2, 0));
         assertEquals(4230, dict.getCell(3, 0));
         assertEquals("Test for dictionary property", dict.getCell(4, 0));
-    }
-
-    @Test
-    public final void testForStringProperty() throws IOException {
-        final String valueToCheck = "SETTED VALUE";
-        final OID oid = new OID(prefix + "." + "1.0");
-        client.writeAttribute(oid, valueToCheck, String.class);
-        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
-        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
     }
 
     @Test
@@ -245,8 +252,8 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         client.writeAttribute(oid, byteString, byte[].class);
         assertArrayEquals(byteString, client.readAttribute(ReadMethod.GET, oid, byte[].class));
         assertArrayEquals(byteString, client.readAttribute(ReadMethod.GETBULK, oid, byte[].class));
-    }
-        */
+    }*/
+
 
     @Override
     protected final void fillAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attributes) {
