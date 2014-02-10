@@ -1,5 +1,7 @@
 package com.snamp.configuration;
 
+import com.snamp.internal.ReflectionUtils;
+
 import static com.snamp.configuration.AgentConfiguration.ConfigurationEntity;
 
 import java.util.*;
@@ -54,7 +56,26 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
     }
 
     /**
+     * Returns full resource name constructed from the namespace of the derived class and the
+     * specified resource name.
+     * @param baseName The name of the resource bundle.
+     * @return The full resource name.
+     */
+    protected final String getResourceName(final String baseName){
+        return ReflectionUtils.getFullyQualifiedResourceName(getClass(), baseName);
+    }
+
+    /**
      * Retrieves resource accessor for the specified locale.
+     * <p>
+     *     The following example shows recommended implementation of this method:
+     *     <pre><code>
+     *     protected final ResourceBundle getBundle(final Locale loc) {
+     *      return loc != null ? ResourceBundle.getBundle(getResourceName("MyResource"), loc) :
+     *      ResourceBundle.getBundle(getResourceName("MyResource"));
+     *     }
+     *     </code></pre>
+     * </p>
      * @param loc The requested localization of the resource. May be {@literal null}.
      * @return The resource accessor.
      */

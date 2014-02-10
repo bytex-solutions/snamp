@@ -1,5 +1,7 @@
 package com.snamp.connectors;
 
+import com.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.snamp.configuration.JmxConnectorConfigurationDescriptor;
 import com.snamp.licensing.JmxConnectorLimitations;
 import com.snamp.licensing.LicensedPlatformPlugin;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
@@ -22,13 +24,15 @@ final class JmxConnectorFactory extends AbstractManagementConnectorFactory<JmxCo
      */
     public static final String connectorName = "jmx";
 
+    private JmxConnectorConfigurationDescriptor configDescr;
+
     /**
      * Initializes a new JMX connector factory.
      */
     public JmxConnectorFactory(){
         super(connectorName);
-        //TODO: Package.getImplementationVersion() returns null, I don't know why...
         JmxConnectorLimitations.current().verifyPluginVersion(getClass());
+        configDescr = null;
     }
 
     /**
@@ -76,6 +80,13 @@ final class JmxConnectorFactory extends AbstractManagementConnectorFactory<JmxCo
     @Override
     public final boolean supportsFeature(final Class<?> feature) {
         return feature == null ? false : feature.isAssignableFrom(JmxConnector.class);
+    }
+
+    @Aggregation
+    public final ConfigurationEntityDescriptionProvider getConfigurationDescriptor(){
+        if(configDescr == null)
+            configDescr = new JmxConnectorConfigurationDescriptor();
+        return configDescr;
     }
 
     /**

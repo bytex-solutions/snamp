@@ -21,10 +21,6 @@ public final class JmxAttributeConfigurationDescriptor extends ResourceBasedConf
         final Object o = getClass().getResourceAsStream("JmxAttributeConfig.properties");
     }
 
-    private String getResourceName(){
-        return ReflectionUtils.getFullyQualifiedResourceName(getClass(), RESOURCE_NAME);
-    }
-
     /**
      * Retrieves resource accessor for the specified locale.
      *
@@ -33,6 +29,7 @@ public final class JmxAttributeConfigurationDescriptor extends ResourceBasedConf
      */
     @Override
     protected final ResourceBundle getBundle(final Locale loc) {
-        return loc != null ? ResourceBundle.getBundle(getResourceName(), loc) : ResourceBundle.getBundle(getResourceName());
+        return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
+                ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
     }
 }

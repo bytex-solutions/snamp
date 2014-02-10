@@ -24,6 +24,7 @@ import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfigu
 import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 import static com.snamp.connectors.NotificationSupport.Notification;
 import static com.snamp.adapters.SnmpHelpers.DateTimeFormatter;
+import static com.snamp.configuration.SnmpAdapterConfigurationDescriptor.*;
 
 /**
  * Represents SNMP Agent.
@@ -35,7 +36,7 @@ import static com.snamp.adapters.SnmpHelpers.DateTimeFormatter;
 final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugin<SnmpAdapterLimitations> {
     private static final String PASSWORD_PARAM = "password";
     private static final String USERNAME_PARAM = "username";
-    private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
+    ;
     private static final OctetString V2C_TAG = new OctetString("v2c");
     private static final OctetString V3NOTIFY_TAG = new OctetString("v3notify");
 

@@ -54,7 +54,7 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         final String valueToCheck = "SETTED VALUE";
         final OID oid = new OID(prefix + "." + "1.0");
         client.writeAttribute(oid, valueToCheck, String.class);
-        Thread.sleep(100000000);
+        //Thread.sleep(100000000);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
     }
