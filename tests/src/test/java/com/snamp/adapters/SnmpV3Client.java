@@ -41,12 +41,15 @@ public final class SnmpV3Client extends AbstractSnmpClient {
         //BANANA: need to change the local engine ID, because if it is equal to USM engine ID
         //the security engine ID will be omitted
         ((MPv3)snmp.getMessageDispatcher().getMessageProcessingModel(MessageProcessingModel.MPv3)).setLocalEngineID(new OctetString("blah-blah").toByteArray());
+        transport.listen();
     }
 
     /**
      * SnmpV2 Target based on UserModelCommunity
      * @return
      */
+
+
 
     protected UserTarget getTarget() {
 
@@ -58,7 +61,7 @@ public final class SnmpV3Client extends AbstractSnmpClient {
         target.setSecurityModel(SecurityModel.SECURITY_MODEL_USM);
         target.setAddress(targetAddress);
         target.setRetries(0);
-        target.setTimeout(5000000);
+        target.setTimeout(5000);
         target.setVersion(SnmpConstants.version3);
         return target;
     }

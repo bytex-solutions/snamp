@@ -226,7 +226,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                     MessageProcessingModel.MPv3,
                     SecurityModel.SECURITY_MODEL_USM,
                     new OctetString("v3notify"),
-                    SecurityLevel.NOAUTH_NOPRIV,
+                    SecurityLevel.AUTH_NOPRIV,
                     StorageType.permanent);
             notificationMIB.addNotifyEntry(new OctetString("default"),
                     new OctetString("notify"),
