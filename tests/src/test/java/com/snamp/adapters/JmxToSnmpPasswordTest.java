@@ -7,19 +7,44 @@ package com.snamp.adapters;
 import com.snamp.*;
 import com.snamp.connectors.*;
 import com.snamp.configuration.EmbeddedAgentConfiguration;
+import com.snamp.hosting.Agent;
+
+import org.apache.directory.server.constants.ServerDNConstants;
+import org.apache.directory.server.core.DefaultDirectoryService;
+import org.apache.directory.server.core.DirectoryService;
+
+import org.apache.directory.server.core.partition.impl.btree.jdbm.JdbmPartition;
+import org.apache.directory.server.core.partition.ldif.LdifPartition;
+import org.apache.directory.server.core.schema.SchemaPartition;
+import org.apache.directory.server.ldap.LdapServer;
+import org.apache.directory.server.protocol.shared.transport.TcpTransport;
+import org.apache.directory.shared.ldap.schema.SchemaManager;
+import org.apache.directory.shared.ldap.schema.ldif.extractor.SchemaLdifExtractor;
+import org.apache.directory.shared.ldap.schema.ldif.extractor.impl.DefaultSchemaLdifExtractor;
+import org.apache.directory.shared.ldap.schema.loader.ldif.LdifSchemaLoader;
+import org.apache.directory.shared.ldap.schema.manager.impl.DefaultSchemaManager;
+import org.apache.directory.shared.ldap.schema.registries.SchemaLoader;
 import org.junit.Test;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.*;
+import javax.management.AttributeChangeNotification;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import java.io.File;
 
-import javax.management.*;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.*;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.*;
 
-import static com.snamp.adapters.TestManagementBean.BEAN_NAME;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 
 public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> {
     private static final String portForSNMP = "3222";
@@ -28,6 +53,9 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
     private static final String username = "testuser";
     private static final String password = "1-2-3-4-5-password";
     private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + addressForSNMP + "/" + portForSNMP, username, SecurityLevel.authPriv);
+
+    private static DirectoryService directoryService;
+    private static LdapServer ldapServer;
 
     private static final Map<String, String> snmpAdapterSettings = new HashMap<String, String>(2){{
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
@@ -58,6 +86,71 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
     @Override
     protected String getAttributesNamespace() {
         return prefix;
+    }
+
+
+    @Override
+    protected void afterAgentStart(final Agent agent) throws Exception{
+
+        String buildDirectory = System.getProperty("buildDirectory");
+        File workingDirectory = new File(buildDirectory, "apacheds-work");
+        workingDirectory.mkdir();
+
+        directoryService = new DefaultDirectoryService();
+        directoryService.setWorkingDirectory(workingDirectory);
+
+        SchemaPartition schemaPartition = directoryService.getSchemaService()
+                .getSchemaPartition();
+
+        LdifPartition ldifPartition = new LdifPartition();
+        String workingDirectoryPath = directoryService.getWorkingDirectory()
+                .getPath();
+        ldifPartition.setWorkingDirectory(workingDirectoryPath + "/schema");
+
+        File schemaRepository = new File(workingDirectory, "schema");
+        SchemaLdifExtractor extractor = new DefaultSchemaLdifExtractor(
+                workingDirectory);
+        extractor.extractOrCopy(true);
+
+        schemaPartition.setWrappedPartition(ldifPartition);
+
+        SchemaLoader loader = new LdifSchemaLoader(schemaRepository);
+        SchemaManager schemaManager = new DefaultSchemaManager(loader);
+        directoryService.setSchemaManager(schemaManager);
+
+        schemaManager.loadAllEnabled();
+
+        schemaPartition.setSchemaManager(schemaManager);
+
+        List<Throwable> errors = schemaManager.getErrors();
+
+        if (!errors.isEmpty())
+            throw new Exception("Schema load failed : " + errors);
+
+        JdbmPartition systemPartition = new JdbmPartition();
+        systemPartition.setId("system");
+        systemPartition.setPartitionDir(new File(directoryService
+                .getWorkingDirectory(), "system"));
+        systemPartition.setSuffix(ServerDNConstants.SYSTEM_DN);
+        systemPartition.setSchemaManager(schemaManager);
+        directoryService.setSystemPartition(systemPartition);
+
+        directoryService.setShutdownHookEnabled(false);
+        directoryService.getChangeLog().setEnabled(false);
+
+        ldapServer = new LdapServer();
+        ldapServer.setTransports(new TcpTransport(11389));
+        ldapServer.setDirectoryService(directoryService);
+
+        directoryService.startup();
+        ldapServer.start();
+    }
+
+    @Override
+    protected void beforeAgentStop(final Agent agent) throws Exception{
+        ldapServer.stop();
+        directoryService.shutdown();
+        directoryService.getWorkingDirectory().delete();
     }
 
 

@@ -45,5 +45,10 @@
             <name>formreturn.com Repository</name>
             <url>http://maven.formreturn.com/repository</url>
         </repository>
+        <repository>
+            <id>maven</id>
+            <name>formreturn.com Repository</name>
+            <url>http://repo1.maven.org/maven2/</url>
+        </repository>
     </repositories>
 </project>
