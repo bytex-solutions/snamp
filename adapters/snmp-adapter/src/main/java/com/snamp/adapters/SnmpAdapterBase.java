@@ -1,5 +1,7 @@
 package com.snamp.adapters;
 
+import com.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.snamp.configuration.SnmpAdapterConfigurationDescriptor;
 import net.xeoh.plugins.base.annotations.Capabilities;
 import org.snmp4j.agent.*;
 
@@ -18,6 +20,8 @@ public abstract class SnmpAdapterBase extends BaseAgent implements Adapter, Noti
     protected static final String defaultAddress = "127.0.0.1";
     public static final String adapterName = "snmp";
 
+    private ConfigurationEntityDescriptionProvider configDescr;
+
     /**
      * Gets a logger associated with this adapter.
      *
@@ -26,6 +30,12 @@ public abstract class SnmpAdapterBase extends BaseAgent implements Adapter, Noti
     @Override
     public final Logger getLogger() {
         return log;
+    }
+
+    public final ConfigurationEntityDescriptionProvider getConfigurationDescriptor(){
+        if(configDescr == null)
+            configDescr = new SnmpAdapterConfigurationDescriptor();
+        return configDescr;
     }
 
     /**
@@ -43,6 +53,8 @@ public abstract class SnmpAdapterBase extends BaseAgent implements Adapter, Noti
             return objectType.cast(agent);
         else if(Objects.equals(objectType, MOServer.class))
             return objectType.cast(server);
+        else if(Objects.equals(ConfigurationEntityDescriptionProvider.class, objectType))
+            return objectType.cast(getConfigurationDescriptor());
         else return null;
     }
 
@@ -59,5 +71,6 @@ public abstract class SnmpAdapterBase extends BaseAgent implements Adapter, Noti
                               final File configFile,
                               final CommandProcessor commandProcessor){
         super(bootCounterFile, configFile, commandProcessor);
+        configDescr = null;
     }
 }

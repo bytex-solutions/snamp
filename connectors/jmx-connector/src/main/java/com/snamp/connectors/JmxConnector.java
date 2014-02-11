@@ -261,6 +261,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
         }
 
         private final void handleNotification(final ObjectName source, final javax.management.Notification notification){
+            System.out.println("Received " + notification.getType());
             final Map<String, JmxNotificationMetadata> enabledNotifs = getEnabledNotifications(notification.getType(), JmxNotificationMetadata.class);
             for(final JmxNotificationMetadata eventMetadata: enabledNotifs.values())
                 if(source.equals(eventMetadata.eventOwner)) eventMetadata.fire(notification);

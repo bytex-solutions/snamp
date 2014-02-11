@@ -24,6 +24,7 @@ import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfigu
 import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 import static com.snamp.connectors.NotificationSupport.Notification;
 import static com.snamp.adapters.SnmpHelpers.DateTimeFormatter;
+import static com.snamp.configuration.SnmpAdapterConfigurationDescriptor.*;
 
 /**
  * Represents SNMP Agent.
@@ -33,11 +34,7 @@ import static com.snamp.adapters.SnmpHelpers.DateTimeFormatter;
  */
 @PluginImplementation
 final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugin<SnmpAdapterLimitations> {
-    private static final String PASSWORD_PARAM = "password";
-    private static final String USERNAME_PARAM = "username";
-    private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
-    private static final OctetString V2C_TAG = new OctetString("v2c");
-    private static final OctetString V3NOTIFY_TAG = new OctetString("v3notify");
+    private static final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
 
     /**
      * Returns license limitations associated with this plugin.
@@ -121,13 +118,14 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                     StorageType.nonVolatile);
         }
 
-        public final boolean unregisterTrap(final SnmpTargetMIB targetMIB){
+        public final void unregisterTrap(){
             originator = null;
-            return targetMIB.removeTargetAddress(getAddress()) != null;
         }
 
         private final boolean handle(final SnmpWrappedNotification n){
-            return originator != null && n.send(new OctetString("public"), originator);
+            return originator != null &&
+                    (n.send(new OctetString(), originator) //for SNMPv3 sending
+                    || n.send(new OctetString("public"), originator)); //for SNMPv2 sending
         }
 
         @Override
@@ -147,17 +145,16 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             return new OID(prefix).append(postfix).toString();
         }
 
-        public final void unregisterAll(final SnmpTargetMIB targetMIB, final boolean detach){
+        public final void unregisterAll(final boolean detach){
             for(final TrapSender handler: values()){
-                handler.unregisterTrap(targetMIB);
+                handler.unregisterTrap();
                 if(detach) handler.detachFrom(connector);
             }
         }
 
         public final void registerAll(final String prefix, final SnmpTargetMIB targetMIB, final VacmMIB vacmMIB, final NotificationOriginator originator, final boolean attach){
             for(final TrapSender handler: values()){
-                handler.registerTrap(targetMIB, V2C_TAG, originator);
-                handler.registerTrap(targetMIB, V3NOTIFY_TAG, originator);
+                handler.registerTrap(targetMIB, NOTIFICATION_SETTINGS_TAG, originator);
                 vacmMIB.addViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix),
                         new OctetString(), VacmMIB.vacmViewIncluded,
                         StorageType.nonVolatile);
@@ -196,18 +193,14 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             return new TrapSendersMap(connector);
         }
 
-        public final void cancelSubscription(final SnmpTargetMIB targetMIB, final VacmMIB vacmMIB) {
-            //setup internal SNMP settings
-            targetMIB.removeTargetParams(V2C_TAG);
-            targetMIB.removeTargetParams(V3NOTIFY_TAG);
+        public final void cancelSubscription() {
             for(final String prefix: keySet()){
                 final TrapSendersMap handlers = get(prefix, TrapSendersMap.class);
-                handlers.unregisterAll(targetMIB, true);
-                vacmMIB.removeViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix));
+                handlers.unregisterAll(true);
             }
         }
 
-        public final void forceSubscription(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB, final VacmMIB vacmMIB, final NotificationOriginator originator){
+        public final void forceSubscription(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB, final VacmMIB vacmMIB, final SecurityConfiguration security, final NotificationOriginator originator){
             if(isEmpty()) return;
             targetMIB.addDefaultTDomains();
             //register senders
@@ -216,17 +209,24 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                 handlers.registerAll(prefix, targetMIB, vacmMIB, originator, true);
             }
             //setup internal SNMP settings
-            targetMIB.addTargetParams(V2C_TAG,
+            if(security != null){
+                //find the user with enabled notification
+                final String notifyUser = security.findFirstUser(SecurityConfiguration.
+                        createUserSelector(SecurityConfiguration.AccessRights.NOTIFY));
+                //user for notification receiving exists
+                if(notifyUser != null)
+                    targetMIB.addTargetParams(NOTIFICATION_SETTINGS_TAG,
+                            MessageProcessingModel.MPv3,
+                            SecurityModel.SECURITY_MODEL_USM,
+                            new OctetString(notifyUser),
+                            security.getUserSecurityLevel(notifyUser).getSnmpValue(),
+                            StorageType.permanent);
+            }
+            else targetMIB.addTargetParams(NOTIFICATION_SETTINGS_TAG,
                     MessageProcessingModel.MPv2c,
                     SecurityModel.SECURITY_MODEL_SNMPv2c,
                     new OctetString("cpublic"),
                     SecurityLevel.AUTH_PRIV,
-                    StorageType.permanent);
-            targetMIB.addTargetParams(V3NOTIFY_TAG,
-                    MessageProcessingModel.MPv3,
-                    SecurityModel.SECURITY_MODEL_USM,
-                    new OctetString("v3notify"),
-                    SecurityLevel.AUTH_NOPRIV,
                     StorageType.permanent);
             notificationMIB.addNotifyEntry(new OctetString("default"),
                     new OctetString("notify"),
@@ -315,9 +315,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
     private boolean coldStart;
     private final ManagementAttributes attributes;
     private final ManagementNotifications senders;
-    private String username;
-    private String password;
-    private boolean useAuth = false;
+    private SecurityConfiguration security;
 
 	public SnmpAdapter() throws IOException {
 		// These files does not exist and are not used but has to be specified
@@ -332,6 +330,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         attributes = new ManagementAttributes();
         this.senders = new ManagementNotifications();
         this.socketTimeout = 0;
+        security = null;
 	}
 
 	@Override
@@ -354,7 +353,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 	 */
 	@Override
 	protected final void addViews(final VacmMIB vacm) {
-        if (!this.useAuth){
+        if (security == null){
             vacm.addGroup(SecurityModel.SECURITY_MODEL_SNMPv2c, new OctetString(
                     "cpublic"), new OctetString("v1v2group"),
                     StorageType.nonVolatile);
@@ -365,19 +364,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                     new OctetString("fullWriteView"), new OctetString(
                     "fullNotifyView"), StorageType.nonVolatile);
         }
-        else{
-            vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, new OctetString(username),
-                    new OctetString("v1v2group"),
-                    StorageType.nonVolatile);
-
-            vacm.addAccess(new OctetString("v1v2group"), new OctetString(),
-                    SecurityModel.SECURITY_MODEL_USM, SecurityLevel.AUTH_NOPRIV,
-                    MutableVACM.VACM_MATCH_EXACT, new OctetString("fullReadView"),
-                    new OctetString("fullWriteView"), new OctetString(
-                    "fullNotifyView"), StorageType.nonVolatile);
-        }
-
-
+        else security.setupViewBasedAcm(vacm);
 	}
 
 	/**
@@ -385,11 +372,8 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
      * @param usm User-based security model.
 	 */
 	protected final void addUsmUser(final USM usm) {
-        if (this.useAuth)
-        {
-            usm.addUser(new OctetString(username), new OctetString(MPv3.createLocalEngineID()),
-                    new UsmUser(new OctetString(username), AuthMD5.ID, new OctetString(password), null, null));
-        }
+        if (security != null)
+            security.setupUserBasedSecurity(usm);
     }
 
     /**
@@ -401,7 +385,9 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
      */
     @Override
     protected final void addNotificationTargets(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB) {
-        senders.forceSubscription(targetMIB, notificationMIB, vacmMIB, getNotificationOriginator());
+        senders.forceSubscription(targetMIB, notificationMIB, vacmMIB,
+                security,
+                getNotificationOriginator());
     }
 
     /**
@@ -453,21 +439,11 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 		communityMIB.getSnmpCommunityEntry().addRow(row);
 	}
 
-    private boolean start(final Integer port, final String address, final int socketTimeout) throws IOException{
+    private boolean start(final Integer port, final String address, final int socketTimeout, final SecurityConfiguration security) throws IOException{
         this.port = port != null ? port.intValue() : defaultPort;
         this.address = address != null && address.length() > 0 ? address : defaultAddress;
         this.socketTimeout = socketTimeout;
-        start();
-        return true;
-    }
-
-    private boolean start(final Integer port, final String address, final int socketTimeout, final String username, final String password) throws IOException{
-        this.port = port != null ? port.intValue() : defaultPort;
-        this.address = address != null && address.length() > 0 ? address : defaultAddress;
-        this.socketTimeout = socketTimeout;
-        this.username = username;
-        this.password = password;
-        this.useAuth = true;
+        this.security = security;
         start();
         return true;
     }
@@ -486,14 +462,13 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                 final String port = parameters.containsKey(PORT_PARAM_NAME) ? parameters.get(PORT_PARAM_NAME) : "161";
                 final String address = parameters.containsKey(ADDRESS_PARAM_NAME) ? parameters.get(ADDRESS_PARAM_NAME) : "127.0.0.1";
                 final String socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ? parameters.get(SOCKET_TIMEOUT_PARAM) : "0";
-                if(parameters.containsKey(USERNAME_PARAM) || parameters.containsKey(PASSWORD_PARAM))
-                {
+                if(parameters.containsKey(SNMPv3_GROUPS_PROPERTY)){
                     SnmpAdapterLimitations.current().verifyAuthenticationFeature();
-                    final String username = parameters.containsKey(USERNAME_PARAM) ? parameters.get(USERNAME_PARAM) : "";
-                    final String password = parameters.containsKey(PASSWORD_PARAM) ? parameters.get(PASSWORD_PARAM) : "";
-                    return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout), username, password);
+                    final SecurityConfiguration security = new SecurityConfiguration(MPv3.createLocalEngineID());
+                    security.read(parameters);
+                    return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout), security);
                 }
-                return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout));
+                else return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout), null);
             default:return false;
         }
     }
@@ -510,7 +485,9 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         switch (agentState){
             case STATE_RUNNING:
                 super.stop();
-                senders.cancelSubscription(getSnmpTargetMIB(), getVacmMIB());
+                snmpTargetMIB.getSnmpTargetAddrEntry().removeAll();
+                snmpTargetMIB.getSnmpTargetParamsEntry().removeAll();
+                senders.cancelSubscription();
                 unregisterSnmpMIBs();
                 if(!saveState) {
                     attributes.disconnect();
@@ -549,7 +526,9 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             case STATE_RUNNING: super.stop();
             case STATE_STOPPED:
             case STATE_CREATED:
-                senders.cancelSubscription(getSnmpTargetMIB(), getVacmMIB());
+                snmpTargetMIB.getSnmpTargetAddrEntry().removeAll();
+                snmpTargetMIB.getSnmpTargetParamsEntry().removeAll();
+                senders.cancelSubscription();
                 unregisterSnmpMIBs();
             break;
             default:

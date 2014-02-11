@@ -25,16 +25,19 @@ import org.apache.directory.shared.ldap.schema.loader.ldif.LdifSchemaLoader;
 import org.apache.directory.shared.ldap.schema.manager.impl.DefaultSchemaManager;
 import org.apache.directory.shared.ldap.schema.registries.SchemaLoader;
 import org.junit.Test;
+import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.*;
-import static com.snamp.adapters.TestManagementBean.BEAN_NAME;
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.File;
+
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.math.BigInteger;
+import java.math.*;
 import java.text.SimpleDateFormat;
+
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -42,13 +45,14 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+
 public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> {
     private static final String portForSNMP = "3222";
     private static final String addressForSNMP = "127.0.0.1";
     private static final String prefix = "1.1";
-    private static final String username = "Community";
-    private static final String password = "Greendale";
-    private static final SnmpClient client = SnmpClientFactory.getSnmpV3("udp:"+addressForSNMP+"/"+portForSNMP, username, password);
+    private static final String username = "testuser";
+    private static final String password = "1-2-3-4-5-password";
+    private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + addressForSNMP + "/" + portForSNMP, username, SecurityLevel.authPriv);
 
     private static DirectoryService directoryService;
     private static LdapServer ldapServer;
@@ -57,8 +61,21 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
         put(Adapter.ADDRESS_PARAM_NAME, addressForSNMP);
         put("socketTimeout", "5000");
-        put("username", username);
-        put("password", password);
+        put("snmpv3-groups", "group1, group2");
+        //group1 setup
+        put("group1-security-level", "authNoPriv");
+        put("group1-access-rights", "read, write, notify");
+        put("group1-users", username);
+        put(username + "-password", password);
+        put(username + "-auth-protocol", "sha");
+        put(username + "-privacy-key", "6-7-8-9-0-passphrase");
+        put(username + "-privacy-protocol", "AES256");
+        //group2 setup
+        put("group2-security-level", "authNoPriv");
+        put("group2-access-rights", "read");
+        put("group2-users", "testuser2");
+        put("testuser2-password", "1-2-3-4-5-password");
+        put("testuser2-auth-protocol", "sha");
     }};
     private static final String BEAN_NAME = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
 
@@ -71,21 +88,6 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         return prefix;
     }
 
-    @Test
-    public final void notificationTest() throws IOException, TimeoutException, InterruptedException {
-        final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor1 = client.addNotificationListener(new OID(prefix + ".19.1"));
-        final SynchronizationEvent.Awaitor<SnmpWrappedNotification> awaitor2 = client.addNotificationListener(new OID(prefix + ".20.1"));
-        client.writeAttribute(new OID(prefix + "." + "1.0"), "NOTIFICATION TEST", String.class);
-        final SnmpWrappedNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
-        final SnmpWrappedNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.MINUTES));
-        assertNotNull(p1);
-        assertNotNull(p2);
-        assertEquals(NotificationSupport.Notification.Severity.NOTICE, p1.getSeverity());
-        assertEquals(NotificationSupport.Notification.Severity.PANIC, p2.getSeverity());
-        assertEquals(0L, p1.getSequenceNumber());
-        assertEquals("Property string is changed", p1.getMessage());
-        assertEquals("Property changed", p2.getMessage());
-    }
 
     @Override
     protected void afterAgentStart(final Agent agent) throws Exception{
@@ -152,7 +154,7 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
     }
 
 
-/*    @Test
+    @Test
     public final void testForStringProperty() throws IOException, InterruptedException {
         final String valueToCheck = "SETTED VALUE";
         final OID oid = new OID(prefix + "." + "1.0");
@@ -338,7 +340,7 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         client.writeAttribute(oid, byteString, byte[].class);
         assertArrayEquals(byteString, client.readAttribute(ReadMethod.GET, oid, byte[].class));
         assertArrayEquals(byteString, client.readAttribute(ReadMethod.GETBULK, oid, byte[].class));
-    }*/
+    }
 
 
     @Override
@@ -401,12 +403,12 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         event.getAdditionalElements().put("receiverName","test-receiver");
         events.put("19.1", event);
 
-        /*event = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration();
-        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration();
+        event.setCategory("com.snamp.connectors.jmx.testnotif");
         event.getAdditionalElements().put("severity", "panic");
         event.getAdditionalElements().put("objectName", BEAN_NAME);
         event.getAdditionalElements().put("receiverAddress", addressForSNMP+"/"+client.getClientPort());
-        event.getAdditionalElements().put("receiverName","test-receiver");
-        events.put("20.1", event);*/
+        event.getAdditionalElements().put("receiverName","test-receiver-2");
+        events.put("20.1", event);
     }
 }
