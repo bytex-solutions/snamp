@@ -34,8 +34,7 @@ import static com.snamp.configuration.SnmpAdapterConfigurationDescriptor.*;
  */
 @PluginImplementation
 final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugin<SnmpAdapterLimitations> {
-    private static final OctetString V2C_TAG = new OctetString("v2c");
-    private static final OctetString V3NOTIFY_TAG = new OctetString("v3notify");
+    private static final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
 
     /**
      * Returns license limitations associated with this plugin.
@@ -119,13 +118,14 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                     StorageType.nonVolatile);
         }
 
-        public final boolean unregisterTrap(final SnmpTargetMIB targetMIB){
+        public final void unregisterTrap(){
             originator = null;
-            return targetMIB.removeTargetAddress(getAddress()) != null;
         }
 
         private final boolean handle(final SnmpWrappedNotification n){
-            return originator != null && n.send(new OctetString("public"), originator);
+            return originator != null &&
+                    (n.send(new OctetString(), originator) //for SNMPv3 sending
+                    || n.send(new OctetString("public"), originator)); //for SNMPv2 sending
         }
 
         @Override
@@ -145,17 +145,16 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             return new OID(prefix).append(postfix).toString();
         }
 
-        public final void unregisterAll(final SnmpTargetMIB targetMIB, final boolean detach){
+        public final void unregisterAll(final boolean detach){
             for(final TrapSender handler: values()){
-                handler.unregisterTrap(targetMIB);
+                handler.unregisterTrap();
                 if(detach) handler.detachFrom(connector);
             }
         }
 
         public final void registerAll(final String prefix, final SnmpTargetMIB targetMIB, final VacmMIB vacmMIB, final NotificationOriginator originator, final boolean attach){
             for(final TrapSender handler: values()){
-                handler.registerTrap(targetMIB, V2C_TAG, originator);
-                handler.registerTrap(targetMIB, V3NOTIFY_TAG, originator);
+                handler.registerTrap(targetMIB, NOTIFICATION_SETTINGS_TAG, originator);
                 vacmMIB.addViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix),
                         new OctetString(), VacmMIB.vacmViewIncluded,
                         StorageType.nonVolatile);
@@ -194,18 +193,14 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             return new TrapSendersMap(connector);
         }
 
-        public final void cancelSubscription(final SnmpTargetMIB targetMIB, final VacmMIB vacmMIB) {
-            //setup internal SNMP settings
-            targetMIB.removeTargetParams(V2C_TAG);
-            targetMIB.removeTargetParams(V3NOTIFY_TAG);
+        public final void cancelSubscription() {
             for(final String prefix: keySet()){
                 final TrapSendersMap handlers = get(prefix, TrapSendersMap.class);
-                handlers.unregisterAll(targetMIB, true);
-                vacmMIB.removeViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix));
+                handlers.unregisterAll(true);
             }
         }
 
-        public final void forceSubscription(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB, final VacmMIB vacmMIB, final NotificationOriginator originator){
+        public final void forceSubscription(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB, final VacmMIB vacmMIB, final SecurityConfiguration security, final NotificationOriginator originator){
             if(isEmpty()) return;
             targetMIB.addDefaultTDomains();
             //register senders
@@ -214,17 +209,24 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                 handlers.registerAll(prefix, targetMIB, vacmMIB, originator, true);
             }
             //setup internal SNMP settings
-            targetMIB.addTargetParams(V2C_TAG,
+            if(security != null){
+                //find the user with enabled notification
+                final String notifyUser = security.findFirstUser(SecurityConfiguration.
+                        createUserSelector(SecurityConfiguration.AccessRights.NOTIFY));
+                //user for notification receiving exists
+                if(notifyUser != null)
+                    targetMIB.addTargetParams(NOTIFICATION_SETTINGS_TAG,
+                            MessageProcessingModel.MPv3,
+                            SecurityModel.SECURITY_MODEL_USM,
+                            new OctetString(notifyUser),
+                            security.getUserSecurityLevel(notifyUser).getSnmpValue(),
+                            StorageType.permanent);
+            }
+            else targetMIB.addTargetParams(NOTIFICATION_SETTINGS_TAG,
                     MessageProcessingModel.MPv2c,
                     SecurityModel.SECURITY_MODEL_SNMPv2c,
                     new OctetString("cpublic"),
                     SecurityLevel.AUTH_PRIV,
-                    StorageType.permanent);
-            targetMIB.addTargetParams(V3NOTIFY_TAG,
-                    MessageProcessingModel.MPv3,
-                    SecurityModel.SECURITY_MODEL_USM,
-                    new OctetString("v3notify"),
-                    SecurityLevel.AUTH_NOPRIV,
                     StorageType.permanent);
             notificationMIB.addNotifyEntry(new OctetString("default"),
                     new OctetString("notify"),
@@ -383,7 +385,9 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
      */
     @Override
     protected final void addNotificationTargets(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB) {
-        senders.forceSubscription(targetMIB, notificationMIB, vacmMIB, getNotificationOriginator());
+        senders.forceSubscription(targetMIB, notificationMIB, vacmMIB,
+                security,
+                getNotificationOriginator());
     }
 
     /**
@@ -481,7 +485,9 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         switch (agentState){
             case STATE_RUNNING:
                 super.stop();
-                senders.cancelSubscription(getSnmpTargetMIB(), getVacmMIB());
+                snmpTargetMIB.getSnmpTargetAddrEntry().removeAll();
+                snmpTargetMIB.getSnmpTargetParamsEntry().removeAll();
+                senders.cancelSubscription();
                 unregisterSnmpMIBs();
                 if(!saveState) {
                     attributes.disconnect();
@@ -520,7 +526,9 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
             case STATE_RUNNING: super.stop();
             case STATE_STOPPED:
             case STATE_CREATED:
-                senders.cancelSubscription(getSnmpTargetMIB(), getVacmMIB());
+                snmpTargetMIB.getSnmpTargetAddrEntry().removeAll();
+                snmpTargetMIB.getSnmpTargetParamsEntry().removeAll();
+                senders.cancelSubscription();
                 unregisterSnmpMIBs();
             break;
             default:

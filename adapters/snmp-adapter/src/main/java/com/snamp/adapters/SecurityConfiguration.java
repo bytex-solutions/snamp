@@ -332,6 +332,66 @@ final class SecurityConfiguration {
         else return false;
     }
 
+
+    public static interface UserSelector{
+        boolean match(final String userName, final User user, final UserGroup owner);
+    }
+
+    public final Map<String, User> findUsers(final UserSelector selector){
+        final Map<String, User> result = new HashMap<>(10);
+        for(final UserGroup group: groups.values())
+            for(final Map.Entry<String, User> user: group.entrySet())
+                if(selector.match(user.getKey(), user.getValue(), group))
+                    result.put(user.getKey(), user.getValue());
+        return result;
+    }
+
+    public static UserSelector createUserSelector(final AccessRights... rights){
+        return new UserSelector() {
+            @Override
+            public boolean match(final String userName, final User user, final UserGroup owner) {
+                return owner.hasAccessRights(rights);
+            }
+        };
+    }
+
+    public final String findFirstUser(final UserSelector selector){
+        for(final UserGroup group: groups.values())
+            for(final Map.Entry<String, User> user: group.entrySet())
+                if(selector.match(user.getKey(), user.getValue(), group))
+                    return user.getKey();
+        return null;
+    }
+
+    public final SecurityLevel getUserSecurityLevel(final String userName){
+        for(final UserGroup group: groups.values())
+            for(final String lookup: group.keySet())
+                if(Objects.equals(userName, lookup)) return group.getSecurityLevel();
+        return null;
+    }
+
+    public final Set<AccessRights> getUserAccessRights(final String userName){
+        for(final UserGroup group: groups.values())
+            for(final String lookup: group.keySet())
+                if(Objects.equals(userName, lookup)) return group.getAccessRights();
+        return null;
+    }
+
+    public final User getUserByName(final String userName){
+        for(final UserGroup group: groups.values())
+            for(final String lookup: group.keySet())
+                if(Objects.equals(userName, lookup)) return group.get(userName);
+        return null;
+    }
+
+    public final Set<String> getAllUsers(){
+        final Set<String> result = new HashSet<>(15);
+        for(final UserGroup group: groups.values())
+            for(final String lookup: group.keySet())
+                result.add(lookup);
+        return result;
+    }
+
     public final void setupUserBasedSecurity(final USM security){
         for(final UserGroup group: groups.values())
             for(final Map.Entry<String, User> user: group.entrySet()){
