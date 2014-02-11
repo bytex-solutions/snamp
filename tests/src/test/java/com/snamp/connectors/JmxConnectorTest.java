@@ -23,7 +23,7 @@ public abstract class JmxConnectorTest<ManagementBean> extends HostingTest {
     }
 
     @Override
-    protected final void beforeAgentStart(final Agent agent) throws JMException{
+    protected void beforeAgentStart(final Agent agent) throws JMException{
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         if(mbs.isRegistered(beanName))
             mbs.unregisterMBean(beanName);
@@ -31,7 +31,7 @@ public abstract class JmxConnectorTest<ManagementBean> extends HostingTest {
     }
 
     @Override
-    protected final void afterAgentStop() throws JMException {
+    protected void afterAgentStop() throws JMException {
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.unregisterMBean(beanName);
     }
