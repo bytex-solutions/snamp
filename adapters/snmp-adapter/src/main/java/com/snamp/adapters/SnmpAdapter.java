@@ -230,7 +230,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                     StorageType.permanent);
             notificationMIB.addNotifyEntry(new OctetString("default"),
                     new OctetString("notify"),
-                    SnmpNotificationMIB.SnmpNotifyTypeEnum.inform,
+                    SnmpNotificationMIB.SnmpNotifyTypeEnum.trap,
                     StorageType.permanent);
         }
     }
