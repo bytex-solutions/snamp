@@ -7,23 +7,6 @@ package com.snamp.adapters;
 import com.snamp.*;
 import com.snamp.connectors.*;
 import com.snamp.configuration.EmbeddedAgentConfiguration;
-import com.snamp.hosting.Agent;
-
-import org.apache.directory.server.constants.ServerDNConstants;
-import org.apache.directory.server.core.DefaultDirectoryService;
-import org.apache.directory.server.core.DirectoryService;
-
-import org.apache.directory.server.core.partition.impl.btree.jdbm.JdbmPartition;
-import org.apache.directory.server.core.partition.ldif.LdifPartition;
-import org.apache.directory.server.core.schema.SchemaPartition;
-import org.apache.directory.server.ldap.LdapServer;
-import org.apache.directory.server.protocol.shared.transport.TcpTransport;
-import org.apache.directory.shared.ldap.schema.SchemaManager;
-import org.apache.directory.shared.ldap.schema.ldif.extractor.SchemaLdifExtractor;
-import org.apache.directory.shared.ldap.schema.ldif.extractor.impl.DefaultSchemaLdifExtractor;
-import org.apache.directory.shared.ldap.schema.loader.ldif.LdifSchemaLoader;
-import org.apache.directory.shared.ldap.schema.manager.impl.DefaultSchemaManager;
-import org.apache.directory.shared.ldap.schema.registries.SchemaLoader;
 import org.junit.Test;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.*;
@@ -53,9 +36,6 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
     private static final String username = "testuser";
     private static final String password = "1-2-3-4-5-password";
     private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + addressForSNMP + "/" + portForSNMP, username, SecurityLevel.authPriv);
-
-    private static DirectoryService directoryService;
-    private static LdapServer ldapServer;
 
     private static final Map<String, String> snmpAdapterSettings = new HashMap<String, String>(2){{
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
@@ -89,9 +69,8 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
     }
 
 
-    @Override
+    /*@Override
     protected void afterAgentStart(final Agent agent) throws Exception{
-
         String buildDirectory = System.getProperty("buildDirectory");
         File workingDirectory = new File(buildDirectory, "apacheds-work");
         workingDirectory.mkdir();
@@ -151,7 +130,7 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         ldapServer.stop();
         directoryService.shutdown();
         directoryService.getWorkingDirectory().delete();
-    }
+    }*/
 
 
     @Test

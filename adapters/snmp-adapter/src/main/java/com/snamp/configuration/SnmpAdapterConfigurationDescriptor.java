@@ -26,7 +26,7 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
     public static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
 
     private static final class ConfigurationAttributesInfo extends ResourceBasedConfigurationEntityDescription<HostingConfiguration>{
-        private static final String RESOURCE_NAME = "SnmpAdapterConfig.properties";
+        private static final String RESOURCE_NAME = "SnmpAdapterConfig";
 
         public ConfigurationAttributesInfo(){
             super(HostingConfiguration.class,
