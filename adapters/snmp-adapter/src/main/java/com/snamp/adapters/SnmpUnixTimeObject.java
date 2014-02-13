@@ -5,6 +5,7 @@ import com.snamp.connectors.*;
 import org.snmp4j.smi.*;
 import static com.snamp.connectors.util.ManagementEntityTypeHelper.*;
 import static com.snamp.adapters.SnmpHelpers.DateTimeFormatter;
+import static com.snamp.configuration.SnmpAdapterConfigurationDescriptor.DATE_TIME_DISPLAY_FORMAT_PARAM;
 
 import java.text.ParseException;
 import java.util.*;
@@ -12,10 +13,6 @@ import java.util.logging.Level;
 
 final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
     public static final String defaultValue = "1970-1-1,00:00:00.0,+0:0";
-    /**
-     * Represents name of the metadata property that specifies unix time display format.
-     */
-    private static final String DATE_TIME_DISPLAY_FORMAT_PROPERTY = "displayFormat";
 
     private final DateTimeFormatter formatter;
 
@@ -69,6 +66,6 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
     }
 
     private static DateTimeFormatter createFormatter(final Map<String, String> options){
-        return SnmpHelpers.createDateTimeFormatter(options.containsKey(DATE_TIME_DISPLAY_FORMAT_PROPERTY) ? options.get(DATE_TIME_DISPLAY_FORMAT_PROPERTY) : null);
+        return SnmpHelpers.createDateTimeFormatter(options.containsKey(DATE_TIME_DISPLAY_FORMAT_PARAM) ? options.get(DATE_TIME_DISPLAY_FORMAT_PARAM) : null);
     }
 }

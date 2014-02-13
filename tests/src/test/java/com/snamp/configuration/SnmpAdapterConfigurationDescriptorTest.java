@@ -11,7 +11,7 @@ import java.util.Locale;
  * @version 1.0
  * @since 1.0
  */
-public class SnmpAdapterConfigurationDescriptorTest extends SnampClassTestSet<SnmpAdapterConfigurationDescriptor> {
+public final class SnmpAdapterConfigurationDescriptorTest extends SnampClassTestSet<SnmpAdapterConfigurationDescriptor> {
     @Test
     public final void hostingConfugurationDescriptors(){
         final ConfigurationEntityDescription<AgentConfiguration.HostingConfiguration> description = new SnmpAdapterConfigurationDescriptor().getDescription(AgentConfiguration.HostingConfiguration.class);
@@ -23,5 +23,27 @@ public class SnmpAdapterConfigurationDescriptorTest extends SnampClassTestSet<Sn
         assertTrue(!defValue.equals(ruValue));
         assertNotNull(description.getParameterDescriptor(SnmpAdapterConfigurationDescriptor.SOCKET_TIMEOUT_PARAM));
         assertNotNull(description.getParameterDescriptor(Adapter.ADDRESS_PARAM_NAME));
+    }
+
+    @Test
+    public final void attributesConfigurationDescriptors(){
+        final ConfigurationEntityDescription<AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> description = new SnmpAdapterConfigurationDescriptor().getDescription(AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration.class);
+        final ConfigurationEntityDescription.ParameterDescription param = description.getParameterDescriptor(SnmpAdapterConfigurationDescriptor.DATE_TIME_DISPLAY_FORMAT_PARAM);
+        final String defValue = param.getDescription(null);//default locale
+        assertTrue(defValue.length() > 10);
+        final String ruValue = param.getDescription(Locale.forLanguageTag("RU"));
+        assertTrue(ruValue.length() > 10);
+        assertTrue(!defValue.equals(ruValue));
+    }
+
+    @Test
+    public final void eventConfigurationDescriptors(){
+        final ConfigurationEntityDescription<AgentConfiguration.ManagementTargetConfiguration.EventConfiguration> description = new SnmpAdapterConfigurationDescriptor().getDescription(AgentConfiguration.ManagementTargetConfiguration.EventConfiguration.class);
+        final ConfigurationEntityDescription.ParameterDescription param = description.getParameterDescriptor(SnmpAdapterConfigurationDescriptor.TARGET_ADDRESS_PARAM);
+        final String defValue = param.getDescription(null);//default locale
+        assertTrue(defValue.length() > 10);
+        final String ruValue = param.getDescription(Locale.forLanguageTag("RU"));
+        assertTrue(ruValue.length() > 10);
+        assertTrue(!defValue.equals(ruValue));
     }
 }

@@ -1,5 +1,7 @@
 package com.snamp.adapters;
 
+import com.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.snamp.configuration.RestAdapterConfigurationDescriptor;
 import com.snamp.connectors.*;
 import com.snamp.connectors.util.*;
 import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
@@ -32,6 +34,7 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
     private final AttributesRegistry exposedAttributes;
     private final SubscriptionList notifications;
     private boolean started = false;
+    private ConfigurationEntityDescriptionProvider configDescr;
 
     public RestAdapter(){
         super(NAME);
@@ -83,6 +86,13 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
         resourcesHandler.addServlet(new ServletHolder(createRestServlet(dateFormat)), "/management/*");
         s.setHandler(resourcesHandler);
         return true;
+    }
+
+    @Aggregation
+    public final ConfigurationEntityDescriptionProvider getConfigurationDescriptor(){
+        if(configDescr == null)
+            configDescr = new RestAdapterConfigurationDescriptor();
+        return configDescr;
     }
 
     /**

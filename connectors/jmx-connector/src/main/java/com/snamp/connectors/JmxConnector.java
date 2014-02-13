@@ -7,7 +7,7 @@ import com.snamp.internal.Internal;
 import com.snamp.internal.MethodStub;
 import com.snamp.licensing.JmxConnectorLimitations;
 import static com.snamp.connectors.JmxConnectionManager.MBeanServerConnectionHandler;
-import static com.snamp.configuration.JmxAttributeConfigurationDescriptor.*;
+import static com.snamp.configuration.JmxConnectorConfigurationDescriptor.*;
 
 import javax.management.*;
 import javax.management.openmbean.*;

@@ -53,11 +53,6 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
     private final static class TrapSender extends AbstractNotificationListener {
         public static final int DEFAULT_TIMEOUT = 15000;//default timeout is 15 sec
         public static final int DEFAULT_RETRIES = 3;
-        public static final String EVENT_TIMESTAMP_FORMAT = "timestampFormat";
-        public static final String EVENT_TARGET_NOTIF_TIMEOUT = "sendingTimeout";
-        public static final String EVENT_TARGET_RETRY_COUNT = "retryCount";
-        public static final String EVENT_TARGET_NAME = "receiverName";
-        public static final String EVENT_TARGET_ADDRESS = "receiverAddress";
         private int timeout;
         private int retries;
         private NotificationOriginator originator;
@@ -165,18 +160,18 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         @Override
         public final TrapSender createDescription(final String prefix, final String postfix, final EventConfiguration config) {
             final Map<String, String> eventOptions = config.getAdditionalElements();
-            if(eventOptions.containsKey(TrapSender.EVENT_TARGET_ADDRESS) && eventOptions.containsKey(TrapSender.EVENT_TARGET_NAME)){
-                final int timeout = eventOptions.containsKey(TrapSender.EVENT_TARGET_NOTIF_TIMEOUT) ?
-                        Integer.valueOf(eventOptions.get(TrapSender.EVENT_TARGET_NOTIF_TIMEOUT)):
+            if(eventOptions.containsKey(TARGET_ADDRESS_PARAM) && eventOptions.containsKey(TARGET_NAME_PARAM)){
+                final int timeout = eventOptions.containsKey(TARGET_NOTIF_TIMEOUT_PARAM) ?
+                        Integer.valueOf(eventOptions.get(TARGET_NOTIF_TIMEOUT_PARAM)):
                         TrapSender.DEFAULT_TIMEOUT;
-                final int retryCount = eventOptions.containsKey(TrapSender.EVENT_TARGET_RETRY_COUNT) ?
-                        Integer.valueOf(eventOptions.get(TrapSender.EVENT_TARGET_RETRY_COUNT)) : TrapSender.DEFAULT_RETRIES;
+                final int retryCount = eventOptions.containsKey(TARGET_RETRY_COUNT_PARAM) ?
+                        Integer.valueOf(eventOptions.get(TARGET_RETRY_COUNT_PARAM)) : TrapSender.DEFAULT_RETRIES;
                 final TrapSender sender = new TrapSender(makeListId(prefix, postfix),
-                        eventOptions.get(TrapSender.EVENT_TARGET_NAME),
-                        eventOptions.get(TrapSender.EVENT_TARGET_ADDRESS));
+                        eventOptions.get(TARGET_NAME_PARAM),
+                        eventOptions.get(TARGET_ADDRESS_PARAM));
                 sender.setRetryCount(retryCount);
                 sender.setTimeout(timeout);
-                sender.setTimestampFormatter(eventOptions.get(TrapSender.EVENT_TIMESTAMP_FORMAT));
+                sender.setTimestampFormatter(eventOptions.get(DATE_TIME_DISPLAY_FORMAT_PARAM));
                 return sender;
             }
             else return null;   //null means that the sender will not be added to the registry
