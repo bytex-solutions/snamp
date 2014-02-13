@@ -9,7 +9,7 @@ import com.snamp.connectors.*;
 import com.snamp.configuration.EmbeddedAgentConfiguration;
 import com.snamp.hosting.Agent;
 
-import org.apache.directory.server.constants.ServerDNConstants;
+/*import org.apache.directory.server.constants.ServerDNConstants;
 import org.apache.directory.server.core.DefaultDirectoryService;
 import org.apache.directory.server.core.DirectoryService;
 
@@ -23,7 +23,9 @@ import org.apache.directory.shared.ldap.schema.ldif.extractor.SchemaLdifExtracto
 import org.apache.directory.shared.ldap.schema.ldif.extractor.impl.DefaultSchemaLdifExtractor;
 import org.apache.directory.shared.ldap.schema.loader.ldif.LdifSchemaLoader;
 import org.apache.directory.shared.ldap.schema.manager.impl.DefaultSchemaManager;
-import org.apache.directory.shared.ldap.schema.registries.SchemaLoader;
+import org.apache.directory.shared.ldap.schema.registries.SchemaLoader;*/
+import org.apache.directory.server.core.api.DirectoryService;
+import org.apache.directory.server.ldap.LdapServer;
 import org.junit.Test;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.*;
@@ -63,7 +65,7 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         put("socketTimeout", "5000");
         put("snmpv3-groups", "group1, group2");
         //group1 setup
-        put("group1-security-level", "authNoPriv");
+        put("group1-security-level", "authPriv");
         put("group1-access-rights", "read, write, notify");
         put("group1-users", username);
         put(username + "-password", password);
@@ -90,67 +92,14 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
 
 
     @Override
-    protected void afterAgentStart(final Agent agent) throws Exception{
+    protected void afterAgentStart(final Agent agent) throws Exception
+    {
 
-        String buildDirectory = System.getProperty("buildDirectory");
-        File workingDirectory = new File(buildDirectory, "apacheds-work");
-        workingDirectory.mkdir();
-
-        directoryService = new DefaultDirectoryService();
-        directoryService.setWorkingDirectory(workingDirectory);
-
-        SchemaPartition schemaPartition = directoryService.getSchemaService()
-                .getSchemaPartition();
-
-        LdifPartition ldifPartition = new LdifPartition();
-        String workingDirectoryPath = directoryService.getWorkingDirectory()
-                .getPath();
-        ldifPartition.setWorkingDirectory(workingDirectoryPath + "/schema");
-
-        File schemaRepository = new File(workingDirectory, "schema");
-        SchemaLdifExtractor extractor = new DefaultSchemaLdifExtractor(
-                workingDirectory);
-        extractor.extractOrCopy(true);
-
-        schemaPartition.setWrappedPartition(ldifPartition);
-
-        SchemaLoader loader = new LdifSchemaLoader(schemaRepository);
-        SchemaManager schemaManager = new DefaultSchemaManager(loader);
-        directoryService.setSchemaManager(schemaManager);
-
-        schemaManager.loadAllEnabled();
-
-        schemaPartition.setSchemaManager(schemaManager);
-
-        List<Throwable> errors = schemaManager.getErrors();
-
-        if (!errors.isEmpty())
-            throw new Exception("Schema load failed : " + errors);
-
-        JdbmPartition systemPartition = new JdbmPartition();
-        systemPartition.setId("system");
-        systemPartition.setPartitionDir(new File(directoryService
-                .getWorkingDirectory(), "system"));
-        systemPartition.setSuffix(ServerDNConstants.SYSTEM_DN);
-        systemPartition.setSchemaManager(schemaManager);
-        directoryService.setSystemPartition(systemPartition);
-
-        directoryService.setShutdownHookEnabled(false);
-        directoryService.getChangeLog().setEnabled(false);
-
-        ldapServer = new LdapServer();
-        ldapServer.setTransports(new TcpTransport(11389));
-        ldapServer.setDirectoryService(directoryService);
-
-        directoryService.startup();
-        ldapServer.start();
     }
 
     @Override
     protected void beforeAgentStop(final Agent agent) throws Exception{
-        ldapServer.stop();
-        directoryService.shutdown();
-        directoryService.getWorkingDirectory().delete();
+;
     }
 
 
