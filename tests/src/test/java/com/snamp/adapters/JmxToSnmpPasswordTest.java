@@ -24,6 +24,8 @@ import org.apache.directory.shared.ldap.schema.ldif.extractor.impl.DefaultSchema
 import org.apache.directory.shared.ldap.schema.loader.ldif.LdifSchemaLoader;
 import org.apache.directory.shared.ldap.schema.manager.impl.DefaultSchemaManager;
 import org.apache.directory.shared.ldap.schema.registries.SchemaLoader;*/
+import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.server.core.api.DirectoryService;
 import org.apache.directory.server.ldap.LdapServer;
 import org.junit.Test;
@@ -55,6 +57,8 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
     private static final String username = "testuser";
     private static final String password = "1-2-3-4-5-password";
     private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + addressForSNMP + "/" + portForSNMP, username, SecurityLevel.authPriv);
+    private static EmbeddedADSVerTrunk ads;
+    private static File workDir;
 
     private static final Map<String, String> snmpAdapterSettings = new HashMap<String, String>(2){{
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
@@ -87,65 +91,24 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         return prefix;
     }
 
-    /*@Override
+    @Override
     protected void afterAgentStart(final Agent agent) throws Exception{
-        String buildDirectory = System.getProperty("buildDirectory");
-        File workingDirectory = new File(buildDirectory, "apacheds-work");
-        workingDirectory.mkdir();
+        workDir = new File( System.getProperty( "java.io.tmpdir" ) + "/server-work" );
+        workDir.mkdirs();
 
-        directoryService = new DefaultDirectoryService();
-        directoryService.setWorkingDirectory(workingDirectory);
+        // Create the server
+        ads = new EmbeddedADSVerTrunk( workDir );
 
-        SchemaPartition schemaPartition = directoryService.getSchemaService()
-                .getSchemaPartition();
+        // optionally we can start a server too
+        ads.startServer();
 
-        LdifPartition ldifPartition = new LdifPartition();
-        String workingDirectoryPath = directoryService.getWorkingDirectory()
-                .getPath();
-        ldifPartition.setWorkingDirectory(workingDirectoryPath + "/schema");
-
-        File schemaRepository = new File(workingDirectory, "schema");
-        SchemaLdifExtractor extractor = new DefaultSchemaLdifExtractor(
-                workingDirectory);
-        extractor.extractOrCopy(true);
-
-        schemaPartition.setWrappedPartition(ldifPartition);
-
-        SchemaLoader loader = new LdifSchemaLoader(schemaRepository);
-        SchemaManager schemaManager = new DefaultSchemaManager(loader);
-        directoryService.setSchemaManager(schemaManager);
-
-        schemaManager.loadAllEnabled();
-
-        schemaPartition.setSchemaManager(schemaManager);
-
-        List<Throwable> errors = schemaManager.getErrors();
-
-        if (!errors.isEmpty())
-            throw new Exception("Schema load failed : " + errors);
-
-        JdbmPartition systemPartition = new JdbmPartition();
-        systemPartition.setId("system");
-        systemPartition.setPartitionDir(new File(directoryService
-                .getWorkingDirectory(), "system"));
-        systemPartition.setSuffix(ServerDNConstants.SYSTEM_DN);
-        systemPartition.setSchemaManager(schemaManager);
-        directoryService.setSystemPartition(systemPartition);
-
-        directoryService.setShutdownHookEnabled(false);
-        directoryService.getChangeLog().setEnabled(false);
-
-        ldapServer = new LdapServer();
-        ldapServer.setTransports(new TcpTransport(11389));
-        ldapServer.setDirectoryService(directoryService);
     }
 
     @Override
     protected void beforeAgentStop(final Agent agent) throws Exception{
-        ldapServer.stop();
-        directoryService.shutdown();
-        directoryService.getWorkingDirectory().delete();
-    }*/
+        ads.stopServer();
+        workDir.delete();
+    }
 
 
     @Test
