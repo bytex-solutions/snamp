@@ -59,8 +59,8 @@ import org.apache.directory.server.protocol.shared.transport.TcpTransport;
  * @author <a href="mailto:dev@directory.apache.org">Apache Directory Project</a>
  * @version $Rev$, $Date$
  */
-public class EmbeddedADSVerTrunk
-{
+public class EmbeddedADSVerTrunk{
+    public static final int SERVER_PORT = 10389;
     /** The directory service */
     private DirectoryService service;
 
@@ -84,7 +84,7 @@ public class EmbeddedADSVerTrunk
         // Create a new partition with the given partition id
         JdbmPartition partition = new JdbmPartition(service.getSchemaManager());
         partition.setId( partitionId );
-        partition.setPartitionPath( new File( service.getInstanceLayout().getPartitionsDirectory(), partitionId ).toURI() );
+        partition.setPartitionPath(new File(service.getInstanceLayout().getPartitionsDirectory(), partitionId).toURI());
         partition.setSuffixDn( new Dn( partitionDn ) );
         service.addPartition( partition );
 
@@ -252,8 +252,7 @@ public class EmbeddedADSVerTrunk
     public void startServer() throws Exception
     {
         server = new LdapServer();
-        int serverPort = 10389;
-        server.setTransports( new TcpTransport( serverPort ) );
+        server.setTransports( new TcpTransport(SERVER_PORT) );
         server.setDirectoryService( service );
         server.start();
     }

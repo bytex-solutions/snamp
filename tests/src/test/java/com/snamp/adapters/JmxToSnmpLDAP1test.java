@@ -49,12 +49,13 @@ public class JmxToSnmpLDAP1test extends JmxConnectorTest<TestManagementBean> {
         put(Adapter.ADDRESS_PARAM_NAME, addressForSNMP);
         put("socketTimeout", "5000");
         put("snmpv3-groups", "group1, group2");
+        put("ldap-uri", "ldap://127.0.0.1:" + EmbeddedADSVerTrunk.SERVER_PORT);
         //group1 setup
         put("group1-security-level", "authPriv");
         put("group1-access-rights", "read, write, notify");
         put("group1-users", username);
         put(username + "-password", password);
-        put(username + "-auth-protocol", "sha");
+        put(username + "-auth-protocol", "snmp = sha, ldap = simple");
         put(username + "-privacy-key", "6-7-8-9-0-passphrase");
         put(username + "-privacy-protocol", "AES256");
         //group2 setup
