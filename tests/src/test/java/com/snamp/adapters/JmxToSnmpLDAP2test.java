@@ -11,6 +11,7 @@ import com.snamp.TimeSpan;
 import com.snamp.configuration.EmbeddedAgentConfiguration;
 import com.snamp.connectors.JmxConnectorTest;
 import com.snamp.connectors.NotificationSupport;
+import com.snamp.hosting.Agent;
 import org.junit.Test;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.Integer32;
@@ -21,6 +22,7 @@ import org.snmp4j.smi.Variable;
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
@@ -32,13 +34,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 
-public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> {
+public class JmxToSnmpLDAP2test extends JmxConnectorTest<TestManagementBean> {
     private static final String portForSNMP = "3222";
     private static final String addressForSNMP = "127.0.0.1";
     private static final String prefix = "1.1";
     private static final String username = "testuser";
     private static final String password = "1-2-3-4-5-password";
     private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + addressForSNMP + "/" + portForSNMP, username, SecurityLevel.authPriv);
+    private static EmbeddedADSVerTrunk ads;
+    private static File workDir;
 
     private static final Map<String, String> snmpAdapterSettings = new HashMap<String, String>(2){{
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
@@ -62,13 +66,32 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
     }};
     private static final String BEAN_NAME = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
 
-    public JmxToSnmpPasswordTest() throws MalformedObjectNameException {
+    public JmxToSnmpLDAP2test() throws MalformedObjectNameException {
         super("snmp", snmpAdapterSettings, new TestManagementBean(), new ObjectName(BEAN_NAME));
     }
 
     @Override
     protected String getAttributesNamespace() {
         return prefix;
+    }
+
+    @Override
+    protected void afterAgentStart(final Agent agent) throws Exception{
+        workDir = new File( System.getProperty( "java.io.tmpdir" ) + "/server-work" );
+        workDir.mkdirs();
+
+        // Create the server
+        ads = new EmbeddedADSVerTrunk( workDir );
+
+        // optionally we can start a server too
+        ads.startServer();
+
+    }
+
+    @Override
+    protected void beforeAgentStop(final Agent agent) throws Exception{
+        ads.stopServer();
+        workDir.delete();
     }
 
 
