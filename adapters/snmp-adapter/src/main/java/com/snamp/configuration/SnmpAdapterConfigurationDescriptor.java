@@ -23,6 +23,11 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
     public static final String SNMPv3_GROUPS_PROPERTY = "snmpv3-groups";
 
     /**
+     * Represents LDAP server URI.
+     */
+    public static final String LDAP_URI_PROPERTY = "ldap-uri";
+
+    /**
      * Represents configuration property that contains UDP socket timeout, in milliseconds.
      */
     public static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
