@@ -7,8 +7,6 @@ package com.snamp.adapters;
 import com.snamp.*;
 import com.snamp.connectors.*;
 import com.snamp.configuration.EmbeddedAgentConfiguration;
-<<<<<<< HEAD
-=======
 import com.snamp.hosting.Agent;
 
 /*import org.apache.directory.server.constants.ServerDNConstants;
@@ -28,7 +26,6 @@ import org.apache.directory.shared.ldap.schema.manager.impl.DefaultSchemaManager
 import org.apache.directory.shared.ldap.schema.registries.SchemaLoader;*/
 import org.apache.directory.server.core.api.DirectoryService;
 import org.apache.directory.server.ldap.LdapServer;
->>>>>>> 999edf3cbb265e8b9e86e35b296f0ef948d7df8f
 import org.junit.Test;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.*;
@@ -90,8 +87,6 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         return prefix;
     }
 
-
-<<<<<<< HEAD
     /*@Override
     protected void afterAgentStart(final Agent agent) throws Exception{
         String buildDirectory = System.getProperty("buildDirectory");
@@ -143,25 +138,14 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         ldapServer = new LdapServer();
         ldapServer.setTransports(new TcpTransport(11389));
         ldapServer.setDirectoryService(directoryService);
-=======
-    @Override
-    protected void afterAgentStart(final Agent agent) throws Exception
-    {
->>>>>>> 999edf3cbb265e8b9e86e35b296f0ef948d7df8f
-
     }
 
     @Override
     protected void beforeAgentStop(final Agent agent) throws Exception{
-<<<<<<< HEAD
         ldapServer.stop();
         directoryService.shutdown();
         directoryService.getWorkingDirectory().delete();
     }*/
-=======
-;
-    }
->>>>>>> 999edf3cbb265e8b9e86e35b296f0ef948d7df8f
 
 
     @Test
