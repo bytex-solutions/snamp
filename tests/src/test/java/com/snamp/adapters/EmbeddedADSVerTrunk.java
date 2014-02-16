@@ -119,7 +119,7 @@ public class EmbeddedADSVerTrunk
     {
         InstanceLayout instanceLayout = service.getInstanceLayout();
 
-        File schemaPartitionDirectory = new File( instanceLayout.getPartitionsDirectory(), "schema" );
+        final File schemaPartitionDirectory = new File( instanceLayout.getPartitionsDirectory(), "schema" );
 
         // Extract the schema on disk (a brand new one) and load the registries
         if ( schemaPartitionDirectory.exists() )
@@ -172,6 +172,7 @@ public class EmbeddedADSVerTrunk
         // Initialize the LDAP service
         service = new DefaultDirectoryService();
         service.setInstanceLayout( new InstanceLayout( workDir ) );
+        service.setAllowAnonymousAccess(true);
 
         CacheService cacheService = new CacheService();
         cacheService.initialize( service.getInstanceLayout() );
@@ -275,7 +276,6 @@ public class EmbeddedADSVerTrunk
         int serverPort = 10389;
         server.setTransports( new TcpTransport( serverPort ) );
         server.setDirectoryService( service );
-
         server.start();
     }
 

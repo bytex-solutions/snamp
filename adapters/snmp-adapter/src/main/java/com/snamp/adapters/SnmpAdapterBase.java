@@ -15,12 +15,15 @@ import static com.snamp.adapters.AbstractAdapter.makeCapabilities;
  * @author Roman Sakno
  */
 public abstract class SnmpAdapterBase extends BaseAgent implements Adapter, NotificationPublisher {
-    protected static final Logger log = Logger.getLogger("snamp.snmp.log");
     protected static final int defaultPort = 161;
     protected static final String defaultAddress = "127.0.0.1";
     public static final String adapterName = "snmp";
 
     private ConfigurationEntityDescriptionProvider configDescr;
+
+    protected static Logger getAdapterLogger(){
+        return SnmpHelpers.getLogger();
+    }
 
     /**
      * Gets a logger associated with this adapter.
@@ -29,7 +32,7 @@ public abstract class SnmpAdapterBase extends BaseAgent implements Adapter, Noti
      */
     @Override
     public final Logger getLogger() {
-        return log;
+        return getAdapterLogger();
     }
 
     public final ConfigurationEntityDescriptionProvider getConfigurationDescriptor(){
@@ -48,7 +51,7 @@ public abstract class SnmpAdapterBase extends BaseAgent implements Adapter, Noti
     @Override
     public final <T> T queryObject(final Class<T> objectType) {
         if(Objects.equals(objectType, Logger.class))
-            return objectType.cast(log);
+            return objectType.cast(getLogger());
         else if(Objects.equals(objectType, CommandProcessor.class))
             return objectType.cast(agent);
         else if(Objects.equals(objectType, MOServer.class))

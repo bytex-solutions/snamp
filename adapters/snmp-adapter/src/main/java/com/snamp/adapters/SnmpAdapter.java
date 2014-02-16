@@ -9,13 +9,13 @@ import com.snamp.connectors.*;
 import com.snamp.connectors.util.*;
 import com.snamp.licensing.*;
 import net.xeoh.plugins.base.annotations.*;
+import org.snmp4j.MessageDispatcherImpl;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.*;
-import org.snmp4j.mp.MPv3;
-import org.snmp4j.mp.MessageProcessingModel;
+import org.snmp4j.mp.*;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
@@ -248,7 +248,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         public final SnmpAttributeMapping createDescription(final String prefix, final String postfix, final AttributeConfiguration config) {
             final SnmpAttributeMapping mo = SnmpType.createManagedObject(connector, makeAttributeId(prefix, postfix), config.getAttributeName(), config.getAdditionalElements(), config.getReadWriteTimeout());
             if(mo == null){
-                log.warning(String.format("Unable to expose %s attribute with OID %s", config.getAttributeName(), makeAttributeId(prefix, postfix)));
+                getAdapterLogger().warning(String.format("Unable to expose %s attribute with OID %s", config.getAttributeName(), makeAttributeId(prefix, postfix)));
                 return null;
             }
             else return mo;
@@ -298,7 +298,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                         server.register(mo, null);
                     }
                     catch (final DuplicateRegistrationException e) {
-                        log.log(Level.WARNING, e.getLocalizedMessage(), e);
+                        getAdapterLogger().log(Level.WARNING, e.getLocalizedMessage(), e);
                     }
             }
         }
@@ -362,7 +362,29 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         else security.setupViewBasedAcm(vacm);
 	}
 
-	/**
+    /**
+     * Initializes the message dispatcher ({@link org.snmp4j.MessageDispatcherImpl}) with
+     * the transport mappings.
+     */
+    @Override
+    protected void initMessageDispatcher() {
+        if(security == null) super.initMessageDispatcher();
+        else { //instantiate custom USM
+            dispatcher = new MessageDispatcherImpl();
+            mpv3 = new MPv3(agent.getContextEngineID().getValue());
+            usm = security.createUserBasedSecurityModel(SecurityProtocols.getInstance(),
+                    agent.getContextEngineID(),
+                    updateEngineBoots());
+            SecurityModels.getInstance().addSecurityModel(usm);
+            SecurityProtocols.getInstance().addDefaultProtocols();
+            dispatcher.addMessageProcessingModel(new MPv1());
+            dispatcher.addMessageProcessingModel(new MPv2c());
+            dispatcher.addMessageProcessingModel(mpv3);
+            initSnmpSession();
+        }
+    }
+
+    /**
 	 * Initializes SNMPv3 users.
      * @param usm User-based security model.
 	 */
@@ -527,7 +549,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                 unregisterSnmpMIBs();
             break;
             default:
-                log.log(Level.SEVERE, String.format("Unknown SNMP agent state: %s", agentState)); break;
+                getAdapterLogger().log(Level.SEVERE, String.format("Unknown SNMP agent state: %s", agentState)); break;
         }
         attributes.disconnect();
         attributes.clear();
