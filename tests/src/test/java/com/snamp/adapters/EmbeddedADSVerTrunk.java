@@ -67,6 +67,8 @@ public class EmbeddedADSVerTrunk
     /** The LDAP server */
     private LdapServer server;
 
+    private static File workDir;
+
 
     /**
      * Add a new partition to the server
@@ -174,10 +176,13 @@ public class EmbeddedADSVerTrunk
         service.setInstanceLayout( new InstanceLayout( workDir ) );
         service.setAllowAnonymousAccess(true);
 
+
         CacheService cacheService = new CacheService();
         cacheService.initialize( service.getInstanceLayout() );
 
         service.setCacheService( cacheService );
+
+
 
         // first load the schema
         initSchemaPartition();
@@ -279,6 +284,12 @@ public class EmbeddedADSVerTrunk
         server.start();
     }
 
+    public void stopServer() throws Exception
+    {
+        service.shutdown();
+        server.stop();
+    }
+
 
     /**
      * Main class.
@@ -289,7 +300,7 @@ public class EmbeddedADSVerTrunk
     {
         try
         {
-            File workDir = new File( System.getProperty( "java.io.tmpdir" ) + "/server-work" );
+            workDir = new File( System.getProperty( "java.io.tmpdir" ) + "/server-work" );
             workDir.mkdirs();
 
             // Create the server
