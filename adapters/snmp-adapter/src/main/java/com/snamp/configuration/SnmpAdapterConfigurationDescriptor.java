@@ -51,7 +51,8 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
                     SNMPv3_GROUPS_PROPERTY,
                     SOCKET_TIMEOUT_PARAM,
                     PORT_PARAM_NAME,
-                    ADDRESS_PARAM_NAME);
+                    ADDRESS_PARAM_NAME,
+                    LDAP_URI_PROPERTY);
         }
 
         /**
