@@ -4,9 +4,9 @@ import com.snamp.hosting.*;
 
 import javax.management.*;
 import java.lang.management.*;
-import static com.snamp.hosting.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration;
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.snamp.configuration.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 import java.util.*;
 
 /**
@@ -23,7 +23,7 @@ public abstract class JmxConnectorTest<ManagementBean> extends HostingTest {
     }
 
     @Override
-    protected final void beforeAgentStart(final Agent agent) throws JMException{
+    protected void beforeAgentStart(final Agent agent) throws JMException{
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         if(mbs.isRegistered(beanName))
             mbs.unregisterMBean(beanName);
@@ -31,7 +31,7 @@ public abstract class JmxConnectorTest<ManagementBean> extends HostingTest {
     }
 
     @Override
-    protected final void afterAgentStop(final Agent agent) throws JMException {
+    protected void afterAgentStop() throws JMException {
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.unregisterMBean(beanName);
     }

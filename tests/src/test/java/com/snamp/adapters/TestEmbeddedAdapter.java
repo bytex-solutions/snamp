@@ -1,10 +1,10 @@
 package com.snamp.adapters;
 
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 
 import static com.snamp.connectors.NotificationSupport.NotificationListener;
-import com.snamp.hosting.EmbeddedAgentConfiguration;
+import com.snamp.configuration.EmbeddedAgentConfiguration;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 import javax.management.AttributeChangeNotification;
@@ -25,11 +25,11 @@ public final class TestEmbeddedAdapter extends EmbeddedAdapter {
     }
 
     public final BigInteger getBigIntProperty(){
-        return getAttribute("", "bigintProperty", BigInteger.class, BigInteger.ZERO);
+        return getAttribute("", "bigint", BigInteger.class, BigInteger.ZERO);
     }
 
     public final void setBigIntProperty(final BigInteger value){
-        assert setAttribute("", "bigintProperty", value);
+        setAttribute("", "bigint", value);
     }
 
     public final Object addPropertyChangedListener(final NotificationListener listener){
@@ -43,7 +43,7 @@ public final class TestEmbeddedAdapter extends EmbeddedAdapter {
     static final void fillAttributes(final Map<String, AttributeConfiguration> attributes) {
         EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration attribute = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("bigint");
         attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
-        attributes.put("bigintProperty", attribute);
+        attributes.put("bigint", attribute);
     }
 
     static final void fillEvents(final Map<String, EventConfiguration> events){

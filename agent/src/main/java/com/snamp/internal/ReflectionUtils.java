@@ -97,4 +97,17 @@ public final class ReflectionUtils {
     public static <I, T extends I> I castAndIsolate(final Object obj, final Class<T> castResult, final Class<I> iface){
         return isolate(castResult.cast(obj), iface);
     }
+
+    public static String getFullyQualifiedResourceName(Class<?> locator, String name){
+        if (!name.startsWith("/")) {
+            while (locator.isArray())
+                locator = locator.getComponentType();
+            final String baseName = locator.getName();
+            final int index = baseName.lastIndexOf('.');
+            if (index != -1)
+                name = String.format("%s/%s", baseName.substring(0, index).replace('.', '/'), name);
+        }
+        else name = name.substring(1);
+        return name;
+    }
 }

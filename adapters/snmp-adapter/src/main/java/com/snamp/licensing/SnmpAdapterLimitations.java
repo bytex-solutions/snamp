@@ -56,7 +56,7 @@ public final class SnmpAdapterLimitations extends AbstractLicenseLimitations imp
     private static final Activator<SnmpAdapterLimitations> fallbackFactory = new Activator<SnmpAdapterLimitations>() {
         @Override
         public SnmpAdapterLimitations newInstance() {
-            return new SnmpAdapterLimitations("0.0", false);
+            return new SnmpAdapterLimitations();
         }
     };
 
@@ -65,11 +65,12 @@ public final class SnmpAdapterLimitations extends AbstractLicenseLimitations imp
     }
 
     public SnmpAdapterLimitations(){
-
+        this("0.0", false);
     }
 
-    private SnmpAdapterLimitations(final String versionLimit, final boolean authenticationEnabled){
+    private SnmpAdapterLimitations(final String versionLimit, final boolean authenticationLimit){
         maxVersion = PluginVersionLimitationAdapter.createLimitation(versionLimit);
+        authenticationEnabled = AuthenticationFeatureLimitationAdapter.createLimitation(authenticationLimit);
     }
 
     @XmlJavaTypeAdapter(PluginVersionLimitationAdapter.class)

@@ -107,4 +107,24 @@ public class ConcurrentResourceAccess<R> extends AbstractConcurrentResourceAcces
             wl.unlock();
         }
     }
+
+    /**
+     * Changes the resource.
+     * <p>
+     *   This operation acquires write-lock on the resource.
+     * </p>
+     * @param newResource The factory of the new resource. Cannot be {@literal null}.
+     * @throws IllegalArgumentException newResource is {@literal null}.
+     */
+    public final void changeResource(final ConsistentAction<R, R> newResource){
+        if(newResource == null) throw new IllegalArgumentException("newResource is null.");
+        final WriteLock wl = writeLock();
+        wl.lock();
+        try{
+            setResource(newResource.invoke(getResource()));
+        }
+        finally {
+            wl.unlock();
+        }
+    }
 }

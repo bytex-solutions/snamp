@@ -2,8 +2,8 @@ package com.snamp.adapters;
 
 import com.snamp.*;
 import com.snamp.connectors.*;
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 
 import static com.snamp.connectors.util.NotificationUtils.SynchronizationListener;
 

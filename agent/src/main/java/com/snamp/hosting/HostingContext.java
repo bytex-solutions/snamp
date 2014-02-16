@@ -1,6 +1,7 @@
 package com.snamp.hosting;
 
 import com.snamp.Aggregator;
+import com.snamp.configuration.AgentConfigurationStorage;
 
 /**
  * Represents agent hosting context and describes SNAMP environment at runtime.

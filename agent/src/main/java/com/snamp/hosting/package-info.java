@@ -5,6 +5,6 @@
  *   and adapters.
  * </p>
  * @see com.snamp.hosting.Agent
- * @see com.snamp.hosting.AgentConfiguration
+ * @see com.snamp.configuration.AgentConfiguration
  */
 package com.snamp.hosting;

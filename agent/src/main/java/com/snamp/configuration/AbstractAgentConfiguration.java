@@ -1,4 +1,4 @@
-package com.snamp.hosting;
+package com.snamp.configuration;
 
 import com.snamp.Activator;
 

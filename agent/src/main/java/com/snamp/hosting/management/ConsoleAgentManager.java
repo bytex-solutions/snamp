@@ -1,6 +1,8 @@
 package com.snamp.hosting.management;
 
 import com.snamp.*;
+import com.snamp.configuration.AgentConfiguration;
+import com.snamp.configuration.AgentConfigurationStorage;
 import com.snamp.hosting.*;
 import com.snamp.licensing.LicenseReader;
 

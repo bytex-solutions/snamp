@@ -1,8 +1,14 @@
 package com.snamp.adapters;
 
-import com.snamp.connectors.AttributeSupport;
+import com.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.snamp.configuration.RestAdapterConfigurationDescriptor;
+import com.snamp.connectors.*;
 import com.snamp.connectors.util.*;
-import com.snamp.hosting.AgentConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.configuration.RestAdapterConfigurationDescriptor.*;
+
+import com.snamp.configuration.AgentConfiguration;
 import com.snamp.licensing.*;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import net.xeoh.plugins.base.annotations.meta.Author;
@@ -11,38 +17,46 @@ import org.eclipse.jetty.servlet.*;
 
 import javax.servlet.Servlet;
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
+ * Represents HTTP adapter that exposes management information through HTTP and WebSocket to the outside world.
+ * This class cannot be inherited.
  * @author Roman Sakno
  */
 @PluginImplementation
 @Author(name = "Roman Sakno")
-final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugin<RestAdapterLimitations> {
-    private static final String DATE_FORMAT_PARAM_NAME = "dateFormat";
+final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugin<RestAdapterLimitations>, NotificationPublisher {
     public static final String NAME = "rest";
     private final Server jettyServer;
     private final AttributesRegistry exposedAttributes;
+    private final SubscriptionList notifications;
     private boolean started = false;
-
+    private ConfigurationEntityDescriptionProvider configDescr;
 
     public RestAdapter(){
         super(NAME);
         RestAdapterLimitations.current().verifyPluginVersion(getClass());
         jettyServer = new Server();
-        exposedAttributes = new AbstractAttributesRegistry() {
+        exposedAttributes = new AbstractAttributesRegistry<AttributeConfiguration>() {
             @Override
-            protected ConnectedAttributes createBinding(final AttributeSupport connector) {
-                return new ConnectedAttributes(connector) {
+            protected ConnectedAttributes<AttributeConfiguration> createBinding(final AttributeSupport connector) {
+                return new ConnectedAttributes<AttributeConfiguration>(connector) {
                     @Override
-                    public String makeAttributeId(final String prefix, final String postfix) {
-                        return String.format("%s/%s", prefix, postfix);
+                    public final String makeAttributeId(final String prefix, final String postfix) {
+                        return RestAdapterHelpers.makeAttributeID(prefix, postfix);
+                    }
+
+                    @Override
+                    public final AttributeConfiguration createDescription(final String prefix, final String postfix, final AttributeConfiguration config) {
+                        return config;
                     }
                 };
             }
         };
         started = false;
+        notifications = new SubscriptionList();
     }
 
     private Servlet createRestServlet(final String dateFormat){
@@ -53,6 +67,7 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
         final int port = parameters.containsKey(PORT_PARAM_NAME) ? Integer.valueOf(parameters.get(PORT_PARAM_NAME)) : 8080;
         final String host = parameters.containsKey(ADDRESS_PARAM_NAME) ? parameters.get(ADDRESS_PARAM_NAME) : "0.0.0.0";
         final String dateFormat = parameters.containsKey(DATE_FORMAT_PARAM_NAME) ? parameters.get(DATE_FORMAT_PARAM_NAME) : "";
+        final int webSocketIdleTimeout = Integer.valueOf(parameters.containsKey(WEB_SOCKET_TIMEOUT_PARAM_NAME) ? parameters.get(WEB_SOCKET_TIMEOUT_PARAM_NAME) : "10000");
         //remove all connectors.
         for(final Connector c: s.getConnectors())
             if(c instanceof NetworkConnector) ((NetworkConnector)c).close();
@@ -62,12 +77,21 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
         connector.setPort(port);
         connector.setHost(host);
         s.setConnectors(new Connector[]{connector});
-        final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        s.setHandler(contextHandler);
-        contextHandler.setContextPath("/snamp/management");
-        final ServletHolder holder = new ServletHolder(createRestServlet(dateFormat));
-        contextHandler.addServlet(holder, "/*");
+        final ServletContextHandler resourcesHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        resourcesHandler.setContextPath("/snamp");
+        //notification delivery
+        resourcesHandler.addServlet(new ServletHolder(new NotificationSenderServlet(notifications.createSubscriptionManager(), getLogger(), dateFormat, webSocketIdleTimeout)), "/notifications/*");
+        //attribute getters and setters
+        resourcesHandler.addServlet(new ServletHolder(createRestServlet(dateFormat)), "/management/*");
+        s.setHandler(resourcesHandler);
         return true;
+    }
+
+    @Aggregation
+    public final ConfigurationEntityDescriptionProvider getConfigurationDescriptor(){
+        if(configDescr == null)
+            configDescr = new RestAdapterConfigurationDescriptor();
+        return configDescr;
     }
 
     /**
@@ -103,6 +127,11 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
             try {
                 jettyServer.stop();
                 started = false;
+                if(!saveState){
+                    exposedAttributes.disconnect();
+                    exposedAttributes.clear();
+                    notifications.disable();
+                }
                 return true;
             }
             catch (final Exception e) {
@@ -125,45 +154,16 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
     }
 
     /**
-     * Closes this resource, relinquishing any underlying resources.
-     * This method is invoked automatically on objects managed by the
-     * {@code try}-with-resources statement.
-     * <p/>
-     * <p>While this interface method is declared to throw {@code
-     * Exception}, implementers are <em>strongly</em> encouraged to
-     * declare concrete implementations of the {@code close} method to
-     * throw more specific exceptions, or to throw no exception at all
-     * if the close operation cannot fail.
-     * <p/>
-     * <p><em>Implementers of this interface are also strongly advised
-     * to not have the {@code close} method throw {@link
-     * InterruptedException}.</em>
-     * <p/>
-     * This exception interacts with a thread's interrupted status,
-     * and runtime misbehavior is likely to occur if an {@code
-     * InterruptedException} is {@linkplain Throwable#addSuppressed
-     * suppressed}.
-     * <p/>
-     * More generally, if it would cause problems for an
-     * exception to be suppressed, the {@code AutoCloseable.close}
-     * method should not throw it.
-     * <p/>
-     * <p>Note that unlike the {@link java.io.Closeable#close close}
-     * method of {@link java.io.Closeable}, this {@code close} method
-     * is <em>not</em> required to be idempotent.  In other words,
-     * calling this {@code close} method more than once may have some
-     * visible side effect, unlike {@code Closeable.close} which is
-     * required to have no effect if called more than once.
-     * <p/>
-     * However, implementers of this interface are strongly encouraged
-     * to make their {@code close} methods idempotent.
-     *
-     * @throws Exception if this resource cannot be closed
+     * Releases all resources associated with this adapter.
+     * @throws Exception Some error occurs during resource releasing.
      */
     @Override
     public final void close() throws Exception {
         jettyServer.stop();
+        exposedAttributes.disconnect();
         exposedAttributes.clear();
+        notifications.disable();
+        notifications.clear();
         started = false;
     }
 
@@ -175,5 +175,17 @@ final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugi
     @Override
     public final RestAdapterLimitations getLimitations() {
         return RestAdapterLimitations.current();
+    }
+
+    /**
+     * Exposes monitoring events.
+     *
+     * @param connector The management connector that provides notification listening and subscribing.
+     * @param namespace The events namespace.
+     * @param events    The collection of configured notifications.
+     */
+    @Override
+    public final void exposeEvents(final NotificationSupport connector, final String namespace, final Map<String, EventConfiguration> events) {
+        notifications.putAll(connector, namespace, events);
     }
 }

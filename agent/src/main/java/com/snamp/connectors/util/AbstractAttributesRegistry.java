@@ -7,19 +7,20 @@ import com.snamp.internal.MethodThreadSafety;
 import com.snamp.internal.SynchronizationType;
 import com.snamp.internal.ThreadSafety;
 
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 /**
  * Represents registry of exposed attributes based on attribute namespace.
+ * @param <TAttributeDescriptor> The type of the attribute descriptor.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
 @Internal
-public abstract class AbstractAttributesRegistry extends HashMap<String, ConnectedAttributes> implements AttributesRegistry {
+public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends HashMap<String, ConnectedAttributes<TAttributeDescriptor>> implements AttributesRegistry {
 
     /**
      * Initializes a new empty registry of attributes.
@@ -29,12 +30,12 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     }
 
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    protected abstract ConnectedAttributes createBinding(final AttributeSupport connector);
+    protected abstract ConnectedAttributes<TAttributeDescriptor> createBinding(final AttributeSupport connector);
 
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
     @Override
     public final Collection<String> putAll(final AttributeSupport connector, final String prefix, final Map<String, AttributeConfiguration> attributes){
-        final ConnectedAttributes binding;
+        final ConnectedAttributes<TAttributeDescriptor> binding;
         if(containsKey(prefix))
             binding = get(prefix);
         else put(prefix, binding = createBinding(connector));
@@ -43,8 +44,11 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
             final AttributeConfiguration attributeConfig = attributes.get(postfix);
             final AttributeMetadata md = connector.connectAttribute(binding.makeAttributeId(prefix, postfix), attributeConfig.getAttributeName(), attributeConfig.getAdditionalElements());
             if(md != null) {
-                binding.put(postfix, md);
-                connectedAttributes.add(postfix);
+                final TAttributeDescriptor descriptor = binding.createDescription(prefix, postfix, attributeConfig);
+                if(descriptor != null){
+                    binding.put(postfix, descriptor);
+                    connectedAttributes.add(postfix);
+                }
             }
         }
         return connectedAttributes;
@@ -57,7 +61,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
             final ConnectedAttributes binding = get(prefix);
             if(binding.containsKey(postfix))
                 try {
-                    final TypeConverter<T> converter = binding.get(postfix).getType().getProjection(attributeType);
+                    final TypeConverter<T> converter = binding.getAttributeType(prefix, postfix).getProjection(attributeType);
                     return converter != null ?
                             converter.convertFrom(binding.getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, defaultValue)):
                             defaultValue;
@@ -76,7 +80,7 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
             final ConnectedAttributes binding = get(prefix);
             if(binding.containsKey(postfix))
                 try {
-                    final ManagementEntityType attributeType = binding.get(postfix).getType();
+                    final ManagementEntityType attributeType = binding.getAttributeType(prefix, postfix);
                     final Object value = binding.getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, null);
                     return new AttributeValue(value, attributeType);
                 }
@@ -91,8 +95,8 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
     public final ManagementEntityType getAttributeType(final String prefix, final String postfix){
         if(containsKey(prefix)){
-            final ConnectedAttributes binding = get(prefix);
-            return binding.containsKey(postfix) ? binding.get(postfix).getType() : null;
+            final ConnectedAttributes<TAttributeDescriptor> binding = get(prefix);
+            return binding.containsKey(postfix) ? binding.getAttributeType(prefix, postfix) : null;
         }
         else return null;
     }
@@ -134,5 +138,19 @@ public abstract class AbstractAttributesRegistry extends HashMap<String, Connect
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
     public final Collection<String> getRegisteredAttributes(final String namespace) {
         return containsKey(namespace) ? get(namespace).keySet() : Arrays.<String>asList();
+    }
+
+    public final <T extends ConnectedAttributes> T get(final String prefix, final Class<T> classInfo){
+        final ConnectedAttributes result = get(prefix);
+        return classInfo.isInstance(result) ? classInfo.cast(result) : null;
+    }
+
+    /**
+     * Disconnects all attributes.
+     */
+    @Override
+    public final void disconnect() {
+        for(final Map.Entry<String, ConnectedAttributes<TAttributeDescriptor>> entry: entrySet())
+            entry.getValue().disconnect(entry.getKey());
     }
 }

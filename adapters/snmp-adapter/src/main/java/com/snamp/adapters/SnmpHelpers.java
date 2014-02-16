@@ -8,6 +8,7 @@ import org.snmp4j.smi.Variable;
 import java.io.*;
 import java.text.*;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.regex.*;
 
 /**
@@ -16,6 +17,10 @@ import java.util.regex.*;
 final class SnmpHelpers {
     private SnmpHelpers(){
 
+    }
+
+    public static final Logger getLogger(){
+        return Logger.getLogger("snamp.snmp.log");
     }
 
     /**

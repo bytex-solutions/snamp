@@ -20,6 +20,7 @@ final class SnmpWrappedNotification extends SnmpNotification {
     private final OID severityId;
     private final OID sequenceNumberId;
     private final OID timeStampId;
+    private final OID categoryId;
 
     /**
      * Initializes a new SNMP notification message.
@@ -31,6 +32,7 @@ final class SnmpWrappedNotification extends SnmpNotification {
         severityId = new OID(notificationID).append(new OID("2"));
         sequenceNumberId = new OID(notificationID).append(new OID("3"));
         timeStampId = new OID(notificationID).append(new OID("4"));
+        categoryId = new OID(notificationID).append(new OID("5"));
     }
 
     /**
@@ -45,12 +47,14 @@ final class SnmpWrappedNotification extends SnmpNotification {
      * </p>
      * @param notificationID The notification identifier.
      * @param n The notification to wrap.
+     * @param category Notification category.
      */
-    public SnmpWrappedNotification(final OID notificationID, final Notification n){
+    public SnmpWrappedNotification(final OID notificationID, final Notification n, final String category){
         this(notificationID);
         put(messageId, new OctetString(n.getMessage()));
         put(severityId, new Integer32(n.getSeverity().ordinal()));
         put(sequenceNumberId, new Counter64(n.getSequenceNumber()));
+        put(categoryId, new OctetString(category));
     }
 
     /**
@@ -66,10 +70,11 @@ final class SnmpWrappedNotification extends SnmpNotification {
      * </p>
      * @param notificationID The notification identifier.
      * @param n The notification to wrap.
+     * @param category Notification category.
      * @param formatter Notification timestamp formatter.
      */
-    public SnmpWrappedNotification(final OID notificationID, final Notification n, final DateTimeFormatter formatter){
-        this(notificationID, n);
+    public SnmpWrappedNotification(final OID notificationID, final Notification n, final String category, final DateTimeFormatter formatter){
+        this(notificationID, n, category);
         put(timeStampId, new OctetString(formatter.convert(n.getTimeStamp())));
     }
 
@@ -95,6 +100,10 @@ final class SnmpWrappedNotification extends SnmpNotification {
 
     public final Date getTimeStamp(final DateTimeFormatter formatter) throws ParseException{
         return containsKey(timeStampId) ? formatter.convert(((OctetString)get(timeStampId)).toByteArray()) : null;
+    }
+
+    public final String getCategory(){
+        return containsKey(categoryId) ? get(categoryId).toString() : null;
     }
 
     /**

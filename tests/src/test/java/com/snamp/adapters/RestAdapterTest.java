@@ -1,15 +1,24 @@
 package com.snamp.adapters;
 
 import com.google.gson.*;
+import com.snamp.configuration.EmbeddedAgentConfiguration;
 import com.snamp.internal.Temporary;
 import com.snamp.connectors.*;
-import static com.snamp.hosting.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration;
+import static com.snamp.configuration.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration;
+import static com.snamp.adapters.TestManagementBean.BEAN_NAME;
+
+import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.WebSocketListener;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
+import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.junit.Test;
 
 import javax.management.*;
 import javax.ws.rs.core.MediaType;
 
-import static com.snamp.hosting.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -28,6 +37,7 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         put(Adapter.PORT_PARAM_NAME, "3222");
         put(Adapter.ADDRESS_PARAM_NAME, "127.0.0.1");
         put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        put("webSocketIdleTimeout", "30000");
     }};
 
 
@@ -301,6 +311,96 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         assertEquals(new JsonPrimitive("Row 4"), ((JsonObject)table.get(3)).get("col3"));
     }
 
+    @Test
+    public final void observeRegisteredAttributesTest() throws IOException {
+        final URL url = new URL(String.format("http://%s:%s/snamp/management/attributes", restAdapterSettings.get(Adapter.ADDRESS_PARAM_NAME), restAdapterSettings.get(Adapter.PORT_PARAM_NAME)));
+        final HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        connection.setRequestMethod("GET");
+        final StringBuilder result = new StringBuilder();
+        try(final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))){
+            String line = null;
+            while ((line = reader.readLine()) != null) result.append(line);
+        }
+        finally {
+            connection.disconnect();
+        }
+        assertEquals(200, connection.getResponseCode());
+        final Collection<String> attributes = Arrays.asList(jsonFormatter.<String[]>fromJson(result.toString(), String[].class));
+        assertEquals(9, attributes.size());
+        for(final String postfix: getTargets().get("test-jmx").getAttributes().keySet())
+            assertTrue(attributes.contains(getAttributesNamespace() + "/" + postfix));
+    }
+
+    private static final class JsonNotificationBox extends ConcurrentLinkedQueue<JsonNotification> implements WebSocketListener {
+        private final Gson jsonFormatter;
+
+        public JsonNotificationBox(final Gson formatter){
+            this.jsonFormatter = formatter;
+        }
+
+        public final void receiveMessage(final String message){
+            add(JsonNotification.parse(jsonFormatter, message));
+        }
+
+        @Override
+        public void onWebSocketBinary(final byte[] payload, final int offset, final int len) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        @Override
+        public void onWebSocketClose(final int statusCode, final String reason) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+        @Override
+        public void onWebSocketConnect(final Session session) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        @Override
+        public void onWebSocketError(final Throwable cause) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        @Override
+        public void onWebSocketText(final String message) {
+           receiveMessage(message);
+        }
+    }
+
+    @Test
+    public final void notificationTest() throws Exception {
+        final WebSocketClient webSocketClient = new WebSocketClient();
+        final JsonNotificationBox notificationBox = new JsonNotificationBox(jsonFormatter);
+        webSocketClient.start();
+        //subscribe to event
+        final ClientUpgradeRequest request = new ClientUpgradeRequest();
+        request.setSubProtocols("text");
+        try(final Session session = webSocketClient.connect(notificationBox, new URI(String.format("ws://%s:%s/snamp/notifications", restAdapterSettings.get(Adapter.ADDRESS_PARAM_NAME), restAdapterSettings.get(Adapter.PORT_PARAM_NAME))), request).get()){
+            //forces attribute changing
+            testForInt32Property();
+            while(notificationBox.size() < 2)
+                Thread.sleep(100);
+        }
+        finally {
+            webSocketClient.stop();
+        }
+        assertEquals(2, notificationBox.size());
+        while (!notificationBox.isEmpty()){
+            final JsonNotification notif = notificationBox.remove();
+            switch (notif.getCategory()){
+                case AttributeChangeNotification.ATTRIBUTE_CHANGE:
+                    assertEquals(NotificationSupport.Notification.Severity.NOTICE, notif.getSeverity());
+                    assertEquals("Property int32 is changed", notif.getMessage());
+                continue;
+                case "com.snamp.connectors.jmx.testnotif":
+                    assertEquals(NotificationSupport.Notification.Severity.PANIC, notif.getSeverity());
+                    assertEquals("Property changed", notif.getMessage());
+                continue;
+                default: fail(String.format("Unknown event category %s", notif.getCategory()));
+            }
+        }
+    }
+
     @Override
     protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes) {
         @Temporary
@@ -339,5 +439,20 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         attribute = new EmbeddedAttributeConfiguration("date");
         attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("dateProperty", attribute);
+    }
+
+    @Override
+    protected final void fillEvents(Map<String, ManagementTargetConfiguration.EventConfiguration> events) {
+        EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration event = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration();
+        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event.getAdditionalElements().put("severity", "notice");
+        event.getAdditionalElements().put("objectName", BEAN_NAME);
+        events.put("attributeChanged", event);
+
+        event = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration();
+        event.setCategory("com.snamp.connectors.jmx.testnotif");
+        event.getAdditionalElements().put("severity", "panic");
+        event.getAdditionalElements().put("objectName", BEAN_NAME);
+        events.put("testNotification", event);
     }
 }

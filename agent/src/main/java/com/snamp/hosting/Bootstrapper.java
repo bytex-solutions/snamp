@@ -1,5 +1,8 @@
 package com.snamp.hosting;
 
+import com.snamp.configuration.AgentConfiguration;
+import com.snamp.configuration.AgentConfigurationStorage;
+import com.snamp.configuration.ConfigurationFormat;
 import com.snamp.core.AbstractPlatformService;
 import com.snamp.hosting.management.AgentManager;
 
