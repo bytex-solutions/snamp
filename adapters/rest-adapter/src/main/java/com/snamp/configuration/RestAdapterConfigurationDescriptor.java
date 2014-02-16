@@ -2,6 +2,7 @@ package com.snamp.configuration;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
+import static com.snamp.adapters.Adapter.*;
 
 import static com.snamp.configuration.AgentConfiguration.HostingConfiguration;
 
@@ -14,11 +15,14 @@ import static com.snamp.configuration.AgentConfiguration.HostingConfiguration;
  */
 public final class RestAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
 
+    public static final String DATE_FORMAT_PARAM_NAME = "dateFormat";
+    public static final String WEB_SOCKET_TIMEOUT_PARAM_NAME = "webSocketIdleTimeout";
+
     private static final class HostingConfigurationInfo extends ResourceBasedConfigurationEntityDescription<HostingConfiguration>{
         private static final String RESOURCE_NAME = "RestAdapterConfig";
 
         public HostingConfigurationInfo(){
-            super(HostingConfiguration.class, RESOURCE_NAME);
+            super(HostingConfiguration.class, ADDRESS_PARAM_NAME, PORT_PARAM_NAME);
         }
 
         @Override
