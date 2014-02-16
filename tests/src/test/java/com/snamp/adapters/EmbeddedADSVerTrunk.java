@@ -206,12 +206,10 @@ public class EmbeddedADSVerTrunk
 
         // Now we can create as many partitions as we need
         // Create some new partitions named 'foo', 'bar' and 'apache'.
-        Partition fooPartition = addPartition( "foo", "dc=department,dc=example,dc=com", service.getDnFactory() );
-        Partition barPartition = addPartition( "bar", "dc=bar,dc=com", service.getDnFactory() );
-        Partition apachePartition = addPartition( "apache", "dc=apache,dc=org", service.getDnFactory() );
+        Partition userPartition = addPartition( "users", "dc=ad,dc=microsoft,dc=com", service.getDnFactory() );;
 
         // Index some attributes on the apache partition
-        addIndex( apachePartition, "objectClass", "ou", "uid" );
+        addIndex( userPartition, "objectClass", "ou", "uid" );
 
         // And start the service
         service.startup();
@@ -219,39 +217,15 @@ public class EmbeddedADSVerTrunk
         // Inject the context entry for dc=foo,dc=com partition if it does not already exist
         try
         {
-            service.getAdminSession().lookup( fooPartition.getSuffixDn() );
+            service.getAdminSession().lookup( userPartition.getSuffixDn() );
         }
         catch ( LdapException lnnfe )
         {
-            Dn dnFoo = new Dn( "dc=department,dc=example,dc=com" );
-            Entry entryFoo = service.newEntry( dnFoo );
-            entryFoo.add( "objectClass", "top", "domain", "extensibleObject" );
-            entryFoo.add( "dc", "department" );
-            service.getAdminSession().add( entryFoo );
-        }
-
-        // Inject the context entry for dc=bar,dc=com partition
-        try
-        {
-            service.getAdminSession().lookup( barPartition.getSuffixDn() );
-        }
-        catch ( LdapException lnnfe )
-        {
-            Dn dnBar = new Dn( "dc=bar,dc=com" );
-            Entry entryBar = service.newEntry( dnBar );
-            entryBar.add( "objectClass", "top", "domain", "extensibleObject" );
-            entryBar.add( "dc", "bar" );
-            service.getAdminSession().add( entryBar );
-        }
-
-        // Inject the context entry for dc=Apache,dc=Org partition
-        if ( !service.getAdminSession().exists( apachePartition.getSuffixDn() ) )
-        {
-            Dn dnApache = new Dn( "dc=Apache,dc=Org" );
-            Entry entryApache = service.newEntry( dnApache );
-            entryApache.add( "objectClass", "top", "domain", "extensibleObject" );
-            entryApache.add( "dc", "Apache" );
-            service.getAdminSession().add( entryApache );
+            Dn dnUser = new Dn( "dc=ad,dc=microsoft,dc=com" );
+            Entry entryUser = service.newEntry( dnUser );
+            entryUser.add( "objectClass", "top", "domain", "extensibleObject" );
+            entryUser.add( "dc", "department" );
+            service.getAdminSession().add( entryUser );
         }
 
         // We are all done !
