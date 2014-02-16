@@ -37,7 +37,7 @@ final class SecurityConfiguration {
     public static enum LdapAuthenticationType{
         SIMPLE("simple"),
         MD5("DIGEST-MD5"),
-        KerberosV5("GSSAPI");
+        KERBEROS("GSSAPI");
         private final String name;
 
         private LdapAuthenticationType(final String jndiName){
@@ -172,9 +172,9 @@ final class SecurityConfiguration {
                     setAuthenticationProtocol(AuthMD5.ID);
                     setLdapAuthenticationType(LdapAuthenticationType.MD5);
                     return;
-                case "snmp=m5,ldap=kerberos-v5":
+                case "snmp=m5,ldap=kerberos":
                     setAuthenticationProtocol(AuthMD5.ID);
-                    setLdapAuthenticationType(LdapAuthenticationType.KerberosV5);
+                    setLdapAuthenticationType(LdapAuthenticationType.KERBEROS);
                     return;
                 case "snmp=sha,ldap=simple":
                     setAuthenticationProtocol(AuthSHA.ID);
@@ -184,9 +184,9 @@ final class SecurityConfiguration {
                     setAuthenticationProtocol(AuthSHA.ID);
                     setLdapAuthenticationType(LdapAuthenticationType.MD5);
                     return;
-                case "snmp=sha,ldap=kerberos-v5":
+                case "snmp=sha,ldap=kerberos":
                     setAuthenticationProtocol(AuthSHA.ID);
-                    setLdapAuthenticationType(LdapAuthenticationType.KerberosV5);
+                    setLdapAuthenticationType(LdapAuthenticationType.KERBEROS);
                     return;
                 default:
                     //attempts to parse key-value pair in format
@@ -320,7 +320,7 @@ final class SecurityConfiguration {
         }
 
         public final void setAccessRights(final String rights) {
-            setAccessRights(splitAndTrim(rights, ","));
+            setAccessRights(splitAndTrim(rights, ";"));
         }
     }
 
@@ -394,7 +394,7 @@ final class SecurityConfiguration {
             groupInfo.setSecurityLevel(adapterSettings.get(String.format(SECURITY_LEVEL_TEMPLATE, groupName)));
             //process group's access rights
             groupInfo.setAccessRights(adapterSettings.get(String.format(ACCESS_RIGHTS_TEMPLATE, groupName)));
-            fillUsers(adapterSettings, groupInfo, splitAndTrim(adapterSettings.get(String.format(USERS_TEMPLATE, groupName)), ","));
+            fillUsers(adapterSettings, groupInfo, splitAndTrim(adapterSettings.get(String.format(USERS_TEMPLATE, groupName)), ";"));
         }
     }
 
@@ -417,7 +417,7 @@ final class SecurityConfiguration {
         if(adapterSettings.containsKey(LDAP_URI_PROPERTY))
             setLdapUri(adapterSettings.get(LDAP_URI_PROPERTY));
         if(adapterSettings.containsKey(SNMPv3_GROUPS_PROPERTY)){
-            fillGroups(adapterSettings, splitAndTrim(adapterSettings.get(SNMPv3_GROUPS_PROPERTY), ","), groups);
+            fillGroups(adapterSettings, splitAndTrim(adapterSettings.get(SNMPv3_GROUPS_PROPERTY), ";"), groups);
             return true;
         }
         else return false;
@@ -713,11 +713,8 @@ final class SecurityConfiguration {
                             user.getUsmUser() instanceof LdapUsmUser ?
                                     ((LdapUsmUser)user.getUsmUser()).getAuthenticationType():
                                     LdapAuthenticationType.SIMPLE;
-                        boolean authentic = authenticate(user.getUserName(), user.getAuthenticationKey(), ldapAuthenticationType);
+                        boolean authentic = authenticate(user.getUserName(), user.getUsmUser().getAuthenticationPassphrase(), ldapAuthenticationType);
                         if (!authentic) {
-                            logger.config(
-                                        "RFC3414 §3.2.6 Wrong digest -> authentication failure: " +
-                                                usmSecurityParameters.getAuthenticationParameters().toHexString());
                             CounterEvent event =
                                     new CounterEvent(this, SnmpConstants.usmStatsWrongDigests);
                             fireIncrementCounter(event);
@@ -857,8 +854,8 @@ final class SecurityConfiguration {
             }
         }
 
-        private boolean authenticate(final OctetString userName, final byte[] authenticationKey, final LdapAuthenticationType authType) {
-            return authenticate(userName.toString(), new OctetString(authenticationKey).toString(), authType);
+        private boolean authenticate(final OctetString userName, final OctetString authenticationKey, final LdapAuthenticationType authType) {
+            return authenticate(userName.toString(), authenticationKey.toString(), authType);
         }
     }
 
