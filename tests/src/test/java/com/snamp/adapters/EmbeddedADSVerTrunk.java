@@ -274,7 +274,7 @@ public class EmbeddedADSVerTrunk{
         try
         {
             workDir = new File( System.getProperty( "java.io.tmpdir" ) + "/server-work" );
-            if (workDir.exists()) workDir.delete();
+
             workDir.mkdirs();
 
             // Create the server

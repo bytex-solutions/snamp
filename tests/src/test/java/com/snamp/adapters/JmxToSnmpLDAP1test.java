@@ -79,6 +79,7 @@ public class JmxToSnmpLDAP1test extends JmxConnectorTest<TestManagementBean> {
     @Override
     protected void afterAgentStart(final Agent agent) throws Exception{
         workDir = new File( System.getProperty( "java.io.tmpdir" ) + "/server-work" );
+        if (workDir.exists()) workDir.delete();
         workDir.mkdirs();
 
         // Create the server
