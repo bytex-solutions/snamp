@@ -858,7 +858,7 @@ final class SecurityConfiguration {
         }
 
         private boolean authenticate(final OctetString userName, final byte[] authenticationKey, final LdapAuthenticationType authType) {
-            return authenticate(userName.toString(), new String(authenticationKey), authType);
+            return authenticate(userName.toString(), new OctetString(authenticationKey).toString(), authType);
         }
     }
 
