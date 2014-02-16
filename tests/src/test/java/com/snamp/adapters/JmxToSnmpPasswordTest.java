@@ -7,6 +7,28 @@ package com.snamp.adapters;
 import com.snamp.*;
 import com.snamp.connectors.*;
 import com.snamp.configuration.EmbeddedAgentConfiguration;
+<<<<<<< HEAD
+=======
+import com.snamp.hosting.Agent;
+
+/*import org.apache.directory.server.constants.ServerDNConstants;
+import org.apache.directory.server.core.DefaultDirectoryService;
+import org.apache.directory.server.core.DirectoryService;
+
+import org.apache.directory.server.core.partition.impl.btree.jdbm.JdbmPartition;
+import org.apache.directory.server.core.partition.ldif.LdifPartition;
+import org.apache.directory.server.core.schema.SchemaPartition;
+import org.apache.directory.server.ldap.LdapServer;
+import org.apache.directory.server.protocol.shared.transport.TcpTransport;
+import org.apache.directory.shared.ldap.schema.SchemaManager;
+import org.apache.directory.shared.ldap.schema.ldif.extractor.SchemaLdifExtractor;
+import org.apache.directory.shared.ldap.schema.ldif.extractor.impl.DefaultSchemaLdifExtractor;
+import org.apache.directory.shared.ldap.schema.loader.ldif.LdifSchemaLoader;
+import org.apache.directory.shared.ldap.schema.manager.impl.DefaultSchemaManager;
+import org.apache.directory.shared.ldap.schema.registries.SchemaLoader;*/
+import org.apache.directory.server.core.api.DirectoryService;
+import org.apache.directory.server.ldap.LdapServer;
+>>>>>>> 999edf3cbb265e8b9e86e35b296f0ef948d7df8f
 import org.junit.Test;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.*;
@@ -43,7 +65,7 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         put("socketTimeout", "5000");
         put("snmpv3-groups", "group1, group2");
         //group1 setup
-        put("group1-security-level", "authNoPriv");
+        put("group1-security-level", "authPriv");
         put("group1-access-rights", "read, write, notify");
         put("group1-users", username);
         put(username + "-password", password);
@@ -69,6 +91,7 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
     }
 
 
+<<<<<<< HEAD
     /*@Override
     protected void afterAgentStart(final Agent agent) throws Exception{
         String buildDirectory = System.getProperty("buildDirectory");
@@ -120,17 +143,25 @@ public class JmxToSnmpPasswordTest extends JmxConnectorTest<TestManagementBean> 
         ldapServer = new LdapServer();
         ldapServer.setTransports(new TcpTransport(11389));
         ldapServer.setDirectoryService(directoryService);
+=======
+    @Override
+    protected void afterAgentStart(final Agent agent) throws Exception
+    {
+>>>>>>> 999edf3cbb265e8b9e86e35b296f0ef948d7df8f
 
-        directoryService.startup();
-        ldapServer.start();
     }
 
     @Override
     protected void beforeAgentStop(final Agent agent) throws Exception{
+<<<<<<< HEAD
         ldapServer.stop();
         directoryService.shutdown();
         directoryService.getWorkingDirectory().delete();
     }*/
+=======
+;
+    }
+>>>>>>> 999edf3cbb265e8b9e86e35b296f0ef948d7df8f
 
 
     @Test
