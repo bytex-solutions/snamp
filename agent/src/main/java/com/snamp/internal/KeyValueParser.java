@@ -1,6 +1,6 @@
 package com.snamp.internal;
 
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Represents parser of key-value pairs contained in the single string and separated by
@@ -57,11 +57,20 @@ public final class KeyValueParser {
         //split string by pair delimiters
         final String[] pairs = input.split(pairDelimiter);
         //now split each pair to the keys/values
-        for(final String pair: pairs){
+        for(String pair: pairs){
+            pair = pair.trim();
             final String[] keyValue = pair.split(keyValueDelimiter);
             if(keyValue == null || keyValue.length < 2) continue;
-            result.put(keyValue[0], keyValue[1]);
+            result.put(keyValue[0].trim(), keyValue[1].trim());
         }
+        return result;
+    }
+
+    public final Map<String, String> parseAsMap(final String input){
+        final Properties props = parse(input);
+        final Map<String, String> result = new HashMap<>(props.size());
+        for(final Object key: props.keySet())
+            result.put(Objects.toString(key), Objects.toString(props.get(key)));
         return result;
     }
 }

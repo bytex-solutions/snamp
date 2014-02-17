@@ -110,4 +110,16 @@ public final class ReflectionUtils {
         else name = name.substring(1);
         return name;
     }
+
+    /**
+     * Provides safe typecast.
+     * @param obj An object to cast.
+     * @param resultType Type of the cast operation. Cannot be {@literal null}.
+     * @param <T> Type of the cast operation.
+     * @return Cast result; or {@literal null}, if the specified object is not instance
+     * of the specified type.
+     */
+    public static <T> T safeCast(final Object obj, final Class<T> resultType){
+        return obj != null && resultType.isInstance(obj) ? resultType.cast(obj) : null;
+    }
 }

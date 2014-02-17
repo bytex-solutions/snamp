@@ -2,27 +2,26 @@ package com.snamp.adapters;
 
 import static com.snamp.configuration.SnmpAdapterConfigurationDescriptor.*;
 
+import com.snamp.CountdownTimer;
+import com.snamp.TimeSpan;
 import com.snamp.internal.KeyValueParser;
-import org.snmp4j.SNMP4JSettings;
-import org.snmp4j.TransportStateReference;
+import static com.snamp.internal.ReflectionUtils.safeCast;
+import org.snmp4j.*;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
 import org.snmp4j.asn1.*;
 import org.snmp4j.event.CounterEvent;
-import org.snmp4j.mp.SnmpConstants;
-import org.snmp4j.mp.StatusInformation;
+import org.snmp4j.mp.*;
 import org.snmp4j.security.*;
-import org.snmp4j.smi.Integer32;
-import org.snmp4j.smi.OID;
-import org.snmp4j.smi.OctetString;
-import org.snmp4j.smi.VariableBinding;
+import org.snmp4j.smi.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.*;
 import javax.naming.*;
+import javax.naming.directory.*;
 import javax.naming.ldap.*;
 
 /**
@@ -47,6 +46,13 @@ final class SecurityConfiguration {
         public final void setupEnvironment(final Hashtable<String, ? super String> env){
             env.put(Context.SECURITY_AUTHENTICATION, name);
         }
+
+        public static LdapAuthenticationType parse(final String authType) {
+            if(authType == null || authType.isEmpty()) return SIMPLE;
+            for(final LdapAuthenticationType type: values())
+                if(Objects.equals(authType, type.name)) return type;
+            return SIMPLE;
+        }
     }
 
     /**
@@ -62,6 +68,7 @@ final class SecurityConfiguration {
         private String password;
         private String encryptionKey;
         private LdapAuthenticationType ldapAuthentication;
+        private TimeSpan sessionTimeout;
 
         /**
          * Initializes a new user security information.
@@ -71,6 +78,29 @@ final class SecurityConfiguration {
             privacyProtocol = null;
             password = encryptionKey = "";
             ldapAuthentication = null;
+            sessionTimeout = getDefaultSessionTimeout();
+        }
+
+        private static TimeSpan getDefaultSessionTimeout(){
+            return new TimeSpan(10, TimeUnit.SECONDS);
+        }
+
+        public void setSessionTimeout(TimeSpan value){
+            if(value == null) value = getDefaultSessionTimeout();
+            sessionTimeout = value;
+        }
+
+        public void setSessionTimeout(final int milliseconds){
+            setSessionTimeout(new TimeSpan(milliseconds));
+        }
+
+        public void setSessionTimeout(final String milliseconds){
+            if(milliseconds == null || milliseconds.isEmpty()) setSessionTimeout(getDefaultSessionTimeout());
+            else setSessionTimeout(Integer.valueOf(milliseconds));
+        }
+
+        public TimeSpan getSessionTimeout(){
+            return sessionTimeout;
         }
 
         public LdapAuthenticationType getLdapAuthenticationType(){
@@ -216,6 +246,25 @@ final class SecurityConfiguration {
 
         public final OctetString getPrivacyKeyAsOctetString(){
             return encryptionKey == null || encryptionKey.isEmpty() ? null : new OctetString(encryptionKey);
+        }
+
+        public final void defineUser(final USM userHive, final OctetString userName, final OctetString engineID, final boolean useLdap) {
+            if(getLdapAuthenticationType() != null && useLdap)
+                userHive.addUser(userName, engineID,
+                        new LdapUsmUser(userName,
+                                getAuthenticationProtocol(),
+                                getPasswordAsOctectString(),
+                                getPrivacyProtocol(),
+                                getPrivacyKeyAsOctetString(),
+                                getLdapAuthenticationType(),
+                                getSessionTimeout()
+                        ));
+            else userHive.addUser(userName, engineID,
+                    new UsmUser(userName,
+                            getAuthenticationProtocol(),
+                            getPasswordAsOctectString(),
+                            getPrivacyProtocol(),
+                            getPrivacyKeyAsOctetString()));
         }
     }
 
@@ -403,6 +452,7 @@ final class SecurityConfiguration {
         final String AUTH_PROTOCOL_TEMPLATE = "%s-auth-protocol";
         final String PRIVACY_KEY_TEMPLATE = "%s-privacy-key";
         final String PRIVACY_PROTOCOL_TEMPLATE = "%s-privacy-protocol";
+        final String LDAP_SESSION_TIMEOUT_TEMPLATE = "%s-ldap-session-timeout";
         for(final String name: userNames){
             final User userInfo = new User();
             groupInfo.put(name, userInfo);
@@ -410,6 +460,68 @@ final class SecurityConfiguration {
             userInfo.setPrivacyProtocol(adapterSettings.get(String.format(PRIVACY_PROTOCOL_TEMPLATE, name)));
             userInfo.setPrivacyKey(adapterSettings.get(String.format(PRIVACY_KEY_TEMPLATE, name)));
             userInfo.setAuthenticationProtocol(adapterSettings.get(String.format(AUTH_PROTOCOL_TEMPLATE, name)));
+            userInfo.setSessionTimeout(adapterSettings.get(String.format(LDAP_SESSION_TIMEOUT_TEMPLATE, name)));
+        }
+    }
+
+    private static final String IMPORT_FROM_LDAP_KEYWORD = "import-from-ldap";
+
+    private static final boolean fillGroupsFromLdap(final String ldapUri, String connectionString, final Map<String, UserGroup> groups){
+        //remove import
+        connectionString = connectionString.replaceFirst(IMPORT_FROM_LDAP_KEYWORD, "");
+        //parse key value
+        final KeyValueParser parser = new KeyValueParser(";", ":");
+        final Map<String, String> params = parser.parseAsMap(connectionString);
+        final String SEARCH_QUERY_PARAM = "search";
+        final String LDAP_USER_PARAM = "user-dn";
+        final String LDAP_USER_PASSWORD_PARAM = "password";
+        final String LDAP_AUTH_TYPE_PARAM = "authType";
+        final String LDAP_SEARCH_BASE_PARAM = "baseDn";
+        final String searchQuery = params.get(SEARCH_QUERY_PARAM);
+        final String ldapUser = params.get(LDAP_USER_PARAM);
+        final String password = params.get(LDAP_USER_PASSWORD_PARAM);
+        final String authType = params.get(LDAP_AUTH_TYPE_PARAM);
+        final String searchBase = params.get(LDAP_SEARCH_BASE_PARAM);
+        return fillGroupsFromLdap(ldapUri, ldapUser, password, LdapAuthenticationType.parse(authType), searchQuery, searchBase, groups);
+    }
+
+    private static boolean fillGroupsFromLdap(final String ldapUri, final String ldapUser, final String password, final LdapAuthenticationType authType, final String searchQuery, final String baseDn, final Map<String, UserGroup> groups) {
+        //authenticate on LDAP and forces searching
+        final Hashtable<String, Object> env = new Hashtable<>(7);
+        authType.setupEnvironment(env);
+        env.put(Context.SECURITY_PRINCIPAL, ldapUser);
+        env.put(Context.SECURITY_CREDENTIALS, password);
+        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+        env.put(Context.PROVIDER_URL, ldapUri);
+
+        //ensures that objectSID attribute values
+        //will be returned as a byte[] instead of a String
+        env.put("java.naming.ldap.attributes.binary", "objectSID");
+
+        // the following is helpful in debugging errors
+        //env.put("com.sun.jndi.ldap.trace.ber", System.err);
+        try {
+            final LdapContext ctx = new InitialLdapContext(env, null);
+            fillGroupsFromLdap(ctx, searchQuery, baseDn, groups);
+            ctx.close();
+            return true;
+        }
+        catch (final NamingException e) {
+            SnmpHelpers.getLogger().log(Level.WARNING,
+                    String.format("Failed to authenticate %s user for search on LDAP %s", ldapUser, ldapUri),
+                    e);
+            return false;
+        }
+    }
+
+    private static void fillGroupsFromLdap(final LdapContext ldap, final String searchQuery, final String baseDn, final Map<String, UserGroup> groups) throws NamingException {
+
+        final SearchControls searchControls = new SearchControls();
+        searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+        final Enumeration<SearchResult> result = ldap.search(baseDn, searchQuery, searchControls);
+        while (result.hasMoreElements()){
+            final SearchResult subresult = result.nextElement();
+
         }
     }
 
@@ -417,7 +529,12 @@ final class SecurityConfiguration {
         if(adapterSettings.containsKey(LDAP_URI_PROPERTY))
             setLdapUri(adapterSettings.get(LDAP_URI_PROPERTY));
         if(adapterSettings.containsKey(SNMPv3_GROUPS_PROPERTY)){
-            fillGroups(adapterSettings, splitAndTrim(adapterSettings.get(SNMPv3_GROUPS_PROPERTY), ";"), groups);
+            final String settings = adapterSettings.get(SNMPv3_GROUPS_PROPERTY);
+            //if groups settings begin with import-from-ldap keyword then uses LDAP import;
+            //otherwise, this string is a enumeration of group names.
+            if(settings.indexOf(IMPORT_FROM_LDAP_KEYWORD) == 0 && useLdap())
+                fillGroupsFromLdap(getLdapUri(), settings, groups);
+            else fillGroups(adapterSettings, splitAndTrim(settings, ";"), groups);
             return true;
         }
         else return false;
@@ -483,34 +600,101 @@ final class SecurityConfiguration {
         return result;
     }
 
+    /**
+     * Represents user account that provides bridge USM and LDAP.
+     * This class cannot be inherited.
+     */
     private static final class LdapUsmUser extends UsmUser{
         private final LdapAuthenticationType ldapAuthenticationType;
+        private final SessionTimer timer;
+
+        private static final class SessionTimer extends CountdownTimer{
+            private final TimeSpan initialTimerValue;
+
+            /**
+             * Initializes a new countdown timer.
+             *
+             * @param initial The initial timer value.
+             * @throws IllegalArgumentException
+             *          initial is null.
+             */
+            public SessionTimer(final TimeSpan initial) {
+                super(new TimeSpan(0));
+                this.initialTimerValue = initial;
+            }
+
+            /**
+             * Resets the timer.
+             */
+            public final void reset(){
+                setTimerValue(initialTimerValue);
+            }
+        }
 
         public LdapUsmUser(final OctetString securityName,
                            final OID authenticationProtocol,
                            final OctetString authenticationPassphrase,
                            final OID privacyProtocol,
                            final OctetString privacyPassphrase,
-                           final LdapAuthenticationType ldapAuthType){
+                           final LdapAuthenticationType ldapAuthType,
+                           final TimeSpan sessionExpirationTime){
             super(securityName, authenticationProtocol, authenticationPassphrase, privacyProtocol, privacyPassphrase);
             ldapAuthenticationType = ldapAuthType;
+            timer = new SessionTimer(sessionExpirationTime);
         }
-
 
         public String getUserName() {
             return getSecurityName().toString();
         }
-
-
 
         public String getPassword() {
             final OctetString password = getAuthenticationPassphrase();
             return password != null ? password.toString() : "";
         }
 
-
         public LdapAuthenticationType getAuthenticationType() {
             return ldapAuthenticationType;
+        }
+
+        public boolean authenticate(final String ldapUri, final Logger logger){
+            boolean authRequired;
+            synchronized (timer){
+                timer.stop();
+                if(timer.isEmpty()){
+                    authRequired = true;
+                    timer.reset();
+                }
+                else authRequired = false;
+                timer.start();
+            }
+            if(authRequired){   //forces LDAP authentication
+                final Hashtable<String, Object> env = new Hashtable<>(7);
+                getAuthenticationType().setupEnvironment(env);
+                env.put(Context.SECURITY_PRINCIPAL, getUserName());
+                env.put(Context.SECURITY_CREDENTIALS, getPassword());
+                env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+                env.put(Context.PROVIDER_URL, ldapUri);
+
+                //ensures that objectSID attribute values
+                //will be returned as a byte[] instead of a String
+                env.put("java.naming.ldap.attributes.binary", "objectSID");
+
+                // the following is helpful in debugging errors
+                //env.put("com.sun.jndi.ldap.trace.ber", System.err);
+                try {
+                    final LdapContext ctx = new InitialLdapContext(env, null);
+                    logger.fine(String.format("User %s is authenticated successfully on LDAP %s", getUserName(), ldapUri));
+                    ctx.close();
+                    return true;
+                }
+                catch (final NamingException e) {
+                    logger.log(Level.WARNING,
+                            String.format("Failed to authenticate %s user on LDAP %s", getUserName(), ldapUri),
+                            e);
+                    return false;
+                }
+            }
+            else return true;
         }
     }
 
@@ -519,21 +703,7 @@ final class SecurityConfiguration {
             for(final Map.Entry<String, User> user: group.entrySet()){
                 final OctetString userName = new OctetString(user.getKey());
                 final User userDef = user.getValue();
-                if(userDef.getLdapAuthenticationType() != null && useLdap())
-                    security.addUser(userName, securityEngineID,
-                            new LdapUsmUser(userName,
-                                    userDef.getAuthenticationProtocol(),
-                                    userDef.getPasswordAsOctectString(),
-                                    userDef.getPrivacyProtocol(),
-                                    userDef.getPrivacyKeyAsOctetString(),
-                                    userDef.getLdapAuthenticationType()
-                            ));
-                else security.addUser(userName, securityEngineID,
-                        new UsmUser(userName,
-                                userDef.getAuthenticationProtocol(),
-                                userDef.getPasswordAsOctectString(),
-                                userDef.getPrivacyProtocol(),
-                                userDef.getPrivacyKeyAsOctetString()));
+                userDef.defineUser(security, userName, securityEngineID, useLdap());
             }
     }
 
@@ -555,6 +725,12 @@ final class SecurityConfiguration {
         }
     }
 
+    /**
+     * Represents USM-to-LDAP bridge with LDAP session control. This class cannot be inherited.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
     private static final class LdapUSM extends USM{
         private final String ldapUri;
         private final Logger logger;
@@ -597,13 +773,13 @@ final class SecurityConfiguration {
          */
         @Override
         public final int processIncomingMsg(final int snmpVersion, final int maxMessageSize, final SecurityParameters securityParameters, final SecurityModel securityModel, final int securityLevel, final BERInputStream wholeMsg, final TransportStateReference tmStateReference, final OctetString securityEngineID, final OctetString securityName, final BEROutputStream scopedPDU, final Integer32 maxSizeResponseScopedPDU, final SecurityStateReference securityStateReference, final StatusInformation statusInfo) throws IOException {
-            UsmSecurityParameters usmSecurityParameters =
+            final UsmSecurityParameters usmSecurityParameters =
                     (UsmSecurityParameters) securityParameters;
-            UsmSecurityStateReference usmSecurityStateReference =
+            final UsmSecurityStateReference usmSecurityStateReference =
                     (UsmSecurityStateReference) securityStateReference;
             securityEngineID.setValue(usmSecurityParameters.getAuthoritativeEngineID());
 
-            byte[] message = buildMessageBuffer(wholeMsg);
+            final byte[] message = buildMessageBuffer(wholeMsg);
 
             if ((securityEngineID.length() == 0) ||
                     (getTimeTable().checkEngineID(securityEngineID,
@@ -616,7 +792,7 @@ final class SecurityConfiguration {
                 securityName.setValue(usmSecurityParameters.getUserName().getValue());
 
                 if (statusInfo != null) {
-                    CounterEvent event = new CounterEvent(this,
+                    final CounterEvent event = new CounterEvent(this,
                             SnmpConstants.
                                     usmStatsUnknownEngineIDs);
                     fireIncrementCounter(event);
@@ -709,11 +885,17 @@ final class SecurityConfiguration {
                         int authParamsPos =
                                 usmSecurityParameters.getAuthParametersPosition() +
                                         usmSecurityParameters.getSecurityParametersPosition();
-                        final LdapAuthenticationType ldapAuthenticationType =
-                            user.getUsmUser() instanceof LdapUsmUser ?
-                                    ((LdapUsmUser)user.getUsmUser()).getAuthenticationType():
-                                    LdapAuthenticationType.SIMPLE;
-                        boolean authentic = authenticate(user.getUserName(), user.getUsmUser().getAuthenticationPassphrase(), ldapAuthenticationType);
+                        //first, authenticate in USM subsystem
+                        boolean authentic =
+                                auth.isAuthentic(user.getAuthenticationKey(),
+                                        message, 0, message.length,
+                                        new ByteArrayWindow(message, authParamsPos,
+                                                AuthenticationProtocol.MESSAGE_AUTHENTICATION_CODE_LENGTH));
+                        final LdapUsmUser ldapUser = safeCast(user.getUsmUser(), LdapUsmUser.class);
+                        //second, authenticate via LDAP
+                        authentic &= ldapUser != null ?
+                                ldapUser.authenticate(ldapUri, logger):
+                                false;
                         if (!authentic) {
                             CounterEvent event =
                                     new CounterEvent(this, SnmpConstants.usmStatsWrongDigests);
@@ -824,38 +1006,6 @@ final class SecurityConfiguration {
 
             usmSecurityStateReference.setSecurityName(securityName.getValue());
             return SnmpConstants.SNMPv3_USM_OK;
-        }
-
-        private boolean authenticate(final String userName, final String password, final LdapAuthenticationType authType){
-            final Hashtable<String, Object> env = new Hashtable<>(7);
-            authType.setupEnvironment(env);
-            env.put(Context.SECURITY_PRINCIPAL, userName);
-            env.put(Context.SECURITY_CREDENTIALS, password);
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-            env.put(Context.PROVIDER_URL, ldapUri);
-
-            //ensures that objectSID attribute values
-            //will be returned as a byte[] instead of a String
-            env.put("java.naming.ldap.attributes.binary", "objectSID");
-
-            // the following is helpful in debugging errors
-            //env.put("com.sun.jndi.ldap.trace.ber", System.err);
-            try {
-                final LdapContext ctx = new InitialLdapContext(env, null);
-                logger.fine(String.format("User %s is authenticated successfully on LDAP %s", userName, ldapUri));
-                ctx.close();
-                return true;
-            }
-            catch (final NamingException e) {
-                logger.log(Level.WARNING,
-                        String.format("Failed to authenticate %s user on LDAP %s", userName, ldapUri),
-                        e);
-                return false;
-            }
-        }
-
-        private boolean authenticate(final OctetString userName, final OctetString authenticationKey, final LdapAuthenticationType authType) {
-            return authenticate(userName.toString(), authenticationKey.toString(), authType);
         }
     }
 
