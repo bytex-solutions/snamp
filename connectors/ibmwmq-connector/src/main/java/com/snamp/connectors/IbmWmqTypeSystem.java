@@ -2,6 +2,7 @@ package com.snamp.connectors;
 
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFParameter;
+
 import com.snamp.SimpleTable;
 import com.snamp.Table;
 
@@ -16,7 +17,7 @@ public class IbmWmqTypeSystem extends WellKnownTypeSystem {
      */
 
     final public static class QueueStatusTable extends ArrayList<PCFMessage> {
-        public QueueStatusTable(Collection<PCFMessage> c) {
+        public QueueStatusTable(List<PCFMessage> c) {
             super(c);
         }
     }

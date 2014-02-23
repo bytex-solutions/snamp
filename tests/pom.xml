@@ -12,6 +12,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+    <ibm.libs.version>6.0.0.0</ibm.libs.version>
   </properties>
   <description>Tests for connectors/adapters</description>
   <build>
@@ -92,13 +93,13 @@
     <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereJMQI</artifactId>
-      <version>6.0.0.0</version>
+      <version>${ibm.libs.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereMQ</artifactId>
-      <version>6.0.0.0</version>
+      <version>${ibm.libs.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -110,19 +111,19 @@
     <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereCommonServices</artifactId>
-      <version>6.0.0.0</version>
+      <version>${ibm.libs.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereMQHeaders</artifactId>
-      <version>6.0.0.0</version>
+      <version>${ibm.libs.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereMQPCF</artifactId>
-      <version>6.0.0.0</version>
+      <version>${ibm.libs.version}</version>
       <scope>test</scope>
       </dependency>
     <dependency>

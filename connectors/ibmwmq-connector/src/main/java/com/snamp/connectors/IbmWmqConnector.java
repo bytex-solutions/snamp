@@ -4,8 +4,11 @@ import com.ibm.mq.*;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
-import com.ibm.mq.headers.pcf.PCFMessage;
-import com.ibm.mq.headers.pcf.PCFMessageAgent;
+import com.ibm.mq.headers.pcf.PCFException;
+import com.ibm.mq.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFParameter;
+import com.ibm.mq.pcf.PCFMessageAgent;
+
 
 import java.beans.IntrospectionException;
 import java.io.IOException;
@@ -100,7 +103,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
      * @return Table of queue attributes
      */
     @AttributeInfo(typeProvider = "createQueueStatusTableType")
-    final public IbmWmqTypeSystem.QueueStatusTable getQueuesStatus() {
+    final public IbmWmqTypeSystem.QueueStatusTable getQueuesStatus() throws MQException {
         try {
             final PCFMessage inquireQueueStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS);
             if(mObjectFilter.containsKey("queueFilter"))
@@ -112,7 +115,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
             final PCFMessage[] statistics = mMonitor.send(inquireQueueStatus);
             return new IbmWmqTypeSystem.QueueStatusTable(Arrays.asList(statistics));
 
-        } catch (IOException | MQDataException e) {
+        } catch (IOException | MQException e) {
             return null;
         }
     }
@@ -137,7 +140,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
             final PCFMessage[] statistics = mMonitor.send(inquireChannelStatus);
             return new IbmWmqTypeSystem.ChannelStatusTable(Arrays.asList(statistics));
 
-        } catch (IOException | MQDataException e) {
+        } catch (IOException | MQException e) {
             return null;
         }
     }
@@ -151,7 +154,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
             final PCFMessage[] statistics = mMonitor.send(inquireQmgrStatus);
             return new IbmWmqTypeSystem.QMgrStatusTable(Arrays.asList(statistics));
 
-        } catch (IOException | MQDataException e) {
+        } catch (IOException | MQException e) {
             return null;
         }
     }
@@ -168,7 +171,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
             final PCFMessage[] statistics = mMonitor.send(inquireServiceStatus);
             return new IbmWmqTypeSystem.ServiceStatusTable(Arrays.asList(statistics));
 
-        } catch (IOException | MQDataException e) {
+        } catch (IOException | MQException e) {
             return null;
         }
     }
