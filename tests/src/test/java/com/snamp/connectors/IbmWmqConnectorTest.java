@@ -1,18 +1,10 @@
 package com.snamp.connectors;
 
-import com.snamp.SnampClassTestSet;
-import com.snamp.TimeSpan;
-import com.snamp.hosting.Agent;
-import com.snamp.hosting.AgentConfiguration;
-import com.snamp.hosting.EmbeddedAgentConfiguration;
+import com.snamp.configuration.EmbeddedAgentConfiguration;
 import com.snamp.hosting.HostingTest;
-import org.junit.Test;
 
-import java.beans.IntrospectionException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Represents tests for {@link ManagementConnectorBean} class.
@@ -21,21 +13,6 @@ import java.util.concurrent.TimeoutException;
 public abstract class IbmWmqConnectorTest extends HostingTest {
     private static final String CONNECTOR_NAME = "ibm-wmq";
 
-    @Override
-    final protected void beforeAgentStart(final Agent agent) throws Exception {
-    }
-
-    @Override
-    final protected void afterAgentStart(final Agent agent) throws Exception {
-    }
-
-    @Override
-    final protected void beforeAgentStop(final Agent agent) throws Exception {
-    }
-
-    @Override
-    final protected void afterAgentStop(final Agent agent) throws Exception {
-    }
 
     protected IbmWmqConnectorTest(final String adapterName, final Map<String, String> adapterParams) {
         super(adapterName, adapterParams);

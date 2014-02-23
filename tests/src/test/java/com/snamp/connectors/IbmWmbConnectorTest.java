@@ -1,18 +1,11 @@
 package com.snamp.connectors;
 
-import com.snamp.SnampClassTestSet;
-import com.snamp.TimeSpan;
+import com.snamp.configuration.EmbeddedAgentConfiguration;
 import com.snamp.hosting.Agent;
-import com.snamp.hosting.AgentConfiguration;
-import com.snamp.hosting.EmbeddedAgentConfiguration;
 import com.snamp.hosting.HostingTest;
-import org.junit.Test;
 
-import java.beans.IntrospectionException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Represents tests for {@link com.snamp.connectors.ManagementConnectorBean} class.
@@ -61,7 +54,4 @@ public abstract class IbmWmbConnectorTest extends HostingTest {
         return "test";
     }
 
-    @Override
-    final protected void afterAgentStop(final Agent agent) {
-    }
 }
