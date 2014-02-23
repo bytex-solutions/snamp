@@ -38,7 +38,7 @@ public class JmxToSnmpLDAP1test extends JmxConnectorTest<TestManagementBean> {
     private static final String portForSNMP = "3222";
     private static final String addressForSNMP = "127.0.0.1";
     private static final String prefix = "1.1";
-    private static final String username = "testuser";
+    private static final String username = "uid=admin,ou=system";
     private static final String password = "1-2-3-4-5-password";
     private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + addressForSNMP + "/" + portForSNMP, username, SecurityLevel.authPriv);
     private static EmbeddedADSVerTrunk ads;
@@ -48,11 +48,11 @@ public class JmxToSnmpLDAP1test extends JmxConnectorTest<TestManagementBean> {
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
         put(Adapter.ADDRESS_PARAM_NAME, addressForSNMP);
         put("socketTimeout", "5000");
-        put("snmpv3-groups", "group1, group2");
+        put("snmpv3-groups", "group1; group2");
         put("ldap-uri", "ldap://127.0.0.1:" + EmbeddedADSVerTrunk.SERVER_PORT);
         //group1 setup
         put("group1-security-level", "authPriv");
-        put("group1-access-rights", "read, write, notify");
+        put("group1-access-rights", "read; write; notify");
         put("group1-users", username);
         put(username + "-password", password);
         put(username + "-auth-protocol", "snmp = sha, ldap = simple");

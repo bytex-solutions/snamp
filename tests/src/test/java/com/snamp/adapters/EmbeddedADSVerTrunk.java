@@ -26,7 +26,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.directory.api.ldap.model.entry.DefaultModification;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.ModificationOperation;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.api.ldap.model.schema.SchemaManager;
@@ -50,6 +52,8 @@ import org.apache.directory.server.core.partition.ldif.LdifPartition;
 import org.apache.directory.server.i18n.I18n;
 import org.apache.directory.server.ldap.LdapServer;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
+
+import javax.naming.directory.ModificationItem;
 
 
 /**
@@ -176,7 +180,6 @@ public class EmbeddedADSVerTrunk{
         service.setInstanceLayout( new InstanceLayout( workDir ) );
         service.setAllowAnonymousAccess(true);
 
-
         CacheService cacheService = new CacheService();
         cacheService.initialize( service.getInstanceLayout() );
 
@@ -207,7 +210,7 @@ public class EmbeddedADSVerTrunk{
 
         // Now we can create as many partitions as we need
         // Create some new partitions named 'foo', 'bar' and 'apache'.
-        Partition userPartition = addPartition( "users", "dc=ad,dc=microsoft,dc=com", service.getDnFactory() );;
+        Partition userPartition = addPartition( "users", "dc=ad,dc=microsoft,dc=com", service.getDnFactory() );
 
         // Index some attributes on the apache partition
         addIndex( userPartition, "objectClass", "ou", "uid" );
@@ -225,8 +228,11 @@ public class EmbeddedADSVerTrunk{
             Dn dnUser = new Dn( "dc=ad,dc=microsoft,dc=com" );
             Entry entryUser = service.newEntry( dnUser );
             entryUser.add( "objectClass", "top", "domain", "extensibleObject" );
-            entryUser.add( "dc", "department" );
+            entryUser.add("dc", "department");
             service.getAdminSession().add( entryUser );
+            //modify admin password
+            final Dn adminAccount = new Dn("uid=admin,ou=system");
+            service.getAdminSession().modify(adminAccount, new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "userPassword", "1-2-3-4-5-password"));
         }
 
         // We are all done !
