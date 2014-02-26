@@ -1,22 +1,20 @@
 package com.snamp.adapters;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.snamp.configuration.EmbeddedAgentConfiguration;
 import com.snamp.connectors.IbmWmbConnectorTest;
-import com.snamp.hosting.AgentConfiguration;
-import com.snamp.hosting.EmbeddedAgentConfiguration;
 import org.junit.Test;
 
 import javax.ws.rs.core.MediaType;
-
-import static com.snamp.hosting.EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,9 +37,9 @@ public class WmbToRestTest extends IbmWmbConnectorTest {
 
     @Override
     protected void fillAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attributes) {
-        attributes.put("0", new EmbeddedAttributeConfiguration("name"));
-        attributes.put("1", new EmbeddedAttributeConfiguration("runningChildrenNames"));
-        attributes.put("2", new EmbeddedAttributeConfiguration("properties"));
+        attributes.put("0", new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("name"));
+        attributes.put("1", new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("runningChildrenNames"));
+        attributes.put("2", new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedAttributeConfiguration("properties"));
     }
 
     private URL buildAttributeURL(final String postfix) throws MalformedURLException {

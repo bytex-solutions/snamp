@@ -4,10 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.snamp.connectors.IbmWmbConnectorTest;
+import com.snamp.configuration.EmbeddedAgentConfiguration;
 import com.snamp.connectors.IbmWmqConnectorTest;
-import com.snamp.hosting.AgentConfiguration;
-import com.snamp.hosting.EmbeddedAgentConfiguration;
 import org.junit.Test;
 
 import javax.ws.rs.core.MediaType;

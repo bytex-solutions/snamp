@@ -3,6 +3,7 @@ package com.snamp.connectors;
 import com.snamp.configuration.EmbeddedAgentConfiguration;
 import com.snamp.hosting.Agent;
 import com.snamp.hosting.HostingTest;
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +18,6 @@ public abstract class IbmWmbConnectorTest extends HostingTest {
     protected IbmWmbConnectorTest(final String adapterName, final Map<String, String> adapterParams) {
         super(adapterName, adapterParams);
     }
-
 
     @Override
     final public Map<String, ManagementTargetConfiguration> getTargets() {
