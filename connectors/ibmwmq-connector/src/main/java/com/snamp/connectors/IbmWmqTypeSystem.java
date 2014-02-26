@@ -1,6 +1,6 @@
 package com.snamp.connectors;
 
-import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFParameter;
 
 import com.snamp.SimpleTable;

@@ -18,18 +18,6 @@ public abstract class IbmWmbConnectorTest extends HostingTest {
         super(adapterName, adapterParams);
     }
 
-    @Override
-    final protected void beforeAgentStart(final Agent agent) {
-    }
-
-    @Override
-    final protected void afterAgentStart(final Agent agent) {
-
-    }
-
-    @Override
-    final protected void beforeAgentStop(final Agent agent) {
-    }
 
     @Override
     final public Map<String, ManagementTargetConfiguration> getTargets() {
