@@ -44,11 +44,6 @@
       <version>1.5.0</version>
     </dependency>
     <dependency>
-      <groupId>javax.resource.cci</groupId>
-      <artifactId>SunConnectorClasses</artifactId>
-      <version>1.3.0</version>
-    </dependency>
-    <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereJMQI</artifactId>
       <version>6.0.0.0</version>

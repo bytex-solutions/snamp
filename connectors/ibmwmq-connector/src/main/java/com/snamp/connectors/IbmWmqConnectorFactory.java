@@ -12,7 +12,7 @@ import java.util.logging.Level;
  * @since 1.1.0
  */
 @PluginImplementation
-public class IbmWmqConnectorFactory extends AbstractManagementConnectorFactory<IbmWmqConnector> {
+public final class IbmWmqConnectorFactory extends AbstractManagementConnectorFactory<IbmWmqConnector> {
 
     /**
      * Initializes a new connector factory.
@@ -25,7 +25,7 @@ public class IbmWmqConnectorFactory extends AbstractManagementConnectorFactory<I
     public IbmWmqConnector newInstance(String connectionString, Map<String, String> connectionProperties) {
         try {
             return new IbmWmqConnector(connectionString, connectionProperties);
-        } catch (IntrospectionException e) {
+        } catch (final IntrospectionException e) {
             getLogger().log(Level.SEVERE, "Unable to create IBM MQ connector", e);
             return null;
         }

@@ -3,20 +3,16 @@ package com.snamp.connectors;
 import com.ibm.mq.*;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
-import com.ibm.mq.headers.MQDataException;
-import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.pcf.PCFMessage;
-import com.ibm.mq.headers.pcf.PCFParameter;
 import com.ibm.mq.pcf.PCFMessageAgent;
-
+import static com.snamp.connectors.IbmWmqTypeSystem.*;
 
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * In order to use this class you need for this jar to be present in your classpath
@@ -27,11 +23,12 @@ import java.util.Map;
  * @author  Chernovsky Oleg
  * @since 1.1.0
  */
-class IbmWmqConnector extends ManagementConnectorBean {
-    public static final String NAME = "ibm-wmq";
+final class IbmWmqConnector extends ManagementConnectorBean {
+    public static final String NAME = IbmWmqHelpers.CONNECTOR_NAME;
     private final Map<String, String> mObjectFilter;
     private final MQQueueManager mQmgrInstance;
     private final PCFMessageAgent mMonitor;
+    private final Logger log;
 
     /**
      * Initializes a new management connector.
@@ -40,8 +37,9 @@ class IbmWmqConnector extends ManagementConnectorBean {
      * @throws IllegalArgumentException
      *          typeBuilder is {@literal null}.
      */
-    public IbmWmqConnector(String connectionString, Map<String, String> connectionProperties) throws IntrospectionException {
+    public IbmWmqConnector(final String connectionString, final Map<String, String> connectionProperties) throws IntrospectionException {
         super(new IbmWmqTypeSystem());
+        log = IbmWmqHelpers.getLogger();
         try {
             final URI address = URI.create(connectionString);
             if(address.getScheme().equals("wmq")) {
@@ -56,9 +54,10 @@ class IbmWmqConnector extends ManagementConnectorBean {
             }
             else
                 throw new IllegalArgumentException("Cannot create IBM Connector: insufficient parameters!");
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new IntrospectionException(e.toString());
         }
+
     }
 
     /**
@@ -84,15 +83,15 @@ class IbmWmqConnector extends ManagementConnectorBean {
 
                         messages.add(myMessage);
                     }
-            } catch (MQException e) {
+            } catch (final MQException e) {
                 if(e.reasonCode == CMQC.MQRC_NO_MSG_AVAILABLE)
                     return messages;
-            } catch (IOException ignored) {
-                // cannot clear message
+            } catch (final IOException ignored) {
+                return Collections.emptyList();
             }
         }
 
-        return null;
+        return Collections.emptyList();
     }
 
     /**
@@ -103,7 +102,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
      * @return Table of queue attributes
      */
     @AttributeInfo(typeProvider = "createQueueStatusTableType")
-    final public IbmWmqTypeSystem.QueueStatusTable getQueuesStatus() throws MQException {
+    final public QueueStatusTable getQueuesStatus() throws MQException {
         try {
             final PCFMessage inquireQueueStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS);
             if(mObjectFilter.containsKey("queueFilter"))
@@ -115,7 +114,9 @@ class IbmWmqConnector extends ManagementConnectorBean {
             final PCFMessage[] statistics = mMonitor.send(inquireQueueStatus);
             return new IbmWmqTypeSystem.QueueStatusTable(Arrays.asList(statistics));
 
-        } catch (IOException | MQException e) {
+        }
+        catch (final IOException | MQException e) {
+            log.log(Level.WARNING, "Generic MQ error", e);
             return null;
         }
     }
@@ -129,7 +130,7 @@ class IbmWmqConnector extends ManagementConnectorBean {
      * @return Table of queue attributes
      */
     @AttributeInfo(typeProvider = "createChannelStatusTableType")
-    final public IbmWmqTypeSystem.ChannelStatusTable getChannelsStatus() {
+    final public ChannelStatusTable getChannelsStatus() {
         try {
             final PCFMessage inquireChannelStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS);
             if(mObjectFilter.containsKey("channelFilter"))
@@ -140,13 +141,14 @@ class IbmWmqConnector extends ManagementConnectorBean {
             final PCFMessage[] statistics = mMonitor.send(inquireChannelStatus);
             return new IbmWmqTypeSystem.ChannelStatusTable(Arrays.asList(statistics));
 
-        } catch (IOException | MQException e) {
+        } catch (final IOException | MQException e) {
+            log.log(Level.WARNING, "Generic MQ error", e);
             return null;
         }
     }
 
     @AttributeInfo(typeProvider = "createQmgrStatusTableType")
-    final public IbmWmqTypeSystem.QMgrStatusTable getQmgrStatus() {
+    final public QMgrStatusTable getQmgrStatus() {
         try {
             final PCFMessage inquireQmgrStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR_STATUS);
 
@@ -154,13 +156,14 @@ class IbmWmqConnector extends ManagementConnectorBean {
             final PCFMessage[] statistics = mMonitor.send(inquireQmgrStatus);
             return new IbmWmqTypeSystem.QMgrStatusTable(Arrays.asList(statistics));
 
-        } catch (IOException | MQException e) {
+        } catch (final IOException | MQException e) {
+            log.log(Level.WARNING, "Generic MQ error", e);
             return null;
         }
     }
 
     @AttributeInfo(typeProvider = "createServiceStatusTableType")
-    final public IbmWmqTypeSystem.ServiceStatusTable getServicesStatus() {
+    final public ServiceStatusTable getServicesStatus() {
         try {
             final PCFMessage inquireServiceStatus = new PCFMessage(CMQCFC.MQCMD_INQUIRE_SERVICE);
             if(mObjectFilter.containsKey("serviceFilter"))
@@ -171,7 +174,9 @@ class IbmWmqConnector extends ManagementConnectorBean {
             final PCFMessage[] statistics = mMonitor.send(inquireServiceStatus);
             return new IbmWmqTypeSystem.ServiceStatusTable(Arrays.asList(statistics));
 
-        } catch (IOException | MQException e) {
+        }
+        catch (final IOException | MQException e) {
+            log.log(Level.WARNING, "Generic MQ error", e);
             return null;
         }
     }

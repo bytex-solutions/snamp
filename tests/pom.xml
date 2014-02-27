@@ -85,12 +85,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>javax.resource.cci</groupId>
-      <artifactId>SunConnectorClasses</artifactId>
-      <version>1.3.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereJMQI</artifactId>
       <version>${ibm.libs.version}</version>
