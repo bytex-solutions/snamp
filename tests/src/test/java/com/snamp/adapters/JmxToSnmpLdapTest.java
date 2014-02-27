@@ -14,33 +14,26 @@ import com.snamp.connectors.NotificationSupport;
 import com.snamp.hosting.Agent;
 import org.junit.Test;
 import org.snmp4j.security.SecurityLevel;
-import org.snmp4j.smi.Integer32;
-import org.snmp4j.smi.OID;
-import org.snmp4j.smi.OctetString;
-import org.snmp4j.smi.Variable;
+import org.snmp4j.smi.*;
+import static com.snamp.configuration.SnmpAdapterConfigurationDescriptor.*;
 
-import javax.management.AttributeChangeNotification;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
-import java.io.File;
-import java.io.IOException;
+import javax.management.*;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.*;
+import java.util.concurrent.*;
 
 
-public class JmxToSnmpLDAP2test extends JmxConnectorTest<TestManagementBean> {
+public class JmxToSnmpLdapTest extends JmxConnectorTest<TestManagementBean> {
     private static final String portForSNMP = "3222";
     private static final String addressForSNMP = "127.0.0.1";
     private static final String prefix = "1.1";
-    private static final String username = "testuser";
-    private static final String password = "1-2-3-4-5-password";
-    private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + addressForSNMP + "/" + portForSNMP, username, SecurityLevel.authPriv);
+    private static final String ldapAdminUser = "uid=admin,ou=system";
+    private static final String ldapAdminPassword = "1-2-3-4-5-password";
+    private static final String userName = "cn=Roman";
+    private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + addressForSNMP + "/" + portForSNMP, userName, SecurityLevel.authPriv);
     private static EmbeddedADSVerTrunk ads;
     private static File workDir;
 
@@ -48,25 +41,17 @@ public class JmxToSnmpLDAP2test extends JmxConnectorTest<TestManagementBean> {
         put(Adapter.PORT_PARAM_NAME, portForSNMP);
         put(Adapter.ADDRESS_PARAM_NAME, addressForSNMP);
         put("socketTimeout", "5000");
-        put("snmpv3-groups", "group1; group2");
-        //group1 setup
-        put("group1-security-level", "authPriv");
-        put("group1-access-rights", "read; write; notify");
-        put("group1-users", username);
-        put(username + "-password", password);
-        put(username + "-auth-protocol", "sha");
-        put(username + "-privacy-key", "6-7-8-9-0-passphrase");
-        put(username + "-privacy-protocol", "AES256");
-        //group2 setup
-        put("group2-security-level", "authNoPriv");
-        put("group2-access-rights", "read");
-        put("group2-users", "testuser2");
-        put("testuser2-password", "1-2-3-4-5-password");
-        put("testuser2-auth-protocol", "sha");
+        put(LDAP_URI_PARAM, "ldap://127.0.0.1:" + EmbeddedADSVerTrunk.SERVER_PORT);
+        put(LDAP_ADMINDN_PARAM, ldapAdminUser);
+        put(LDAP_ADMIN_PASSWORD_PARAM, ldapAdminPassword);
+        put(LDAP_ADMIN_AUTH_TYPE_PARAM, "simple");
+        put(LDAP_BASE_DN_PARAM, "dc=ad,dc=microsoft,dc=com");
+        put(LDAP_USER_SEARCH_FILTER_PARAM, String.format("(%s)", userName));
+        put(LDAP_GROUPS_PARAM, "ou=users,dc=ad,dc=microsoft,dc=com;");
     }};
     private static final String BEAN_NAME = "com.snampy.jmx:type=com.snamp.adapters.TestManagementBean";
 
-    public JmxToSnmpLDAP2test() throws MalformedObjectNameException {
+    public JmxToSnmpLdapTest() throws MalformedObjectNameException {
         super("snmp", snmpAdapterSettings, new TestManagementBean(), new ObjectName(BEAN_NAME));
     }
 
@@ -75,9 +60,18 @@ public class JmxToSnmpLDAP2test extends JmxConnectorTest<TestManagementBean> {
         return prefix;
     }
 
+    private static void delete(final File f) throws IOException {
+        if (f.isDirectory())
+            for (final File c : f.listFiles())
+                delete(c);
+        if (!f.delete())
+            throw new FileNotFoundException("Failed to delete file: " + f);
+    }
+
     @Override
-    protected void afterAgentStart(final Agent agent) throws Exception{
+    protected void beforeAgentStart(final Agent agent) throws Exception{
         workDir = new File( System.getProperty( "java.io.tmpdir" ) + "/server-work" );
+        if (workDir.exists()) delete(workDir);
         workDir.mkdirs();
 
         // Create the server
@@ -86,6 +80,8 @@ public class JmxToSnmpLDAP2test extends JmxConnectorTest<TestManagementBean> {
         // optionally we can start a server too
         ads.startServer();
 
+        //initialize JMX connector
+        super.beforeAgentStart(agent);
     }
 
     @Override

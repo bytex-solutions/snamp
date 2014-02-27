@@ -7,9 +7,9 @@ import java.util.logging.*;
 import com.snamp.connectors.*;
 
 import com.snamp.connectors.util.*;
+
 import com.snamp.licensing.*;
 import net.xeoh.plugins.base.annotations.*;
-import org.snmp4j.MessageDispatcherImpl;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
@@ -363,28 +363,6 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 	}
 
     /**
-     * Initializes the message dispatcher ({@link org.snmp4j.MessageDispatcherImpl}) with
-     * the transport mappings.
-     */
-    @Override
-    protected void initMessageDispatcher() {
-        if(security == null) super.initMessageDispatcher();
-        else { //instantiate custom USM
-            dispatcher = new MessageDispatcherImpl();
-            mpv3 = new MPv3(agent.getContextEngineID().getValue());
-            usm = security.createUserBasedSecurityModel(SecurityProtocols.getInstance(),
-                    agent.getContextEngineID(),
-                    updateEngineBoots());
-            SecurityModels.getInstance().addSecurityModel(usm);
-            SecurityProtocols.getInstance().addDefaultProtocols();
-            dispatcher.addMessageProcessingModel(new MPv1());
-            dispatcher.addMessageProcessingModel(new MPv2c());
-            dispatcher.addMessageProcessingModel(mpv3);
-            initSnmpSession();
-        }
-    }
-
-    /**
 	 * Initializes SNMPv3 users.
      * @param usm User-based security model.
 	 */
@@ -479,7 +457,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                 final String port = parameters.containsKey(PORT_PARAM_NAME) ? parameters.get(PORT_PARAM_NAME) : "161";
                 final String address = parameters.containsKey(ADDRESS_PARAM_NAME) ? parameters.get(ADDRESS_PARAM_NAME) : "127.0.0.1";
                 final String socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ? parameters.get(SOCKET_TIMEOUT_PARAM) : "0";
-                if(parameters.containsKey(SNMPv3_GROUPS_PROPERTY)){
+                if(parameters.containsKey(SNMPv3_GROUPS_PARAM) || parameters.containsKey(LDAP_GROUPS_PARAM)){
                     SnmpAdapterLimitations.current().verifyAuthenticationFeature();
                     final SecurityConfiguration security = new SecurityConfiguration(MPv3.createLocalEngineID());
                     security.read(parameters);
@@ -498,7 +476,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
      * @return {@literal true}, if adapter is previously started; otherwise, {@literal false}.
      */
     @Override
-    public boolean stop(final boolean saveState) {
+    public final boolean stop(final boolean saveState) {
         switch (agentState){
             case STATE_RUNNING:
                 super.stop();

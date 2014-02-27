@@ -14,7 +14,7 @@ import java.util.Objects;
  */
 @Internal
 public class Box<T> implements Serializable, Wrapper<T> {
-    private T value;
+    private volatile T value;
 
     /**
      * Initializes a new box with the predefined value.

@@ -22,6 +22,7 @@ package com.snamp.adapters;
 
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,8 +32,9 @@ import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.ModificationOperation;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.name.Dn;
-import org.apache.directory.api.ldap.model.schema.SchemaManager;
+import org.apache.directory.api.ldap.model.schema.*;
 import org.apache.directory.api.ldap.model.schema.registries.SchemaLoader;
+import org.apache.directory.api.ldap.model.schema.syntaxCheckers.SyntaxCheckerSyntaxChecker;
 import org.apache.directory.api.ldap.schemaextractor.SchemaLdifExtractor;
 import org.apache.directory.api.ldap.schemaextractor.impl.DefaultSchemaLdifExtractor;
 import org.apache.directory.api.ldap.schemaloader.LdifSchemaLoader;
@@ -115,6 +117,28 @@ public class EmbeddedADSVerTrunk{
         ( ( JdbmPartition ) partition ).setIndexedAttributes( indexedAttributes );
     }
 
+    private static String addAttribute(final SchemaManager schema, final String attrName, final String typeName) throws LdapException {
+        final LdapSyntax attrSyntax = new LdapSyntax("1.10.0.1.1." + Math.abs(typeName.hashCode()));
+        attrSyntax.setHumanReadable(true);
+        attrSyntax.setNames(Arrays.asList(typeName));
+        attrSyntax.setSyntaxChecker(new SyntaxChecker() {
+            @Override
+            public boolean isValidSyntax(final Object o) {
+                return o instanceof  String;
+            }
+        });
+        schema.add(attrSyntax);
+        final String attributeOid = "1.10.0.1.1." + Math.abs(attrName.hashCode());
+        final AttributeType type = new AttributeType(attributeOid){
+            {
+                syntax = attrSyntax;
+                syntaxOid = attrSyntax.getOid();
+            }
+        };
+        type.setNames(attrName);
+        schema.add(type);
+        return attributeOid;
+    }
 
     /**
      * initialize the schema manager and add the schema partition to diectory service
@@ -140,12 +164,33 @@ public class EmbeddedADSVerTrunk{
 
         SchemaLoader loader = new LdifSchemaLoader( schemaPartitionDirectory );
         SchemaManager schemaManager = new DefaultSchemaManager( loader );
-
         // We have to load the schema now, otherwise we won't be able
         // to initialize the Partitions, as we won't be able to parse
         // and normalize their suffix Dn
         schemaManager.loadAllEnabled();
-
+        //security level
+        addAttribute(schemaManager, "snamp-snmp-security-level", "SNAMP_SNMP_SECLEVEL");
+        //access rights
+        addAttribute(schemaManager, "snamp-snmp-allowed-operation", "SNAMP_SNMP_ACCRIGHTS");
+        //auth protocol
+        final String authProtocolOID =
+                addAttribute(schemaManager, "snamp-snmp-auth-protocol", "SNAMP_SNMP_AUTHPROT");
+        //priv protocol
+        final String privProtocolOID =
+                addAttribute(schemaManager, "snamp-snmp-priv-protocol", "SNAMP_SNMP_PRIVPROT");
+        //priv key
+        final String provKeyOID =
+                addAttribute(schemaManager, "snamp-snmp-priv-key", "SNAMP_SNMP_PRIVKEY");
+        final ObjectClass snampUserClass = new ObjectClass("1.10.1.2.1"){
+            {
+                objectClassType = ObjectClassTypeEnum.AUXILIARY;
+            }
+        };
+        snampUserClass.setNames("snampUser");
+        snampUserClass.getMustAttributeTypeOids().add(authProtocolOID);
+        snampUserClass.getMustAttributeTypeOids().add(privProtocolOID);
+        snampUserClass.getMustAttributeTypeOids().add(provKeyOID);
+        schemaManager.add(snampUserClass);
         List<Throwable> errors = schemaManager.getErrors();
 
         if ( errors.size() != 0 )
@@ -153,7 +198,7 @@ public class EmbeddedADSVerTrunk{
             throw new Exception( I18n.err( I18n.ERR_317, Exceptions.printErrors( errors ) ) );
         }
 
-        service.setSchemaManager( schemaManager );
+        service.setSchemaManager(schemaManager);
 
         // Init the LdifPartition with schema
         LdifPartition schemaLdifPartition = new LdifPartition( schemaManager );
@@ -225,11 +270,20 @@ public class EmbeddedADSVerTrunk{
         }
         catch ( LdapException lnnfe )
         {
-            Dn dnUser = new Dn( "dc=ad,dc=microsoft,dc=com" );
-            Entry entryUser = service.newEntry( dnUser );
-            entryUser.add( "objectClass", "top", "domain", "extensibleObject" );
-            entryUser.add("dc", "department");
-            service.getAdminSession().add( entryUser );
+            Entry e = service.newEntry( new Dn( "dc=ad,dc=microsoft,dc=com" ) );
+            e.add( "objectClass", "top", "domain", "extensibleObject" );
+            e.add("dc", "department");
+            e.add("snamp-snmp-security-level", "authPriv");
+            e.add("snamp-snmp-allowed-operation", "read", "write", "notify");
+            service.getAdminSession().add(e);
+            e = service.newEntry(new Dn("cn=Roman,dc=ad,dc=microsoft,dc=com"));
+            e.add("objectClass", "top", "person", "snampUser");
+            e.add("snamp-snmp-auth-protocol", "sha");
+            e.add("snamp-snmp-priv-protocol", "aes128");
+            e.add("snamp-snmp-priv-key", "snampSimpleEncryptionKey");
+            e.add("userpassword", "snampSimplePassword");
+            e.add("sn", "Sakno");
+            service.getAdminSession().add(e);
             //modify admin password
             final Dn adminAccount = new Dn("uid=admin,ou=system");
             service.getAdminSession().modify(adminAccount, new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "userPassword", "1-2-3-4-5-password"));

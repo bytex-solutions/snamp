@@ -1,10 +1,10 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
+import static com.snamp.internal.ReflectionUtils.weakReference;
 import com.snamp.connectors.util.NotificationListenerInvokerFactory;
-import com.snamp.internal.BeanPropertyAccessor;
-import com.snamp.internal.Internal;
-import com.snamp.internal.MethodStub;
+import com.snamp.core.maintenance.*;
+import com.snamp.internal.*;
 import com.snamp.licensing.JmxConnectorLimitations;
 import static com.snamp.connectors.JmxConnectionManager.MBeanServerConnectionHandler;
 import static com.snamp.configuration.JmxConnectorConfigurationDescriptor.*;
@@ -24,13 +24,44 @@ import java.util.logging.*;
  * @author Roman Sakno
  */
 @SuppressWarnings("unchecked")
-final class JmxConnector extends AbstractManagementConnector implements NotificationSupport, JmxMaintenanceSupport {
+final class JmxConnector extends AbstractManagementConnector implements NotificationSupport, Maintainable {
     /**
      * Represents JMX connector name.
      */
     public static final String NAME = "jmx";
     private static final Logger log = AbstractManagementConnectorFactory.getLogger(NAME);
     private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
+
+    private static enum JmxMaintenanceActions implements MaintenanceActionInfo{
+        SIMULATE_CONNECTION_ABORT("simulateConnectionAbort");
+
+        private final String name;
+
+        private JmxMaintenanceActions(final String name){
+            this.name = name;
+        }
+
+        /**
+         * Gets system name of this action,
+         *
+         * @return The system name of this action.
+         */
+        @Override
+        public final String getName() {
+            return name;
+        }
+
+        /**
+         * Gets description of this action.
+         *
+         * @param loc The locale of the description.
+         * @return The description of this action.
+         */
+        @Override
+        public final String getDescription(final Locale loc) {
+            return "";
+        }
+    }
 
     private final static class JmxNotificationMetadata extends GenericNotificationMetadata{
         private final static String severityOption = "severity";
@@ -294,6 +325,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
 
     private final JmxConnectionManager connectionManager;
     private final JmxNotificationSupport notifications;
+    private final Maintainable maintenance;
 
     /**
      * Represents field navigator in the composite JMX data.
@@ -765,9 +797,22 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
      */
     public JmxConnector(final JMXServiceURL serviceURL, final Map<String, Object> connectionProperties){
         if(serviceURL == null) throw new IllegalArgumentException("serviceURL is null.");
+        JmxConnectorLimitations.current().verifyMaxInstanceCount(instanceCounter.incrementAndGet());
         this.connectionManager = new JmxConnectionManager(log, serviceURL, connectionProperties);
         this.notifications = new JmxNotificationSupport(this.connectionManager);
-        JmxConnectorLimitations.current().verifyMaxInstanceCount(instanceCounter.incrementAndGet());
+        //create maintainer
+        this.maintenance = weakReference(new AbstractMaintainable<JmxMaintenanceActions>(JmxMaintenanceActions.class) {
+            @Override
+            protected final Object[] parseArguments(final JmxMaintenanceActions action, final String arguments, final Locale loc) {
+                return new Object[0];
+            }
+
+            @Action
+            public final String simulateConnectionAbort(){
+                connectionManager.simulateConnectionAbort();
+                return "OK";
+            }
+        }, Maintainable.class);
     }
 
     private static boolean useRegexpOption(final Map<String, String> options){
@@ -933,14 +978,39 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     }
 
     /**
-     * Simulates connection abort.
-     * <p>
-     *     Only for testing purposes only.
-     * </p>
+     * Returns read-only map of maintenance actions.
+     *
+     * @return Read-only map of maintenance action,
      */
-    @Internal
     @Override
-    public final void simulateConnectionAbort(){
-        connectionManager.simulateConnectionAbort();
+    public final Set<String> getActions() {
+        return maintenance.getActions();
+    }
+
+    /**
+     * Returns human-readable description of the specified maintenance action that
+     * includes description of the arguments string.
+     *
+     * @param actionName The name of the maintenance action.
+     * @param loc        Target locale of the action description.
+     * @return Localized description of the action.
+     */
+    @Override
+    public final String getActionDescription(final String actionName, final Locale loc) {
+        return maintenance.getActionDescription(actionName, loc);
+    }
+
+    /**
+     * Invokes maintenance action.
+     *
+     * @param actionName The name of the action to invoke.
+     * @param arguments  The action invocation command line. May be {@literal null} or empty for parameterless
+     *                   action.
+     * @param loc        Localization of the action arguments string and invocation result.
+     * @return The localized result of the action invocation.
+     */
+    @Override
+    public final Future<String> doAction(final String actionName, final String arguments, final Locale loc) {
+        return maintenance.doAction(actionName, arguments, loc);
     }
 }

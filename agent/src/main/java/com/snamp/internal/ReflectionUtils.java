@@ -1,5 +1,6 @@
 package com.snamp.internal;
 
+import com.snamp.Activator;
 import com.snamp.internal.Internal;
 
 import java.lang.ref.Reference;
@@ -82,6 +83,22 @@ public final class ReflectionUtils {
                 return method.invoke(obj.get(), args);
             }
         }));
+    }
+
+    /**
+     * Creates transparent weak reference to the specified object.
+     * @param obj An object to be referenced.
+     * @param iface Superclass or interface implemented by the specified object.
+     * @param <I>
+     * @param <T>
+     * @return
+     */
+    public static <I, T extends I> I weakReference(final T obj, final Class<I> iface){
+        return wrapReference(new WeakReference<>(obj), iface);
+    }
+
+    public static <I, T extends I> I weakReference(final Activator<T> activator, final Class<I> iface){
+        return weakReference(activator.newInstance(), iface);
     }
 
     /**

@@ -15,7 +15,7 @@ public final class SnmpAdapterConfigurationDescriptorTest extends SnampClassTest
     @Test
     public final void hostingConfugurationDescriptors(){
         final ConfigurationEntityDescription<AgentConfiguration.HostingConfiguration> description = new SnmpAdapterConfigurationDescriptor().getDescription(AgentConfiguration.HostingConfiguration.class);
-        final ConfigurationEntityDescription.ParameterDescription param = description.getParameterDescriptor(SnmpAdapterConfigurationDescriptor.SNMPv3_GROUPS_PROPERTY);
+        final ConfigurationEntityDescription.ParameterDescription param = description.getParameterDescriptor(SnmpAdapterConfigurationDescriptor.SNMPv3_GROUPS_PARAM);
         final String defValue = param.getDescription(null);//default locale
         assertTrue(defValue.length() > 100);
         final String ruValue = param.getDescription(Locale.forLanguageTag("RU"));

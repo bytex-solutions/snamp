@@ -2,26 +2,18 @@ package com.snamp.adapters;
 
 import static com.snamp.configuration.SnmpAdapterConfigurationDescriptor.*;
 
-import com.snamp.CountdownTimer;
-import com.snamp.TimeSpan;
 import com.snamp.internal.KeyValueParser;
-import static com.snamp.internal.ReflectionUtils.safeCast;
-import org.snmp4j.*;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
-import org.snmp4j.asn1.*;
-import org.snmp4j.event.CounterEvent;
-import org.snmp4j.mp.*;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.*;
 import javax.naming.*;
-import javax.naming.directory.*;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
 import javax.naming.ldap.*;
 
 /**
@@ -34,6 +26,7 @@ import javax.naming.ldap.*;
 final class SecurityConfiguration {
 
     public static enum LdapAuthenticationType{
+        NONE("none"),
         SIMPLE("simple"),
         MD5("DIGEST-MD5"),
         KERBEROS("GSSAPI");
@@ -54,7 +47,6 @@ final class SecurityConfiguration {
             return SIMPLE;
         }
     }
-
     /**
      * Represents SNMPv3 user. This class cannot be inherited.
      * @author Roman Sakno
@@ -67,8 +59,6 @@ final class SecurityConfiguration {
         private OID privacyProtocol;
         private String password;
         private String encryptionKey;
-        private LdapAuthenticationType ldapAuthentication;
-        private TimeSpan sessionTimeout;
 
         /**
          * Initializes a new user security information.
@@ -77,38 +67,6 @@ final class SecurityConfiguration {
             authenticationProtocol = null;
             privacyProtocol = null;
             password = encryptionKey = "";
-            ldapAuthentication = null;
-            sessionTimeout = getDefaultSessionTimeout();
-        }
-
-        private static TimeSpan getDefaultSessionTimeout(){
-            return new TimeSpan(10, TimeUnit.SECONDS);
-        }
-
-        public void setSessionTimeout(TimeSpan value){
-            if(value == null) value = getDefaultSessionTimeout();
-            sessionTimeout = value;
-        }
-
-        public void setSessionTimeout(final int milliseconds){
-            setSessionTimeout(new TimeSpan(milliseconds));
-        }
-
-        public void setSessionTimeout(final String milliseconds){
-            if(milliseconds == null || milliseconds.isEmpty()) setSessionTimeout(getDefaultSessionTimeout());
-            else setSessionTimeout(Integer.valueOf(milliseconds));
-        }
-
-        public TimeSpan getSessionTimeout(){
-            return sessionTimeout;
-        }
-
-        public LdapAuthenticationType getLdapAuthenticationType(){
-            return ldapAuthentication;
-        }
-
-        public void setLdapAuthenticationType(final LdapAuthenticationType value){
-            ldapAuthentication = value;
         }
 
         /**
@@ -159,6 +117,22 @@ final class SecurityConfiguration {
             this.password = password != null ? password : "";
         }
 
+        public final void setPassword(final byte[] password){
+            setPassword(new String(password));
+        }
+
+        public final boolean setPassword(final Object password){
+            if(password instanceof String){
+                setPassword((String)password);
+                return true;
+            }
+            else if(password instanceof byte[]){
+                setPassword((byte[])password);
+                return true;
+            }
+            else return false;
+        }
+
         public final String getPassword(){
             return password;
         }
@@ -194,30 +168,6 @@ final class SecurityConfiguration {
                 case "md5":
                 case "md-5": setAuthenticationProtocol(AuthMD5.ID); return;
                 case "sha": setAuthenticationProtocol(AuthSHA.ID); return;
-                case "snmp=md5,ldap=simple":
-                    setAuthenticationProtocol(AuthMD5.ID);
-                    setLdapAuthenticationType(LdapAuthenticationType.SIMPLE);
-                    return;
-                case "snmp=md5,ldap=md5":
-                    setAuthenticationProtocol(AuthMD5.ID);
-                    setLdapAuthenticationType(LdapAuthenticationType.MD5);
-                    return;
-                case "snmp=m5,ldap=kerberos":
-                    setAuthenticationProtocol(AuthMD5.ID);
-                    setLdapAuthenticationType(LdapAuthenticationType.KERBEROS);
-                    return;
-                case "snmp=sha,ldap=simple":
-                    setAuthenticationProtocol(AuthSHA.ID);
-                    setLdapAuthenticationType(LdapAuthenticationType.SIMPLE);
-                    return;
-                case "snmp=sha,ldap=md5":
-                    setAuthenticationProtocol(AuthSHA.ID);
-                    setLdapAuthenticationType(LdapAuthenticationType.MD5);
-                    return;
-                case "snmp=sha,ldap=kerberos":
-                    setAuthenticationProtocol(AuthSHA.ID);
-                    setLdapAuthenticationType(LdapAuthenticationType.KERBEROS);
-                    return;
                 default:
                     //attempts to parse key-value pair in format
                     authenticationProtocol = new OID(protocol); return;
@@ -240,6 +190,22 @@ final class SecurityConfiguration {
             encryptionKey = passphrase;
         }
 
+        public final void setPrivacyKey(final byte[] passphrase){
+            setPrivacyKey(new String(passphrase));
+        }
+
+        public final boolean setPrivacyKey(final Object passphrase){
+            if(passphrase instanceof String){
+                setPrivacyKey((String)passphrase);
+                return true;
+            }
+            else if(passphrase instanceof byte[]){
+                setPrivacyKey((byte[])passphrase);
+                return true;
+            }
+            else return false;
+        }
+
         public final OctetString getPasswordAsOctectString() {
             return password == null || password.isEmpty() ? null : new OctetString(password);
         }
@@ -249,17 +215,7 @@ final class SecurityConfiguration {
         }
 
         public final void defineUser(final USM userHive, final OctetString userName, final OctetString engineID, final boolean useLdap) {
-            if(getLdapAuthenticationType() != null && useLdap)
-                userHive.addUser(userName, engineID,
-                        new LdapUsmUser(userName,
-                                getAuthenticationProtocol(),
-                                getPasswordAsOctectString(),
-                                getPrivacyProtocol(),
-                                getPrivacyKeyAsOctetString(),
-                                getLdapAuthenticationType(),
-                                getSessionTimeout()
-                        ));
-            else userHive.addUser(userName, engineID,
+            userHive.addUser(userName, engineID,
                     new UsmUser(userName,
                             getAuthenticationProtocol(),
                             getPasswordAsOctectString(),
@@ -432,7 +388,7 @@ final class SecurityConfiguration {
     }
 
 
-    private static void fillGroups(final Map<String, String> adapterSettings, final Iterable<String> groups, final Map<String, UserGroup> output){
+    private static boolean fillGroups(final Map<String, String> adapterSettings, final Iterable<String> groups, final Map<String, UserGroup> output){
         final String SECURITY_LEVEL_TEMPLATE = "%s-security-level";
         final String ACCESS_RIGHTS_TEMPLATE = "%s-access-rights";
         final String USERS_TEMPLATE = "%s-users";
@@ -445,6 +401,7 @@ final class SecurityConfiguration {
             groupInfo.setAccessRights(adapterSettings.get(String.format(ACCESS_RIGHTS_TEMPLATE, groupName)));
             fillUsers(adapterSettings, groupInfo, splitAndTrim(adapterSettings.get(String.format(USERS_TEMPLATE, groupName)), ";"));
         }
+        return true;
     }
 
     private static void fillUsers(final Map<String,String> adapterSettings, final UserGroup groupInfo, final Collection<String> userNames) {
@@ -452,7 +409,6 @@ final class SecurityConfiguration {
         final String AUTH_PROTOCOL_TEMPLATE = "%s-auth-protocol";
         final String PRIVACY_KEY_TEMPLATE = "%s-privacy-key";
         final String PRIVACY_PROTOCOL_TEMPLATE = "%s-privacy-protocol";
-        final String LDAP_SESSION_TIMEOUT_TEMPLATE = "%s-ldap-session-timeout";
         for(final String name: userNames){
             final User userInfo = new User();
             groupInfo.put(name, userInfo);
@@ -460,38 +416,34 @@ final class SecurityConfiguration {
             userInfo.setPrivacyProtocol(adapterSettings.get(String.format(PRIVACY_PROTOCOL_TEMPLATE, name)));
             userInfo.setPrivacyKey(adapterSettings.get(String.format(PRIVACY_KEY_TEMPLATE, name)));
             userInfo.setAuthenticationProtocol(adapterSettings.get(String.format(AUTH_PROTOCOL_TEMPLATE, name)));
-            userInfo.setSessionTimeout(adapterSettings.get(String.format(LDAP_SESSION_TIMEOUT_TEMPLATE, name)));
         }
     }
 
-    private static final String IMPORT_FROM_LDAP_KEYWORD = "import-from-ldap";
-
-    private static final boolean fillGroupsFromLdap(final String ldapUri, String connectionString, final Map<String, UserGroup> groups){
-        //remove import
-        connectionString = connectionString.replaceFirst(IMPORT_FROM_LDAP_KEYWORD, "");
-        //parse key value
-        final KeyValueParser parser = new KeyValueParser(";", ":");
-        final Map<String, String> params = parser.parseAsMap(connectionString);
-        final String SEARCH_QUERY_PARAM = "search";
-        final String LDAP_USER_PARAM = "user-dn";
-        final String LDAP_USER_PASSWORD_PARAM = "password";
-        final String LDAP_AUTH_TYPE_PARAM = "authType";
-        final String LDAP_SEARCH_BASE_PARAM = "baseDn";
-        final String searchQuery = params.get(SEARCH_QUERY_PARAM);
-        final String ldapUser = params.get(LDAP_USER_PARAM);
-        final String password = params.get(LDAP_USER_PASSWORD_PARAM);
-        final String authType = params.get(LDAP_AUTH_TYPE_PARAM);
-        final String searchBase = params.get(LDAP_SEARCH_BASE_PARAM);
-        return fillGroupsFromLdap(ldapUri, ldapUser, password, LdapAuthenticationType.parse(authType), searchQuery, searchBase, groups);
+    public final boolean read(final Map<String, String> adapterSettings){
+        if(adapterSettings.containsKey(LDAP_URI_PARAM)){ //import groups and users from LDAP
+            setLdapUri(adapterSettings.get(LDAP_URI_PARAM));
+            return fillGroupsFromLdap(adapterSettings, getLdapUri(), groups);
+        }
+        else if(adapterSettings.containsKey(SNMPv3_GROUPS_PARAM)){ //import groups and users from local configuration file
+            fillGroups(adapterSettings, splitAndTrim(adapterSettings.get(SNMPv3_GROUPS_PARAM), ";"), groups);
+            return true;
+        }
+        else return false;
     }
 
-    private static boolean fillGroupsFromLdap(final String ldapUri, final String ldapUser, final String password, final LdapAuthenticationType authType, final String searchQuery, final String baseDn, final Map<String, UserGroup> groups) {
-        //authenticate on LDAP and forces searching
+    private static boolean fillGroupsFromLdap(final Map<String, String> adapterSettings, final String ldapUri, final Map<String, UserGroup> groups) {
+        final String ldapUserName = adapterSettings.get(LDAP_ADMINDN_PARAM);
+        final String ldapUserPassword = adapterSettings.get(LDAP_ADMIN_PASSWORD_PARAM);
+        final Logger logger = SnmpHelpers.getLogger();
+        String jndiLdapFactory = adapterSettings.get(JNDI_LDAP_FACTORY_PARAM);
+        if(jndiLdapFactory == null || jndiLdapFactory.isEmpty())
+            jndiLdapFactory = "com.sun.jndi.ldap.LdapCtxFactory";
+        final LdapAuthenticationType authenticationType = LdapAuthenticationType.parse(adapterSettings.get(LDAP_ADMIN_AUTH_TYPE_PARAM));
         final Hashtable<String, Object> env = new Hashtable<>(7);
-        authType.setupEnvironment(env);
-        env.put(Context.SECURITY_PRINCIPAL, ldapUser);
-        env.put(Context.SECURITY_CREDENTIALS, password);
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+        authenticationType.setupEnvironment(env);
+        env.put(Context.SECURITY_PRINCIPAL, ldapUserName);
+        env.put(Context.SECURITY_CREDENTIALS, ldapUserPassword);
+        env.put(Context.INITIAL_CONTEXT_FACTORY, jndiLdapFactory);
         env.put(Context.PROVIDER_URL, ldapUri);
 
         //ensures that objectSID attribute values
@@ -502,44 +454,120 @@ final class SecurityConfiguration {
         //env.put("com.sun.jndi.ldap.trace.ber", System.err);
         try {
             final LdapContext ctx = new InitialLdapContext(env, null);
-            fillGroupsFromLdap(ctx, searchQuery, baseDn, groups);
+            logger.fine(String.format("User %s is authenticated successfully on LDAP %s", ldapUserName, ldapUri));
+            final String ldapGroups = adapterSettings.get(LDAP_GROUPS_PARAM);
+            final String userSearchFilter = adapterSettings.get(LDAP_USER_SEARCH_FILTER_PARAM);
+            final String baseDn = adapterSettings.get(LDAP_BASE_DN_PARAM);
+            final String userPasswordHolder = adapterSettings.get(LDAP_PASSWORD_HOLDER_PARAM);
+            fillGroupsFromLdap(ctx, splitAndTrim(ldapGroups, ";"), baseDn, userSearchFilter, groups, userPasswordHolder);
             ctx.close();
             return true;
         }
+        catch (final AuthenticationException e){
+            logger.log(Level.SEVERE,
+                    String.format("Failed to authenticate %s user on LDAP %s", ldapUserName, ldapUri),
+                    e);
+            return false;
+        }
         catch (final NamingException e) {
-            SnmpHelpers.getLogger().log(Level.WARNING,
-                    String.format("Failed to authenticate %s user for search on LDAP %s", ldapUser, ldapUri),
+            logger.log(Level.SEVERE, "Failed to process LDAP response ",
                     e);
             return false;
         }
     }
 
-    private static void fillGroupsFromLdap(final LdapContext ldap, final String searchQuery, final String baseDn, final Map<String, UserGroup> groups) throws NamingException {
-
-        final SearchControls searchControls = new SearchControls();
-        searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-        final Enumeration<SearchResult> result = ldap.search(baseDn, searchQuery, searchControls);
-        while (result.hasMoreElements()){
-            final SearchResult subresult = result.nextElement();
-
-        }
+    private static void fillGroupsFromLdap(final LdapContext directory,
+                                           final Collection<String> ldapGroups,
+                                           final String baseDn,
+                                           final String userSearchFilter,
+                                           final Map<String, UserGroup> groups,
+                                           final String userPasswordHolder) throws NamingException{
+        final String GROUP_PARAM = "\\$GROUPNAME\\$";
+        //parse each group
+        for(final String ldapGroupDn: ldapGroups)
+            importGroupFromLdap(directory, ldapGroupDn, userSearchFilter.replaceAll(GROUP_PARAM, ldapGroupDn), baseDn, groups, userPasswordHolder);
     }
 
-    public final boolean read(final Map<String, String> adapterSettings){
-        if(adapterSettings.containsKey(LDAP_URI_PROPERTY))
-            setLdapUri(adapterSettings.get(LDAP_URI_PROPERTY));
-        if(adapterSettings.containsKey(SNMPv3_GROUPS_PROPERTY)){
-            final String settings = adapterSettings.get(SNMPv3_GROUPS_PROPERTY);
-            //if groups settings begin with import-from-ldap keyword then uses LDAP import;
-            //otherwise, this string is a enumeration of group names.
-            if(settings.indexOf(IMPORT_FROM_LDAP_KEYWORD) == 0 && useLdap())
-                fillGroupsFromLdap(getLdapUri(), settings, groups);
-            else fillGroups(adapterSettings, splitAndTrim(settings, ";"), groups);
-            return true;
-        }
-        else return false;
+    private static void importGroupFromLdap(final LdapContext directory,
+                                            final String ldapGroup,
+                                            final String userSearchFilter,
+                                            final String baseDn,
+                                            final Map<String, UserGroup> groups,
+                                            final String userPasswordHolder) throws NamingException{
+        final SearchControls groupControls = new SearchControls();
+        groupControls.setSearchScope(SearchControls.OBJECT_SCOPE);
+        //import settings from LDAP group
+        final Enumeration<SearchResult> searchResult = directory.search(baseDn, ldapGroup, groupControls);
+        if(searchResult.hasMoreElements())
+            importGroupFromLdap(directory, ldapGroup, searchResult.nextElement(), userSearchFilter, baseDn, groups, userPasswordHolder);
     }
 
+    private static void importGroupFromLdap(final LdapContext directory,
+                                            final String groupName,
+                                            final SearchResult ldapGroup,
+                                            final String userSearchFilter,
+                                            final String baseDn,
+                                            final Map<String, UserGroup> groups,
+                                            final String userPasswordHolder) throws NamingException {
+        final String SECURITY_LEVEL_PARAM = "snamp-snmp-security-level";
+        final String SECURITY_ACCESS_RIGHTS_PARAM = "snamp-snmp-allowed-operation";
+        final UserGroup userGroup = new UserGroup();
+        //parse security level
+        final Attribute securityLevelAttr = ldapGroup.getAttributes().get(SECURITY_LEVEL_PARAM);
+        if(securityLevelAttr == null) return;
+        userGroup.setSecurityLevel(Objects.toString(securityLevelAttr.get()));
+        //parse access rights
+        final Collection<String> accessRights = new ArrayList<>(4);
+        final Attribute accessRightsAttr = ldapGroup.getAttributes().get(SECURITY_ACCESS_RIGHTS_PARAM);
+        if(accessRightsAttr.size() == 0) return;
+        else for(int i = 0; i < accessRightsAttr.size(); i++)
+            accessRights.add(Objects.toString(accessRightsAttr.get(i)));
+        userGroup.setAccessRights(accessRights);
+        //fill users
+        importUsersFromLdap(directory, userGroup, userSearchFilter, baseDn, userPasswordHolder);
+        //add group to set
+        groups.put(groupName, userGroup);
+    }
+
+    private static void importUsersFromLdap(final LdapContext directory,
+                                            final Map<String, User> userGroup,
+                                            final String userSearchFilter,
+                                            final String baseDn,
+                                            final String userPasswordHolder) throws NamingException{
+        final SearchControls userControls = new SearchControls();
+        userControls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+        final Enumeration<SearchResult> users = directory.search(baseDn, userSearchFilter, userControls);
+        while (users.hasMoreElements())
+            importUserFromLdap(userGroup, users.nextElement(), userPasswordHolder);
+    }
+
+    private static void importUserFromLdap(final Map<String, User> userGroup,
+                                           final SearchResult userInfo,
+                                           String userPasswordHolder) throws NamingException {
+        if(userPasswordHolder == null || userPasswordHolder.isEmpty())
+            userPasswordHolder = "userPassword";
+        final User u = new User();
+        //authentication protocol
+        final String AUTH_PROTOCOL_PARAM = "snamp-snmp-auth-protocol";
+        final Attribute authProtocol = userInfo.getAttributes().get(AUTH_PROTOCOL_PARAM);
+        if(authProtocol == null) return;
+        u.setAuthenticationProtocol(Objects.toString(authProtocol.get()));
+        //user password
+        final Attribute userPassword = userInfo.getAttributes().get(userPasswordHolder);
+        if(userPassword != null)
+            u.setPassword(userPassword.get());
+        //privacy protocol
+        final String PRIV_PROTOCOL_PARAM = "snamp-snmp-priv-protocol";
+        final Attribute privProtocol = userInfo.getAttributes().get(PRIV_PROTOCOL_PARAM);
+        if(privProtocol != null)
+            u.setPrivacyProtocol(Objects.toString(privProtocol.get()));
+        //privacy key
+        final String PRIV_KEY_PARAM = "snamp-snmp-priv-key";
+        final Attribute privKey = userInfo.getAttributes().get(PRIV_KEY_PARAM);
+        if(privKey != null)
+            u.setPrivacyKey(privKey.get());
+        userGroup.put(userInfo.getName(), u);
+    }
 
     public static interface UserSelector{
         boolean match(final String userName, final User user, final UserGroup owner);
@@ -600,104 +628,6 @@ final class SecurityConfiguration {
         return result;
     }
 
-    /**
-     * Represents user account that provides bridge USM and LDAP.
-     * This class cannot be inherited.
-     */
-    private static final class LdapUsmUser extends UsmUser{
-        private final LdapAuthenticationType ldapAuthenticationType;
-        private final SessionTimer timer;
-
-        private static final class SessionTimer extends CountdownTimer{
-            private final TimeSpan initialTimerValue;
-
-            /**
-             * Initializes a new countdown timer.
-             *
-             * @param initial The initial timer value.
-             * @throws IllegalArgumentException
-             *          initial is null.
-             */
-            public SessionTimer(final TimeSpan initial) {
-                super(new TimeSpan(0));
-                this.initialTimerValue = initial;
-            }
-
-            /**
-             * Resets the timer.
-             */
-            public final void reset(){
-                setTimerValue(initialTimerValue);
-            }
-        }
-
-        public LdapUsmUser(final OctetString securityName,
-                           final OID authenticationProtocol,
-                           final OctetString authenticationPassphrase,
-                           final OID privacyProtocol,
-                           final OctetString privacyPassphrase,
-                           final LdapAuthenticationType ldapAuthType,
-                           final TimeSpan sessionExpirationTime){
-            super(securityName, authenticationProtocol, authenticationPassphrase, privacyProtocol, privacyPassphrase);
-            ldapAuthenticationType = ldapAuthType;
-            timer = new SessionTimer(sessionExpirationTime);
-        }
-
-        public String getUserName() {
-            return getSecurityName().toString();
-        }
-
-        public String getPassword() {
-            final OctetString password = getAuthenticationPassphrase();
-            return password != null ? password.toString() : "";
-        }
-
-        public LdapAuthenticationType getAuthenticationType() {
-            return ldapAuthenticationType;
-        }
-
-        public boolean authenticate(final String ldapUri, final Logger logger){
-            boolean authRequired;
-            synchronized (timer){
-                timer.stop();
-                if(timer.isEmpty()){
-                    authRequired = true;
-                    timer.reset();
-                }
-                else authRequired = false;
-                timer.start();
-            }
-            if(authRequired){   //forces LDAP authentication
-                final Hashtable<String, Object> env = new Hashtable<>(7);
-                getAuthenticationType().setupEnvironment(env);
-                env.put(Context.SECURITY_PRINCIPAL, getUserName());
-                env.put(Context.SECURITY_CREDENTIALS, getPassword());
-                env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-                env.put(Context.PROVIDER_URL, ldapUri);
-
-                //ensures that objectSID attribute values
-                //will be returned as a byte[] instead of a String
-                env.put("java.naming.ldap.attributes.binary", "objectSID");
-
-                // the following is helpful in debugging errors
-                //env.put("com.sun.jndi.ldap.trace.ber", System.err);
-                try {
-                    final LdapContext ctx = new InitialLdapContext(env, null);
-                    logger.fine(String.format("User %s is authenticated successfully on LDAP %s", getUserName(), ldapUri));
-                    ctx.close();
-                    return true;
-                }
-                catch (final NamingException e) {
-                    logger.log(Level.WARNING,
-                            String.format("Failed to authenticate %s user on LDAP %s", getUserName(), ldapUri),
-                            e);
-                    return false;
-                }
-            }
-            else return true;
-        }
-    }
-
     public final void setupUserBasedSecurity(final USM security){
         for(final UserGroup group: groups.values())
             for(final Map.Entry<String, User> user: group.entrySet()){
@@ -723,293 +653,5 @@ final class SecurityConfiguration {
                     groupDef.hasAccessRights(AccessRights.NOTIFY) ? new OctetString("fullNotifyView") : null,
                     StorageType.nonVolatile);
         }
-    }
-
-    /**
-     * Represents USM-to-LDAP bridge with LDAP session control. This class cannot be inherited.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    private static final class LdapUSM extends USM{
-        private final String ldapUri;
-        private final Logger logger;
-
-        public LdapUSM(final SecurityProtocols securityProtocols,
-                   final OctetString localEngineID, final int engineBoots,
-                   final String ldapUri) {
-            super(securityProtocols, localEngineID, engineBoots);
-            if(ldapUri == null || ldapUri.isEmpty()) throw new IllegalArgumentException("LDAP server URI is not specified");
-            this.ldapUri = ldapUri;
-            logger = SnmpHelpers.getLogger();
-        }
-
-        private OctetString getSecurityName(final OctetString engineID,
-                                            final OctetString userName) {
-            if (userName.length() == 0) return userName;
-            UsmUserEntry user = getUserTable().getUser(engineID, userName);
-            if (user  == null && isEngineDiscoveryEnabled())
-                user = getUserTable().getUser(userName);
-            return user != null ? user.getUsmUser().getSecurityName() : null;
-        }
-
-        /**
-         * Overriding of this method inserts LDAP authentication.
-         * @param snmpVersion
-         * @param maxMessageSize
-         * @param securityParameters
-         * @param securityModel
-         * @param securityLevel
-         * @param wholeMsg
-         * @param tmStateReference
-         * @param securityEngineID
-         * @param securityName
-         * @param scopedPDU
-         * @param maxSizeResponseScopedPDU
-         * @param securityStateReference
-         * @param statusInfo
-         * @return
-         * @throws IOException
-         */
-        @Override
-        public final int processIncomingMsg(final int snmpVersion, final int maxMessageSize, final SecurityParameters securityParameters, final SecurityModel securityModel, final int securityLevel, final BERInputStream wholeMsg, final TransportStateReference tmStateReference, final OctetString securityEngineID, final OctetString securityName, final BEROutputStream scopedPDU, final Integer32 maxSizeResponseScopedPDU, final SecurityStateReference securityStateReference, final StatusInformation statusInfo) throws IOException {
-            final UsmSecurityParameters usmSecurityParameters =
-                    (UsmSecurityParameters) securityParameters;
-            final UsmSecurityStateReference usmSecurityStateReference =
-                    (UsmSecurityStateReference) securityStateReference;
-            securityEngineID.setValue(usmSecurityParameters.getAuthoritativeEngineID());
-
-            final byte[] message = buildMessageBuffer(wholeMsg);
-
-            if ((securityEngineID.length() == 0) ||
-                    (getTimeTable().checkEngineID(securityEngineID,
-                            isEngineDiscoveryEnabled()) !=
-                            SnmpConstants.SNMPv3_USM_OK)) {
-                // generate report
-                logger.config("RFC3414 §3.2.3 Unknown engine ID: " + securityEngineID.toHexString());
-
-                securityEngineID.setValue(usmSecurityParameters.getAuthoritativeEngineID());
-                securityName.setValue(usmSecurityParameters.getUserName().getValue());
-
-                if (statusInfo != null) {
-                    final CounterEvent event = new CounterEvent(this,
-                            SnmpConstants.
-                                    usmStatsUnknownEngineIDs);
-                    fireIncrementCounter(event);
-                    statusInfo.setSecurityLevel(new Integer32(securityLevel));
-                    statusInfo.setErrorIndication(new VariableBinding(event.getOid(),
-                            event.getCurrentValue()));
-                }
-                return SnmpConstants.SNMPv3_USM_UNKNOWN_ENGINEID;
-            }
-
-            securityName.setValue(usmSecurityParameters.getUserName().getValue());
-
-            int scopedPDUPosition = usmSecurityParameters.getScopedPduPosition();
-
-            // get security name
-            if ((usmSecurityParameters.getUserName().length() > 0) ||
-                    (securityLevel > SecurityLevel.NOAUTH_NOPRIV)) {
-                OctetString secName = getSecurityName(securityEngineID, usmSecurityParameters.getUserName());
-                if (secName == null) {
-                        logger.config("RFC3414 §3.2.4 Unknown security name: " +
-                                securityName.toHexString());
-                    if (statusInfo != null) {
-                        CounterEvent event = new CounterEvent(this,
-                                SnmpConstants.usmStatsUnknownUserNames);
-                        fireIncrementCounter(event);
-                        statusInfo.setSecurityLevel(new Integer32(SecurityLevel.NOAUTH_NOPRIV));
-                        statusInfo.setErrorIndication(new VariableBinding(event.getOid(),
-                                event.getCurrentValue()));
-                    }
-                    return SnmpConstants.SNMPv3_USM_UNKNOWN_SECURITY_NAME;
-                }
-            }
-            else {
-                logger.config("Accepting zero length security name");
-                securityName.setValue(new byte[0]);
-            }
-
-            if ((usmSecurityParameters.getUserName().length() > 0) ||
-                    (securityLevel > SecurityLevel.NOAUTH_NOPRIV)) {
-                UsmUserEntry user = getUser(securityEngineID, securityName);
-                if (user == null) {
-                    logger.config("RFC3414 §3.2.4 Unknown security name: " +
-                                securityName.toHexString()+ " for engine ID "+
-                                securityEngineID.toHexString());
-                    CounterEvent event =
-                            new CounterEvent(this, SnmpConstants.usmStatsUnknownUserNames);
-                    fireIncrementCounter(event);
-                    if (statusInfo != null) {
-                        if (SNMP4JSettings.getReportSecurityLevelStrategy() ==
-                                SNMP4JSettings.ReportSecurityLevelStrategy.noAuthNoPrivIfNeeded) {
-                            statusInfo.setSecurityLevel(new Integer32(SecurityLevel.NOAUTH_NOPRIV));
-                        }
-                        statusInfo.setErrorIndication(new VariableBinding(event.getOid(),
-                                event.getCurrentValue()));
-                    }
-                    return SnmpConstants.SNMPv3_USM_UNKNOWN_SECURITY_NAME;
-                }
-
-                usmSecurityStateReference.setUserName(user.getUserName().getValue());
-
-                AuthenticationProtocol auth =
-                        getSecurityProtocols().getAuthenticationProtocol(
-                                user.getUsmUser().getAuthenticationProtocol());
-                PrivacyProtocol priv =
-                        getSecurityProtocols().getPrivacyProtocol(
-                                user.getUsmUser().getPrivacyProtocol());
-
-                usmSecurityStateReference.setAuthenticationKey(user.getAuthenticationKey());
-                usmSecurityStateReference.setPrivacyKey(user.getPrivacyKey());
-                usmSecurityStateReference.setAuthenticationProtocol(auth);
-                usmSecurityStateReference.setPrivacyProtocol(priv);
-                if (((securityLevel >= SecurityLevel.AUTH_NOPRIV) && (auth == null)) ||
-                        (((securityLevel >= SecurityLevel.AUTH_PRIV) && (priv == null)))) {
-                    logger.config("RFC3414 §3.2.5 - Unsupported security level: " +
-                                securityLevel + " by user "+user);
-
-                    CounterEvent event =
-                            new CounterEvent(this, SnmpConstants.usmStatsUnsupportedSecLevels);
-                    fireIncrementCounter(event);
-                    if (SNMP4JSettings.getReportSecurityLevelStrategy() ==
-                            SNMP4JSettings.ReportSecurityLevelStrategy.noAuthNoPrivIfNeeded) {
-                        statusInfo.setSecurityLevel(new Integer32(SecurityLevel.NOAUTH_NOPRIV));
-                    }
-                    statusInfo.setErrorIndication(new VariableBinding(event.getOid(),
-                            event.getCurrentValue()));
-                    return SnmpConstants.SNMPv3_USM_UNSUPPORTED_SECURITY_LEVEL;
-                }
-                if (securityLevel >= SecurityLevel.AUTH_NOPRIV) {
-                    if (statusInfo != null) {
-                        int authParamsPos =
-                                usmSecurityParameters.getAuthParametersPosition() +
-                                        usmSecurityParameters.getSecurityParametersPosition();
-                        //first, authenticate in USM subsystem
-                        boolean authentic =
-                                auth.isAuthentic(user.getAuthenticationKey(),
-                                        message, 0, message.length,
-                                        new ByteArrayWindow(message, authParamsPos,
-                                                AuthenticationProtocol.MESSAGE_AUTHENTICATION_CODE_LENGTH));
-                        final LdapUsmUser ldapUser = safeCast(user.getUsmUser(), LdapUsmUser.class);
-                        //second, authenticate via LDAP
-                        authentic &= ldapUser != null ?
-                                ldapUser.authenticate(ldapUri, logger):
-                                false;
-                        if (!authentic) {
-                            CounterEvent event =
-                                    new CounterEvent(this, SnmpConstants.usmStatsWrongDigests);
-                            fireIncrementCounter(event);
-                            if (SNMP4JSettings.getReportSecurityLevelStrategy() ==
-                                    SNMP4JSettings.ReportSecurityLevelStrategy.noAuthNoPrivIfNeeded) {
-                                statusInfo.setSecurityLevel(new Integer32(SecurityLevel.NOAUTH_NOPRIV));
-                            }
-                            statusInfo.setErrorIndication(new VariableBinding(event.getOid(),
-                                    event.getCurrentValue()));
-                            return SnmpConstants.SNMPv3_USM_AUTHENTICATION_FAILURE;
-                        }
-                        // check time
-                        int status = getTimeTable().checkTime(new UsmTimeEntry(securityEngineID,
-                                usmSecurityParameters.getAuthoritativeEngineBoots(),
-                                usmSecurityParameters.getAuthoritativeEngineTime()));
-
-                        switch (status) {
-                            case SnmpConstants.SNMPv3_USM_NOT_IN_TIME_WINDOW: {
-                                logger.config("RFC3414 §3.2.7.a Not in time window; engineID='" +
-                                        securityEngineID +
-                                        "', engineBoots=" +
-                                        usmSecurityParameters.getAuthoritativeEngineBoots() +
-                                        ", engineTime=" +
-                                        usmSecurityParameters.getAuthoritativeEngineTime());
-                                CounterEvent event =
-                                        new CounterEvent(this, SnmpConstants.usmStatsNotInTimeWindows);
-                                fireIncrementCounter(event);
-                                statusInfo.setSecurityLevel(new Integer32(SecurityLevel.AUTH_NOPRIV));
-                                statusInfo.setErrorIndication(new VariableBinding(event.getOid(),
-                                        event.getCurrentValue()));
-                                return status;
-                            }
-                            case SnmpConstants.SNMPv3_USM_UNKNOWN_ENGINEID: {
-                                logger.config("RFC3414 §3.2.7.b - Unkown engine ID: " +
-                                            securityEngineID);
-                                CounterEvent event =
-                                        new CounterEvent(this, SnmpConstants.usmStatsUnknownEngineIDs);
-                                fireIncrementCounter(event);
-                                if (SNMP4JSettings.getReportSecurityLevelStrategy() ==
-                                        SNMP4JSettings.ReportSecurityLevelStrategy.noAuthNoPrivIfNeeded) {
-                                    statusInfo.setSecurityLevel(new Integer32(SecurityLevel.NOAUTH_NOPRIV));
-                                }
-                                statusInfo.setErrorIndication(new VariableBinding(event.getOid(),
-                                        event.getCurrentValue()));
-                                return status;
-
-                            }
-                        }
-                    }
-                    if (securityLevel >= SecurityLevel.AUTH_PRIV) {
-                        OctetString privParams = usmSecurityParameters.getPrivacyParameters();
-                        DecryptParams decryptParams = new DecryptParams(privParams.getValue(),
-                                0, privParams.length());
-                        try {
-                            int scopedPDUHeaderLength = message.length - scopedPDUPosition;
-                            ByteBuffer bis = ByteBuffer.wrap(message, scopedPDUPosition,
-                                    scopedPDUHeaderLength);
-                            BERInputStream scopedPDUHeader = new BERInputStream(bis);
-                            long headerStartingPosition = scopedPDUHeader.getPosition();
-                            int scopedPDULength =
-                                    BER.decodeHeader(scopedPDUHeader, new BER.MutableByte());
-                            int scopedPDUPayloadPosition =
-                                    scopedPDUPosition +
-                                            (int)(scopedPDUHeader.getPosition() - headerStartingPosition);
-                            scopedPDUHeader.close();
-                            // early release pointer:
-                            scopedPDUHeader = null;
-                            byte[] scopedPduBytes =
-                                    priv.decrypt(message, scopedPDUPayloadPosition, scopedPDULength,
-                                            user.getPrivacyKey(),
-                                            usmSecurityParameters.getAuthoritativeEngineBoots(),
-                                            usmSecurityParameters.getAuthoritativeEngineTime(),
-                                            decryptParams);
-                            ByteBuffer buf = ByteBuffer.wrap(scopedPduBytes);
-                            scopedPDU.setFilledBuffer(buf);
-                        }
-                        catch (Exception ex) {
-                            logger.config("RFC 3414 §3.2.8 Decryption error: "+ex.getMessage());
-                            return SnmpConstants.SNMPv3_USM_DECRYPTION_ERROR;
-                        }
-                    }
-                    else {
-                        int scopedPduLength = message.length - scopedPDUPosition;
-                        ByteBuffer buf =
-                                ByteBuffer.wrap(message, scopedPDUPosition, scopedPduLength);
-                        scopedPDU.setFilledBuffer(buf);
-                    }
-                }
-                else {
-                    int scopedPduLength = message.length - scopedPDUPosition;
-                    ByteBuffer buf =
-                            ByteBuffer.wrap(message, scopedPDUPosition, scopedPduLength);
-                    scopedPDU.setFilledBuffer(buf);
-                }
-            }
-            else {
-                int scopedPduLength = message.length - scopedPDUPosition;
-                ByteBuffer buf =
-                        ByteBuffer.wrap(message, scopedPDUPosition, scopedPduLength);
-                scopedPDU.setFilledBuffer(buf);
-            }
-            // compute real max size response pdu according  to RFC3414 §3.2.9
-            int maxSecParamsOverhead =
-                    usmSecurityParameters.getBERMaxLength(securityLevel);
-            maxSizeResponseScopedPDU.setValue(maxMessageSize -
-                    maxSecParamsOverhead);
-
-            usmSecurityStateReference.setSecurityName(securityName.getValue());
-            return SnmpConstants.SNMPv3_USM_OK;
-        }
-    }
-
-    public USM createUserBasedSecurityModel(final SecurityProtocols protocols, final OctetString contextEngineID, final int engineBoots){
-        return useLdap() ? new LdapUSM(protocols, contextEngineID, engineBoots, getLdapUri()) : new USM(protocols, contextEngineID, engineBoots);
     }
 }

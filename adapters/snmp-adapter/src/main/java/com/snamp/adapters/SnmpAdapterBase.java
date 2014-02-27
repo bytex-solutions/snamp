@@ -1,12 +1,12 @@
 package com.snamp.adapters;
 
-import com.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.snamp.configuration.SnmpAdapterConfigurationDescriptor;
+import com.snamp.configuration.*;
+import com.snamp.core.maintenance.*;
 import net.xeoh.plugins.base.annotations.Capabilities;
 import org.snmp4j.agent.*;
 
 import java.io.File;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
 import static com.snamp.adapters.AbstractAdapter.makeCapabilities;
 
@@ -50,7 +50,10 @@ public abstract class SnmpAdapterBase extends BaseAgent implements Adapter, Noti
      */
     @Override
     public final <T> T queryObject(final Class<T> objectType) {
-        if(Objects.equals(objectType, Logger.class))
+        if(objectType == null) return null;
+        else if(objectType.isInstance(this))
+            return objectType.cast(this);
+        else if(Objects.equals(objectType, Logger.class))
             return objectType.cast(getLogger());
         else if(Objects.equals(objectType, CommandProcessor.class))
             return objectType.cast(agent);

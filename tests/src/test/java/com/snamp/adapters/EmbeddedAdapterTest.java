@@ -9,6 +9,7 @@ import static com.snamp.connectors.util.NotificationUtils.SynchronizationListene
 
 import static com.snamp.connectors.NotificationSupport.Notification;
 
+import com.snamp.core.maintenance.Maintainable;
 import com.snamp.hosting.Agent;
 import com.snamp.internal.Temporary;
 import org.junit.Test;
@@ -78,7 +79,7 @@ public final class EmbeddedAdapterTest extends JmxConnectorTest<TestManagementBe
     }
 
     @Test
-    public final void testForNotificationWithReconnection() throws TimeoutException, InterruptedException {
+    public final void testForNotificationWithReconnection() throws TimeoutException, InterruptedException, ExecutionException {
         final TestEmbeddedAdapter adapter = getTestContext().queryObject(TestEmbeddedAdapter.class);
         final SynchronizationListener listener = new SynchronizationListener();
         @Temporary
@@ -90,8 +91,7 @@ public final class EmbeddedAdapterTest extends JmxConnectorTest<TestManagementBe
         final ManagementConnector jmxConnector = connectors.get("jmx");
         assertNotNull(jmxConnector);
         //aborts the connection
-        assertTrue(jmxConnector instanceof JmxMaintenanceSupport);
-        ((JmxMaintenanceSupport)jmxConnector).simulateConnectionAbort();
+        jmxConnector.queryObject(Maintainable.class).doAction("simulateConnectionAbort", "", null).get();
         //modify property for firing property-changed event
         adapter.setBigIntProperty(BigInteger.TEN);
         //wait for notification (25 sec) after connection abort

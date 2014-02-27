@@ -20,12 +20,58 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
     /**
      * Represents configuration property that provides a set of user groups.
      */
-    public static final String SNMPv3_GROUPS_PROPERTY = "snmpv3-groups";
+    public static final String SNMPv3_GROUPS_PARAM = "snmpv3-groups";
 
     /**
      * Represents LDAP server URI.
      */
-    public static final String LDAP_URI_PROPERTY = "ldap-uri";
+    public static final String LDAP_URI_PARAM = "ldap-uri";
+
+    /**
+     * Represents LDAP DN of the admin user that is used to read security configuration structure.
+     */
+    public static final String LDAP_ADMINDN_PARAM = "ldap-user";
+
+    /**
+     * Represents LDAP admin user password.
+     */
+    public static final String LDAP_ADMIN_PASSWORD_PARAM = "ldap-password";
+
+    /**
+     * Represents type of the LDAP authentication.
+     */
+    public static final String LDAP_ADMIN_AUTH_TYPE_PARAM = "ldap-auth-protocol";
+
+    /**
+     * Represents user search filter template that is used to find users in the group.
+     * <p>
+     *     $GROUPNAME$ string inside of the filter will be replaced with group name.
+     * </p>
+     */
+    public static final String LDAP_USER_SEARCH_FILTER_PARAM = "ldap-user-search-filter";
+
+    /**
+     * Represents semicolon delimiter string of group DNs.
+     */
+    public static final String LDAP_GROUPS_PARAM = "ldap-groups";
+
+    /**
+     * Represents search base DN.
+     */
+    public static final String LDAP_BASE_DN_PARAM = "ldap-base-dn";
+
+    /**
+     * Represents JNDI/LDAP factory name.
+     * <p>
+     *     By default, this property equals to com.sun.jndi.ldap.LdapCtxFactory.
+     * </p>
+     */
+    public static final String JNDI_LDAP_FACTORY_PARAM = "jndi-ldap-factory";
+
+    /**
+     * Represents name of the attribute in directory that holds the user attribute as clear text.
+     */
+    public static final String LDAP_PASSWORD_HOLDER_PARAM = "ldap-user-password-attribute-name";
 
     /**
      * Represents configuration property that contains UDP socket timeout, in milliseconds.
@@ -48,11 +94,11 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
     private static final class HostingConfigurationInfo extends ResourceBasedConfigurationEntityDescription<HostingConfiguration>{
         public HostingConfigurationInfo(){
             super(HostingConfiguration.class,
-                    SNMPv3_GROUPS_PROPERTY,
+                    SNMPv3_GROUPS_PARAM,
                     SOCKET_TIMEOUT_PARAM,
                     PORT_PARAM_NAME,
                     ADDRESS_PARAM_NAME,
-                    LDAP_URI_PROPERTY);
+                    LDAP_URI_PARAM);
         }
 
         /**
