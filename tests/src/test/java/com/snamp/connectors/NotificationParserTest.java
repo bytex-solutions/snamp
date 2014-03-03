@@ -7,8 +7,9 @@ import org.junit.Test;
 import static com.snamp.connectors.NotificationSupport.Notification;
 
 import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Roman Sakno
@@ -21,10 +22,22 @@ public final class NotificationParserTest extends SnampClassTestSet<Notification
     public void loadAndParseTest() throws IOException, MQException {
         final String path = this.getClass().getResource("/parser.g").getPath().replaceFirst("parser.g", "");
         final NotificationParser parser = new NotificationParser("parser.g", path);
-        final Object mqmessage = "MQ message";
+        final MQMessage mqmessage = new MQMessage();
+        mqmessage.setObjectProperty("severity", Notification.Severity.DEBUG);
+        mqmessage.setInt8Property("seqnum", 10L);    //sequence number
+        final Date timeStamp = new Date();
+        mqmessage.setObjectProperty("timestamp", timeStamp);
+        final List<Integer> attachement = Arrays.asList(2, 3, 4);
+        mqmessage.setObjectProperty("attachment", attachement);
+        final String message = "MQ notification";
+        mqmessage.writeString(message);
+        mqmessage.setDataOffset(0);
         final Notification notif = parser.createNotification(mqmessage);
-        assertEquals(mqmessage.toString(), notif.getMessage());
+        assertEquals(message, notif.getMessage());
         assertEquals(Notification.Severity.DEBUG, notif.getSeverity());
         assertEquals(10L, notif.getSequenceNumber());
+        assertEquals(timeStamp, notif.getTimeStamp());
+        assertTrue(notif.get("attachment") instanceof List);
+        assertArrayEquals(attachement.toArray(), ((List<Integer>)notif.get("attachment")).toArray());
     }
 }

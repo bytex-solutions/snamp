@@ -31,11 +31,7 @@ final class NotificationParser {
         this.log = IbmWmqHelpers.getLogger();
     }
 
-    public final Notification createNotification(final MQMessage message){
-        return createNotification((Object)message);
-    }
-
-    public final synchronized Notification createNotification(final Object message){
+    public final synchronized Notification createNotification(final MQMessage message){
         final Binding binding = new Binding();
         final NotificationBuilder builder = new NotificationBuilder(true);
         builder.setSequenceNumber(sequenceNumber);

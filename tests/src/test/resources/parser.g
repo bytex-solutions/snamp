@@ -1,8 +1,9 @@
 import com.snamp.connectors.NotificationSupport;
 
-notification.setMessage(mqmessage.toString());
-notification.addAttachment('prop', 'custom value');
-notification.setSeverity(NotificationSupport.Notification.Severity.DEBUG);
-notification.setSequenceNumber(10);
+notification.setSequenceNumber(mqmessage.getInt8Property('seqnum'));
+notification.setTimeStamp(mqmessage.getObjectProperty('timestamp'));
+notification.setMessage(mqmessage.readStringOfByteLength(mqmessage.getDataLength()));
+notification.addAttachment('attachment', mqmessage.getObjectProperty('attachment'));
+notification.setSeverity(mqmessage.getObjectProperty('severity'));
 
 return notification.build();
