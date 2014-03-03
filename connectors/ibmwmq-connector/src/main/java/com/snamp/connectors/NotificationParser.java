@@ -11,6 +11,7 @@ import java.util.logging.*;
 import static com.snamp.connectors.NotificationSupport.Notification;
 
 /**
+ * Represents notification parser. This class cannot be inherited and is not thread safe.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

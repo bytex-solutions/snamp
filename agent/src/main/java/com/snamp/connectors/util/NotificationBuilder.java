@@ -5,7 +5,7 @@ import java.util.*;
 import static com.snamp.connectors.NotificationSupport.Notification;
 
 /**
- * Represents notification builder.
+ * Represents in-memory notification builder.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -77,6 +77,11 @@ public class NotificationBuilder {
     private Notification.Severity severity;
     private String message;
 
+    /**
+     * Initializes a new notification builder.
+     * @param autoIncrementSequence {@literal true} to increment sequence number after each call of {@link #build()} method;
+     *                                             otherwise, {@literal false}.
+     */
     public NotificationBuilder(final boolean autoIncrementSequence){
         this.autoIncrementSequence = autoIncrementSequence;
         sequenceNum = 0L;
@@ -86,14 +91,25 @@ public class NotificationBuilder {
         message = "";
     }
 
+    /**
+     * Initializes a new notification builder.
+     */
     public NotificationBuilder(){
         this(false);
     }
 
+    /**
+     * Gets time stamp used that will be used in generated notifications.
+     * @return Time stamp used that will be used in generated notifications.
+     */
     public final Date getTimeStamp(){
         return timeStamp;
     }
 
+    /**
+     * Sets time stamp used for generating notifications.
+     * @param value
+     */
     public final void setTimeStamp(final Date value){
         timeStamp = value;
     }
@@ -154,7 +170,7 @@ public class NotificationBuilder {
 
     /**
      * Constructs a new instance of the notification.
-     * @return
+     * @return A new instance of the notification.
      */
     public Notification build(){
         final Notification result = new NotificationImpl(severity, sequenceNum, timeStamp, message, attachments);

@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 
 /**
  * Connector class for integration with WebSphere MQ.
- * @author  Chernovsky Oleg
+ * @author  Chernovsky Oleg, Sakno Roman
  * @since 1.1.0
  */
 final class IbmWmqConnector extends ManagementConnectorBean {
@@ -49,8 +49,9 @@ final class IbmWmqConnector extends ManagementConnectorBean {
                 mObjectFilter = connectionProperties;
             }
             else
-                throw new IllegalArgumentException("Cannot create IBM Connector: insufficient parameters!");
-        } catch (final Exception e) {
+                throw new IllegalArgumentException(String.format("Invalid format of MQ connection string: %s", connectionString));
+        }
+        catch (final Exception e) {
             throw new IntrospectionException(e.toString());
         }
 
@@ -68,9 +69,9 @@ final class IbmWmqConnector extends ManagementConnectorBean {
 
             try {
                 final MQQueue subQueue = mQmgrInstance.accessQueue(mObjectFilter.get("parseQueue"), CMQC.MQOO_BROWSE);
-                MQGetMessageOptions gmo = new MQGetMessageOptions();
+                final MQGetMessageOptions gmo = new MQGetMessageOptions();
                 gmo.options = gmo.options + CMQC.MQGMO_BROWSE_NEXT + CMQC.MQGMO_ACCEPT_TRUNCATED_MSG; // accept only first 4 Kbytes of message
-                MQMessage myMessage = new MQMessage();
+                final MQMessage myMessage = new MQMessage();
                     while (true) {
                         myMessage.clearMessage();
                         myMessage.correlationId = CMQC.MQCI_NONE;
@@ -82,7 +83,8 @@ final class IbmWmqConnector extends ManagementConnectorBean {
             } catch (final MQException e) {
                 if(e.reasonCode == CMQC.MQRC_NO_MSG_AVAILABLE)
                     return messages;
-            } catch (final IOException ignored) {
+            } catch (final IOException e) {
+                log.log(Level.WARNING, "Generic MQ error", e);
                 return Collections.emptyList();
             }
         }
