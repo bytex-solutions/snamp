@@ -15,11 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * In order to use this class you need for this jar to be present in your classpath
- *
- * # mvn install:install-file -Dfile=./com.ibm.mq.pcf.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQPCF -Dversion=6.0.0.0 -Dpackaging=jar
- *
- * Connector class for integration with WebSphere MQ
+ * Connector class for integration with WebSphere MQ.
  * @author  Chernovsky Oleg
  * @since 1.1.0
  */

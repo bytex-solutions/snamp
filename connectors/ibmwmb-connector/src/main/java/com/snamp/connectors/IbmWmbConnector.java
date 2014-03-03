@@ -10,22 +10,6 @@ import java.net.URI;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-
-/*
- * In order to build this file you should locate your own copies of ibm java libs
- * When done, execute following commands
- *
- * # mvn install:install-file -Dfile=./ibmjsseprovider2.jar -DgroupId=com.ibm -DartifactId=JSSEProvider -Dversion=2.0.0 -Dpackaging=jar
- *
- * # mvn install:install-file -Dfile=./com.ibm.mq.commonservices.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereCommonServices -Dversion=6.0.0.0 -Dpackaging=jar
- * # mvn install:install-file -Dfile=./com.ibm.mq.headers.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQHeaders -Dversion=6.0.0.0 -Dpackaging=jar
- * # mvn install:install-file -Dfile=./com.ibm.mq.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQ -Dversion=6.0.0.0 -Dpackaging=jar
- * # mvn install:install-file -Dfile=./com.ibm.mq.jmqi.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereJMQI -Dversion=6.0.0.0 -Dpackaging=jar
- * # mvn install:install-file -Dfile=./connector.jar -DgroupId=javax.resource.cci -DartifactId=SunConnectorClasses -Dversion=1.3.0 -Dpackaging=jar
- * # mvn install:install-file -Dfile=./ConfigManagerProxy.jar -DgroupId=com.ibm.broker.config -DartifactId=WMBConfigManagerProxy -Dversion=1.5.0 -Dpackaging=jar
- */
-
-
 /**
  * Connector class for IBM WebSphere Message Broker
  * exports some basic monitoring attributes of WMB
