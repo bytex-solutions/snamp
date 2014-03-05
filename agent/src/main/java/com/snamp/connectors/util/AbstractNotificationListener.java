@@ -4,6 +4,8 @@ import com.snamp.connectors.*;
 import com.snamp.connectors.NotificationSupport.NotificationListener;
 import com.snamp.connectors.NotificationSupport.Notification;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * Represents base implementation of the notification listener that simplify
  * the lifecycle of listeners for the single management connector.
@@ -29,7 +31,11 @@ import com.snamp.connectors.NotificationSupport.Notification;
  * @since 1.0
  */
 public abstract class AbstractNotificationListener implements NotificationListener {
-    private Object listenerId;
+    private static final AtomicLong idCounter = new AtomicLong(0L);
+    /**
+     * Represents unique identifier of this listener.
+     */
+    protected final String listenerId;
     private NotificationMetadata metadata;
 
     /**
@@ -39,10 +45,23 @@ public abstract class AbstractNotificationListener implements NotificationListen
 
     /**
      * Initializes a new listener and associates it with the specified subscription list.
+     * <p>
+     *     Listener identifier will be automatically generated.
+     * </p>
      * @param listId An identifier of the subscription list.
      */
     protected AbstractNotificationListener(final String listId){
+        this(listId, Long.toString(idCounter.getAndIncrement()));
+    }
+
+    /**
+     * Initializes a new listener and associates it with the specified subscription list.
+     * @param listId An identifier of the subscription list.
+     * @param listenerId An identifier of the listener.
+     */
+    protected AbstractNotificationListener(final String listId, final String listenerId){
         this.subscriptionList = listId;
+        this.listenerId = listenerId;
     }
 
     /**
@@ -51,6 +70,14 @@ public abstract class AbstractNotificationListener implements NotificationListen
      */
     public final String getSubscriptionListId(){
         return subscriptionList;
+    }
+
+    /**
+     * Returns the listener identifier.
+     * @return The listener identifier.
+     */
+    public final String getListenerId(){
+        return listenerId;
     }
 
     /**
@@ -66,31 +93,33 @@ public abstract class AbstractNotificationListener implements NotificationListen
      * @return {@literal true}, if this listener is attached to the management connector; otherwise, {@literal false}.
      */
     public final boolean isAttached(){
-        return listenerId != null;
+        return metadata != null;
     }
 
     /**
      * Attaches this listener to the specified management connector.
      * @param connector The notification subscription provider. Cannot be {@literal null}.
-     * @throws IllegalStateException This listener was previously attached to the management connector.
+     * @return {@literal true}, if this listener successfully attached to the connector; otherwise, {@literal false}.
      */
-    public synchronized final void attachTo(final NotificationSupport connector){
-        if(isAttached()) throw new IllegalStateException(String.format("This listener is already attached with %s identifier.", listenerId));
-        this.listenerId = connector.subscribe(subscriptionList, this);
-        this.metadata = connector.getNotificationInfo(subscriptionList);
+    public synchronized final boolean attachTo(final NotificationSupport connector){
+        if(isAttached()) return false;
+        else if(connector.subscribe(listenerId, subscriptionList, this)){
+            this.metadata = connector.getNotificationInfo(subscriptionList);
+            return true;
+        }
+        else return false;
     }
 
     /**
      * Detaches this listener from the specified management connector.
      * @param connector The notification subscription provider. Cannot be {@literal null}.
-     * @throws IllegalStateException This listener was not previously attached to the connector.
      */
-    public synchronized final void detachFrom(final NotificationSupport connector){
-        if(this.listenerId == null) throw new IllegalArgumentException("This listener already detached.");
-        if(connector.unsubscribe(this)) {
+    public synchronized final boolean detachFrom(final NotificationSupport connector){
+        if(connector.unsubscribe(listenerId)){
             this.metadata = null;
-            this.listenerId = null;
+            return true;
         }
+        else return false;
     }
 
     /**

@@ -74,8 +74,8 @@ public interface AttributeSupport {
     public AttributeMetadata getAttributeInfo(final String id);
 
     /**
-     * Returns a read-only collection of registered attributes.
-     * @return A read-only collection of registered attributes.
+     * Returns a read-only collection of registered IDs of attributes.
+     * @return A read-only collection of registered IDs of attributes.
      */
-    public Collection<String> getRegisteredAttributes();
+    public Collection<String> getConnectedAttributes();
 }

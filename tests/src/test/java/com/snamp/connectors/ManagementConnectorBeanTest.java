@@ -2,7 +2,7 @@ package com.snamp.connectors;
 
 import com.snamp.SnampClassTestSet;
 import com.snamp.TimeSpan;
-import com.snamp.connectors.util.NotificationUtils;
+import static com.snamp.connectors.util.NotificationUtils.*;
 import static com.snamp.connectors.NotificationSupport.Notification;
 import org.junit.Test;
 
@@ -65,8 +65,8 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Managem
         connector.connectAttribute("0", "property1", new HashMap<String, String>());
         //enables notifications
         connector.enableNotifications("list1", "propertyChanged", null);
-        final NotificationUtils.SynchronizationListener listener = new NotificationUtils.SynchronizationListener();
-        connector.subscribe("list1", listener);
+        final SynchronizationListener listener = new SynchronizationListener();
+        connector.subscribe(generateListenerId(listener), "list1", listener);
         assertEquals(connector.getProperty1(), connector.getAttribute("0", TimeSpan.INFINITE, ""));
         connector.setAttribute("0", TimeSpan.INFINITE, "1234567890");
         final Notification n = listener.getAwaitor().await(new TimeSpan(10, TimeUnit.SECONDS));

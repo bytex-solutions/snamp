@@ -63,6 +63,15 @@ public final class NotificationUtils {
     }
 
     /**
+     * Computes an identifier for the specified notification listener.
+     * @param listener Notification listener for which ID should be generated.
+     * @return An identifier of the notification listener.
+     */
+    public static final String generateListenerId(final NotificationListener listener){
+        return listener != null ? Integer.toString(listener.hashCode()) : null;
+    }
+
+    /**
      * Adds a new notification listener and returns synchronous awaitor for it.
      * <p>
      *     You can use this method for synchronization with notification delivery.
@@ -70,17 +79,18 @@ public final class NotificationUtils {
      *     from it.
      * </p>
      * @param connector The notification listener connector. Cannot be {@literal null}.
+     * @param listenerId An identifier of the listener to attach.
      * @param listId An identifier of the subscription list.
      * @param listener The notification filter. Cannot be {@literal null}.
      * @return Notification awaitor that can be used to obtain notification synchronously;
      * or {@literal null} if notifications for the specified event category is not supported
      * by connector.
      */
-    public static Awaitor<Notification> createAwaitor(final NotificationSupport connector, final String listId, final NotificationListener listener){
+    public static Awaitor<Notification> createAwaitor(final NotificationSupport connector, final String listenerId, final String listId, final NotificationListener listener){
         if(connector == null) throw new IllegalArgumentException("connector is null.");
         else if(listener == null) throw new IllegalArgumentException("listener is null.");
         final SynchronizationEvent<Notification> ev = new SynchronizationEvent<>();
-        final Object listenerId = connector.subscribe(listId, new NotificationListener() {
+        return connector.subscribe(listenerId, listId, new NotificationListener() {
             @Override
             public final boolean handle(final Notification notification, final String category) {
                 try{
@@ -90,8 +100,7 @@ public final class NotificationUtils {
                     ev.fire(notification);
                 }
             }
-        });
-        return listenerId != null ? new Awaitor<Notification>() {
+        })? new Awaitor<Notification>() {
             private final Awaitor<Notification> awaitor = ev.getAwaitor();
 
             @Override
@@ -113,7 +122,7 @@ public final class NotificationUtils {
                     connector.unsubscribe(listenerId);
                 }
             }
-        }: null;
+        } : null;
     }
 
     /**
@@ -124,13 +133,14 @@ public final class NotificationUtils {
      *     from it.
      * </p>
      * @param connector The notification listener connector. Cannot be {@literal null}.
+     * @param listenerId An identifier of the listener to attach.
      * @param listId An identifier of the subscription list.
      * @return Notification awaitor that can be used to obtain notification synchronously;
      * or {@literal null} if notifications for the specified event category is not supported
      * by connector.
      */
-    public static Awaitor<Notification> createAwaitor(final NotificationSupport connector, final String listId){
-        return createAwaitor(connector, listId, new NotificationListener() {
+    public static Awaitor<Notification> createAwaitor(final NotificationSupport connector, final String listenerId, final String listId){
+        return createAwaitor(connector, listenerId, listId, new NotificationListener() {
             @Override
             public boolean handle(final Notification n, final String category) {
                 return true;

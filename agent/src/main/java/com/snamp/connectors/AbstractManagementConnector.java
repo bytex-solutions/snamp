@@ -13,7 +13,6 @@ import static com.snamp.connectors.NotificationSupport.NotificationListener;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.*;
 
 /**
@@ -278,10 +277,8 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             }
         }
 
-        private static final AtomicLong globalCounter = new AtomicLong(0L);
         private final String eventCategory;
-        private final AtomicLong counter;
-        private final Map<Long, SubscribedNotificationListener> listeners;
+        private final Map<String, SubscribedNotificationListener> listeners;
         private final ReadWriteLock coordinator;
 
         /**
@@ -289,22 +286,9 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          * @param category The category of the event.
          */
         protected GenericNotificationMetadata(final String category){
-            this(category, true);
-        }
-
-        /**
-         * Initializes a new event metadata.
-         * @param category The category of the event.
-         * @param useGlobalIdGen {@literal true} to generate an unique listener identifier through
-         *                                      all instance of the notification metadata inside
-         *                                      of this process; {@literal false} to generate an unique
-         *                                      identifier scoped to this instance only.
-         */
-        protected GenericNotificationMetadata(final String category, final boolean useGlobalIdGen){
             this.eventCategory = category;
             this.listeners = new HashMap<>(10);
             this.coordinator = new ReentrantReadWriteLock();
-            this.counter = useGlobalIdGen ? globalCounter : new AtomicLong(0L);
         }
 
         /**
@@ -339,7 +323,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             }
         }
 
-        final boolean hasListener(final Long listenerId){
+        final boolean hasListener(final String listenerId){
             final Lock readLock = coordinator.readLock();
             readLock.lock();
             try{
@@ -380,7 +364,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          * @param listenerId An identifier of the listener.
          * @return An instance of the notification listener.
          */
-         final SubscribedNotificationListener getListener(final Long listenerId){
+         final SubscribedNotificationListener getListener(final String listenerId){
             final Lock readLock = coordinator.readLock();
             readLock.lock();
             try{
@@ -393,30 +377,35 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Adds a new listener for this event.
+         * @param listenerId Unique identifier of the listener.
          * @param listener The notification listener.
          * @param userData The user data associated with the listener.
          * @return A new unique identifier of the added listener.
          */
-        public final Long addListener(final NotificationListener listener, final Object userData){
-            final Long listenerId = counter.getAndIncrement();
+        public final boolean addListener(final String listenerId, final NotificationListener listener, final Object userData){
+            if(listenerId == null || listenerId.isEmpty()) return false;
             final Lock writeLock = coordinator.writeLock();
             writeLock.lock();
             try{
-                listeners.put(listenerId, new SubscribedNotificationListener(listener, userData));
+                if(listeners.containsKey(listenerId))
+                    return false;
+                else {
+                    listeners.put(listenerId, new SubscribedNotificationListener(listener, userData));
+                    return true;
+                }
             }
             finally {
                 writeLock.unlock();
             }
-            return listenerId;
         }
 
         /**
          * Removes the listener from this event.
-         * @param listenerId An identifier of the listener obtained with {@link #addListener(NotificationListener, Object)}
+         * @param listenerId An identifier of the listener obtained with {@link #addListener(String, NotificationListener, Object)}
          *                   method.
          * @return {@literal true} if the listener with the specified ID was registered; otherwise, {@literal false}.
          */
-        public final boolean removeListener(final Long listenerId){
+        public final boolean removeListener(final String listenerId){
             final Lock writeLock = coordinator.writeLock();
             writeLock.lock();
             try{
@@ -616,19 +605,20 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
         /**
          * Attaches the notification listener.
          *
+         * @param listenerId An identifier of the notification listener.
          * @param listId An identifier of the subscription list.
          * @param listener The notification listener.
          * @return An identifier of the notification listener generated by this connector.
          */
         @Override
-        public final Long subscribe(final String listId, final NotificationListener listener) {
-            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Long>() {
+        public final boolean subscribe(final String listenerId, final String listId, final NotificationListener listener) {
+            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Boolean>() {
                 @Override
-                public final Long invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
                     final GenericNotificationMetadata metadata = notifications.get(listId);
                     if(metadata == null) return null;
                     final Object userData = subscribeCore(metadata, listener);
-                    return metadata.addListener(listener, userData);
+                    return metadata.addListener(listenerId, listener, userData);
                 }
             });
         }
@@ -644,11 +634,11 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Removes the notification listener.
-         * @param listenerId An identifier of the notification listener previously returned
-         *                   by {@link #subscribe(String, NotificationListener)} method.
+         * @param listenerId An identifier of the notification listener previously passed
+         *                   to {@link #subscribe(String, String, NotificationListener)} method.
          * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
          */
-        public final boolean unsubscribe(final Long listenerId){
+        public final boolean unsubscribe(final String listenerId){
             return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Boolean>() {
                 @Override
                 public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
@@ -663,17 +653,6 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
                     return false;
                 }
             });
-        }
-
-        /**
-         * Removes the notification listener.
-         *
-         * @param listenerId An identifier previously returned by {@link #subscribe(String, com.snamp.connectors.NotificationSupport.NotificationListener)}.
-         * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
-         */
-        @Override
-        public final boolean unsubscribe(final Object listenerId)  {
-            return listenerId instanceof Long && unsubscribe((Long)listenerId);
         }
 
         /**
@@ -935,7 +914,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
      * @return A read-only collection of registered attributes.
      */
     @Override
-    public final Collection<String> getRegisteredAttributes() {
+    public final Collection<String> getConnectedAttributes() {
         return attributes.read(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Collection<String>>() {
             @Override
             public final Collection<String> invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {

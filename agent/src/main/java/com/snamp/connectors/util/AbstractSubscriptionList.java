@@ -18,7 +18,6 @@ import java.util.*;
  * @since 1.0
  */
 public abstract class AbstractSubscriptionList<TNotificationDescriptor> extends HashMap<String, EnabledNotifications<TNotificationDescriptor>> {
-
     /**
      * Initializes a new empty list of notification listeners.
      */
@@ -93,9 +92,9 @@ public abstract class AbstractSubscriptionList<TNotificationDescriptor> extends 
 
         /**
          * Returns a listener identifier associated with this subscription.
-         * @return An identifier of the listener returned by {@link com.snamp.connectors.NotificationSupport#subscribe(String, com.snamp.connectors.NotificationSupport.NotificationListener)},
+         * @return Unique identifier of the notification listener generated automatically.
          */
-        public Object getListenerId();
+        public String getListenerId();
 
         /**
          * Gets the descriptor of the notification to which this subscription is bounded.
@@ -115,15 +114,15 @@ public abstract class AbstractSubscriptionList<TNotificationDescriptor> extends 
         if(containsKey(namespace)){
             final EnabledNotifications<TNotificationDescriptor> notifications = get(namespace);
             if(notifications.containsKey(postfix)){
-                final Object listenerId = notifications.subscribe(notifications.makeListId(namespace, postfix), listener);
-                return new Subscription<TNotificationDescriptor>() {
+                final String listenerId = notifications.subscribe(notifications.makeListId(namespace, postfix), listener);
+                return listenerId != null ? new Subscription<TNotificationDescriptor>() {
                     @Override
                     public final boolean unsubscribe() {
                         return notifications.unsubscribe(listenerId);
                     }
 
                     @Override
-                    public final Object getListenerId() {
+                    public final String getListenerId() {
                         return listenerId;
                     }
 
@@ -136,7 +135,7 @@ public abstract class AbstractSubscriptionList<TNotificationDescriptor> extends 
                     public TNotificationDescriptor getDescriptor() {
                         return notifications.get(postfix);
                     }
-                };
+                } : null;
             }
             else return null;
         }

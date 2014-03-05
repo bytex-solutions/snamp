@@ -7,6 +7,7 @@ import com.snamp.internal.MethodThreadSafety;
 import com.snamp.internal.ThreadSafety;
 
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @param <TNotificationDescriptor> Represents notification descriptor.
@@ -15,6 +16,8 @@ import java.util.HashMap;
  * @since 1.0
  */
 public abstract class EnabledNotifications<TNotificationDescriptor> extends HashMap<String, TNotificationDescriptor> {
+    private final AtomicLong idCounter;
+
     /**
      * Represents underlying connector.
      */
@@ -23,13 +26,15 @@ public abstract class EnabledNotifications<TNotificationDescriptor> extends Hash
     protected EnabledNotifications(final NotificationSupport connector){
         if(connector == null) throw new IllegalArgumentException("connector is null.");
         this.connector = connector;
+        this.idCounter = new AtomicLong(0L);
     }
 
-    Object subscribe(final String listId, final NotificationListener listener){
-        return connector.subscribe(listId, listener);
+    String subscribe(final String listId, final NotificationListener listener){
+        final String listenerId = Long.toString(idCounter.getAndIncrement());
+        return connector.subscribe(listenerId, listId, listener) ? listenerId : null;
     }
 
-    boolean unsubscribe(final Object listenerId){
+    boolean unsubscribe(final String listenerId){
         return connector.unsubscribe(listenerId);
     }
 
