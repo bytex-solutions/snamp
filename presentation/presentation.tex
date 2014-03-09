@@ -1,26 +1,31 @@
+% \PassOptionsToPackage{subsection=false}{beamerouterthememiniframes}
 \documentclass{beamer}
 
 
-
-\usepackage{beamerthemeBerlin}
 \usepackage{pgfbaseimage}
 
 \usepackage[T2A]{fontenc}
 \usepackage[cp1251]{inputenc}
 \usepackage[english,russian]{babel}
 \usepackage{graphics}
-\usecolortheme{dove}
-\useoutertheme{sidebar}
-\pgfdeclareimage[height=2.25em]{ITWorksLogo}{itworks}
-\logo{\pgfuseimage{ITWorksLogo}}
+% \usetheme{hsrm}
 
-\setbeamertemplate{footline}{\raisebox{-2ex}{\pgfuseimage{ITWorksLogo}}
-  \usebeamerfont{date in head/foot}\insertshortdate{}\hfill
-  \usebeamertemplate{navigation symbols}\hfill
-  \insertframenumber{}/\inserttotalframenumber
-
-  \setbeamertemplate{sidebar right}{}
-
+% \usecolortheme{dove}
+% \useoutertheme{sidebar}
+ \pgfdeclareimage[height=2.25em]{ITWorksLogo}{snamp}
+ \logo{\pgfuseimage{ITWorksLogo}}
+\usetheme[pageofpages=of,% String used between the current page and the
+                         % total page count.
+          bullet=circle,% Use circles instead of squares for bullets.
+          titleline=true,% Show a line below the frame title.
+          alternativetitlepage=true,% Use the fancy title page.
+          titlepagelogo=snamp,% Logo for the first page.
+          % watermark=snamp,% Watermark used in every page.
+          % watermarkheight=120px,% Height of the watermark.
+          % watermarkheightmult=4,% The watermark image is 4 times bigger
+                                % than watermarkheight.
+          ]{Torino}
+          
 \title{SNAMP. Middleware monitoring system}
 \author{Сакно Роман, Кириченко Евгений}
 \institute{IT works (c)}
