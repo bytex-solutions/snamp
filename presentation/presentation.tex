@@ -1,31 +1,111 @@
 \documentclass{beamer}
 
+
+
 \usepackage{beamerthemeBerlin}
+\usepackage{pgfbaseimage}
+
 \usepackage[T2A]{fontenc}
 \usepackage[cp1251]{inputenc}
 \usepackage[english,russian]{babel}
 \usepackage{graphics}
-\graphicspath{{fig/}}
-\title{Решение задач акустики на вычислительном кластере}
-\author{Королёв С.П.}
-\institute{Прикладная математика и информатика}
-\date{23.06.2008}
+\usecolortheme{dove}
+\useoutertheme{sidebar}
+\pgfdeclareimage[height=2.25em]{ITWorksLogo}{itworks}
+\logo{\pgfuseimage{ITWorksLogo}}
+
+\setbeamertemplate{footline}{\raisebox{-2ex}{\pgfuseimage{ITWorksLogo}}
+  \usebeamerfont{date in head/foot}\insertshortdate{}\hfill
+  \usebeamertemplate{navigation symbols}\hfill
+  \insertframenumber{}/\inserttotalframenumber
+
+  \setbeamertemplate{sidebar right}{}
+
+\title{SNAMP. Middleware monitoring system}
+\author{Сакно Роман, Кириченко Евгений}
+\institute{IT works (c)}
+\date{04.04.2014}
 \begin{document}
 
 \begin{frame}\titlepage
-\begin{flushright}Научный руководитель: Каширин А.А.\end{flushright}\end{frame}
+\begin{flushright}Платформа универсального мониторинга\end{flushright}
+\end{frame}
 
 
-\begin{frame}{О рассматриваемых уравнениях}%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{block}{Волновое уравнение}
-\centering$\frac{1}{c^2}\frac{\partial^2 U}{\partial t^2} = \Delta U$
-\end{block}
-\begin{block}{Уравнение Гельмгольца}
-\centering
-$\Delta u(\mathbf{r}) + k^2 u(\mathbf{r}) = 0,\quad k \neq 0, \quad k^2 = \omega^2/c^2$
+% \begin{frame}{}
+% \begin{block}{SNAMP}
+% \begin{center}
+% \includegraphics[scale=0.5]{snamp}
+% \end{center}
+% \end{block}
+% \end{frame}
+
+\begin{frame}{Проблематика}
+\begin{block}{}
+\begin{center}
+Диграмма
+Отсутствие единой системы мониторинга для предприятия с широким спректром стека технологий
+\end{center}
 \end{block}
 \end{frame}
 
+
+\begin{frame}{Технологическая платформа}
+\begin{block}{}
+Диаграмма
+Слева система мониторинга, посредине SNAMP платформа с 1-2 коннекторами и адаптерами, справа инфраструктура предприятия
+\end{block}
+\end{frame}
+
+\begin{frame}{Команда}
+\begin{block}{Сакно Роман}
+Руководитель направления разработки отдела интеграции информационных систем, 27 лет, разработчик Java\\C\#, основатель проекта SNAMP, банк "Восточный экспресс"
+\end{block}
+\begin{block}{Кириченко Евгений}
+Разработчик интеграционных решений, , 24 года, банк "Восточный экспресс"
+\end{block}
+\end{frame}
+
+\begin{frame}{Рынок. Коннекторы к B2B}
+\begin{enumerate}
+  \item Банковский сектор (банки)
+  \begin{enumerate}
+    \item Серверы приложений 
+    \item Интеграционные шины предприятия 
+    \item Java EE приложения
+  \end{enumerate}
+  \item Платёжные системы
+    \begin{enumerate}
+	    \item Очереди сообщений (Websphere MQ, rabbitMQ) 
+ 	 \end{enumerate}
+  \item Телекоммуникационные компании
+  	\begin{enumerate}
+	    \item SNMP атрибуты
+	    \item Очереди сообщений (Websphere MQ, rabbitMQ) 
+	\end{enumerate}
+ \end{enumerate}
+\end{frame}
+
+\begin{frame}{Рынок. Адаптеры B2B}
+Конечные системы мониторинга
+\begin{enumerate}
+	\item SNMP
+  \begin{enumerate}
+	  \item Microsoft SCOM
+	  \item Zabbix (free)
+	  \item Nagios (free)
+	  \item HP OpenView
+  \end{enumerate}
+  	\item JMX
+  	\begin{enumerate}
+	    \item JBoss monitoring server
+	    \item jConsole\\VisualVM (free)
+	    \item Apache Camel (free)
+	\end{enumerate}
+	\item REST
+	
+	\end{enumerate}
+\end{frame}
 
 
 \end{document}
