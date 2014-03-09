@@ -12,8 +12,8 @@
 
 % \usecolortheme{dove}
 % \useoutertheme{sidebar}
- \pgfdeclareimage[height=2.25em]{ITWorksLogo}{snamp}
- \logo{\pgfuseimage{ITWorksLogo}}
+\pgfdeclareimage[height=2.25em]{itworksAndSnamp}{twologo}
+\logo{\pgfuseimage{itworksAndSnamp}}
 \usetheme[pageofpages=of,% String used between the current page and the
                          % total page count.
           bullet=circle,% Use circles instead of squares for bullets.
@@ -26,36 +26,37 @@
                                 % than watermarkheight.
           ]{Torino}
           
-\title{SNAMP. Middleware monitoring system}
+\title{SNAMP: Решение для мониторинга и управления прикладными системами}
 \author{Сакно Роман, Кириченко Евгений}
-\institute{IT works (c)}
+\institute{IT Works}
 \date{04.04.2014}
 \begin{document}
 
 \begin{frame}\titlepage
-\begin{flushright}Платформа универсального мониторинга\end{flushright}
 \end{frame}
 
-
-% \begin{frame}{}
-% \begin{block}{SNAMP}
-% \begin{center}
-% \includegraphics[scale=0.5]{snamp}
-% \end{center}
-% \end{block}
-% \end{frame}
-
-\begin{frame}{Проблематика}
+\begin{frame}{Позиционирование}
 \begin{block}{}
 \begin{center}
-Диграмма
-Отсутствие единой системы мониторинга для предприятия с широким спректром стека технологий
+	\begin{itemize}
+		\item Проблематика \begin{itemize}
+			\item Различные протоколы мониторинга и управления прикладными системами (ИС)
+	    		\item Гетерогенность ИТ-инфраструктуры предприятия
+		\end{itemize}
+		\item Следствие \begin{itemize}
+			\item Высокие издержки на поддержание ИТ-инфраструктуры предприятия			
+			\item Снижение уровня качества ИТ услуг
+		\end{itemize}
+	    \item Предлагаемое решение \begin{itemize}
+	    		\item Унификация и упрощение процесса мониторинга и управления ИС
+		\end{itemize}	      
+	\end{itemize}
 \end{center}
 \end{block}
 \end{frame}
 
 
-\begin{frame}{Технологическая платформа}
+\begin{frame}{Концепция решения}
 \begin{block}{}
 Диаграмма
 Слева система мониторинга, посредине SNAMP платформа с 1-2 коннекторами и адаптерами, справа инфраструктура предприятия
