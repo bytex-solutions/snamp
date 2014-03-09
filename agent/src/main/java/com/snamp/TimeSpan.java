@@ -51,6 +51,42 @@ public final class TimeSpan {
     }
 
     /**
+     * Creates a new time span from the seconds.
+     * @param seconds Time span, in seconds.
+     * @return A new time span.
+     */
+    public static TimeSpan fromSeconds(final long seconds){
+        return new TimeSpan(seconds, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Creates a new time span from the minutes.
+     * @param minutes Time span, in minutes.
+     * @return A new time span.
+     */
+    public static TimeSpan fromMinutes(final long minutes){
+        return new TimeSpan(minutes, TimeUnit.MINUTES);
+    }
+
+    /**
+     * Creates a new time span from the hours.
+     * @param hours Time span, in hours.
+     * @return A new time span.
+     */
+    public static TimeSpan fromHours(final long hours){
+        return new TimeSpan(hours, TimeUnit.HOURS);
+    }
+
+    /**
+     * Creates a new time span from the days.
+     * @param days Time span, in days.
+     * @return A new time span.
+     */
+    public static TimeSpan fromDays(final long days){
+        return new TimeSpan(days, TimeUnit.DAYS);
+    }
+
+    /**
      * Initializes a new milliseconds interval.<br/>
      * <p>
      *     This constructor is equivalent to {@code new TimeSpan(value, TimeUnit.MILLISECONDS}</code>

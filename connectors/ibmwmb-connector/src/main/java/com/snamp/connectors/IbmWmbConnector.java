@@ -339,7 +339,7 @@ class IbmWmbConnector extends ManagementConnectorBean
      * @return properties hashtable
      * @see SimpleTable
      */
-    @AttributeInfo(typeProvider = "createPropertiesMap")
+    @ManagementAttribute(typeProvider = "createPropertiesMap")
     final public Properties getProperties() {
         try {
             final AdministeredObject entity = getAdministeredObject();

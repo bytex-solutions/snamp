@@ -65,8 +65,8 @@ import java.util.concurrent.atomic.AtomicLong;
  *     <ul>
  *      <li>Creates your own type system provider that derives from {@link WellKnownTypeSystem}.</li>
  *      <li>Declares public instance parameterless method that have {@link ManagementEntityType} return type in custom type system provider.</li>
- *      <li>Annotates property getter or setter with {@link AttributeInfo} annotation and specify method name(declared
- *      and implemented in custom type system  provider) in {@link AttributeInfo#typeProvider()} parameter.</li>
+ *      <li>Annotates property getter or setter with {@link com.snamp.connectors.ManagementConnectorBean.ManagementAttribute} annotation and specify method name(declared
+ *      and implemented in custom type system  provider) in {@link com.snamp.connectors.ManagementConnectorBean.ManagementAttribute#typeProvider()} parameter.</li>
  *     </ul>
  * </p>
  * @author Roman Sakno
@@ -84,7 +84,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
-    protected static @interface AttributeInfo{
+    protected static @interface ManagementAttribute {
         /**
          * Determines whether the attribute if cached.
          * @return {@literal true}, if attribute value is cached in the private field; otherwise, {@literal false}.
@@ -120,13 +120,13 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
             this.typeBuilder = new WeakReference<>(typeBuilder);
         }
 
-        private final AttributeInfo getAttributeInfo(){
-            final AttributeInfo info;
-            if(getter != null && getter.isAnnotationPresent(AttributeInfo.class))
-                info = getter.getAnnotation(AttributeInfo.class);
-            else if(setter != null && setter.isAnnotationPresent(AttributeInfo.class))
-                info = setter.getAnnotation(AttributeInfo.class);
-            else info = new AttributeInfo(){
+        private final ManagementAttribute getAttributeInfo(){
+            final ManagementAttribute info;
+            if(getter != null && getter.isAnnotationPresent(ManagementAttribute.class))
+                info = getter.getAnnotation(ManagementAttribute.class);
+            else if(setter != null && setter.isAnnotationPresent(ManagementAttribute.class))
+                info = setter.getAnnotation(ManagementAttribute.class);
+            else info = new ManagementAttribute(){
                     @Override
                     public boolean cached() {
                         return false;
@@ -139,7 +139,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
 
                     @Override
                     public Class<? extends Annotation> annotationType() {
-                        return AttributeInfo.class;
+                        return ManagementAttribute.class;
                     }
                 };
             return info;
