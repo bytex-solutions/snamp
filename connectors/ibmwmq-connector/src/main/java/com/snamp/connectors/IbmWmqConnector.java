@@ -57,9 +57,7 @@ final class IbmWmqConnector extends ManagementConnectorBean {
     /**
      * Initializes a new management connector.
      *
-     * @param  connectionString string with address of the MQ and channel
-     * @throws IllegalArgumentException
-     *          typeBuilder is {@literal null}.
+     * @param  connectionString string with address of the MQ and channel.
      */
     public IbmWmqConnector(final String connectionString, final Map<String, String> connectionProperties) throws IntrospectionException, MQException {
         this(new MQConnectionProperties(URI.create(connectionString), connectionProperties));
@@ -164,13 +162,10 @@ final class IbmWmqConnector extends ManagementConnectorBean {
      */
     @ManagementAttribute
     public boolean isActive() {
-        final Map<Integer, ?> filter  = toMap(
-                pair(CMQC.MQCA_Q_NAME, properties.getQueueName()),
-                pair(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS),
-                pair(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{CMQC.MQCA_Q_NAME}));
         try {
-            return sendPcfMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS, filter) != null;
-        } catch (final IOException | MQException e) {
+            return getQueueParameterThroughPCF(CMQC.MQCA_Q_NAME, null) != null;
+        }
+        catch (final IOException | MQException e) {
             log.log(Level.WARNING, "Connection with MQ was lost.", e);
             return false;
         }
