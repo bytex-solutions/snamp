@@ -192,8 +192,12 @@ public class InMemoryCommunicationSurface extends AbstractCommunicationSurface {
         this(InMemoryCommunicationSurface.class.getCanonicalName(), nThreads);
     }
 
-    private InMemoryDeliveryChannel getDeliveryChannel(){
-        return (InMemoryDeliveryChannel)channel;
+    /**
+     * Gets a collection of registered objects.
+     * @return A collection of registered objects.
+     */
+    protected final Collection<CommunicableObject> getRegisteredObjects(){
+        return getDeliveryChannel(InMemoryDeliveryChannel.class);
     }
 
     /**
@@ -205,7 +209,7 @@ public class InMemoryCommunicationSurface extends AbstractCommunicationSurface {
      */
     @Override
     protected final boolean isRegistered(final CommunicableObject obj) {
-        return getDeliveryChannel().contains(obj);
+        return getRegisteredObjects().contains(obj);
     }
 
     /**
@@ -218,7 +222,7 @@ public class InMemoryCommunicationSurface extends AbstractCommunicationSurface {
     @Override
     protected final boolean connect(final CommunicableObject obj, final CloseableMessenger messenger) {
         if(super.connect(obj, messenger))
-            return getDeliveryChannel().add(obj);
+            return getRegisteredObjects().add(obj);
         else return false;
     }
 
@@ -230,7 +234,7 @@ public class InMemoryCommunicationSurface extends AbstractCommunicationSurface {
     @Override
     protected final void disconnect(final CommunicableObject obj) {
         super.disconnect(obj);
-        getDeliveryChannel().remove(obj);
+        getRegisteredObjects().remove(obj);
     }
 
     /**
@@ -238,7 +242,7 @@ public class InMemoryCommunicationSurface extends AbstractCommunicationSurface {
      */
     @Override
     public final void removeAll() {
-        final Collection<CommunicableObject> objects = getDeliveryChannel();
+        final Collection<CommunicableObject> objects = getRegisteredObjects();
         for(final CommunicableObject obj: objects)
             obj.disconnect();
         objects.clear();
@@ -246,10 +250,14 @@ public class InMemoryCommunicationSurface extends AbstractCommunicationSurface {
 
     /**
      * Releases all resources associated with this surface.
+     * <p>
+     *     In the default implementation this method doesn't throw an exception.
+     * </p>
+     * @throws Exception Some error occurred during destruction of this surface.
      */
     @Override
-    public void close() {
+    public void close() throws Exception{
         removeAll();
-        getDeliveryChannel().close();
+        getDeliveryChannel(InMemoryDeliveryChannel.class).close();
     }
 }

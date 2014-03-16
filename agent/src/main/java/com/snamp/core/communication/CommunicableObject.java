@@ -110,6 +110,8 @@ public interface CommunicableObject {
      * @param message The message to process. Cannot be {@literal null}.
      * @return Response message.
      * @throws IllegalArgumentException message is {@literal null}.
+     * @throws MessageNotSupportedException Input message is not supported.
+     * @throws Exception Some error occurs during message processing.
      */
     <REQ, RES> RES processMessage(final Object sender, final InputMessage<REQ, RES> message) throws Exception;
 }

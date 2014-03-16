@@ -4,6 +4,8 @@ import com.snamp.adapters.*;
 import com.snamp.configuration.AgentConfiguration;
 import com.snamp.connectors.*;
 import com.snamp.core.AbstractPlatformService;
+import com.snamp.core.communication.CommunicableObject;
+import com.snamp.core.communication.InMemoryCommunicationSurface;
 import com.snamp.hosting.management.*;
 import com.snamp.internal.*;
 import net.xeoh.plugins.base.PluginManager;
@@ -42,7 +44,8 @@ import java.util.logging.*;
  */
 @Internal
 @Lifecycle(InstanceLifecycle.SINGLE_PER_PROCESS)
-public final class Agent extends AbstractPlatformService implements AutoCloseable {
+public final class Agent extends InMemoryCommunicationSurface {
+
     private static final Logger logger = Logger.getLogger("com.snamp");
     /**
      * Represents name of the system property that contains path to the folder with SNAMP plugins.
@@ -50,21 +53,81 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
     public static final String PLUGINS_DIR = "com.snamp.plugindir";
 
     /**
-     * Represents a map of instantiated management connector.
+     * Represents a map of instantiated connectors.
+     * <p>
+     *     The key in this map represents connection string.
+     * </p>
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
-    public static interface InstantiatedConnectors extends Map<String, ManagementConnector>{
+    public static interface InstantiatedConnectors{
+        /**
+         * Gets a read-only collection of connector types.
+         * @return A read-only collection of connector types.
+         */
+        Collection<String> getConnectionTypes();
 
+        /**
+         * Gets a read-only collection of connectors by the specified connection type.
+         * @param connectionType The connection type.
+         * @return A read-only collection of management connectors.
+         */
+        Collection<ManagementConnector> getConnectors(final String connectionType);
     }
 
-    private static final class InstantiatedConnectorsImpl extends HashMap<String, ManagementConnector> implements InstantiatedConnectors{
+    private static interface InstantiatedConnectorsRegistry extends InstantiatedConnectors{
+        void clear();
+
+        void add(final String connectionType, final ManagementConnector connector);
+    }
+
+    private static final class InstantiatedConnectorsImpl implements InstantiatedConnectorsRegistry{
+        private final Map<String, Collection<ManagementConnector>> connectors;
+
         public InstantiatedConnectorsImpl(){
-            super(4);
+            connectors = new HashMap<>(4);
+        }
+
+        /**
+         * Gets a read-only collection of connector types.
+         *
+         * @return A read-only collection of connector types.
+         */
+        @Override
+        public final Collection<String> getConnectionTypes() {
+            return connectors.keySet();
+        }
+
+        /**
+         * Gets a read-only collection of connectors by the specified connection type.
+         *
+         * @param connectionType The connection type.
+         * @return A read-only collection of management connectors.
+         */
+        @Override
+        public final Collection<ManagementConnector> getConnectors(final String connectionType) {
+            return connectors.containsKey(connectionType) ? connectors.get(connectionType) : Collections.<ManagementConnector>emptyList();
+        }
+
+        @Override
+        public final void clear() {
+            connectors.clear();
+        }
+
+        @Override
+        public void add(final String connectionType, final ManagementConnector connector) {
+            final Collection<ManagementConnector> instances;
+            if(connectors.containsKey(connectionType))
+                instances = connectors.get(connectionType);
+            else connectors.put(connectionType, instances = new ArrayList<>(4));
+            instances.add(connector);
         }
     }
 
     private Adapter adapter;
     private final Map<String, String> params;
-    private final InstantiatedConnectors connectors;
+    private final InstantiatedConnectorsRegistry connectors;
     private boolean started;
     private final PluginManager pluginManager;
 
@@ -89,13 +152,22 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
      * @throws IllegalArgumentException Adapter cannot be resolved.
      */
     public Agent(final AgentConfiguration.HostingConfiguration hostingConfig){
-        super(logger);
+        super(logger, 4);
         pluginManager = loadPlugins();
         adapter = getAdapter(pluginManager, hostingConfig.getAdapterName());
         if(adapter == null) throw new IllegalArgumentException("Adapter is not available");
+        else tryRegisterObject(adapter);
         this.params = new HashMap<>(hostingConfig.getHostingParams());
         this.connectors = new InstantiatedConnectorsImpl();
         started = false;
+    }
+
+    private final boolean tryRegisterObject(final Object obj){
+        return obj instanceof CommunicableObject && registerObject((CommunicableObject)obj);
+    }
+
+    private final boolean tryRemoveObject(final Object obj){
+        return obj instanceof CommunicableObject && removeObject((CommunicableObject)obj);
     }
 
     /**
@@ -197,13 +269,14 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
      * Returns a map of instantiated connectors.
      * @return A map of instantiated connectors.
      */
-    public final Map<String, ManagementConnector> getConnectors(){
-        return Collections.unmodifiableMap(connectors);
+    public final InstantiatedConnectors getConnectors(){
+        return connectors;
     }
 
-    private static void releaseConnectors(final Collection<ManagementConnector> connectors) throws Exception{
-        for(final ManagementConnector mc: connectors)
-            mc.close();
+    private static void releaseConnectors(final InstantiatedConnectors connectors) throws Exception{
+        for(final String connectionType: connectors.getConnectionTypes())
+            for(final ManagementConnector mc: connectors.getConnectors(connectionType))
+                mc.close();
     }
 
     /**
@@ -218,11 +291,12 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
     public final void reconfigure(final AgentConfiguration.HostingConfiguration hostingConfig) throws Exception {
         if(hostingConfig == null) throw new IllegalArgumentException("hostingConfig is null.");
         if(started) throw new IllegalStateException("The agent must be in stopped state.");
-        final Adapter ad = getAdapter(hostingConfig.getAdapterName());
-        if(ad == null) throw new IllegalStateException("Adapter is not available");
-        this.adapter = ad;
+        removeAll();
+        adapter = getAdapter(hostingConfig.getAdapterName());
+        if(adapter == null) throw new IllegalStateException("Adapter is not available");
+        else tryRegisterObject(adapter);
         params.clear();
-        releaseConnectors(connectors.values());
+        releaseConnectors(connectors);
         connectors.clear();
         params.putAll(hostingConfig.getHostingParams());
         System.gc();
@@ -234,14 +308,9 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
             return;
         }
         //loads the management connector
-        final ManagementConnector connector;
-        if(connectors.containsKey(targetConfig.getConnectionType()))
-            connector = connectors.get(targetConfig.getConnectionType());
-        else {
-            connector = createConnector(pluginManager, targetConfig);
-            if(connector == null) return;
-            else connectors.put(targetConfig.getConnectionType(), connector);
-        }
+        final ManagementConnector connector = createConnector(pluginManager, targetConfig);
+        connectors.add(targetConfig.getConnectionType(), connector);
+        tryRegisterObject(connector);
         //register attributes
         adapter.exposeAttributes(isolate(connector, AttributeSupport.class), targetConfig.getNamespace(), targetConfig.getAttributes());
         //register events
@@ -273,7 +342,7 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
         boolean success;
         try {
             success = adapter.stop(false);
-            releaseConnectors(connectors.values());
+            releaseConnectors(connectors);
             connectors.clear();
         }
         catch (final Exception e) {
@@ -316,10 +385,11 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
      * @throws Exception
      */
     @Override
-    public void close() throws Exception{
+    public void close() throws Exception {
+        super.close();
         params.clear();
         adapter.close();
-        releaseConnectors(connectors.values());
+        releaseConnectors(connectors);
         connectors.clear();
         pluginManager.shutdown();
     }

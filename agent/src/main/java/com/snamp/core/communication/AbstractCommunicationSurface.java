@@ -184,7 +184,7 @@ public abstract class AbstractCommunicationSurface extends AbstractPlatformServi
     /**
      * Represents delivery channel.
      */
-    protected final DeliveryChannel channel;
+    private final DeliveryChannel channel;
 
     /**
      * Initializes a new instance of the platform service.
@@ -197,6 +197,17 @@ public abstract class AbstractCommunicationSurface extends AbstractPlatformServi
         super(loggerInstance);
         if(channel == null) throw new IllegalArgumentException("channel is null.");
         else this.channel = channel;
+    }
+
+    /**
+     * Gets delivery channel casted to the specified type.
+     * @param destinationType The type that implements {@link DeliveryChannel}.
+     * @param <T> The type that implements {@link DeliveryChannel}.
+     * @throws ClassCastException Underlying channel is not an instance of T.
+     * @return Type-safe representation of the delivery channel.
+     */
+    protected final <T extends DeliveryChannel> T getDeliveryChannel(final Class<T> destinationType){
+        return destinationType.cast(channel);
     }
 
     /**
