@@ -55,7 +55,7 @@ public final class Agent extends InMemoryCommunicationSurface {
     /**
      * Represents a map of instantiated connectors.
      * <p>
-     *     The key in this map represents connection string.
+     *     The key in this map represents connection type.
      * </p>
      * @author Roman Sakno
      * @since 1.0
