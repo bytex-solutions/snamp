@@ -1,5 +1,6 @@
 package com.snamp.connectors;
 
+import com.ibm.mq.MQException;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 import java.beans.IntrospectionException;
@@ -25,7 +26,7 @@ public final class IbmWmqConnectorFactory extends AbstractManagementConnectorFac
     public IbmWmqConnector newInstance(String connectionString, Map<String, String> connectionProperties) {
         try {
             return new IbmWmqConnector(connectionString, connectionProperties);
-        } catch (final IntrospectionException e) {
+        } catch (final IntrospectionException | MQException e) {
             getLogger().log(Level.SEVERE, "Unable to create IBM MQ connector", e);
             return null;
         }

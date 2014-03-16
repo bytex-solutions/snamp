@@ -192,7 +192,7 @@ public class EmbeddedAgentConfiguration extends AbstractAgentConfiguration imple
              * that equal objects must have equal hash codes.
              *
              * @param obj the reference object with which to compare.
-             * @return {@code true} if this object is the same as the obj
+             * @return {@code true} if this object is the same as the communicableObject
              *         argument; {@code false} otherwise.
              * @see #hashCode()
              * @see java.util.HashMap
