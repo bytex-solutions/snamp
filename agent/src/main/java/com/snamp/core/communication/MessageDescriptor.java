@@ -18,4 +18,10 @@ public interface MessageDescriptor<REQ, RES> {
      * @return The type of the response payload.
      */
     Class<RES> getOutputMessagePayloadType();
+
+    /**
+     * Determines whether the input message is one-way.
+     * @return {@literal true}, if the input message is one-way; otherwise, {@literal false}.
+     */
+    boolean isOneWay();
 }

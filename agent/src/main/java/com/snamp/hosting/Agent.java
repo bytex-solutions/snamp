@@ -4,8 +4,7 @@ import com.snamp.adapters.*;
 import com.snamp.configuration.AgentConfiguration;
 import com.snamp.connectors.*;
 import com.snamp.core.AbstractPlatformService;
-import com.snamp.core.communication.CommunicableObject;
-import com.snamp.core.communication.InMemoryCommunicationSurface;
+import com.snamp.core.communication.*;
 import com.snamp.hosting.management.*;
 import com.snamp.internal.*;
 import net.xeoh.plugins.base.PluginManager;
@@ -44,7 +43,7 @@ import java.util.logging.*;
  */
 @Internal
 @Lifecycle(InstanceLifecycle.SINGLE_PER_PROCESS)
-public final class Agent extends InMemoryCommunicationSurface {
+public final class Agent extends AbstractPlatformService implements AutoCloseable {
 
     private static final Logger logger = Logger.getLogger("com.snamp");
     /**
@@ -82,13 +81,7 @@ public final class Agent extends InMemoryCommunicationSurface {
         int size();
     }
 
-    private static interface InstantiatedConnectorsRegistry extends InstantiatedConnectors{
-        void clear();
-
-        void add(final String connectionType, final ManagementConnector connector);
-    }
-
-    private static final class InstantiatedConnectorsImpl implements InstantiatedConnectorsRegistry{
+    private static final class InstantiatedConnectorsImpl implements InstantiatedConnectors{
         private final Map<String, Collection<ManagementConnector>> connectors;
 
         public InstantiatedConnectorsImpl(){
@@ -116,6 +109,14 @@ public final class Agent extends InMemoryCommunicationSurface {
             return connectors.containsKey(connectionType) ? connectors.get(connectionType) : Collections.<ManagementConnector>emptyList();
         }
 
+        public final Collection<ManagementConnector> getConnectors(){
+            final Collection<ManagementConnector> result = new ArrayList<>(15);
+            for(final String connectionType: connectors.keySet())
+                for(final ManagementConnector mc: connectors.get(connectionType))
+                    result.add(mc);
+            return result;
+        }
+
         /**
          * Gets count of instantiated connectors.
          *
@@ -123,18 +124,13 @@ public final class Agent extends InMemoryCommunicationSurface {
          */
         @Override
         public final int size() {
-            int result = 0;
-            for(final Collection<ManagementConnector> mc: connectors.values())
-                result += mc.size();
-            return result;
+            return getConnectors().size();
         }
 
-        @Override
         public final void clear() {
             connectors.clear();
         }
 
-        @Override
         public void add(final String connectionType, final ManagementConnector connector) {
             final Collection<ManagementConnector> instances;
             if(connectors.containsKey(connectionType))
@@ -144,9 +140,84 @@ public final class Agent extends InMemoryCommunicationSurface {
         }
     }
 
-    private Adapter adapter;
+    private static final class PluginCommunicator extends InMemoryCommunicator{
+        private Adapter adapter;
+        private final InstantiatedConnectorsImpl connectors;
+
+        public PluginCommunicator(){
+            super(4);
+            connectors = new InstantiatedConnectorsImpl();
+        }
+
+        /**
+         * Gets a collection of connected objects.
+         *
+         * @return A collection of connected objects.
+         */
+        @Override
+        protected Iterable<CommunicableObject> getReceivers() {
+            final Collection<CommunicableObject> result = new ArrayList<>(connectors.size() + 1);
+            if(adapter instanceof CommunicableObject) result.add((CommunicableObject)adapter);
+            for(final ManagementConnector mc: connectors.getConnectors())
+                if(mc instanceof CommunicableObject) result.add((CommunicableObject)mc);
+            return result;
+        }
+
+        public final InstantiatedConnectors getInstantiatedConnectors(){
+            return connectors;
+        }
+
+        public final Adapter getAdapter(){
+            return adapter;
+        }
+
+        public final void setAdapter(final Adapter value){
+            if(value == null) throw new IllegalArgumentException("Adapter is not available.");
+            //disconnects the old adapter
+            if(adapter instanceof CommunicableObject)
+                ((CommunicableObject)adapter).disconnect();
+            //connects a new adapter to this communicator
+            if(value instanceof CommunicableObject)
+                ((CommunicableObject)value).connect(this);
+            adapter = value;
+        }
+
+        public void addConnector(final String connectionType, final ManagementConnector connector) {
+            connectors.add(connectionType, connector);
+            if(connector instanceof CommunicableObject)
+                ((CommunicableObject)connector).connect(this);
+        }
+
+        public void releaseConnectors() throws Exception{
+            for(final ManagementConnector mc: connectors.getConnectors()){
+                    if(mc instanceof CommunicableObject)
+                        ((CommunicableObject)mc).disconnect();
+                    mc.close();
+                }
+            connectors.clear();
+        }
+
+        public void releaseAdapter() throws Exception {
+            if(adapter instanceof CommunicableObject)
+                ((CommunicableObject)adapter).disconnect();
+            if(adapter != null)
+                adapter.close();
+            adapter = null;
+        }
+
+        /**
+         * Releases all resources associated with plugins.
+         * @throws Exception
+         */
+        public void releaseAll() throws Exception {
+            super.close();
+            releaseAdapter();
+            releaseConnectors();
+        }
+    }
+
     private final Map<String, String> params;
-    private final InstantiatedConnectorsRegistry connectors;
+    private final PluginCommunicator plugins;
     private boolean started;
     private final PluginManager pluginManager;
 
@@ -171,22 +242,12 @@ public final class Agent extends InMemoryCommunicationSurface {
      * @throws IllegalArgumentException Adapter cannot be resolved.
      */
     public Agent(final AgentConfiguration.HostingConfiguration hostingConfig){
-        super(logger, 4);
+        super(logger);
         pluginManager = loadPlugins();
-        adapter = getAdapter(pluginManager, hostingConfig.getAdapterName());
-        if(adapter == null) throw new IllegalArgumentException("Adapter is not available");
-        else tryRegisterObject(adapter);
+        plugins = new PluginCommunicator();
+        plugins.setAdapter(getAdapter(pluginManager, hostingConfig.getAdapterName()));
         this.params = new HashMap<>(hostingConfig.getHostingParams());
-        this.connectors = new InstantiatedConnectorsImpl();
         started = false;
-    }
-
-    private final boolean tryRegisterObject(final Object obj){
-        return obj instanceof CommunicableObject && registerObject((CommunicableObject)obj);
-    }
-
-    private final boolean tryRemoveObject(final Object obj){
-        return obj instanceof CommunicableObject && removeObject((CommunicableObject)obj);
     }
 
     /**
@@ -289,13 +350,7 @@ public final class Agent extends InMemoryCommunicationSurface {
      * @return A map of instantiated connectors.
      */
     public final InstantiatedConnectors getConnectors(){
-        return connectors;
-    }
-
-    private static void releaseConnectors(final InstantiatedConnectors connectors) throws Exception{
-        for(final String connectionType: connectors.getConnectionTypes())
-            for(final ManagementConnector mc: connectors.getConnectors(connectionType))
-                mc.close();
+        return plugins.getInstantiatedConnectors();
     }
 
     /**
@@ -310,13 +365,9 @@ public final class Agent extends InMemoryCommunicationSurface {
     public final void reconfigure(final AgentConfiguration.HostingConfiguration hostingConfig) throws Exception {
         if(hostingConfig == null) throw new IllegalArgumentException("hostingConfig is null.");
         if(started) throw new IllegalStateException("The agent must be in stopped state.");
-        removeAll();
-        adapter = getAdapter(hostingConfig.getAdapterName());
-        if(adapter == null) throw new IllegalStateException("Adapter is not available");
-        else tryRegisterObject(adapter);
+        plugins.setAdapter(getAdapter(hostingConfig.getAdapterName()));
         params.clear();
-        releaseConnectors(connectors);
-        connectors.clear();
+        plugins.releaseConnectors();
         params.putAll(hostingConfig.getHostingParams());
         System.gc();
     }
@@ -328,13 +379,12 @@ public final class Agent extends InMemoryCommunicationSurface {
         }
         //loads the management connector
         final ManagementConnector connector = createConnector(pluginManager, targetConfig);
-        connectors.add(targetConfig.getConnectionType(), connector);
-        tryRegisterObject(connector);
+        plugins.addConnector(targetConfig.getConnectionType(), connector);
         //register attributes
-        adapter.exposeAttributes(isolate(connector, AttributeSupport.class), targetConfig.getNamespace(), targetConfig.getAttributes());
+        plugins.getAdapter().exposeAttributes(isolate(connector, AttributeSupport.class), targetConfig.getNamespace(), targetConfig.getAttributes());
         //register events
-        if(connector instanceof NotificationSupport && adapter instanceof NotificationPublisher)
-            ((NotificationPublisher)adapter).exposeEvents(castAndIsolate(connector, NotificationSupport.class, NotificationSupport.class), targetConfig.getNamespace(), targetConfig.getEvents());
+        if(connector instanceof NotificationSupport && plugins.getAdapter() instanceof NotificationPublisher)
+            ((NotificationPublisher)plugins.getAdapter()).exposeEvents(castAndIsolate(connector, NotificationSupport.class, NotificationSupport.class), targetConfig.getNamespace(), targetConfig.getEvents());
     }
 
     /**
@@ -350,7 +400,7 @@ public final class Agent extends InMemoryCommunicationSurface {
             logger.fine(String.format("Registering %s management target", targetName));
             registerTarget(targets.get(targetName));
         }
-        return adapter.start(params);
+        return plugins.getAdapter().start(params);
     }
 
     /**
@@ -360,9 +410,8 @@ public final class Agent extends InMemoryCommunicationSurface {
     public final boolean stop(){
         boolean success;
         try {
-            success = adapter.stop(false);
-            releaseConnectors(connectors);
-            connectors.clear();
+            success = plugins.getAdapter().stop(false);
+            plugins.releaseConnectors();
         }
         catch (final Exception e) {
             logger.log(Level.SEVERE, "Unable to stop SNAMP agent", e);
@@ -405,11 +454,8 @@ public final class Agent extends InMemoryCommunicationSurface {
      */
     @Override
     public void close() throws Exception {
-        super.close();
         params.clear();
-        adapter.close();
-        releaseConnectors(connectors);
-        connectors.clear();
+        plugins.releaseAll();
         pluginManager.shutdown();
     }
 
@@ -423,8 +469,8 @@ public final class Agent extends InMemoryCommunicationSurface {
     @Override
     public final <T> T queryObject(final Class<T> objectType) {
         if(objectType == null) return null;
-        else if(objectType.isInstance(adapter)) return objectType.cast(adapter);
-        else if(objectType.isInstance(connectors)) return objectType.cast(connectors);
+        else if(objectType.isInstance(plugins.getAdapter())) return objectType.cast(plugins.getAdapter());
+        else if(objectType.isInstance(plugins.getInstantiatedConnectors())) return objectType.cast(plugins.getInstantiatedConnectors());
         else return null;
     }
 }

@@ -44,4 +44,17 @@ public class MessageDescriptorImpl<REQ, RES> implements MessageDescriptor<REQ, R
     public final Class<RES> getOutputMessagePayloadType() {
         return responseType;
     }
+
+    /**
+     * Determines whether the input message is one-way.
+     * <p>
+     *     In the default implementation this method returns true if
+     *     {@link #getOutputMessagePayloadType()} is {@link Void}.
+     * </p>
+     * @return {@literal true}, if the input message is one-way; otherwise, {@literal false}.
+     */
+    @Override
+    public boolean isOneWay() {
+        return responseType.equals(Void.class);
+    }
 }
