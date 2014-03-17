@@ -173,34 +173,46 @@ public final class Agent extends AbstractPlatformService implements AutoCloseabl
         public final void setAdapter(final Adapter value){
             if(value == null) throw new IllegalArgumentException("Adapter is not available.");
             //disconnects the old adapter
-            if(adapter instanceof CommunicableObject)
-                ((CommunicableObject)adapter).disconnect();
+            disconnect(adapter);
             //connects a new adapter to this communicator
-            if(value instanceof CommunicableObject)
-                ((CommunicableObject)value).connect(this);
-            adapter = value;
+            connect(adapter = value);
+        }
+
+        private static boolean disconnect(final Object obj){
+            if(obj instanceof CommunicableObject){
+                ((CommunicableObject)obj).disconnect();
+                return true;
+            }
+            else return false;
+        }
+
+        private static boolean disconnectAndClose(final AutoCloseable obj) throws Exception{
+            if(obj != null){
+                final boolean success = disconnect(obj);
+                obj.close();
+                return success;
+            }
+            else return false;
+        }
+
+        private boolean connect(final Object obj){
+            return obj instanceof  CommunicableObject &&
+                    ((CommunicableObject)obj).connect(ReflectionUtils.weakReference(this, Communicator.class));
         }
 
         public void addConnector(final String connectionType, final ManagementConnector connector) {
             connectors.add(connectionType, connector);
-            if(connector instanceof CommunicableObject)
-                ((CommunicableObject)connector).connect(this);
+            connect(connector);
         }
 
         public void releaseConnectors() throws Exception{
-            for(final ManagementConnector mc: connectors.getConnectors()){
-                    if(mc instanceof CommunicableObject)
-                        ((CommunicableObject)mc).disconnect();
-                    mc.close();
-                }
+            for(final ManagementConnector mc: connectors.getConnectors())
+                disconnectAndClose(mc);
             connectors.clear();
         }
 
         public void releaseAdapter() throws Exception {
-            if(adapter instanceof CommunicableObject)
-                ((CommunicableObject)adapter).disconnect();
-            if(adapter != null)
-                adapter.close();
+            disconnectAndClose(adapter);
             adapter = null;
         }
 
