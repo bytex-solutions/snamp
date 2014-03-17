@@ -14,8 +14,7 @@ import net.xeoh.plugins.base.options.getplugin.OptionCapabilities;
 
 import static com.snamp.internal.ReflectionUtils.*;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.util.*;
 import java.util.logging.*;
