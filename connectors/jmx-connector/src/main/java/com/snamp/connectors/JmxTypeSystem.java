@@ -1,6 +1,6 @@
 package com.snamp.connectors;
 
-import com.snamp.Activator;
+import org.apache.commons.collections4.Factory;
 import com.snamp.SimpleTable;
 import com.snamp.Table;
 import com.snamp.TypeConverter;
@@ -122,10 +122,10 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             super(st);
         }
 
-        public static <T> Activator<JmxSimpleEntityType<T>> createActivator(final SimpleType<T> simpleType){
-            return new Activator<JmxSimpleEntityType<T>>() {
+        public static <T> Factory<JmxSimpleEntityType<T>> createActivator(final SimpleType<T> simpleType){
+            return new Factory<JmxSimpleEntityType<T>>() {
                 @Override
-                public JmxSimpleEntityType<T> newInstance() {
+                public JmxSimpleEntityType<T> create() {
                     return new JmxSimpleEntityType<>(simpleType);
                 }
             };
@@ -506,9 +506,9 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
     }
 
     private final <T> AbstractJmxEntityArrayType<T> createEntityArrayType(final ArrayType<T[]> attributeType){
-        return createEntityType(new Activator<AbstractJmxEntityArrayType<T>>(){
+        return createEntityType(new Factory<AbstractJmxEntityArrayType<T>>(){
             @Override
-            public final AbstractJmxEntityArrayType<T> newInstance() {
+            public final AbstractJmxEntityArrayType<T> create() {
                 try {
                     return new JmxManagementEntityArrayType<>(attributeType);
                 }
@@ -524,18 +524,18 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         if(attributeType instanceof SimpleType)
             return createEntitySimpleType((SimpleType<?>) attributeType);
         else if(attributeType instanceof CompositeType)
-            return createEntityType(new Activator<AbstractJmxEntityCompositeType>(){
+            return createEntityType(new Factory<AbstractJmxEntityCompositeType>(){
                 @Override
-                public final AbstractJmxEntityCompositeType newInstance() {
+                public final AbstractJmxEntityCompositeType create() {
                     return new JmxManagementEntityCompositeType((CompositeType)attributeType);
                 }
             }, AbstractJmxEntityCompositeType.WELL_KNOWN_TYPES);
         else if(attributeType instanceof ArrayType<?>)
             return createEntityArrayType((ArrayType) attributeType);
         else if(attributeType instanceof TabularType)
-            return createEntityType(new Activator<AbstractJmxEntityTabularType>(){
+            return createEntityType(new Factory<AbstractJmxEntityTabularType>(){
                 @Override
-                public AbstractJmxEntityTabularType newInstance() {
+                public AbstractJmxEntityTabularType create() {
                     return new JmxManagementEntityTabularType((TabularType)attributeType);
                 }
             }, AbstractJmxEntityTabularType.WELL_KNOWN_TYPE);

@@ -2,6 +2,8 @@ package com.snamp.licensing;
 
 import com.snamp.*;
 import com.snamp.core.PlatformPlugin;
+import org.apache.commons.lang3.Range;
+import org.apache.commons.collections4.Factory;
 
 import javax.xml.bind.annotation.adapters.*;
 import java.io.IOException;
@@ -32,7 +34,7 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
 
     }
 
-    protected static <T extends AbstractLicenseLimitations> T current(final Class<T> limitationsHolder, final Activator<T> fallback){
+    protected static <T extends AbstractLicenseLimitations> T current(final Class<T> limitationsHolder, final Factory<T> fallback){
         return LicenseReader.getLimitations(limitationsHolder, fallback);
     }
 
@@ -116,15 +118,12 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
     }
 
     protected static abstract class RangeLimitation<T extends Comparable<T>> extends Requirement<T, Range<T>> {
-        private final Range.InclusionTestType testType;
-
-        protected RangeLimitation(final Range<T> range, final Range.InclusionTestType testType){
+        protected RangeLimitation(final Range<T> range){
             super(range);
-            this.testType = testType;
         }
 
-        protected RangeLimitation(final T lowerBound, final T upperBound, final Range.InclusionTestType testType){
-            this(new Range<>(lowerBound, upperBound), testType);
+        protected RangeLimitation(final T lowerBound, final T upperBound){
+            this(Range.between(lowerBound, upperBound));
         }
 
         /**
@@ -135,7 +134,7 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
          */
         @Override
         public final boolean validate(final T actualValue) {
-            return requiredValue.contains(actualValue, testType);
+            return requiredValue.contains(actualValue);
         }
     }
 

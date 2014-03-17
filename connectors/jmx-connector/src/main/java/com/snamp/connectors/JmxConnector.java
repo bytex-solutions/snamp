@@ -6,13 +6,15 @@ import com.snamp.connectors.util.NotificationListenerInvokerFactory;
 import com.snamp.core.maintenance.*;
 import com.snamp.internal.*;
 import com.snamp.licensing.JmxConnectorLimitations;
+import org.apache.commons.beanutils.PropertyUtils;
+
 import static com.snamp.connectors.JmxConnectionManager.MBeanServerConnectionHandler;
 import static com.snamp.configuration.JmxConnectorConfigurationDescriptor.*;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import javax.management.remote.*;
-import java.beans.IntrospectionException;
+import java.beans.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -582,9 +584,10 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             notificationSeverity = severity != null ? severity : Severity.UNKNOWN;
             //loads notification as Java Bean and explore each JB property as attachment
             try {
-                putAll(new BeanPropertyAccessor<>(jmxNotification, javax.management.Notification.class));
+                for(final PropertyDescriptor property: Introspector.getBeanInfo(jmxNotification.getClass(), javax.management.Notification.class).getPropertyDescriptors())
+                    put(property.getName(), PropertyUtils.getProperty(jmxNotification, property.getName()));
             }
-            catch (final IntrospectionException e) {
+            catch (final java.beans.IntrospectionException | ReflectiveOperationException e) {
                 log.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);
             }
         }

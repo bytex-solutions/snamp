@@ -1,6 +1,7 @@
 package com.snamp.connectors;
 
 import com.snamp.*;
+import org.apache.commons.collections4.Factory;
 
 import java.util.*;
 
@@ -106,9 +107,9 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterF
         /**
          * Represents a singleton activator for the simple management entity type.
          */
-        public static final Activator<SimpleManagementEntityType> ACTIVATOR = new Activator<SimpleManagementEntityType>() {
+        public static final Factory<SimpleManagementEntityType> ACTIVATOR = new Factory<SimpleManagementEntityType>() {
             @Override
-            public SimpleManagementEntityType newInstance() {
+            public SimpleManagementEntityType create() {
                 return new SimpleManagementEntityType();
             }
         };
@@ -283,8 +284,8 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterF
      * @param projections An array of supported projections of the specified management entity type.
      * @return An instance of the management entity type.
      */
-    public final <T extends AbstractManagementEntityType> T createEntityType(final Activator<T> activator, final Class<?>... projections) {
-        final T entityType = activator.newInstance();
+    public final <T extends AbstractManagementEntityType> T createEntityType(final Factory<T> activator, final Class<?>... projections) {
+        final T entityType = activator.create();
         for(final Class<?> t: projections){
             final TypeConverter<?> converter = getTypeConverter(t);
             if(converter != null) AbstractManagementEntityType.registerConverter(entityType, converter);

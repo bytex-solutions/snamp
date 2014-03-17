@@ -3,6 +3,7 @@ package com.snamp.licensing;
 import com.snamp.*;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
+import org.apache.commons.collections4.Factory;
 import static com.snamp.ConcurrentResourceAccess.ConsistentAction;
 import static com.snamp.ConcurrentResourceAccess.Action;
 
@@ -172,14 +173,14 @@ public final class LicenseReader {
      * @param <T> Type of the license limitations descriptor.
      * @return A new instance of the license limitations.
      */
-    public static <T extends LicenseLimitations> T getLimitations(final Class<T> limitationsDescriptor, final Activator<T> fallback){
+    public static <T extends LicenseLimitations> T getLimitations(final Class<T> limitationsDescriptor, final Factory<T> fallback){
         T result = null;
-        if(limitationsDescriptor == null) return fallback.newInstance();
+        if(limitationsDescriptor == null) return fallback.create();
         result = licensingContext.read(new ConcurrentResourceAccess.ConsistentAction<LicensingContext, T>() {
             @Override
             public T invoke(final LicensingContext resource) {
                 return resource.loadedLicense == null ?
-                        fallback.newInstance() :
+                        fallback.create() :
                         limitationsDescriptor.cast(resource.loadedLimitations.get(limitationsDescriptor));
             }
         });
@@ -199,11 +200,11 @@ public final class LicenseReader {
                     }
                 });
             }
-            else result = fallback.newInstance();
+            else result = fallback.create();
         }
         catch (final JAXBException e) {
             log.warning(e.getLocalizedMessage());
-            result = fallback.newInstance();
+            result = fallback.create();
         }
         return result;
     }

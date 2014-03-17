@@ -1,6 +1,6 @@
 package com.snamp.connectors;
 
-import static com.snamp.Pair.*;
+import org.apache.commons.lang3.tuple.*;
 import com.ibm.mq.*;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
@@ -109,48 +109,55 @@ final class IbmWmqConnector extends ManagementConnectorBean {
         else return defaultValue;
     }
 
+    private static <K, V> Map<K, V> toMap(final Pair<? extends K, ? extends V>... pairs){
+        final Map<K, V> result = new HashMap<>(pairs.length);
+        for(final Pair<? extends K, ? extends V> p: pairs)
+            result.put(p.getKey(), p.getValue());
+        return result;
+    }
+
     private String getQueueParameterThroughPCF(final int parameter, final String defaultValue) throws IOException, MQException {
         final Map<Integer, ?> filter  = toMap(
-                pair(CMQC.MQCA_Q_NAME, properties.getQueueName()),
-                pair(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS),
-                pair(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{parameter}));
+                Pair.of(CMQC.MQCA_Q_NAME, properties.getQueueName()),
+                Pair.of(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS),
+                Pair.of(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{parameter}));
         return getParameterThroughPCF(CMQCFC.MQCMD_INQUIRE_Q_STATUS, filter, parameter, defaultValue);
     }
 
     private int getQueueParameterThroughPCF(final int parameter, final int defaultValue) throws IOException, MQException {
         final Map<Integer, ?> filter  = toMap(
-                pair(CMQC.MQCA_Q_NAME, properties.getQueueName()),
-                pair(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS),
-                pair(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{parameter}));
+                Pair.of(CMQC.MQCA_Q_NAME, properties.getQueueName()),
+                Pair.of(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS),
+                Pair.of(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{parameter}));
         return getParameterThroughPCF(CMQCFC.MQCMD_INQUIRE_Q_STATUS, filter, parameter, defaultValue);
     }
 
     private long getQueueParameterThroughPCF(final int parameter, final long defaultValue) throws IOException, MQException {
         final Map<Integer, ?> filter  = toMap(
-                pair(CMQC.MQCA_Q_NAME, properties.getQueueName()),
-                pair(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS),
-                pair(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{parameter}));
+                Pair.of(CMQC.MQCA_Q_NAME, properties.getQueueName()),
+                Pair.of(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS),
+                Pair.of(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{parameter}));
         return getParameterThroughPCF(CMQCFC.MQCMD_INQUIRE_Q_STATUS, filter, parameter, defaultValue);
     }
 
     private String getChannelParameterThroughPCF(final int parameter, final String defaultValue) throws IOException, MQException {
         final Map<Integer, ?> filter  = toMap(
-                pair(CMQCFC.MQCACH_CHANNEL_NAME, properties.getChannelName()),
-                pair(CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, new int[]{parameter}));
+                Pair.of(CMQCFC.MQCACH_CHANNEL_NAME, properties.getChannelName()),
+                Pair.of(CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, new int[]{parameter}));
         return getParameterThroughPCF(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS, filter, parameter, defaultValue);
     }
 
     private int getChannelParameterThroughPCF(final int parameter, final int defaultValue) throws IOException, MQException {
         final Map<Integer, ?> filter  = toMap(
-                pair(CMQCFC.MQCACH_CHANNEL_NAME, properties.getChannelName()),
-                pair(CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, new int[]{parameter}));
+                Pair.of(CMQCFC.MQCACH_CHANNEL_NAME, properties.getChannelName()),
+                Pair.of(CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, new int[]{parameter}));
         return getParameterThroughPCF(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS, filter, parameter, defaultValue);
     }
 
     private long getChannelParameterThroughPCF(final int parameter, final long defaultValue) throws IOException, MQException {
         final Map<Integer, ?> filter  = toMap(
-                pair(CMQCFC.MQCACH_CHANNEL_NAME, properties.getChannelName()),
-                pair(CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, new int[]{parameter}));
+                Pair.of(CMQCFC.MQCACH_CHANNEL_NAME, properties.getChannelName()),
+                Pair.of(CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, new int[]{parameter}));
         return getParameterThroughPCF(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS, filter, parameter, defaultValue);
     }
 
@@ -181,9 +188,9 @@ final class IbmWmqConnector extends ManagementConnectorBean {
     @ManagementAttribute
     public Date getLastGetDate() throws MQException, IOException, ParseException {
         final Map<Integer, ?> filter  = toMap(
-                pair(CMQC.MQCA_Q_NAME, properties.getQueueName()),
-                pair(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS),
-                pair(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{CMQCFC.MQCACF_LAST_GET_TIME, CMQCFC.MQCACF_LAST_GET_DATE}));
+                Pair.of(CMQC.MQCA_Q_NAME, properties.getQueueName()),
+                Pair.of(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS),
+                Pair.of(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{CMQCFC.MQCACF_LAST_GET_TIME, CMQCFC.MQCACF_LAST_GET_DATE}));
         final PCFMessage response = sendPcfMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS, filter);
         //obtain last MQ GET time and date
         final String time = response.getStringParameterValue(CMQCFC.MQCACF_LAST_GET_TIME);
@@ -202,9 +209,9 @@ final class IbmWmqConnector extends ManagementConnectorBean {
     @ManagementAttribute
     public Date getLastPutDate() throws MQException, IOException, ParseException {
         final Map<Integer, ?> filter  = toMap(
-                pair(CMQC.MQCA_Q_NAME, properties.getQueueName()),
-                pair(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS),
-                pair(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{CMQCFC.MQCACF_LAST_PUT_TIME, CMQCFC.MQCACF_LAST_PUT_DATE}));
+                Pair.of(CMQC.MQCA_Q_NAME, properties.getQueueName()),
+                Pair.of(CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS),
+                Pair.of(CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{CMQCFC.MQCACF_LAST_PUT_TIME, CMQCFC.MQCACF_LAST_PUT_DATE}));
         final PCFMessage response = sendPcfMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS, filter);
         //obtain last MQ PUT time and date
         final String time = response.getStringParameterValue(CMQCFC.MQCACF_LAST_GET_TIME);

@@ -1,8 +1,6 @@
 package com.snamp.internal;
 
-import com.snamp.Activator;
-import com.snamp.Box;
-import com.snamp.CountdownTimer;
+import org.apache.commons.lang3.mutable.*;
 import com.snamp.TimeSpan;
 
 /**
@@ -12,7 +10,7 @@ import com.snamp.TimeSpan;
  * @since 1.0
  */
 public class TimeBasedCache<T> extends CountdownTimer {
-    private final Box<T> valueHolder;
+    private final Mutable<T> valueHolder;
     private final TimeSpan renewalTime;
 
     /**
@@ -41,7 +39,7 @@ public class TimeBasedCache<T> extends CountdownTimer {
     public TimeBasedCache(final TimeSpan renewalTime, final T initialValue){
         super(renewalTime);
         this.renewalTime = renewalTime;
-        valueHolder = new Box<>(initialValue);
+        valueHolder = new MutableObject<>(initialValue);
     }
 
 

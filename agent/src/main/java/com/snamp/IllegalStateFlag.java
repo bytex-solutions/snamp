@@ -1,8 +1,7 @@
 package com.snamp;
 
-import com.snamp.internal.Internal;
-import com.snamp.internal.MethodThreadSafety;
-import com.snamp.internal.ThreadSafety;
+import com.snamp.internal.*;
+import org.apache.commons.collections4.Factory;
 
 /**
  * Represents object state flag that can be aggregated inside of stateful objects.
@@ -11,7 +10,7 @@ import com.snamp.internal.ThreadSafety;
  * @since 1.0
  */
 @Internal
-public abstract class IllegalStateFlag extends WriteOnceRef<Boolean> implements Activator<IllegalStateException> {
+public abstract class IllegalStateFlag extends WriteOnceRef<Boolean> implements Factory<IllegalStateException> {
     /**
      * Initializes a new state flag initially set to {@literal false}.
      */
@@ -25,7 +24,7 @@ public abstract class IllegalStateFlag extends WriteOnceRef<Boolean> implements 
      */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final void verify(){
-        if(get()) throw newInstance();
+        if(get()) throw create();
     }
 
     /**

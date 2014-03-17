@@ -1,6 +1,6 @@
 package com.snamp.licensing;
 
-import com.snamp.Activator;
+import org.apache.commons.collections4.Factory;
 import com.snamp.adapters.SnmpAdapterBase;
 
 import javax.xml.bind.annotation.*;
@@ -53,9 +53,9 @@ public final class SnmpAdapterLimitations extends AbstractLicenseLimitations imp
         }
     }
 
-    private static final Activator<SnmpAdapterLimitations> fallbackFactory = new Activator<SnmpAdapterLimitations>() {
+    private static final Factory<SnmpAdapterLimitations> fallbackFactory = new Factory<SnmpAdapterLimitations>() {
         @Override
-        public SnmpAdapterLimitations newInstance() {
+        public SnmpAdapterLimitations create() {
             return new SnmpAdapterLimitations();
         }
     };

@@ -1,6 +1,6 @@
 package com.snamp.connectors;
 
-import com.snamp.Activator;
+import org.apache.commons.collections4.Factory;
 import com.snamp.SimpleTable;
 import com.snamp.Table;
 import com.snamp.TypeConverter;
@@ -616,7 +616,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return A new array type that can be converted into {@link Object[]}.
      */
     public final AbstractManagementEntityType createEntityArrayType(final ManagementEntityType elementType){
-        return createEntityType(new Activator<ManagementEntityArrayType>(){
+        return createEntityType(new Factory<ManagementEntityArrayType>(){
 
             /**
              * Creates a new instance of the specified type.
@@ -624,7 +624,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public ManagementEntityArrayType newInstance() {
+            public ManagementEntityArrayType create() {
                 return new ManagementEntityArrayType(elementType);
             }
         }, Object[].class);
@@ -643,7 +643,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
     public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns, final String... index){
         final Map<String, ManagementEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
         final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
-        return createEntityType(new Activator<AbstractManagementEntityTabularType>(){
+        return createEntityType(new Factory<AbstractManagementEntityTabularType>(){
 
             /**
              * Creates a new instance of the specified type.
@@ -651,7 +651,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public AbstractManagementEntityTabularType newInstance() {
+            public AbstractManagementEntityTabularType create() {
                 return new AbstractManagementEntityTabularType() {
                     @Override
                     public final Collection<String> getColumns() {
@@ -697,7 +697,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
     public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns, final int rowCount, final String... index){
         final Map<String, ManagementEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
         final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
-        return createEntityType(new Activator<AbstractManagementEntityTabularType>(){
+        return createEntityType(new Factory<AbstractManagementEntityTabularType>(){
 
             /**
              * Creates a new instance of the specified type.
@@ -705,7 +705,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public AbstractManagementEntityTabularType newInstance() {
+            public AbstractManagementEntityTabularType create() {
                 return new AbstractManagementEntityTabularType() {
                     @Override
                     public final Collection<String> getColumns() {

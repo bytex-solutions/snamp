@@ -1,6 +1,8 @@
 package com.snamp;
 
 import java.util.concurrent.locks.Lock;
+import org.apache.commons.lang3.mutable.*;
+import org.apache.commons.collections4.Factory;
 
 /**
  * Represents transactional (2PC) access to the thread-unsafe resource.
@@ -34,13 +36,13 @@ public abstract class AbstractTransactionalResourceAccess<R, S, C> extends Abstr
             this.changeset = changeset;
         }
     }
-    private final Box<PreparationData<S, C>> snapshot;
+    private final Mutable<PreparationData<S, C>> snapshot;
 
     /**
      * Initializes a new transactional resource accessor.
      */
     protected AbstractTransactionalResourceAccess(){
-        snapshot = new Box<>();
+        snapshot = new MutableObject<>();
     }
 
     /**
@@ -70,7 +72,7 @@ public abstract class AbstractTransactionalResourceAccess<R, S, C> extends Abstr
      *                         that can be used to restore the resource at the rollback phase.
      * @return {@literal true}, if prepare phase is completed successfully; otherwise, {@literal false}.
      */
-    public final boolean prepare(final Activator<C> changesetProvider, final ConsistentAction<R, S> snapshotProvider){
+    public final boolean prepare(final Factory<C> changesetProvider, final ConsistentAction<R, S> snapshotProvider){
         if(snapshotProvider == null) return false;
         else if(changesetProvider == null) return false;
         final Lock wl = writeLock();
@@ -78,8 +80,8 @@ public abstract class AbstractTransactionalResourceAccess<R, S, C> extends Abstr
         try{
             //at the preparation phase snapshot must be empty
             //if not, then the preparation called twice
-            if(!snapshot.isEmpty()) return false;
-            snapshot.setValue(new PreparationData<>(snapshotProvider.invoke(getResource()), changesetProvider.newInstance()));
+            if(snapshot.getValue() != null) return false;
+            snapshot.setValue(new PreparationData<>(snapshotProvider.invoke(getResource()), changesetProvider.create()));
             return true;
         }
         finally {
@@ -96,9 +98,9 @@ public abstract class AbstractTransactionalResourceAccess<R, S, C> extends Abstr
      * @return {@literal true}, if prepare phase is completed successfully; otherwise, {@literal false}.
      */
     public final boolean prepare(final ConsistentAction<R, C> changesetProvider, final ConsistentAction<R, S> snapshotProvider){
-        return prepare(new Activator<C>() {
+        return prepare(new Factory<C>() {
             @Override
-            public final C newInstance() {
+            public final C create() {
                 return changesetProvider.invoke(getResource());
             }
         }, snapshotProvider);
@@ -116,9 +118,9 @@ public abstract class AbstractTransactionalResourceAccess<R, S, C> extends Abstr
         final Lock wl = writeLock();
         wl.lock();
         try{
-            if(snapshot.isEmpty()) return false;
+            if(snapshot.getValue() == null) return false;
             else if(committer.invoke(getResource(), snapshot.getValue().changeset)){
-                snapshot.clear();
+                snapshot.setValue(null);
                 return true;
             }
             else return false;
@@ -137,9 +139,9 @@ public abstract class AbstractTransactionalResourceAccess<R, S, C> extends Abstr
         final Lock wl = writeLock();
         wl.lock();
         try{
-            if(snapshot.isEmpty()) return false;
+            if(snapshot.getValue() == null) return false;
             else if(restorer.invoke(getResource(), snapshot.getValue().snapshot)){
-                snapshot.clear();
+                snapshot.setValue(null);
                 return true;
             }
             else return false;

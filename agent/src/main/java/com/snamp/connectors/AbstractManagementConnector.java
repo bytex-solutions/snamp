@@ -2,10 +2,7 @@ package com.snamp.connectors;
 
 import com.snamp.*;
 import com.snamp.connectors.util.NotificationListenerInvoker;
-import com.snamp.internal.InstanceLifecycle;
-import com.snamp.internal.Lifecycle;
-import com.snamp.internal.MethodThreadSafety;
-import com.snamp.internal.ThreadSafety;
+import com.snamp.internal.*;
 
 import static com.snamp.ConcurrentResourceAccess.ConsistentAction;
 import static com.snamp.ConcurrentResourceAccess.Action;
@@ -677,7 +674,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
     private final IllegalStateFlag closed = new IllegalStateFlag() {
         @Override
-        public final IllegalStateException newInstance() {
+        public final IllegalStateException create() {
             return new IllegalStateException("Management connector is closed.");
         }
     };

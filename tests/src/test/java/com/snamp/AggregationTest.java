@@ -1,6 +1,7 @@
 package com.snamp;
 
 import org.junit.Test;
+import org.apache.commons.lang3.Range;
 
 /**
  * @author Roman Sakno
@@ -9,7 +10,7 @@ public final class AggregationTest extends SnampClassTestSet<AbstractAggregator>
     private static final class TestAggregator extends AbstractAggregator {
 
         @Aggregation
-        private final Range<Integer> service1 = new Range<>(0, 10);
+        private final Range<Integer> service1 = Range.between(0, 10);
 
         @Aggregation
         public Short[] getService2(){

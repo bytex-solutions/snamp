@@ -1,5 +1,7 @@
 package com.snamp;
 
+import org.apache.commons.collections4.Factory;
+
 /**
  * Provides thread-safe access to the thread-unsafe resource.
  * <p>
@@ -80,9 +82,9 @@ public class ConcurrentResourceAccess<R> extends AbstractConcurrentResourceAcces
      * @param newResource A new instance of the resource.
      */
     public final void changeResource(final R newResource){
-        changeResource(new Activator<R>() {
+        changeResource(new Factory<R>() {
             @Override
-            public R newInstance() {
+            public R create() {
                 return newResource;
             }
         });
@@ -96,12 +98,12 @@ public class ConcurrentResourceAccess<R> extends AbstractConcurrentResourceAcces
      * @param newResource The factory of the new resource. Cannot be {@literal null}.
      * @throws IllegalArgumentException newResource is {@literal null}.
      */
-    public final void changeResource(final Activator<? extends R> newResource){
+    public final void changeResource(final Factory<? extends R> newResource){
         if(newResource == null) throw new IllegalArgumentException("newResource is null.");
         final WriteLock wl = writeLock();
         wl.lock();
         try{
-            setResource(newResource.newInstance());
+            setResource(newResource.create());
         }
         finally {
             wl.unlock();

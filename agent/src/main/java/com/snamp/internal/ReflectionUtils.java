@@ -1,6 +1,6 @@
 package com.snamp.internal;
 
-import com.snamp.Activator;
+import org.apache.commons.collections4.Factory;
 import com.snamp.internal.Internal;
 
 import java.lang.ref.Reference;
@@ -97,8 +97,8 @@ public final class ReflectionUtils {
         return wrapReference(new WeakReference<>(obj), iface);
     }
 
-    public static <I, T extends I> I weakReference(final Activator<T> activator, final Class<I> iface){
-        return weakReference(activator.newInstance(), iface);
+    public static <I, T extends I> I weakReference(final Factory<T> activator, final Class<I> iface){
+        return weakReference(activator.create(), iface);
     }
 
     /**

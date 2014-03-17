@@ -1,6 +1,6 @@
 package com.snamp.licensing;
 
-import com.snamp.Activator;
+import org.apache.commons.collections4.Factory;
 import com.snamp.connectors.AbstractManagementConnectorFactory;
 
 import javax.xml.bind.annotation.*;
@@ -27,9 +27,9 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
 
     }
 
-    private static final Activator<JmxConnectorLimitations> fallbackFactory = new Activator<JmxConnectorLimitations>() {
+    private static final Factory<JmxConnectorLimitations> fallbackFactory = new Factory<JmxConnectorLimitations>() {
         @Override
-        public JmxConnectorLimitations newInstance() {
+        public JmxConnectorLimitations create() {
             return new JmxConnectorLimitations(0L, 0L, "0.0");
         }
     };

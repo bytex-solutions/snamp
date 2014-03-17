@@ -1,9 +1,7 @@
-package com.snamp;
+package com.snamp.internal;
 
-import com.snamp.internal.Internal;
-import com.snamp.internal.MethodThreadSafety;
-import com.snamp.internal.SynchronizationType;
-import com.snamp.internal.ThreadSafety;
+import org.apache.commons.collections4.Factory;
+import com.snamp.TimeSpan;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -99,9 +97,9 @@ public class CountdownTimer {
      * @throws TimeoutException Attempts to start empty timer.
      */
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
-    public final boolean start(final Activator<TimeoutException> timeoutException) throws TimeoutException{
+    public final boolean start(final Factory<TimeoutException> timeoutException) throws TimeoutException{
         if(timeoutException == null) return start();
-        else if(isEmpty()) throw timeoutException.newInstance();
+        else if(isEmpty()) throw timeoutException.create();
         else return start();
     }
 
@@ -134,10 +132,10 @@ public class CountdownTimer {
      * @throws TimeoutException The timer is empty.
      */
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
-    public final boolean stop(final Activator<TimeoutException> timeoutException) throws TimeoutException{
+    public final boolean stop(final Factory<TimeoutException> timeoutException) throws TimeoutException{
         if(timeoutException == null) return stop();
         else if(stop())
-            if(isEmpty()) throw timeoutException.newInstance();
+            if(isEmpty()) throw timeoutException.create();
             else return true;
         else return false;
     }

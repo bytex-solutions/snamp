@@ -74,6 +74,12 @@ public final class Agent extends InMemoryCommunicationSurface {
          * @return A read-only collection of management connectors.
          */
         Collection<ManagementConnector> getConnectors(final String connectionType);
+
+        /**
+         * Gets count of instantiated connectors.
+         * @return Count of instantiated connectors.
+         */
+        int size();
     }
 
     private static interface InstantiatedConnectorsRegistry extends InstantiatedConnectors{
@@ -108,6 +114,19 @@ public final class Agent extends InMemoryCommunicationSurface {
         @Override
         public final Collection<ManagementConnector> getConnectors(final String connectionType) {
             return connectors.containsKey(connectionType) ? connectors.get(connectionType) : Collections.<ManagementConnector>emptyList();
+        }
+
+        /**
+         * Gets count of instantiated connectors.
+         *
+         * @return Count of instantiated connectors.
+         */
+        @Override
+        public final int size() {
+            int result = 0;
+            for(final Collection<ManagementConnector> mc: connectors.values())
+                result += mc.size();
+            return result;
         }
 
         @Override

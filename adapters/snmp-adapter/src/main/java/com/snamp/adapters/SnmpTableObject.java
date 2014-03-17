@@ -1,6 +1,7 @@
 package com.snamp.adapters;
 
 import com.snamp.connectors.*;
+import com.snamp.internal.CountdownTimer;
 import com.snamp.internal.Temporary;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
@@ -158,7 +159,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
         }
     }
 
-    private static final class UpdateManager extends CountdownTimer{
+    private static final class UpdateManager extends CountdownTimer {
         public final TimeSpan tableCacheTime;
         private Object updateSource;
         private Date updateTimeStamp;

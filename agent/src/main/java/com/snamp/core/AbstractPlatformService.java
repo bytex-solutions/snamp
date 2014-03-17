@@ -1,7 +1,7 @@
 package com.snamp.core;
 
 import com.snamp.AbstractAggregator;
-import com.snamp.Activator;
+import org.apache.commons.collections4.Factory;
 import com.snamp.internal.Internal;
 
 import java.util.logging.*;
@@ -52,8 +52,8 @@ public abstract class AbstractPlatformService extends AbstractAggregator impleme
      * @param <E> Type of the exception to throw.
      * @throws E An exception to be thrown by this method.
      */
-    protected final <E extends Throwable> void throwAndLog(final Level logLevel, final Activator<E> e) throws E{
-        throwAndLog(logLevel, e.newInstance());
+    protected final <E extends Throwable> void throwAndLog(final Level logLevel, final Factory<E> e) throws E{
+        throwAndLog(logLevel, e.create());
     }
 
     /**

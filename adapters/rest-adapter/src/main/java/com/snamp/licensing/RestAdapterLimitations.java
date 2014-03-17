@@ -1,6 +1,6 @@
 package com.snamp.licensing;
 
-import com.snamp.Activator;
+import org.apache.commons.collections4.Factory;
 import com.snamp.adapters.AbstractAdapter;
 
 import javax.xml.bind.annotation.*;
@@ -15,9 +15,9 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @XmlRootElement(name = "restAdapterLimitations")
 public class RestAdapterLimitations extends AbstractLicenseLimitations implements PluginLicenseLimitations<AbstractAdapter> {
 
-    private static final Activator<RestAdapterLimitations> fallbackFactory = new Activator<RestAdapterLimitations>() {
+    private static final Factory<RestAdapterLimitations> fallbackFactory = new Factory<RestAdapterLimitations>() {
         @Override
-        public RestAdapterLimitations newInstance() {
+        public RestAdapterLimitations create() {
             return new RestAdapterLimitations("0.0");
         }
     };
