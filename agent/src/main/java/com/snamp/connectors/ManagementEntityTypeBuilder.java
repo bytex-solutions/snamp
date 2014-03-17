@@ -11,7 +11,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterFactory {
+public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterResolver {
 
     /**
      * Initializes a new empty entity type builder.

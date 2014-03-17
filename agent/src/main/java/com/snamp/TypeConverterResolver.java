@@ -6,8 +6,7 @@ package com.snamp;
  * @version 1.0
  * @since 1.0
  */
-public interface TypeConverterFactory {
-
+public interface TypeConverterResolver {
     /**
      * Returns the converter for the specified type.
      * @param t The type for which the converter should be created.

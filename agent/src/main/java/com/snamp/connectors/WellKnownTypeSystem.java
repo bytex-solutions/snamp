@@ -1,9 +1,7 @@
 package com.snamp.connectors;
 
 import org.apache.commons.collections4.Factory;
-import com.snamp.SimpleTable;
 import com.snamp.Table;
-import com.snamp.TypeConverter;
 
 import java.math.*;
 import java.util.*;
@@ -42,7 +40,7 @@ import java.util.*;
  * <p>
  * Management entity type system is a set of converters that provides conversion between MIB-specific
  * data types and universal data types. This class provides set of converters between these data types
- * in the form of static public unary methods annotated with {@link com.snamp.AbstractTypeConverterFactory.Converter} interface. Typically,
+ * in the form of static public unary methods annotated with {@link com.snamp.AbstractTypeConverterResolver.Converter} interface. Typically,
  * each custom SNAMP connector contains its own type system converter, inherited from this class.
  * The following example demonstrates your own type system converter:
  * <pre><code>
