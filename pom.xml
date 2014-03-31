@@ -1,83 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>bank.express</groupId>
-  <artifactId>jmx2snmp</artifactId>
+  <groupId>com.snamp</groupId>
+  <artifactId>snamp</artifactId>
   <version>1.0.0</version>
-  <packaging>jar</packaging>
-  <name>jmx2snmp</name>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-  </properties>
-  <description>jmx2snmp bridge for monitoring some java jmx servers</description>
+  <packaging>pom</packaging>
+  <name>snamp</name>
+  <scm>
+    <developerConnection>scm:git:git@github.com:sakno/snamp.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
   <build>
     <plugins>
       <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <configuration>
-              <archive>
-                  <manifest>
-                      <addClasspath>true</addClasspath>
-                      <mainClass>bank.express.jmx2snmp.Agent</mainClass>
-                  </manifest>
-              </archive>
-          </configuration>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>create-my-bundle</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-               <archive>
-                <manifest>
-                    <addClasspath>true</addClasspath>
-                    <mainClass>bank.express.jmx2snmp.Agent</mainClass>
-                </manifest>
-              </archive>
-            </configuration>
-          </execution>
-        </executions>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.4.1</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <tagNameFormat>@{project.version}</tagNameFormat>
+          <goals>package</goals>
+          <useReleaseProfile>false</useReleaseProfile>  <!-- This should be reviewed when we will have javadocs -->
+        </configuration>
       </plugin>
-	</plugins>
+    </plugins>
   </build>
-  <dependencies>
-    <dependency>
-      <groupId>org.snmp4j</groupId>
-      <artifactId>snmp4j</artifactId>
-      <version>2.0.3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-      <version>[1.11,)</version>
-    </dependency>
-    <dependency>
-      <groupId>org.snmp4j</groupId>
-      <artifactId>snmp4j-agent</artifactId>
-      <version>2.0.5</version>
-    </dependency>
-  </dependencies>
-<!-- В локальном репозитории зависимостей может и не оказаться 
-     - качаем с зеркала (только snmp4f, за snakeyaml нужно лезть отдельно,
-     если что - спросить у Евгения Кириченко)-->
-  <repositories>
-     <repository>
-        <id>tst-wbs</id>
-        <name>tst-wbs-releases</name>
-        <url>http://10.200.100.99:8081/artifactory/express-bank-local</url>
-    </repository>
-  </repositories>
-<!---->
+  <modules>
+    <module>agent</module>
+    <module>adapters</module>
+    <module>connectors</module>
+    <module>licensing</module>
+    <module>tests</module>
+    <module>rest-manager</module>
+    <module>examples</module>
+  </modules>
+    <repositories>
+        <repository>
+            <id>oosnmpRepo</id>
+            <name>oosnmp.com Repository</name>
+            <url>https://server.oosnmp.net/dist/release</url>
+        </repository>
+        <repository>
+            <id>jspfRepo</id>
+            <name>formreturn.com Repository</name>
+            <url>http://maven.formreturn.com/repository</url>
+        </repository>
+        <repository>
+            <id>maven</id>
+            <name>formreturn.com Repository</name>
+            <url>http://repo1.maven.org/maven2/</url>
+        </repository>
+    </repositories>
 </project>
