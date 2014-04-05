@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.snamp</groupId>
+    <groupId>com.itworks.snamp</groupId>
     <artifactId>snamp</artifactId>
     <version>1.0.0</version>
   </parent>
@@ -30,7 +30,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.12.4</version>
         <configuration>
-          <argLine>-Dcom.sun.management.jmxremote.port=3334 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.snamp.license="../unlimited.lic"</argLine>
+          <argLine>-Dcom.sun.management.jmxremote.port=3334 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.itworks.snamp.license="../unlimited.lic"</argLine>
         </configuration>
       </plugin>
     </plugins>
@@ -49,25 +49,25 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.snamp</groupId>
+      <groupId>com.itworks.snamp</groupId>
       <artifactId>agent</artifactId>
       <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.snamp</groupId>
+      <groupId>com.itworks.snamp</groupId>
       <artifactId>jmx</artifactId>
       <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.snamp</groupId>
+      <groupId>com.itworks.snamp</groupId>
       <artifactId>rest-adapter</artifactId>
       <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.snamp</groupId>
+      <groupId>com.itworks.snamp</groupId>
       <artifactId>snmp</artifactId>
       <version>1.0.0</version>
       <scope>test</scope>
@@ -121,13 +121,13 @@
       <scope>test</scope>
       </dependency>
     <dependency>
-      <groupId>com.snamp</groupId>
+      <groupId>com.itworks.snamp</groupId>
       <artifactId>ibmwmb</artifactId>
       <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.snamp</groupId>
+      <groupId>com.itworks.snamp</groupId>
       <artifactId>ibmwmq</artifactId>
       <version>1.0.0</version>
       <scope>test</scope>

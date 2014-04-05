@@ -33,7 +33,7 @@ public final class LicenseReader {
     /**
      * Represents name of the system property that contains path to the license.
      */
-    public static final String LICENSE_FILE_PROPERTY = "com.snamp.license";
+    public static final String LICENSE_FILE_PROPERTY = "com.itworks.snamp.license";
 
     /**
      * Represents licensing context.
