@@ -35,8 +35,8 @@
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.snamp.connectors"><span class="strong">Prev Class</span></a></li>
-<li><a href="../../../com/snamp/connectors/ManagementConnectorBean.AttributeInfo.html" title="annotation in com.snamp.connectors"><span class="strong">Next Class</span></a></li>
+<li><a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors"><span class="strong">Prev Class</span></a></li>
+<li><a href="../../../com/snamp/connectors/ManagementConnectorBean.AttributeInfo.html" title="annotation in com.itworks.snamp.connectors"><span class="strong">Next Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../index.html?com/snamp/connectors/ManagementConnectorBean.html" target="_top">Frames</a></li>
@@ -78,7 +78,7 @@
 <!-- ========= END OF TOP NAVBAR ========= -->
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<div class="subTitle">com.snamp.connectors</div>
+<div class="subTitle">com.itworks.snamp.connectors</div>
 <h2 title="Class ManagementConnectorBean" class="title">Class ManagementConnectorBean</h2>
 </div>
 <div class="contentContainer">
@@ -86,10 +86,10 @@
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.snamp.connectors">com.snamp.connectors.AbstractManagementConnector</a></li>
+<li><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">com.itworks.snamp.connectors.AbstractManagementConnector</a></li>
 <li>
 <ul class="inheritance">
-<li>com.snamp.connectors.ManagementConnectorBean</li>
+<li>com.itworks.snamp.connectors.ManagementConnectorBean</li>
 </ul>
 </li>
 </ul>
@@ -100,12 +100,12 @@
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd><a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.snamp.connectors">ManagementConnector</a>, java.lang.AutoCloseable, java.lang.Iterable&lt;java.lang.String&gt;</dd>
+<dd><a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>, java.lang.AutoCloseable, java.lang.Iterable&lt;java.lang.String&gt;</dd>
 </dl>
 <hr>
 <br>
 <pre>public class <span class="strong">ManagementConnectorBean</span>
-extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.snamp.connectors">AbstractManagementConnector</a></pre>
+extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></pre>
 <div class="block">Represents SNAMP in-process management connector that exposes Java Bean properties through connector attributes.
  <p>
      Use this class as base class for your custom management connector, if schema of the management information base
@@ -134,7 +134,7 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
      </code></pre>
  </p>
  <p>
-     By default, <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.snamp.connectors"><code>WellKnownTypeSystem</code></a> supports only primitive types. Therefore, if you use
+     By default, <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.itworks.snamp.connectors"><code>WellKnownTypeSystem</code></a> supports only primitive types. Therefore, if you use
      this type system then your Java Bean properties should have only primitive types:
      <ul>
          <li><code>Byte</code></li>
@@ -151,9 +151,9 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
      </ul>
      To support custom type (such as <a href="../../../com/snamp/Table.html" title="interface in com.snamp"><code>Table</code></a>, <code>Map</code> or array) you apply do the following steps:
      <ul>
-      <li>Creates your own type system provider that derives from <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.snamp.connectors"><code>WellKnownTypeSystem</code></a>.</li>
-      <li>Declares public instance parameterless method that have <a href="../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.snamp.connectors"><code>ManagementEntityType</code></a> return type in custom type system provider.</li>
-      <li>Annotates property getter or setter with <a href="../../../com/snamp/connectors/ManagementConnectorBean.AttributeInfo.html" title="annotation in com.snamp.connectors"><code>ManagementConnectorBean.AttributeInfo</code></a> annotation and specify method name(declared
+      <li>Creates your own type system provider that derives from <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.itworks.snamp.connectors"><code>WellKnownTypeSystem</code></a>.</li>
+      <li>Declares public instance parameterless method that have <a href="../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.itworks.snamp.connectors"><code>ManagementEntityType</code></a> return type in custom type system provider.</li>
+      <li>Annotates property getter or setter with <a href="../../../com/snamp/connectors/ManagementConnectorBean.AttributeInfo.html" title="annotation in com.itworks.snamp.connectors"><code>ManagementConnectorBean.AttributeInfo</code></a> annotation and specify method name(declared
       and implemented in custom type system  provider) in <a href="../../../com/snamp/connectors/ManagementConnectorBean.AttributeInfo.html#typeProvider()"><code>ManagementConnectorBean.AttributeInfo.typeProvider()</code></a> parameter.</li>
      </ul>
  </p></div>
@@ -183,30 +183,30 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected static interface&nbsp;</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.AttributeInfo.html" title="annotation in com.snamp.connectors">ManagementConnectorBean.AttributeInfo</a></strong></code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.AttributeInfo.html" title="annotation in com.itworks.snamp.connectors">ManagementConnectorBean.AttributeInfo</a></strong></code>
 <div class="block">Associated additional attribute info with the bean property getter and setter.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected static interface&nbsp;</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.BeanIntrospector.html" title="interface in com.snamp.connectors">ManagementConnectorBean.BeanIntrospector</a>&lt;<a href="../../../com/snamp/connectors/ManagementConnectorBean.BeanIntrospector.html" title="type parameter in ManagementConnectorBean.BeanIntrospector">T</a>&gt;</strong></code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.BeanIntrospector.html" title="interface in com.itworks.snamp.connectors">ManagementConnectorBean.BeanIntrospector</a>&lt;<a href="../../../com/snamp/connectors/ManagementConnectorBean.BeanIntrospector.html" title="type parameter in ManagementConnectorBean.BeanIntrospector">T</a>&gt;</strong></code>
 <div class="block">Provides introspection for the specified bean instance.</div>
 </td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected static class&nbsp;</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.StandardBeanIntrospector.html" title="class in com.snamp.connectors">ManagementConnectorBean.StandardBeanIntrospector</a>&lt;<a href="../../../com/snamp/connectors/ManagementConnectorBean.StandardBeanIntrospector.html" title="type parameter in ManagementConnectorBean.StandardBeanIntrospector">T</a>&gt;</strong></code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.StandardBeanIntrospector.html" title="class in com.itworks.snamp.connectors">ManagementConnectorBean.StandardBeanIntrospector</a>&lt;<a href="../../../com/snamp/connectors/ManagementConnectorBean.StandardBeanIntrospector.html" title="type parameter in ManagementConnectorBean.StandardBeanIntrospector">T</a>&gt;</strong></code>
 <div class="block">Provides the standard implementation of JavaBean reflection that simply
  calls <code>Introspector.getBeanInfo(Class)</code> method.</div>
 </td>
 </tr>
 </table>
 <ul class="blockList">
-<li class="blockList"><a name="nested_classes_inherited_from_class_com.snamp.connectors.AbstractManagementConnector">
+<li class="blockList"><a name="nested_classes_inherited_from_class_com.itworks.snamp.connectors.AbstractManagementConnector">
 <!--   -->
 </a>
-<h3>Nested classes/interfaces inherited from class&nbsp;com.snamp.connectors.<a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.snamp.connectors">AbstractManagementConnector</a></h3>
-<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a>&lt;<a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="type parameter in AbstractManagementConnector.GenericAttributeMetadata">T</a> extends <a href="../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.snamp.connectors">ManagementEntityType</a>&gt;, <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericNotificationMetadata.html" title="class in com.snamp.connectors">AbstractManagementConnector.GenericNotificationMetadata</a></code></li>
+<h3>Nested classes/interfaces inherited from class&nbsp;com.itworks.snamp.connectors.<a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></h3>
+<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a>&lt;<a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="type parameter in AbstractManagementConnector.GenericAttributeMetadata">T</a> extends <a href="../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.itworks.snamp.connectors">ManagementEntityType</a>&gt;, <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericNotificationMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericNotificationMetadata</a></code></li>
 </ul>
 </li>
 </ul>
@@ -224,16 +224,16 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#ManagementConnectorBean(T, com.snamp.connectors.ManagementConnectorBean.BeanIntrospector, com.snamp.connectors.WellKnownTypeSystem)">ManagementConnectorBean</a></strong>(T&nbsp;beanInstance,
-                       <a href="../../../com/snamp/connectors/ManagementConnectorBean.BeanIntrospector.html" title="interface in com.snamp.connectors">ManagementConnectorBean.BeanIntrospector</a>&lt;T&gt;&nbsp;introspector,
-                       <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)</code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#ManagementConnectorBean(T, com.itworks.snamp.connectors.ManagementConnectorBean.BeanIntrospector, com.itworks.snamp.connectors.WellKnownTypeSystem)">ManagementConnectorBean</a></strong>(T&nbsp;beanInstance,
+                       <a href="../../../com/snamp/connectors/ManagementConnectorBean.BeanIntrospector.html" title="interface in com.itworks.snamp.connectors">ManagementConnectorBean.BeanIntrospector</a>&lt;T&gt;&nbsp;introspector,
+                       <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.itworks.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)</code>
 <div class="block">Initializes a new management connector that reflects properties of the specified instance
  as connector attributes.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#ManagementConnectorBean(com.snamp.connectors.WellKnownTypeSystem)">ManagementConnectorBean</a></strong>(<a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)</code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#ManagementConnectorBean(com.itworks.snamp.connectors.WellKnownTypeSystem)">ManagementConnectorBean</a></strong>(<a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.itworks.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)</code>
 <div class="block">Initializes a new management connector that reflects properties of this class as
  connector attributes.</div>
 </td>
@@ -266,14 +266,14 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>protected <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a></code></td>
+<td class="colFirst"><code>protected <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a></code></td>
 <td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#connectAttribute(java.beans.PropertyDescriptor, java.util.Map)">connectAttribute</a></strong>(java.beans.PropertyDescriptor&nbsp;property,
                 java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;options)</code>
 <div class="block">Connects the specified Java Bean property.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>protected <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a></code></td>
+<td class="colFirst"><code>protected <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a></code></td>
 <td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#connectAttributeCore(java.lang.String, java.util.Map)">connectAttributeCore</a></strong>(java.lang.String&nbsp;attributeName,
                     java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;options)</code>
 <div class="block">Connects to the specified attribute.</div>
@@ -281,36 +281,36 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#disableNotificationsCore(com.snamp.connectors.NotificationMetadata)">disableNotificationsCore</a></strong>(<a href="../../../com/snamp/connectors/NotificationMetadata.html" title="interface in com.snamp.connectors">NotificationMetadata</a>&nbsp;notificationType)</code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#disableNotificationsCore(com.itworks.snamp.connectors.NotificationMetadata)">disableNotificationsCore</a></strong>(<a href="../../../com/snamp/connectors/NotificationMetadata.html" title="interface in com.itworks.snamp.connectors">NotificationMetadata</a>&nbsp;notificationType)</code>
 <div class="block">Disable all notifications associated with the specified event.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected java.lang.Object</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#doAction(java.beans.MethodDescriptor, com.snamp.connectors.util.Arguments)">doAction</a></strong>(java.beans.MethodDescriptor&nbsp;action,
-        <a href="../../../com/snamp/connectors/Arguments.html" title="class in com.snamp.connectors">Arguments</a>&nbsp;args)</code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#doAction(java.beans.MethodDescriptor, com.itworks.snamp.connectors.util.Arguments)">doAction</a></strong>(java.beans.MethodDescriptor&nbsp;action,
+        <a href="../../../com/snamp/connectors/Arguments.html" title="class in com.itworks.snamp.connectors">Arguments</a>&nbsp;args)</code>
 <div class="block">Invokes the Java Bean method.</div>
 </td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>java.lang.Object</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#doAction(java.lang.String, com.snamp.connectors.util.Arguments, com.snamp.TimeSpan)">doAction</a></strong>(java.lang.String&nbsp;actionName,
-        <a href="../../../com/snamp/connectors/Arguments.html" title="class in com.snamp.connectors">Arguments</a>&nbsp;args,
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#doAction(java.lang.String, com.itworks.snamp.connectors.util.Arguments, com.snamp.TimeSpan)">doAction</a></strong>(java.lang.String&nbsp;actionName,
+        <a href="../../../com/snamp/connectors/Arguments.html" title="class in com.itworks.snamp.connectors">Arguments</a>&nbsp;args,
         <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;timeout)</code>
 <div class="block">Executes remote action.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#emitNotification(java.lang.String, com.snamp.connectors.Notification.Severity, java.lang.String, java.util.Map)">emitNotification</a></strong>(java.lang.String&nbsp;category,
-                <a href="../../../com/snamp/connectors/Notification.Severity.html" title="enum in com.snamp.connectors">Notification.Severity</a>&nbsp;severity,
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#emitNotification(java.lang.String, com.itworks.snamp.connectors.Notification.Severity, java.lang.String, java.util.Map)">emitNotification</a></strong>(java.lang.String&nbsp;category,
+                <a href="../../../com/snamp/connectors/Notification.Severity.html" title="enum in com.itworks.snamp.connectors">Notification.Severity</a>&nbsp;severity,
                 java.lang.String&nbsp;message,
                 java.util.Map&lt;java.lang.String,java.lang.Object&gt;&nbsp;attachments)</code>
 <div class="block">Raises notification.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>protected <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericNotificationMetadata.html" title="class in com.snamp.connectors">AbstractManagementConnector.GenericNotificationMetadata</a></code></td>
+<td class="colFirst"><code>protected <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericNotificationMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericNotificationMetadata</a></code></td>
 <td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#enableNotificationsCore(java.lang.String, java.util.Map)">enableNotificationsCore</a></strong>(java.lang.String&nbsp;category,
                        java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;options)</code>
 <div class="block">Enables event listening for the specified category of events.</div>
@@ -318,7 +318,7 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected java.lang.Object</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#getAttributeValue(com.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">getAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#getAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">getAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
                  <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;readTimeout,
                  java.lang.Object&nbsp;defaultValue)</code>
 <div class="block">Returns the value of the attribute.</div>
@@ -326,7 +326,7 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected boolean</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#setAttributeValue(com.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">setAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#setAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">setAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
                  <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;writeTimeout,
                  java.lang.Object&nbsp;value)</code>
 <div class="block">Sends the attribute value to the remote agent.</div>
@@ -339,19 +339,19 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../../com/snamp/connectors/ManagementConnectorBean.html" title="class in com.snamp.connectors">ManagementConnectorBean</a></code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#wrap(T, com.snamp.connectors.WellKnownTypeSystem)">wrap</a></strong>(T&nbsp;beanInstance,
-    <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)</code>
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../../com/snamp/connectors/ManagementConnectorBean.html" title="class in com.itworks.snamp.connectors">ManagementConnectorBean</a></code></td>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementConnectorBean.html#wrap(T, com.itworks.snamp.connectors.WellKnownTypeSystem)">wrap</a></strong>(T&nbsp;beanInstance,
+    <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.itworks.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)</code>
 <div class="block">Creates SNAMP management connector from the specified Java Bean.</div>
 </td>
 </tr>
 </table>
 <ul class="blockList">
-<li class="blockList"><a name="methods_inherited_from_class_com.snamp.connectors.AbstractManagementConnector">
+<li class="blockList"><a name="methods_inherited_from_class_com.itworks.snamp.connectors.AbstractManagementConnector">
 <!--   -->
 </a>
-<h3>Methods inherited from class&nbsp;com.snamp.connectors.<a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.snamp.connectors">AbstractManagementConnector</a></h3>
-<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#attributesCount()">attributesCount</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#connectAttribute(java.lang.String, java.lang.String, java.util.Map)">connectAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disableNotifications(java.lang.String)">disableNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disconnectAttribute(java.lang.String)">disconnectAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disconnectAttributeCore(java.lang.String)">disconnectAttributeCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#enableNotifications(java.lang.String, java.lang.String, java.util.Map)">enableNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttribute(java.lang.String, com.snamp.TimeSpan, java.lang.Object)">getAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributeInfo(java.lang.String)">getAttributeInfo</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributes(java.util.Map, com.snamp.TimeSpan)">getAttributes</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getEnabledNotifications(java.lang.String, java.lang.Class)">getEnabledNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getNotificationInfo(java.lang.String)">getNotificationInfo</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#iterator()">iterator</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttribute(java.lang.String, com.snamp.TimeSpan, java.lang.Object)">setAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttributes(java.util.Map, com.snamp.TimeSpan)">setAttributes</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribe(java.lang.String, com.snamp.connectors.NotificationListener)">subscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribeCore(com.snamp.connectors.NotificationMetadata, com.snamp.connectors.NotificationListener)">subscribeCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribe(java.lang.Long)">unsubscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribe(java.lang.Object)">unsubscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribeCore(com.snamp.connectors.NotificationMetadata, com.snamp.connectors.NotificationListener, java.lang.Object)">unsubscribeCore</a></code></li>
+<h3>Methods inherited from class&nbsp;com.itworks.snamp.connectors.<a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></h3>
+<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#attributesCount()">attributesCount</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#connectAttribute(java.lang.String, java.lang.String, java.util.Map)">connectAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disableNotifications(java.lang.String)">disableNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disconnectAttribute(java.lang.String)">disconnectAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disconnectAttributeCore(java.lang.String)">disconnectAttributeCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#enableNotifications(java.lang.String, java.lang.String, java.util.Map)">enableNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttribute(java.lang.String, com.snamp.TimeSpan, java.lang.Object)">getAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributeInfo(java.lang.String)">getAttributeInfo</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributes(java.util.Map, com.snamp.TimeSpan)">getAttributes</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getEnabledNotifications(java.lang.String, java.lang.Class)">getEnabledNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getNotificationInfo(java.lang.String)">getNotificationInfo</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#iterator()">iterator</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttribute(java.lang.String, com.snamp.TimeSpan, java.lang.Object)">setAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttributes(java.util.Map, com.snamp.TimeSpan)">setAttributes</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribe(java.lang.String, com.itworks.snamp.connectors.NotificationListener)">subscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribeCore(com.itworks.snamp.connectors.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener)">subscribeCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribe(java.lang.Long)">unsubscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribe(java.lang.Object)">unsubscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribeCore(com.itworks.snamp.connectors.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener, java.lang.Object)">unsubscribeCore</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods_inherited_from_class_java.lang.Object">
@@ -374,13 +374,13 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="ManagementConnectorBean(com.snamp.connectors.WellKnownTypeSystem)">
+<a name="ManagementConnectorBean(com.itworks.snamp.connectors.WellKnownTypeSystem)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>ManagementConnectorBean</h4>
-<pre>protected&nbsp;ManagementConnectorBean(<a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)
+<pre>protected&nbsp;ManagementConnectorBean(<a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.itworks.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)
                            throws java.beans.IntrospectionException</pre>
 <div class="block">Initializes a new management connector that reflects properties of this class as
  connector attributes.</div>
@@ -390,17 +390,17 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <dd><code>java.beans.IntrospectionException</code></dd></dl>
 </li>
 </ul>
-<a name="ManagementConnectorBean(java.lang.Object,com.snamp.connectors.ManagementConnectorBean.BeanIntrospector,com.snamp.connectors.WellKnownTypeSystem)">
+<a name="ManagementConnectorBean(java.lang.Object,com.itworks.snamp.connectors.ManagementConnectorBean.BeanIntrospector,com.itworks.snamp.connectors.WellKnownTypeSystem)">
 <!--   -->
-</a><a name="ManagementConnectorBean(T, com.snamp.connectors.ManagementConnectorBean.BeanIntrospector, com.snamp.connectors.WellKnownTypeSystem)">
+</a><a name="ManagementConnectorBean(T, com.itworks.snamp.connectors.ManagementConnectorBean.BeanIntrospector, com.itworks.snamp.connectors.WellKnownTypeSystem)">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>ManagementConnectorBean</h4>
 <pre>protected&nbsp;ManagementConnectorBean(T&nbsp;beanInstance,
-                       <a href="../../../com/snamp/connectors/ManagementConnectorBean.BeanIntrospector.html" title="interface in com.snamp.connectors">ManagementConnectorBean.BeanIntrospector</a>&lt;T&gt;&nbsp;introspector,
-                       <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)
+                       <a href="../../../com/snamp/connectors/ManagementConnectorBean.BeanIntrospector.html" title="interface in com.itworks.snamp.connectors">ManagementConnectorBean.BeanIntrospector</a>&lt;T&gt;&nbsp;introspector,
+                       <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.itworks.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)
                            throws java.beans.IntrospectionException</pre>
 <div class="block">Initializes a new management connector that reflects properties of the specified instance
  as connector attributes.</div>
@@ -418,16 +418,16 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="wrap(java.lang.Object,com.snamp.connectors.WellKnownTypeSystem)">
+<a name="wrap(java.lang.Object,com.itworks.snamp.connectors.WellKnownTypeSystem)">
 <!--   -->
-</a><a name="wrap(T, com.snamp.connectors.WellKnownTypeSystem)">
+</a><a name="wrap(T, com.itworks.snamp.connectors.WellKnownTypeSystem)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>wrap</h4>
-<pre>public static&nbsp;&lt;T&gt;&nbsp;<a href="../../../com/snamp/connectors/ManagementConnectorBean.html" title="class in com.snamp.connectors">ManagementConnectorBean</a>&nbsp;wrap(T&nbsp;beanInstance,
-                               <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)
+<pre>public static&nbsp;&lt;T&gt;&nbsp;<a href="../../../com/snamp/connectors/ManagementConnectorBean.html" title="class in com.itworks.snamp.connectors">ManagementConnectorBean</a>&nbsp;wrap(T&nbsp;beanInstance,
+                               <a href="../../../com/snamp/connectors/WellKnownTypeSystem.html" title="class in com.itworks.snamp.connectors">WellKnownTypeSystem</a>&nbsp;typeBuilder)
                                     throws java.beans.IntrospectionException</pre>
 <div class="block">Creates SNAMP management connector from the specified Java Bean.</div>
 <dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Type of the Java Bean to wrap.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>beanInstance</code> - An instance of the Java Bean to wrap.</dd><dd><code>typeBuilder</code> - Bean property type converter.</dd>
@@ -446,7 +446,7 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <div class="block">Throws an exception if the connector is not initialized.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
-<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#verifyInitialization()">verifyInitialization</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.snamp.connectors">AbstractManagementConnector</a></code></dd>
+<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#verifyInitialization()">verifyInitialization</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></code></dd>
 </dl>
 </li>
 </ul>
@@ -467,7 +467,7 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <ul class="blockList">
 <li class="blockList">
 <h4>connectAttribute</h4>
-<pre>protected final&nbsp;<a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a>&nbsp;connectAttribute(java.beans.PropertyDescriptor&nbsp;property,
+<pre>protected final&nbsp;<a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a>&nbsp;connectAttribute(java.beans.PropertyDescriptor&nbsp;property,
                                                                     java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;options)</pre>
 <div class="block">Connects the specified Java Bean property.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>property</code> - Java Bean property to connect.</dd><dd><code>options</code> - Additional connection options.</dd>
@@ -480,74 +480,74 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <ul class="blockList">
 <li class="blockList">
 <h4>connectAttributeCore</h4>
-<pre>protected final&nbsp;<a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a>&nbsp;connectAttributeCore(java.lang.String&nbsp;attributeName,
+<pre>protected final&nbsp;<a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a>&nbsp;connectAttributeCore(java.lang.String&nbsp;attributeName,
                                                                         java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;options)</pre>
 <div class="block">Connects to the specified attribute.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
-<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#connectAttributeCore(java.lang.String, java.util.Map)">connectAttributeCore</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.snamp.connectors">AbstractManagementConnector</a></code></dd>
+<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#connectAttributeCore(java.lang.String, java.util.Map)">connectAttributeCore</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></code></dd>
 <dt><span class="strong">Parameters:</span></dt><dd><code>attributeName</code> - The name of the attribute.</dd><dd><code>options</code> - Attribute discovery options.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The description of the attribute.</dd></dl>
 </li>
 </ul>
-<a name="getAttributeValue(com.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
+<a name="getAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getAttributeValue</h4>
-<pre>protected final&nbsp;java.lang.Object&nbsp;getAttributeValue(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
+<pre>protected final&nbsp;java.lang.Object&nbsp;getAttributeValue(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
                                  <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;readTimeout,
                                  java.lang.Object&nbsp;defaultValue)
                                             throws java.util.concurrent.TimeoutException</pre>
 <div class="block">Returns the value of the attribute.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
-<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributeValue(com.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">getAttributeValue</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.snamp.connectors">AbstractManagementConnector</a></code></dd>
+<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">getAttributeValue</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></code></dd>
 <dt><span class="strong">Parameters:</span></dt><dd><code>attribute</code> - The metadata of the attribute to get.</dd><dd><code>readTimeout</code> - </dd><dd><code>defaultValue</code> - The default value of the attribute if reading fails.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The value of the attribute.</dd>
 <dt><span class="strong">Throws:</span></dt>
 <dd><code>java.util.concurrent.TimeoutException</code></dd></dl>
 </li>
 </ul>
-<a name="setAttributeValue(com.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
+<a name="setAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>setAttributeValue</h4>
-<pre>protected final&nbsp;boolean&nbsp;setAttributeValue(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
+<pre>protected final&nbsp;boolean&nbsp;setAttributeValue(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
                         <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;writeTimeout,
                         java.lang.Object&nbsp;value)</pre>
 <div class="block">Sends the attribute value to the remote agent.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
-<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttributeValue(com.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">setAttributeValue</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.snamp.connectors">AbstractManagementConnector</a></code></dd>
+<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">setAttributeValue</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></code></dd>
 <dt><span class="strong">Parameters:</span></dt><dd><code>attribute</code> - The metadata of the attribute to set.</dd><dd><code>writeTimeout</code> - </dd><dd><code>value</code> - </dd>
 <dt><span class="strong">Returns:</span></dt><dd>true if attribute is overridden successfully; otherwise, false.</dd></dl>
 </li>
 </ul>
-<a name="doAction(java.beans.MethodDescriptor, com.snamp.connectors.util.Arguments)">
+<a name="doAction(java.beans.MethodDescriptor, com.itworks.snamp.connectors.util.Arguments)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>doAction</h4>
 <pre>protected final&nbsp;java.lang.Object&nbsp;doAction(java.beans.MethodDescriptor&nbsp;action,
-                        <a href="../../../com/snamp/connectors/Arguments.html" title="class in com.snamp.connectors">Arguments</a>&nbsp;args)</pre>
+                        <a href="../../../com/snamp/connectors/Arguments.html" title="class in com.itworks.snamp.connectors">Arguments</a>&nbsp;args)</pre>
 <div class="block">Invokes the Java Bean method.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>action</code> - An action to execute.</dd><dd><code>args</code> - Action invocation arguments.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The invocation result.</dd></dl>
 </li>
 </ul>
-<a name="doAction(java.lang.String, com.snamp.connectors.util.Arguments, com.snamp.TimeSpan)">
+<a name="doAction(java.lang.String, com.itworks.snamp.connectors.util.Arguments, com.snamp.TimeSpan)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>doAction</h4>
 <pre>public final&nbsp;java.lang.Object&nbsp;doAction(java.lang.String&nbsp;actionName,
-                        <a href="../../../com/snamp/connectors/Arguments.html" title="class in com.snamp.connectors">Arguments</a>&nbsp;args,
+                        <a href="../../../com/snamp/connectors/Arguments.html" title="class in com.itworks.snamp.connectors">Arguments</a>&nbsp;args,
                         <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;timeout)
                                 throws java.lang.UnsupportedOperationException,
                                        java.util.concurrent.TimeoutException</pre>
@@ -559,14 +559,14 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <dd><code>java.util.concurrent.TimeoutException</code></dd></dl>
 </li>
 </ul>
-<a name="emitNotification(java.lang.String, com.snamp.connectors.Notification.Severity, java.lang.String, java.util.Map)">
+<a name="emitNotification(java.lang.String, com.itworks.snamp.connectors.Notification.Severity, java.lang.String, java.util.Map)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>emitNotification</h4>
 <pre>protected final&nbsp;void&nbsp;emitNotification(java.lang.String&nbsp;category,
-                    <a href="../../../com/snamp/connectors/Notification.Severity.html" title="enum in com.snamp.connectors">Notification.Severity</a>&nbsp;severity,
+                    <a href="../../../com/snamp/connectors/Notification.Severity.html" title="enum in com.itworks.snamp.connectors">Notification.Severity</a>&nbsp;severity,
                     java.lang.String&nbsp;message,
                     java.util.Map&lt;java.lang.String,java.lang.Object&gt;&nbsp;attachments)</pre>
 <div class="block">Raises notification.
@@ -592,30 +592,30 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <ul class="blockList">
 <li class="blockList">
 <h4>enableNotificationsCore</h4>
-<pre>protected final&nbsp;<a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericNotificationMetadata.html" title="class in com.snamp.connectors">AbstractManagementConnector.GenericNotificationMetadata</a>&nbsp;enableNotificationsCore(java.lang.String&nbsp;category,
+<pre>protected final&nbsp;<a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericNotificationMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericNotificationMetadata</a>&nbsp;enableNotificationsCore(java.lang.String&nbsp;category,
                                                                               java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;options)</pre>
 <div class="block">Enables event listening for the specified category of events.</div>
 <dl>
 <dt><strong>Overrides:</strong></dt>
-<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#enableNotificationsCore(java.lang.String, java.util.Map)">enableNotificationsCore</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.snamp.connectors">AbstractManagementConnector</a></code></dd>
+<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#enableNotificationsCore(java.lang.String, java.util.Map)">enableNotificationsCore</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></code></dd>
 <dt><span class="strong">Parameters:</span></dt><dd><code>category</code> - The name of the category to listen.</dd><dd><code>options</code> - Event discovery options.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The metadata of the event to listen; or null, if the specified category is not supported.</dd></dl>
 </li>
 </ul>
-<a name="disableNotificationsCore(com.snamp.connectors.NotificationMetadata)">
+<a name="disableNotificationsCore(com.itworks.snamp.connectors.NotificationMetadata)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>disableNotificationsCore</h4>
-<pre>protected final&nbsp;void&nbsp;disableNotificationsCore(<a href="../../../com/snamp/connectors/NotificationMetadata.html" title="interface in com.snamp.connectors">NotificationMetadata</a>&nbsp;notificationType)</pre>
+<pre>protected final&nbsp;void&nbsp;disableNotificationsCore(<a href="../../../com/snamp/connectors/NotificationMetadata.html" title="interface in com.itworks.snamp.connectors">NotificationMetadata</a>&nbsp;notificationType)</pre>
 <div class="block">Disable all notifications associated with the specified event.
  <p>
  In the default implementation this method does nothing.
  </p></div>
 <dl>
 <dt><strong>Overrides:</strong></dt>
-<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disableNotificationsCore(com.snamp.connectors.NotificationMetadata)">disableNotificationsCore</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.snamp.connectors">AbstractManagementConnector</a></code></dd>
+<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disableNotificationsCore(com.itworks.snamp.connectors.NotificationMetadata)">disableNotificationsCore</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></code></dd>
 <dt><span class="strong">Parameters:</span></dt><dd><code>notificationType</code> - The event descriptor.</dd></dl>
 </li>
 </ul>
@@ -657,8 +657,8 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.snamp.connectors"><span class="strong">Prev Class</span></a></li>
-<li><a href="../../../com/snamp/connectors/ManagementConnectorBean.AttributeInfo.html" title="annotation in com.snamp.connectors"><span class="strong">Next Class</span></a></li>
+<li><a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors"><span class="strong">Prev Class</span></a></li>
+<li><a href="../../../com/snamp/connectors/ManagementConnectorBean.AttributeInfo.html" title="annotation in com.itworks.snamp.connectors"><span class="strong">Next Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../index.html?com/snamp/connectors/ManagementConnectorBean.html" target="_top">Frames</a></li>

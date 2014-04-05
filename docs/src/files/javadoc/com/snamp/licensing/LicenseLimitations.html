@@ -35,8 +35,8 @@
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../com/snamp/licensing/JmxConnectorLimitations.html" title="class in com.snamp.licensing"><span class="strong">Prev Class</span></a></li>
-<li><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.snamp.licensing"><span class="strong">Next Class</span></a></li>
+<li><a href="../../../com/snamp/licensing/JmxConnectorLimitations.html" title="class in com.itworks.snamp.licensing"><span class="strong">Prev Class</span></a></li>
+<li><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.itworks.snamp.licensing"><span class="strong">Next Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../index.html?com/snamp/licensing/LicenseLimitations.html" target="_top">Frames</a></li>
@@ -78,7 +78,7 @@
 <!-- ========= END OF TOP NAVBAR ========= -->
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<div class="subTitle">com.snamp.licensing</div>
+<div class="subTitle">com.itworks.snamp.licensing</div>
 <h2 title="Interface LicenseLimitations" class="title">Interface LicenseLimitations</h2>
 </div>
 <div class="contentContainer">
@@ -91,7 +91,7 @@
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
-<dd><a href="../../../com/snamp/licensing/AbstractLicenseLimitations.html" title="class in com.snamp.licensing">AbstractLicenseLimitations</a>, <a href="../../../com/snamp/licensing/JmxConnectorLimitations.html" title="class in com.snamp.licensing">JmxConnectorLimitations</a>, <a href="../../../com/snamp/licensing/SnmpAdapterLimitations.html" title="class in com.snamp.licensing">SnmpAdapterLimitations</a></dd>
+<dd><a href="../../../com/snamp/licensing/AbstractLicenseLimitations.html" title="class in com.itworks.snamp.licensing">AbstractLicenseLimitations</a>, <a href="../../../com/snamp/licensing/JmxConnectorLimitations.html" title="class in com.itworks.snamp.licensing">JmxConnectorLimitations</a>, <a href="../../../com/snamp/licensing/SnmpAdapterLimitations.html" title="class in com.itworks.snamp.licensing">SnmpAdapterLimitations</a></dd>
 </dl>
 <hr>
 <br>
@@ -124,7 +124,7 @@ extends java.lang.Iterable&lt;java.lang.String&gt;</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static interface&nbsp;</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.snamp.licensing">LicenseLimitations.Limitation</a>&lt;<a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="type parameter in LicenseLimitations.Limitation">T</a>&gt;</strong></code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.itworks.snamp.licensing">LicenseLimitations.Limitation</a>&lt;<a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="type parameter in LicenseLimitations.Limitation">T</a>&gt;</strong></code>
 <div class="block">Represents a limitation for the specified licensed object.</div>
 </td>
 </tr>
@@ -144,7 +144,7 @@ extends java.lang.Iterable&lt;java.lang.String&gt;</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.snamp.licensing">LicenseLimitations.Limitation</a>&lt;?&gt;</code></td>
+<td class="colFirst"><code><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.itworks.snamp.licensing">LicenseLimitations.Limitation</a>&lt;?&gt;</code></td>
 <td class="colLast"><code><strong><a href="../../../com/snamp/licensing/LicenseLimitations.html#getLimitation(java.lang.String)">getLimitation</a></strong>(java.lang.String&nbsp;limitationName)</code>
 <div class="block">Returns the restricted parameter by its name.</div>
 </td>
@@ -153,7 +153,7 @@ extends java.lang.Iterable&lt;java.lang.String&gt;</pre>
 <td class="colFirst"><code>&lt;T&gt;&nbsp;void</code></td>
 <td class="colLast"><code><strong><a href="../../../com/snamp/licensing/LicenseLimitations.html#verify(java.lang.String, T)">verify</a></strong>(java.lang.String&nbsp;limitationName,
       T&nbsp;actualValue)</code>
-<div class="block">Throws an <a href="../../../com/snamp/licensing/LicensingException.html" title="class in com.snamp.licensing"><code>LicensingException</code></a> if the specified license limitation fails.</div>
+<div class="block">Throws an <a href="../../../com/snamp/licensing/LicensingException.html" title="class in com.itworks.snamp.licensing"><code>LicensingException</code></a> if the specified license limitation fails.</div>
 </td>
 </tr>
 </table>
@@ -188,11 +188,11 @@ extends java.lang.Iterable&lt;java.lang.String&gt;</pre>
 <h4>verify</h4>
 <pre>&lt;T&gt;&nbsp;void&nbsp;verify(java.lang.String&nbsp;limitationName,
               T&nbsp;actualValue)
-            throws <a href="../../../com/snamp/licensing/LicensingException.html" title="class in com.snamp.licensing">LicensingException</a></pre>
-<div class="block">Throws an <a href="../../../com/snamp/licensing/LicensingException.html" title="class in com.snamp.licensing"><code>LicensingException</code></a> if the specified license limitation fails.</div>
+            throws <a href="../../../com/snamp/licensing/LicensingException.html" title="class in com.itworks.snamp.licensing">LicensingException</a></pre>
+<div class="block">Throws an <a href="../../../com/snamp/licensing/LicensingException.html" title="class in com.itworks.snamp.licensing"><code>LicensingException</code></a> if the specified license limitation fails.</div>
 <dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Type of the restricted parameter.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>limitationName</code> - </dd><dd><code>actualValue</code> - The actual value of the restricted parameter.</dd>
 <dt><span class="strong">Throws:</span></dt>
-<dd><code><a href="../../../com/snamp/licensing/LicensingException.html" title="class in com.snamp.licensing">LicensingException</a></code></dd></dl>
+<dd><code><a href="../../../com/snamp/licensing/LicensingException.html" title="class in com.itworks.snamp.licensing">LicensingException</a></code></dd></dl>
 </li>
 </ul>
 <a name="getLimitation(java.lang.String)">
@@ -201,7 +201,7 @@ extends java.lang.Iterable&lt;java.lang.String&gt;</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getLimitation</h4>
-<pre><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.snamp.licensing">LicenseLimitations.Limitation</a>&lt;?&gt;&nbsp;getLimitation(java.lang.String&nbsp;limitationName)</pre>
+<pre><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.itworks.snamp.licensing">LicenseLimitations.Limitation</a>&lt;?&gt;&nbsp;getLimitation(java.lang.String&nbsp;limitationName)</pre>
 <div class="block">Returns the restricted parameter by its name.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>limitationName</code> - The name of the restricted parameter.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>An instance of the limitation descriptor.</dd></dl>
@@ -232,8 +232,8 @@ extends java.lang.Iterable&lt;java.lang.String&gt;</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../com/snamp/licensing/JmxConnectorLimitations.html" title="class in com.snamp.licensing"><span class="strong">Prev Class</span></a></li>
-<li><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.snamp.licensing"><span class="strong">Next Class</span></a></li>
+<li><a href="../../../com/snamp/licensing/JmxConnectorLimitations.html" title="class in com.itworks.snamp.licensing"><span class="strong">Prev Class</span></a></li>
+<li><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.itworks.snamp.licensing"><span class="strong">Next Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../index.html?com/snamp/licensing/LicenseLimitations.html" target="_top">Frames</a></li>

@@ -66,7 +66,7 @@ For more information about managers, see [Diving in-to-deep: Custom Agent Manage
 * [Configuration storage](javadoc/com/snamp/hosting/AgentConfigurationStorage.html) that describes persistence storage for SNAMP configuration
 * [Configuration format parsers](javadoc/com/snamp/hosting/ConfigurationFormat.html) that provides parsing of streams with SNAMP configuration to Configuration Object Model and vice versa.
 
-For more information about SNAMP configuration model, see description of [com.snamp.hosting](javadoc/com/snamp/hosting/package-summary.html) package.
+For more information about SNAMP configuration model, see description of [com.itworks.snamp.hosting](javadoc/com/snamp/hosting/package-summary.html) package.
 
 
 ### Agent

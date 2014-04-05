@@ -1,4 +1,4 @@
-import com.snamp.connectors.NotificationSupport;
+import com.itworks.snamp.connectors.NotificationSupport;
 
 notification.setSequenceNumber(mqmessage.getInt8Property('seqnum'));
 notification.setTimeStamp(mqmessage.getObjectProperty('timestamp'));

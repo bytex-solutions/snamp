@@ -35,7 +35,7 @@
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../com/snamp/adapters/RestAdapterService.html" title="class in com.snamp.adapters"><span class="strong">Prev Class</span></a></li>
+<li><a href="../../../com/snamp/adapters/RestAdapterService.html" title="class in com.itworks.snamp.adapters"><span class="strong">Prev Class</span></a></li>
 <li>Next Class</li>
 </ul>
 <ul class="navList">
@@ -78,7 +78,7 @@
 <!-- ========= END OF TOP NAVBAR ========= -->
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<div class="subTitle">com.snamp.adapters</div>
+<div class="subTitle">com.itworks.snamp.adapters</div>
 <h2 title="Class SnmpAdapterBase" class="title">Class SnmpAdapterBase</h2>
 </div>
 <div class="contentContainer">
@@ -89,7 +89,7 @@
 <li>BaseAgent</li>
 <li>
 <ul class="inheritance">
-<li>com.snamp.adapters.SnmpAdapterBase</li>
+<li>com.itworks.snamp.adapters.SnmpAdapterBase</li>
 </ul>
 </li>
 </ul>
@@ -100,13 +100,13 @@
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd><a href="../../../com/snamp/adapters/Adapter.html" title="interface in com.snamp.adapters">Adapter</a>, <a href="../../../com/snamp/Aggregator.html" title="interface in com.snamp">Aggregator</a>, <a href="../../../com/snamp/PlatformPlugin.html" title="interface in com.snamp">PlatformPlugin</a>, <a href="../../../com/snamp/PlatformService.html" title="interface in com.snamp">PlatformService</a>, java.lang.AutoCloseable, net.xeoh.plugins.base.Plugin</dd>
+<dd><a href="../../../com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters">Adapter</a>, <a href="../../../com/snamp/Aggregator.html" title="interface in com.snamp">Aggregator</a>, <a href="../../../com/snamp/PlatformPlugin.html" title="interface in com.snamp">PlatformPlugin</a>, <a href="../../../com/snamp/PlatformService.html" title="interface in com.snamp">PlatformService</a>, java.lang.AutoCloseable, net.xeoh.plugins.base.Plugin</dd>
 </dl>
 <hr>
 <br>
 <pre>public abstract class <span class="strong">SnmpAdapterBase</span>
 extends BaseAgent
-implements <a href="../../../com/snamp/adapters/Adapter.html" title="interface in com.snamp.adapters">Adapter</a></pre>
+implements <a href="../../../com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters">Adapter</a></pre>
 <div class="block">Represents a base class for SNMP adapter.</div>
 <dl><dt><span class="strong">Author:</span></dt>
   <dd>Roman Sakno</dd></dl>
@@ -146,10 +146,10 @@ implements <a href="../../../com/snamp/adapters/Adapter.html" title="interface i
 </tr>
 </table>
 <ul class="blockList">
-<li class="blockList"><a name="fields_inherited_from_class_com.snamp.adapters.Adapter">
+<li class="blockList"><a name="fields_inherited_from_class_com.itworks.snamp.adapters.Adapter">
 <!--   -->
 </a>
-<h3>Fields inherited from interface&nbsp;com.snamp.adapters.<a href="../../../com/snamp/adapters/Adapter.html" title="interface in com.snamp.adapters">Adapter</a></h3>
+<h3>Fields inherited from interface&nbsp;com.itworks.snamp.adapters.<a href="../../../com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters">Adapter</a></h3>
 <code><a href="../../../com/snamp/adapters/Adapter.html#addressParamName">addressParamName</a>, <a href="../../../com/snamp/adapters/Adapter.html#portParamName">portParamName</a></code></li>
 </ul>
 </li>
@@ -214,11 +214,11 @@ implements <a href="../../../com/snamp/adapters/Adapter.html" title="interface i
 <code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait</code></li>
 </ul>
 <ul class="blockList">
-<li class="blockList"><a name="methods_inherited_from_class_com.snamp.adapters.Adapter">
+<li class="blockList"><a name="methods_inherited_from_class_com.itworks.snamp.adapters.Adapter">
 <!--   -->
 </a>
-<h3>Methods inherited from interface&nbsp;com.snamp.adapters.<a href="../../../com/snamp/adapters/Adapter.html" title="interface in com.snamp.adapters">Adapter</a></h3>
-<code><a href="../../../com/snamp/adapters/Adapter.html#exposeAttributes(com.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeAttributes</a>, <a href="../../../com/snamp/adapters/Adapter.html#exposeEvents(com.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeEvents</a>, <a href="../../../com/snamp/adapters/Adapter.html#start(java.util.Map)">start</a>, <a href="../../../com/snamp/adapters/Adapter.html#stop(boolean)">stop</a></code></li>
+<h3>Methods inherited from interface&nbsp;com.itworks.snamp.adapters.<a href="../../../com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters">Adapter</a></h3>
+<code><a href="../../../com/snamp/adapters/Adapter.html#exposeAttributes(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeAttributes</a>, <a href="../../../com/snamp/adapters/Adapter.html#exposeEvents(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeEvents</a>, <a href="../../../com/snamp/adapters/Adapter.html#start(java.util.Map)">start</a>, <a href="../../../com/snamp/adapters/Adapter.html#stop(boolean)">stop</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods_inherited_from_class_java.lang.AutoCloseable">
@@ -257,7 +257,7 @@ implements <a href="../../../com/snamp/adapters/Adapter.html" title="interface i
 <li class="blockList">
 <h4>defaultPort</h4>
 <pre>protected static final&nbsp;int defaultPort</pre>
-<dl><dt><span class="strong">See Also:</span></dt><dd><a href="../../../constant-values.html#com.snamp.adapters.SnmpAdapterBase.defaultPort">Constant Field Values</a></dd></dl>
+<dl><dt><span class="strong">See Also:</span></dt><dd><a href="../../../constant-values.html#com.itworks.snamp.adapters.SnmpAdapterBase.defaultPort">Constant Field Values</a></dd></dl>
 </li>
 </ul>
 <a name="defaultAddress">
@@ -267,7 +267,7 @@ implements <a href="../../../com/snamp/adapters/Adapter.html" title="interface i
 <li class="blockList">
 <h4>defaultAddress</h4>
 <pre>protected static final&nbsp;java.lang.String defaultAddress</pre>
-<dl><dt><span class="strong">See Also:</span></dt><dd><a href="../../../constant-values.html#com.snamp.adapters.SnmpAdapterBase.defaultAddress">Constant Field Values</a></dd></dl>
+<dl><dt><span class="strong">See Also:</span></dt><dd><a href="../../../constant-values.html#com.itworks.snamp.adapters.SnmpAdapterBase.defaultAddress">Constant Field Values</a></dd></dl>
 </li>
 </ul>
 <a name="adapterName">
@@ -277,7 +277,7 @@ implements <a href="../../../com/snamp/adapters/Adapter.html" title="interface i
 <li class="blockList">
 <h4>adapterName</h4>
 <pre>public static final&nbsp;java.lang.String adapterName</pre>
-<dl><dt><span class="strong">See Also:</span></dt><dd><a href="../../../constant-values.html#com.snamp.adapters.SnmpAdapterBase.adapterName">Constant Field Values</a></dd></dl>
+<dl><dt><span class="strong">See Also:</span></dt><dd><a href="../../../constant-values.html#com.itworks.snamp.adapters.SnmpAdapterBase.adapterName">Constant Field Values</a></dd></dl>
 </li>
 </ul>
 </li>
@@ -372,7 +372,7 @@ implements <a href="../../../com/snamp/adapters/Adapter.html" title="interface i
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../com/snamp/adapters/RestAdapterService.html" title="class in com.snamp.adapters"><span class="strong">Prev Class</span></a></li>
+<li><a href="../../../com/snamp/adapters/RestAdapterService.html" title="class in com.itworks.snamp.adapters"><span class="strong">Prev Class</span></a></li>
 <li>Next Class</li>
 </ul>
 <ul class="navList">

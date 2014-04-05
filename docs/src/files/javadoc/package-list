@@ -1,7 +1,7 @@
 com.snamp
-com.snamp.adapters
-com.snamp.connectors
-com.snamp.connectors.util
-com.snamp.hosting
-com.snamp.hosting.management
-com.snamp.licensing
+com.itworks.snamp.adapters
+com.itworks.snamp.connectors
+com.itworks.snamp.connectors.util
+com.itworks.snamp.hosting
+com.itworks.snamp.hosting.management
+com.itworks.snamp.licensing
