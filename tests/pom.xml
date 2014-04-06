@@ -48,6 +48,12 @@
       <version>2.2.3</version>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>com.itworks.snamp</groupId>
+          <artifactId>config-bundle</artifactId>
+          <version>1.0.0</version>
+          <scope>test</scope>
+      </dependency>
     <dependency>
       <groupId>com.itworks.snamp</groupId>
       <artifactId>agent</artifactId>

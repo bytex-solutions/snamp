@@ -33,6 +33,7 @@
     <module>tests</module>
     <module>rest-manager</module>
     <module>examples</module>
+      <module>config-bundle</module>
   </modules>
     <repositories>
         <repository>

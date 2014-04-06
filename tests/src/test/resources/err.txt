@@ -1,5 +1,0 @@
----
-adapter:
-  name: SNMPAdapter
-  addelem: value1
-  addelem3: value3
