@@ -70,7 +70,7 @@
 <li><a href="com/snamp/connectors/package-tree.html">com.itworks.snamp.connectors</a>, </li>
 <li><a href="com/snamp/connectors/util/package-tree.html">com.itworks.snamp.connectors.util</a>, </li>
 <li><a href="com/snamp/hosting/package-tree.html">com.itworks.snamp.hosting</a>, </li>
-<li><a href="com/snamp/hosting/management/package-tree.html">com.itworks.snamp.hosting.management</a>, </li>
+<li><a href="com/snamp/hosting/management/package-tree.html">com.itworks.snamp.management</a>, </li>
 <li><a href="com/snamp/licensing/package-tree.html">com.itworks.snamp.licensing</a></li>
 </ul>
 </div>
@@ -93,9 +93,9 @@
 <li type="circle">com.itworks.snamp.adapters.<a href="com/snamp/adapters/EmbeddedAdapter.html" title="class in com.itworks.snamp.adapters"><span class="strong">EmbeddedAdapter</span></a></li>
 </ul>
 </li>
-<li type="circle">com.itworks.snamp.hosting.management.<a href="com/snamp/hosting/management/AbstractAgentManager.html" title="class in com.itworks.snamp.hosting.management"><span class="strong">AbstractAgentManager</span></a> (implements com.itworks.snamp.hosting.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.hosting.management">AgentManager</a>)
+<li type="circle">com.itworks.snamp.management.<a href="com/snamp/hosting/management/AbstractAgentManager.html" title="class in com.itworks.snamp.management"><span class="strong">AbstractAgentManager</span></a> (implements com.itworks.snamp.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.management">AgentManager</a>)
 <ul>
-<li type="circle">com.itworks.snamp.hosting.management.<a href="com/snamp/hosting/management/ConsoleAgentManager.html" title="class in com.itworks.snamp.hosting.management"><span class="strong">ConsoleAgentManager</span></a></li>
+<li type="circle">com.itworks.snamp.management.<a href="com/snamp/hosting/management/ConsoleAgentManager.html" title="class in com.itworks.snamp.management"><span class="strong">ConsoleAgentManager</span></a></li>
 </ul>
 </li>
 <li type="circle">com.itworks.snamp.connectors.<a href="com/snamp/connectors/AbstractManagementConnectorFactory.html" title="class in com.itworks.snamp.connectors"><span class="strong">AbstractManagementConnectorFactory</span></a>&lt;TConnector&gt; (implements com.itworks.snamp.connectors.<a href="com/snamp/connectors/ManagementConnectorFactory.html" title="interface in com.itworks.snamp.connectors">ManagementConnectorFactory</a>)</li>
@@ -249,13 +249,13 @@
 <ul>
 <li type="circle">com.itworks.snamp.adapters.<a href="com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters"><span class="strong">Adapter</span></a> (also extends java.lang.AutoCloseable, com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp">PlatformPlugin</a>)</li>
 <li type="circle">com.itworks.snamp.hosting.<a href="com/snamp/hosting/AgentConfigurationStorage.html" title="interface in com.itworks.snamp.hosting"><span class="strong">AgentConfigurationStorage</span></a></li>
-<li type="circle">com.itworks.snamp.hosting.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.hosting.management"><span class="strong">AgentManager</span></a> (also extends java.lang.AutoCloseable, com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp">PlatformPlugin</a>)</li>
+<li type="circle">com.itworks.snamp.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.management"><span class="strong">AgentManager</span></a> (also extends java.lang.AutoCloseable, com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp">PlatformPlugin</a>)</li>
 <li type="circle">com.itworks.snamp.hosting.<a href="com/snamp/hosting/HostingContext.html" title="interface in com.itworks.snamp.hosting"><span class="strong">HostingContext</span></a></li>
 <li type="circle">com.itworks.snamp.connectors.<a href="com/snamp/connectors/ManagementConnectorFactory.html" title="interface in com.itworks.snamp.connectors"><span class="strong">ManagementConnectorFactory</span></a></li>
 <li type="circle">com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp"><span class="strong">PlatformPlugin</span></a> (also extends com.snamp.<a href="com/snamp/PlatformService.html" title="interface in com.snamp">PlatformService</a>, net.xeoh.plugins.base.Plugin)
 <ul>
 <li type="circle">com.itworks.snamp.adapters.<a href="com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters"><span class="strong">Adapter</span></a> (also extends java.lang.AutoCloseable)</li>
-<li type="circle">com.itworks.snamp.hosting.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.hosting.management"><span class="strong">AgentManager</span></a> (also extends java.lang.AutoCloseable)</li>
+<li type="circle">com.itworks.snamp.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.management"><span class="strong">AgentManager</span></a> (also extends java.lang.AutoCloseable)</li>
 <li type="circle">com.itworks.snamp.connectors.<a href="com/snamp/connectors/ManagementConnectorFactory.html" title="interface in com.itworks.snamp.connectors"><span class="strong">ManagementConnectorFactory</span></a></li>
 </ul>
 </li>
@@ -263,12 +263,12 @@
 <ul>
 <li type="circle">com.itworks.snamp.adapters.<a href="com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters"><span class="strong">Adapter</span></a> (also extends java.lang.AutoCloseable, com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp">PlatformPlugin</a>)</li>
 <li type="circle">com.itworks.snamp.hosting.<a href="com/snamp/hosting/AgentConfigurationStorage.html" title="interface in com.itworks.snamp.hosting"><span class="strong">AgentConfigurationStorage</span></a></li>
-<li type="circle">com.itworks.snamp.hosting.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.hosting.management"><span class="strong">AgentManager</span></a> (also extends java.lang.AutoCloseable, com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp">PlatformPlugin</a>)</li>
+<li type="circle">com.itworks.snamp.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.management"><span class="strong">AgentManager</span></a> (also extends java.lang.AutoCloseable, com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp">PlatformPlugin</a>)</li>
 <li type="circle">com.itworks.snamp.connectors.<a href="com/snamp/connectors/ManagementConnectorFactory.html" title="interface in com.itworks.snamp.connectors"><span class="strong">ManagementConnectorFactory</span></a></li>
 <li type="circle">com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp"><span class="strong">PlatformPlugin</span></a> (also extends net.xeoh.plugins.base.Plugin)
 <ul>
 <li type="circle">com.itworks.snamp.adapters.<a href="com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters"><span class="strong">Adapter</span></a> (also extends java.lang.AutoCloseable)</li>
-<li type="circle">com.itworks.snamp.hosting.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.hosting.management"><span class="strong">AgentManager</span></a> (also extends java.lang.AutoCloseable)</li>
+<li type="circle">com.itworks.snamp.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.management"><span class="strong">AgentManager</span></a> (also extends java.lang.AutoCloseable)</li>
 <li type="circle">com.itworks.snamp.connectors.<a href="com/snamp/connectors/ManagementConnectorFactory.html" title="interface in com.itworks.snamp.connectors"><span class="strong">ManagementConnectorFactory</span></a></li>
 </ul>
 </li>
@@ -289,7 +289,7 @@
 <li type="circle">java.lang.AutoCloseable
 <ul>
 <li type="circle">com.itworks.snamp.adapters.<a href="com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters"><span class="strong">Adapter</span></a> (also extends com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp">PlatformPlugin</a>)</li>
-<li type="circle">com.itworks.snamp.hosting.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.hosting.management"><span class="strong">AgentManager</span></a> (also extends com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp">PlatformPlugin</a>)</li>
+<li type="circle">com.itworks.snamp.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.management"><span class="strong">AgentManager</span></a> (also extends com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp">PlatformPlugin</a>)</li>
 <li type="circle">com.itworks.snamp.connectors.<a href="com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors"><span class="strong">ManagementConnector</span></a> (also extends java.lang.Iterable&lt;T&gt;)</li>
 </ul>
 </li>
@@ -344,7 +344,7 @@
 <li type="circle">com.snamp.<a href="com/snamp/PlatformPlugin.html" title="interface in com.snamp"><span class="strong">PlatformPlugin</span></a> (also extends com.snamp.<a href="com/snamp/PlatformService.html" title="interface in com.snamp">PlatformService</a>)
 <ul>
 <li type="circle">com.itworks.snamp.adapters.<a href="com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters"><span class="strong">Adapter</span></a> (also extends java.lang.AutoCloseable)</li>
-<li type="circle">com.itworks.snamp.hosting.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.hosting.management"><span class="strong">AgentManager</span></a> (also extends java.lang.AutoCloseable)</li>
+<li type="circle">com.itworks.snamp.management.<a href="com/snamp/hosting/management/AgentManager.html" title="interface in com.itworks.snamp.management"><span class="strong">AgentManager</span></a> (also extends java.lang.AutoCloseable)</li>
 <li type="circle">com.itworks.snamp.connectors.<a href="com/snamp/connectors/ManagementConnectorFactory.html" title="interface in com.itworks.snamp.connectors"><span class="strong">ManagementConnectorFactory</span></a></li>
 </ul>
 </li>

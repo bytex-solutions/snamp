@@ -1,0 +1,36 @@
+package com.itworks.snamp.connectors;
+
+import com.itworks.snamp.core.PlatformService;
+import com.itworks.snamp.internal.InstanceLifecycle;
+import com.itworks.snamp.internal.Lifecycle;
+
+import java.util.Map;
+
+/**
+ * Represents management connector factory.
+ * <p>
+ *     The implementer class should have parameterless constructor and annotated with {@link net.xeoh.plugins.base.annotations.PluginImplementation}.
+ * </p>
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
+ */
+@Lifecycle(InstanceLifecycle.SINGLE_PER_PROCESS)
+public interface ManagementConnectorFactory extends PlatformService {
+    /**
+     * Creates a new instance of the connector.
+     * @param connectionString The protocol-specific connection string.
+     * @param connectionProperties The connection properties such as credentials.
+     * @return A new instance of the management connector.
+     */
+    public ManagementConnector newInstance(final String connectionString, final Map<String, String> connectionProperties);
+
+    /**
+     * Determines whether the specified feature is supported.
+     * @param feature Type of the feature to check, such as {@link NotificationSupport}.
+     * @return {@literal true}, if the specified management connector feature is supported; otherwise, {@literal false}.
+     * @see AttributeSupport
+     * @see NotificationSupport
+     */
+    public boolean supportsFeature(final Class<?> feature);
+}

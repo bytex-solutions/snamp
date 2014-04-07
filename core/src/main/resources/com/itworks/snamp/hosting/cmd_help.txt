@@ -1,0 +1,11 @@
+Usage: java snamp <osgi-props-file> [file1.jar file2.jar ...]
+
+Where:
+    osgi-props-file A path to the Java properties file that contains OSGi framework configuration. Required argument.
+    -a, --autostart [file1.jar file2.jar ...] List of bundles that should be automatically installed and started after SNAMP startup. Optional argument.
+
+SNAMP-specific system properties:
+    com.itworks.snamp.license Path to the SNAMP license file
+
+Examples:
+    java snamp ./osgi.properties plugins/org.apache.felix.bundlerepository.jar

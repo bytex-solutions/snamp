@@ -2,6 +2,7 @@ package com.itworks.snamp.configuration;
 
 import com.itworks.snamp.SnampClassTestSet;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.configuration.xml.XmlAgentConfiguration;
 import org.junit.Test;
 
 import java.io.IOException;
