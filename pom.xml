@@ -6,10 +6,14 @@
   <version>1.0.0</version>
   <packaging>pom</packaging>
   <name>snamp</name>
-    <properties>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-    </properties>
+  <properties>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
+  </properties>
+  <organization>
+        <name>IT Works</name>
+        <url>http://www.itworks.com/snamp</url>
+  </organization>
   <scm>
     <developerConnection>scm:git:git@github.com:sakno/snamp.git</developerConnection>
     <tag>HEAD</tag>
@@ -30,7 +34,7 @@
     </plugins>
   </build>
   <modules>
-    <module>core</module>
+    <module>corlib</module>
     <!--<module>adapters</module>
     <module>connectors</module>
     <module>licensing</module>
@@ -38,6 +42,7 @@
     <module>rest-manager</module>
     <module>examples</module>-->
      <module>config-bundle</module>
+     <module>licensing-bundle</module>
   </modules>
     <repositories>
         <repository>
