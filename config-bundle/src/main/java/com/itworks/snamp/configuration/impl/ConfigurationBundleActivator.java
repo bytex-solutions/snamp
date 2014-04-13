@@ -11,7 +11,7 @@ import org.osgi.framework.BundleActivator;
  * @version 1.0
  * @since 1.0
  */
-public final class ConfigurationBundleActivator extends AbstractConfigurationBundleActivator implements BundleActivator {
+public final class ConfigurationBundleActivator extends AbstractConfigurationBundleActivator {
     public static final String LOGGER_NAME = "itworks.snamp.configuration";
 
     protected static final class XmlConfigurationManagerProvider extends ConfigurationManagerProvider<XmlConfigurationManager>{

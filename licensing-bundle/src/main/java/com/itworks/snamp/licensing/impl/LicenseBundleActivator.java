@@ -10,7 +10,7 @@ import org.osgi.framework.BundleActivator;
  * @version 1.0
  * @since 1.0
  */
-public final class LicenseBundleActivator extends AbstractLoggableBundleActivator implements BundleActivator {
+public final class LicenseBundleActivator extends AbstractLoggableBundleActivator {
     public static final String LOGGER_NAME = "itworks.snamp.licensing";
 
     protected static final class XmlLicenseReaderProvider extends LoggableProvidedService<LicenseReader, XmlLicenseReader>{

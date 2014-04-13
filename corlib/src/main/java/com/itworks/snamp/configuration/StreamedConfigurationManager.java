@@ -16,7 +16,7 @@ public abstract class StreamedConfigurationManager<T extends AgentConfiguration>
     /**
      * Initializes a new persistent configuration manager.
      * @param serviceLogger OSGi logging service wrapped into {@link Logger} instance. Can be obtained
-     *                      from {@link com.itworks.snamp.core.AbstractBundleActivator#logger} field.
+     *                      from {@link com.itworks.snamp.core.AbstractLoggableBundleActivator.LoggableProvidedService#getLogger()} method.
      */
     protected StreamedConfigurationManager(final Logger serviceLogger){
         super(serviceLogger);

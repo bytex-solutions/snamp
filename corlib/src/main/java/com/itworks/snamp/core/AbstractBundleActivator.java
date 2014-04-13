@@ -14,7 +14,7 @@ import static com.itworks.snamp.internal.ReflectionUtils.*;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractBundleActivator {
+public abstract class AbstractBundleActivator implements BundleActivator {
 
     /**
      * Represents dependency descriptor.
