@@ -17,8 +17,7 @@ final class XmlConfigurationManager extends StreamedConfigurationManager<XmlAgen
     /**
      * Initializes a new XML-based configuration manager.
      *
-     * @param serviceLogger OSGi logging service wrapped into {@link java.util.logging.Logger} instance. Can be obtained
-     *                      from {@link com.itworks.snamp.core.AbstractBundleActivator#logger} field.
+     * @param serviceLogger OSGi logging service wrapped into {@link java.util.logging.Logger} instance.
      */
     public XmlConfigurationManager(final Logger serviceLogger) {
         super(serviceLogger);
