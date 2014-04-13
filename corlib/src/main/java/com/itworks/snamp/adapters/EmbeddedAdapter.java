@@ -172,4 +172,14 @@ public class EmbeddedAdapter extends AbstractAdapter implements NotificationPubl
     public void close() {
         attributes.clear();
     }
+
+    /**
+     * Gets a set of properties that uniquely identifies this instance.
+     *
+     * @return A set of properties that uniquely identifies this instance.
+     */
+    @Override
+    public Dictionary<String, ?> getIdentity() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
 }

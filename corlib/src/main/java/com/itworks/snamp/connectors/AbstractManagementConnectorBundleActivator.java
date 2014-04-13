@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.core.AbstractBundleActivator;
+import com.itworks.snamp.core.AbstractLoggableBundleActivator;
 
 /**
  * Represents a base class for management connector bundle.
@@ -8,7 +9,7 @@ import com.itworks.snamp.core.AbstractBundleActivator;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractManagementConnectorBundleActivator<TConnector extends ManagementConnector> extends AbstractBundleActivator {
+public abstract class AbstractManagementConnectorBundleActivator<TConnector extends ManagementConnector> extends AbstractLoggableBundleActivator {
     private final String connectorName;
 
     /**
