@@ -1,5 +1,6 @@
 package com.itworks.snamp.configuration;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -51,6 +52,10 @@ public abstract class StreamedConfigurationManager<T extends AgentConfiguration>
         final T newInstance = newConfiguration();
         try(final InputStream is = openInputStream()){
             newInstance.load(is);
+        }
+        catch(final FileNotFoundException e){ //just re-create stream with empty config
+            getLogger().log(Level.WARNING, "SNAMP configuration is missing. Blank configuration is created.", e);
+            save(newInstance);
         }
         catch (final IOException e){
             getLogger().log(Level.SEVERE, "Unable to read SNAMP configuration", e);
