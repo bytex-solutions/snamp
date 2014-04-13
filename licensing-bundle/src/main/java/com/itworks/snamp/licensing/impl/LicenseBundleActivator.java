@@ -1,8 +1,8 @@
 package com.itworks.snamp.licensing.impl;
 
-import com.itworks.snamp.core.AbstractBundleActivator;
 import com.itworks.snamp.core.AbstractLoggableBundleActivator;
 import com.itworks.snamp.licensing.LicenseReader;
+import org.osgi.framework.BundleActivator;
 
 /**
  * Represents implementation of the SNAMP licensing bundle. This class cannot be inherited.
@@ -10,7 +10,7 @@ import com.itworks.snamp.licensing.LicenseReader;
  * @version 1.0
  * @since 1.0
  */
-public final class LicenseBundleActivator extends AbstractLoggableBundleActivator {
+public final class LicenseBundleActivator extends AbstractLoggableBundleActivator implements BundleActivator {
     public static final String LOGGER_NAME = "itworks.snamp.licensing";
 
     protected static final class XmlLicenseReaderProvider extends LoggableProvidedService<LicenseReader, XmlLicenseReader>{

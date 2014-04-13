@@ -24,6 +24,11 @@
             <configuration>
                 <instructions>
                     <Bundle-SymbolicName>com.itworks.snamp.core</Bundle-SymbolicName>
+                    <Embed-Dependency>*;scope=compile|runtime;optional=false</Embed-Dependency>
+                    <Import-Package>!*,
+                        org.osgi.framework,
+                        org.osgi.service.log
+                    </Import-Package>
                 </instructions>
             </configuration>
         </plugin>

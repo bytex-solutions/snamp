@@ -6,8 +6,7 @@ import org.osgi.service.log.LogService;
 
 import java.util.*;
 
-import static com.itworks.snamp.internal.ReflectionUtils.getBundleContextByObject;
-import static com.itworks.snamp.internal.ReflectionUtils.isInstanceOf;
+import static com.itworks.snamp.internal.ReflectionUtils.*;
 
 /**
  * Represents a base class for all SNAMP-specific bundle activators.
@@ -15,7 +14,7 @@ import static com.itworks.snamp.internal.ReflectionUtils.isInstanceOf;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractBundleActivator implements BundleActivator {
+public abstract class AbstractBundleActivator {
 
     /**
      * Represents dependency descriptor.
@@ -418,7 +417,6 @@ public abstract class AbstractBundleActivator implements BundleActivator {
      *         listeners, unregister all services registered by this bundle, and
      *         release all services used by this bundle.
      */
-    @Override
     public final void start(final BundleContext context) throws Exception {
         init(sharedContext);
         //init shared dependencies
@@ -442,7 +440,6 @@ public abstract class AbstractBundleActivator implements BundleActivator {
      *                   listeners, unregister all services registered by the bundle, and
      *                   release all services used by the bundle.
      */
-    @Override
     public final void stop(final BundleContext context) throws Exception{
         for(final ProvidedService<?, ?> providedService: providedServices)
             providedService.unregister(context);
