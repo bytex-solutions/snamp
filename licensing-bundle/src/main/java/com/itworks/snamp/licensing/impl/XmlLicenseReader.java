@@ -21,6 +21,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.interfaces.*;
+import java.util.Dictionary;
 import java.util.logging.*;
 
 /**
@@ -31,6 +32,16 @@ import java.util.logging.*;
  * @version 1.0
  */
 final class XmlLicenseReader extends AbstractFrameworkService implements LicenseReader {
+
+    /**
+     * Gets a set of properties that uniquely identifies this instance.
+     *
+     * @return A set of properties that uniquely identifies this instance.
+     */
+    @Override
+    public Dictionary<String, ?> getIdentity() {
+        return null;
+    }
 
     /**
      * Represents licensing context.
