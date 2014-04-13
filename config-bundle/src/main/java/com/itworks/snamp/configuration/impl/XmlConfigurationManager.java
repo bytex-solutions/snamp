@@ -3,6 +3,7 @@ package com.itworks.snamp.configuration.impl;
 import com.itworks.snamp.configuration.StreamedConfigurationManager;
 
 import java.io.*;
+import java.util.Dictionary;
 import java.util.logging.Logger;
 
 /**
@@ -55,5 +56,10 @@ final class XmlConfigurationManager extends StreamedConfigurationManager<XmlAgen
     @Override
     protected OutputStream openOutputStream() throws IOException{
         return new FileOutputStream(getConfigurationFileName());
+    }
+
+    @Override
+    public Dictionary<String, ?> getIdentity() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }
