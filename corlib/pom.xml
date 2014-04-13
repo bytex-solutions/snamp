@@ -26,8 +26,8 @@
                     <Bundle-SymbolicName>com.itworks.snamp.core</Bundle-SymbolicName>
                     <Embed-Dependency>*;scope=compile|runtime;optional=false</Embed-Dependency>
                     <Import-Package>!*,
-                        org.osgi.framework;version="[1.5,2)",
-                        org.osgi.service.log;version="[1.3,2)"
+                        org.osgi.framework,
+                        org.osgi.service.log
                     </Import-Package>
                 </instructions>
             </configuration>

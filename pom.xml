@@ -43,6 +43,7 @@
     <module>examples</module>-->
      <module>config-bundle</module>
      <module>licensing-bundle</module>
+     <module>osgi-tests</module>
   </modules>
     <repositories>
         <repository>

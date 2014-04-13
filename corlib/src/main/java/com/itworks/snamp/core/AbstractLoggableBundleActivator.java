@@ -111,10 +111,10 @@ public abstract class AbstractLoggableBundleActivator extends AbstractBundleActi
      * Initializes a new instance of the bundle activator.
      * @param loggerName The name of the logger that will be connected to OSGi log service and shared between
      *                   provided services.
-     * @param serviceFactories A collection of provided services.
+     * @param providedServices A collection of provided services.
      */
-    protected AbstractLoggableBundleActivator(final String loggerName, final Class<? extends ProvidedService<?, ?>>... serviceFactories){
-        super(serviceFactories);
+    protected AbstractLoggableBundleActivator(final String loggerName, final ProvidedService<?, ?>... providedServices){
+        super(providedServices);
         loggerDependency = new LoggerServiceDependency(loggerName);
     }
 

@@ -14,7 +14,7 @@ import org.osgi.framework.BundleActivator;
 public final class ConfigurationBundleActivator extends AbstractConfigurationBundleActivator {
     public static final String LOGGER_NAME = "itworks.snamp.configuration";
 
-    protected static final class XmlConfigurationManagerProvider extends ConfigurationManagerProvider<XmlConfigurationManager>{
+    private static final class XmlConfigurationManagerProvider extends ConfigurationManagerProvider<XmlConfigurationManager>{
 
         @Override
         protected XmlConfigurationManager activateService(final RequiredService<?>... dependencies) {
@@ -26,6 +26,6 @@ public final class ConfigurationBundleActivator extends AbstractConfigurationBun
      * Initializes a new instance of the configuration bundle activator.
      */
     public ConfigurationBundleActivator(){
-        super(LOGGER_NAME, XmlConfigurationManagerProvider.class);
+        super(LOGGER_NAME, new XmlConfigurationManagerProvider());
     }
 }

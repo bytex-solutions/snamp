@@ -34,7 +34,7 @@ public abstract class AbstractConfigurationBundleActivator extends AbstractLogga
      *
      * @param loggerName The name of the logger that is used by all services published by the bundle.
      */
-    protected AbstractConfigurationBundleActivator(final String loggerName, final Class<? extends ConfigurationManagerProvider<?>> configManagerProvider) {
+    protected AbstractConfigurationBundleActivator(final String loggerName, final ConfigurationManagerProvider<?> configManagerProvider) {
         super(loggerName, configManagerProvider);
     }
 }

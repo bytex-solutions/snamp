@@ -4,6 +4,7 @@ import com.itworks.snamp.internal.MethodStub;
 import org.osgi.framework.*;
 import org.osgi.service.log.LogService;
 
+import java.lang.reflect.Constructor;
 import java.util.*;
 
 import static com.itworks.snamp.internal.ReflectionUtils.*;
@@ -356,7 +357,6 @@ public abstract class AbstractBundleActivator implements BundleActivator {
         protected abstract T activateService(final RequiredService<?>... dependencies);
     }
 
-    private final Collection<Class<? extends ProvidedService<?, ?>>> serviceFactories;
     private final Collection<ProvidedService<?, ?>> providedServices;
     private final Map<String, Object> sharedContext;
 
@@ -364,9 +364,8 @@ public abstract class AbstractBundleActivator implements BundleActivator {
      * Initializes a new bundle with the specified collection of provided services.
      * @param providedServices A collection of provided services.
      */
-    protected AbstractBundleActivator(final Class<? extends ProvidedService<?, ?>>... providedServices){
-        this.serviceFactories = Arrays.asList(providedServices);
-        this.providedServices = new ArrayList<>(providedServices.length);
+    protected AbstractBundleActivator(final ProvidedService<?, ?>... providedServices){
+        this.providedServices = Arrays.asList(providedServices);
         this.sharedContext = new HashMap<>(10);
     }
 
@@ -423,10 +422,8 @@ public abstract class AbstractBundleActivator implements BundleActivator {
         for(final ServiceListener listener: getSharedDependencies())
             context.addServiceListener(listener);
         //register provided service
-        for(final Class<? extends ProvidedService<?, ?>> factoryType: serviceFactories){
-            final ProvidedService<?, ?> providedService = factoryType.newInstance();
-            providedService.register(context, sharedContext);
-        }
+        for(final ProvidedService<?, ?> service: providedServices)
+            service.register(context, sharedContext);
     }
 
     /**
@@ -443,7 +440,6 @@ public abstract class AbstractBundleActivator implements BundleActivator {
     public final void stop(final BundleContext context) throws Exception{
         for(final ProvidedService<?, ?> providedService: providedServices)
             providedService.unregister(context);
-        providedServices.clear();
         //disable shared dependencies
         for(final ServiceListener listener: getSharedDependencies())
             context.removeServiceListener(listener);

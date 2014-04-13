@@ -35,6 +35,6 @@ public final class LicenseBundleActivator extends AbstractLoggableBundleActivato
     }
 
     public LicenseBundleActivator(){
-        super(LOGGER_NAME, XmlLicenseReaderProvider.class);
+        super(LOGGER_NAME, new XmlLicenseReaderProvider());
     }
 }
