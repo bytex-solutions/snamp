@@ -1,6 +1,6 @@
 package com.itworks.snamp.configuration;
 
-import com.itworks.snamp.core.AbstractBundleActivator;
+import com.itworks.snamp.core.AbstractLoggableBundleActivator;
 
 /**
  * Represents an abstract class for SNAMP configuration bundle activator.
@@ -8,29 +8,33 @@ import com.itworks.snamp.core.AbstractBundleActivator;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractConfigurationBundleActivator extends AbstractBundleActivator {
+public abstract class AbstractConfigurationBundleActivator extends AbstractLoggableBundleActivator {
+
+    /**
+     * Represents an abstract class for {@link ConfigurationManager} factory.
+     * @param <T> Type of the configuration manager implementation.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static abstract class ConfigurationManagerProvider<T extends ConfigurationManager> extends LoggableProvidedService<ConfigurationManager, T>{
+
+        /**
+         * Initializes a new holder for the configuration manager service.
+         *
+         * @param dependencies A collection of configuration manager dependencies.
+         */
+        protected ConfigurationManagerProvider(final RequiredService<?>... dependencies) {
+            super(ConfigurationManager.class, dependencies);
+        }
+    }
+
     /**
      * Initializes a new SNAMP-specific bundle.
      *
      * @param loggerName The name of the logger that is used by all services published by the bundle.
      */
-    protected AbstractConfigurationBundleActivator(final String loggerName) {
-        super(loggerName);
-    }
-
-    /**
-     * Creates a new instance of the SNAMP configuration management service.
-     * @return A new instance of the SNAMP configuration management service.
-     */
-    protected abstract ConfigurationManager createConfigurationManager();
-
-    /**
-     * Exposes {@link ConfigurationManager} service to OSGi environment.
-     *
-     * @param publisher The service publisher.
-     */
-    @Override
-    protected final void registerServices(final ServicePublisher publisher) {
-        publisher.publish(ConfigurationManager.class, createConfigurationManager(), null);
+    protected AbstractConfigurationBundleActivator(final String loggerName, final Class<? extends ConfigurationManagerProvider<?>> configManagerProvider) {
+        super(loggerName, configManagerProvider);
     }
 }

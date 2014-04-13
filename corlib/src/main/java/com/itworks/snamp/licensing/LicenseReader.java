@@ -1,6 +1,6 @@
 package com.itworks.snamp.licensing;
 
-import com.itworks.snamp.core.PlatformService;
+import com.itworks.snamp.core.FrameworkService;
 import org.apache.commons.collections4.Factory;
 
 /**
@@ -9,7 +9,7 @@ import org.apache.commons.collections4.Factory;
  * @version 1.0
  * @since 1.0
  */
-public interface LicenseReader extends PlatformService {
+public interface LicenseReader extends FrameworkService {
     /**
      * Represents system property that contains path to the SNAMP commercial license descriptor.
      */

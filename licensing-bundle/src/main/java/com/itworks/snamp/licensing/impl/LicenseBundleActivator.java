@@ -1,6 +1,7 @@
 package com.itworks.snamp.licensing.impl;
 
 import com.itworks.snamp.core.AbstractBundleActivator;
+import com.itworks.snamp.core.AbstractLoggableBundleActivator;
 import com.itworks.snamp.licensing.LicenseReader;
 
 /**
@@ -9,20 +10,31 @@ import com.itworks.snamp.licensing.LicenseReader;
  * @version 1.0
  * @since 1.0
  */
-public final class LicenseBundleActivator extends AbstractBundleActivator {
+public final class LicenseBundleActivator extends AbstractLoggableBundleActivator {
     public static final String LOGGER_NAME = "itworks.snamp.licensing";
 
-    public LicenseBundleActivator(){
-        super(LOGGER_NAME);
+    protected static final class XmlLicenseReaderProvider extends LoggableProvidedService<LicenseReader, XmlLicenseReader>{
+
+        /**
+         * Initializes a new holder for the provided service.
+         */
+        protected XmlLicenseReaderProvider() {
+            super(LicenseReader.class);
+        }
+
+        /**
+         * Creates a new instance of the service.
+         *
+         * @param dependencies A collection of dependencies.
+         * @return A new instance of the service.
+         */
+        @Override
+        protected XmlLicenseReader activateService(final RequiredService<?>... dependencies) {
+            return new XmlLicenseReader(getLogger());
+        }
     }
 
-    /**
-     * Exposes service into OSGi environment.
-     *
-     * @param publisher The service publisher.
-     */
-    @Override
-    protected void registerServices(final ServicePublisher publisher) {
-        publisher.publish(LicenseReader.class, new XmlLicenseReader(logger), null);
+    public LicenseBundleActivator(){
+        super(LOGGER_NAME, XmlLicenseReaderProvider.class);
     }
 }

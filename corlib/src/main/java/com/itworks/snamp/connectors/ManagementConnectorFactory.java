@@ -1,8 +1,6 @@
 package com.itworks.snamp.connectors;
 
-import com.itworks.snamp.core.PlatformService;
-import com.itworks.snamp.internal.InstanceLifecycle;
-import com.itworks.snamp.internal.Lifecycle;
+import com.itworks.snamp.core.FrameworkService;
 
 import java.util.Map;
 
@@ -15,7 +13,7 @@ import java.util.Map;
  * @since 1.0
  * @version 1.0
  */
-public interface ManagementConnectorFactory extends PlatformService {
+public interface ManagementConnectorFactory extends FrameworkService {
     /**
      * The name of the management connector registration property that represents it name.
      */

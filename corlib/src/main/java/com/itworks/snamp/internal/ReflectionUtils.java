@@ -1,12 +1,12 @@
 package com.itworks.snamp.internal;
 
 import org.apache.commons.collections4.Factory;
+import org.osgi.framework.*;
+import static org.osgi.framework.Constants.OBJECTCLASS;
 
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.ref.*;
+import java.lang.reflect.*;
+import java.util.Objects;
 
 /**
  * Represents advanced reflection subroutines.
@@ -137,5 +137,27 @@ public final class ReflectionUtils {
      */
     public static <T> T safeCast(final Object obj, final Class<T> resultType){
         return obj != null && resultType.isInstance(obj) ? resultType.cast(obj) : null;
+    }
+
+    /**
+     * Returns a bundle context associated with bundle which owns the specified object.
+     * @param obj An object to be used for context resolving.
+     * @return A bundle context associated with bundle which owns the specified object; or {@literal null}
+     * if bundle context cannot be resolved.
+     */
+    public static BundleContext getBundleContextByObject(final Object obj){
+        return obj != null ? FrameworkUtil.getBundle(obj.getClass()).getBundleContext() : null;
+    }
+
+    public static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType){
+        final Object names = serviceRef.getProperty(OBJECTCLASS);
+        if(names != null && names.getClass().isArray())
+            for(int i = 0; i < Array.getLength(names); i++)
+                if(Objects.equals(Array.get(names, i), serviceType)) return true;
+        return false;
+    }
+
+    public static boolean isInstanceOf(final ServiceReference<?> serviceRef, final Class<?> serviceType){
+        return isInstanceOf(serviceRef, serviceType.getName());
     }
 }

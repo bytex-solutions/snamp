@@ -1,6 +1,6 @@
 package com.itworks.snamp.configuration;
 
-import com.itworks.snamp.core.AbstractPlatformService;
+import com.itworks.snamp.core.AbstractFrameworkService;
 
 import java.util.logging.Logger;
 
@@ -11,7 +11,7 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractConfigurationManager<T extends AgentConfiguration> extends AbstractPlatformService implements ConfigurationManager {
+public abstract class AbstractConfigurationManager<T extends AgentConfiguration> extends AbstractFrameworkService implements ConfigurationManager {
     private T currentConfiguration;
 
     /**

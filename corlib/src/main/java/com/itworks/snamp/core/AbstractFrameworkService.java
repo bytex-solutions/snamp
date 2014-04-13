@@ -13,14 +13,14 @@ import java.util.logging.*;
  * @version 1.0
  */
 @Internal
-public abstract class AbstractPlatformService extends AbstractAggregator implements PlatformService {
+public abstract class AbstractFrameworkService extends AbstractAggregator implements FrameworkService {
     private final Logger logger;
 
     /**
      * Initializes a new instance of the platform service.
      * @param loggerInstance A logger associated with this instance of the platform service.
      */
-    protected AbstractPlatformService(final Logger loggerInstance){
+    protected AbstractFrameworkService(final Logger loggerInstance){
         logger = loggerInstance != null ? loggerInstance : Logger.getLogger(getClass().getName());
     }
 
@@ -28,7 +28,7 @@ public abstract class AbstractPlatformService extends AbstractAggregator impleme
      * Initializes a new instance of the platform service.
      * @param loggerName The name of the logger to be associated with this instance of the platform service.
      */
-    protected AbstractPlatformService(final String loggerName){
+    protected AbstractFrameworkService(final String loggerName){
         this(Logger.getLogger(loggerName));
     }
 

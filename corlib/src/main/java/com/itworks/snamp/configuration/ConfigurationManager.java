@@ -1,6 +1,6 @@
 package com.itworks.snamp.configuration;
 
-import com.itworks.snamp.core.PlatformService;
+import com.itworks.snamp.core.FrameworkService;
 
 /**
  * Represents SNAMP configuration manager that is accessible as OSGi service.
@@ -8,7 +8,7 @@ import com.itworks.snamp.core.PlatformService;
  * @version 1.0
  * @since 1.0
  */
-public interface ConfigurationManager extends PlatformService {
+public interface ConfigurationManager extends FrameworkService {
     /**
      * Represents system property that contains a path to the SNAMP configuration file.
      */

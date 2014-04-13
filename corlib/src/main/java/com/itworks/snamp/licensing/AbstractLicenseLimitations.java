@@ -1,6 +1,6 @@
 package com.itworks.snamp.licensing;
 
-import com.itworks.snamp.core.PlatformService;
+import com.itworks.snamp.core.FrameworkService;
 import org.apache.commons.lang3.Range;
 import org.osgi.framework.*;
 
@@ -229,7 +229,7 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
         return getLimitationCore(limitationName);
     }
 
-    private static Version getActualPluginVersion(final Class<? extends PlatformService> pluginType){
+    private static Version getActualPluginVersion(final Class<? extends FrameworkService> pluginType){
         final Bundle owner = FrameworkUtil.getBundle(pluginType);
         return owner != null ? owner.getVersion() : Version.emptyVersion;
     }
@@ -242,7 +242,7 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
      * @throws LicensingException The plugin has greater implementation version than the specified implementation version in the
      * license limitation.
      */
-    protected final static void verifyPluginVersion(final VersionLimitation expectedImplVersion, final Class<? extends PlatformService> pluginType) throws LicensingException{
+    protected final static void verifyPluginVersion(final VersionLimitation expectedImplVersion, final Class<? extends FrameworkService> pluginType) throws LicensingException{
         verify(expectedImplVersion, getActualPluginVersion(pluginType));
     }
 }

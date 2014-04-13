@@ -1,6 +1,6 @@
 package com.itworks.snamp.licensing;
 
-import com.itworks.snamp.core.PlatformService;
+import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.Internal;
 import com.itworks.snamp.internal.MethodThreadSafety;
 import com.itworks.snamp.internal.ThreadSafety;
@@ -12,7 +12,7 @@ import com.itworks.snamp.internal.ThreadSafety;
  * @version 1.0
  */
 @Internal
-public interface PluginLicenseLimitations<T extends PlatformService> {
+public interface PluginLicenseLimitations<T extends FrameworkService> {
     /**
      *
      * @param pluginImpl

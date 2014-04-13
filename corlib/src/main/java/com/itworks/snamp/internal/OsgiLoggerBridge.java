@@ -93,6 +93,17 @@ public class OsgiLoggerBridge extends Handler {
     }
 
     /**
+     * Adds log handler based on OSGi log service to the specified logger.
+     * @param logger
+     * @param logService
+     */
+    public static void connectToLogService(final Logger logger, final LogService logService){
+        final OsgiLoggerBridge bridge = new OsgiLoggerBridge(logService);
+        logger.addHandler(bridge);
+        logger.setUseParentHandlers(false);
+    }
+
+    /**
      * Gets a logger with the specified name that wraps the OSGi logging service.
      * @param name The name of the logger.
      * @param logService OSGi logger service to wrap.
@@ -100,11 +111,8 @@ public class OsgiLoggerBridge extends Handler {
      */
     public static Logger connectToLogService(final String name, final LogService logService){
         final Logger logger = Logger.getLogger(name);
-        if(logService != null){
-            final OsgiLoggerBridge bridge = new OsgiLoggerBridge(logService);
-            logger.addHandler(bridge);
-            logger.setUseParentHandlers(false);
-        }
+        if(logService != null)
+            connectToLogService(logger, logService);
         else logger.setUseParentHandlers(true);
         return logger;
     }

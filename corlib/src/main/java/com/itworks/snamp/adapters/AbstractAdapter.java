@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters;
 
-import com.itworks.snamp.core.AbstractPlatformService;
+import com.itworks.snamp.core.AbstractFrameworkService;
 
 import java.util.logging.Logger;
 
@@ -10,7 +10,7 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractAdapter extends AbstractPlatformService implements Adapter {
+public abstract class AbstractAdapter extends AbstractFrameworkService implements Adapter {
     private final String adapterName;
 
     /**

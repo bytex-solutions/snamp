@@ -2,7 +2,7 @@ package com.itworks.snamp.licensing.impl;
 
 import com.itworks.snamp.ConcurrentResourceAccess;
 import com.itworks.snamp.SoftMap;
-import com.itworks.snamp.core.AbstractPlatformService;
+import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import org.w3c.dom.*;
@@ -30,7 +30,7 @@ import java.util.logging.*;
  * @since 1.0
  * @version 1.0
  */
-final class XmlLicenseReader extends AbstractPlatformService implements LicenseReader {
+final class XmlLicenseReader extends AbstractFrameworkService implements LicenseReader {
 
     /**
      * Represents licensing context.

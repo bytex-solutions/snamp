@@ -6,7 +6,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * Represents configuration description provider.
  * <p>
  *     An implementation of this interface can be retrieved from SNAMP plugin
- *     using {@link com.itworks.snamp.core.PlatformService#queryObject(Class)} method.
+ *     using {@link com.itworks.snamp.core.FrameworkService#queryObject(Class)} method.
  * </p>
  * @author Roman Sakno
  * @version 1.0

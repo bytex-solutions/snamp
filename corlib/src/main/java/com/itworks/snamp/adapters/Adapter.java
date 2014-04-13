@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters;
 
-import com.itworks.snamp.core.PlatformService;
+import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.*;
 
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.*;
  * @see NotificationPublisher
  */
 @Lifecycle(InstanceLifecycle.SINGLE_PER_PROCESS)
-public interface Adapter extends AutoCloseable, PlatformService, AttributePublisher {
+public interface Adapter extends AutoCloseable, FrameworkService, AttributePublisher {
     /**
      * Represents name of the port definition parameter.
      */
