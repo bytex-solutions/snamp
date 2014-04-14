@@ -6,10 +6,10 @@
     <artifactId>snamp</artifactId>
     <version>1.0.0</version>
   </parent>
-  <artifactId>corlib</artifactId>
+  <artifactId>framework</artifactId>
   <packaging>bundle</packaging>
   <version>1.0.0</version>
-  <name>SNAMP Core Library</name>
+  <name>SNAMP Framework</name>
   <description>Provides a collection of SNAMP-related core interfaces and classes</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

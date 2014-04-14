@@ -34,7 +34,7 @@
     </plugins>
   </build>
   <modules>
-    <module>corlib</module>
+    <module>framework</module>
     <!--<module>adapters</module>
     <module>connectors</module>
     <module>licensing</module>

@@ -10,7 +10,7 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  * @since 1.0
  */
 public enum SnampArtifact {
-    CORLIB("corlib", "1.0.0"),
+    CORLIB("framework", "1.0.0"),
     CONFIG_BUNDLE("config-bundle", "1.0.0"),
     LICENSING_BUNDLE("licensing-bundle", "1.0.0");
     public static final String GROUP_ID = "com.itworks.snamp";

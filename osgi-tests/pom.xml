@@ -79,7 +79,7 @@
 
         <dependency>
             <groupId>com.itworks.snamp</groupId>
-            <artifactId>corlib</artifactId>
+            <artifactId>framework</artifactId>
             <version>1.0.0</version>
             <scope>test</scope>
         </dependency>

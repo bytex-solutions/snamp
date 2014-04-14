@@ -1,8 +1,5 @@
 package com.itworks.snamp.configuration;
 
-import static org.ops4j.pax.exam.CoreOptions.*;
-
-import com.itworks.snamp.AbstractIntegrationTest;
 import com.itworks.snamp.AbstractSnampIntegrationTest;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
