@@ -79,20 +79,20 @@
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
 <div class="subTitle">com.snamp</div>
-<h2 title="Interface SynchronizationEvent.Awaitor" class="title">Interface SynchronizationEvent.Awaitor&lt;T&gt;</h2>
+<h2 title="Interface SynchronizationEvent.Awaitor" class="title">Interface SynchronizationEvent.Awaitor&lt;L&gt;</h2>
 </div>
 <div class="contentContainer">
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Type of the event result.</dd></dl>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - Type of the event result.</dd></dl>
 <dl>
 <dt>Enclosing class:</dt>
-<dd><a href="../../com/snamp/SynchronizationEvent.html" title="class in com.snamp">SynchronizationEvent</a>&lt;<a href="../../com/snamp/SynchronizationEvent.html" title="type parameter in SynchronizationEvent">T</a>&gt;</dd>
+<dd><a href="../../com/snamp/SynchronizationEvent.html" title="class in com.snamp">SynchronizationEvent</a>&lt;<a href="../../com/snamp/SynchronizationEvent.html" title="type parameter in SynchronizationEvent">L</a>&gt;</dd>
 </dl>
 <hr>
 <br>
-<pre>public static interface <span class="strong">SynchronizationEvent.Awaitor&lt;T&gt;</span></pre>
+<pre>public static interface <span class="strong">SynchronizationEvent.Awaitor&lt;L&gt;</span></pre>
 <div class="block">Represents awaitor of the synchronization event.
  <p>
      This interface should be used by event consumer.
@@ -116,13 +116,13 @@
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code><a href="../../com/snamp/SynchronizationEvent.Awaitor.html" title="type parameter in SynchronizationEvent.Awaitor">T</a></code></td>
+<td class="colFirst"><code><a href="../../com/snamp/SynchronizationEvent.Awaitor.html" title="type parameter in SynchronizationEvent.Awaitor">L</a></code></td>
 <td class="colLast"><code><strong><a href="../../com/snamp/SynchronizationEvent.Awaitor.html#await()">await</a></strong>()</code>
 <div class="block">Blocks the caller thread (may be infinitely) until the event will not be raised.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code><a href="../../com/snamp/SynchronizationEvent.Awaitor.html" title="type parameter in SynchronizationEvent.Awaitor">T</a></code></td>
+<td class="colFirst"><code><a href="../../com/snamp/SynchronizationEvent.Awaitor.html" title="type parameter in SynchronizationEvent.Awaitor">L</a></code></td>
 <td class="colLast"><code><strong><a href="../../com/snamp/SynchronizationEvent.Awaitor.html#await(com.snamp.TimeSpan)">await</a></strong>(<a href="../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;timeout)</code>
 <div class="block">Blocks the caller thread until the event will not be raised.</div>
 </td>
@@ -148,7 +148,7 @@
 <ul class="blockList">
 <li class="blockList">
 <h4>await</h4>
-<pre><a href="../../com/snamp/SynchronizationEvent.Awaitor.html" title="type parameter in SynchronizationEvent.Awaitor">T</a>&nbsp;await(<a href="../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;timeout)
+<pre><a href="../../com/snamp/SynchronizationEvent.Awaitor.html" title="type parameter in SynchronizationEvent.Awaitor">L</a>&nbsp;await(<a href="../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;timeout)
         throws java.util.concurrent.TimeoutException,
                java.lang.InterruptedException</pre>
 <div class="block">Blocks the caller thread until the event will not be raised.</div>
@@ -165,7 +165,7 @@
 <ul class="blockListLast">
 <li class="blockList">
 <h4>await</h4>
-<pre><a href="../../com/snamp/SynchronizationEvent.Awaitor.html" title="type parameter in SynchronizationEvent.Awaitor">T</a>&nbsp;await()
+<pre><a href="../../com/snamp/SynchronizationEvent.Awaitor.html" title="type parameter in SynchronizationEvent.Awaitor">L</a>&nbsp;await()
         throws java.lang.InterruptedException</pre>
 <div class="block">Blocks the caller thread (may be infinitely) until the event will not be raised.</div>
 <dl><dt><span class="strong">Returns:</span></dt><dd>The event data.</dd>

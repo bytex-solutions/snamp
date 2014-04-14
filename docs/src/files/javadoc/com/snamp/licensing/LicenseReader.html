@@ -145,9 +145,9 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>static &lt;T extends <a href="../../../com/snamp/licensing/LicenseLimitations.html" title="interface in com.itworks.snamp.licensing">LicenseLimitations</a>&gt;&nbsp;<br>T</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/LicenseReader.html#getLimitations(java.lang.Class, com.snamp.Activator)">getLimitations</a></strong>(java.lang.Class&lt;T&gt;&nbsp;limitationsDescriptor,
-              <a href="../../../com/snamp/Activator.html" title="interface in com.snamp">Activator</a>&lt;T&gt;&nbsp;fallback)</code>
+<td class="colFirst"><code>static &lt;L extends <a href="../../../com/snamp/licensing/LicenseLimitations.html" title="interface in com.itworks.snamp.licensing">LicenseLimitations</a>&gt;&nbsp;<br>L</code></td>
+<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/LicenseReader.html#getLimitations(java.lang.Class, com.snamp.Activator)">getLimitations</a></strong>(java.lang.Class&lt;L&gt;&nbsp;limitationsDescriptor,
+              <a href="../../../com/snamp/Activator.html" title="interface in com.snamp">Activator</a>&lt;L&gt;&nbsp;fallback)</code>
 <div class="block">Returns the limitations from the currently loaded license.</div>
 </td>
 </tr>
@@ -214,10 +214,10 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getLimitations</h4>
-<pre>public static&nbsp;&lt;T extends <a href="../../../com/snamp/licensing/LicenseLimitations.html" title="interface in com.itworks.snamp.licensing">LicenseLimitations</a>&gt;&nbsp;T&nbsp;getLimitations(java.lang.Class&lt;T&gt;&nbsp;limitationsDescriptor,
-                                              <a href="../../../com/snamp/Activator.html" title="interface in com.snamp">Activator</a>&lt;T&gt;&nbsp;fallback)</pre>
+<pre>public static&nbsp;&lt;L extends <a href="../../../com/snamp/licensing/LicenseLimitations.html" title="interface in com.itworks.snamp.licensing">LicenseLimitations</a>&gt;&nbsp;L&nbsp;getLimitations(java.lang.Class&lt;L&gt;&nbsp;limitationsDescriptor,
+                                              <a href="../../../com/snamp/Activator.html" title="interface in com.snamp">Activator</a>&lt;L&gt;&nbsp;fallback)</pre>
 <div class="block">Returns the limitations from the currently loaded license.</div>
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Type of the license limitations descriptor.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>limitationsDescriptor</code> - The limitations descriptor.</dd><dd><code>fallback</code> - The fallback factory that produces limitation holder if license is not available.</dd>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - Type of the license limitations descriptor.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>limitationsDescriptor</code> - The limitations descriptor.</dd><dd><code>fallback</code> - The fallback factory that produces limitation holder if license is not available.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>A new instance of the license limitations.</dd></dl>
 </li>
 </ul>

@@ -216,12 +216,12 @@ implements <a href="../../../../com/snamp/hosting/management/AgentManager.html" 
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>protected &lt;T&gt;&nbsp;T</code></td>
-<td class="colLast"><code><strong><a href="../../../../com/snamp/hosting/management/AgentManagerBase.html#readContext(com.snamp.ConcurrentResourceAccess.ConsistentAction)">readContext</a></strong>(<a href="../../../../com/snamp/ConcurrentResourceAccess.ConsistentReader.html" title="interface in com.snamp">ConcurrentResourceAccess.ConsistentReader</a>&lt;<a href="../../../../com/snamp/hosting/HostingContext.html" title="interface in com.itworks.snamp.hosting">HostingContext</a>,T&gt;&nbsp;reader)</code>&nbsp;</td>
+<td class="colFirst"><code>protected &lt;L&gt;&nbsp;L</code></td>
+<td class="colLast"><code><strong><a href="../../../../com/snamp/hosting/management/AgentManagerBase.html#readContext(com.snamp.ConcurrentResourceAccess.ConsistentAction)">readContext</a></strong>(<a href="../../../../com/snamp/ConcurrentResourceAccess.ConsistentReader.html" title="interface in com.snamp">ConcurrentResourceAccess.ConsistentReader</a>&lt;<a href="../../../../com/snamp/hosting/HostingContext.html" title="interface in com.itworks.snamp.hosting">HostingContext</a>,L&gt;&nbsp;reader)</code>&nbsp;</td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>protected &lt;T,E extends java.lang.Throwable&gt;&nbsp;<br>T</code></td>
-<td class="colLast"><code><strong><a href="../../../../com/snamp/hosting/management/AgentManagerBase.html#readContext(com.snamp.ConcurrentResourceAccess.Action)">readContext</a></strong>(<a href="../../../../com/snamp/ConcurrentResourceAccess.Reader.html" title="interface in com.snamp">ConcurrentResourceAccess.Reader</a>&lt;<a href="../../../../com/snamp/hosting/HostingContext.html" title="interface in com.itworks.snamp.hosting">HostingContext</a>,T,E&gt;&nbsp;reader)</code>
+<td class="colFirst"><code>protected &lt;L,E extends java.lang.Throwable&gt;&nbsp;<br>L</code></td>
+<td class="colLast"><code><strong><a href="../../../../com/snamp/hosting/management/AgentManagerBase.html#readContext(com.snamp.ConcurrentResourceAccess.Action)">readContext</a></strong>(<a href="../../../../com/snamp/ConcurrentResourceAccess.Reader.html" title="interface in com.snamp">ConcurrentResourceAccess.Reader</a>&lt;<a href="../../../../com/snamp/hosting/HostingContext.html" title="interface in com.itworks.snamp.hosting">HostingContext</a>,L,E&gt;&nbsp;reader)</code>
 <div class="block">Reads the aggregated object from the hosting context.</div>
 </td>
 </tr>
@@ -353,10 +353,10 @@ implements <a href="../../../../com/snamp/hosting/management/AgentManager.html" 
 <ul class="blockList">
 <li class="blockList">
 <h4>readContext</h4>
-<pre>protected final&nbsp;&lt;T,E extends java.lang.Throwable&gt;&nbsp;T&nbsp;readContext(<a href="../../../../com/snamp/ConcurrentResourceAccess.Reader.html" title="interface in com.snamp">ConcurrentResourceAccess.Reader</a>&lt;<a href="../../../../com/snamp/hosting/HostingContext.html" title="interface in com.itworks.snamp.hosting">HostingContext</a>,T,E&gt;&nbsp;reader)
+<pre>protected final&nbsp;&lt;L,E extends java.lang.Throwable&gt;&nbsp;L&nbsp;readContext(<a href="../../../../com/snamp/ConcurrentResourceAccess.Reader.html" title="interface in com.snamp">ConcurrentResourceAccess.Reader</a>&lt;<a href="../../../../com/snamp/hosting/HostingContext.html" title="interface in com.itworks.snamp.hosting">HostingContext</a>,L,E&gt;&nbsp;reader)
                        throws E extends java.lang.Throwable</pre>
 <div class="block">Reads the aggregated object from the hosting context.</div>
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Type of the reading result.</dd><dd><code>E</code> - Type of the exception that can be thrown by the reader.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>reader</code> - Hosting context reader.</dd>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - Type of the reading result.</dd><dd><code>E</code> - Type of the exception that can be thrown by the reader.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>reader</code> - Hosting context reader.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The object obtained from the hosting context.</dd>
 <dt><span class="strong">Throws:</span></dt>
 <dd><code>E</code></dd>
@@ -369,7 +369,7 @@ implements <a href="../../../../com/snamp/hosting/management/AgentManager.html" 
 <ul class="blockList">
 <li class="blockList">
 <h4>readContext</h4>
-<pre>protected final&nbsp;&lt;T&gt;&nbsp;T&nbsp;readContext(<a href="../../../../com/snamp/ConcurrentResourceAccess.ConsistentReader.html" title="interface in com.snamp">ConcurrentResourceAccess.ConsistentReader</a>&lt;<a href="../../../../com/snamp/hosting/HostingContext.html" title="interface in com.itworks.snamp.hosting">HostingContext</a>,T&gt;&nbsp;reader)</pre>
+<pre>protected final&nbsp;&lt;L&gt;&nbsp;L&nbsp;readContext(<a href="../../../../com/snamp/ConcurrentResourceAccess.ConsistentReader.html" title="interface in com.snamp">ConcurrentResourceAccess.ConsistentReader</a>&lt;<a href="../../../../com/snamp/hosting/HostingContext.html" title="interface in com.itworks.snamp.hosting">HostingContext</a>,L&gt;&nbsp;reader)</pre>
 </li>
 </ul>
 <a name="start(com.itworks.snamp.hosting.HostingContext)">

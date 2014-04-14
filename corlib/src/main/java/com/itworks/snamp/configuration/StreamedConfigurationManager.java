@@ -54,7 +54,7 @@ public abstract class StreamedConfigurationManager<T extends AgentConfiguration>
             newInstance.load(is);
         }
         catch(final FileNotFoundException e){ //just re-create stream with empty config
-            getLogger().log(Level.WARNING, "SNAMP configuration is missing. Blank configuration is created.", e);
+            getLogger().log(Level.INFO, "SNAMP configuration is missing. Blank configuration is created.", e);
             save(newInstance);
         }
         catch (final IOException e){

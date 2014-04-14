@@ -79,14 +79,14 @@
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
 <div class="subTitle">com.snamp</div>
-<h2 title="Class FilteredArrayIterator" class="title">Class FilteredArrayIterator&lt;T&gt;</h2>
+<h2 title="Class FilteredArrayIterator" class="title">Class FilteredArrayIterator&lt;L&gt;</h2>
 </div>
 <div class="contentContainer">
 <ul class="inheritance">
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>com.snamp.internal.FilteredArrayIterator&lt;T&gt;</li>
+<li>com.snamp.internal.FilteredArrayIterator&lt;L&gt;</li>
 </ul>
 </li>
 </ul>
@@ -95,13 +95,13 @@
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd>java.util.Iterator&lt;T&gt;</dd>
+<dd>java.util.Iterator&lt;L&gt;</dd>
 </dl>
 <hr>
 <br>
-<pre>public abstract class <span class="strong">FilteredArrayIterator&lt;T&gt;</span>
+<pre>public abstract class <span class="strong">FilteredArrayIterator&lt;L&gt;</span>
 extends java.lang.Object
-implements java.util.Iterator&lt;T&gt;</pre>
+implements java.util.Iterator&lt;L&gt;</pre>
 <div class="block">Represents a base class for building filtered array iterator.</div>
 <dl><dt><span class="strong">Since:</span></dt>
   <dd>1.0</dd>
@@ -129,11 +129,11 @@ implements java.util.Iterator&lt;T&gt;</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><strong><a href="../../com/snamp/FilteredArrayIterator.html#FilteredArrayIterator(T[])">FilteredArrayIterator</a></strong>(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">T</a>[]&nbsp;array)</code>&nbsp;</td>
+<td class="colLast"><code><strong><a href="../../com/snamp/FilteredArrayIterator.html#FilteredArrayIterator(L[])">FilteredArrayIterator</a></strong>(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">L</a>[]&nbsp;array)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><strong><a href="../../com/snamp/FilteredArrayIterator.html#FilteredArrayIterator(T[], int)">FilteredArrayIterator</a></strong>(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">T</a>[]&nbsp;array,
+<td class="colLast"><code><strong><a href="../../com/snamp/FilteredArrayIterator.html#FilteredArrayIterator(L[], int)">FilteredArrayIterator</a></strong>(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">L</a>[]&nbsp;array,
                      int&nbsp;startIndex)</code>&nbsp;</td>
 </tr>
 </table>
@@ -153,7 +153,7 @@ implements java.util.Iterator&lt;T&gt;</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected abstract boolean</code></td>
-<td class="colLast"><code><strong><a href="../../com/snamp/FilteredArrayIterator.html#filter(T)">filter</a></strong>(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">T</a>&nbsp;element)</code>&nbsp;</td>
+<td class="colLast"><code><strong><a href="../../com/snamp/FilteredArrayIterator.html#filter(L)">filter</a></strong>(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">L</a>&nbsp;element)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>int</code></td>
@@ -168,7 +168,7 @@ implements java.util.Iterator&lt;T&gt;</pre>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code><a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">T</a></code></td>
+<td class="colFirst"><code><a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">L</a></code></td>
 <td class="colLast"><code><strong><a href="../../com/snamp/FilteredArrayIterator.html#next()">next</a></strong>()</code>
 <div class="block">Returns the next array element.</div>
 </td>
@@ -203,25 +203,25 @@ implements java.util.Iterator&lt;T&gt;</pre>
 <h3>Constructor Detail</h3>
 <a name="FilteredArrayIterator(java.lang.Object[],int)">
 <!--   -->
-</a><a name="FilteredArrayIterator(T[], int)">
+</a><a name="FilteredArrayIterator(L[], int)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>FilteredArrayIterator</h4>
-<pre>protected&nbsp;FilteredArrayIterator(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">T</a>[]&nbsp;array,
+<pre>protected&nbsp;FilteredArrayIterator(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">L</a>[]&nbsp;array,
                      int&nbsp;startIndex)</pre>
 </li>
 </ul>
 <a name="FilteredArrayIterator(java.lang.Object[])">
 <!--   -->
-</a><a name="FilteredArrayIterator(T[])">
+</a><a name="FilteredArrayIterator(L[])">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>FilteredArrayIterator</h4>
-<pre>protected&nbsp;FilteredArrayIterator(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">T</a>[]&nbsp;array)</pre>
+<pre>protected&nbsp;FilteredArrayIterator(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">L</a>[]&nbsp;array)</pre>
 </li>
 </ul>
 </li>
@@ -234,13 +234,13 @@ implements java.util.Iterator&lt;T&gt;</pre>
 <h3>Method Detail</h3>
 <a name="filter(java.lang.Object)">
 <!--   -->
-</a><a name="filter(T)">
+</a><a name="filter(L)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>filter</h4>
-<pre>protected abstract&nbsp;boolean&nbsp;filter(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">T</a>&nbsp;element)</pre>
+<pre>protected abstract&nbsp;boolean&nbsp;filter(<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">L</a>&nbsp;element)</pre>
 </li>
 </ul>
 <a name="getCurrentPosition()">
@@ -264,7 +264,7 @@ implements java.util.Iterator&lt;T&gt;</pre>
 <div class="block">Determines whether the next value is available.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
-<dd><code>hasNext</code>&nbsp;in interface&nbsp;<code>java.util.Iterator&lt;<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">T</a>&gt;</code></dd>
+<dd><code>hasNext</code>&nbsp;in interface&nbsp;<code>java.util.Iterator&lt;<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">L</a>&gt;</code></dd>
 <dt><span class="strong">Returns:</span></dt><dd>true, if the end of iterator is not reached; otherwise, false.</dd></dl>
 </li>
 </ul>
@@ -274,11 +274,11 @@ implements java.util.Iterator&lt;T&gt;</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>next</h4>
-<pre>public&nbsp;<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">T</a>&nbsp;next()</pre>
+<pre>public&nbsp;<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">L</a>&nbsp;next()</pre>
 <div class="block">Returns the next array element.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
-<dd><code>next</code>&nbsp;in interface&nbsp;<code>java.util.Iterator&lt;<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">T</a>&gt;</code></dd>
+<dd><code>next</code>&nbsp;in interface&nbsp;<code>java.util.Iterator&lt;<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">L</a>&gt;</code></dd>
 <dt><span class="strong">Returns:</span></dt><dd>The next array element.</dd></dl>
 </li>
 </ul>
@@ -292,7 +292,7 @@ implements java.util.Iterator&lt;T&gt;</pre>
 <div class="block">Operation is not supported.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
-<dd><code>remove</code>&nbsp;in interface&nbsp;<code>java.util.Iterator&lt;<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">T</a>&gt;</code></dd>
+<dd><code>remove</code>&nbsp;in interface&nbsp;<code>java.util.Iterator&lt;<a href="../../com/snamp/FilteredArrayIterator.html" title="type parameter in FilteredArrayIterator">L</a>&gt;</code></dd>
 </dl>
 </li>
 </ul>

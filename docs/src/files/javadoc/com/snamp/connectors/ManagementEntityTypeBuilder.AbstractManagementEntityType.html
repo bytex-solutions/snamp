@@ -168,15 +168,15 @@ implements <a href="../../../com/snamp/connectors/ManagementEntityType.html" tit
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>&lt;T&gt;&nbsp;T</code></td>
+<td class="colFirst"><code>&lt;L&gt;&nbsp;L</code></td>
 <td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementEntityTypeBuilder.AbstractManagementEntityType.html#convert(java.lang.Object, java.lang.Class)">convert</a></strong>(java.lang.Object&nbsp;value,
-       java.lang.Class&lt;T&gt;&nbsp;resultType)</code>
+       java.lang.Class&lt;L&gt;&nbsp;resultType)</code>
 <div class="block">Converts the specified management entity value into the well-known Java type.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>&lt;T&gt;&nbsp;<a href="../../../com/snamp/TypeConverter.html" title="interface in com.snamp">TypeConverter</a>&lt;T&gt;</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementEntityTypeBuilder.AbstractManagementEntityType.html#getProjection(java.lang.Class)">getProjection</a></strong>(java.lang.Class&lt;T&gt;&nbsp;projectionType)</code>
+<td class="colFirst"><code>&lt;L&gt;&nbsp;<a href="../../../com/snamp/TypeConverter.html" title="interface in com.snamp">TypeConverter</a>&lt;L&gt;</code></td>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/ManagementEntityTypeBuilder.AbstractManagementEntityType.html#getProjection(java.lang.Class)">getProjection</a></strong>(java.lang.Class&lt;L&gt;&nbsp;projectionType)</code>
 <div class="block">Returns the type converter for the specified native Java type mapping.</div>
 </td>
 </tr>
@@ -244,12 +244,12 @@ implements <a href="../../../com/snamp/connectors/ManagementEntityType.html" tit
 <ul class="blockList">
 <li class="blockList">
 <h4>getProjection</h4>
-<pre>public final&nbsp;&lt;T&gt;&nbsp;<a href="../../../com/snamp/TypeConverter.html" title="interface in com.snamp">TypeConverter</a>&lt;T&gt;&nbsp;getProjection(java.lang.Class&lt;T&gt;&nbsp;projectionType)</pre>
+<pre>public final&nbsp;&lt;L&gt;&nbsp;<a href="../../../com/snamp/TypeConverter.html" title="interface in com.snamp">TypeConverter</a>&lt;L&gt;&nbsp;getProjection(java.lang.Class&lt;L&gt;&nbsp;projectionType)</pre>
 <div class="block">Returns the type converter for the specified native Java type mapping.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
 <dd><code><a href="../../../com/snamp/connectors/ManagementEntityType.html#getProjection(java.lang.Class)">getProjection</a></code>&nbsp;in interface&nbsp;<code><a href="../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.itworks.snamp.connectors">ManagementEntityType</a></code></dd>
-<dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Type of the projection.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>projectionType</code> - The native Java type to which the entity value can be converted. Cannot be null.</dd>
+<dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - Type of the projection.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>projectionType</code> - The native Java type to which the entity value can be converted. Cannot be null.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The type converter for the specified projection type; or null, if projection is not supported.</dd></dl>
 </li>
 </ul>
@@ -272,11 +272,11 @@ implements <a href="../../../com/snamp/connectors/ManagementEntityType.html" tit
 <ul class="blockListLast">
 <li class="blockList">
 <h4>convert</h4>
-<pre>public final&nbsp;&lt;T&gt;&nbsp;T&nbsp;convert(java.lang.Object&nbsp;value,
-            java.lang.Class&lt;T&gt;&nbsp;resultType)
+<pre>public final&nbsp;&lt;L&gt;&nbsp;L&nbsp;convert(java.lang.Object&nbsp;value,
+            java.lang.Class&lt;L&gt;&nbsp;resultType)
                 throws java.lang.IllegalArgumentException</pre>
 <div class="block">Converts the specified management entity value into the well-known Java type.</div>
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Well-known Java type.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>value</code> - A value to convert.</dd><dd><code>resultType</code> - Well-known Java type.</dd>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - Well-known Java type.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>value</code> - A value to convert.</dd><dd><code>resultType</code> - Well-known Java type.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>Well-known representation of the management entity value.</dd>
 <dt><span class="strong">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code> - <code>resultType</code> is not supported as conversion result.</dd></dl>

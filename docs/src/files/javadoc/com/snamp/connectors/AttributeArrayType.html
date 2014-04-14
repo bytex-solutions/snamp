@@ -189,28 +189,28 @@ implements <a href="../../../com/snamp/connectors/AttributeTabularType.html" tit
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>&lt;T&gt;&nbsp;boolean</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AttributeArrayType.html#canConvertFrom(java.lang.Class)">canConvertFrom</a></strong>(java.lang.Class&lt;T&gt;&nbsp;source)</code>
+<td class="colFirst"><code>&lt;L&gt;&nbsp;boolean</code></td>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AttributeArrayType.html#canConvertFrom(java.lang.Class)">canConvertFrom</a></strong>(java.lang.Class&lt;L&gt;&nbsp;source)</code>
 <div class="block">Determines whether the value of the specified type can be passed as attribute value.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>&lt;T&gt;&nbsp;boolean</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AttributeArrayType.html#canConvertTo(java.lang.Class)">canConvertTo</a></strong>(java.lang.Class&lt;T&gt;&nbsp;target)</code>
+<td class="colFirst"><code>&lt;L&gt;&nbsp;boolean</code></td>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AttributeArrayType.html#canConvertTo(java.lang.Class)">canConvertTo</a></strong>(java.lang.Class&lt;L&gt;&nbsp;target)</code>
 <div class="block">Determines whether the attribute value can be converted into the specified type.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>&lt;T&gt;&nbsp;T</code></td>
+<td class="colFirst"><code>&lt;L&gt;&nbsp;L</code></td>
 <td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AttributeArrayType.html#convertTo(java.lang.Object, java.lang.Class)">convertTo</a></strong>(java.lang.Object&nbsp;value,
-         java.lang.Class&lt;T&gt;&nbsp;target)</code>
+         java.lang.Class&lt;L&gt;&nbsp;target)</code>
 <div class="block">Converts the attribute value to the specified type.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>protected &lt;T&gt;&nbsp;T[]</code></td>
+<td class="colFirst"><code>protected &lt;L&gt;&nbsp;L[]</code></td>
 <td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AttributeArrayType.html#convertToArray(java.lang.Object, java.lang.Class)">convertToArray</a></strong>(java.lang.Object&nbsp;value,
-              java.lang.Class&lt;T&gt;&nbsp;destinationElementType)</code>
+              java.lang.Class&lt;L&gt;&nbsp;destinationElementType)</code>
 <div class="block">Converts the attribute value to thw array.</div>
 </td>
 </tr>
@@ -429,12 +429,12 @@ implements <a href="../../../com/snamp/connectors/AttributeTabularType.html" tit
 <ul class="blockList">
 <li class="blockList">
 <h4>canConvertTo</h4>
-<pre>public&nbsp;&lt;T&gt;&nbsp;boolean&nbsp;canConvertTo(java.lang.Class&lt;T&gt;&nbsp;target)</pre>
+<pre>public&nbsp;&lt;L&gt;&nbsp;boolean&nbsp;canConvertTo(java.lang.Class&lt;L&gt;&nbsp;target)</pre>
 <div class="block">Determines whether the attribute value can be converted into the specified type.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
 <dd><code><a href="../../../com/snamp/connectors/EntityTypeInfo.html#canConvertTo(java.lang.Class)">canConvertTo</a></code>&nbsp;in interface&nbsp;<code><a href="../../../com/snamp/connectors/EntityTypeInfo.html" title="interface in com.itworks.snamp.connectors">EntityTypeInfo</a></code></dd>
-<dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - The type of the conversion result.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>target</code> - The result of the conversion.</dd>
+<dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - The type of the conversion result.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>target</code> - The result of the conversion.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>true, if conversion to the specified type is supported; otherwise, false.</dd></dl>
 </li>
 </ul>
@@ -444,11 +444,11 @@ implements <a href="../../../com/snamp/connectors/AttributeTabularType.html" tit
 <ul class="blockList">
 <li class="blockList">
 <h4>convertToArray</h4>
-<pre>protected&nbsp;&lt;T&gt;&nbsp;T[]&nbsp;convertToArray(java.lang.Object&nbsp;value,
-                     java.lang.Class&lt;T&gt;&nbsp;destinationElementType)
+<pre>protected&nbsp;&lt;L&gt;&nbsp;L[]&nbsp;convertToArray(java.lang.Object&nbsp;value,
+                     java.lang.Class&lt;L&gt;&nbsp;destinationElementType)
                       throws java.lang.IllegalArgumentException</pre>
 <div class="block">Converts the attribute value to thw array.</div>
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Type of the array element.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>value</code> - The value to be converted into the array.</dd><dd><code>destinationElementType</code> - The type of the result array element.</dd>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - Type of the array element.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>value</code> - The value to be converted into the array.</dd><dd><code>destinationElementType</code> - The type of the result array element.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>A new array constructed from the specified source value.</dd>
 <dt><span class="strong">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code></dd></dl>
@@ -469,14 +469,14 @@ implements <a href="../../../com/snamp/connectors/AttributeTabularType.html" tit
 <ul class="blockList">
 <li class="blockList">
 <h4>convertTo</h4>
-<pre>public&nbsp;&lt;T&gt;&nbsp;T&nbsp;convertTo(java.lang.Object&nbsp;value,
-              java.lang.Class&lt;T&gt;&nbsp;target)
+<pre>public&nbsp;&lt;L&gt;&nbsp;L&nbsp;convertTo(java.lang.Object&nbsp;value,
+              java.lang.Class&lt;L&gt;&nbsp;target)
             throws java.lang.IllegalArgumentException</pre>
 <div class="block">Converts the attribute value to the specified type.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
 <dd><code><a href="../../../com/snamp/connectors/EntityTypeInfo.html#convertTo(java.lang.Object, java.lang.Class)">convertTo</a></code>&nbsp;in interface&nbsp;<code><a href="../../../com/snamp/connectors/EntityTypeInfo.html" title="interface in com.itworks.snamp.connectors">EntityTypeInfo</a></code></dd>
-<dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Type of the conversion result.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>value</code> - The attribute value to convert.</dd><dd><code>target</code> - The type of the conversion result.</dd>
+<dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - Type of the conversion result.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>value</code> - The attribute value to convert.</dd><dd><code>target</code> - The type of the conversion result.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The conversion result.</dd>
 <dt><span class="strong">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code> - The target type is not supported.</dd></dl>
@@ -488,12 +488,12 @@ implements <a href="../../../com/snamp/connectors/AttributeTabularType.html" tit
 <ul class="blockListLast">
 <li class="blockList">
 <h4>canConvertFrom</h4>
-<pre>public&nbsp;&lt;T&gt;&nbsp;boolean&nbsp;canConvertFrom(java.lang.Class&lt;T&gt;&nbsp;source)</pre>
+<pre>public&nbsp;&lt;L&gt;&nbsp;boolean&nbsp;canConvertFrom(java.lang.Class&lt;L&gt;&nbsp;source)</pre>
 <div class="block">Determines whether the value of the specified type can be passed as attribute value.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
 <dd><code><a href="../../../com/snamp/connectors/AttributeTypeInfo.html#canConvertFrom(java.lang.Class)">canConvertFrom</a></code>&nbsp;in interface&nbsp;<code><a href="../../../com/snamp/connectors/AttributeTypeInfo.html" title="interface in com.itworks.snamp.connectors">AttributeTypeInfo</a></code></dd>
-<dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - The type of the value.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>source</code> - The type of the value that can be converted to the attribute value.</dd>
+<dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - The type of the value.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>source</code> - The type of the value that can be converted to the attribute value.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>true, if conversion from the specified type is supported; otherwise, false.</dd></dl>
 </li>
 </ul>

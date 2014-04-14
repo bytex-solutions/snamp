@@ -79,7 +79,7 @@
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
 <div class="subTitle">com.snamp</div>
-<h2 title="Interface TypeConverter" class="title">Interface TypeConverter&lt;T&gt;</h2>
+<h2 title="Interface TypeConverter" class="title">Interface TypeConverter&lt;L&gt;</h2>
 </div>
 <div class="contentContainer">
 <div class="description">
@@ -87,7 +87,7 @@
 <li class="blockList">
 <hr>
 <br>
-<pre>public interface <span class="strong">TypeConverter&lt;T&gt;</span></pre>
+<pre>public interface <span class="strong">TypeConverter&lt;L&gt;</span></pre>
 <div class="block">Represents type converter.</div>
 <dl><dt><span class="strong">Since:</span></dt>
   <dd>1.0</dd>
@@ -116,17 +116,17 @@
 <tr class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><strong><a href="../../com/snamp/TypeConverter.html#canConvertFrom(java.lang.Class)">canConvertFrom</a></strong>(java.lang.Class&lt;?&gt;&nbsp;source)</code>
-<div class="block">Determines whether the value of the specified type can be converted into <code>T</code>.</div>
+<div class="block">Determines whether the value of the specified type can be converted into <code>L</code>.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code><a href="../../com/snamp/TypeConverter.html" title="type parameter in TypeConverter">T</a></code></td>
+<td class="colFirst"><code><a href="../../com/snamp/TypeConverter.html" title="type parameter in TypeConverter">L</a></code></td>
 <td class="colLast"><code><strong><a href="../../com/snamp/TypeConverter.html#convertFrom(java.lang.Object)">convertFrom</a></strong>(java.lang.Object&nbsp;value)</code>
-<div class="block">Converts the value into an instance of <code>T</code> class.</div>
+<div class="block">Converts the value into an instance of <code>L</code> class.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>java.lang.Class&lt;<a href="../../com/snamp/TypeConverter.html" title="type parameter in TypeConverter">T</a>&gt;</code></td>
+<td class="colFirst"><code>java.lang.Class&lt;<a href="../../com/snamp/TypeConverter.html" title="type parameter in TypeConverter">L</a>&gt;</code></td>
 <td class="colLast"><code><strong><a href="../../com/snamp/TypeConverter.html#getType()">getType</a></strong>()</code>
 <div class="block">Returns the type for which this converter is instantiated.</div>
 </td>
@@ -152,7 +152,7 @@
 <ul class="blockList">
 <li class="blockList">
 <h4>getType</h4>
-<pre>java.lang.Class&lt;<a href="../../com/snamp/TypeConverter.html" title="type parameter in TypeConverter">T</a>&gt;&nbsp;getType()</pre>
+<pre>java.lang.Class&lt;<a href="../../com/snamp/TypeConverter.html" title="type parameter in TypeConverter">L</a>&gt;&nbsp;getType()</pre>
 <div class="block">Returns the type for which this converter is instantiated.</div>
 <dl><dt><span class="strong">Returns:</span></dt><dd>The type for which this converter is instantiated.</dd></dl>
 </li>
@@ -164,9 +164,9 @@
 <li class="blockList">
 <h4>canConvertFrom</h4>
 <pre>boolean&nbsp;canConvertFrom(java.lang.Class&lt;?&gt;&nbsp;source)</pre>
-<div class="block">Determines whether the value of the specified type can be converted into <code>T</code>.</div>
+<div class="block">Determines whether the value of the specified type can be converted into <code>L</code>.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>source</code> - The type of the source value.</dd>
-<dt><span class="strong">Returns:</span></dt><dd>true, if the value of the specified type can be converted into <code>T</code>; otherwise, false.</dd></dl>
+<dt><span class="strong">Returns:</span></dt><dd>true, if the value of the specified type can be converted into <code>L</code>; otherwise, false.</dd></dl>
 </li>
 </ul>
 <a name="convertFrom(java.lang.Object)">
@@ -175,9 +175,9 @@
 <ul class="blockListLast">
 <li class="blockList">
 <h4>convertFrom</h4>
-<pre><a href="../../com/snamp/TypeConverter.html" title="type parameter in TypeConverter">T</a>&nbsp;convertFrom(java.lang.Object&nbsp;value)
+<pre><a href="../../com/snamp/TypeConverter.html" title="type parameter in TypeConverter">L</a>&nbsp;convertFrom(java.lang.Object&nbsp;value)
               throws java.lang.IllegalArgumentException</pre>
-<div class="block">Converts the value into an instance of <code>T</code> class.</div>
+<div class="block">Converts the value into an instance of <code>L</code> class.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>value</code> - The value to convert.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The value of the original type described by this converter.</dd>
 <dt><span class="strong">Throws:</span></dt>

@@ -1,6 +1,9 @@
 package com.itworks.snamp;
 
 import org.junit.Assert;
+
+import java.lang.reflect.Array;
+
 import static com.itworks.snamp.licensing.LicenseReader.LICENSE_FILE_PROPERTY;
 
 /**
@@ -10,13 +13,11 @@ import static com.itworks.snamp.licensing.LicenseReader.LICENSE_FILE_PROPERTY;
  * @since 1.0
  */
 public abstract class AbstractTest extends Assert {
-    /**
-     * Represents relative path to the test license file.
-     */
-    public static final String TEST_LICENCE_FILE = "unlimited.lic";
-
-    static {
-        if (System.getProperty(LICENSE_FILE_PROPERTY) == null)
-            System.setProperty(LICENSE_FILE_PROPERTY, TEST_LICENCE_FILE);
+    protected static <T> T[] concat(final T[] array1, final T... array2){
+        @SuppressWarnings("unchecked")
+        final T[] joinedArray = (T[]) Array.newInstance(array1.getClass().getComponentType(), array1.length + array2.length);
+        System.arraycopy(array1, 0, joinedArray, 0, array1.length);
+        System.arraycopy(array2, 0, joinedArray, array1.length, array2.length);
+        return joinedArray;
     }
 }

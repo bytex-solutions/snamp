@@ -140,7 +140,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static interface&nbsp;</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors">AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</a>&lt;<a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="type parameter in AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo">T</a>&gt;</strong></code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors">AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</a>&lt;<a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="type parameter in AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo">L</a>&gt;</strong></code>
 <div class="block">Represents advanced representation of the <a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors"><code>AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</code></a> that
  supports conversion methods.</div>
 </td>
@@ -188,9 +188,9 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors">AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</a>&lt;T&gt;</code></td>
+<td class="colFirst"><code>static &lt;L&gt;&nbsp;<a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors">AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</a>&lt;L&gt;</code></td>
 <td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.html#createTypeInfo(java.lang.Class, java.lang.Class)">createTypeInfo</a></strong>(java.lang.Class&lt;? extends <a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.html" title="class in com.itworks.snamp.connectors">AttributeTypeInfoBuilder</a>&gt;&nbsp;builderType,
-              java.lang.Class&lt;T&gt;&nbsp;nativeType)</code>
+              java.lang.Class&lt;L&gt;&nbsp;nativeType)</code>
 <div class="block">Creates a new <a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors"><code>AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</code></a> for the specified native type using the specified builder.</div>
 </td>
 </tr>
@@ -202,8 +202,8 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>&lt;T&gt;&nbsp;<a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors">AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</a>&lt;T&gt;</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.html#createTypeInfo(java.lang.Class)">createTypeInfo</a></strong>(java.lang.Class&lt;T&gt;&nbsp;nativeType)</code>
+<td class="colFirst"><code>&lt;L&gt;&nbsp;<a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors">AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</a>&lt;L&gt;</code></td>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.html#createTypeInfo(java.lang.Class)">createTypeInfo</a></strong>(java.lang.Class&lt;L&gt;&nbsp;nativeType)</code>
 <div class="block">Creates a new <a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors"><code>AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</code></a> instance.</div>
 </td>
 </tr>
@@ -282,10 +282,10 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>createTypeInfo</h4>
-<pre>public static final&nbsp;&lt;T&gt;&nbsp;<a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors">AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</a>&lt;T&gt;&nbsp;createTypeInfo(java.lang.Class&lt;? extends <a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.html" title="class in com.itworks.snamp.connectors">AttributeTypeInfoBuilder</a>&gt;&nbsp;builderType,
-                                                                          java.lang.Class&lt;T&gt;&nbsp;nativeType)</pre>
+<pre>public static final&nbsp;&lt;L&gt;&nbsp;<a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors">AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</a>&lt;L&gt;&nbsp;createTypeInfo(java.lang.Class&lt;? extends <a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.html" title="class in com.itworks.snamp.connectors">AttributeTypeInfoBuilder</a>&gt;&nbsp;builderType,
+                                                                          java.lang.Class&lt;L&gt;&nbsp;nativeType)</pre>
 <div class="block">Creates a new <a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors"><code>AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</code></a> for the specified native type using the specified builder.</div>
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - </dd><dt><span class="strong">Parameters:</span></dt><dd><code>builderType</code> - A type that contains converters (as static methods).</dd><dd><code>nativeType</code> - The underlying Java type.</dd>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - </dd><dt><span class="strong">Parameters:</span></dt><dd><code>builderType</code> - A type that contains converters (as static methods).</dd><dd><code>nativeType</code> - The underlying Java type.</dd>
 <dt><span class="strong">Returns:</span></dt><dd></dd></dl>
 </li>
 </ul>
@@ -295,7 +295,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>createTypeInfo</h4>
-<pre>public final&nbsp;&lt;T&gt;&nbsp;<a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors">AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</a>&lt;T&gt;&nbsp;createTypeInfo(java.lang.Class&lt;T&gt;&nbsp;nativeType)</pre>
+<pre>public final&nbsp;&lt;L&gt;&nbsp;<a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors">AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</a>&lt;L&gt;&nbsp;createTypeInfo(java.lang.Class&lt;L&gt;&nbsp;nativeType)</pre>
 <div class="block">Creates a new <a href="../../../com/snamp/connectors/AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo.html" title="interface in com.itworks.snamp.connectors"><code>AttributeTypeInfoBuilder.AttributeConvertibleTypeInfo</code></a> instance.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>nativeType</code> - </dd>
 <dt><span class="strong">Returns:</span></dt><dd></dd></dl>

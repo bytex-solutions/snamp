@@ -79,24 +79,24 @@
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
 <div class="subTitle">com.snamp</div>
-<h2 title="Class Range" class="title">Class Range&lt;T extends java.lang.Comparable&lt;T&gt;&gt;</h2>
+<h2 title="Class Range" class="title">Class Range&lt;L extends java.lang.Comparable&lt;L&gt;&gt;</h2>
 </div>
 <div class="contentContainer">
 <ul class="inheritance">
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>com.snamp.Range&lt;T&gt;</li>
+<li>com.snamp.Range&lt;L&gt;</li>
 </ul>
 </li>
 </ul>
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Type of the range elements.</dd></dl>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - Type of the range elements.</dd></dl>
 <hr>
 <br>
-<pre>public class <span class="strong">Range&lt;T extends java.lang.Comparable&lt;T&gt;&gt;</span>
+<pre>public class <span class="strong">Range&lt;L extends java.lang.Comparable&lt;L&gt;&gt;</span>
 extends java.lang.Object</pre>
 <div class="block">Represents range of values.<br/>
  <p>
@@ -151,13 +151,13 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code><a href="../../com/snamp/Range.html" title="type parameter in Range">T</a></code></td>
+<td class="colFirst"><code><a href="../../com/snamp/Range.html" title="type parameter in Range">L</a></code></td>
 <td class="colLast"><code><strong><a href="../../com/snamp/Range.html#lowerBound">lowerBound</a></strong></code>
 <div class="block">Represents lower bound of the range.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code><a href="../../com/snamp/Range.html" title="type parameter in Range">T</a></code></td>
+<td class="colFirst"><code><a href="../../com/snamp/Range.html" title="type parameter in Range">L</a></code></td>
 <td class="colLast"><code><strong><a href="../../com/snamp/Range.html#upperBound">upperBound</a></strong></code>
 <div class="block">Represents upper bound of the range.</div>
 </td>
@@ -177,13 +177,13 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><strong><a href="../../com/snamp/Range.html#Range(com.snamp.Range)">Range</a></strong>(<a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;? extends <a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&gt;&nbsp;otherRange)</code>
+<td class="colOne"><code><strong><a href="../../com/snamp/Range.html#Range(com.snamp.Range)">Range</a></strong>(<a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;? extends <a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&gt;&nbsp;otherRange)</code>
 <div class="block">Initializes a new range from the specified range.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><strong><a href="../../com/snamp/Range.html#Range(T, T)">Range</a></strong>(<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&nbsp;lowerBound,
-     <a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&nbsp;upperBound)</code>
+<td class="colOne"><code><strong><a href="../../com/snamp/Range.html#Range(L, L)">Range</a></strong>(<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&nbsp;lowerBound,
+     <a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&nbsp;upperBound)</code>
 <div class="block">Initializes a new range.</div>
 </td>
 </tr>
@@ -204,20 +204,20 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><strong><a href="../../com/snamp/Range.html#contains(T, com.snamp.Range.InclusionTestType)">contains</a></strong>(<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&nbsp;value,
+<td class="colLast"><code><strong><a href="../../com/snamp/Range.html#contains(L, com.snamp.Range.InclusionTestType)">contains</a></strong>(<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&nbsp;value,
         <a href="../../com/snamp/Range.InclusionTestType.html" title="enum in com.snamp">Range.InclusionTestType</a>&nbsp;testType)</code>
 <div class="block">Determines whether the specified value is in current range.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code><a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&gt;</code></td>
-<td class="colLast"><code><strong><a href="../../com/snamp/Range.html#setLowerBound(T)">setLowerBound</a></strong>(<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&nbsp;lowerBound)</code>
+<td class="colFirst"><code><a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&gt;</code></td>
+<td class="colLast"><code><strong><a href="../../com/snamp/Range.html#setLowerBound(L)">setLowerBound</a></strong>(<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&nbsp;lowerBound)</code>
 <div class="block">Creates a new <code>Range</code> with the changed lower bound.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code><a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&gt;</code></td>
-<td class="colLast"><code><strong><a href="../../com/snamp/Range.html#setUpperBound(T)">setUpperBound</a></strong>(<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&nbsp;upperBound)</code>
+<td class="colFirst"><code><a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&gt;</code></td>
+<td class="colLast"><code><strong><a href="../../com/snamp/Range.html#setUpperBound(L)">setUpperBound</a></strong>(<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&nbsp;upperBound)</code>
 <div class="block">Creates a new <code>Range</code> with the changed upper bound.</div>
 </td>
 </tr>
@@ -249,7 +249,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>lowerBound</h4>
-<pre>public final&nbsp;<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a> extends java.lang.Comparable&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&gt; lowerBound</pre>
+<pre>public final&nbsp;<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a> extends java.lang.Comparable&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&gt; lowerBound</pre>
 <div class="block">Represents lower bound of the range.</div>
 </li>
 </ul>
@@ -259,7 +259,7 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>upperBound</h4>
-<pre>public final&nbsp;<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a> extends java.lang.Comparable&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&gt; upperBound</pre>
+<pre>public final&nbsp;<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a> extends java.lang.Comparable&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&gt; upperBound</pre>
 <div class="block">Represents upper bound of the range.</div>
 </li>
 </ul>
@@ -273,14 +273,14 @@ extends java.lang.Object</pre>
 <h3>Constructor Detail</h3>
 <a name="Range(java.lang.Comparable,java.lang.Comparable)">
 <!--   -->
-</a><a name="Range(T, T)">
+</a><a name="Range(L, L)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>Range</h4>
-<pre>public&nbsp;Range(<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&nbsp;lowerBound,
-     <a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&nbsp;upperBound)</pre>
+<pre>public&nbsp;Range(<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&nbsp;lowerBound,
+     <a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&nbsp;upperBound)</pre>
 <div class="block">Initializes a new range.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>lowerBound</code> - The lower bound of the range.</dd><dd><code>upperBound</code> - The upper bound of the range.</dd></dl>
 </li>
@@ -291,7 +291,7 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>Range</h4>
-<pre>public&nbsp;Range(<a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;? extends <a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&gt;&nbsp;otherRange)</pre>
+<pre>public&nbsp;Range(<a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;? extends <a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&gt;&nbsp;otherRange)</pre>
 <div class="block">Initializes a new range from the specified range.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>otherRange</code> - The prototype range.</dd></dl>
 </li>
@@ -306,13 +306,13 @@ extends java.lang.Object</pre>
 <h3>Method Detail</h3>
 <a name="setUpperBound(java.lang.Comparable)">
 <!--   -->
-</a><a name="setUpperBound(T)">
+</a><a name="setUpperBound(L)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>setUpperBound</h4>
-<pre>public final&nbsp;<a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&gt;&nbsp;setUpperBound(<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&nbsp;upperBound)</pre>
+<pre>public final&nbsp;<a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&gt;&nbsp;setUpperBound(<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&nbsp;upperBound)</pre>
 <div class="block">Creates a new <code>Range</code> with the changed upper bound.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>upperBound</code> - The new range upper bound.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>A new instance of the <code>Range</code> with the specified upper bound.</dd></dl>
@@ -320,13 +320,13 @@ extends java.lang.Object</pre>
 </ul>
 <a name="setLowerBound(java.lang.Comparable)">
 <!--   -->
-</a><a name="setLowerBound(T)">
+</a><a name="setLowerBound(L)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>setLowerBound</h4>
-<pre>public final&nbsp;<a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&gt;&nbsp;setLowerBound(<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&nbsp;lowerBound)</pre>
+<pre>public final&nbsp;<a href="../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&gt;&nbsp;setLowerBound(<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&nbsp;lowerBound)</pre>
 <div class="block">Creates a new <code>Range</code> with the changed lower bound.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>lowerBound</code> - The new range lower bound.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>A new instance of the <code>Range</code> with the specified lower bound.</dd></dl>
@@ -334,13 +334,13 @@ extends java.lang.Object</pre>
 </ul>
 <a name="contains(java.lang.Comparable,com.snamp.Range.InclusionTestType)">
 <!--   -->
-</a><a name="contains(T, com.snamp.Range.InclusionTestType)">
+</a><a name="contains(L, com.snamp.Range.InclusionTestType)">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>contains</h4>
-<pre>public final&nbsp;boolean&nbsp;contains(<a href="../../com/snamp/Range.html" title="type parameter in Range">T</a>&nbsp;value,
+<pre>public final&nbsp;boolean&nbsp;contains(<a href="../../com/snamp/Range.html" title="type parameter in Range">L</a>&nbsp;value,
                <a href="../../com/snamp/Range.InclusionTestType.html" title="enum in com.snamp">Range.InclusionTestType</a>&nbsp;testType)</pre>
 <div class="block">Determines whether the specified value is in current range.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>value</code> - The value to test.</dd><dd><code>testType</code> - Inclusion test strategy. Cannot be null.</dd>

@@ -124,19 +124,19 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>static &lt;T&gt;&nbsp;T</code></td>
+<td class="colFirst"><code>static &lt;L&gt;&nbsp;L</code></td>
 <td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/ManagementEntityTypeHelper.html#convertFrom(com.itworks.snamp.connectors.ManagementEntityType, java.lang.Object, java.lang.Class)">convertFrom</a></strong>(<a href="../../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.itworks.snamp.connectors">ManagementEntityType</a>&nbsp;entityType,
            java.lang.Object&nbsp;value,
-           java.lang.Class&lt;T&gt;&nbsp;nativeType)</code>
+           java.lang.Class&lt;L&gt;&nbsp;nativeType)</code>
 <div class="block">Converts the native management entity value into well-known Java type.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>static &lt;T&gt;&nbsp;T</code></td>
+<td class="colFirst"><code>static &lt;L&gt;&nbsp;L</code></td>
 <td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/ManagementEntityTypeHelper.html#convertFrom(com.itworks.snamp.connectors.ManagementEntityType, java.lang.Object, java.lang.Class, java.lang.Class...)">convertFrom</a></strong>(<a href="../../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.itworks.snamp.connectors">ManagementEntityType</a>&nbsp;entityType,
            java.lang.Object&nbsp;value,
-           java.lang.Class&lt;T&gt;&nbsp;baseType,
-           java.lang.Class&lt;? extends T&gt;...&nbsp;projections)</code>
+           java.lang.Class&lt;L&gt;&nbsp;baseType,
+           java.lang.Class&lt;? extends L&gt;...&nbsp;projections)</code>
 <div class="block">Converts the native management entity value into one of the supported well-known Java type.</div>
 </td>
 </tr>
@@ -228,12 +228,12 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>convertFrom</h4>
-<pre>public static&nbsp;&lt;T&gt;&nbsp;T&nbsp;convertFrom(<a href="../../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.itworks.snamp.connectors">ManagementEntityType</a>&nbsp;entityType,
+<pre>public static&nbsp;&lt;L&gt;&nbsp;L&nbsp;convertFrom(<a href="../../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.itworks.snamp.connectors">ManagementEntityType</a>&nbsp;entityType,
                 java.lang.Object&nbsp;value,
-                java.lang.Class&lt;T&gt;&nbsp;nativeType)
+                java.lang.Class&lt;L&gt;&nbsp;nativeType)
                      throws java.lang.IllegalArgumentException</pre>
 <div class="block">Converts the native management entity value into well-known Java type.</div>
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Method return type.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>entityType</code> - An entity type descriptor. Cannot be null.</dd><dd><code>value</code> - The management entity value to convert.</dd><dd><code>nativeType</code> - Well-known Java type. Cannot be null.</dd>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - Method return type.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>entityType</code> - An entity type descriptor. Cannot be null.</dd><dd><code>value</code> - The management entity value to convert.</dd><dd><code>nativeType</code> - Well-known Java type. Cannot be null.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>Well-known representation of the management entity value.</dd>
 <dt><span class="strong">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code> - <code>entityType</code> is null; or the specified conversion is not supported.</dd></dl>
@@ -245,13 +245,13 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>convertFrom</h4>
-<pre>public static&nbsp;&lt;T&gt;&nbsp;T&nbsp;convertFrom(<a href="../../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.itworks.snamp.connectors">ManagementEntityType</a>&nbsp;entityType,
+<pre>public static&nbsp;&lt;L&gt;&nbsp;L&nbsp;convertFrom(<a href="../../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.itworks.snamp.connectors">ManagementEntityType</a>&nbsp;entityType,
                 java.lang.Object&nbsp;value,
-                java.lang.Class&lt;T&gt;&nbsp;baseType,
-                java.lang.Class&lt;? extends T&gt;...&nbsp;projections)
+                java.lang.Class&lt;L&gt;&nbsp;baseType,
+                java.lang.Class&lt;? extends L&gt;...&nbsp;projections)
                      throws java.lang.IllegalArgumentException</pre>
 <div class="block">Converts the native management entity value into one of the supported well-known Java type.</div>
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Method return type.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>entityType</code> - An entity type descriptor. Cannot be null.</dd><dd><code>value</code> - The management entity value to convert.</dd><dd><code>baseType</code> - A base class for each well-known Java type in the list.</dd><dd><code>projections</code> - A list of well-known Java types.</dd>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - Method return type.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>entityType</code> - An entity type descriptor. Cannot be null.</dd><dd><code>value</code> - The management entity value to convert.</dd><dd><code>baseType</code> - A base class for each well-known Java type in the list.</dd><dd><code>projections</code> - A list of well-known Java types.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>Well-known representation of the management entity value.</dd>
 <dt><span class="strong">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code> - <code>entityType</code> is null; or the specified conversion is not supported.</dd></dl>

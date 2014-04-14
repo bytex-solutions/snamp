@@ -3,6 +3,7 @@ package com.itworks.snamp.configuration;
 import static org.ops4j.pax.exam.CoreOptions.*;
 
 import com.itworks.snamp.AbstractIntegrationTest;
+import com.itworks.snamp.AbstractSnampIntegrationTest;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerMethod;
@@ -16,11 +17,9 @@ import java.io.IOException;
  * @since 1.0
  */
 @ExamReactorStrategy(PerMethod.class)
-public final class XmlConfigurationTest extends AbstractIntegrationTest {
+public final class XmlConfigurationTest extends AbstractSnampIntegrationTest {
 
     public XmlConfigurationTest(){
-        super(mavenBundle("com.itworks.snamp", "corlib", "1.0.0"),
-                mavenBundle("com.itworks.snamp", "config-bundle", "1.0.0"));
     }
 
 

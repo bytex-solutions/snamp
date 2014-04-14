@@ -79,17 +79,17 @@
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
 <div class="subTitle">com.itworks.snamp.licensing</div>
-<h2 title="Class AbstractLicenseLimitations.RangeLimitation" class="title">Class AbstractLicenseLimitations.RangeLimitation&lt;T extends java.lang.Comparable&lt;T&gt;&gt;</h2>
+<h2 title="Class AbstractLicenseLimitations.RangeLimitation" class="title">Class AbstractLicenseLimitations.RangeLimitation&lt;L extends java.lang.Comparable&lt;L&gt;&gt;</h2>
 </div>
 <div class="contentContainer">
 <ul class="inheritance">
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li><a href="../../../com/snamp/licensing/AbstractLicenseLimitations.Requirement.html" title="class in com.itworks.snamp.licensing">com.itworks.snamp.licensing.AbstractLicenseLimitations.Requirement</a>&lt;T,<a href="../../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;T&gt;&gt;</li>
+<li><a href="../../../com/snamp/licensing/AbstractLicenseLimitations.Requirement.html" title="class in com.itworks.snamp.licensing">com.itworks.snamp.licensing.AbstractLicenseLimitations.Requirement</a>&lt;L,<a href="../../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;L&gt;&gt;</li>
 <li>
 <ul class="inheritance">
-<li>com.itworks.snamp.licensing.AbstractLicenseLimitations.RangeLimitation&amp;lt;T&amp;gt;</li>
+<li>com.itworks.snamp.licensing.AbstractLicenseLimitations.RangeLimitation&amp;lt;L&amp;gt;</li>
 </ul>
 </li>
 </ul>
@@ -100,7 +100,7 @@
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.itworks.snamp.licensing">LicenseLimitations.Limitation</a>&lt;T&gt;</dd>
+<dd><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="interface in com.itworks.snamp.licensing">LicenseLimitations.Limitation</a>&lt;L&gt;</dd>
 </dl>
 <dl>
 <dt>Enclosing class:</dt>
@@ -108,8 +108,8 @@
 </dl>
 <hr>
 <br>
-<pre>protected abstract static class <span class="strong">AbstractLicenseLimitations.RangeLimitation&lt;T extends java.lang.Comparable&lt;T&gt;&gt;</span>
-extends <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.Requirement.html" title="class in com.itworks.snamp.licensing">AbstractLicenseLimitations.Requirement</a>&lt;T,<a href="../../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;T&gt;&gt;</pre>
+<pre>protected abstract static class <span class="strong">AbstractLicenseLimitations.RangeLimitation&lt;L extends java.lang.Comparable&lt;L&gt;&gt;</span>
+extends <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.Requirement.html" title="class in com.itworks.snamp.licensing">AbstractLicenseLimitations.Requirement</a>&lt;L,<a href="../../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;L&gt;&gt;</pre>
 </li>
 </ul>
 </div>
@@ -145,13 +145,13 @@ extends <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.Require
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html#AbstractLicenseLimitations.RangeLimitation(com.snamp.Range, com.snamp.Range.InclusionTestType)">AbstractLicenseLimitations.RangeLimitation</a></strong>(<a href="../../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">T</a>&gt;&nbsp;range,
+<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html#AbstractLicenseLimitations.RangeLimitation(com.snamp.Range, com.snamp.Range.InclusionTestType)">AbstractLicenseLimitations.RangeLimitation</a></strong>(<a href="../../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">L</a>&gt;&nbsp;range,
                                           <a href="../../../com/snamp/Range.InclusionTestType.html" title="enum in com.snamp">Range.InclusionTestType</a>&nbsp;testType)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html#AbstractLicenseLimitations.RangeLimitation(T, T, com.snamp.Range.InclusionTestType)">AbstractLicenseLimitations.RangeLimitation</a></strong>(<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">T</a>&nbsp;lowerBound,
-                                          <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">T</a>&nbsp;upperBound,
+<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html#AbstractLicenseLimitations.RangeLimitation(L, L, com.snamp.Range.InclusionTestType)">AbstractLicenseLimitations.RangeLimitation</a></strong>(<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">L</a>&nbsp;lowerBound,
+                                          <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">L</a>&nbsp;upperBound,
                                           <a href="../../../com/snamp/Range.InclusionTestType.html" title="enum in com.snamp">Range.InclusionTestType</a>&nbsp;testType)</code>&nbsp;</td>
 </tr>
 </table>
@@ -171,7 +171,7 @@ extends <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.Require
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html#validate(T)">validate</a></strong>(<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">T</a>&nbsp;actualValue)</code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html#validate(L)">validate</a></strong>(<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">L</a>&nbsp;actualValue)</code>
 <div class="block">Determines whether the specified actual value doesn't break this limitation.</div>
 </td>
 </tr>
@@ -210,20 +210,20 @@ extends <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.Require
 <ul class="blockList">
 <li class="blockList">
 <h4>AbstractLicenseLimitations.RangeLimitation</h4>
-<pre>protected&nbsp;AbstractLicenseLimitations.RangeLimitation(<a href="../../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">T</a>&gt;&nbsp;range,
+<pre>protected&nbsp;AbstractLicenseLimitations.RangeLimitation(<a href="../../../com/snamp/Range.html" title="class in com.snamp">Range</a>&lt;<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">L</a>&gt;&nbsp;range,
                                           <a href="../../../com/snamp/Range.InclusionTestType.html" title="enum in com.snamp">Range.InclusionTestType</a>&nbsp;testType)</pre>
 </li>
 </ul>
 <a name="AbstractLicenseLimitations.RangeLimitation(java.lang.Comparable,java.lang.Comparable,com.snamp.Range.InclusionTestType)">
 <!--   -->
-</a><a name="AbstractLicenseLimitations.RangeLimitation(T, T, com.snamp.Range.InclusionTestType)">
+</a><a name="AbstractLicenseLimitations.RangeLimitation(L, L, com.snamp.Range.InclusionTestType)">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>AbstractLicenseLimitations.RangeLimitation</h4>
-<pre>protected&nbsp;AbstractLicenseLimitations.RangeLimitation(<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">T</a>&nbsp;lowerBound,
-                                          <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">T</a>&nbsp;upperBound,
+<pre>protected&nbsp;AbstractLicenseLimitations.RangeLimitation(<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">L</a>&nbsp;lowerBound,
+                                          <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">L</a>&nbsp;upperBound,
                                           <a href="../../../com/snamp/Range.InclusionTestType.html" title="enum in com.snamp">Range.InclusionTestType</a>&nbsp;testType)</pre>
 </li>
 </ul>
@@ -237,13 +237,13 @@ extends <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.Require
 <h3>Method Detail</h3>
 <a name="validate(java.lang.Comparable)">
 <!--   -->
-</a><a name="validate(T)">
+</a><a name="validate(L)">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>validate</h4>
-<pre>public final&nbsp;boolean&nbsp;validate(<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">T</a>&nbsp;actualValue)</pre>
+<pre>public final&nbsp;boolean&nbsp;validate(<a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="type parameter in AbstractLicenseLimitations.RangeLimitation">L</a>&nbsp;actualValue)</pre>
 <div class="block">Determines whether the specified actual value doesn't break this limitation.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>actualValue</code> - The actual value to check.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>true, if the specified actual value doesn't break this limitation; otherwise, false.</dd></dl>

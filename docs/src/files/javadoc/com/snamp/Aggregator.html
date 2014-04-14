@@ -106,7 +106,7 @@
              someFile = new File(path);
            }
 
-           public &lt;T&gt; T queryObject(final Class&lt;T&gt; ot){
+           public &lt;L&gt; L queryObject(final Class&lt;L&gt; ot){
              if(File.class.equals(ot)) return someFile;
              else return null;
            }
@@ -139,8 +139,8 @@
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>&lt;T&gt;&nbsp;T</code></td>
-<td class="colLast"><code><strong><a href="../../com/snamp/Aggregator.html#queryObject(java.lang.Class)">queryObject</a></strong>(java.lang.Class&lt;T&gt;&nbsp;objectType)</code>
+<td class="colFirst"><code>&lt;L&gt;&nbsp;L</code></td>
+<td class="colLast"><code><strong><a href="../../com/snamp/Aggregator.html#queryObject(java.lang.Class)">queryObject</a></strong>(java.lang.Class&lt;L&gt;&nbsp;objectType)</code>
 <div class="block">Retrieves the aggregated object.</div>
 </td>
 </tr>
@@ -165,9 +165,9 @@
 <ul class="blockListLast">
 <li class="blockList">
 <h4>queryObject</h4>
-<pre>&lt;T&gt;&nbsp;T&nbsp;queryObject(java.lang.Class&lt;T&gt;&nbsp;objectType)</pre>
+<pre>&lt;L&gt;&nbsp;L&nbsp;queryObject(java.lang.Class&lt;L&gt;&nbsp;objectType)</pre>
 <div class="block">Retrieves the aggregated object.</div>
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - Type of the aggregated object.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>objectType</code> - Type of the requested object.</dd>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - Type of the aggregated object.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>objectType</code> - Type of the requested object.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>An instance of the aggregated object; or null if object is not available.</dd></dl>
 </li>
 </ul>

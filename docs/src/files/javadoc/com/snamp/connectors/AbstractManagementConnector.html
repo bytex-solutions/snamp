@@ -133,7 +133,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected static class&nbsp;</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a>&lt;<a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="type parameter in AbstractManagementConnector.GenericAttributeMetadata">T</a> extends <a href="../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.itworks.snamp.connectors">ManagementEntityType</a>&gt;</strong></code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericAttributeMetadata</a>&lt;<a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericAttributeMetadata.html" title="type parameter in AbstractManagementConnector.GenericAttributeMetadata">L</a> extends <a href="../../../com/snamp/connectors/ManagementEntityType.html" title="interface in com.itworks.snamp.connectors">ManagementEntityType</a>&gt;</strong></code>
 <div class="block">Represents default implementation of the attribute descriptor.</div>
 </td>
 </tr>
@@ -269,9 +269,9 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>protected &lt;T extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericNotificationMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericNotificationMetadata</a>&gt;&nbsp;<br>java.util.Map&lt;java.lang.String,T&gt;</code></td>
+<td class="colFirst"><code>protected &lt;L extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericNotificationMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericNotificationMetadata</a>&gt;&nbsp;<br>java.util.Map&lt;java.lang.String,L&gt;</code></td>
 <td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getEnabledNotifications(java.lang.String, java.lang.Class)">getEnabledNotifications</a></strong>(java.lang.String&nbsp;category,
-                       java.lang.Class&lt;T&gt;&nbsp;metadataType)</code>
+                       java.lang.Class&lt;L&gt;&nbsp;metadataType)</code>
 <div class="block">Returns all notifications associated with the specified category.</div>
 </td>
 </tr>
@@ -410,10 +410,10 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 <ul class="blockList">
 <li class="blockList">
 <h4>getEnabledNotifications</h4>
-<pre>protected final&nbsp;&lt;T extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericNotificationMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericNotificationMetadata</a>&gt;&nbsp;java.util.Map&lt;java.lang.String,T&gt;&nbsp;getEnabledNotifications(java.lang.String&nbsp;category,
-                                                                                                                            java.lang.Class&lt;T&gt;&nbsp;metadataType)</pre>
+<pre>protected final&nbsp;&lt;L extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.GenericNotificationMetadata.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector.GenericNotificationMetadata</a>&gt;&nbsp;java.util.Map&lt;java.lang.String,L&gt;&nbsp;getEnabledNotifications(java.lang.String&nbsp;category,
+                                                                                                                            java.lang.Class&lt;L&gt;&nbsp;metadataType)</pre>
 <div class="block">Returns all notifications associated with the specified category.</div>
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - The type of requested notification metadata.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>category</code> - The category of the event.</dd><dd><code>metadataType</code> - The type of requested notification metadata.</dd>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - The type of requested notification metadata.</dd><dt><span class="strong">Parameters:</span></dt><dd><code>category</code> - The category of the event.</dd><dd><code>metadataType</code> - The type of requested notification metadata.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>A map of registered notifications and subscription lists.</dd></dl>
 </li>
 </ul>

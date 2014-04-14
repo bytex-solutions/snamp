@@ -79,13 +79,13 @@
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
 <div class="subTitle">com.itworks.snamp.licensing</div>
-<h2 title="Interface LicenseLimitations.Limitation" class="title">Interface LicenseLimitations.Limitation&lt;T&gt;</h2>
+<h2 title="Interface LicenseLimitations.Limitation" class="title">Interface LicenseLimitations.Limitation&lt;L&gt;</h2>
 </div>
 <div class="contentContainer">
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
-<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>T</code> - </dd></dl>
+<dl><dt><span class="strong">Type Parameters:</span></dt><dd><code>L</code> - </dd></dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
 <dd><a href="../../../com/snamp/licensing/AbstractLicenseLimitations.ExactLimitation.html" title="class in com.itworks.snamp.licensing">AbstractLicenseLimitations.ExactLimitation</a>, <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.MaxValueLimitation.html" title="class in com.itworks.snamp.licensing">AbstractLicenseLimitations.MaxValueLimitation</a>, <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.MinValueLimitation.html" title="class in com.itworks.snamp.licensing">AbstractLicenseLimitations.MinValueLimitation</a>, <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.NotExactLimitation.html" title="class in com.itworks.snamp.licensing">AbstractLicenseLimitations.NotExactLimitation</a>, <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.RangeLimitation.html" title="class in com.itworks.snamp.licensing">AbstractLicenseLimitations.RangeLimitation</a>, <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.Requirement.html" title="class in com.itworks.snamp.licensing">AbstractLicenseLimitations.Requirement</a>, <a href="../../../com/snamp/licensing/AbstractLicenseLimitations.VersionLimitation.html" title="class in com.itworks.snamp.licensing">AbstractLicenseLimitations.VersionLimitation</a></dd>
@@ -96,7 +96,7 @@
 </dl>
 <hr>
 <br>
-<pre>public static interface <span class="strong">LicenseLimitations.Limitation&lt;T&gt;</span></pre>
+<pre>public static interface <span class="strong">LicenseLimitations.Limitation&lt;L&gt;</span></pre>
 <div class="block">Represents a limitation for the specified licensed object.</div>
 <dl><dt><span class="strong">Since:</span></dt>
   <dd>1.0</dd>
@@ -128,7 +128,7 @@
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html#validate(T)">validate</a></strong>(<a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="type parameter in LicenseLimitations.Limitation">T</a>&nbsp;actualValue)</code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html#validate(L)">validate</a></strong>(<a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="type parameter in LicenseLimitations.Limitation">L</a>&nbsp;actualValue)</code>
 <div class="block">Determines whether the specified actual value doesn't break this limitation.</div>
 </td>
 </tr>
@@ -160,13 +160,13 @@
 </ul>
 <a name="validate(java.lang.Object)">
 <!--   -->
-</a><a name="validate(T)">
+</a><a name="validate(L)">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>validate</h4>
-<pre>boolean&nbsp;validate(<a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="type parameter in LicenseLimitations.Limitation">T</a>&nbsp;actualValue)</pre>
+<pre>boolean&nbsp;validate(<a href="../../../com/snamp/licensing/LicenseLimitations.Limitation.html" title="type parameter in LicenseLimitations.Limitation">L</a>&nbsp;actualValue)</pre>
 <div class="block">Determines whether the specified actual value doesn't break this limitation.</div>
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>actualValue</code> - The actual value to check.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>true, if the specified actual value doesn't break this limitation; otherwise, false.</dd></dl>
