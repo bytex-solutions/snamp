@@ -29,6 +29,7 @@
                         org.osgi.framework,
                         org.osgi.service.log
                     </Import-Package>
+                    <Export-Package>com.itworks.snamp.*,org.apache.commons.collections4</Export-Package>
                 </instructions>
             </configuration>
         </plugin>

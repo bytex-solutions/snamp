@@ -22,8 +22,6 @@
                     <instructions>
                         <Bundle-SymbolicName>com.itworks.snamp.configuration</Bundle-SymbolicName>
                         <Bundle-Activator>com.itworks.snamp.configuration.impl.ConfigurationBundleActivator</Bundle-Activator>
-                        <Export-Package/>
-                        <Import-Package>*,org.osgi.framework</Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
