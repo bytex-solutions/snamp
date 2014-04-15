@@ -14,7 +14,7 @@
   <dependencies>
     <dependency>
       <groupId>com.itworks.snamp</groupId>
-      <artifactId>agent</artifactId>
+      <artifactId>framework</artifactId>
       <version>1.0.0</version>
     </dependency>
   </dependencies>

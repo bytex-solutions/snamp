@@ -35,8 +35,8 @@
   </build>
   <modules>
     <module>framework</module>
-    <!--<module>adapters</module>
     <module>connectors</module>
+    <!--<module>adapters</module>
     <module>licensing</module>
     <module>tests</module>
     <module>rest-manager</module>

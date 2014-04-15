@@ -2,7 +2,6 @@ package com.itworks.snamp;
 
 import com.itworks.snamp.configuration.*;
 import com.itworks.snamp.licensing.*;
-import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;
 import org.ops4j.pax.exam.options.*;
 
@@ -11,7 +10,6 @@ import java.io.*;
 
 import static com.itworks.snamp.configuration.ConfigurationManager.CONFIGURATION_FILE_PROPERTY;
 import static com.itworks.snamp.licensing.LicenseReader.LICENSE_FILE_PROPERTY;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * Represents an abstract class for all SNAMP-based integration tests.
@@ -37,8 +35,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
             final File configFile = File.createTempFile("snamp-config", ".xml");
             configFile.delete();
             System.setProperty(CONFIGURATION_FILE_PROPERTY, configFile.getAbsolutePath());
-
-            final File licenseFile = new File(TEST_LICENCE_FILE);
+            final File licenseFile = new File(System.getProperty(LICENSE_FILE_PROPERTY, TEST_LICENCE_FILE));
             if(!licenseFile.exists())
                 throw new IOException("License file for tests is missed.");
             else System.setProperty(LICENSE_FILE_PROPERTY, licenseFile.getAbsolutePath());
@@ -46,7 +43,6 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         catch (final IOException e) {
             fail(e.getMessage());
         }
-
     }
 
     protected AbstractSnampIntegrationTest(final AbstractProvisionOption<?>... deps){
