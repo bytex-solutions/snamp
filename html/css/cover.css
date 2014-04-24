@@ -130,6 +130,11 @@ body {
   font-size: 20px;
 }
 
+.table 
+{
+  text-align: left;
+}
+
 
 /*
  * Affix and center
