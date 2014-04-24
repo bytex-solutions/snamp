@@ -9,7 +9,7 @@ import com.itworks.snamp.internal.ThreadSafety;
 import java.util.Collection;
 
 /**
- * Represents utility interface for easy reading of connected attributes.
+ * Represents utility interface for easy reading of connected managementAttributes.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
@@ -24,9 +24,9 @@ public interface AttributesRegistryReader {
     public Collection<String> getNamespaces();
 
     /**
-     * Gets a read-only collection of registered attributes inside of the specified attributes.
-     * @param namespace A namespace of registered attributes.
-     * @return A collection of registered attributes in the specified namespace.
+     * Gets a read-only collection of registered managementAttributes inside of the specified managementAttributes.
+     * @param namespace A namespace of registered managementAttributes.
+     * @return A collection of registered managementAttributes in the specified namespace.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
     public Collection<String> getRegisteredAttributes(final String namespace);

@@ -1,6 +1,7 @@
 package com.itworks.snamp;
 
 import java.util.concurrent.*;
+import static com.itworks.snamp.AbstractConcurrentResourceAccess.*;
 
 /**
  * Represents synchronization event that is used to synchronize with some
@@ -9,11 +10,7 @@ import java.util.concurrent.*;
  * @version 1.0
  * @since 1.0
  */
-public final class SynchronizationEvent<T> {
-    private CountDownLatch barrier;
-    private boolean raised;
-    private T eventObj;
-
+public class SynchronizationEvent<T> {
     /**
      * Represents awaitor of the synchronization event.
      * <p>
@@ -40,32 +37,103 @@ public final class SynchronizationEvent<T> {
     }
 
     /**
+     * Represents internal state of the synchronization event.
+     * This class cannot be inherited.
+     * @param <T> Type of the event object.
+     */
+    private static final class EventState<T> implements Awaitor<T>{
+        private final CountDownLatch barrier;
+        private boolean raised;
+        private T eventObj;
+
+        public EventState(){
+            barrier = new CountDownLatch(1);
+            raised = false;
+            eventObj = null;
+        }
+
+        public final void set(final T result){
+            raised = true;
+            barrier.countDown();
+            this.eventObj = result;
+        }
+
+        /**
+         * Blocks the caller thread until the event will not be raised.
+         *
+         * @param timeout Event waiting timeout.
+         * @return The event data.
+         * @throws java.util.concurrent.TimeoutException     timeout parameter too small for waiting.
+         * @throws InterruptedException Waiting thread is aborted.
+         */
+        @Override
+        public T await(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+            if(timeout == TimeSpan.INFINITE) return await();
+            else if(barrier.await(timeout.duration, timeout.unit)) return eventObj;
+            else throw new TimeoutException();
+        }
+
+        /**
+         * Blocks the caller thread (may be infinitely) until the event will not be raised.
+         *
+         * @return The event data.
+         * @throws InterruptedException Waiting thread is aborted.
+         */
+        @Override
+        public T await() throws InterruptedException {
+            barrier.await();
+            return eventObj;
+        }
+    }
+
+    private final ConcurrentResourceAccess<EventState<T>> state;
+    private final boolean autoReset;
+
+    /**
+     * Initializes a new synchronization event.
+     * @param autoReset {@literal true} to reset synchronization event automatically after raising;
+     *                                 otherwise, {@literal false}.
+     */
+    public SynchronizationEvent(final boolean autoReset){
+        state = new ConcurrentResourceAccess<>(new EventState<T>());
+        this.autoReset = autoReset;
+    }
+
+    /**
      * Initializes a new synchronization event.
      */
     public SynchronizationEvent(){
-        barrier = new CountDownLatch(1);
-        raised = false;
-        eventObj = null;
+        this(false);
     }
 
     /**
      * Resets state of this event to initial.
      */
-    public synchronized final void reset(){
-        this.barrier = new CountDownLatch(1);
-        this.raised = false;
-        this.eventObj = null;
+    @SuppressWarnings("UnusedDeclaration")
+    public final void reset(){
+        state.changeResource(new EventState<T>());
     }
 
     /**
      * Fires the event.
      * @param eventObj The raised event data.
      */
-    public synchronized final void fire(final T eventObj){
-        if(raised) return;
-        this.raised = true;
-        this.eventObj = eventObj;
-        this.barrier.countDown();
+    public final void fire(final T eventObj){
+        if(autoReset)
+            state.changeResource(new ConsistentAction<EventState<T>, EventState<T>>() {
+                @Override
+                public EventState<T> invoke(final EventState<T> state) {
+                    state.set(eventObj);
+                    return new EventState<>();
+                }
+            });
+        else state.write(new ConsistentAction<EventState<T>, Void>() {
+            @Override
+            public Void invoke(final EventState<T> state) {
+                state.set(eventObj);
+                return null;
+            }
+        });
     }
 
     /**
@@ -73,19 +141,6 @@ public final class SynchronizationEvent<T> {
      * @return A new awaitor for this event.
      */
     public final Awaitor<T> getAwaitor(){
-        return new Awaitor<T>() {
-            @Override
-            public final T await(final TimeSpan timeout) throws TimeoutException, InterruptedException {
-                if(timeout == null) return await();
-                else if(!barrier.await(timeout.duration, timeout.unit)) throw new TimeoutException();
-                else return eventObj;
-            }
-
-            @Override
-            public final T await() throws InterruptedException {
-                barrier.await();
-                return eventObj;
-            }
-        };
+        return state.getResource();
     }
 }

@@ -81,6 +81,7 @@ public class ConcurrentResourceAccess<R> extends AbstractConcurrentResourceAcces
      * </p>
      * @param newResource A new instance of the resource.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public final void changeResource(final R newResource){
         changeResource(new Factory<R>() {
             @Override
@@ -118,6 +119,7 @@ public class ConcurrentResourceAccess<R> extends AbstractConcurrentResourceAcces
      * @param newResource The factory of the new resource. Cannot be {@literal null}.
      * @throws IllegalArgumentException newResource is {@literal null}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public final void changeResource(final ConsistentAction<R, R> newResource){
         if(newResource == null) throw new IllegalArgumentException("newResource is null.");
         final WriteLock wl = writeLock();

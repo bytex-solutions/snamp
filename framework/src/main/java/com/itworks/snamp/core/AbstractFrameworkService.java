@@ -28,6 +28,7 @@ public abstract class AbstractFrameworkService extends AbstractAggregator implem
      * Initializes a new instance of the platform service.
      * @param loggerName The name of the logger to be associated with this instance of the platform service.
      */
+    @SuppressWarnings("UnusedDeclaration")
     protected AbstractFrameworkService(final String loggerName){
         this(Logger.getLogger(loggerName));
     }
@@ -51,6 +52,7 @@ public abstract class AbstractFrameworkService extends AbstractAggregator implem
      * @param <E> Type of the exception to throw.
      * @throws E An exception to be thrown by this method.
      */
+    @SuppressWarnings("UnusedDeclaration")
     protected final <E extends Throwable> void throwAndLog(final Level logLevel, final Factory<E> e) throws E{
         throwAndLog(logLevel, e.create());
     }

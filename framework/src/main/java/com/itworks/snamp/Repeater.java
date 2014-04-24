@@ -62,6 +62,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * Returns time between successive task executions.
      * @return Time between successive task executions.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public final TimeSpan getPeriod(){
         return period;
     }
@@ -91,6 +92,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * </p>
      * @param s A new repeater state.
      */
+    @SuppressWarnings("UnusedParameters")
     @MethodStub
     protected void stateChanged(final State s){
 

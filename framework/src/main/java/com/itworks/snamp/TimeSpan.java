@@ -55,6 +55,7 @@ public final class TimeSpan {
      * @param seconds Time span, in seconds.
      * @return A new time span.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static TimeSpan fromSeconds(final long seconds){
         return new TimeSpan(seconds, TimeUnit.SECONDS);
     }
@@ -64,6 +65,7 @@ public final class TimeSpan {
      * @param minutes Time span, in minutes.
      * @return A new time span.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static TimeSpan fromMinutes(final long minutes){
         return new TimeSpan(minutes, TimeUnit.MINUTES);
     }
@@ -82,6 +84,7 @@ public final class TimeSpan {
      * @param days Time span, in days.
      * @return A new time span.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static TimeSpan fromDays(final long days){
         return new TimeSpan(days, TimeUnit.DAYS);
     }
@@ -162,6 +165,7 @@ public final class TimeSpan {
      * @see #autoScale()
      */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @SuppressWarnings("UnusedDeclaration")
     public static TimeSpan autoScale(final long duration, final TimeUnit unit){
         final TimeSpan temp = new TimeSpan(duration, unit);
         return temp.autoScale();

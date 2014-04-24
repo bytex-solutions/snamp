@@ -49,7 +49,7 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
             return new MaxValueLimitation<Long>(expectedValue) {
                 @Override
                 public LicensingException createException() {
-                    return new LicensingException(String.format("The maximum number of registered attributes(%s) is reached.", requiredValue));
+                    return new LicensingException(String.format("The maximum number of registered managementAttributes(%s) is reached.", requiredValue));
                 }
             };
         }

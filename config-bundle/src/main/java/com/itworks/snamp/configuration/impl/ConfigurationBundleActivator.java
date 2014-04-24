@@ -1,9 +1,8 @@
 package com.itworks.snamp.configuration.impl;
 
 import com.itworks.snamp.configuration.AbstractConfigurationBundleActivator;
-import com.itworks.snamp.configuration.ConfigurationManager;
-import com.itworks.snamp.core.AbstractBundleActivator;
-import org.osgi.framework.BundleActivator;
+
+import java.util.Map;
 
 /**
  * Represents activator for the configuration manager.
@@ -16,8 +15,15 @@ public final class ConfigurationBundleActivator extends AbstractConfigurationBun
 
     private static final class XmlConfigurationManagerProvider extends ConfigurationManagerProvider<XmlConfigurationManager>{
 
+        /**
+         * Creates a new instance of the service.
+         *
+         * @param identity     A dictionary of properties that uniquely identifies service instance.
+         * @param dependencies A collection of dependencies.
+         * @return A new instance of the service.
+         */
         @Override
-        protected XmlConfigurationManager activateService(final RequiredService<?>... dependencies) {
+        protected XmlConfigurationManager activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
             return new XmlConfigurationManager(getLogger());
         }
     }

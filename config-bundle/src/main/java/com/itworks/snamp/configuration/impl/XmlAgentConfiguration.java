@@ -47,6 +47,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
         /**
          * Initializes a new empty map entry.
          */
+        @SuppressWarnings("UnusedDeclaration")
         public XmlMapEntry(){
             this("", "");
         }
@@ -71,6 +72,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * Sets the key of this entry.
          * @param value A new key.
          */
+        @SuppressWarnings("UnusedDeclaration")
         @XmlAttribute(name = "name", required = true, namespace = XmlConstants.namespace)
         public void setKey(final String value){
             this.key = value != null ? value : "";
@@ -88,6 +90,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * Sets the value of this entry.
          * @param value A new value of this entry.
          */
+        @SuppressWarnings("UnusedDeclaration")
         @XmlValue
         public void setValue(final String value) {
             this.value = value != null ? value : "";
@@ -120,6 +123,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
             params = new HashMap<>(10);
         }
 
+        @SuppressWarnings("UnusedDeclaration")
         @XmlElement(name = "param", namespace = XmlConstants.namespace, type = XmlMapEntry.class)
         private List<XmlMapEntry> getItems() {
             final List<XmlMapEntry> entries = new ArrayList<>(params.size());
@@ -128,6 +132,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
             return entries;
         }
 
+        @SuppressWarnings("UnusedDeclaration")
         private void setItems(final List<XmlMapEntry> items) {
             params.clear();
             for(final XmlMapEntry e: items)
@@ -456,6 +461,44 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
             this.namespace = value != null ? value : "";
         }
 
+        /**
+         * Gets a collection of configured manageable elements for this target.
+         *
+         * @param elementType The type of the manageable element.
+         * @return A map of manageable elements; or {@literal null}, if element type is not supported.
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration
+         */
+        @SuppressWarnings("unchecked")
+        @Override
+        @XmlTransient
+        public <T extends ManageableEntity> Map<String, T> getElements(final Class<T> elementType) {
+            if(elementType == null) return null;
+            else if(Objects.equals(elementType, AttributeConfiguration.class))
+                return (Map<String, T>)getAttributes();
+            else if(Objects.equals(elementType, EventConfiguration.class))
+                return (Map<String, T>)getEvents();
+            else return null;
+        }
+
+        /**
+         * Creates a new instances of the specified manageable element.
+         *
+         * @param elementType Type of the required manageable element.
+         * @return A new empty manageable element; or {@literal null},
+         * if the specified element type is not supported.
+         */
+        @Override
+        public <T extends ManageableEntity> T newElement(final Class<T> elementType) {
+            if(elementType == null) return null;
+            else if(elementType.isAssignableFrom(XmlAttributeConfiguration.class))
+                return elementType.cast(newAttributeConfiguration());
+            else if(elementType.isAssignableFrom(XmlEventConfiguration.class))
+                return elementType.cast(newEventConfiguration());
+            else return null;
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
         @XmlElement(name = "attribute", namespace = XmlConstants.namespace, type = XmlAttributeConfiguration.class)
         private List<XmlAttributeConfiguration> getAttributesInternal() {
             final List<XmlAttributeConfiguration> result = new ArrayList<>(attributes.size());
@@ -470,6 +513,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
             return result;
         }
 
+        @SuppressWarnings("UnusedDeclaration")
         private void setAttributesInternal(final List<XmlAttributeConfiguration> items) {
             attributes.clear();
             for(final XmlAttributeConfiguration i: items)
@@ -481,12 +525,12 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          *
          * @return The dictionary of management attributes.
          */
-        @Override
         @XmlTransient
         public Map<String, AttributeConfiguration> getAttributes() {
             return attributes;
         }
 
+        @SuppressWarnings("UnusedDeclaration")
         @XmlElement(name = "event", namespace = XmlConstants.namespace, type = XmlEventConfiguration.class)
         private List<XmlEventConfiguration> getEventsInternal() {
             final List<XmlEventConfiguration> result = new ArrayList<>(events.size());
@@ -501,6 +545,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
             return result;
         }
 
+        @SuppressWarnings("UnusedDeclaration")
         private void setEventsInternal(final List<XmlEventConfiguration> items) {
             events.clear();
             for(final XmlEventConfiguration i: items)
@@ -512,7 +557,6 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          *
          * @return A set of event sources.
          */
-        @Override
         @XmlTransient
         public Map<String, EventConfiguration> getEvents() {
             return events;
@@ -538,7 +582,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          *
          * @return An empty attribute configuration.
          */
-        @Override
+        @SuppressWarnings("UnusedDeclaration")
         public XmlAttributeConfiguration newAttributeConfiguration() {
             return new XmlAttributeConfiguration();
         }
@@ -552,7 +596,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          *
          * @return An empty event configuration.
          */
-        @Override
+        @SuppressWarnings("UnusedDeclaration")
         public XmlEventConfiguration newEventConfiguration() {
             return new XmlEventConfiguration();
         }
@@ -568,6 +612,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
      *
      * @return The cloned instance of this configuration.
      */
+    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public XmlAgentConfiguration clone() {
         final XmlAgentConfiguration newInstance = new XmlAgentConfiguration();
@@ -589,6 +634,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
      * Sets agent hosting configuration.
      * @param value The agent hosting configuration.
      */
+    @SuppressWarnings("UnusedDeclaration")
     @XmlElement(name = "hosting", namespace = XmlConstants.namespace, required = true, nillable = false)
     public void setAgentHostingConfig(final XmlHostingConfiguration value){
         this.agentConfig = value != null ? value : new XmlHostingConfiguration();
@@ -605,6 +651,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
         return managementTargets;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @XmlElement(name = "managementTarget", namespace = XmlConstants.namespace, type = XmlManagementTargetConfiguration.class)
     private List<XmlManagementTargetConfiguration> getTargetsInternal() {
         final List<XmlManagementTargetConfiguration> result = new ArrayList<>(managementTargets.size());
@@ -619,6 +666,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
         return result;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     private void setTargetsInternal(final List<XmlManagementTargetConfiguration> items) {
         managementTargets.clear();
         for(final XmlManagementTargetConfiguration i: items)
@@ -638,7 +686,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
     /**
      * Serializes this object into the specified stream.
      *
-     * @param output
+     * @param output An output stream that receives configuration in XML format.
      * @throws UnsupportedOperationException Serialization is not supported.
      * @throws java.io.IOException           Some I/O error occurs.
      */
@@ -657,7 +705,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
 
     /**
      * Serializes this configuration into XML string.
-     * @return
+     * @return XML representation of this instance.
      */
     @Override
     public String toString() {
@@ -671,7 +719,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
 
     /**
      * Serializes this configuration into XML string and throws an exception if this is not possible.
-     * @return
+     * @return XML representation of this instance.
      * @throws IOException
      */
     public String toXmlString() throws IOException{
@@ -683,9 +731,10 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
 
     /**
      * Restores state of this configuration object from the XML string.
-     * @param value
+     * @param value XML configuration to load.
      * @throws IOException
      */
+    @SuppressWarnings("UnusedDeclaration")
     public void fromXmlString(final String value) throws IOException{
         try(final ByteArrayInputStream input = new ByteArrayInputStream(value.getBytes("UTF-8"))){
             load(input);
@@ -695,7 +744,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
     /**
      * Reads the file and fills the current instance.
      *
-     * @param input
+     * @param input A stream that contains configuration in XML format.
      * @throws UnsupportedOperationException Deserialization is not supported.
      * @throws java.io.IOException           Cannot invoke from the specified stream.
      */

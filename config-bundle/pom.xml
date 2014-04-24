@@ -33,7 +33,7 @@
         <dependency>
             <scope>provided</scope>
             <groupId>com.itworks.snamp</groupId>
-            <artifactId>corlib</artifactId>
+            <artifactId>framework</artifactId>
             <version>1.0.0</version>
         </dependency>
         <dependency>

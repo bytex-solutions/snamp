@@ -42,13 +42,13 @@ public interface NotificationMetadata extends ManagementEntityMetadata {
      * Gets the category of the notification.
      * @return The category of the notification.
      */
-    public String getCategory();
+    String getCategory();
 
     /**
      * Gets listeners invocation model for this notification type.
      * @return Listeners invocation model for this notification type.
      */
-    public NotificationModel getNotificationModel();
+    NotificationModel getNotificationModel();
 
     /**
      * Returns the type descriptor for the specified attachment.
@@ -56,5 +56,5 @@ public interface NotificationMetadata extends ManagementEntityMetadata {
      * @return The type descriptor for the specified attachment; or {@literal null} if the specified
      * attachment is not supported.
      */
-    public ManagementEntityType getAttachmentType(final Object attachment);
+    ManagementEntityType getAttachmentType(final Object attachment);
 }

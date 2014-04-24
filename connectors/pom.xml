@@ -19,8 +19,8 @@
     </dependency>
   </dependencies>
   <modules>
-    <module>jmx-connector</module>
-    <module>ibmwmb-connector</module>
-    <module>ibmwmq-connector</module>
+      <!--<module>jmx-connector</module>
+      <module>ibmwmb-connector</module>
+      <module>ibmwmq-connector</module>-->
   </modules>
 </project>

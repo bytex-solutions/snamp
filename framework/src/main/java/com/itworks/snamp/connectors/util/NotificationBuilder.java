@@ -11,62 +11,6 @@ import static com.itworks.snamp.connectors.NotificationSupport.Notification;
  * @since 1.0
  */
 public class NotificationBuilder {
-
-    private static final class NotificationImpl extends HashMap<String, Object> implements Notification{
-        private final long sequenceNumber;
-        private final Date timeStamp;
-        private final Severity severity;
-        private final String message;
-
-        public NotificationImpl(final Severity sev, final long sequenceNumber, final Date timeStamp, final String message, final Map<String, Object> attachments){
-            super(attachments);
-            this.sequenceNumber = sequenceNumber;
-            this.timeStamp = timeStamp != null ? timeStamp : new Date();
-            this.severity = sev != null ? sev : Severity.UNKNOWN;
-            this.message = message != null ? message : "";
-        }
-
-        /**
-         * Gets the date and time at which the notification is generated.
-         *
-         * @return The date and time at which the notification is generated.
-         */
-        @Override
-        public Date getTimeStamp() {
-            return timeStamp;
-        }
-
-        /**
-         * Gets the order number of the notification message.
-         *
-         * @return The order number of the notification message.
-         */
-        @Override
-        public long getSequenceNumber() {
-            return sequenceNumber;
-        }
-
-        /**
-         * Gets a severity of this event.
-         *
-         * @return The severity of this event.
-         */
-        @Override
-        public Severity getSeverity() {
-            return severity;
-        }
-
-        /**
-         * Gets a message description of this notification.
-         *
-         * @return The message description of this notification.
-         */
-        @Override
-        public String getMessage() {
-            return message;
-        }
-    }
-
     /**
      * Determines whether the sequence number
      */

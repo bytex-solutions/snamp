@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Represents registry of exposed attributes based on attribute namespace.
+ * Represents registry of exposed managementAttributes based on attribute namespace.
  * @param <TAttributeDescriptor> The type of the attribute descriptor.
  * @author Roman Sakno
  * @since 1.0
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeoutException;
 public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends HashMap<String, ConnectedAttributes<TAttributeDescriptor>> implements AttributesRegistry {
 
     /**
-     * Initializes a new empty registry of attributes.
+     * Initializes a new empty registry of managementAttributes.
      */
     protected AbstractAttributesRegistry(){
         super(10);
@@ -78,14 +78,14 @@ public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends H
 
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
     @Override
-    public final AttributeValue getAttribute(final String prefix, final String postfix, final TimeSpan readTimeout){
+    public final AttributeValue<? extends ManagementEntityType> getAttribute(final String prefix, final String postfix, final TimeSpan readTimeout){
         if(containsKey(prefix)){
             final ConnectedAttributes binding = get(prefix);
             if(binding.containsKey(postfix))
                 try {
                     final ManagementEntityType attributeType = binding.getAttributeType(prefix, postfix);
                     final Object value = binding.getAttribute(binding.makeAttributeId(prefix, postfix), readTimeout, null);
-                    return new AttributeValue(value, attributeType);
+                    return new AttributeValue<>(value, attributeType);
                 }
                 catch (final TimeoutException e) {
                     return null;
@@ -132,10 +132,10 @@ public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends H
     }
 
     /**
-     * Gets a read-only collection of registered attributes inside of the specified attributes.
+     * Gets a read-only collection of registered managementAttributes inside of the specified managementAttributes.
      *
      * @param namespace The attribute namespace.
-     * @return A collection of registered attributes located in the specified namespace.
+     * @return A collection of registered managementAttributes located in the specified namespace.
      */
     @Override
     @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
@@ -149,7 +149,7 @@ public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends H
     }
 
     /**
-     * Disconnects all attributes.
+     * Disconnects all managementAttributes.
      */
     @Override
     public final void disconnect() {

@@ -7,7 +7,7 @@ import org.apache.commons.collections4.Factory;
 import java.util.*;
 
 /**
- * Represents a base class for building management entity types, such as attributes or notifications.
+ * Represents a base class for building management entity types, such as managementAttributes or notifications.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

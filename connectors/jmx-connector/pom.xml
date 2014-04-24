@@ -6,7 +6,7 @@
     <artifactId>connectors</artifactId>
     <version>1.0.0</version>
   </parent>
-  <artifactId>jmx</artifactId>
+  <artifactId>jmx-connector</artifactId>
   <version>1.0.0</version>
   <packaging>jar</packaging>
   <name>JMX Connector</name>

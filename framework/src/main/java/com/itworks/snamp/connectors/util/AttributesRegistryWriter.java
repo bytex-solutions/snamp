@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Represents utility interface for connecting attributes.
+ * Represents utility interface for connecting managementAttributes.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
@@ -24,7 +24,7 @@ public interface AttributesRegistryWriter {
     public void clear();
 
     /**
-     * Disconnects all attributes.
+     * Disconnects all managementAttributes.
      */
     public void disconnect();
 }

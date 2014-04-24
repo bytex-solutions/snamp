@@ -21,7 +21,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
     private static final Logger log = AbstractManagementConnectorFactory.getLogger("jmx");
 
     /**
-     * Initializes a new builder of JMX attributes.
+     * Initializes a new builder of JMX managementAttributes.
      */
     public JmxTypeSystem(){
     }

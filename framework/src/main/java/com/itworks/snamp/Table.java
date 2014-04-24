@@ -18,15 +18,16 @@ public interface Table<COLUMN> {
      * Returns a set of available columns.
      * @return A set of available columns.
      */
+    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
-    public Set<COLUMN> getColumns();
+    Set<COLUMN> getColumns();
 
     /**
      * Returns the count of rows in this table.
      * @return The count of rows in this table.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
-    public int getRowCount();
+    int getRowCount();
 
     /**
      * Returns a cell value.
@@ -36,7 +37,7 @@ public interface Table<COLUMN> {
      * @throws IndexOutOfBoundsException The cell doesn't exist.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
-    public Object getCell(final COLUMN column, final int row) throws IndexOutOfBoundsException;
+    Object getCell(final COLUMN column, final int row) throws IndexOutOfBoundsException;
 
     /**
      * Returns the type of values at the specified column.
@@ -44,8 +45,9 @@ public interface Table<COLUMN> {
      * @return The type of values at the specified column.
      * @throws IndexOutOfBoundsException  The specified column doesn't exist.
      */
+    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
-    public Class<?> getColumnType(final COLUMN column) throws IndexOutOfBoundsException;
+    Class<?> getColumnType(final COLUMN column) throws IndexOutOfBoundsException;
 
     /**
      * Sets cell value.
@@ -55,8 +57,9 @@ public interface Table<COLUMN> {
      * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
      * @throws ClassCastException The value type is not compliant with column type.
      */
+    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
-    public void setCell(final COLUMN column, final int row, final Object value) throws UnsupportedOperationException, ClassCastException;
+    void setCell(final COLUMN column, final int row, final Object value) throws UnsupportedOperationException, ClassCastException;
 
     /**
      * Adds a new row to the end of the table.
@@ -66,13 +69,14 @@ public interface Table<COLUMN> {
      * @throws IllegalArgumentException The count of values doesn't match to column count.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
-    public void addRow(final Map<COLUMN, Object> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
+    void addRow(final Map<COLUMN, Object> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
 
     /**
      * Removes the row from this table.
      * @param rowIndex An index of the row to remove.
      * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
      */
+    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
-    public void removeRow(final int rowIndex) throws UnsupportedOperationException;
+    void removeRow(final int rowIndex) throws UnsupportedOperationException;
 }
