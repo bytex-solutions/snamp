@@ -23,8 +23,6 @@
                         <Bundle-SymbolicName>com.itworks.snamp.licensing</Bundle-SymbolicName>
                         <Bundle-Activator>com.itworks.snamp.licensing.impl.LicenseBundleActivator</Bundle-Activator>
                         <Embed-Dependency>*;scope=compile|runtime;optional=false</Embed-Dependency>
-                        <Export-Package/>
-                        <Import-Package>*,org.osgi.framework</Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
@@ -43,10 +41,10 @@
             <artifactId>org.osgi.core</artifactId>
             <version>4.3.1</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
             <version>4.0</version>
-        </dependency>
+        </dependency>-->
     </dependencies>
 </project>
