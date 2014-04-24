@@ -2,6 +2,7 @@ package com.itworks.snamp;
 
 import com.itworks.snamp.configuration.*;
 import com.itworks.snamp.licensing.*;
+import org.apache.commons.collections4.FactoryUtils;
 import org.junit.Before;
 import org.ops4j.pax.exam.options.*;
 
@@ -91,7 +92,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                                                                                            final String limitationName,
                                                                                            final A actualValue) throws LicensingException{
         assertNotNull("Licensing service is not available.", licenseReader);
-        final L lims = licenseReader.getLimitations(descriptor, NullProvider.<L>get());
+        final L lims = licenseReader.getLimitations(descriptor, FactoryUtils.<L>nullFactory());
         assertNotNull(String.format("Limitation %s is not described in license", descriptor), lims);
         lims.verify(limitationName, actualValue);
     }

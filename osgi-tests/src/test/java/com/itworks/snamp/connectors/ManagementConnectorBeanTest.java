@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors;
 
-import com.itworks.snamp.SnampClassTestSet;
+import com.itworks.snamp.AbstractUnitTest;
 import com.itworks.snamp.TimeSpan;
 import static com.itworks.snamp.connectors.util.NotificationUtils.*;
 import static com.itworks.snamp.connectors.NotificationSupport.Notification;
@@ -8,14 +8,13 @@ import org.junit.Test;
 
 import java.beans.IntrospectionException;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * Represents tests for {@link com.itworks.snamp.connectors.ManagementConnectorBean} class.
  * @author Roman Sakno
  */
-public final class ManagementConnectorBeanTest extends SnampClassTestSet<ManagementConnectorBean> {
+public final class ManagementConnectorBeanTest extends AbstractUnitTest<ManagementConnectorBean> {
 
     private static final class TestManagementConnectorBeanTest extends ManagementConnectorBean {
         private String field1;
@@ -23,7 +22,7 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Managem
         private boolean field3;
 
         public TestManagementConnectorBeanTest() throws IntrospectionException {
-            super(new WellKnownTypeSystem());
+            super(new WellKnownTypeSystem(), null);
         }
 
         public final String getProperty1(){
@@ -58,6 +57,10 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Managem
         }
     }
 
+    public ManagementConnectorBeanTest(){
+        super(ManagementConnectorBean.class);
+    }
+
     @Test
     public final void testConnectorBean() throws IntrospectionException, TimeoutException, InterruptedException {
         final TestManagementConnectorBeanTest connector = new TestManagementConnectorBeanTest();
@@ -66,7 +69,7 @@ public final class ManagementConnectorBeanTest extends SnampClassTestSet<Managem
         //enables notifications
         connector.enableNotifications("list1", "propertyChanged", null);
         final SynchronizationListener listener = new SynchronizationListener();
-        connector.subscribe(generateListenerId(listener), "list1", listener);
+        connector.subscribe(generateListenerId(listener), listener);
         assertEquals(connector.getProperty1(), connector.getAttribute("0", TimeSpan.INFINITE, ""));
         connector.setAttribute("0", TimeSpan.INFINITE, "1234567890");
         final Notification n = listener.getAwaitor().await(new TimeSpan(10, TimeUnit.SECONDS));

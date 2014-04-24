@@ -6,7 +6,7 @@ import org.apache.commons.lang3.Range;
 /**
  * @author Roman Sakno
  */
-public final class AggregationTest extends SnampClassTestSet<AbstractAggregator> {
+public final class AggregationTest extends AbstractUnitTest<AbstractAggregator> {
     private static final class TestAggregator extends AbstractAggregator {
 
         @Aggregation
@@ -16,6 +16,10 @@ public final class AggregationTest extends SnampClassTestSet<AbstractAggregator>
         public Short[] getService2(){
             return new Short[]{1, 2, 3};
         }
+    }
+
+    public AggregationTest(){
+        super(AbstractAggregator.class);
     }
 
     @Test

@@ -11,6 +11,9 @@ import java.util.Map;
  * @since 1.0
  */
 public final class ConfigurationBundleActivator extends AbstractConfigurationBundleActivator {
+    /**
+     * Represents name of the logger for the configuration service.
+     */
     public static final String LOGGER_NAME = "itworks.snamp.configuration";
 
     private static final class XmlConfigurationManagerProvider extends ConfigurationManagerProvider<XmlConfigurationManager>{

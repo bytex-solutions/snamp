@@ -10,7 +10,11 @@ import java.util.concurrent.ExecutionException;
  * @version 1.0
  * @since 1.0
  */
-public final class FutureThreadTest extends SnampClassTestSet<FutureThread<?>> {
+public final class FutureThreadTest extends AbstractUnitTest<FutureThread> {
+
+    public FutureThreadTest(){
+        super(FutureThread.class);
+    }
 
     @Test
     public final void multipleTasksTest() throws ExecutionException, InterruptedException {

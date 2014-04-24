@@ -26,6 +26,7 @@ public class SynchronizationEvent<T> {
          * @throws TimeoutException timeout parameter too small for waiting.
          * @throws InterruptedException Waiting thread is aborted.
          */
+        @SuppressWarnings("UnusedDeclaration")
         public T await(final TimeSpan timeout) throws TimeoutException, InterruptedException;
 
         /**
@@ -52,10 +53,13 @@ public class SynchronizationEvent<T> {
             eventObj = null;
         }
 
-        public final void set(final T result){
+        public final boolean set(final T result){
+            if(raised) return false;
             raised = true;
-            barrier.countDown();
             this.eventObj = result;
+            //This statement should be a last functional statement in this method
+            barrier.countDown();
+            return true;
         }
 
         /**
@@ -102,6 +106,7 @@ public class SynchronizationEvent<T> {
     /**
      * Initializes a new synchronization event.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public SynchronizationEvent(){
         this(false);
     }
@@ -117,9 +122,10 @@ public class SynchronizationEvent<T> {
     /**
      * Fires the event.
      * @param eventObj The raised event data.
+     * @return {@literal true}, if this event is not in signalled state; otherwise, {@literal false}.
      */
-    public final void fire(final T eventObj){
-        if(autoReset)
+    public final boolean fire(final T eventObj){
+        if(autoReset) {
             state.changeResource(new ConsistentAction<EventState<T>, EventState<T>>() {
                 @Override
                 public EventState<T> invoke(final EventState<T> state) {
@@ -127,11 +133,12 @@ public class SynchronizationEvent<T> {
                     return new EventState<>();
                 }
             });
-        else state.write(new ConsistentAction<EventState<T>, Void>() {
+            return true;
+        }
+        else return state.write(new ConsistentAction<EventState<T>, Boolean>() {
             @Override
-            public Void invoke(final EventState<T> state) {
-                state.set(eventObj);
-                return null;
+            public Boolean invoke(final EventState<T> state) {
+                return state.set(eventObj);
             }
         });
     }

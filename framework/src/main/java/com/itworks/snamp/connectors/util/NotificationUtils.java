@@ -133,8 +133,7 @@ public final class NotificationUtils {
          */
         @Override
         public boolean handle(final String listId, final Notification n) {
-            fire(n);
-            return true;
+            return fire(n);
         }
     }
 

@@ -7,7 +7,12 @@ import java.util.*;
 /**
  * @author Roman Sakno
  */
-public class SimpleTableTest extends SnampClassTestSet<SimpleTable<?>> {
+public class SimpleTableTest extends AbstractUnitTest<SimpleTable> {
+
+    public SimpleTableTest(){
+        super(SimpleTable.class);
+    }
+
     @Test
     public void tableModificaitonTest(){
         final Table<String> table = new SimpleTable<>(new HashMap<String, Class<?>>(){{
