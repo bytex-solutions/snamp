@@ -19,6 +19,16 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     }
 
     /**
+     * Clears this configuration.
+     */
+    @Override
+    public void clear() {
+        getTargets().clear();
+        getAgentHostingConfig().setAdapterName("");
+        getAgentHostingConfig().getHostingParams().clear();
+    }
+
+    /**
      * Clones this instance of agent configuration.
      * @return A new clone of this configuration.
      */

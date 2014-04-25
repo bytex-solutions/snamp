@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors;
+package com.itworks.snamp.connectors.impl;
 
 import javax.management.openmbean.OpenType;
 

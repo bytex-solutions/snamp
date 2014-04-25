@@ -4,6 +4,7 @@ import com.itworks.snamp.AbstractSnampIntegrationTest;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerMethod;
+import static org.ops4j.pax.exam.CoreOptions.*;
 
 import java.io.IOException;
 
@@ -15,10 +16,6 @@ import java.io.IOException;
  */
 @ExamReactorStrategy(PerMethod.class)
 public final class XmlConfigurationTest extends AbstractSnampIntegrationTest {
-
-    public XmlConfigurationTest(){
-    }
-
 
     @Test
     public final void configManagerTest() throws IOException {

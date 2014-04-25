@@ -227,5 +227,11 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
      * Imports the state of specified object into this object.
      * @param input The import source.
      */
+    @SuppressWarnings("UnusedDeclaration")
     void load(final AgentConfiguration input);
+
+    /**
+     * Clears this configuration.
+     */
+    void clear();
 }

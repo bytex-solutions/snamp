@@ -1,16 +1,16 @@
-package com.itworks.snamp.connectors;
+package com.itworks.snamp.connectors.impl;
 
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.connectors.*;
 import com.itworks.snamp.core.maintenance.*;
 import com.itworks.snamp.internal.MethodStub;
 
 import static com.itworks.snamp.internal.ReflectionUtils.weakReference;
 import com.itworks.snamp.connectors.util.NotificationListenerInvokerFactory;
-import com.itworks.snamp.licensing.JmxConnectorLimitations;
 import org.apache.commons.beanutils.PropertyUtils;
 
-import static com.itworks.snamp.connectors.JmxConnectionManager.MBeanServerConnectionHandler;
-import static com.itworks.snamp.configuration.JmxConnectorConfigurationDescriptor.*;
+import static com.itworks.snamp.connectors.impl.JmxConnectionManager.MBeanServerConnectionHandler;
+import static com.itworks.snamp.connectors.impl.JmxConnectorConfigurationDescriptor.*;
 
 import javax.management.*;
 import javax.management.openmbean.*;

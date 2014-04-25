@@ -1,5 +1,8 @@
-package com.itworks.snamp.connectors;
+package com.itworks.snamp.connectors.impl;
 
+import com.itworks.snamp.connectors.ManagementEntityTabularType;
+import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import org.apache.commons.collections4.Factory;
 import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;

@@ -1,4 +1,8 @@
-package com.itworks.snamp.configuration;
+package com.itworks.snamp.connectors.impl;
+
+import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -9,7 +13,7 @@ import java.util.ResourceBundle;
  * @version 1.0
  * @since 1.0
  */
-public final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
     public static final String OBJECT_NAME_PROPERTY = "objectName";
 
     /**

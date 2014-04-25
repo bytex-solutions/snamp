@@ -2,7 +2,8 @@ package com.itworks.snamp.licensing.impl;
 
 import com.itworks.snamp.core.AbstractLoggableBundleActivator;
 import com.itworks.snamp.licensing.LicenseReader;
-import org.osgi.framework.BundleActivator;
+
+import java.util.Map;
 
 /**
  * Represents implementation of the SNAMP licensing bundle. This class cannot be inherited.
@@ -25,12 +26,15 @@ public final class LicenseBundleActivator extends AbstractLoggableBundleActivato
         /**
          * Creates a new instance of the service.
          *
+         * @param identity     A dictionary of properties that uniquely identifies service instance.
          * @param dependencies A collection of dependencies.
          * @return A new instance of the service.
          */
         @Override
-        protected XmlLicenseReader activateService(final RequiredService<?>... dependencies) {
-            return new XmlLicenseReader(getLogger());
+        protected XmlLicenseReader activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
+            final XmlLicenseReader reader = new XmlLicenseReader(getLogger());
+            reader.reload();
+            return reader;
         }
     }
 
