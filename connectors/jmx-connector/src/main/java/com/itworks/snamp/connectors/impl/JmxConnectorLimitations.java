@@ -1,7 +1,9 @@
 package com.itworks.snamp.connectors.impl;
 
+import static com.itworks.snamp.core.AbstractBundleActivator.*;
 import com.itworks.snamp.licensing.*;
 import org.apache.commons.collections4.Factory;
+import org.osgi.framework.Version;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -11,36 +13,38 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * @author Roman Sakno
  */
 @XmlRootElement(name = "jmxConnectorLimitations")
-public final class JmxConnectorLimitations extends AbstractLicenseLimitations implements PluginLicenseLimitations<JmxConnector> {
+public final class JmxConnectorLimitations extends AbstractLicenseLimitations implements FrameworkServiceLimitations<JmxConnector> {
+    /**
+     * Represents statically defined dependency of {@link com.itworks.snamp.licensing.LicenseReader} service.
+     */
+    public static final RequiredServiceAccessor<LicenseReader> licenseReader = new SimpleDependency<>(LicenseReader.class);
 
     /**
      * Initializes a new limitation descriptor for the JMX connector.
      */
     public JmxConnectorLimitations(){
-
+        this(0L, 0L, "0.0");
     }
 
     private JmxConnectorLimitations(final long maxAttributeCount, final long maxInstanceCount, final String pluginVersion){
         this.maxAttributeCount = MaxRegisteredAttributeCountAdapter.createLimitation(maxAttributeCount);
         this.maxInstanceCount = MaxInstanceCountAdapter.createLimitation(maxInstanceCount);
         this.maxVersion = ConnectorVersionAdapter.createLimitation(pluginVersion);
-
     }
 
     private static final Factory<JmxConnectorLimitations> fallbackFactory = new Factory<JmxConnectorLimitations>() {
         @Override
         public JmxConnectorLimitations create() {
-            return new JmxConnectorLimitations(0L, 0L, "0.0");
+            return new JmxConnectorLimitations();
         }
     };
 
-
     /**
-     * Returns the currently loaded limitations.
-     * @return The currently loaded limitations.
+     * Gets currently loaded description of JMX connector license limitations.
+     * @return The currently loaded license limitations.
      */
-    public final static JmxConnectorLimitations current(){
-        return current(JmxConnectorLimitations.class, fallbackFactory);
+    public static JmxConnectorLimitations current(){
+        return current(JmxConnectorLimitations.class, licenseReader, fallbackFactory);
     }
 
     private static final class MaxRegisteredAttributeCountAdapter extends RequirementParser<Comparable<Long>, Long, MaxValueLimitation<Long>> {
@@ -76,7 +80,7 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
         }
     }
 
-    private static final class ConnectorVersionAdapter extends RequirementParser<String, String, VersionLimitation> {
+    private static final class ConnectorVersionAdapter extends RequirementParser<Version, String, VersionLimitation> {
         public static VersionLimitation createLimitation(final String expectedVersion){
             return new VersionLimitation(expectedVersion) {
                 @Override
@@ -113,13 +117,8 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
         verify(maxInstanceCount, currentInstanceCount);
     }
 
-    /**
-     * @param pluginImpl
-     * @throws LicensingException
-     *
-     */
     @Override
-    public final void verifyPluginVersion(final Class<? extends AbstractManagementConnectorFactory> pluginImpl) throws LicensingException {
+    public void verifyPluginVersion(final Class<? extends JmxConnector> pluginImpl) throws LicensingException {
         verifyPluginVersion(maxVersion, pluginImpl);
     }
 }

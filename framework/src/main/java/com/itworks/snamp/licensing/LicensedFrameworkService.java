@@ -8,10 +8,10 @@ import com.itworks.snamp.core.FrameworkService;
  * @version 1.0
  * @since 1.0
  */
-public interface LicensedPlatformPlugin<L extends LicenseLimitations> extends FrameworkService {
+public interface LicensedFrameworkService<L extends LicenseLimitations> extends FrameworkService {
     /**
      * Returns license limitations associated with this plugin.
      * @return The license limitations applied to this plugin.
      */
-    public L getLimitations();
+    L getLimitations();
 }

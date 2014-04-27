@@ -6,13 +6,13 @@ import com.itworks.snamp.internal.MethodThreadSafety;
 import com.itworks.snamp.internal.ThreadSafety;
 
 /**
- * Represents an interface for describing plugin license limitations.
+ * Represents an interface that describes license limitations of the SNAMP service.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
 @Internal
-public interface PluginLicenseLimitations<T extends FrameworkService> {
+public interface FrameworkServiceLimitations<T extends FrameworkService> extends LicenseLimitations {
     /**
      *
      * @param pluginImpl

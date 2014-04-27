@@ -689,7 +689,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector<Managem
      * @return The description of the attribute.
      */
     @Override
-    protected final GenericAttributeMetadata connectAttributeCore(final String attributeName, final Map<String, String> options) {
+    protected final GenericAttributeMetadata connectAttribute(final String attributeName, final Map<String, String> options) {
         for(final PropertyDescriptor pd: getConnectionOptions().getBeanInfo().getPropertyDescriptors())
             if(Objects.equals(pd.getName(), attributeName))
                 return connectAttribute(pd, options);

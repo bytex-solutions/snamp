@@ -8,9 +8,6 @@ import java.util.*;
 
 /**
  * Represents hosting adapter, that exposes management information to the outside world.
- * <p>
- *     The implementer should have parameterless constructor and annotated with {@link net.xeoh.plugins.base.annotations.PluginImplementation}.
- * </p>
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0

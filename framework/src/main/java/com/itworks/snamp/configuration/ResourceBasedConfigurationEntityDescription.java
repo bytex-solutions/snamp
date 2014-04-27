@@ -180,7 +180,7 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
                     public final boolean validateValue(final String value, final Locale loc) {
                         if(value == null) return false;
                         final String pattern = getValuePattern(loc);
-                        return pattern == null || pattern.isEmpty() ? true : value.matches(pattern);
+                        return pattern == null || pattern.isEmpty() || value.matches(pattern);
                     }
 
                     @Override

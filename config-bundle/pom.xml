@@ -22,6 +22,7 @@
                     <instructions>
                         <Bundle-SymbolicName>com.itworks.snamp.configuration</Bundle-SymbolicName>
                         <Bundle-Activator>com.itworks.snamp.configuration.impl.ConfigurationBundleActivator</Bundle-Activator>
+                        <Export-Package/>
                     </instructions>
                 </configuration>
             </plugin>

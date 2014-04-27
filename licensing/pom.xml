@@ -39,11 +39,4 @@
       </plugin>
     </plugins>
   </build>
-  <dependencies>
-    <dependency>
-      <groupId>net.xeoh.jspf</groupId>
-      <artifactId>jspf-core</artifactId>
-      <version>1.0.2</version>
-    </dependency>
-  </dependencies>
 </project>

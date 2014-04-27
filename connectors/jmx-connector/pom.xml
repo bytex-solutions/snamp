@@ -19,11 +19,32 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.itworks.snamp.configuration</Bundle-SymbolicName>
-                        <Bundle-Activator>com.itworks.snamp.configuration.impl.ConfigurationBundleActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>com.itworks.snamp.connectors.jmx</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.connectors.impl.JmxConnectorBundleActivator</Bundle-Activator>
+                        <Export-Package/>
                     </instructions>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+    <dependencies>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>framework</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>4.3.1</version>
+        </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <version>4.3.1</version>
+        </dependency>
+    </dependencies>
 </project>

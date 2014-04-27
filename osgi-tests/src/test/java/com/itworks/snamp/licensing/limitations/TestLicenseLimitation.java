@@ -2,7 +2,7 @@ package com.itworks.snamp.licensing.limitations;
 
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
 import com.itworks.snamp.licensing.LicensingException;
-import com.itworks.snamp.licensing.PluginLicenseLimitations;
+import com.itworks.snamp.licensing.FrameworkServiceLimitations;
 import org.apache.commons.collections4.Factory;
 import org.osgi.framework.Version;
 
@@ -15,7 +15,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * @author Roman Sakno
  */
 @XmlRootElement(name = "jmxConnectorLimitations")
-public final class TestLicenseLimitation extends AbstractLicenseLimitations implements PluginLicenseLimitations<TestPlugin> {
+public final class TestLicenseLimitation extends AbstractLicenseLimitations implements FrameworkServiceLimitations<TestPlugin> {
 
     /**
      * Initializes a new limitation descriptor for the JMX connector.

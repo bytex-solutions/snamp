@@ -1,6 +1,5 @@
 package com.itworks.snamp.connectors.util;
 
-import com.itworks.snamp.connectors.NotificationSupport;
 import static com.itworks.snamp.connectors.NotificationSupport.Notification;
 
 import java.util.*;

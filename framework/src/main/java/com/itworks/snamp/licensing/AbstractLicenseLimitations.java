@@ -1,8 +1,10 @@
 package com.itworks.snamp.licensing;
 
 import com.itworks.snamp.core.FrameworkService;
+import org.apache.commons.collections4.Factory;
 import org.apache.commons.lang3.Range;
 import org.osgi.framework.*;
+import static com.itworks.snamp.core.AbstractBundleActivator.RequiredServiceAccessor;
 
 import javax.xml.bind.annotation.adapters.*;
 import java.lang.reflect.Field;
@@ -114,6 +116,7 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
             super(range);
         }
 
+        @SuppressWarnings("UnusedDeclaration")
         protected RangeLimitation(final T lowerBound, final T upperBound){
             this(Range.between(lowerBound, upperBound));
         }
@@ -152,12 +155,12 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
 
     /**
      * Throws an exception if the specified parameter value breaks the license limitation.
-     * @param limitation
-     * @param actualValue
-     * @param <T>
-     * @throws LicensingException
+     * @param limitation The limitation to verify.
+     * @param actualValue The actual value to verify.
+     * @param <T> Type of the limitation to verify.
+     * @throws LicensingException Verification failed.
      */
-    protected static final <T> void verify(final Limitation<T> limitation, final T actualValue) throws LicensingException{
+    protected static <T> void verify(final Limitation<T> limitation, final T actualValue) throws LicensingException{
         if(limitation != null && !limitation.validate(actualValue))
             throw limitation.createException();
     }
@@ -172,7 +175,7 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
                 f.isAnnotationPresent(XmlJavaTypeAdapter.class);
     }
 
-    private final <T> List<T> getLimitationHolders(final FieldConverter<T> converter){
+    private <T> List<T> getLimitationHolders(final FieldConverter<T> converter){
         final Field[] declaredFields = getClass().getDeclaredFields();
         final List<T> result = new ArrayList<>(declaredFields.length);
         for(final Field f: declaredFields)
@@ -185,10 +188,9 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
      * Throws an exception if the specified parameter value breaks the license limitation.
      * @param limitationName The limitation name.
      * @param actualValue The actual value of the restricted parameter.
-     * @param <T> Type of the value of the restricted parameter.
      * @throws LicensingException The exception that is thrown if parameter value breaks the license limitation.
      */
-    public final <T> void verify(final String limitationName, final T actualValue) throws LicensingException {
+    public final void verify(final String limitationName, final Object actualValue) throws LicensingException {
         verify(getLimitationCore(limitationName), actualValue);
 
     }
@@ -207,11 +209,11 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
         }).iterator();
     }
 
-    private final <T> Limitation<T> getLimitationCore(final String limitationName) {
+    private Limitation getLimitationCore(final String limitationName) {
         try {
             final Field limitationHolder = getClass().getDeclaredField(limitationName);
             limitationHolder.setAccessible(true);
-            return isLimitationHolder(limitationHolder) ? (Limitation<T>)limitationHolder.get(this) : null;
+            return isLimitationHolder(limitationHolder) ? (Limitation<?>)limitationHolder.get(this) : null;
         }
         catch (final ReflectiveOperationException e) {
             return null;
@@ -242,7 +244,41 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
      * @throws LicensingException The plugin has greater implementation version than the specified implementation version in the
      * license limitation.
      */
-    protected final static void verifyPluginVersion(final VersionLimitation expectedImplVersion, final Class<? extends FrameworkService> pluginType) throws LicensingException{
+    protected static void verifyPluginVersion(final VersionLimitation expectedImplVersion, final Class<? extends FrameworkService> pluginType) throws LicensingException{
         verify(expectedImplVersion, getActualPluginVersion(pluginType));
+    }
+
+    /**
+     * Returns the localized description of this object.
+     * @param locale The locale of the description. If it is {@literal null} then returns description
+     *               in the default locale.
+     * @return The localized description of this object.
+     */
+    @Override
+    public String getDescription(final Locale locale) {
+        final StringBuilder result = new StringBuilder();
+        for(final String limName: this){
+            result.append(String.format("%s - %s.", limName, Objects.toString(getLimitation(limName), "")));
+            result.append(System.lineSeparator());
+        }
+        return result.toString();
+    }
+
+    /**
+     * Returns the active license limitations.
+     * @param limitationsType The limitations type. Cannot be {@literal null}.
+     * @param licenseReader Dependency descriptor for {@link com.itworks.snamp.licensing.LicenseReader}. Cannot be {@literal null}.
+     * @param fallbackFactory A factory that produces fully limited descriptor of the license. Cannot be {@literal null}.
+     * @param <L> Type of the license limitations descriptor.
+     * @return An instance of the license limitations descriptor.
+     */
+    protected static <L extends AbstractLicenseLimitations> L current(final Class<L> limitationsType,
+                                                                      final RequiredServiceAccessor<LicenseReader> licenseReader,
+                                                                      final Factory<L> fallbackFactory){
+        if(limitationsType == null) throw new IllegalArgumentException("limitationsType is null.");
+        else if(licenseReader == null) throw new IllegalArgumentException("licenseReader is null.");
+        else if(fallbackFactory == null) throw new IllegalArgumentException("fallbackFactory is null.");
+        else if(licenseReader.isResolved()) return licenseReader.getService().getLimitations(limitationsType, fallbackFactory);
+        else return fallbackFactory.create();
     }
 }
