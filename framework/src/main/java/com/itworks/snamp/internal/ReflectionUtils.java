@@ -1,12 +1,13 @@
 package com.itworks.snamp.internal;
 
 import org.apache.commons.collections4.Factory;
+import org.apache.commons.collections4.FactoryUtils;
 import org.osgi.framework.*;
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
 import java.lang.ref.*;
 import java.lang.reflect.*;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents advanced reflection subroutines.
@@ -149,6 +150,12 @@ public final class ReflectionUtils {
         return obj != null ? FrameworkUtil.getBundle(obj.getClass()).getBundleContext() : null;
     }
 
+    /**
+     * Determines whether the service implements the specified interface.
+     * @param serviceRef The service reference to check.
+     * @param serviceType The name of the interface.
+     * @return
+     */
     public static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType){
         final Object names = serviceRef.getProperty(OBJECTCLASS);
         if(names != null && names.getClass().isArray())
@@ -157,7 +164,121 @@ public final class ReflectionUtils {
         return false;
     }
 
+    /**
+     * Determines whether the service implements the specified interface.
+     * @param serviceRef
+     * @param serviceType
+     * @return
+     */
     public static boolean isInstanceOf(final ServiceReference<?> serviceRef, final Class<?> serviceType){
         return isInstanceOf(serviceRef, serviceType.getName());
+    }
+
+    /**
+     * Gets value from the map in type-safe manner.
+     * @param map The map to read. Cannot be {@literal null}.
+     * @param propertyKey The key in the map to get.
+     * @param propertyType The expected value type.
+     * @param <K> Type of the map key.
+     * @param <V> The expected value type.
+     * @return Strongly typed value obtained from the map.
+     * @throws ClassCastException Unable to cast property value to the specified propertyType.
+     * @throws IndexOutOfBoundsException The specified key doesn't exist.
+     * @throws IllegalArgumentException map is {@literal null}.
+     */
+    public static <K, V> V getProperty(final Map<K, ?> map,
+                                       final K propertyKey,
+                                       final Class<V> propertyType)
+            throws ClassCastException,
+                IndexOutOfBoundsException,
+                IllegalArgumentException{
+        if(map == null) throw new IllegalArgumentException("map is null.");
+        else if(map.containsKey(propertyKey)){
+            final Object value = map.get(propertyKey);
+            if(propertyType.isInstance(value)) return propertyType.cast(value);
+            else throw new ClassCastException(String.format("Unable to cast %s value to %s type.", value, propertyType));
+        }
+        else throw new IndexOutOfBoundsException(String.format("Key %s doesn't exist.", propertyKey));
+    }
+
+    /**
+     * Gets value from the map in type-safe manner.
+     * @param map The map to read.
+     * @param propertyKey The key in the map to get.
+     * @param propertyType The expected value type.
+     * @param defaultValue Default value returned from the method if key doesn't exist or value
+     *                     has invalid type.
+     * @param <K> Type of the map key.
+     * @param <V> The expected value type.
+     * @return Strongly typed value returned from the map.
+     */
+    public static <K, V> V getProperty(final Map<K, ?> map,
+                                       final K propertyKey,
+                                       final Class<V> propertyType,
+                                       final V defaultValue){
+        return getProperty(map, propertyKey, propertyType, FactoryUtils.constantFactory(defaultValue));
+    }
+
+    /**
+     * Gets value from the map in type-safe manner.
+     * @param map The map to read.
+     * @param propertyKey The key in the map to get.
+     * @param propertyType The expected value type.
+     * @param defaultValue Default value returned from the method if key doesn't exist or value
+     *                     has invalid type.
+     * @param <K> Type of the map key.
+     * @param <V> The expected value type.
+     * @return Strongly typed value returned from the map.
+     */
+    public static <K, V> V getProperty(final Map<K, ?> map,
+                                       final K propertyKey,
+                                       final Class<V> propertyType,
+                                       final Factory<V> defaultValue){
+        if(defaultValue == null) return getProperty(map, propertyKey, propertyType, FactoryUtils.<V>nullFactory());
+        else if(map == null) return defaultValue.create();
+        else if(map.containsKey(propertyKey)){
+            final Object value = map.get(propertyKey);
+            return propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.create();
+        }
+        else return defaultValue.create();
+    }
+
+    /**
+     * Gets value from the dictionary in type-safe manner.
+     * @param dict The dictionary to read.
+     * @param propertyKey The key in the dictionary to get.
+     * @param propertyType The expected value type.
+     * @param defaultValue Default value returned from the method if key doesn't exist or value
+     *                     has invalid type.
+     * @param <K> Type of the dictionary key.
+     * @param <V> The expected value type.
+     * @return Strongly typed value returned from the dictionary.
+     */
+    public static <K, V> V getProperty(final Dictionary<K, ?> dict,
+                                       final K propertyKey,
+                                       final Class<V> propertyType,
+                                       final Factory<V> defaultValue){
+        if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, FactoryUtils.<V>nullFactory());
+        else if(dict == null) return null;
+        final Object value = dict.get(propertyKey);
+        return value != null && propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.create();
+    }
+
+    /**
+     * Gets value from the dictionary in type-safe manner.
+     * @param dict The dictionary to read.
+     * @param propertyKey The key in the dictionary to get.
+     * @param propertyType The expected value type.
+     * @param defaultValue Default value returned from the method if key doesn't exist or value
+     *                     has invalid type.
+     * @param <K> Type of the dictionary key.
+     * @param <V> The expected value type.
+     * @return Strongly typed value returned from the dictionary.
+     */
+    public static <K, V> V getProperty(final Dictionary<K, ?> dict,
+                                     final K propertyKey,
+                                     final Class<V> propertyType,
+                                     final V defaultValue){
+        return getProperty(dict, propertyKey, propertyType, FactoryUtils.constantFactory(defaultValue));
     }
 }

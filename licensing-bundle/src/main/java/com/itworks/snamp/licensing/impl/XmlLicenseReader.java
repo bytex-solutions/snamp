@@ -1,10 +1,11 @@
 package com.itworks.snamp.licensing.impl;
 
 import com.itworks.snamp.ConcurrentResourceAccess;
-import com.itworks.snamp.SoftMap;
 import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength;
+import org.apache.commons.collections4.map.ReferenceMap;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import org.apache.commons.collections4.Factory;
@@ -21,7 +22,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.interfaces.*;
-import java.util.Dictionary;
+import java.util.*;
 import java.util.logging.*;
 
 /**
@@ -34,24 +35,14 @@ import java.util.logging.*;
 final class XmlLicenseReader extends AbstractFrameworkService implements LicenseReader {
 
     /**
-     * Gets a set of properties that uniquely identifies this instance.
-     *
-     * @return A set of properties that uniquely identifies this instance.
-     */
-    @Override
-    public Dictionary<String, ?> getIdentity() {
-        return null;
-    }
-
-    /**
      * Represents licensing context.
      */
     private static final class LicensingContext{
-        public final SoftMap<Class<? extends LicenseLimitations>, LicenseLimitations> loadedLimitations;
+        public final Map<Class<? extends LicenseLimitations>, LicenseLimitations> loadedLimitations;
         public Document loadedLicense;
 
         public LicensingContext(){
-            loadedLimitations = new SoftMap<>(10);
+            loadedLimitations = new ReferenceMap<>(ReferenceStrength.HARD, ReferenceStrength.SOFT);
             loadedLicense = null;
         }
     }
@@ -173,12 +164,12 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
         });
     }
 
-    private <T extends LicenseLimitations> T getLimitations(final String licensedObject, final Unmarshaller deserializer) throws JAXBException {
+    private <T extends LicenseLimitations> T getLimitations(final Class<T> descriptor, final String licensedObject, final Unmarshaller deserializer) throws JAXBException {
         return licensingContext.read(new Action<LicensingContext, T, JAXBException>() {
             @Override
             public T invoke(final LicensingContext resource) throws JAXBException {
                 final NodeList target = resource.loadedLicense.getElementsByTagName(licensedObject);
-                return target.getLength() > 0 ? (T)deserializer.unmarshal(target.item(0)) : null;
+                return target.getLength() > 0 ? descriptor.cast(deserializer.unmarshal(target.item(0))) : null;
             }
         });
     }
@@ -191,9 +182,8 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
      * @return A new instance of the license limitations.
      */
     public <T extends LicenseLimitations> T getLimitations(final Class<T> limitationsDescriptor, final Factory<T> fallback){
-        T result = null;
         if(limitationsDescriptor == null) return fallback.create();
-        result = licensingContext.read(new ConcurrentResourceAccess.ConsistentAction<LicensingContext, T>() {
+        T result = licensingContext.read(new ConcurrentResourceAccess.ConsistentAction<LicensingContext, T>() {
             @Override
             public T invoke(final LicensingContext resource) {
                 return resource.loadedLicense == null ?
@@ -207,7 +197,7 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
             final JAXBContext context = JAXBContext.newInstance(limitationsDescriptor);
             if(limitationsDescriptor.isAnnotationPresent(XmlRootElement.class)){
                 final XmlRootElement rootElement = limitationsDescriptor.getAnnotation(XmlRootElement.class);
-                final LicenseLimitations limits = result = getLimitations(rootElement.name(), context.createUnmarshaller());
+                final LicenseLimitations limits = result = getLimitations(limitationsDescriptor, rootElement.name(), context.createUnmarshaller());
                 //writes result to the cache
                 licensingContext.write(new ConsistentAction<LicensingContext, Void>() {
                     @Override

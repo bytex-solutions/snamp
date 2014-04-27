@@ -24,12 +24,18 @@
             <configuration>
                 <instructions>
                     <Bundle-SymbolicName>com.itworks.snamp.core</Bundle-SymbolicName>
-                    <Embed-Dependency>*;scope=compile|runtime;optional=false</Embed-Dependency>
+                    <!--<Embed-Dependency>*;scope=compile|runtime;optional=false</Embed-Dependency>-->
                     <Import-Package>!*,
                         org.osgi.framework,
-                        org.osgi.service.log
+                        org.osgi.service.log,
+                        org.osgi.service.event
                     </Import-Package>
-                    <Export-Package>com.itworks.snamp.*,org.apache.commons.collections4</Export-Package>
+                    <Export-Package>
+                        com.itworks.snamp.*,
+                        org.apache.commons.collections4.*,
+                        org.apache.commons.lang3.*,
+                        org.apache.commons.beanutils.*
+                    </Export-Package>
                 </instructions>
             </configuration>
         </plugin>

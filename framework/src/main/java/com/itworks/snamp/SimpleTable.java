@@ -16,6 +16,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * Initializes a new simple table with the specified set of columns.
      * @param cols An array of unique columns.
      */
+    @SafeVarargs
     public SimpleTable(final Map.Entry<COLUMN, Class<?>>... cols){
         _columns = new HashMap<>(cols.length);
         for(final Map.Entry<COLUMN, Class<?>> c: cols)
@@ -36,15 +37,16 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @param <COLUMN> Type of the column descriptor.
      * @return A new instance of the in-memory table.
      */
-    public final static <COLUMN> SimpleTable<COLUMN> fromArray(final Map<COLUMN, Object>[] rows){
-        if(rows.length == 0) return new SimpleTable<COLUMN>();
+    @SuppressWarnings("UnusedDeclaration")
+    public static <COLUMN> SimpleTable<COLUMN> fromArray(final Map<COLUMN, Object>[] rows){
+        if(rows.length == 0) return new SimpleTable<>();
         SimpleTable<COLUMN> result = null;
         for(final Map<COLUMN, Object> row: rows){
             if(result == null){
                 final Map<COLUMN, Class<?>> columns = new HashMap<>(10);
                 for(final COLUMN key: row.keySet())
                     columns.put(key, Object.class);
-                result = new SimpleTable<COLUMN>(columns);
+                result = new SimpleTable<>(columns);
             }
             result.addRow(row);
         }
@@ -55,7 +57,9 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * Converts this table to the array of rows.
      * @return An array of rows.
      */
+    @SuppressWarnings("NullableProblems")
     public final Map<COLUMN, Object>[] toArray(){
+        @SuppressWarnings("unchecked")
         final Map<COLUMN, Object>[] rows = new HashMap[size()];
         for(int i = 0; i < size(); i++)
             rows[i] = new HashMap<>(this.get(i));
@@ -123,8 +127,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     public final void setCell(final COLUMN column, final int rowIndex, final Object value) throws ClassCastException {
         final Class<?> columnType = getColumnType(column);
         final Map<COLUMN, Object> row = get(rowIndex);
-        if(row == null) return;
-        else row.put(column, columnType.cast(value));
+        if(row != null) row.put(column, columnType.cast(value));
     }
 
     /**
@@ -136,7 +139,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     @Override
     public final void addRow(final Map<COLUMN, Object> values) throws IllegalArgumentException {
         if(values.size() < _columns.size()) throw new IllegalArgumentException(String.format("Expected %s values", _columns.size()));
-        add(new HashMap<COLUMN, Object>(values));
+        add(new HashMap<>(values));
     }
 
     /**

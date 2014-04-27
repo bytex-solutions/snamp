@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Represents support for management attributes.
+ * Represents support for management managementAttributes.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -32,10 +32,10 @@ public interface AttributeSupport {
     public Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException;
 
     /**
-     * Reads a set of attributes.
+     * Reads a set of managementAttributes.
      * @param output The dictionary with set of attribute keys to invoke and associated default values.
      * @param readTimeout The attribute value invoke operation timeout.
-     * @return The set of attributes ids really written to the dictionary.
+     * @return The set of managementAttributes ids really written to the dictionary.
      * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
      */
     public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException;
@@ -51,8 +51,8 @@ public interface AttributeSupport {
     public boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException;
 
     /**
-     * Writes a set of attributes inside of the transaction.
-     * @param values The dictionary of attributes keys and its values.
+     * Writes a set of managementAttributes inside of the transaction.
+     * @param values The dictionary of managementAttributes keys and its values.
      * @param writeTimeout
      * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
      * @throws TimeoutException
@@ -74,8 +74,8 @@ public interface AttributeSupport {
     public AttributeMetadata getAttributeInfo(final String id);
 
     /**
-     * Returns a read-only collection of registered IDs of attributes.
-     * @return A read-only collection of registered IDs of attributes.
+     * Returns a read-only collection of registered IDs of managementAttributes.
+     * @return A read-only collection of registered IDs of managementAttributes.
      */
     public Collection<String> getConnectedAttributes();
 }

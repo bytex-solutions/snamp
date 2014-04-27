@@ -1,18 +1,17 @@
 package com.itworks.snamp.core.maintenance;
 
-import com.itworks.snamp.SnampClassTestSet;
+import com.itworks.snamp.AbstractUnitTest;
 import org.junit.Test;
 
 import java.util.Locale;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class MaintainableTest extends SnampClassTestSet<AbstractMaintainable<?>> {
+public final class MaintainableTest extends AbstractUnitTest<AbstractMaintainable> {
     private static enum MaintenanceActions implements MaintenanceActionInfo {
         INC("inc"),
         DEC("dec");
@@ -72,6 +71,10 @@ public final class MaintainableTest extends SnampClassTestSet<AbstractMaintainab
         public String dec(final int value){
             return Integer.toString(value - 1);
         }
+    }
+
+    public MaintainableTest(){
+        super(AbstractMaintainable.class);
     }
 
     @Test

@@ -1,12 +1,10 @@
 package com.itworks.snamp.connectors;
 
-import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.connectors.util.NotificationListenerInvoker;
-import com.itworks.snamp.connectors.util.NotificationListenerInvokerFactory;
-import com.itworks.snamp.internal.InstanceLifecycle;
-import com.itworks.snamp.internal.Lifecycle;
-import com.itworks.snamp.internal.MethodStub;
+import com.itworks.snamp.*;
+import com.itworks.snamp.connectors.util.*;
+import com.itworks.snamp.internal.*;
+
+import static com.itworks.snamp.internal.ReflectionUtils.safeCast;
 
 import java.beans.*;
 import java.lang.annotation.*;
@@ -16,9 +14,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.lang.reflect.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Represents SNAMP in-process management connector that exposes Java Bean properties through connector attributes.
+ * Represents SNAMP in-process management connector that exposes Java Bean properties through connector managementAttributes.
  * <p>
  *     Use this class as base class for your custom management connector, if schema of the management information base
  *     is well known at the compile time and stable through connector instantiations.
@@ -75,7 +75,91 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  */
 @Lifecycle(InstanceLifecycle.NORMAL)
-public class ManagementConnectorBean extends AbstractManagementConnector implements NotificationSupport {
+public class ManagementConnectorBean extends AbstractManagementConnector<ManagementConnectorBean.ManageableBeanDescriptor<?>> implements NotificationSupport {
+
+    /**
+     * Represents description of the bean to be managed by this connector.
+     * <p>You should not implement this interface directly.</p>
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    @Internal
+    public static interface ManageableBeanDescriptor<T>{
+        /**
+         * Gets metadata of the manageable bean.
+         * @return The metadata of the manageable bean.
+         */
+        BeanInfo getBeanInfo();
+
+        /**
+         * Gets a manageable instance.
+         * @return A manageable instance.
+         */
+        T getInstance();
+    }
+
+    private static final class BeanDescriptor<T> implements ManageableBeanDescriptor<T>{
+        private final T instance;
+        private final BeanInfo metadata;
+
+        private BeanDescriptor(final T beanInstance, final BeanIntrospector<T> introspector) throws IntrospectionException {
+            if(beanInstance == null) throw new IllegalArgumentException("beanInstance is null.");
+            else if(introspector == null) throw new IllegalArgumentException("introspector is null.");
+            else
+                this.metadata = introspector.getBeanInfo(this.instance = beanInstance);
+        }
+
+        /**
+         * Gets metadata of the manageable bean.
+         *
+         * @return The metadata of the manageable bean.
+         */
+        @Override
+        public BeanInfo getBeanInfo() {
+            return metadata;
+        }
+
+        /**
+         * Gets a manageable instance.
+         *
+         * @return A manageable instance.
+         */
+        @Override
+        public T getInstance() {
+            return instance;
+        }
+    }
+
+    private static final class SelfDescriptor implements ManageableBeanDescriptor<ManagementConnectorBean>{
+        private Reference<ManagementConnectorBean> connectorRef;
+        private BeanInfo metadata;
+
+        private void setSelfReference(final ManagementConnectorBean instance) throws IntrospectionException {
+            connectorRef = new WeakReference<>(instance);
+            metadata = Introspector.getBeanInfo(instance.getClass(), ManagementConnectorBean.class);
+        }
+
+        /**
+         * Gets metadata of the manageable bean.
+         *
+         * @return The metadata of the manageable bean.
+         */
+        @Override
+        public BeanInfo getBeanInfo() {
+            return metadata;
+        }
+
+        /**
+         * Gets a manageable instance.
+         *
+         * @return A manageable instance.
+         */
+        @Override
+        public ManagementConnectorBean getInstance() {
+            return connectorRef != null ? connectorRef.get() : null;
+        }
+    }
 
     /**
      * Associated additional attribute info with the bean property getter and setter.
@@ -109,7 +193,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         private final Reference<WellKnownTypeSystem> typeBuilder;
 
         public JavaBeanPropertyMetadata(final PropertyDescriptor descriptor, final WellKnownTypeSystem typeBuilder, final Map<String, String> props){
-            super(descriptor.getName(), "");
+            super(descriptor.getName());
             properties = new HashMap<>(props);
             properties.put("displayName", descriptor.getDisplayName());
             properties.put("shortDescription", descriptor.getShortDescription());
@@ -121,7 +205,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
             this.typeBuilder = new WeakReference<>(typeBuilder);
         }
 
-        private final ManagementAttribute getAttributeInfo(){
+        private ManagementAttribute getAttributeInfo(){
             final ManagementAttribute info;
             if(getter != null && getter.isAnnotationPresent(ManagementAttribute.class))
                 info = getter.getAnnotation(ManagementAttribute.class);
@@ -169,9 +253,9 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         }
 
         /**
-         * By default, returns {@literal true}.
+         * Determines whether this property available for read.
          *
-         * @return
+         * @return {@literal true}, if this property has getter; otherwise, {@literal false}.
          */
         @Override
         public final boolean canRead() {
@@ -198,19 +282,20 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
             WellKnownTypeSystem.AbstractManagementEntityType typeInfo = null;
             final String typeProviderMethodName = getAttributeInfo().typeProvider();
             final WellKnownTypeSystem typeBuilder = this.typeBuilder.get();
-            try {
-                final Method typeProviderImpl = typeBuilder.getClass().getMethod(typeProviderMethodName);
-                typeInfo = (WellKnownTypeSystem.AbstractManagementEntityType)typeProviderImpl.invoke(typeBuilder);
-            }
-            catch (final ReflectiveOperationException e) {
-                if(propertyType.isArray())
-                    typeInfo = typeBuilder.createEntityArrayType(typeBuilder.createEntitySimpleType(propertyType.getComponentType()));
-                else
-                    typeInfo = typeBuilder.createEntitySimpleType(propertyType);
-            }
-            finally {
-                this.typeBuilder.clear();
-            }
+            if(typeBuilder != null)
+                try {
+                    final Method typeProviderImpl = typeBuilder.getClass().getMethod(typeProviderMethodName);
+                    typeInfo = (WellKnownTypeSystem.AbstractManagementEntityType)typeProviderImpl.invoke(typeBuilder);
+                }
+                catch (final ReflectiveOperationException e) {
+                    if(propertyType.isArray())
+                        typeInfo = typeBuilder.createEntityArrayType(typeBuilder.createEntitySimpleType(propertyType.getComponentType()));
+                    else
+                        typeInfo = typeBuilder.createEntitySimpleType(propertyType);
+                }
+                finally {
+                    this.typeBuilder.clear();
+                }
             return typeInfo;
         }
 
@@ -239,16 +324,19 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
             return properties.get(key);
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Set<String> keySet() {
             return properties.keySet();
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Collection<String> values() {
             return properties.values();
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Set<Entry<String, String>> entrySet() {
             return properties.entrySet();
@@ -260,10 +348,8 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         private final Severity severity;
         private final long seqnum;
         private final String message;
-        private final WellKnownTypeSystem typeSystem;
 
-        public JavaBeanNotification(final WellKnownTypeSystem typeSys,
-                                    final Severity severity,
+        public JavaBeanNotification(final Severity severity,
                                     final long sequenceNumber,
                                     final String message,
                                     final Map<String, Object> attachments){
@@ -271,7 +357,6 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
             this.severity = severity != null ? severity : Severity.UNKNOWN;
             this.seqnum = sequenceNumber;
             this.message = message != null ? message : "";
-            this.typeSystem = typeSys;
             putAll(attachments != null ? attachments : Collections.<String, Object>emptyMap());
         }
 
@@ -337,7 +422,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         }
 
         public final void fireListeners(final Notification.Severity severity, final String message, final Map<String, Object> attachments){
-            fire(new JavaBeanNotification(typeSystem, severity, sequenceCounter.getAndIncrement(), message, attachments), listenerInvoker);
+            fire(new JavaBeanNotification(severity, sequenceCounter.getAndIncrement(), message, attachments), listenerInvoker);
         }
 
         /**
@@ -380,7 +465,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
 
         @Override
         public final boolean containsValue(final Object value) {
-            return options.containsKey(value);
+            return options.containsValue(value);
         }
 
         @Override
@@ -388,17 +473,20 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
             return options.get(key);
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Set<String> keySet() {
             return options.keySet();
         }
 
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Collection<String> values() {
             return options.values();
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Set<Entry<String, String>> entrySet() {
             return options.entrySet();
@@ -411,8 +499,6 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         public JavaBeanNotificationSupport(final WellKnownTypeSystem typeSystem){
             this.attachmentTypeSystem = typeSystem;
         }
-
-
         /**
          * Raises notification.
          * @param category The category of the event to raise.
@@ -428,7 +514,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         /**
          * Creates a new listeners invocation strategy.
          * <p>
-         *     This method automatically calls from {@link #enableNotificationsCore(String, java.util.Map)} method.
+         *     This method automatically calls from {@link #enableNotifications(String, java.util.Map)} method.
          *     By default, this method uses {@link NotificationListenerInvokerFactory#createParallelInvoker(java.util.concurrent.ExecutorService)}
          *     strategy.
          * </p>
@@ -446,58 +532,34 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
          * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
          */
         @Override
-        protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
+        protected final GenericNotificationMetadata enableNotifications(final String category, final Map<String, String> options) {
             return new JavaBeanEventMetadata(attachmentTypeSystem, category, options, createListenerInvoker());
-        }
-
-        /**
-         * Disable all notifications associated with the specified event.
-         * <p>
-         * In the default implementation this method does nothing.
-         * </p>
-         *
-         * @param notificationType The event descriptor.
-         */
-        @Override
-        protected final void disableNotificationsCore(final NotificationMetadata notificationType) {
-            if(notificationType instanceof GenericNotificationMetadata)
-                ((GenericNotificationMetadata)notificationType).removeListeners();
         }
 
         /**
          * Adds a new listener for the specified notification.
          *
-         * @param notificationType The event type.
-         * @param listener         The event listener.
+         * @param listener The event listener.
          * @return Any custom data associated with the subscription.
          */
         @Override
         @MethodStub
-        protected Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener) {
+        protected Object subscribe(final NotificationListener listener) {
             return null;
         }
 
         /**
          * Cancels the notification listening.
          *
-         * @param metadata The event type.
          * @param listener The notification listener to remove.
-         * @param data     The custom data associated with subscription that returned from {@link #subscribeCore(NotificationMetadata, NotificationListener)}
+         * @param data     The custom data associated with subscription that returned from {@link #subscribe(com.itworks.snamp.connectors.NotificationSupport.NotificationListener)}
          */
         @Override
         @MethodStub
-        protected void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data) {
+        protected void unsubscribe(final NotificationListener listener, final Object data) {
 
         }
     }
-
-    /**
-     * Represents meta information about Java bean wrapped as management connector.
-     */
-    protected final BeanInfo beanMetadata;
-    private final WellKnownTypeSystem typeInfoBuilder;
-    private final Object beanInstance;
-    private final JavaBeanNotificationSupport notifications;
 
     /**
      * Provides introspection for the specified bean instance.
@@ -542,23 +604,29 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
         }
     }
 
+    private final WellKnownTypeSystem typeInfoBuilder;
+    private final JavaBeanNotificationSupport notifications;
+
     /**
      * Initializes a new management connector that reflects properties of this class as
-     * connector attributes.
+     * connector managementAttributes.
      * @param typeBuilder Type information provider that provides property type converter.
+     * @param logger A logger for this management connector.
      * @throws IllegalArgumentException typeBuilder is {@literal null}.
      */
-    protected ManagementConnectorBean(final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
+    @SuppressWarnings("UnusedDeclaration")
+    protected ManagementConnectorBean(final WellKnownTypeSystem typeBuilder, final Logger logger) throws IntrospectionException {
+        super(new SelfDescriptor(),  logger);
+        //creates weak reference to this object
+        safeCast(getConnectionOptions(), SelfDescriptor.class).setSelfReference(this);
         if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.typeInfoBuilder = typeBuilder;
-        this.beanMetadata = Introspector.getBeanInfo(getClass(), ManagementConnectorBean.class);
-        this.beanInstance = null;
         this.notifications = new JavaBeanNotificationSupport(typeBuilder);
     }
 
     /**
      * Initializes a new management connector that reflects properties of the specified instance
-     * as connector attributes.
+     * as connector managementAttributes.
      * @param beanInstance An instance of JavaBean to reflect. Cannot be {@literal null}.
      * @param introspector An introspector that reflects the specified JavaBean. Cannot be {@literal null}.
      * @param typeBuilder Type information provider that provides property type converter. Cannot be {@literal null}.
@@ -566,12 +634,13 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
      * @throws IntrospectionException Cannot reflect the specified instance.
      * @throws IllegalArgumentException At least one of the specified arguments is {@literal null}.
      */
-    protected <T> ManagementConnectorBean(final T beanInstance, final BeanIntrospector<T> introspector, final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
-        if(beanInstance == null) throw new IllegalArgumentException("beanInstance is null.");
-        else if(introspector == null) throw new IllegalArgumentException("introspector is null.");
-        else if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
-        this.beanInstance = beanInstance;
-        this.beanMetadata = introspector.getBeanInfo(beanInstance);
+    @SuppressWarnings("UnusedDeclaration")
+    protected <T> ManagementConnectorBean(final T beanInstance,
+                                          final BeanIntrospector<T> introspector,
+                                          final WellKnownTypeSystem typeBuilder,
+                                          final Logger logger) throws IntrospectionException {
+        super(new BeanDescriptor<>(beanInstance, introspector),  logger);
+        if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.typeInfoBuilder = typeBuilder;
         this.notifications = new JavaBeanNotificationSupport(typeBuilder);
     }
@@ -582,18 +651,20 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
      * @param typeBuilder Bean property type converter.
      * @param <T> Type of the Java Bean to wrap.
      * @return A new instance of the management connector that wraps the Java Bean.
-     * @throws IntrospectionException
+     * @throws IntrospectionException Cannot reflect the specified instance.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static <T> ManagementConnectorBean wrap(final T beanInstance, final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
-        return new ManagementConnectorBean(beanInstance, new StandardBeanIntrospector<>(), typeBuilder);
+        return new ManagementConnectorBean(beanInstance, new StandardBeanIntrospector<>(), typeBuilder, Logger.getLogger(getLoggerName("javabean")));
     }
 
     /**
-     * Returns an array of all discovered attributes available for registration.
-     * @return An array of all discovered attributes available for registration.
+     * Returns an array of all discovered managementAttributes available for registration.
+     * @return An array of all discovered managementAttributes available for registration.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public final String[] availableAttributes(){
-        final PropertyDescriptor[] properties = beanMetadata.getPropertyDescriptors();
+        final PropertyDescriptor[] properties = getConnectionOptions().getBeanInfo().getPropertyDescriptors();
         final String[] result = new String[properties.length];
         for(int i = 0; i < properties.length; i++)
             result[i] = properties[i].getName();
@@ -619,7 +690,7 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
      */
     @Override
     protected final GenericAttributeMetadata connectAttributeCore(final String attributeName, final Map<String, String> options) {
-        for(final PropertyDescriptor pd: beanMetadata.getPropertyDescriptors())
+        for(final PropertyDescriptor pd: getConnectionOptions().getBeanInfo().getPropertyDescriptors())
             if(Objects.equals(pd.getName(), attributeName))
                 return connectAttribute(pd, options);
         return null;
@@ -629,19 +700,20 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
      * Returns the value of the attribute.
      *
      * @param attribute    The metadata of the attribute to get.
-     * @param readTimeout
+     * @param readTimeout Attribute read timeout.
      * @param defaultValue The default value of the attribute if reading fails.
      * @return The value of the attribute.
-     * @throws java.util.concurrent.TimeoutException
+     * @throws java.util.concurrent.TimeoutException Attribute value cannot be obtained in the specified time.
      *
      */
     @Override
     protected final Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
         if(attribute instanceof JavaBeanPropertyMetadata)
             try {
-                return ((JavaBeanPropertyMetadata)attribute).getValue(beanInstance != null ? beanInstance : this);
+                return ((JavaBeanPropertyMetadata)attribute).getValue(getConnectionOptions().getInstance());
             }
             catch (final ReflectiveOperationException e) {
+                getLogger().log(Level.WARNING, "Unable to get attribute.", e);
                 return null;
             }
         else return null;
@@ -651,15 +723,15 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
      * Sends the attribute value to the remote agent.
      *
      * @param attribute    The metadata of the attribute to set.
-     * @param writeTimeout
-     * @param value
+     * @param writeTimeout Attribute write timeout.
+     * @param value A new attribute value.
      * @return {@literal true} if attribute is overridden successfully; otherwise, {@literal false}.
      */
     @Override
     protected final boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
         if(attribute.canWrite() && attribute instanceof JavaBeanPropertyMetadata){
             try {
-                ((JavaBeanPropertyMetadata)attribute).setValue(beanInstance != null ? beanInstance : this, value);
+                ((JavaBeanPropertyMetadata)attribute).setValue(getConnectionOptions().getInstance(), value);
                 return true;
             }
             catch (final ReflectiveOperationException e) {
@@ -741,23 +813,33 @@ public class ManagementConnectorBean extends AbstractManagementConnector impleme
     }
 
     /**
+     * Returns a read-only collection of enabled notifications (subscription list identifiers).
+     *
+     * @return A read-only collection of enabled notifications (subscription list identifiers).
+     */
+    @Override
+    public final Collection<String> getEnabledNotifications() {
+        verifyInitialization();
+        return notifications.getEnabledNotifications();
+    }
+
+    /**
      * Attaches the notification listener.
      *
      * @param listenerId Unique identifier of the notification listener.
-     * @param listId   The identifier of the subscription list.
      * @param listener The notification listener.
      * @return An identifier of the notification listener generated by this connector.
      */
     @Override
-    public final boolean subscribe(final String listenerId, final String listId, final NotificationListener listener) {
+    public final boolean subscribe(final String listenerId, final NotificationListener listener) {
         verifyInitialization();
-        return notifications.subscribe(listenerId, listId, listener);
+        return notifications.subscribe(listenerId, listener);
     }
 
     /**
      * Removes the notification listener.
      *
-     * @param listenerId An identifier previously returned by {@link #subscribe(String, String, NotificationSupport.NotificationListener)}.
+     * @param listenerId An identifier previously returned by {@link #subscribe(String, NotificationSupport.NotificationListener)}.
      * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
      */
     @Override

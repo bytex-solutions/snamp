@@ -3,7 +3,6 @@ package com.itworks.snamp.configuration;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.BinarySerializable;
 
-import java.io.*;
 import java.util.*;
 
 /**
@@ -22,7 +21,7 @@ import java.util.*;
  * <ul>
  *     <li>Connection string - source-specific string, that describes management information source.</li>
  *     <li>Connection type - name of the connector plug-in that is used to organize management information exchange with source.</li>
- *     <li>Management attributes - a set of atomic management entity that supplies management data.</li>
+ *     <li>Management managementAttributes - a set of atomic management entity that supplies management data.</li>
  * </ul><br/>
  * Each management attribute describes the single entry in the remote management information database. This
  * entry can have getter or setter for its value.
@@ -49,26 +48,27 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
          * Gets the hosting adapter name.
          * @return The hosting adapter name.
          */
-        public String getAdapterName();
+        String getAdapterName();
 
         /**
          * Sets the hosting adapter name.
          * @param adapterName The adapter name.
          */
-        public void setAdapterName(final String adapterName);
+        void setAdapterName(final String adapterName);
 
         /**
          * Returns a dictionary of hosting parameters, such as port and hosting address.
          * @return The map of additional configuration elements.
          */
-        public Map<String, String> getHostingParams();
+        Map<String, String> getHostingParams();
     }
 
     /**
      * Creates clone of this configuration.
      * @return The cloned instance of this configuration.
      */
-    public AgentConfiguration clone();
+    @SuppressWarnings("CloneDoesntDeclareCloneNotSupportedException")
+    AgentConfiguration clone();
 
     /**
      * Represents management target configuration (back-end management information providers).
@@ -76,178 +76,162 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
     public static interface ManagementTargetConfiguration extends ConfigurationEntity {
 
         /**
-         * Represents event configuration.
+         * Represents manageable entity inside of the management target.
+         * @author Roman Sakno
+         * @since 1.0
+         * @version 1.0
          */
-        public static interface EventConfiguration extends ConfigurationEntity{
+        public static interface ManageableEntity extends ConfigurationEntity{
+            /**
+             * Gets a map of manageable entity options.
+             * @return The map of manageable entity options.
+             */
+            Map<String, String> getAdditionalElements();
+        }
+
+        /**
+         * Represents event configuration.
+         * @author Roman Sakno
+         * @since 1.0
+         * @version 1.0
+         */
+        public static interface EventConfiguration extends ManageableEntity{
             /**
              * Gets the event category.
              * @return The event category.
              */
-            public String getCategory();
+            String getCategory();
 
             /**
              * Sets the category of the event to listen.
              * @param eventCategory The category of the event to listen.
              */
-            public void setCategory(final String eventCategory);
-
-            /**
-             * Gets a map of event options.
-             * @return The map of event options.
-             */
-            public Map<String, String> getAdditionalElements();
+            @SuppressWarnings("UnusedDeclaration")
+            void setCategory(final String eventCategory);
         }
 
         /**
          * Represents attribute configuration.
+         * @author Roman Sakno
+         * @since 1.0
+         * @version 1.0
          */
-        public static interface AttributeConfiguration extends ConfigurationEntity {
+        public static interface AttributeConfiguration extends ManageableEntity {
             /**
              * Gets attribute value invoke/write operation timeout.
              * @return Gets attribute value invoke/write operation timeout.
              */
-            public TimeSpan getReadWriteTimeout();
+            TimeSpan getReadWriteTimeout();
 
             /**
              * Sets attribute value invoke/write operation timeout.
              */
-            public void setReadWriteTimeout(TimeSpan time);
+            void setReadWriteTimeout(TimeSpan time);
 
             /**
              * Returns the attribute name.
              * @return The attribute name,
              */
-            public String getAttributeName();
+            String getAttributeName();
 
             /**
              * Sets the attribute name.
              * @param attributeName The attribute name.
              */
-            public void setAttributeName(final String attributeName);
-
-            /**
-             * Returns the additional configuration elements.
-             * @return The map of additional configuration elements.
-             */
-            public Map<String, String> getAdditionalElements();
+            void setAttributeName(final String attributeName);
         }
 
         /**
          * Gets the management target connection string.
          * @return The connection string that is used to connect to the management server.
          */
-        public String getConnectionString();
+        String getConnectionString();
 
         /**
          * Sets the management target connection string.
          * @param connectionString The connection string that is used to connect to the management server.
          */
-        public void setConnectionString(final String connectionString);
+        void setConnectionString(final String connectionString);
 
         /**
          * Gets the type of the management connector that is used to organize monitoring data exchange between
          * agent and the management provider.
          * @return The management connector type.
          */
-        public String getConnectionType();
+        String getConnectionType();
 
         /**
          * Sets the management connector that is used to organize monitoring data exchange between
          * agent and the management provider.
          * @param connectorType The management connector type.
          */
-        public void setConnectionType(final String connectorType);
+        void setConnectionType(final String connectorType);
 
         /**
          * Returns the monitoring namespace that is visible outside from the agent and the front-end.
          * @return The namespace of the management target (such as SNMP OID prefix).
          */
-        public String getNamespace();
+        String getNamespace();
 
         /**
          * Sets the monitoring namespace.
          * @param namespace The namespace of the management target (such as SNMP OID prefix).
          */
-        public void setNamespace(final String namespace);
+        void setNamespace(final String namespace);
 
         /**
-         * Returns the management attributes (key is a attribute identifier).
-         * @return The dictionary of management attributes.
+         * Gets a collection of configured manageable elements for this target.
+         * @param elementType The type of the manageable element.
+         * @param <T> The type of the manageable element.
+         * @return A map of manageable elements; or {@literal null}, if element type is not supported.
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration
          */
-        public Map<String, AttributeConfiguration> getAttributes();
+        <T extends ManageableEntity> Map<String, T> getElements(final Class<T> elementType);
 
         /**
-         * Returns the event sources.
-         * @return A set of event sources.
+         * Creates a new instances of the specified manageable element.
+         * @param elementType Type of the required manageable element.
+         * @param <T> Type of the required manageable element.
+         * @return A new empty manageable element; or {@literal null},
+         *      if the specified element type is not supported.
          */
-        public Map<String, EventConfiguration> getEvents();
+        <T extends ManageableEntity> T newElement(final Class<T> elementType);
 
         /**
          * Returns the dictionary of additional configuration elements.
          * @return The dictionary of additional configuration elements.
          */
-        public Map<String, String> getAdditionalElements();
-
-        /**
-         * Creates an empty attribute configuration.
-         * <p>
-         *     Usually, this method is used for adding new attributes in the map
-         *     returned by {@link #getAttributes()} method.
-         * </p>
-         * @return An empty attribute configuration.
-         */
-        public AttributeConfiguration newAttributeConfiguration();
-
-        /**
-         * Creates an empty event configuration.
-         * <p>
-         *     Usually, this method is used for adding new events in the collection
-         *     returned by {@link #getEvents()} method.
-         * </p>
-         * @return An empty event configuration.
-         */
-        public EventConfiguration newEventConfiguration();
+        Map<String, String> getAdditionalElements();
     }
 
     /**
      * Returns the agent hosting configuration.
      * @return The agent hosting configuration.
      */
-    public HostingConfiguration getAgentHostingConfig();
+    HostingConfiguration getAgentHostingConfig();
 
     /**
      * Represents management targets.
      * @return The dictionary of management targets (management back-ends).
      */
-    public Map<String, ManagementTargetConfiguration> getTargets();
+    Map<String, ManagementTargetConfiguration> getTargets();
 
     /**
      * Empty implementation of ManagementTargetConfiguration interface
      * @return implementation of ManagementTargetConfiguration interface
      */
-    public ManagementTargetConfiguration newManagementTargetConfiguration();
-
-    /**
-     * Serializes this object into the specified stream.
-     * @param output
-     * @throws UnsupportedOperationException Serialization is not supported.
-     * @throws IOException Some I/O error occurs.
-     */
-    @Override
-    public void save(final OutputStream output) throws UnsupportedOperationException, IOException;
-
-    /**
-     * Reads the file and fills the current instance.
-     * @param input
-     * @throws UnsupportedOperationException Deserialization is not supported.
-     * @throws IOException Cannot invoke from the specified stream.
-     */
-    @Override
-    public void load(final InputStream input) throws UnsupportedOperationException, IOException;
+    ManagementTargetConfiguration newManagementTargetConfiguration();
 
     /**
      * Imports the state of specified object into this object.
      * @param input The import source.
      */
-    public void load(final AgentConfiguration input);
+    @SuppressWarnings("UnusedDeclaration")
+    void load(final AgentConfiguration input);
+
+    /**
+     * Clears this configuration.
+     */
+    void clear();
 }

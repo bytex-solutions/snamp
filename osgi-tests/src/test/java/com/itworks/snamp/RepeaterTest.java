@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  * @since 1.0
  */
-public class RepeaterTest extends SnampClassTestSet<Repeater> {
+public class RepeaterTest extends AbstractUnitTest<Repeater> {
     private static final class SecondsCounter extends Repeater{
         private final AtomicLong c = new AtomicLong(0);
 
@@ -46,6 +46,10 @@ public class RepeaterTest extends SnampClassTestSet<Repeater> {
         protected final void doAction() {
             c.incrementAndGet();
         }
+    }
+
+    public RepeaterTest(){
+        super(Repeater.class);
     }
 
     @Test

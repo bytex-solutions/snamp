@@ -14,8 +14,8 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Represents a map of exposed attributes to the adapter.
- * <p>This is an utility class and can be used to organize connected attributes
+ * Represents a map of exposed managementAttributes to the adapter.
+ * <p>This is an utility class and can be used to organize connected managementAttributes
  * in some types of custom adapters.</p>
  * @param <TAttributeDescriptor> Type of the attribute descriptor.
  * @author Roman Sakno
@@ -68,8 +68,8 @@ public abstract class ConnectedAttributes<TAttributeDescriptor> extends HashMap<
     public abstract TAttributeDescriptor createDescription(final String prefix, final String postfix, final AttributeConfiguration config);
 
     /**
-     * Disconnects all attributes associated with the specified namespace.
-     * @param prefix The namespace of the attributes to disconnect.
+     * Disconnects all managementAttributes associated with the specified namespace.
+     * @param prefix The namespace of the managementAttributes to disconnect.
      */
     public final void disconnect(final String prefix) {
         for(final String postfix: keySet())

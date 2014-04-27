@@ -19,14 +19,14 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
      * @since 1.0
      * @version 1.0
      */
-    public static final class EmbeddedHostingConfiguration implements HostingConfiguration, Serializable{
+    public static final class InMemoryHostingConfiguration implements HostingConfiguration, Serializable{
         private String adapterName;
         private final Map<String, String> additionalElements;
 
         /**
          * Initializes a new empty adapter settings.
          */
-        public EmbeddedHostingConfiguration(){
+        public InMemoryHostingConfiguration(){
             adapterName = "";
             additionalElements = new HashMap<>(10);
         }
@@ -68,7 +68,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
      * @since 1.0
      * @version 1.0
      */
-    public static final class EmbeddedManagementTargetConfiguration implements ManagementTargetConfiguration, Serializable{
+    public static final class InMemoryManagementTargetConfiguration implements ManagementTargetConfiguration, Serializable{
 
         /**
          * Represents configuration of the event source. This class cannot be inherited.
@@ -76,7 +76,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          * @since 1.0
          * @version 1.0
          */
-        public static final class EmbeddedEventConfiguration implements EventConfiguration, Serializable{
+        public static final class InMemoryEventConfiguration implements EventConfiguration, Serializable{
             private final Map<String, String> additionalElements = new HashMap<>();
             private String eventCategory = "";
 
@@ -208,7 +208,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          * @since 1.0
          * @version 1.0
          */
-        public static final class EmbeddedAttributeConfiguration implements AttributeConfiguration, Serializable{
+        public static final class InMemoryAttributeConfiguration implements AttributeConfiguration, Serializable{
             private TimeSpan readWriteTimeout;
             private String attributeName;
             private final Map<String, String> additionalElements;
@@ -216,7 +216,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
             /**
              * Initializes a new configuration of the management attribute.
              */
-            public EmbeddedAttributeConfiguration(){
+            public InMemoryAttributeConfiguration(){
                 readWriteTimeout = TimeSpan.INFINITE;
                 attributeName = "";
                 additionalElements = new HashMap<>();
@@ -226,7 +226,8 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
              * Initializes a new configuration of the management attribute.
              * @param attributeName The name of the management attribute.
              */
-            public EmbeddedAttributeConfiguration(final String attributeName){
+            @SuppressWarnings("UnusedDeclaration")
+            public InMemoryAttributeConfiguration(final String attributeName){
                 this();
                 this.attributeName = attributeName;
             }
@@ -291,7 +292,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
         /**
          * Initializes a new empty configuration of the management information source.
          */
-        public EmbeddedManagementTargetConfiguration(){
+        public InMemoryManagementTargetConfiguration(){
             connectionString = connectionType = namespace = "";
             attributes = new HashMap<>(10);
             additionalElements = new HashMap<>(10);
@@ -361,11 +362,46 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
         }
 
         /**
-         * Returns the management attributes (key is a attribute identifier).
+         * Gets a collection of configured manageable elements for this target.
          *
-         * @return The dictionary of management attributes.
+         * @param elementType The type of the manageable element.
+         * @return A map of manageable elements; or {@literal null}, if element type is not supported.
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration
+         */
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T extends ManageableEntity> Map<String, T> getElements(final Class<T> elementType) {
+            if(elementType == null) return null;
+            else if(Objects.equals(elementType, AttributeConfiguration.class))
+                return (Map<String, T>)getAttributes();
+            else if(Objects.equals(elementType, EventConfiguration.class))
+                return (Map<String, T>)getEvents();
+            else return null;
+        }
+
+        /**
+         * Creates a new instances of the specified manageable element.
+         *
+         * @param elementType Type of the required manageable element.
+         * @return A new empty manageable element; or {@literal null},
+         * if the specified element type is not supported.
          */
         @Override
+        public <T extends ManageableEntity> T newElement(final Class<T> elementType) {
+            if(elementType == null) return null;
+            else if(elementType.isAssignableFrom(InMemoryAttributeConfiguration.class))
+                return elementType.cast(newAttributeConfiguration());
+            else if(elementType.isAssignableFrom(InMemoryEventConfiguration.class))
+                return elementType.cast(newEventConfiguration());
+            else return null;
+        }
+
+        /**
+         * Returns the management managementAttributes (key is a attribute identifier).
+         *
+         * @return The dictionary of management managementAttributes.
+         */
         public final Map<String, AttributeConfiguration> getAttributes() {
             return attributes;
         }
@@ -375,7 +411,6 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          *
          * @return A set of event sources.
          */
-        @Override
         public final Map<String, EventConfiguration> getEvents() {
             return events;
         }
@@ -395,9 +430,8 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          *
          * @return implementation of AttributeConfiguration interface
          */
-        @Override
-        public final EmbeddedAttributeConfiguration newAttributeConfiguration() {
-            return new EmbeddedAttributeConfiguration();
+        public final InMemoryAttributeConfiguration newAttributeConfiguration() {
+            return new InMemoryAttributeConfiguration();
         }
 
         /**
@@ -409,20 +443,19 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          *
          * @return An empty event configuration.
          */
-        @Override
-        public EmbeddedEventConfiguration newEventConfiguration() {
-            return new EmbeddedEventConfiguration();
+        public InMemoryEventConfiguration newEventConfiguration() {
+            return new InMemoryEventConfiguration();
         }
     }
 
-    private final EmbeddedHostingConfiguration hostingConfig;
+    private final InMemoryHostingConfiguration hostingConfig;
     private final Map<String, ManagementTargetConfiguration> targets;
 
     /**
      * Initializes a new empty agent configuration.
      */
     public InMemoryAgentConfiguration(){
-        hostingConfig = new EmbeddedHostingConfiguration();
+        hostingConfig = new InMemoryHostingConfiguration();
         targets = new HashMap<>(10);
     }
 
@@ -431,6 +464,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
      *
      * @return A new cloned instance of the {@link InMemoryAgentConfiguration}.
      */
+    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public InMemoryAgentConfiguration clone() {
         final InMemoryAgentConfiguration clonedConfig = new InMemoryAgentConfiguration();
@@ -444,7 +478,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
      * @return The agent hosting configuration.
      */
     @Override
-    public final EmbeddedHostingConfiguration getAgentHostingConfig() {
+    public final InMemoryHostingConfiguration getAgentHostingConfig() {
         return hostingConfig;
     }
 
@@ -459,19 +493,19 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
     }
 
     /**
-     * Creates a new instance of the {@link EmbeddedManagementTargetConfiguration}.
+     * Creates a new instance of the {@link com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagementTargetConfiguration}.
      *
-     * @return A new instance of the {@link EmbeddedManagementTargetConfiguration}.
+     * @return A new instance of the {@link com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagementTargetConfiguration}.
      */
     @Override
-    public final EmbeddedManagementTargetConfiguration newManagementTargetConfiguration() {
-        return new EmbeddedManagementTargetConfiguration();
+    public final InMemoryManagementTargetConfiguration newManagementTargetConfiguration() {
+        return new InMemoryManagementTargetConfiguration();
     }
 
     /**
      * Serializes this object into the specified stream.
      *
-     * @param output
+     * @param output An output stream to receive configuration data.
      * @throws java.io.IOException           Some I/O error occurs.
      */
     @Override
@@ -484,7 +518,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
     /**
      * Reads the file and fills the current instance.
      *
-     * @param input
+     * @param input Configuration content source.
      * @throws java.io.IOException           Cannot invoke from the specified stream.
      */
     @Override

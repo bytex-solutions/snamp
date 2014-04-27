@@ -2,6 +2,9 @@ package com.itworks.snamp;
 
 import com.itworks.snamp.configuration.*;
 import com.itworks.snamp.licensing.*;
+import org.apache.commons.collections4.Factory;
+import org.apache.commons.collections4.FactoryUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.options.*;
 
@@ -10,6 +13,7 @@ import java.io.*;
 
 import static com.itworks.snamp.configuration.ConfigurationManager.CONFIGURATION_FILE_PROPERTY;
 import static com.itworks.snamp.licensing.LicenseReader.LICENSE_FILE_PROPERTY;
+import static org.ops4j.pax.exam.CoreOptions.bundle;
 
 /**
  * Represents an abstract class for all SNAMP-based integration tests.
@@ -18,7 +22,6 @@ import static com.itworks.snamp.licensing.LicenseReader.LICENSE_FILE_PROPERTY;
  * @since 1.0
  */
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
-    protected static final String SNAMP_GROUP_ID = "com.itworks.snamp";
 
     /**
      * Represents relative path to the test license file.
@@ -33,6 +36,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     static {
         try {
             final File configFile = File.createTempFile("snamp-config", ".xml");
+            //noinspection ResultOfMethodCallIgnored
             configFile.delete();
             System.setProperty(CONFIGURATION_FILE_PROPERTY, configFile.getAbsolutePath());
             final File licenseFile = new File(System.getProperty(LICENSE_FILE_PROPERTY, TEST_LICENCE_FILE));
@@ -45,13 +49,18 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    private static AbstractProvisionOption<?>[] buildDependencies(AbstractProvisionOption<?>[] deps){
+        deps = concat(deps, bundle("http://apache-mirror.rbc.ru/pub/apache//felix/org.apache.felix.log-1.0.1.jar"),
+                bundle("http://apache-mirror.rbc.ru/pub/apache//felix/org.apache.felix.eventadmin-1.3.2.jar"));
+        return concat(SnampArtifact.makeBasicSet(), deps);
+    }
+
     protected AbstractSnampIntegrationTest(final AbstractProvisionOption<?>... deps){
-        super(concat(SnampArtifact.makeBasicSet(), deps));
+        super(buildDependencies(deps));
     }
 
     /**
      * Creates a new configuration for running this test.
-     * @return A new SNAMP configuration used for executing SNAMP bundles.
      */
     protected abstract void setupTestConfiguration(final AgentConfiguration config);
 
@@ -78,6 +87,11 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         assertNotNull(licenseReader);
     }
 
+    @After
+    public final void cleanup() throws IOException{
+        configManager.getCurrentConfiguration().clear();
+    }
+
     /**
      * Verifies some limitation from SNAMP license.
      * @param descriptor
@@ -89,10 +103,15 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
      */
     protected final <L extends AbstractLicenseLimitations, A> void verifyLicenseLimitation(final Class<L> descriptor,
                                                                                            final String limitationName,
-                                                                                           final A actualValue) throws LicensingException{
-        assertNotNull("Licensing service is not available.", licenseReader);
-        final L lims = licenseReader.getLimitations(descriptor, NullProvider.<L>get());
+                                                                                           final A actualValue,
+                                                                                           final Factory<L> fallback) throws LicensingException{
+        final L lims = getLicenseLimitation(descriptor, fallback);
         assertNotNull(String.format("Limitation %s is not described in license", descriptor), lims);
         lims.verify(limitationName, actualValue);
+    }
+
+    protected final <L extends AbstractLicenseLimitations> L getLicenseLimitation(final Class<L> limitationType, final Factory<L> fallback){
+        assertNotNull("Licensing service is not available.", licenseReader);
+        return licenseReader.getLimitations(limitationType, fallback);
     }
 }

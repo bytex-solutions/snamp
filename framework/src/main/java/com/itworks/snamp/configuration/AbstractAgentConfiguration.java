@@ -19,9 +19,21 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     }
 
     /**
+     * Clears this configuration.
+     */
+    @Override
+    public void clear() {
+        getTargets().clear();
+        getAgentHostingConfig().setAdapterName("");
+        getAgentHostingConfig().getHostingParams().clear();
+    }
+
+    /**
      * Clones this instance of agent configuration.
      * @return A new clone of this configuration.
      */
+    @SuppressWarnings({"CloneDoesntDeclareCloneNotSupportedException",
+            "CloneDoesntCallSuperClone"})
     @Override
     public AbstractAgentConfiguration clone(){
         try {
@@ -34,27 +46,28 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         }
     }
 
-    private static final void copy(final HostingConfiguration input, final HostingConfiguration output){
+    private static void copy(final HostingConfiguration input, final HostingConfiguration output){
         output.setAdapterName(input.getAdapterName());
         final Map<String, String> hostingParams = output.getHostingParams();
         hostingParams.clear();
         hostingParams.putAll(input.getHostingParams());
     }
 
-    private static final void copyAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> input, final Map<String, ManagementTargetConfiguration.AttributeConfiguration> output, final Factory<ManagementTargetConfiguration.AttributeConfiguration> attributeFactory){
-        for(final String attributeId: input.keySet()){
-            final ManagementTargetConfiguration.AttributeConfiguration inputAttr = input.get(attributeId);
-            final ManagementTargetConfiguration.AttributeConfiguration outputAttr = attributeFactory.create();
-            outputAttr.setAttributeName(inputAttr.getAttributeName());
-            outputAttr.setReadWriteTimeout(inputAttr.getReadWriteTimeout());
-            final Map<String, String> additionalElements = outputAttr.getAdditionalElements();
-            additionalElements.clear();
-            additionalElements.putAll(inputAttr.getAdditionalElements());
-            output.put(attributeId, outputAttr);
-        }
+    private static void copyAttributes(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> input, final Map<String, ManagementTargetConfiguration.AttributeConfiguration> output, final Factory<ManagementTargetConfiguration.AttributeConfiguration> attributeFactory){
+        if(input != null && output != null)
+            for(final String attributeId: input.keySet()){
+                final ManagementTargetConfiguration.AttributeConfiguration inputAttr = input.get(attributeId);
+                final ManagementTargetConfiguration.AttributeConfiguration outputAttr = attributeFactory.create();
+                outputAttr.setAttributeName(inputAttr.getAttributeName());
+                outputAttr.setReadWriteTimeout(inputAttr.getReadWriteTimeout());
+                final Map<String, String> additionalElements = outputAttr.getAdditionalElements();
+                additionalElements.clear();
+                additionalElements.putAll(inputAttr.getAdditionalElements());
+                output.put(attributeId, outputAttr);
+            }
     }
 
-    private static final void copyTargets(final ManagementTargetConfiguration input, final ManagementTargetConfiguration output){
+    private static void copyTargets(final ManagementTargetConfiguration input, final ManagementTargetConfiguration output){
         output.setConnectionString(input.getConnectionString());
         output.setConnectionType(input.getConnectionType());
         output.setNamespace(input.getNamespace());
@@ -62,16 +75,18 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         final Map<String, String> additionalElements = output.getAdditionalElements();
         additionalElements.clear();
         additionalElements.putAll(input.getAdditionalElements());
-        //import attributes
-        copyAttributes(input.getAttributes(), output.getAttributes(), new Factory<ManagementTargetConfiguration.AttributeConfiguration>() {
+        //import managementAttributes
+        copyAttributes(input.getElements(ManagementTargetConfiguration.AttributeConfiguration.class),
+                output.getElements(ManagementTargetConfiguration.AttributeConfiguration.class),
+                new Factory<ManagementTargetConfiguration.AttributeConfiguration>() {
             @Override
             public ManagementTargetConfiguration.AttributeConfiguration create() {
-                return output.newAttributeConfiguration();
+                return output.newElement(ManagementTargetConfiguration.AttributeConfiguration.class);
             }
         });
     }
 
-    private static final void copy(final Map<String, ManagementTargetConfiguration> input, final Map<String, ManagementTargetConfiguration> output, final Factory<ManagementTargetConfiguration> configFactory){
+    private static void copy(final Map<String, ManagementTargetConfiguration> input, final Map<String, ManagementTargetConfiguration> output, final Factory<ManagementTargetConfiguration> configFactory){
         output.clear();
         for(final String targetName: input.keySet()){
             final ManagementTargetConfiguration outputConfig = configFactory.create();
@@ -110,53 +125,46 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
 
     private static boolean paramsAreEqual(final Map<String, String> params1, final Map<String, String> params2){
         if(params1 == params2) return true;
-        else if(params1 == null) return params2 == null;
-        else if(params2 == null) return false;
+        else if(params1 == null || params2 == null) return false;
         else if(params1.size() == params2.size()){
             for(final String key1: params1.keySet())
-                if(Objects.equals(params1.get(key1), params2.get(key1))) continue;
-                else return false;
+                if(!Objects.equals(params1.get(key1), params2.get(key1))) return false;
             return true;
         }
         else return false;
     }
 
     public static boolean equals(final HostingConfiguration obj1, final HostingConfiguration obj2){
-        if(obj1 == obj2) return true;
-        else if(obj1 == null) return obj2 == null;
-        else if(obj2 == null) return false;
-        else return Objects.equals(obj1.getAdapterName(), obj2.getAdapterName()) &&
-                    paramsAreEqual(obj1.getHostingParams(), obj2.getHostingParams());
+        return obj1 == obj2 ||
+                !(obj1 == null || obj2 == null) &&
+                        Objects.equals(obj1.getAdapterName(), obj2.getAdapterName()) &&
+                        paramsAreEqual(obj1.getHostingParams(), obj2.getHostingParams());
     }
 
     public static boolean equals(final ManagementTargetConfiguration target1, final ManagementTargetConfiguration target2){
-        if(target1 == target2) return true;
-        else if(target1 == null) return target2 == null;
-        else if(target2 == null) return false;
-        else return Objects.equals(target1.getNamespace(), target2.getNamespace()) &&
-                    paramsAreEqual(target1.getAdditionalElements(), target2.getAdditionalElements()) &&
-                    Objects.equals(target1.getConnectionString(), target2.getConnectionString()) &&
-                    Objects.equals(target1.getConnectionType(), target2.getConnectionType()) &&
-                    attributesAreEqual(target1.getAttributes(), target2.getAttributes()) &&
-                    eventsAreEqual(target1.getEvents(), target2.getEvents());
+        return target1 == target2 ||
+                !(target1 == null || target2 == null) &&
+                        Objects.equals(target1.getNamespace(), target2.getNamespace()) &&
+                        paramsAreEqual(target1.getAdditionalElements(), target2.getAdditionalElements()) &&
+                        Objects.equals(target1.getConnectionString(), target2.getConnectionString()) &&
+                        Objects.equals(target1.getConnectionType(), target2.getConnectionType()) &&
+                        attributesAreEqual(target1.getElements(ManagementTargetConfiguration.AttributeConfiguration.class), target2.getElements(ManagementTargetConfiguration.AttributeConfiguration.class)) &&
+                        eventsAreEqual(target1.getElements(ManagementTargetConfiguration.EventConfiguration.class), target2.getElements(ManagementTargetConfiguration.EventConfiguration.class));
     }
 
     public static boolean equals(final ManagementTargetConfiguration.EventConfiguration ev1, final ManagementTargetConfiguration.EventConfiguration ev2){
-        if(ev1 == ev2) return true;
-        else if(ev1 == null) return ev2 == null;
-        else if(ev2 == null) return false;
-        else return Objects.equals(ev1.getCategory(), ev2.getCategory()) &&
-                    paramsAreEqual(ev1.getAdditionalElements(), ev2.getAdditionalElements());
+        return ev1 == ev2 ||
+                !(ev1 == null || ev2 == null) &&
+                        Objects.equals(ev1.getCategory(), ev2.getCategory()) &&
+                        paramsAreEqual(ev1.getAdditionalElements(), ev2.getAdditionalElements());
     }
 
     private static boolean eventsAreEqual(final Map<String, ManagementTargetConfiguration.EventConfiguration> evs1, final Map<String, ManagementTargetConfiguration.EventConfiguration> evs2) {
         if(evs1 == evs2) return true;
-        else if(evs1 == null) return evs2 == null;
-        else if(evs2 == null) return false;
+        else if(evs1 == null || evs2 == null) return false;
         else if(evs1.size() == evs2.size()){
             for(final String key1: evs1.keySet())
-                if(equals(evs1.get(key1), evs2.get(key1))) continue;
-                else return false;
+                if(!equals(evs1.get(key1), evs2.get(key1))) return false;
             return true;
         }
         else return false;
@@ -169,22 +177,19 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      * @return {@literal true}, if both descriptors are structurally equal; otherwise, {@literal false}.
      */
     public static boolean equals(final ManagementTargetConfiguration.AttributeConfiguration attr1, final ManagementTargetConfiguration.AttributeConfiguration attr2){
-        if(attr1 == attr2) return true;
-        else if(attr1 == null) return attr2 == null;
-        else if(attr2 == null) return false;
-        else return Objects.equals(attr1.getAttributeName(), attr2.getAttributeName()) &&
-                    Objects.equals(attr1.getReadWriteTimeout(), attr2.getReadWriteTimeout()) &&
-                    paramsAreEqual(attr1.getAdditionalElements(), attr2.getAdditionalElements());
+        return attr1 == attr2 ||
+                !(attr1 == null || attr2 == null) &&
+                        Objects.equals(attr1.getAttributeName(), attr2.getAttributeName()) &&
+                        Objects.equals(attr1.getReadWriteTimeout(), attr2.getReadWriteTimeout()) &&
+                        paramsAreEqual(attr1.getAdditionalElements(), attr2.getAdditionalElements());
     }
 
     private static boolean attributesAreEqual(final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attrs1, final Map<String, ManagementTargetConfiguration.AttributeConfiguration> attrs2) {
         if(attrs1 == attrs2) return true;
-        else if(attrs1 == null) return attrs2 == null;
-        else if(attrs2 == null) return false;
+        else if(attrs1 == null || attrs2 == null) return attrs2 == null;
         else if(attrs1.size() == attrs2.size()){
             for(final String key1: attrs1.keySet())
-                if(equals(attrs1.get(key1), attrs2.get(key1))) continue;
-                else return false;
+                if(!equals(attrs1.get(key1), attrs2.get(key1))) return false;
             return true;
         }
         else return false;
@@ -192,12 +197,10 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
 
     private static boolean targetsAreEqual(final Map<String, ManagementTargetConfiguration> obj1, final Map<String, ManagementTargetConfiguration> obj2){
         if(obj1 == obj2) return true;
-        else if(obj1 == null) return obj2 == null;
-        else if(obj2 == null) return false;
+        else if(obj1 == null || obj2 == null) return false;
         else if(obj1.size() == obj2.size()){
             for(final String key1: obj1.keySet())
-                if(equals(obj1.get(key1), obj2.get(key1))) continue;
-                else return false;
+                if(!equals(obj1.get(key1), obj2.get(key1))) return false;
             return true;
         }
         else return false;
@@ -210,10 +213,9 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      * @return {@literal true}, if configurations are structurally equal; otherwise, {@literal false}.
      */
     public static boolean equals(final AgentConfiguration obj1, final AgentConfiguration obj2){
-        if(obj1 == obj2) return true;
-        else if(obj1 == null) return obj2 == null;
-        else if(obj2 == null) return false;
-        else return equals(obj1.getAgentHostingConfig(), obj2.getAgentHostingConfig()) &&
-                    targetsAreEqual(obj1.getTargets(), obj2.getTargets());
+        return obj1 == obj2 ||
+                !(obj1 == null || obj2 == null) &&
+                        equals(obj1.getAgentHostingConfig(), obj2.getAgentHostingConfig()) &&
+                        targetsAreEqual(obj1.getTargets(), obj2.getTargets());
     }
 }

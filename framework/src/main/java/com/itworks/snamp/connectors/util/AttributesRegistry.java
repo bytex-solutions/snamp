@@ -3,7 +3,7 @@ package com.itworks.snamp.connectors.util;
 import com.itworks.snamp.internal.Internal;
 
 /**
- * Represents utility interface for connecting and reading management attributes.
+ * Represents utility interface for connecting and reading management managementAttributes.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0

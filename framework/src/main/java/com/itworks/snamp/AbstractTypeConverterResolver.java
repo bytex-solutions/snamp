@@ -1,5 +1,8 @@
 package com.itworks.snamp;
 
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength;
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.math.*;
@@ -12,13 +15,13 @@ import java.util.*;
  * @since 1.0
  */
 public abstract class AbstractTypeConverterResolver implements TypeConverterResolver {
-    private final Wrapper<Map<Class<?>, TypeConverter<?>>> converters;
+    private final Map<Class<?>, TypeConverter<?>> converters;
 
     /**
      * Initializes a new type converter factory.
      */
     protected AbstractTypeConverterResolver(){
-        converters = new SoftMap<>(10);
+        converters = new ReferenceMap<>(ReferenceStrength.HARD, ReferenceStrength.SOFT, true);
     }
 
     /**
@@ -146,18 +149,12 @@ public abstract class AbstractTypeConverterResolver implements TypeConverterReso
     public synchronized final <T> TypeConverter<T> getTypeConverter(final Class<T> t) {
         if(t == null) return null;
         else if(shouldNormalize(t)) return (TypeConverter<T>)getTypeConverter(normalizeClass(t));
-        final Class<? extends AbstractTypeConverterResolver> thisClass = getClass();
-        return converters.handle(new Wrapper.WrappedObjectHandler<Map<Class<?>, TypeConverter<?>>, TypeConverter<T>>() {
-            @Override
-            public final TypeConverter<T> invoke(final Map<Class<?>, TypeConverter<?>> converters) {
-                TypeConverter<T> converter = (TypeConverter<T>)converters.get(t);
-                if(converter != null) return converter;
-                converter = getTypeConverter(thisClass, t);
-                if(converter != null)
-                    converters.put(t, converter);
-                return converter;
-            }
-        });
+        TypeConverter<T> converter = (TypeConverter<T>)converters.get(t);
+        if(converter != null) return converter;
+        converter = getTypeConverter(getClass(), t);
+        if(converter != null)
+            converters.put(t, converter);
+        return converter;
     }
 
     /**

@@ -99,13 +99,13 @@ public interface NotificationSupport {
          * Gets the date and time at which the notification is generated.
          * @return The date and time at which the notification is generated.
          */
-        public Date getTimeStamp();
+        Date getTimeStamp();
 
         /**
          * Gets the order number of the notification message.
          * @return The order number of the notification message.
          */
-        public long getSequenceNumber();
+        long getSequenceNumber();
 
         /**
          * Gets a severity of this event.
@@ -117,7 +117,7 @@ public interface NotificationSupport {
          * Gets a message description of this notification.
          * @return The message description of this notification.
          */
-        public String getMessage();
+        String getMessage();
     }
 
     /**
@@ -130,11 +130,11 @@ public interface NotificationSupport {
 
         /**
          * Handles the specified notification.
+         * @param listId An identifier of the subscription list.
          * @param n The notification to handle.
-         * @param category Event category.
          * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
          */
-        public boolean handle(final Notification n, final String category);
+        boolean handle(final String listId, final Notification n);
     }
 
     /**
@@ -148,7 +148,7 @@ public interface NotificationSupport {
      * @param options Event discovery options.
      * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
      */
-    public NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options);
+    NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options);
 
     /**
      * Disables event listening for the specified category of events.
@@ -158,7 +158,7 @@ public interface NotificationSupport {
      * @param listId The identifier of the subscription list.
      * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
      */
-    public boolean disableNotifications(final String listId);
+    boolean disableNotifications(final String listId);
 
     /**
      * Gets the notification metadata by its category.
@@ -166,21 +166,26 @@ public interface NotificationSupport {
      * @return The metadata of the specified notification category; or {@literal null}, if notifications
      * for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
      */
-    public NotificationMetadata getNotificationInfo(final String listId);
+    NotificationMetadata getNotificationInfo(final String listId);
+
+    /**
+     * Returns a read-only collection of enabled notifications (subscription list identifiers).
+     * @return A read-only collection of enabled notifications (subscription list identifiers).
+     */
+    Collection<String> getEnabledNotifications();
 
     /**
      * Attaches the notification listener.
      * @param listenerId Unique identifier of the listener.
-     * @param listId The identifier of the subscription list.
      * @param listener The notification listener.
      * @return {@literal true}, if listener is added successfully; otherwise, {@literal false}.
      */
-    public boolean subscribe(final String listenerId, final String listId, final NotificationListener listener);
+    boolean subscribe(final String listenerId, final NotificationListener listener);
 
     /**
      * Removes the notification listener.
-     * @param listenerId An identifier previously returned by {@link #subscribe(String, String, NotificationListener)}.
+     * @param listenerId An identifier previously returned by {@link #subscribe(String, NotificationListener)}.
      * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
      */
-    public boolean unsubscribe(final String listenerId);
+    boolean unsubscribe(final String listenerId);
 }

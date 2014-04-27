@@ -1,7 +1,7 @@
-package com.itworks.snamp.licensing;
+package com.itworks.snamp.connectors.impl;
 
+import com.itworks.snamp.licensing.*;
 import org.apache.commons.collections4.Factory;
-import com.itworks.snamp.connectors.AbstractManagementConnectorFactory;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * @author Roman Sakno
  */
 @XmlRootElement(name = "jmxConnectorLimitations")
-public final class JmxConnectorLimitations extends AbstractLicenseLimitations implements PluginLicenseLimitations<AbstractManagementConnectorFactory> {
+public final class JmxConnectorLimitations extends AbstractLicenseLimitations implements PluginLicenseLimitations<JmxConnector> {
 
     /**
      * Initializes a new limitation descriptor for the JMX connector.
@@ -49,7 +49,7 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
             return new MaxValueLimitation<Long>(expectedValue) {
                 @Override
                 public LicensingException createException() {
-                    return new LicensingException(String.format("The maximum number of registered attributes(%s) is reached.", requiredValue));
+                    return new LicensingException(String.format("The maximum number of registered managementAttributes(%s) is reached.", requiredValue));
                 }
             };
         }

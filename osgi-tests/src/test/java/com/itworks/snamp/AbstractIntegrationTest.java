@@ -19,9 +19,12 @@ import java.util.*;
 public abstract class AbstractIntegrationTest extends AbstractTest {
     private final List<AbstractProvisionOption<?>> dependencies;
 
+    protected AbstractIntegrationTest(final List<AbstractProvisionOption<?>> deps){
+        this.dependencies = new ArrayList<>(deps);
+    }
 
     protected AbstractIntegrationTest(final AbstractProvisionOption<?>... deps){
-        dependencies = Arrays.asList(deps);
+        this(Arrays.asList(deps));
     }
 
     /**

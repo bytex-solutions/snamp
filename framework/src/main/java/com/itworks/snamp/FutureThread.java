@@ -178,6 +178,7 @@ public class FutureThread<V> extends Thread implements Future<V> {
      * @throws java.util.concurrent.TimeoutException
      *                              if the wait timed out
      */
+    @SuppressWarnings("NullableProblems")
     @Override
     public final V get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         join(unit.toMillis(timeout));

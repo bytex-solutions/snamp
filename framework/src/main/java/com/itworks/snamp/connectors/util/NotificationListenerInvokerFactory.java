@@ -2,8 +2,7 @@ package com.itworks.snamp.connectors.util;
 
 import java.util.concurrent.ExecutorService;
 
-import static com.itworks.snamp.connectors.NotificationSupport.Notification;
-import static com.itworks.snamp.connectors.NotificationSupport.NotificationListener;
+import static com.itworks.snamp.connectors.NotificationSupport.*;
 
 /**
  * Represents commonly used listener invocation strategies.
@@ -27,9 +26,9 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createSequentialInvoker(){
         return new NotificationListenerInvoker() {
             @Override
-            public final void invoke(final Notification n, final String category, final Iterable<? extends NotificationListener> listeners) {
+            public void invoke(final String listId, final Notification n, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
-                    listener.handle(n, category);
+                    listener.handle(listId, n);
             }
         };
     }
@@ -58,10 +57,10 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createExceptionResistantInvoker(final ExceptionHandler handler){
         return new NotificationListenerInvoker() {
             @Override
-            public final void invoke(final Notification n, final String category, final Iterable<? extends NotificationListener> listeners) {
+            public void invoke(final String listId, final Notification n, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
                     try{
-                        listener.handle(n, category);
+                        listener.handle(listId, n);
                     }
                     catch (final Throwable e){
                         handler.handle(e, listener);
@@ -78,12 +77,12 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createParallelInvoker(final ExecutorService executor){
         return new NotificationListenerInvoker() {
             @Override
-            public final void invoke(final Notification n, final String category, final Iterable<? extends NotificationListener> listeners) {
+            public void invoke(final String listId, final Notification n, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
                     executor.execute(new Runnable() {
                         @Override
                         public final void run() {
-                            listener.handle(n, category);
+                            listener.handle(listId, n);
                         }
                     });
             }
@@ -93,13 +92,13 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createParallelExceptionResistantInvoker(final ExecutorService executor, final ExceptionHandler handler){
         return new NotificationListenerInvoker() {
             @Override
-            public final void invoke(final Notification n, final String category, final Iterable<? extends NotificationListener> listeners) {
+            public void invoke(final String listId, final Notification n, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
                     executor.execute(new Runnable() {
                         @Override
                         public final void run() {
                             try{
-                                listener.handle(n, category);
+                                listener.handle(listId, n);
                             }
                             catch (final Throwable e){
                                 handler.handle(e, listener);

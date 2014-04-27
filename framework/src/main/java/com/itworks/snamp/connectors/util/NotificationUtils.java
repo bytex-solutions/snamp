@@ -1,14 +1,12 @@
 package com.itworks.snamp.connectors.util;
 
 import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.connectors.NotificationSupport;
-import com.itworks.snamp.connectors.NotificationSupport.Notification;
-import com.itworks.snamp.connectors.NotificationSupport.NotificationListener;
+import com.itworks.snamp.connectors.NotificationMetadata;
+import static com.itworks.snamp.connectors.NotificationSupport.*;
+import org.apache.commons.collections4.MapUtils;
+import org.osgi.service.event.Event;
 
-import java.util.concurrent.TimeoutException;
-
-import static com.itworks.snamp.SynchronizationEvent.Awaitor;
+import java.util.*;
 
 /**
  * Represents utility methods that simplifies working with notifications.
@@ -17,6 +15,87 @@ import static com.itworks.snamp.SynchronizationEvent.Awaitor;
  * @since 1.0
  */
 public final class NotificationUtils {
+    /**
+     * Represents SNAMP notification constructed from {@link org.osgi.service.event.Event} object.
+     * This class cannot be inherited.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static final class NotificationEvent extends NotificationImpl{
+        private static final String TIME_STAMP_EVENT_PROPERTY = "timeStamp";
+        private static final String MESSAGE_EVENT_PROPERTY = "message";
+        private static final String SEQ_NUM_EVENT_PROPERTY = "sequenceNumber";
+        private static final String SEVERITY_EVENT_PROPERTY = "severity";
+        private static final String LIST_EVENT_PROPERTY = "subscriptionListID";
+
+        /**
+         * Initializes a new instance of the SNAMP notification using {@link org.osgi.service.event.Event} object.
+         * @param ev An event to parse.
+         */
+        @SuppressWarnings("UnusedDeclaration")
+        public NotificationEvent(final Event ev){
+            super( getEventProperty(ev, SEVERITY_EVENT_PROPERTY, Notification.Severity.class, Notification.Severity.UNKNOWN),
+                    getEventProperty(ev, SEQ_NUM_EVENT_PROPERTY, Long.class, 0L),
+                    getEventProperty(ev, TIME_STAMP_EVENT_PROPERTY, Date.class, new Date()),
+                    getEventProperty(ev, MESSAGE_EVENT_PROPERTY, String.class, ""));
+            //parse attachments
+            for(final String propertyName: ev.getPropertyNames())
+                switch (propertyName){
+                    default: put(propertyName, ev.getProperty(propertyName));
+                    case SEVERITY_EVENT_PROPERTY:
+                    case SEQ_NUM_EVENT_PROPERTY:
+                    case TIME_STAMP_EVENT_PROPERTY:
+                    case MESSAGE_EVENT_PROPERTY:
+                }
+        }
+
+        /**
+         * Initializes a new instance of the SNAMP notification.
+         * @param notification Original SNAMP notification to wrap.
+         * @param listId An identifier of the subscription list.
+         */
+        public NotificationEvent(final Notification notification, final String listId){
+            super(notification);
+            put(LIST_EVENT_PROPERTY, listId);
+        }
+
+        /**
+         * Gets subscription list identifier.
+         * @return The subscription list identifier.
+         */
+        public String getSubscriptionListID(){
+            return MapUtils.getString(this, LIST_EVENT_PROPERTY);
+        }
+
+        /**
+         * Wraps notification into {@link org.osgi.service.event.Event} object.
+         * @param connectorName The management connector name.
+         * @param category An event category.
+         * @return A new instance of the {@link org.osgi.service.event.Event} object that
+         *          contains properties from this notification.
+         */
+        public Event toEvent(final String connectorName, final String category){
+            final Map<String, Object> eventProps = new HashMap<>(10);
+            eventProps.put(TIME_STAMP_EVENT_PROPERTY, getTimeStamp());
+            eventProps.put(MESSAGE_EVENT_PROPERTY, getMessage());
+            eventProps.put(SEQ_NUM_EVENT_PROPERTY, getSequenceNumber());
+            eventProps.put(SEVERITY_EVENT_PROPERTY, getSeverity());
+            eventProps.put(LIST_EVENT_PROPERTY, getSubscriptionListID());
+            //attach events
+            for(final String attachmentName: keySet())
+                switch (attachmentName){
+                    default: put(attachmentName, get(attachmentName));
+                    case SEVERITY_EVENT_PROPERTY:
+                    case SEQ_NUM_EVENT_PROPERTY:
+                    case TIME_STAMP_EVENT_PROPERTY:
+                    case MESSAGE_EVENT_PROPERTY:
+                }
+            return new Event(String.format("com/itworks/snamp/%s/%s/%s", connectorName, category, getSubscriptionListID()),
+                    eventProps);
+        }
+    }
+
     private NotificationUtils(){
 
     }
@@ -37,28 +116,24 @@ public final class NotificationUtils {
      * @since 1.0
      * @version 1.0
      */
-    public static final class SynchronizationListener implements NotificationListener{
-        private final SynchronizationEvent<Notification> synchronizer = new SynchronizationEvent<>();
+    public static final class SynchronizationListener extends SynchronizationEvent<Notification> implements NotificationListener{
+        /**
+         * Initializes a new synchronizer for the notification delivery process.
+         */
+        public SynchronizationListener(){
+            super(true);
+        }
 
         /**
          * Handles the specified notification.
          *
-         * @param n The notification to handle.
-         * @param category The event category.
+         * @param listId An identifier of the subscription list.
+         * @param n        The notification to handle.
          * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
          */
         @Override
-        public boolean handle(final Notification n, final String category) {
-            synchronizer.fire(n);
-            return true;
-        }
-
-        /**
-         * Returns a new awaitor for this listener.
-         * @return A new awaitor for this listener.
-         */
-        public final Awaitor<Notification> getAwaitor(){
-            return synchronizer.getAwaitor();
+        public boolean handle(final String listId, final Notification n) {
+            return fire(n);
         }
     }
 
@@ -67,84 +142,56 @@ public final class NotificationUtils {
      * @param listener Notification listener for which ID should be generated.
      * @return An identifier of the notification listener.
      */
-    public static final String generateListenerId(final NotificationListener listener){
+    @SuppressWarnings("UnusedDeclaration")
+    public static String generateListenerId(final NotificationListener listener){
         return listener != null ? Integer.toString(listener.hashCode()) : null;
     }
 
     /**
-     * Adds a new notification listener and returns synchronous awaitor for it.
-     * <p>
-     *     You can use this method for synchronization with notification delivery.
-     *     When notification accepted then infrastructure removes the subscribed synchronization listener
-     *     from it.
-     * </p>
-     * @param connector The notification listener connector. Cannot be {@literal null}.
-     * @param listenerId An identifier of the listener to attach.
-     * @param listId An identifier of the subscription list.
-     * @param listener The notification filter. Cannot be {@literal null}.
-     * @return Notification awaitor that can be used to obtain notification synchronously;
-     * or {@literal null} if notifications for the specified event category is not supported
-     * by connector.
+     * Constructs topic name for the {@link org.osgi.service.event.Event} that represents SNAMP notification.
+     * @param connectorName The management connector name.
+     * @param notificationCategory The notification category.
+     * @param subscriptionList The subscription list identifier.
+     * @return The event topic name.
      */
-    public static Awaitor<Notification> createAwaitor(final NotificationSupport connector, final String listenerId, final String listId, final NotificationListener listener){
-        if(connector == null) throw new IllegalArgumentException("connector is null.");
-        else if(listener == null) throw new IllegalArgumentException("listener is null.");
-        final SynchronizationEvent<Notification> ev = new SynchronizationEvent<>();
-        return connector.subscribe(listenerId, listId, new NotificationListener() {
-            @Override
-            public final boolean handle(final Notification notification, final String category) {
-                try{
-                    return listener != null ? listener.handle(notification, category) : true;
-                }
-                finally {
-                    ev.fire(notification);
-                }
-            }
-        })? new Awaitor<Notification>() {
-            private final Awaitor<Notification> awaitor = ev.getAwaitor();
-
-            @Override
-            public Notification await(final TimeSpan timeout) throws TimeoutException, InterruptedException {
-                try{
-                    return awaitor.await(timeout);
-                }
-                finally {
-                    connector.unsubscribe(listenerId);
-                }
-            }
-
-            @Override
-            public Notification await() throws InterruptedException {
-                try{
-                    return awaitor.await();
-                }
-                finally {
-                    connector.unsubscribe(listenerId);
-                }
-            }
-        } : null;
+    public static String getTopicName(final String connectorName,
+                                      final String notificationCategory,
+                                      final String subscriptionList){
+        return String.format("com/itworks/snamp/%s/%s/%s", connectorName, notificationCategory, subscriptionList);
     }
 
     /**
-     * Adds a new notification listener and returns synchronous awaitor for it.
-     * <p>
-     *     You can use this method for synchronization with notification delivery.
-     *     When notification accepted then infrastructure removes the subscribed synchronization listener
-     *     from it.
-     * </p>
-     * @param connector The notification listener connector. Cannot be {@literal null}.
-     * @param listenerId An identifier of the listener to attach.
-     * @param listId An identifier of the subscription list.
-     * @return Notification awaitor that can be used to obtain notification synchronously;
-     * or {@literal null} if notifications for the specified event category is not supported
-     * by connector.
+     * Constructs topic name for the {@link org.osgi.service.event.Event} that represents SNAMP notification.
+     * @param connectorName The management connector name.
+     * @param metadata The notification descriptor.
+     * @param subscriptionList The subscription list identifier.
+     * @return The event topic name.
      */
-    public static Awaitor<Notification> createAwaitor(final NotificationSupport connector, final String listenerId, final String listId){
-        return createAwaitor(connector, listenerId, listId, new NotificationListener() {
-            @Override
-            public boolean handle(final Notification n, final String category) {
-                return true;
-            }
-        });
+    @SuppressWarnings("UnusedDeclaration")
+    public static String getTopicName(final String connectorName,
+                                      final NotificationMetadata metadata,
+                                      final String subscriptionList){
+        return getTopicName(connectorName, metadata.getCategory(), subscriptionList);
+    }
+
+    /**
+     * Reads event property.
+     * @param ev An event to parse.
+     * @param propertyName The name of the event property to read.
+     * @param propertyType The type of the event property.
+     * @param defaultValue The default value if the property is not available.
+     * @param <T> Type of the property to read.
+     * @return The value of the property; or default value.
+     */
+    public static <T> T getEventProperty(final Event ev,
+                                         final String propertyName,
+                                         final Class<T> propertyType,
+                                         final T defaultValue){
+        if(ev == null) return defaultValue;
+        else if(ev.containsProperty(propertyName)){
+            final Object result = ev.getProperty(propertyName);
+            return propertyType.isInstance(result) ? propertyType.cast(result) : defaultValue;
+        }
+        else return defaultValue;
     }
 }

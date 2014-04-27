@@ -28,6 +28,7 @@ public class WriteOnceRef<T> implements Wrapper<T> {
     /**
      * Initializes a new write-once container with default {@literal null} value.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public WriteOnceRef(){
         this(null);
     }
@@ -51,6 +52,7 @@ public class WriteOnceRef<T> implements Wrapper<T> {
      * Determines whether the container is locked and value inside of it cannot be changed.
      * @return {@literal true}, if this container is locked; otherwise, {@literal false}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final boolean isLocked(){
         return locked.get();

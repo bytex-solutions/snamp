@@ -8,7 +8,7 @@ import org.junit.Test;
  * @version 1.0
  * @since 1.0
  */
-public class ReflectionUtilsTest extends SnampClassTestSet<ReflectionUtils> {
+public class ReflectionUtilsTest extends AbstractUnitTest<ReflectionUtils> {
     public static interface SampleInterface{
         int sum(int a, int b);
     }
@@ -19,6 +19,10 @@ public class ReflectionUtilsTest extends SnampClassTestSet<ReflectionUtils> {
         public int sum(final int a, final int b) {
             return a + b;
         }
+    }
+
+    public ReflectionUtilsTest(){
+        super(ReflectionUtils.class);
     }
 
     @Test

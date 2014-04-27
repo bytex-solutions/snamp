@@ -1,8 +1,6 @@
-package com.itworks.snamp.connectors;
+package com.itworks.snamp.connectors.impl;
 
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.itworks.snamp.configuration.JmxConnectorConfigurationDescriptor;
-import com.itworks.snamp.licensing.JmxConnectorLimitations;
 import com.itworks.snamp.licensing.LicensedPlatformPlugin;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import net.xeoh.plugins.base.annotations.meta.Author;

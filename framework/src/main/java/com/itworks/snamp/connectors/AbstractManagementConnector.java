@@ -1,28 +1,27 @@
 package com.itworks.snamp.connectors;
 
-import com.itworks.snamp.AbstractAggregator;
-import com.itworks.snamp.ConcurrentResourceAccess;
-import com.itworks.snamp.IllegalStateFlag;
-import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.*;
+import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.internal.*;
 import com.itworks.snamp.connectors.util.NotificationListenerInvoker;
 
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.ConsistentAction;
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.Action;
+import static com.itworks.snamp.AbstractConcurrentResourceAccess.*;
 import static com.itworks.snamp.connectors.NotificationSupport.NotificationListener;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.*;
+import java.util.logging.Logger;
 
 /**
  * Represents an abstract class for building custom management connectors.
+ * @param <TConnectionOptions> The management connection initialization options.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
 @Lifecycle(InstanceLifecycle.NORMAL)
-public abstract class AbstractManagementConnector extends AbstractAggregator implements ManagementConnector {
+public abstract class AbstractManagementConnector<TConnectionOptions> extends AbstractFrameworkService implements ManagementConnector<TConnectionOptions> {
 
     /**
      * Represents default implementation of the attribute descriptor.
@@ -54,20 +53,16 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
         public static final String DESCRIPTION_PARAM = "description";
 
         private final String attributeName;
-        private final String namespace;
         private T attributeType;
 
         /**
          * Initializes a new attribute metadata.
          * @param attributeName The name of the attribute. Cannot be {@literal null}.
-         * @param namespace The namespace of the attribute. Cannot be {@literal null}.
          * @throws IllegalArgumentException attributeName or namespace is {@literal null}.
          */
-        public GenericAttributeMetadata(final String attributeName, final String namespace){
+        public GenericAttributeMetadata(final String attributeName){
             if(attributeName == null) throw new IllegalArgumentException("attributeName is null.");
-            else if(namespace == null) throw new IllegalArgumentException("namespace is null.");
             this.attributeName = attributeName;
-            this.namespace = namespace;
         }
 
         private String readLocalizedParam(String paramName, final Locale locale, final String defaultValue){
@@ -159,6 +154,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          * @param options A map of attribute discovery options.
          * @throws UnsupportedOperationException This operation is not supported.
          */
+        @SuppressWarnings("NullableProblems")
         @Override
         public final void putAll(Map<? extends String, ? extends String> options) {
             throw new UnsupportedOperationException();
@@ -225,7 +221,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
      * @version 1.0
      */
     protected static abstract class GenericNotificationMetadata implements Map<String, String>, NotificationMetadata{
-
+        private static final String UNKNOWN_LIST_ID = "unknown";
         /**
          * Represents subscribed version of the notification listener. This class cannot be inherited.
          * @author Roman Sakno
@@ -260,6 +256,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
              * @param listener A listener to wrap. Cannot be {@literal null}.
              * @throws IllegalArgumentException listener is {@literal null}.
              */
+            @SuppressWarnings("UnusedDeclaration")
             public SubscribedNotificationListener(final NotificationListener listener){
                 this(listener, null);
             }
@@ -267,19 +264,20 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             /**
              * Handles the specified notification.
              *
+             * @param listId An identifier of the subscription list.
              * @param n The notification to handle.
-             * @param category Event category.
              * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
              */
             @Override
-            public final boolean handle(final NotificationSupport.Notification n, final String category) {
-                return listener.handle(n, category);
+            public final boolean handle(final String listId, final NotificationSupport.Notification n) {
+                return listener.handle(listId, n);
             }
         }
 
         private final String eventCategory;
         private final Map<String, SubscribedNotificationListener> listeners;
         private final ReadWriteLock coordinator;
+        private String subscriptionList;
 
         /**
          * Initializes a new event metadata.
@@ -289,6 +287,19 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             this.eventCategory = category;
             this.listeners = new HashMap<>(10);
             this.coordinator = new ReentrantReadWriteLock();
+            this.subscriptionList = UNKNOWN_LIST_ID;
+        }
+
+        private void setSubscriptionList(final String value){
+            this.subscriptionList = value != null && value.length() > 0 ? value : UNKNOWN_LIST_ID;
+        }
+
+        /**
+         * Gets subscription list identifier.
+         * @return A subscription list identifier.
+         */
+        protected final String getSubscriptionList(){
+            return subscriptionList;
         }
 
         /**
@@ -316,7 +327,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             final Lock readLock = coordinator.readLock();
             readLock.lock();
             try{
-                invoker.invoke(n, getCategory(), listeners.values());
+                invoker.invoke(subscriptionList, n, listeners.values());
             }
             finally {
                 readLock.unlock();
@@ -346,7 +357,6 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Removes all listeners.
-         * @return A collection of removed listeners.
          */
         public final void removeListeners(){
             final Lock writeLock = coordinator.readLock();
@@ -357,6 +367,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             finally {
                 writeLock.unlock();
             }
+
         }
 
         /**
@@ -447,6 +458,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          * @param options The map of event options to add.
          * @throws UnsupportedOperationException This operation is not supported.
          */
+        @SuppressWarnings("NullableProblems")
         @Override
         public final void putAll(final Map<? extends String, ? extends String> options) {
             throw new UnsupportedOperationException();
@@ -470,13 +482,33 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
      * @version 1.0
      */
     protected static abstract class AbstractNotificationSupport implements NotificationSupport{
-        private final ConcurrentResourceAccess<Map<String, GenericNotificationMetadata>> notifications;
+        private final ConcurrentResourceAccess<KeyedObjects<String, GenericNotificationMetadata>> notifications;
 
         /**
          * Initializes a new notification manager.
          */
         protected AbstractNotificationSupport(){
-            this.notifications = new ConcurrentResourceAccess<Map<String, GenericNotificationMetadata>>(new HashMap<String, GenericNotificationMetadata>(10));
+            this.notifications = new ConcurrentResourceAccess<KeyedObjects<String, GenericNotificationMetadata>>(new AbstractKeyedObjects<String, GenericNotificationMetadata>(10) {
+                @Override
+                public final String getKey(final GenericNotificationMetadata item) {
+                    return item.getSubscriptionList();
+                }
+            });
+        }
+
+        /**
+         * Returns a read-only collection of enabled notifications (subscription list identifiers).
+         *
+         * @return A read-only collection of enabled notifications (subscription list identifiers).
+         */
+        @Override
+        public final Collection<String> getEnabledNotifications() {
+            return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Collection<String>>() {
+                @Override
+                public Collection<String> invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
+                    return notifications.keySet();
+                }
+            });
         }
 
         /**
@@ -488,9 +520,9 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          */
         @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
         protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType){
-            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Map<String, T>>() {
+            return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Map<String, T>>() {
                 @Override
-                public final Map<String, T> invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                public final Map<String, T> invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
                     final Map<String, T> result = new HashMap<>(notifications.size());
                     for(final Map.Entry<String, GenericNotificationMetadata> metadata: notifications.entrySet())
                         if(Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
@@ -506,9 +538,9 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          */
         @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
         protected final Set<String> getCategories(){
-            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Set<String>>() {
+            return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Set<String>>() {
                 @Override
-                public Set<String> invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                public Set<String> invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
                     final Set<String> categories = new HashSet<>(10);
                     for(final GenericNotificationMetadata eventData: notifications.values())
                         categories.add(eventData.getCategory());
@@ -526,7 +558,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          * @param options  Event discovery options.
          * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
          */
-        protected abstract GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options);
+        protected abstract GenericNotificationMetadata enableNotifications(final String category, final Map<String, String> options);
 
         /**
          * Enables event listening for the specified category of events.
@@ -537,12 +569,15 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          */
         @Override
         public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
-            return notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, NotificationMetadata>() {
+            return notifications.write(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, NotificationMetadata>() {
                 @Override
-                public final NotificationMetadata invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                public final NotificationMetadata invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
                     if(notifications.containsKey(category)) return notifications.get(category);
-                    final GenericNotificationMetadata metadata = enableNotificationsCore(category, options);
-                    if(metadata != null) notifications.put(listId, metadata);
+                    final GenericNotificationMetadata metadata = enableNotifications(category, options);
+                    if(metadata != null) {
+                        metadata.setSubscriptionList(listId);
+                        notifications.put(metadata);
+                    }
                     return metadata;
                 }
             });
@@ -555,7 +590,8 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          * </p>
          * @param notificationType The event descriptor.
          */
-        protected void disableNotificationsCore(final NotificationMetadata notificationType){
+        protected void disableNotifications(final GenericNotificationMetadata notificationType){
+            notificationType.removeListeners();
         }
 
         /**
@@ -566,11 +602,11 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          */
         @Override
         public final boolean disableNotifications(final String listId) {
-            return notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, Boolean>() {
+            return notifications.write(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Boolean>() {
                 @Override
-                public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                public final Boolean invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
                     if (notifications.containsKey(listId)) {
-                        disableNotificationsCore(notifications.remove(listId));
+                        disableNotifications(notifications.remove(listId));
                         return true;
                     } else return false;
                 }
@@ -586,9 +622,9 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          */
         @Override
         public final NotificationMetadata getNotificationInfo(final String listId) {
-            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, NotificationMetadata>() {
+            return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, NotificationMetadata>() {
                 @Override
-                public final NotificationMetadata invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                public final NotificationMetadata invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
                     return notifications.get(listId);
                 }
             });
@@ -596,57 +632,54 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
         /**
          * Adds a new listener for the specified notification.
-         * @param notificationType The event type.
          * @param listener The event listener.
          * @return Any custom data associated with the subscription.
          */
-        protected abstract Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener);
+        protected abstract Object subscribe(final NotificationListener listener);
 
         /**
          * Attaches the notification listener.
          *
          * @param listenerId An identifier of the notification listener.
-         * @param listId An identifier of the subscription list.
          * @param listener The notification listener.
          * @return An identifier of the notification listener generated by this connector.
          */
         @Override
-        public final boolean subscribe(final String listenerId, final String listId, final NotificationListener listener) {
-            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Boolean>() {
+        public final boolean subscribe(final String listenerId, final NotificationListener listener) {
+            final Object userData = subscribe(listener);
+            return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Boolean>() {
                 @Override
-                public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
-                    final GenericNotificationMetadata metadata = notifications.get(listId);
-                    if(metadata == null) return null;
-                    final Object userData = subscribeCore(metadata, listener);
-                    return metadata.addListener(listenerId, listener, userData);
+                public final Boolean invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
+                    for(final GenericNotificationMetadata metadata: notifications.values())
+                        metadata.addListener(listenerId, listener, userData);
+                    return notifications.size() > 0;
                 }
             });
         }
 
         /**
          * Cancels the notification listening.
-         * @param metadata The event type.
          * @param listener The notification listener to remove.
-         * @param data The custom data associated with subscription that returned from {@link #subscribeCore(NotificationMetadata, NotificationListener)}
+         * @param data The custom data associated with subscription that returned from {@link #subscribe(NotificationListener)}
          *             method.
          */
-        protected abstract void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data);
+        protected abstract void unsubscribe(final NotificationListener listener, final Object data);
 
         /**
          * Removes the notification listener.
          * @param listenerId An identifier of the notification listener previously passed
-         *                   to {@link #subscribe(String, String, NotificationListener)} method.
+         *                   to {@link #subscribe(String, NotificationListener)} method.
          * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
          */
         public final boolean unsubscribe(final String listenerId){
-            return notifications.read(new ConsistentAction<Map<String, GenericNotificationMetadata>, Boolean>() {
+            return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Boolean>() {
                 @Override
-                public final Boolean invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                public final Boolean invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
                     for(final GenericNotificationMetadata metadata: notifications.values()){
                         if(metadata.hasListener(listenerId)){
                             final GenericNotificationMetadata.SubscribedNotificationListener pair = metadata.getListener(listenerId);
                             if(pair == null) return false;
-                            unsubscribeCore(metadata, pair.listener, pair.userData);
+                            unsubscribe(pair.listener, pair.userData);
                             return metadata.removeListener(listenerId);
                         }
                     }
@@ -663,9 +696,9 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
          * </p>
          */
         public final void clear(){
-            notifications.write(new ConsistentAction<Map<String, GenericNotificationMetadata>, Void>() {
+            notifications.write(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Void>() {
                 @Override
-                public final Void invoke(final Map<String, GenericNotificationMetadata> notifications) {
+                public final Void invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
                     notifications.clear();
                     return null;
                 }
@@ -673,8 +706,8 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
         }
     }
 
+    private final TConnectionOptions connectionOptions;
     private final ConcurrentResourceAccess<Map<String, GenericAttributeMetadata<?>>> attributes;
-
     private final IllegalStateFlag closed = new IllegalStateFlag() {
         @Override
         public final IllegalStateException create() {
@@ -684,16 +717,29 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
 
     /**
      * Initializes a new management connector.
+     * @param connectionOptions Management connector initialization options.
+     * @param logger A logger for this management connector.
      */
-    protected AbstractManagementConnector(){
+    protected AbstractManagementConnector(final TConnectionOptions connectionOptions, final Logger logger){
+        super(logger);
+        if(connectionOptions == null) throw new IllegalArgumentException("connectionOptions is null.");
+        else this.connectionOptions = connectionOptions;
         this.attributes = new ConcurrentResourceAccess<Map<String, GenericAttributeMetadata<?>>>(new HashMap<String, GenericAttributeMetadata<?>>(10));
     }
 
-
+    /**
+     * Returns connection options used by this management connector.
+     *
+     * @return The connection options used by this management connector.
+     */
+    @Override
+    public final TConnectionOptions getConnectionOptions() {
+        return connectionOptions;
+    }
 
     /**
-     * Returns a count of connected attributes.
-     * @return The count of connected attributes.
+     * Returns a count of connected managementAttributes.
+     * @return The count of connected managementAttributes.
      */
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     protected final int attributesCount(){
@@ -751,7 +797,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
     /**
      * Returns the value of the attribute.
      * @param attribute The metadata of the attribute to get.
-     * @param readTimeout
+     * @param readTimeout The attribute value invoke operation timeout.
      * @param defaultValue The default value of the attribute if reading fails.
      * @return The value of the attribute.
      * @throws TimeoutException
@@ -779,10 +825,10 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
     }
 
     /**
-     * Reads a set of attributes.
+     * Reads a set of managementAttributes.
      * @param output The dictionary with set of attribute keys to invoke and associated default values.
      * @param readTimeout The attribute value invoke operation timeout.
-     * @return The set of attributes ids really written to the dictionary.
+     * @return The set of managementAttributes ids really written to the dictionary.
      * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
      */
     @Override
@@ -812,8 +858,8 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
     /**
      * Sends the attribute value to the remote agent.
      * @param attribute The metadata of the attribute to set.
-     * @param writeTimeout
-     * @param value
+     * @param writeTimeout The attribute value write operation timeout.
+     * @param value The value to write.
      * @return {@literal true} if attribute value is overridden successfully; otherwise, {@literal false}.
      */
     protected abstract boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value);
@@ -833,14 +879,14 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
         return attributes.write(new Action<Map<String, GenericAttributeMetadata<?>>, Boolean, TimeoutException>() {
             @Override
             public final Boolean invoke(final Map<String, GenericAttributeMetadata<?>> attributes) throws TimeoutException {
-                return attributes.containsKey(id) ? setAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), value) : false;
+                return attributes.containsKey(id) && setAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), value);
             }
         });
     }
 
     /**
-     * Writes a set of attributes inside of the transaction.
-     * @param values The dictionary of attributes keys and its values.
+     * Writes a set of managementAttributes inside of the transaction.
+     * @param values The dictionary of managementAttributes keys and its values.
      * @param writeTimeout Batch write timeout.
      * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
      * @throws TimeoutException
@@ -852,7 +898,6 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
             @Override
             public final Boolean invoke(final Map<String, GenericAttributeMetadata<?>> attributes) throws TimeoutException {
                 boolean result = true;
-                final Object missing = new Object(); //this object represents default value for understanding
                 //whether the attribute value is unavailable
                 timer.stop();
                 for(final Map.Entry<String, Object> entry: values.entrySet()){
@@ -869,6 +914,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
      * @param id The unique identifier of the attribute.
      * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
      */
+    @SuppressWarnings("UnusedParameters")
     protected boolean disconnectAttributeCore(final String id){
         return true;
     }
@@ -909,9 +955,9 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
     }
 
     /**
-     * Returns a read-only collection of registered attributes.
+     * Returns a read-only collection of registered managementAttributes.
      *
-     * @return A read-only collection of registered attributes.
+     * @return A read-only collection of registered managementAttributes.
      */
     @Override
     public final Collection<String> getConnectedAttributes() {
@@ -929,7 +975,7 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
      */
     @Override
     public void close() throws Exception {
-        //remove all registered attributes
+        //remove all registered managementAttributes
         attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Void>() {
             @Override
             public final Void invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
@@ -939,5 +985,14 @@ public abstract class AbstractManagementConnector extends AbstractAggregator imp
         });
         //change state of the connector
         closed.set();
+    }
+
+    /**
+     * Returns logger name based on the management connector name.
+     * @param connectorName The name of the connector.
+     * @return The logger name.
+     */
+    public static String getLoggerName(final String connectorName){
+        return String.format("itworks.snamp.connectors.%s", connectorName);
     }
 }

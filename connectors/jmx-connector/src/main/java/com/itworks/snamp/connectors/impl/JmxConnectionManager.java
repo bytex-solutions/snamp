@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors;
+package com.itworks.snamp.connectors.impl;
 
 import com.itworks.snamp.internal.Internal;
 import com.itworks.snamp.internal.MethodThreadSafety;
@@ -38,10 +38,10 @@ final class JmxConnectionManager implements Closeable {
     public static interface MBeanServerConnectionHandler<T> extends EventListener {
         /**
          * Extracts object from the connection,
-         * @param connection
-         * @return
-         * @throws java.io.IOException
-         * @throws javax.management.JMException
+         * @param connection The connection to process.
+         * @return MBean connection processing result.
+         * @throws java.io.IOException Communication troubles.
+         * @throws javax.management.JMException JMX exception caused on remote side.
          */
         public T handle(final MBeanServerConnection connection) throws IOException, JMException;
     }
@@ -81,8 +81,8 @@ final class JmxConnectionManager implements Closeable {
         this.serviceURL = connectionString;
         this.connectionProperties = connectionProperties != null ? Collections.unmodifiableMap(connectionProperties) : new HashMap<String, Object>();
         //default retry count = 3
-        this.connectionRetryCount = connectionProperties.containsKey(RETRY_COUNT_PROPERTY) ?
-            Long.valueOf(Objects.toString(connectionProperties.get(RETRY_COUNT_PROPERTY), "3")) :
+        this.connectionRetryCount = this.connectionProperties.containsKey(RETRY_COUNT_PROPERTY) ?
+            Long.valueOf(Objects.toString(this.connectionProperties.get(RETRY_COUNT_PROPERTY), "3")) :
             3L;
         this.logger = log;
         this.reconnectionHandlers = new ArrayList<>(5);
@@ -149,6 +149,7 @@ final class JmxConnectionManager implements Closeable {
         }
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
     public final void removeReconnectionHandler(final MBeanServerConnectionHandler<Void> handler){
         synchronized (coordinator){

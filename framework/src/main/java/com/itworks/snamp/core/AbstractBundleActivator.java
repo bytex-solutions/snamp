@@ -1,10 +1,10 @@
 package com.itworks.snamp.core;
 
 import com.itworks.snamp.internal.MethodStub;
+import org.apache.commons.collections4.Closure;
 import org.osgi.framework.*;
 import org.osgi.service.log.LogService;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
 
 import static com.itworks.snamp.internal.ReflectionUtils.*;
@@ -52,13 +52,17 @@ public abstract class AbstractBundleActivator implements BundleActivator {
          * Informs this dependency about resolving dependency.
          * @param serviceInstance An instance of the resolved service.
          * @param properties Service properties.
+         * @param processingContext A map that comes from the provided service that owns this dependency.
          */
-        protected abstract void bind(final S serviceInstance, final Dictionary<String, ?> properties);
+        protected abstract void bind(final S serviceInstance,
+                                     final Dictionary<String, ?> properties,
+                                     final Map<String, ?> processingContext);
 
         /**
          * Informs this dependency about detaching dependency.
+         * @param processingContext A map that comes from the provided service that owns this dependency.
          */
-        protected abstract void unbind();
+        protected abstract void unbind(final Map<String, ?> processingContext);
 
         /**
          * Informs this dependency about modification of the service properties.
@@ -66,24 +70,27 @@ public abstract class AbstractBundleActivator implements BundleActivator {
          *     In the default implementation this method does nothing.
          * </p>
          * @param properties A new properties of the service.
+         * @param processingContext A map that comes from the provided service that owns this dependency.
          */
+        @SuppressWarnings("UnusedParameters")
         @MethodStub
-        protected void update(final Dictionary<String, ?> properties){
+        protected void update(final Dictionary<String, ?> properties, final Map<String, ?> processingContext){
 
         }
 
         /**
          * Determines whether the dependency is resolved.
-         * @return
+         * @return {@literal true}, if this dependency is resolved and reference to the service
+         * is caught; otherwise, {@literal false}.
          */
         public final boolean isResolved(){
             return reference != null;
         }
 
-        private boolean bind(final BundleContext context, final ServiceReference<?> reference){
+        private boolean bind(final BundleContext context, final ServiceReference<?> reference, final Map<String, ?> processingContext){
             if(!isResolved() && match(reference) && isInstanceOf(reference, dependencyContract))
                     try {
-                        bind(dependencyContract.cast(context.getService(reference)), getProperties(reference));
+                        bind(dependencyContract.cast(context.getService(reference)), getProperties(reference), processingContext);
                         return true;
                     }
                     finally {
@@ -92,10 +99,12 @@ public abstract class AbstractBundleActivator implements BundleActivator {
             return false;
         }
 
-        private boolean unbind(final BundleContext context, final ServiceReference<?> reference){
+        private boolean unbind(final BundleContext context,
+                               final ServiceReference<?> reference,
+                               final Map<String, ?> processingContext){
             if(isResolved() && match(reference))
                 try {
-                    unbind();
+                    unbind(processingContext);
                     return true;
                 }
                 finally {
@@ -105,43 +114,51 @@ public abstract class AbstractBundleActivator implements BundleActivator {
             else return false;
         }
 
-        private boolean unbind(final BundleContext context){
-            return unbind(context, this.reference);
+        private boolean unbind(final BundleContext context, final Map<String, ?> processingContext){
+            return unbind(context, this.reference, processingContext);
         }
 
-        private boolean update(final ServiceReference<?> reference) {
+        private boolean update(final ServiceReference<?> reference, final Map<String, ?> processingContext) {
             if(isResolved() && match(reference)){
-                update(getProperties(reference));
+                update(getProperties(reference), processingContext);
                 return true;
             }
             return false;
         }
 
-        protected final void handleService(final ServiceReference<?> reference, final int eventType){
-            handleService(getBundleContextByObject(this), reference, eventType);
+        protected final void handleService(final ServiceReference<?> reference, final int eventType, final Map<String, ?> handleContext){
+            handleService(getBundleContextByObject(this), reference, eventType, handleContext);
         }
 
-        private void handleService(final BundleContext context, final ServiceReference<?> reference, final int eventType) {
+        protected final void handleService(final ServiceReference<?> reference, final int eventType){
+            handleService(reference, eventType, Collections.<String, Object>emptyMap());
+        }
+
+        private void handleService(final BundleContext context,
+                                   final ServiceReference<?> reference,
+                                   final int eventType,
+                                   Map<String, ?> sharedContext) {
+            sharedContext = Collections.unmodifiableMap(sharedContext);
             switch (eventType){
                 case ServiceEvent.REGISTERED:
-                    bind(context, reference);
+                    bind(context, reference, sharedContext);
                 case ServiceEvent.UNREGISTERING:
                 case ServiceEvent.MODIFIED_ENDMATCH:
-                    unbind(context, reference);
+                    unbind(context, reference, sharedContext);
                 case ServiceEvent.MODIFIED:
-                    update(reference);
+                    update(reference, sharedContext);
             }
         }
     }
 
     /**
-     * Represents required service that can be shared between several provided services.
+     * Represents bundle-level dependency that is not bounded to the specified provided service.
      * @param <S> Type of the required service.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected abstract static class SharedDependency<S> extends RequiredService<S> implements ServiceListener{
+    protected abstract static class BundleLevelDependency<S> extends RequiredService<S> implements AllServiceListener{
 
         /**
          * Initializes a new dependency descriptor.
@@ -150,7 +167,7 @@ public abstract class AbstractBundleActivator implements BundleActivator {
          * @throws IllegalArgumentException
          *          dependencyType is {@literal null}.
          */
-        protected SharedDependency(final Class<S> dependencyType) {
+        protected BundleLevelDependency(final Class<S> dependencyType) {
             super(dependencyType);
         }
 
@@ -200,18 +217,54 @@ public abstract class AbstractBundleActivator implements BundleActivator {
          *
          * @param serviceInstance An instance of the resolved service.
          * @param properties      Service properties.
+         * @param processingContext A map that comes from the provided service that owns this dependency.
          */
         @Override
-        protected void bind(final S serviceInstance, final Dictionary<String, ?> properties) {
+        protected void bind(final S serviceInstance,
+                            final Dictionary<String, ?> properties,
+                            final Map<String, ?> processingContext) {
             this.serviceInstance = serviceInstance;
         }
 
         /**
          * Informs this dependency about detaching dependency.
+         * @param processingContext A map that comes from the provided service that owns this dependency.
          */
         @Override
-        protected final void unbind() {
+        protected void unbind(final Map<String, ?> processingContext) {
             serviceInstance = null;
+        }
+    }
+
+    /**
+     * Represents simple dependency that catches any service with matched contract.
+     * This class cannot be inherited.
+     * @param <S> Type of the requested service contract.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    protected static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
+        /**
+         * Initializes a new simple dependency descriptor.
+         * @param serviceContract Type of the requested service. Cannot be {@literal null}.
+         */
+        public SimpleDependency(final Class<S> serviceContract){
+            super(serviceContract);
+        }
+
+        /**
+         * Provides matching reference to the conditions of this dependency.
+         * <p>This method should be implemented in stateless manner.</p>
+         *
+         * @param reference The service reference to check.
+         * @return {@literal true}, if the specified reference matches to the dependency resolving conditions;
+         * otherwise, {@literal false}.
+         */
+        @Override
+        protected boolean match(final ServiceReference<?> reference) {
+            return true;
         }
     }
 
@@ -223,16 +276,16 @@ public abstract class AbstractBundleActivator implements BundleActivator {
      * @param <S> Contract of the provided service.
      * @param <T> Implementation of the provided service.
      */
-    protected static abstract class ProvidedService<S extends FrameworkService, T extends S> implements ServiceListener {
+    protected static abstract class ProvidedService<S extends FrameworkService, T extends S> implements AllServiceListener {
         /**
          * Represents service contract.
          */
         public final Class<S> serviceContract;
-        private final List<RequiredService<?>> dependencies;
+        private final List<RequiredService<?>> ownDependencies;
         private ServiceRegistration<S> registration;
         private T serviceInstance;
         /**
-         * Service activation context that comes from {@link AbstractBundleActivator#init(java.util.Map)} method.
+         * Service activation context that comes from {@link AbstractBundleActivator#init(java.util.Map, com.itworks.snamp.core.AbstractBundleActivator.ServiceRegistryProcessor, java.util.Collection)} method.
          */
         private final Map<String, Object> sharedContext;
 
@@ -245,25 +298,61 @@ public abstract class AbstractBundleActivator implements BundleActivator {
         protected ProvidedService(final Class<S> contract, final RequiredService<?>... dependencies){
             if(contract == null) throw new IllegalArgumentException("contract is null.");
             this.serviceContract = contract;
-            this.dependencies = Arrays.asList(dependencies);
+            this.ownDependencies = Arrays.asList(dependencies);
             this.serviceInstance = null;
             this.registration = null;
             this.sharedContext = new HashMap<>();
         }
 
         /**
-         * Gets property from the shared context that comes from {@link #init(java.util.Map)} method.
-         * @param propertyName The name of the property.
-         * @param propertyType The type of the property.
-         * @param <T> Type of the property value.
-         * @return The property value from the shared context; or, {@literal null} if property doesn' exist.
+         * Finds dependency by its type and required service contract.
+         * @param descriptor The dependency descriptor.
+         * @param serviceContract The service contract required by dependency.
+         * @param dependencies A collection of dependencies.
+         * @param <S> Type of the service contract.
+         * @param <D> Type of the dependency.
+         * @return Search result; or {@literal null} if dependency not found.
          */
-        protected final <T> T getSharedContextProperty(final String propertyName, final Class<T> propertyType){
-            if(sharedContext.containsKey(propertyName)){
-                final Object result = sharedContext.get(propertyName);
-                return propertyType.isInstance(result) ? propertyType.cast(result) : null;
-            }
-            else return null;
+        public static <S, D extends RequiredService<S>> D findDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
+            for(final RequiredService<?> dependency: dependencies)
+                if(descriptor.isInstance(dependency) && Objects.equals(dependency.dependencyContract, serviceContract))
+                    return descriptor.cast(dependency);
+            return null;
+        }
+
+        /**
+         * Finds dependency by its required service contract.
+         * @param serviceContract The service contract required by dependency.
+         * @param dependencies A collection of dependencies.
+         * @param <S> Type of the service contract.
+         * @return Search result; or {@literal null} if dependency not found.
+         */
+        @SuppressWarnings({"UnusedDeclaration", "unchecked"})
+        public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final RequiredService<?>... dependencies){
+            return findDependency(RequiredService.class, serviceContract, dependencies);
+        }
+
+        /**
+         * Obtains a service from the collection of dependencies.
+         * @param descriptor The dependency type that provides direct access to the requested service.
+         * @param serviceContract The service contract required by dependency.
+         * @param dependencies A collection of dependencies.
+         * @param <S> Type of the service contract.
+         * @param <D> Type of the dependency.
+         * @return The resolved service; or {@literal null} if it is not available.
+         */
+        @SuppressWarnings("UnusedDeclaration")
+        public static <S, D extends RequiredServiceAccessor<S>> S getDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
+            final D found = findDependency(descriptor, serviceContract, dependencies);
+            return found != null ? found.getService() : null;
+        }
+
+        /**
+         * Gets shared context that comes from {@link #init(java.util.Map, com.itworks.snamp.core.AbstractBundleActivator.ServiceRegistryProcessor, java.util.Collection)} method.
+         * @return The bundle shared context.
+         */
+        protected final Map<String, ?> getSharedContext(){
+            return sharedContext;
         }
 
         /**
@@ -275,15 +364,13 @@ public abstract class AbstractBundleActivator implements BundleActivator {
         public final void serviceChanged(final ServiceEvent event) {
             final BundleContext context = getBundleContextByObject(this);
             int resolvedDependencies = 0;
-            for(final RequiredService<?> dependency: dependencies){
-                dependency.handleService(context, event.getServiceReference(), event.getType());
+            for(final RequiredService<?> dependency: ownDependencies){
+                dependency.handleService(context, event.getServiceReference(), event.getType(), sharedContext);
                 if(dependency.isResolved()) resolvedDependencies += 1;
             }
             //determines whether all dependencies are resolved
-            if(resolvedDependencies == dependencies.size()){
-                serviceInstance = activateService(dependencies.toArray(new RequiredService[dependencies.size()]));
-                registration = context.registerService(serviceContract, serviceInstance, serviceInstance.getIdentity());
-            }
+            if(resolvedDependencies == ownDependencies.size())
+                activateAndRegisterService(context);
             else if(isPublished()){ //dependency lost, forces cleanup
                 registration.unregister();
                 registration = null;
@@ -308,19 +395,22 @@ public abstract class AbstractBundleActivator implements BundleActivator {
             return registration != null && serviceInstance != null;
         }
 
+        private void activateAndRegisterService(final BundleContext context){
+            final Hashtable<String, Object> identity = new Hashtable<>(3);
+            this.serviceInstance = activateService(identity, ownDependencies.toArray(new RequiredService[ownDependencies.size()]));
+            this.registration = context.registerService(serviceContract, serviceInstance, identity);
+        }
+
         private void register(final BundleContext context, final Map<String, Object> sharedState){
             this.sharedContext.putAll(sharedState);
-            if(dependencies.isEmpty()){
-                //instantiate and register service now because there is no dependencies
-                this.serviceInstance = activateService();
-                registration = context.registerService(serviceContract, serviceInstance, serviceInstance.getIdentity());
-            }
+            if(ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies
+                activateAndRegisterService(context);
             else  //dependency tracking required
                 context.addServiceListener(this);
         }
 
         private void unregister(final BundleContext context) throws Exception{
-            if(!dependencies.isEmpty()) context.removeServiceListener(this);
+            if(!ownDependencies.isEmpty()) context.removeServiceListener(this);
             if(registration != null) registration.unregister();
             registration = null;
             try{
@@ -329,9 +419,9 @@ public abstract class AbstractBundleActivator implements BundleActivator {
             finally {
                 this.serviceInstance = null;
                 //releases all dependencies
-                for(final RequiredService<?> dependency: dependencies)
-                    dependency.unbind(context);
-                dependencies.clear();
+                for(final RequiredService<?> dependency: ownDependencies)
+                    dependency.unbind(context, sharedContext);
+                ownDependencies.clear();
                 this.sharedContext.clear();
             }
         }
@@ -351,22 +441,89 @@ public abstract class AbstractBundleActivator implements BundleActivator {
 
         /**
          * Creates a new instance of the service.
+         * @param identity A dictionary of properties that uniquely identifies service instance.
          * @param dependencies A collection of dependencies.
          * @return A new instance of the service.
          */
-        protected abstract T activateService(final RequiredService<?>... dependencies);
+        protected abstract T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies);
     }
 
-    private final Collection<ProvidedService<?, ?>> providedServices;
+    /**
+     * Represents a holder of a collection of provided services.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static interface ProvidedServices{
+        /**
+         * Exposes all provided services via the input collection.
+         * @param services A collection of provided services to fill.
+         * @param sharedContext Shared context.
+         */
+        void provide(final Collection<ProvidedService<?, ?>> services, final Map<String, Object> sharedContext);
+    }
+
+    private static final class ListOfProvidedServices extends ArrayList<ProvidedService<?, ?>> implements ProvidedServices{
+
+        public ListOfProvidedServices(final ProvidedService<?, ?>... services){
+            super(Arrays.asList(services));
+        }
+
+        /**
+         * Exposes all provided services via the input collection.
+         *
+         * @param services      A collection of provided services to fill.
+         * @param sharedContext Shared context.
+         */
+        @Override
+        public void provide(final Collection<ProvidedService<?, ?>> services, final Map<String, Object> sharedContext) {
+            services.addAll(this);
+        }
+    }
+
+    /**
+     * Provides access to the OSGi service registry at bundle's initialization phase.
+     * <p>
+     *     You should not implement this interface directly in your code.
+     * </p>
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static interface ServiceRegistryProcessor{
+        /**
+         * Queries and processes the specified service obtained from OSGi service registry.
+         * @param serviceType Requested service contract descriptor.
+         * @param processor An object that handles the resolved service.
+         * @param <S> Type of the requested service contract.
+         */
+        <S> boolean processService(final Class<S> serviceType, final Closure<S> processor);
+    }
+
+    private final ProvidedServices serviceRegistry;
     private final Map<String, Object> sharedContext;
+    private final List<ProvidedService<?, ?>> providedServices;
+    private final List<BundleLevelDependency<?>> bundleDependencies;
 
     /**
      * Initializes a new bundle with the specified collection of provided services.
      * @param providedServices A collection of provided services.
      */
     protected AbstractBundleActivator(final ProvidedService<?, ?>... providedServices){
-        this.providedServices = Arrays.asList(providedServices);
+        this(new ListOfProvidedServices(providedServices));
+    }
+
+    /**
+     * Initializes a new bundle with the specified registry of provided services.
+     * @param providedServices A factory that exposes a collection of provided services. Cannot be {@literal null}.
+     * @throws java.lang.IllegalArgumentException providedServices is {@literal null}.
+     */
+    protected AbstractBundleActivator(final ProvidedServices providedServices){
+        if(providedServices == null) throw new IllegalArgumentException("providedServices is null.");
+        this.serviceRegistry = providedServices;
+        this.providedServices = new ArrayList<>(10);
         this.sharedContext = new HashMap<>(10);
+        this.bundleDependencies = new ArrayList<>(5);
     }
 
     /**
@@ -375,22 +532,11 @@ public abstract class AbstractBundleActivator implements BundleActivator {
      * @return {@literal true}, if the specified service of the specified contract is published
      *          by this bundle.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public final boolean isServiceExposed(final Class<? extends FrameworkService> serviceType){
         for(final ProvidedService<?, ?> providedService: providedServices)
             if(Objects.equals(serviceType, providedService.serviceContract)) return true;
         return false;
-    }
-
-    /**
-     * Gets a collection of shared dependencies stored in the shared context.
-     * @return A collection of shared dependencies.
-     */
-    protected final Collection<SharedDependency<?>> getSharedDependencies(){
-        final List<SharedDependency<?>> dependencies = new ArrayList<>(sharedContext.size());
-        for(final Object val: sharedContext.values())
-            if(val instanceof SharedDependency<?>)
-                dependencies.add((SharedDependency<?>)val);
-        return dependencies;
     }
 
     /**
@@ -399,10 +545,32 @@ public abstract class AbstractBundleActivator implements BundleActivator {
      *     In the default implementation this method does nothing.
      * </p>
      * @param sharedContext The activation context to initialize.
+     * @param serviceReg An object that provides access to the OSGi service registry.
+     * @param bundleLevelDependencies A collection of bundle-level dependencies.
+     * @throws java.lang.Exception Initialization failed.
      */
     @MethodStub
-    protected void init(final Map<String, Object> sharedContext){
+    protected void init(final Map<String, Object> sharedContext,
+                        final ServiceRegistryProcessor serviceReg,
+                        final Collection<BundleLevelDependency<?>> bundleLevelDependencies) throws Exception{
 
+    }
+
+    private static ServiceRegistryProcessor createRegistryProcessor(final BundleContext context){
+        return new ServiceRegistryProcessor() {
+            @Override
+            public <S> boolean processService(final Class<S> serviceType, final Closure<S> processor) {
+                final ServiceReference<S> ref = context.getServiceReference(serviceType);
+                if(ref == null) return false;
+                try{
+                    processor.execute(context.getService(ref));
+                }
+                finally {
+                    context.ungetService(ref);
+                }
+                return true;
+            }
+        };
     }
 
     /**
@@ -417,10 +585,11 @@ public abstract class AbstractBundleActivator implements BundleActivator {
      *         release all services used by this bundle.
      */
     public final void start(final BundleContext context) throws Exception {
-        init(sharedContext);
-        //init shared dependencies
-        for(final ServiceListener listener: getSharedDependencies())
+        init(sharedContext, createRegistryProcessor(context), bundleDependencies);
+        //init bundle-level dependencies
+        for(final ServiceListener listener: bundleDependencies)
             context.addServiceListener(listener);
+        serviceRegistry.provide(providedServices, sharedContext);
         //register provided service
         for(final ProvidedService<?, ?> service: providedServices)
             service.register(context, sharedContext);
@@ -440,10 +609,11 @@ public abstract class AbstractBundleActivator implements BundleActivator {
     public final void stop(final BundleContext context) throws Exception{
         for(final ProvidedService<?, ?> providedService: providedServices)
             providedService.unregister(context);
-        //disable shared dependencies
-        for(final ServiceListener listener: getSharedDependencies())
+        //disable bundle-level dependencies
+        for(final ServiceListener listener: bundleDependencies)
             context.removeServiceListener(listener);
         sharedContext.clear();
+        providedServices.clear();
     }
 
     /**

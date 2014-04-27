@@ -14,5 +14,6 @@ public interface TypeConverterResolver {
      * @return The converter for the specified type; or {@literal null}, if the converter for the specified type
      * is not supported.
      */
-    public <T> TypeConverter<T> getTypeConverter(final Class<T> t);
+    @SuppressWarnings("UnusedDeclaration")
+    <T> TypeConverter<T> getTypeConverter(final Class<T> t);
 }

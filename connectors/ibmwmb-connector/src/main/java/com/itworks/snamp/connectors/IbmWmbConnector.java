@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Connector class for IBM WebSphere Message Broker
- * exports some basic monitoring attributes of WMB
+ * exports some basic monitoring managementAttributes of WMB
  *
  * @author Oleg Chernovsky
  *
@@ -127,7 +127,7 @@ class IbmWmbConnector extends ManagementConnectorBean
 
     /**
      * We should check if broker instance is already populated by underlying server
-     * Otherwise we will get exceptions for all attributes
+     * Otherwise we will get exceptions for all managementAttributes
      *
      */
     @Override

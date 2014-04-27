@@ -38,7 +38,7 @@ public abstract class AbstractAggregator implements Aggregator {
 
     }
 
-    private final <T> T queryObject(final Class<?> inheritanceFrame, final Class<T> serviceType){
+    private <T> T queryObject(final Class<?> inheritanceFrame, final Class<T> serviceType){
         try{
             //iterates through fields
             for(final Field f: inheritanceFrame.getDeclaredFields())
