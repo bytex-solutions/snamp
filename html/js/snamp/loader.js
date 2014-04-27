@@ -21,7 +21,7 @@
     // filling the body of table
     for (var i = data.length - 1; i >= 0; i--) {
       var tr = $("<tr></tr>");
-      content = "<img src=\"" + data[i].status + ".png" +"\"/>";
+      content = "<img src=\"img/" + data[i].status + ".png" +"\"/>";
       tr.append("<td>" + content + "</td>");
 
       content = data[i].type;
@@ -40,7 +40,7 @@
       tbody.append(tr);
     };
 
-    table.append(tbody)
+    table.append(tbody);
 
     // Appending the table to the element
     table.appendTo(this);

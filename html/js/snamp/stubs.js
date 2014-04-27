@@ -9,4 +9,20 @@
     ];
     return bundleInfo;
   };
+
+  $.fn.getLicenseInfoByBundleName = function( name )
+  {
+  		switch(name)
+  		{
+  			case "JMX connector":
+  				return "Full license, includes up to 5 instances and 1 year of support subscribe (excluding on-demand development of additional features)";
+
+  			case "SNMP adapter":
+  				return "Full license, includes infinite count of instances and 2 years of full support";
+
+  			case "WMB connector" :
+  				return "Trial license, expires 5 days, includes 1 instance of connector";
+  		}
+  };
+
 })( jQuery );
