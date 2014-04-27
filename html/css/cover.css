@@ -130,6 +130,14 @@ body {
   font-size: 20px;
 }
 
+.table 
+{
+  text-align: left;
+ /* table-layout: fixed;*/
+}
+
+/*.table th, .table td { overflow: hidden; }*/
+
 
 /*
  * Affix and center
