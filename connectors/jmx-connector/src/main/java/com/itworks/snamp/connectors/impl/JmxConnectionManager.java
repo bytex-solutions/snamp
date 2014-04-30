@@ -21,13 +21,13 @@ import java.util.logging.*;
  */
 @Internal
 final class JmxConnectionManager implements Closeable {
+    private static final Logger logger = JmxConnectorHelpers.getLogger();
     public static final String RETRY_COUNT_PROPERTY = "retryCount";
     private final JMXServiceURL serviceURL;
     private final Map<String, Object> connectionProperties;
     private JMXConnector connection;
     private final Object coordinator;
     private final long connectionRetryCount;
-    private final Logger logger;
     private final List<MBeanServerConnectionHandler<Void>> reconnectionHandlers;
     private final ConnectionListener listener;
 
@@ -76,7 +76,7 @@ final class JmxConnectionManager implements Closeable {
         }
     }
 
-    public JmxConnectionManager(final Logger log, final JMXServiceURL connectionString, final Map<String, Object> connectionProperties){
+    public JmxConnectionManager(final JMXServiceURL connectionString, final Map<String, Object> connectionProperties){
         if(connectionString == null) throw new IllegalArgumentException("connectionString is null.");
         this.serviceURL = connectionString;
         this.connectionProperties = connectionProperties != null ? Collections.unmodifiableMap(connectionProperties) : new HashMap<String, Object>();
@@ -84,7 +84,6 @@ final class JmxConnectionManager implements Closeable {
         this.connectionRetryCount = this.connectionProperties.containsKey(RETRY_COUNT_PROPERTY) ?
             Long.valueOf(Objects.toString(this.connectionProperties.get(RETRY_COUNT_PROPERTY), "3")) :
             3L;
-        this.logger = log;
         this.reconnectionHandlers = new ArrayList<>(5);
         this.coordinator = new Object();
         this.connection = null;

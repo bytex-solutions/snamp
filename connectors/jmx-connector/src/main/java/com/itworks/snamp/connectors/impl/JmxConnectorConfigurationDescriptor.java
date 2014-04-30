@@ -26,7 +26,6 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
 
         public AttributeConfigurationInfo(){
             super(AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration.class, RESOURCE_NAME, OBJECT_NAME_PROPERTY);
-            final Object o = getClass().getResourceAsStream("JmxAttributeConfig.properties");
         }
 
         /**

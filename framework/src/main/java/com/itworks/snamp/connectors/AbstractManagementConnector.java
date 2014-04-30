@@ -768,7 +768,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      * @param options Attribute discovery options.
      * @return The description of the attribute.
      */
-    protected abstract GenericAttributeMetadata<?> connectAttributeCore(final String attributeName, final Map<String, String> options);
+    protected abstract GenericAttributeMetadata<?> connectAttribute(final String attributeName, final Map<String, String> options);
 
     /**
      * Connects to the specified attribute.
@@ -787,7 +787,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
                 //return existed attribute without exception to increase flexibility of the API
                 if(attributes.containsKey(id)) return attributes.get(id);
                 final GenericAttributeMetadata<?> attr;
-                if((attr = connectAttributeCore(attributeName, options)) != null)
+                if((attr = connectAttribute(attributeName, options)) != null)
                     attributes.put(id, attr);
                 return attr;
             }
@@ -912,10 +912,11 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
     /**
      * Removes the attribute from the connector.
      * @param id The unique identifier of the attribute.
+     * @param attributeInfo An attribute metadata.
      * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
      */
     @SuppressWarnings("UnusedParameters")
-    protected boolean disconnectAttributeCore(final String id){
+    protected boolean disconnectAttribute(final String id, final GenericAttributeMetadata<?> attributeInfo){
         return true;
     }
 
@@ -930,7 +931,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
         return attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Boolean>() {
             @Override
             public final Boolean invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
-                if (attributes.containsKey(id) && disconnectAttributeCore(id)) {
+                if (attributes.containsKey(id) && disconnectAttribute(id, attributes.get(id))) {
                     attributes.remove(id);
                     return true;
                 } else return false;
@@ -994,5 +995,14 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      */
     public static String getLoggerName(final String connectorName){
         return String.format("itworks.snamp.connectors.%s", connectorName);
+    }
+
+    /**
+     * Returns a logger associated with the specified management connector.
+     * @param connectorName The name of the connector.
+     * @return An instance of the logger.
+     */
+    public static Logger getLogger(final String connectorName){
+        return Logger.getLogger(getLoggerName(connectorName));
     }
 }

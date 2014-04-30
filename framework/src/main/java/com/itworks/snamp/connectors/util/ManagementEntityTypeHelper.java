@@ -25,6 +25,7 @@ public final class ManagementEntityTypeHelper {
      * @param projections An array of projections to check.
      * @return {@literal true}, if the specified management entity supports all of the specified projections; otherwise, {@literal false}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static boolean supportsAllProjections(final ManagementEntityType entityType, final Class<?>... projections){
         for(final Class<?> p: projections)
             if(!supportsProjection(entityType, p)) return false;
@@ -37,6 +38,7 @@ public final class ManagementEntityTypeHelper {
      * @param projections An array of projections to check.
      * @return {@literal true}, if the specified management entity supports one of the specified projections; otherwise, {@literal false}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static boolean supportsAnyProjection(final ManagementEntityType entityType, final Class<?>... projections){
         for(final Class<?> p: projections)
             if(supportsProjection(entityType, p)) return true;
@@ -95,6 +97,7 @@ public final class ManagementEntityTypeHelper {
      * @return Well-known representation of the management entity value.
      * @throws IllegalArgumentException {@code entityType} is {@literal null}.
      */
+    @SafeVarargs
     public static <T> T convertFrom(final ManagementEntityType entityType, final Object value, final Class<T> baseType, final ConversionFallback<T> fallback, final Class<? extends T>... projections){
         if(entityType == null) throw new IllegalArgumentException("entityType is null.");
         else if(projections == null || projections.length == 0) return convertFrom(entityType, value, baseType);
@@ -102,8 +105,7 @@ public final class ManagementEntityTypeHelper {
             if(proj.isInstance(value)) return proj.cast(value);
             else {
                 final TypeConverter<? extends T> converter = entityType.getProjection(proj);
-                if(converter == null) continue;
-                else return converter.convertFrom(value);
+                if(converter != null) return converter.convertFrom(value);
             }
         return fallback.call();
     }
@@ -118,6 +120,8 @@ public final class ManagementEntityTypeHelper {
      * @return Well-known representation of the management entity value.
      * @throws IllegalArgumentException {@code entityType} is {@literal null}; or the specified conversion is not supported.
      */                                                      // assertEquals(response.getResponse().getErrorStatusText(),PDU.noError);
+    @SuppressWarnings("UnusedDeclaration")
+    @SafeVarargs
     public static <T> T convertFrom(final ManagementEntityType entityType, final Object value, final Class<T> baseType, final Class<? extends T>... projections) throws IllegalArgumentException{
         return convertFrom(entityType, value, baseType, new ConversionFallback<T>() {
             @Override
@@ -137,6 +141,8 @@ public final class ManagementEntityTypeHelper {
      * @return Well-known representation of the management entity value.
      * @throws IllegalArgumentException {@code entityType} is {@literal null}.
      */
+    @SuppressWarnings("UnusedDeclaration")
+    @SafeVarargs
     public static <T> T convertFrom(final ManagementEntityType entityType, final Object value, final T defaultValue, final Class<T> baseType, final Class<? extends T>... projections){
         return convertFrom(entityType, value, baseType, new ConversionFallback<T>() {
             @Override
@@ -151,6 +157,7 @@ public final class ManagementEntityTypeHelper {
      * @param entityType Tabular management entity type. Cannot be {@literal null}.
      * @return A read-only collection of indexed columns.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static Collection<String> getIndexedColumns(final ManagementEntityTabularType entityType){
         final Collection<String> index = new ArrayList<>(entityType.getColumns().size());
         for(final String indexedColumn: entityType.getColumns())

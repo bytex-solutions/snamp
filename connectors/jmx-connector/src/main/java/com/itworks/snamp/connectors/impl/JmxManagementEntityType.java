@@ -11,8 +11,8 @@ import com.itworks.snamp.connectors.ManagementEntityType;
 interface JmxManagementEntityType extends ManagementEntityType {
     /**
      * Converts well-known management entity value into JMX-specific value.
-     * @param value
-     * @return
+     * @param value The value to convert.
+     * @return JMX-compliant representation of the input object.
      */
     public Object convertToJmxType(final Object value);
 }

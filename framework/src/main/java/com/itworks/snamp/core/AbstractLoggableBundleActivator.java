@@ -38,8 +38,18 @@ public abstract class AbstractLoggableBundleActivator extends AbstractBundleActi
          * @param loggerName The name of the logger.
          */
         public LoggerServiceDependency(final String loggerName){
+            this(Logger.getLogger(loggerName));
+        }
+
+        /**
+         * Initializes a new {@link LogService} dependency descriptor.
+         * @param loggerInstance A logger to wrap. Cannot be {@literal null}.
+         * @throws java.lang.IllegalArgumentException loggerInstance is {@literal null}.
+         */
+        public LoggerServiceDependency(final Logger loggerInstance){
             super(LogService.class);
-            logger = Logger.getLogger(loggerName);
+            if(loggerInstance == null) throw new IllegalArgumentException("loggerInstance is null.");
+            this.logger = loggerInstance;
         }
 
         /**
@@ -132,6 +142,27 @@ public abstract class AbstractLoggableBundleActivator extends AbstractBundleActi
     protected AbstractLoggableBundleActivator(final String loggerName, final ProvidedServices providedServices){
         super(providedServices);
         loggerDependency = new LoggerServiceDependency(loggerName);
+    }
+
+    /**
+     * Initializes a new instance of the bundle activator.
+     * @param loggerInstance An instance of the logger to be attached to {@link LogService} service.
+     * @param providedServices A collection of provided services.
+     */
+    protected AbstractLoggableBundleActivator(final Logger loggerInstance, final ProvidedService<?, ?>... providedServices){
+        super(providedServices);
+        loggerDependency = new LoggerServiceDependency(loggerInstance);
+    }
+
+    /**
+     * Initializes a new instance of the bundle activator.
+     * @param loggerInstance An instance of the logger to be attached to {@link LogService} service.
+     * @param providedServices A collection of provided services. Cannot be {@literal null}.
+     * @throws java.lang.IllegalArgumentException providedServices is {@literal null}.
+     */
+    protected AbstractLoggableBundleActivator(final Logger loggerInstance, final ProvidedServices providedServices){
+        super(providedServices);
+        loggerDependency = new LoggerServiceDependency(loggerInstance);
     }
 
     /**

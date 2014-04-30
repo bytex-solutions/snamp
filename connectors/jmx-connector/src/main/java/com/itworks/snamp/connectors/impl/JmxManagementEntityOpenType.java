@@ -12,7 +12,8 @@ import javax.management.openmbean.OpenType;
 interface JmxManagementEntityOpenType<T> extends JmxManagementEntityType {
     /**
      * Returns Open MBean type associated with this management entity type.
-     * @return
+     * @return JMX-compliant representation of the well-known type.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public OpenType<T> getOpenType();
 }

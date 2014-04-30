@@ -24,7 +24,7 @@ public abstract class AbstractBundleActivator implements BundleActivator {
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class RequiredService<S> {
+    public static abstract class RequiredService<S> {
         private final Class<S> dependencyContract;
         private ServiceReference<?> reference;
 
@@ -189,7 +189,7 @@ public abstract class AbstractBundleActivator implements BundleActivator {
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class RequiredServiceAccessor<S> extends RequiredService<S>{
+    public static abstract class RequiredServiceAccessor<S> extends RequiredService<S>{
         private S serviceInstance;
 
         /**
@@ -244,8 +244,7 @@ public abstract class AbstractBundleActivator implements BundleActivator {
      * @since 1.0
      * @version 1.0
      */
-    @SuppressWarnings("UnusedDeclaration")
-    protected static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
+    public static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
         /**
          * Initializes a new simple dependency descriptor.
          * @param serviceContract Type of the requested service. Cannot be {@literal null}.
@@ -276,7 +275,7 @@ public abstract class AbstractBundleActivator implements BundleActivator {
      * @param <S> Contract of the provided service.
      * @param <T> Implementation of the provided service.
      */
-    protected static abstract class ProvidedService<S extends FrameworkService, T extends S> implements AllServiceListener {
+    public static abstract class ProvidedService<S extends FrameworkService, T extends S> implements AllServiceListener {
         /**
          * Represents service contract.
          */
@@ -305,49 +304,6 @@ public abstract class AbstractBundleActivator implements BundleActivator {
         }
 
         /**
-         * Finds dependency by its type and required service contract.
-         * @param descriptor The dependency descriptor.
-         * @param serviceContract The service contract required by dependency.
-         * @param dependencies A collection of dependencies.
-         * @param <S> Type of the service contract.
-         * @param <D> Type of the dependency.
-         * @return Search result; or {@literal null} if dependency not found.
-         */
-        public static <S, D extends RequiredService<S>> D findDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
-            for(final RequiredService<?> dependency: dependencies)
-                if(descriptor.isInstance(dependency) && Objects.equals(dependency.dependencyContract, serviceContract))
-                    return descriptor.cast(dependency);
-            return null;
-        }
-
-        /**
-         * Finds dependency by its required service contract.
-         * @param serviceContract The service contract required by dependency.
-         * @param dependencies A collection of dependencies.
-         * @param <S> Type of the service contract.
-         * @return Search result; or {@literal null} if dependency not found.
-         */
-        @SuppressWarnings({"UnusedDeclaration", "unchecked"})
-        public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final RequiredService<?>... dependencies){
-            return findDependency(RequiredService.class, serviceContract, dependencies);
-        }
-
-        /**
-         * Obtains a service from the collection of dependencies.
-         * @param descriptor The dependency type that provides direct access to the requested service.
-         * @param serviceContract The service contract required by dependency.
-         * @param dependencies A collection of dependencies.
-         * @param <S> Type of the service contract.
-         * @param <D> Type of the dependency.
-         * @return The resolved service; or {@literal null} if it is not available.
-         */
-        @SuppressWarnings("UnusedDeclaration")
-        public static <S, D extends RequiredServiceAccessor<S>> S getDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
-            final D found = findDependency(descriptor, serviceContract, dependencies);
-            return found != null ? found.getService() : null;
-        }
-
-        /**
          * Gets shared context that comes from {@link #init(java.util.Map, com.itworks.snamp.core.AbstractBundleActivator.ServiceRegistryProcessor, java.util.Collection)} method.
          * @return The bundle shared context.
          */
@@ -370,7 +326,12 @@ public abstract class AbstractBundleActivator implements BundleActivator {
             }
             //determines whether all dependencies are resolved
             if(resolvedDependencies == ownDependencies.size())
-                activateAndRegisterService(context);
+                try {
+                    activateAndRegisterService(context);
+                } catch (final Exception e) {
+                    throw new ServiceException(String.format("Unable to activate %s service", serviceContract),
+                            ServiceException.FACTORY_EXCEPTION, e);
+                }
             else if(isPublished()){ //dependency lost, forces cleanup
                 registration.unregister();
                 registration = null;
@@ -395,13 +356,13 @@ public abstract class AbstractBundleActivator implements BundleActivator {
             return registration != null && serviceInstance != null;
         }
 
-        private void activateAndRegisterService(final BundleContext context){
+        private void activateAndRegisterService(final BundleContext context) throws Exception{
             final Hashtable<String, Object> identity = new Hashtable<>(3);
             this.serviceInstance = activateService(identity, ownDependencies.toArray(new RequiredService[ownDependencies.size()]));
             this.registration = context.registerService(serviceContract, serviceInstance, identity);
         }
 
-        private void register(final BundleContext context, final Map<String, Object> sharedState){
+        private void register(final BundleContext context, final Map<String, Object> sharedState) throws Exception{
             this.sharedContext.putAll(sharedState);
             if(ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies
                 activateAndRegisterService(context);
@@ -445,7 +406,7 @@ public abstract class AbstractBundleActivator implements BundleActivator {
          * @param dependencies A collection of dependencies.
          * @return A new instance of the service.
          */
-        protected abstract T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies);
+        protected abstract T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception;
     }
 
     /**
@@ -460,7 +421,7 @@ public abstract class AbstractBundleActivator implements BundleActivator {
          * @param services A collection of provided services to fill.
          * @param sharedContext Shared context.
          */
-        void provide(final Collection<ProvidedService<?, ?>> services, final Map<String, Object> sharedContext);
+        void provide(final Collection<ProvidedService<?, ?>> services, final Map<String, ?> sharedContext);
     }
 
     private static final class ListOfProvidedServices extends ArrayList<ProvidedService<?, ?>> implements ProvidedServices{
@@ -476,7 +437,7 @@ public abstract class AbstractBundleActivator implements BundleActivator {
          * @param sharedContext Shared context.
          */
         @Override
-        public void provide(final Collection<ProvidedService<?, ?>> services, final Map<String, Object> sharedContext) {
+        public void provide(final Collection<ProvidedService<?, ?>> services, final Map<String, ?> sharedContext) {
             services.addAll(this);
         }
     }
@@ -614,6 +575,49 @@ public abstract class AbstractBundleActivator implements BundleActivator {
             context.removeServiceListener(listener);
         sharedContext.clear();
         providedServices.clear();
+    }
+
+    /**
+     * Finds dependency by its type and required service contract.
+     * @param descriptor The dependency descriptor.
+     * @param serviceContract The service contract required by dependency.
+     * @param dependencies A collection of dependencies.
+     * @param <S> Type of the service contract.
+     * @param <D> Type of the dependency.
+     * @return Search result; or {@literal null} if dependency not found.
+     */
+    public static <S, D extends RequiredService<S>> D findDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
+        for(final RequiredService<?> dependency: dependencies)
+            if(descriptor.isInstance(dependency) && Objects.equals(dependency.dependencyContract, serviceContract))
+                return descriptor.cast(dependency);
+        return null;
+    }
+
+    /**
+     * Finds dependency by its required service contract.
+     * @param serviceContract The service contract required by dependency.
+     * @param dependencies A collection of dependencies.
+     * @param <S> Type of the service contract.
+     * @return Search result; or {@literal null} if dependency not found.
+     */
+    @SuppressWarnings({"UnusedDeclaration", "unchecked"})
+    public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final RequiredService<?>... dependencies){
+        return findDependency(RequiredService.class, serviceContract, dependencies);
+    }
+
+    /**
+     * Obtains a service from the collection of dependencies.
+     * @param descriptor The dependency type that provides direct access to the requested service.
+     * @param serviceContract The service contract required by dependency.
+     * @param dependencies A collection of dependencies.
+     * @param <S> Type of the service contract.
+     * @param <D> Type of the dependency.
+     * @return The resolved service; or {@literal null} if it is not available.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public static <S, D extends RequiredServiceAccessor<S>> S getDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
+        final D found = findDependency(descriptor, serviceContract, dependencies);
+        return found != null ? found.getService() : null;
     }
 
     /**

@@ -5,7 +5,6 @@ import com.itworks.snamp.connectors.*;
 import com.itworks.snamp.core.maintenance.*;
 import com.itworks.snamp.internal.MethodStub;
 
-import static com.itworks.snamp.internal.ReflectionUtils.weakReference;
 import com.itworks.snamp.connectors.util.NotificationListenerInvokerFactory;
 import org.apache.commons.beanutils.PropertyUtils;
 
@@ -14,9 +13,9 @@ import static com.itworks.snamp.connectors.impl.JmxConnectorConfigurationDescrip
 
 import javax.management.*;
 import javax.management.openmbean.*;
-import javax.management.remote.*;
 import java.beans.*;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -26,16 +25,16 @@ import java.util.logging.*;
  * Represents JMX connector.
  * @author Roman Sakno
  */
-@SuppressWarnings("unchecked")
-final class JmxConnector extends AbstractManagementConnector implements NotificationSupport, Maintainable {
+final class JmxConnector extends AbstractManagementConnector<JmxConnectionOptions> implements NotificationSupport, Maintainable {
     /**
      * Represents JMX connector name.
      */
-    public static final String NAME = "jmx";
-    private static final Logger log = AbstractManagementConnectorFactory.getLogger(NAME);
+    public static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
+    private static final Logger logger = JmxConnectorHelpers.getLogger();
     private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
 
     private static enum JmxMaintenanceActions implements MaintenanceActionInfo {
+        @SuppressWarnings("UnusedDeclaration")
         SIMULATE_CONNECTION_ABORT("simulateConnectionAbort");
 
         private final String name;
@@ -75,16 +74,14 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
          * Represents owner of this notification metadata.
          */
         public final ObjectName eventOwner;
-        private final MBeanNotificationInfo eventMetadata;
+
 
         public JmxNotificationMetadata(final String notifType,
-                                       final MBeanNotificationInfo notificationInfo,
                                        final ObjectName eventOwner,
                                        final Map<String, String> options){
             super(notifType);
             this.options = Collections.unmodifiableMap(options);
             this.eventOwner = eventOwner;
-            this.eventMetadata = notificationInfo;
             this.executor = Executors.newSingleThreadExecutor();
         }
 
@@ -113,7 +110,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             fire(new JmxNotificationWrapper(getSeverity(), n), NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
                 @Override
                 public final void handle(final Throwable e, final NotificationListener source) {
-                    log.log(Level.SEVERE, "Unable to process JMX notification.", e);
+                    logger.log(Level.SEVERE, "Unable to process JMX notification.", e);
                 }
             }));
         }
@@ -164,16 +161,19 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             return options.get(key);
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Set<String> keySet() {
             return options.keySet();
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Collection<String> values() {
             return options.values();
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Set<Entry<String, String>> entrySet() {
             return options.entrySet();
@@ -219,48 +219,51 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             }, null);
         }
 
-        /**
-         * Adds a new listener for the specified notification.
-         *
-         * @param notificationType The event type.
-         * @param listener         The event listener.
-         */
-        @Override
-        @MethodStub
-        protected final Object subscribeCore(final NotificationMetadata notificationType, final NotificationListener listener) {
-            return null;
-        }
 
-        /**
-         * Cancels the notification listening.
-         *
-         * @param metadata The event type.
-         * @param listener The notification listener to remove.
-         * @param data     The custom data associated with subscription that returned from {@link #subscribeCore(com.itworks.snamp.connectors.NotificationMetadata, com.itworks.snamp.connectors.NotificationSupport.NotificationListener)}
-         *                 method.
-         */
-        @Override
-        @MethodStub
-        protected final void unsubscribeCore(final NotificationMetadata metadata, final NotificationListener listener, final Object data) {
 
-        }
-
-        private void disableNotificationsCore(final JmxNotificationMetadata notificationType){
+        private void disableNotifications(final JmxNotificationMetadata notificationType){
             final Set<ObjectName> targets = getNotificationTargets();
             if(!targets.contains(notificationType.eventOwner))
                 disableListening(notificationType.eventOwner);
         }
 
         /**
+         * Adds a new listener for the specified notification.
+         *
+         * @param listener The event listener.
+         * @return Any custom data associated with the subscription.
+         */
+        @Override
+        @MethodStub
+        protected Object subscribe(final NotificationListener listener) {
+            return null;
+        }
+
+        /**
+         * Cancels the notification listening.
+         *
+         * @param listener The notification listener to remove.
+         * @param data     The custom data associated with subscription that returned from {@link #subscribe(com.itworks.snamp.connectors.NotificationSupport.NotificationListener)}
+         */
+        @Override
+        @MethodStub
+        protected void unsubscribe(final NotificationListener listener, final Object data) {
+
+        }
+
+        /**
          * Disable all notifications associated with the specified event.
+         * <p>
+         * In the default implementation this method does nothing.
+         * </p>
          *
          * @param notificationType The event descriptor.
          */
         @Override
-        protected final void disableNotificationsCore(final NotificationMetadata notificationType) {
+        protected void disableNotifications(final GenericNotificationMetadata notificationType) {
             //remove JMX listener if there is no one active MBean listener
             if(notificationType instanceof JmxNotificationMetadata)
-                disableNotificationsCore((JmxNotificationMetadata)notificationType);
+                disableNotifications((JmxNotificationMetadata) notificationType);
         }
 
         /**
@@ -271,7 +274,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
          * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
          */
         @Override
-        protected final GenericNotificationMetadata enableNotificationsCore(final String category, final Map<String, String> options) {
+        protected final GenericNotificationMetadata enableNotifications(final String category, final Map<String, String> options) {
             final JmxNotificationMetadata eventData = connectionManager.handleConnection(new MBeanServerConnectionHandler<JmxNotificationMetadata>() {
                 @Override
                 public JmxNotificationMetadata handle(final MBeanServerConnection connection) throws IOException, JMException {
@@ -280,7 +283,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                         for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(on).getNotifications())
                             for (final String notifType : notificationInfo.getNotifTypes())
                                 if (Objects.equals(notifType, category))
-                                    return new JmxNotificationMetadata(notifType, notificationInfo, on, options);
+                                    return new JmxNotificationMetadata(notifType, on, options);
                         return null;
                     } else return null;
                 }
@@ -294,7 +297,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             return eventData;
         }
 
-        private final void handleNotification(final ObjectName source, final javax.management.Notification notification){
+        private void handleNotification(final ObjectName source, final javax.management.Notification notification){
             final Map<String, JmxNotificationMetadata> enabledNotifs = getEnabledNotifications(notification.getType(), JmxNotificationMetadata.class);
             for(final JmxNotificationMetadata eventMetadata: enabledNotifs.values())
                 if(source.equals(eventMetadata.eventOwner)) eventMetadata.fire(notification);
@@ -305,7 +308,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             //iterates through all listeners and executes it
             if(notification.getSource() instanceof ObjectName)
                 handleNotification((ObjectName)notification.getSource(), notification);
-            else log.warning(String.format("Unable to handle notification %s because source is unknown", notification));
+            else logger.warning(String.format("Unable to handle notification %s because source is unknown", notification));
         }
 
         public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
@@ -325,10 +328,6 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
      * Represents count of instantiated connectors.
      */
     private static final AtomicLong instanceCounter = new AtomicLong(0);
-
-    private final JmxConnectionManager connectionManager;
-    private final JmxNotificationSupport notifications;
-    private final Maintainable maintenance;
 
     /**
      * Represents field navigator in the composite JMX data.
@@ -357,19 +356,12 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             this.path = Arrays.copyOfRange(parts, 1, parts.length);
         }
 
-        /**
-         * Returns the path depth.
-         * @return
-         */
+        @SuppressWarnings("UnusedDeclaration")
         public int depth(){
             return path.length;
         }
 
-        /**
-         * Returns the subfield name by depth index.
-         * @param index
-         * @return
-         */
+        @SuppressWarnings("UnusedDeclaration")
         public String item(int index)
         {
             return path[index];
@@ -385,11 +377,6 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             else return root;
         }
 
-        /**
-         * Получить значение вложенного атрибута.
-         * @param root
-         * @return
-         */
         public Object getValue(final Object root)
         {
             return getValue(root, 0);
@@ -405,11 +392,6 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             else return root;
         }
 
-        /**
-         * Returns a type of the inner field.
-         * @param root
-         * @return String or OpenType.
-         */
         public Object getType(final OpenType<?> root)
         {
             return getType(root, 0);
@@ -426,8 +408,8 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
 
         /**
          * Determines whether the attribute name contains subfield path.
-         * @param attributeName
-         * @return
+         * @param attributeName The name of the attribute.
+         * @return {@literal true}, if the specified attribute is a decomposition; otherwise, {@literal false}.
          */
         public static boolean isCompositeAttribute(final String attributeName)
         {
@@ -441,8 +423,9 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     public static interface JmxAttributeMetadata extends AttributeMetadata {
         /**
          * Returns the object name in which the current attribute is located.
-         * @return
+         * @return The owner of this attribute.
          */
+        @SuppressWarnings("UnusedDeclaration")
         public ObjectName getOwner();
 
         /**
@@ -466,16 +449,10 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                                        final String attributeName,
                                        final ObjectName namespace,
                                        final Map<String, String> options){
-            super(attributeName, namespace.toString());
+            super(attributeName);
             this.connectionManager = manager;
             this.namespace = namespace;
             this.options = options != null ? Collections.unmodifiableMap(options) : Collections.<String, String>emptyMap();
-        }
-
-        protected JmxAttributeProvider(final JmxConnectionManager manager,
-                                       final String attributeName,
-                                       final ObjectName namespace){
-            this(manager, attributeName, namespace, null);
         }
 
         @Override
@@ -508,16 +485,19 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             return options.get(option);
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Set<String> keySet() {
             return options.keySet();
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Collection<String> values() {
             return options.values();
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public final Set<Entry<String, String>> entrySet() {
             return options.entrySet();
@@ -525,19 +505,19 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
 
         /**
          * Creates a new instance of the attribute value reader.
-         * @return
+         * @return A new instance of the attribute value reader.
          */
         protected abstract MBeanServerConnectionHandler<Object> createAttributeValueReader();
 
         /**
          * Creates a new instance of the attribute value writer.
-         * @return
+         * @return A new instance of the attribute value writer.
          */
         protected abstract MBeanServerConnectionHandler<Boolean> createAttributeValueWriter(final Object value);
 
         /**
          * Returns the attribute owner.
-         * @return
+         * @return An owner of this attribute.
          */
         public final ObjectName getOwner(){
             return namespace;
@@ -545,8 +525,9 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
 
         /**
          * Returns the value of the attribute.
-         * @param defval
-         * @return
+         * @param defval The default value returned from this method if attribute value
+         *               is not directly accessible,
+         * @return The value of the attribute.
          */
         public final Object getValue(final Object defval){
             if(canRead()){
@@ -558,8 +539,8 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
 
         /**
          * Writes the value to the attribute.
-         * @param value
-         * @return
+         * @param value The value to write.
+         * @return {@literal true}, if value is written successfully; otherwise, {@literal false}.
          */
         public final boolean setValue(Object value){
             final JmxManagementEntityType typeInfo = getType();
@@ -569,7 +550,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                     return connectionManager.handleConnection(createAttributeValueWriter(value), false);
                 }
                 catch (final IllegalArgumentException e){
-                    log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
                     return false;
                 }
             else return false;
@@ -589,7 +570,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                     put(property.getName(), PropertyUtils.getProperty(jmxNotification, property.getName()));
             }
             catch (final java.beans.IntrospectionException | ReflectiveOperationException e) {
-                log.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);
+                logger.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);
             }
         }
 
@@ -662,21 +643,11 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                 return targetAttr.isWritable();
             }
 
-            /**
-             * By default, returns {@literal true}.
-             *
-             * @return
-             */
             @Override
             public boolean canRead() {
                 return targetAttr.isReadable();
             }
 
-            /**
-             * Creates a new instance of the attribute value reader.
-             *
-             * @return
-             */
             @Override
             protected final MBeanServerConnectionHandler<Object> createAttributeValueReader() {
                 return new MBeanServerConnectionHandler<Object>(){
@@ -686,11 +657,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                     }
                 };
             }
-            /**
-             * Creates a new instance of the attribute value writer.
-             *
-             * @return
-             */
+
             @Override
             protected final MBeanServerConnectionHandler<Boolean> createAttributeValueWriter(final Object value) {
                 return new MBeanServerConnectionHandler<Boolean>(){
@@ -738,11 +705,6 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                 return targetAttr.getDescription();
             }
 
-            /**
-             * Creates a new instance of the attribute value reader.
-             *
-             * @return
-             */
             @Override
             protected final MBeanServerConnectionHandler<Object> createAttributeValueReader() {
                 return new MBeanServerConnectionHandler<Object>(){
@@ -753,11 +715,6 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
                 };
             }
 
-            /**
-             * The writer for the composite data structure is not supported.
-             *
-             * @return
-             */
             @Override
             protected final MBeanServerConnectionHandler<Boolean> createAttributeValueWriter(Object value) {
                 return new MBeanServerConnectionHandler<Boolean>() {
@@ -786,37 +743,42 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
             public ObjectName handle(final MBeanServerConnection connection) throws IOException, JMException {
 
                 final Set<ObjectInstance> beans = connection.queryMBeans(namespace, null);
-
-                for (final ObjectInstance instance : beans) return instance.getObjectName();
-                return null;
+                return beans.size() > 0 ? beans.iterator().next().getObjectName() : null;
             }
         }, null);
     }
 
-    /**
-     * Initializes a new connector and established connection to the JMX provider.
-     * @param serviceURL JMX connection string.
-     * @param connectionProperties JMX connection properties(such as credentials).
-     * @exception IllegalArgumentException Could not establish connection to JMX provider.
-     */
-    public JmxConnector(final JMXServiceURL serviceURL, final Map<String, Object> connectionProperties){
-        if(serviceURL == null) throw new IllegalArgumentException("serviceURL is null.");
-        JmxConnectorLimitations.current().verifyMaxInstanceCount(instanceCounter.incrementAndGet());
-        this.connectionManager = new JmxConnectionManager(log, serviceURL, connectionProperties);
-        this.notifications = new JmxNotificationSupport(this.connectionManager);
-        //create maintainer
-        this.maintenance = weakReference(new AbstractMaintainable<JmxMaintenanceActions>(JmxMaintenanceActions.class) {
+    private static Maintainable createMaintainable(final JmxConnectionManager connectionManager){
+        return new AbstractMaintainable<JmxMaintenanceActions>(JmxMaintenanceActions.class) {
             @Override
             protected final Object[] parseArguments(final JmxMaintenanceActions action, final String arguments, final Locale loc) {
                 return new Object[0];
             }
 
+            @SuppressWarnings("UnusedDeclaration")
             @Action
             public final String simulateConnectionAbort(){
                 connectionManager.simulateConnectionAbort();
                 return "OK";
             }
-        }, Maintainable.class);
+        };
+    }
+
+    private final JmxConnectionManager connectionManager;
+    private final JmxNotificationSupport notifications;
+    private final Maintainable maintenance;
+
+    public JmxConnector(final JmxConnectionOptions connectionOptions){
+        super(connectionOptions, logger);
+        JmxConnectorLimitations.current().verifyMaxInstanceCount(instanceCounter.incrementAndGet());
+        this.connectionManager = connectionOptions.createConnectionManager();
+        this.notifications = new JmxNotificationSupport(this.connectionManager);
+        //create maintainer
+        this.maintenance = createMaintainable(connectionManager);
+    }
+
+    public JmxConnector(final String connectionString, final Map<String, String> connectionOptions) throws MalformedURLException {
+        this(new JmxConnectionOptions(connectionString, connectionOptions));
     }
 
     private static boolean useRegexpOption(final Map<String, String> options){
@@ -828,7 +790,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
         if(namespace == null) return null;
         if(CompositeValueNavigator.isCompositeAttribute(attributeName))
             return createCompositeAttribute(namespace, attributeName, options);
-        else if(useRegexpOption(options)) return connectAttribute(findObjectName(namespace), attributeName, options, false);
+        else if(useRegexp) return connectAttribute(findObjectName(namespace), attributeName, options, false);
         else return createPlainAttribute(namespace, attributeName, options);
     }
 
@@ -844,12 +806,13 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
      * @return The description of the attribute.
      */
     @Override
-    protected JmxAttributeProvider connectAttributeCore(final String attributeName, final Map<String, String> options){
+    protected JmxAttributeProvider connectAttribute(final String attributeName, final Map<String, String> options){
+
         final String namespace = Objects.toString(options.get(OBJECT_NAME_PROPERTY), "");
         try {
             return connectAttribute(new ObjectName(namespace), attributeName, options);
         } catch (final MalformedObjectNameException e) {
-            log.log(Level.SEVERE, String.format("Unsupported JMX object name: %s", namespace), e);
+            logger.log(Level.SEVERE, String.format("Unsupported JMX object name: %s", namespace), e);
             return null;
         }
         finally {
@@ -861,7 +824,7 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
      * Returns the value of the attribute.
      *
      * @param attribute    The metadata of the attribute to get.
-     * @param readTimeout
+     * @param readTimeout Read operation timeout.
      * @param defaultValue The default value of the attribute if reading fails.
      * @return The value of the attribute.
      * @throws java.util.concurrent.TimeoutException
@@ -876,9 +839,9 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
      * Sends the attribute value to the remote agent.
      *
      * @param attribute    The metadata of the attribute to set.
-     * @param writeTimeout
-     * @param value
-     * @return
+     * @param writeTimeout Write operation timeout.
+     * @param value The value to write.
+     * @return {@literal true}, if attribute is written successfully.
      */
     @Override
     protected final boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
@@ -932,23 +895,32 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
     }
 
     /**
-     * Attaches the notification listener.
+     * Returns a read-only collection of enabled notifications (subscription list identifiers).
      *
-     * @param listenerId An identifier of the notification listener.
-     * @param listId   The identifier of the subscription list.
-     * @param listener The notification listener.
-     * @return An identifier of the notification listener generated by this connector.
+     * @return A read-only collection of enabled notifications (subscription list identifiers).
      */
     @Override
-    public final boolean subscribe(final String listenerId, final String listId, final NotificationListener listener) {
+    public Collection<String> getEnabledNotifications() {
+        return notifications.getEnabledNotifications();
+    }
+
+    /**
+     * Attaches the notification listener.
+     *
+     * @param listenerId Unique identifier of the listener.
+     * @param listener   The notification listener.
+     * @return {@literal true}, if listener is added successfully; otherwise, {@literal false}.
+     */
+    @Override
+    public boolean subscribe(final String listenerId, final NotificationListener listener) {
         verifyInitialization();
-        return notifications.subscribe(listenerId, listId, listener);
+        return notifications.subscribe(listenerId, listener);
     }
 
     /**
      * Removes the notification listener.
      *
-     * @param listenerId An identifier previously passed to {@link #subscribe(String, String, com.itworks.snamp.connectors.NotificationSupport.NotificationListener)}.
+     * @param listenerId An identifier previously passed to {@link #subscribe(String, com.itworks.snamp.connectors.NotificationSupport.NotificationListener)}.
      * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
      */
     @Override
@@ -978,8 +950,9 @@ final class JmxConnector extends AbstractManagementConnector implements Notifica
      * Releases all resources associated with this connector.
      */
     @Override
-    protected final void finalize() {
+    protected final void finalize() throws Throwable{
         instanceCounter.decrementAndGet();
+        super.finalize();
     }
 
     /**

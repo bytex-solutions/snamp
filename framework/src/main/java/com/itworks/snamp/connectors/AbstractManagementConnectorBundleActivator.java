@@ -2,7 +2,8 @@ package com.itworks.snamp.connectors;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.*;
-import com.itworks.snamp.configuration.ConfigurationManager;
+
+import com.itworks.snamp.configuration.*;
 import com.itworks.snamp.core.AbstractLoggableBundleActivator;
 import org.apache.commons.collections4.*;
 import org.apache.commons.lang3.ArrayUtils;
@@ -14,6 +15,7 @@ import org.osgi.service.event.EventAdmin;
 
 import java.lang.ref.*;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Represents a base class for management connector bundle.
@@ -22,25 +24,44 @@ import java.util.*;
  *     Each connector should be registered as separated service in OSGi environment.
  * </p>
  * @param <TConnector> Type of the management connector.
- * @param <TConnectionOptions> Type of the management connection configuration model.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
-@SuppressWarnings("UnusedDeclaration")
-public abstract class AbstractManagementConnectorBundleActivator<TConnectionOptions, TConnector extends ManagementConnector<TConnectionOptions>> extends AbstractLoggableBundleActivator {
-    private static final String CONNECTION_OPTIONS_INIT_PROPERTY = "management-connection-config";
-    private static final String MGMT_TARGET_INIT_PROPERTY = "management-target";
+public abstract class AbstractManagementConnectorBundleActivator<TConnector extends ManagementConnector<?>> extends AbstractLoggableBundleActivator {
     private static final String CONNECTION_STRING_IDENTITY_PROPERTY = "connectionString";
     private static final String CONNECTION_TYPE_IDENTITY_PROPERTY = "connectionType";
     private static final String PREFIX_IDENTITY_PROPERTY = "prefix";
+    private static final String COMPLIANT_TARGETS_INIT_PROPERTY = "compliant-targets";
+
+    private static final class CompliantTargets extends HashMap<String, ManagementTargetConfiguration>{
+        public CompliantTargets(final String connectorName, final AgentConfiguration configuration){
+            this(connectorName, configuration.getTargets());
+        }
+
+        public CompliantTargets(final String connectorName, final Map<String, ManagementTargetConfiguration> targets){
+            super(targets.size());
+            for(final Map.Entry<String, ManagementTargetConfiguration> entry: targets.entrySet())
+                if(Objects.equals(connectorName, entry.getValue().getConnectionType()))
+                    put(entry.getKey(), entry.getValue());
+        }
+    }
 
     /**
-     * Represents name of the management connector.
+     * Represents a factory for management connectors.
+     * @param <TConnectorImpl> Type of the management connector.
+     * @author Roman Sakno
+     * @since 1.0
      */
-    public final String connectorName;
+    protected static abstract class ProvidedManagementConnectors<TConnectorImpl extends ManagementConnector<?>> implements ProvidedServices{
 
-    private static final class ManagementConnectorFactory implements ProvidedServices{
+        /**
+         * Creates a new instance of the management connector factory.
+         * @param targetName The The name of the management target.
+         * @param sharedContext Shared context.
+         * @return A new instance of the management connector factory.
+         */
+        protected abstract ManagementConnectorProvider<TConnectorImpl> createConnectorFactory(final String targetName, final Map<String, ?> sharedContext);
 
         /**
          * Exposes all provided services via the input collection.
@@ -49,45 +70,48 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnectionOpti
          * @param sharedContext Shared context.
          */
         @Override
-        public void provide(final Collection<ProvidedService<?, ?>> services, final Map<String, Object> sharedContext) {
-
+        public final void provide(final Collection<ProvidedService<?, ?>> services, final Map<String, ?> sharedContext) {
+            //iterates through each compliant target and instantate factory for the management connector
+            Map<String, ManagementTargetConfiguration> targets = getProperty(sharedContext,
+                    COMPLIANT_TARGETS_INIT_PROPERTY,
+                    CompliantTargets.class,
+                    FactoryUtils.<CompliantTargets>nullFactory());
+            for(final String targetName: targets != null ? targets.keySet() : Collections.<String>emptySet())
+                services.add(createConnectorFactory(targetName, sharedContext));
         }
     }
 
     /**
      * Represents factory for management connector.
-     * @param <TConnectionOptions> Type of the connection options.
      * @param <TConnectorImpl> Type of the management connector implementation.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected abstract static class ManagementConnectorProvider<TConnectionOptions, TConnectorImpl extends ManagementConnector> extends LoggableProvidedService<ManagementConnector, TConnectorImpl>{
+    protected abstract static class ManagementConnectorProvider<TConnectorImpl extends ManagementConnector<?>> extends LoggableProvidedService<ManagementConnector, TConnectorImpl>{
+        /**
+         * Represents name of the management target bounded to this management connector factory.
+         */
+        protected final String managementTargetName;
+
         /**
          * Initializes a new management connector factory.
+         * @param targetName The name of the management target.
          * @param dependencies A collection of connector dependencies.
          * @throws IllegalArgumentException config is {@literal null}.
          */
-        protected ManagementConnectorProvider(final RequiredService<?>... dependencies) {
+        protected ManagementConnectorProvider(final String targetName, final RequiredService<?>... dependencies) {
             super(ManagementConnector.class, dependencies);
-        }
-
-        /**
-         * Creates a new instance of the management connector.
-         * @param options An object used to instantiate the management connector.
-         * @param dependencies A collection of connector dependencies.
-         * @return A new instance of the management connector.
-         */
-        protected abstract TConnectorImpl newConnector(TConnectionOptions options, final RequiredService<?>... dependencies);
-
-        @SuppressWarnings("unchecked")
-        private TConnectionOptions getConnectionOptions(){
-            return (TConnectionOptions)getSharedContext().get(CONNECTION_OPTIONS_INIT_PROPERTY);
+            this.managementTargetName = targetName;
         }
 
         private ManagementTargetConfiguration getConfiguration(){
-            return getProperty(getSharedContext(),
-                    MGMT_TARGET_INIT_PROPERTY,
+            final CompliantTargets targets = getProperty(getSharedContext(),
+                    COMPLIANT_TARGETS_INIT_PROPERTY,
+                    CompliantTargets.class,
+                    FactoryUtils.<CompliantTargets>nullFactory());
+            return getProperty(targets,
+                    managementTargetName,
                     ManagementTargetConfiguration.class,
                     FactoryUtils.<ManagementTargetConfiguration>nullFactory());
         }
@@ -132,16 +156,29 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnectionOpti
         }
 
         /**
+         * Creates a new instance of the management connector.
+         * @param connectionString The connection string.
+         * @param connectionOptions The connection options.
+         * @param dependencies A collection of connector dependencies.
+         * @return A new instance of the management connector.
+         * @throws Exception Failed to create management connector instance.
+         */
+        protected abstract TConnectorImpl newConnector(final String connectionString,
+                                                    final Map<String, String> connectionOptions,
+                                                    final RequiredService<?>... dependencies) throws Exception;
+
+        /**
          * Creates a new instance of the service.
          *
          * @param identity     A dictionary of properties that uniquely identifies service instance.
          * @param dependencies A collection of dependencies.
          * @return A new instance of the service.
+         * @throws Exception Failed to create management connector instance.
          */
         @Override
-        protected final TConnectorImpl activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
+        protected final TConnectorImpl activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception{
             final ManagementTargetConfiguration config = getConfiguration();
-            final TConnectorImpl connector = newConnector(getConnectionOptions(), dependencies);
+            final TConnectorImpl connector = newConnector(config.getConnectionString(), config.getAdditionalElements(), dependencies);
             exposeAttributes(config.getElements(AttributeConfiguration.class),
                     connector.queryObject(AttributeSupport.class));
             exposeEvents(config.getElements(EventConfiguration.class),
@@ -203,48 +240,68 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnectionOpti
 
     /**
      * Represents a base class for management connector factory which supports notifications.
-     * @param <TConnectionOptions>Type of the connection options.
      * @param <TConnectorImpl> Type of the management connector implementation.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class NotificationSupportProvider<TConnectionOptions, TConnectorImpl extends ManagementConnector<TConnectionOptions> & NotificationSupport> extends ManagementConnectorProvider<TConnectionOptions, TConnectorImpl>{
+    @SuppressWarnings("UnusedDeclaration")
+    protected static abstract class NotificationSupportProvider<TConnectorImpl extends ManagementConnector<?> & NotificationSupport> extends ManagementConnectorProvider<TConnectorImpl>{
         private static final String NOTIF_TRANSPORT_LISTENER_ID = "EventAdminTransport";
 
         /**
          * Initializes a new factory for the management connector with notification support.
+         * @param targetName The name of the management target.
          * @param publisherDependency Notification delivery channel dependency. This dependency is mandatory.
          * @param dependencies A collection of connector dependencies.
          */
-        protected NotificationSupportProvider(final RequiredServiceAccessor<EventAdmin> publisherDependency, final RequiredService<?>... dependencies){
-            super(ArrayUtils.addAll(dependencies, publisherDependency));
+        protected NotificationSupportProvider(final String targetName,
+                                              final RequiredServiceAccessor<EventAdmin> publisherDependency, final RequiredService<?>... dependencies){
+            super(targetName, ArrayUtils.addAll(dependencies, publisherDependency));
+        }
+
+        /**
+         * Initializes a new factory for the management connector with notification support.
+         * <p>
+         *     This constructor calls {@link #NotificationSupportProvider(String, com.itworks.snamp.core.AbstractBundleActivator.RequiredServiceAccessor, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])}
+         *     and pass {@link com.itworks.snamp.core.AbstractBundleActivator.SimpleDependency} as dependency
+         *     descriptor for {@link org.osgi.service.event.EventAdmin} service.
+         * </p>
+         * @param targetName The name of the management target.
+         * @param dependencies A collection of connector dependencies.
+         */
+        @SuppressWarnings("UnusedDeclaration")
+        protected NotificationSupportProvider(final String targetName,
+                                              final RequiredService<?>... dependencies){
+            this(targetName, new SimpleDependency<>(EventAdmin.class), dependencies);
         }
 
         /**
          * Creates a new instance of the management connector that supports notifications.
-         * @param options Initialization parameters.
-         * @param dependencies A collection of connector dependencies (without {@link org.osgi.service.event.EventAdmin} dependency).
+         * @param connectionString  The connection string.
+         * @param connectionOptions The connection options.
+         * @param dependencies      A collection of connector dependencies.
          * @return A new instance of the management connector.
+         * @throws Exception Failed to create management connector instance.
          */
-        protected abstract TConnectorImpl newNotificationSupport(final TConnectionOptions options, final RequiredService<?>... dependencies);
+        protected abstract TConnectorImpl newNotificationSupport(final String connectionString,
+                                                                 final Map<String, String> connectionOptions,
+                                                                 final RequiredService<?>... dependencies) throws Exception;
 
         /**
          * Creates a new instance of the management connector.
-         * <p>
-         *     This method invokes {@link #newNotificationSupport(Object, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])} internally
-         *     and attaches {@link org.osgi.service.event.EventAdmin}-based transport for SNAMP notifications.
-         * </p>
-         * @param options            Initialization parameters.
-         * @param dependencies       A collection of connector dependencies.
+         *
+         * @param connectionString  The connection string.
+         * @param connectionOptions The connection options.
+         * @param dependencies      A collection of connector dependencies.
          * @return A new instance of the management connector.
+         * @throws Exception Failed to create management connector instance.
          */
         @Override
-        protected final TConnectorImpl newConnector(final TConnectionOptions options, RequiredService<?>... dependencies) {
+        protected TConnectorImpl newConnector(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {
             @SuppressWarnings("unchecked")
             final RequiredServiceAccessor<EventAdmin> eventAdmin = findDependency(RequiredServiceAccessor.class, EventAdmin.class, dependencies);
-            dependencies = ArrayUtils.removeElement(dependencies, eventAdmin);
-            final TConnectorImpl connector = newNotificationSupport(options, dependencies);
+            final TConnectorImpl connector = newNotificationSupport(connectionString, connectionOptions, dependencies);
             if(!connector.subscribe(NOTIF_TRANSPORT_LISTENER_ID,
                     new EventAdminTransport(getConnectorName(), eventAdmin, connector)))
                 getLogger().warning(String.format("Unable to attach notification transport for %s connector.", getConnectorName()));
@@ -253,12 +310,31 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnectionOpti
     }
 
     /**
+     * Represents name of the management connector.
+     */
+    public final String connectorName;
+
+    /**
      * Initializes a new connector factory.
      * @param connectorName The name of the connector.
-     * @exception IllegalArgumentException connectorName is {@literal null}.
+     * @param connectorFactory A factory that exposes collection of management connector factories.
+     * @throws IllegalArgumentException connectorName is {@literal null}.
      */
-    protected AbstractManagementConnectorBundleActivator(final String connectorName){
-        super(AbstractManagementConnector.getLoggerName(connectorName), new ManagementConnectorFactory());
+    @SuppressWarnings("UnusedDeclaration")
+    protected AbstractManagementConnectorBundleActivator(final String connectorName, final ProvidedManagementConnectors<TConnector> connectorFactory){
+        this(connectorName, connectorFactory, null);
+    }
+
+    /**
+     * Initializes a new connector factory.
+     * @param connectorName The name of the connector.
+     * @param connectorFactory A factory that exposes collection of management connector factories.
+     * @param explicitLogger An instance of the logger associated with the all management connector instances.
+     * @throws IllegalArgumentException connectorName is {@literal null}.
+     */
+    protected AbstractManagementConnectorBundleActivator(final String connectorName, final ProvidedManagementConnectors<TConnector> connectorFactory, final Logger explicitLogger){
+        super(explicitLogger != null ? explicitLogger : AbstractManagementConnector.getLogger(connectorName),
+                connectorFactory);
         this.connectorName = connectorName;
     }
 
@@ -276,29 +352,14 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnectionOpti
     }
 
     /**
-     * Creates a new object used to initialize management connector.
-     * @param connectionString The connection string.
-     * @param parameters The connection parameters.
-     * @return A new instance of the management connector configuration.
-     * @throws ManagementConnectorConfigurationException The specified connection string and
-     * parameters cannot be used to for initiating connection and further management operations.
-     */
-    protected abstract TConnectionOptions createConnectorConfig(final String connectionString,
-                                                     final Map<String, String> parameters)
-            throws ManagementConnectorConfigurationException;
-
-    /**
      * Reads management targets from the SNAMP configuration manager.
-     * <p>
-     * In the default implementation this method does nothing.
-     * </p>
      *
      * @param sharedContext           The activation context to initialize.
      * @param serviceReg              An object that provides access to the OSGi service registry.
      * @param bundleLevelDependencies A collection of bundle-level dependencies.
      */
     @Override
-    protected final void init(final Map<String, Object> sharedContext,
+    protected void init(final Map<String, Object> sharedContext,
                               final ServiceRegistryProcessor serviceReg,
                               final Collection<BundleLevelDependency<?>> bundleLevelDependencies) throws Exception{
         super.init(sharedContext, serviceReg, bundleLevelDependencies);
@@ -306,18 +367,7 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnectionOpti
         if(!serviceReg.processService(ConfigurationManager.class, new Closure<ConfigurationManager>() {
             @Override
             public final void execute(final ConfigurationManager input) {
-                //filter targets by connector name
-                for(final ManagementTargetConfiguration target: input.getCurrentConfiguration().getTargets().values())
-                    if(Objects.equals(connectorName, target.getConnectionType()))
-                        try{
-                            final TConnectionOptions config = createConnectorConfig(target.getConnectionString(), target.getAdditionalElements());
-                            //save collection of attributes and
-                            sharedContext.put(MGMT_TARGET_INIT_PROPERTY, target);
-                            sharedContext.put(CONNECTION_OPTIONS_INIT_PROPERTY, config);
-                        }
-                        catch(final ManagementConnectorConfigurationException e){
-                            throw new FunctorException(e);
-                        }
+                sharedContext.put(COMPLIANT_TARGETS_INIT_PROPERTY, new CompliantTargets(connectorName, input.getCurrentConfiguration()));
             }
         })) getLogger().severe("Configuration manager is not detected. No management connectors instantiated.");
     }
@@ -338,7 +388,7 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnectionOpti
      * @return {@literal true}, if the specified factory equals to this factory and produces
      * the same type of the SNAMP management connector; otherwise, {@literal false}.
      */
-    public final boolean equals(final AbstractManagementConnectorBundleActivator<?, ?> factory){
+    public final boolean equals(final AbstractManagementConnectorBundleActivator<?> factory){
         return factory != null && connectorName.equals(factory.connectorName);
     }
 
@@ -351,6 +401,6 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnectionOpti
      */
     @Override
     public final boolean equals(final Object factory){
-        return factory instanceof AbstractManagementConnectorBundleActivator && equals((AbstractManagementConnectorBundleActivator<?, ?>)factory);
+        return factory instanceof AbstractManagementConnectorBundleActivator && equals((AbstractManagementConnectorBundleActivator<?>)factory);
     }
 }

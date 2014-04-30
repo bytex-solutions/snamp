@@ -1,5 +1,7 @@
 package com.itworks.snamp.connectors;
 
+import com.itworks.snamp.Descriptive;
+
 import java.util.*;
 
 /**
@@ -8,13 +10,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public interface ManagementEntityMetadata extends Map<String, String> {
+public interface ManagementEntityMetadata extends Map<String, String>, Descriptive {
 
-    /**
-     * Returns the localized description of this management entity.
-     * @param locale The locale of the description. If it is {@literal null} then returns description
-     *               in the default locale.
-     * @return The localized description of this management entity.
-     */
-    public String getDescription(final Locale locale);
+
 }

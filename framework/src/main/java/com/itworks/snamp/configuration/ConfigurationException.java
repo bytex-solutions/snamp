@@ -8,7 +8,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * @version 1.0
  * @since 1.0
  */
-public abstract class ConfigurationException extends Exception {
+public abstract class ConfigurationException extends RuntimeException {
     /**
      * Represents an entity that is not configured correctly.
      */
