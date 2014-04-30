@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Managment web console for SNAMP</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/cover.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+    <div class="site-wrapper">
+
+      <div class="site-wrapper-inner">
+
+        <div class="cover-container">
+
+          <div class="masthead clearfix">
+            <div class="inner">
+              <h3 class="masthead-brand">Summary</h3>
+
+              <ul class="nav masthead-nav">
+                <li class="active"><a href="index.html">Home</a></li>
+                <li><a href="http://localhost:8080/system/console/bundles" target="_blank">Bundle web console</a></li>
+              </ul>
+            </div>
+          </div>
+
+
+          <div class="row" id="summaryTable"></div>
+
+
+          <div class="mastfoot">
+            <div class="inner">
+              <p>Software by IT Works! (c)</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/docs.min.js"></script>
+
+    <script type="text/javascript" src="js/snamp/stubs.js"></script>
+    <script type="text/javascript" src="js/snamp/summary.js"></script>
+
+
+    <script type="text/javascript">
+      var options = { stub: true};   
+      $("#summaryTable").createSummaryTable(options);
+    </script>
+
+  </body>
+</html>

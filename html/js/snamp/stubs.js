@@ -25,4 +25,32 @@
   		}
   };
 
+  $.fn.getBundleStatusByName = function ( name )
+  {
+  		switch(name)
+  		{
+  			case "JMX connector":
+  				return {currentInstanceCount: 5, maxInstanceCount: 10, managmentTargets: [
+  					{connectionString: "service:jmx:rmi:///jndi/rmi://10.200.100.100:23400/jmxrmi", events: 5, attributes: 2},
+  					{connectionString: "service:jmx:rmi:///jndi/rmi://10.200.100.111:23400/jmxrmi", events: 3, attributes: 5},
+  					{connectionString: "service:jmx:rmi:///jndi/rmi://10.200.100.112:23400/jmxrmi", events: 8, attributes: 5},
+  					{connectionString: "service:jmx:rmi:///jndi/rmi://10.200.100.121:23400/jmxrmi", events: 5, attributes: 5},
+  					{connectionString: "service:jmx:rmi:///jndi/rmi://10.200.100.122:23400/jmxrmi", events: 0, attributes: 5},
+  				] 
+  			};
+
+  			case "SNMP adapter":
+  				return {currentInstanceCount: 1, maxInstanceCount: 1, managmentTargets: [
+  					{connectionString: "localhost:3122", events: 1, attributes: 1}
+  				] 
+  			};
+
+  			case "WMB connector" :
+  				return {currentInstanceCount: 1, maxInstanceCount: 1, managmentTargets: [
+  					{connectionString: "wmb://anticitizen.dhis.org:8000/TEST_QMGR", events: 1, attributes: 1}
+  				] 
+  			};
+  		}
+  };
+
 })( jQuery );
