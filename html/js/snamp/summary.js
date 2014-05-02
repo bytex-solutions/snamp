@@ -1,49 +1,89 @@
 (function( $ ){
 
   $.fn.createSummaryTable = function( options ) {  
-    // Making the header part of table
-    var table = $("<table>", {class:"table"});
-    table.append("<thead><tr><th>Status</th><th>Type</th><th>Bundle Name</th><th>Description</th><th width=\"15%\">Operations</th></tr></thead>");
-
-    
+        
     // Making data request
-    var data;
+    var commonData;
     if (options.stub == true)
     {
-        data = this.getBundleInfo();
+        commonData = this.getBundleInfo();
     }
     else
     {
       // ajax code here
     }
-    
-    var tbody = $("<tbody></tbody>");
-    // filling the body of table
-    for (var i = data.length - 1; i >= 0; i--) {
-      var tr = $("<tr></tr>");
-      content = "<img src=\"img/" + data[i].status + ".png" +"\"/>";
-      tr.append("<td>" + content + "</td>");
 
-      content = data[i].type;
-      tr.append("<td>" + content + "</td>");
+   
+    var panelGroup = $("<div class=\"panel-group\"> id=\"accordion\"");
 
-      content = data[i].name;
-      tr.append("<td>" + content + "</td>");
+    for (var j = commonData.length - 1; j >= 0; j--) {
+        var data;
+        if (options.stub == true)
+        {
+            data = this.getBundleStatusByName(commonData[j].name);
+        }
+        else
+        {
+          // ajax code here
+        }
+        
 
-      content = data[i].description;
-      tr.append("<td>" + content + "</td>");
+        // Now make a table per bundle
+        if (data != null)
+        {
+        
+          var headAccordeonTab = $("<div>", {class: "panel panel-default"});
+          headAccordeonTab.append("<div class=\"panel-heading\">"+
+               "<h4 class=\"panel-title\">"+
+                  "<a data-toggle=\"collapse\" data-parent=\"#accordion\" href=\"#idd"+j+"\">"
+                  +commonData[j].name+". Instances (current/max): " + 
+                     data.currentInstanceCount + "\\" + data.maxInstanceCount + "</a></h4></div>")
+          
+          panelGroup.append(headAccordeonTab);
 
-      var td = $("<td></td>");
-      td.appendTo(tr);
-      td.addOperations(data[i].name, data[i].status);
 
-      tbody.append(tr);
+
+          if (data.managmentTargets != null)
+          {
+            if (data.managmentTargets.length > 0)
+            {
+               var _class = "panel-collapse collapse in";
+             //  if (j != commonData.length - 1) _class = _class + " in";
+               var divBodyAccordeonTab = $("<div>", {id: "idd"+j, class:_class});
+               var divPanelBody = $("<div>", {class: "panel-body"}) ;
+               
+               var table = $("<table>", {class:"table"});
+               table.append("<thead><tr><th>Connection String</th><th>Events</th><th>attributes</th></tr></thead>");
+                 var tbody = $("<tbody></tbody>");
+
+
+                 for (var i = data.managmentTargets.length - 1; i >= 0; i--) {
+                    var tr = $("<tr></tr>");
+                    content = data.managmentTargets[i].connectionString;
+                    tr.append("<td>" + content + "</td>");
+
+                    content = data.managmentTargets[i].events;
+                    tr.append("<td>" + content + "</td>");
+
+                    content = data.managmentTargets[i].attributes;
+                    tr.append("<td>" + content + "</td>");
+
+                    tbody.append(tr);
+                  };
+                  table.append(tbody);
+
+                  divPanelBody.append(table);
+
+                  divBodyAccordeonTab.append(divPanelBody);
+            }
+          }
+          
+          headAccordeonTab.append(divBodyAccordeonTab);
+        }
     };
-
-    table.append(tbody);
-
-    // Appending the table to the element
-    table.appendTo(this);
+    this.append(panelGroup);
+    this.find(".collapse").collapse();
+  
   };
 
 })( jQuery );
