@@ -136,7 +136,27 @@ body {
  /* table-layout: fixed;*/
 }
 
-/*.table th, .table td { overflow: hidden; }*/
+.well 
+{
+  background-color: transparent;
+}
+
+
+.panel-group a,.panel-group a:focus,.panel-group a:hover
+{
+
+  color:#fff;
+}
+
+.panel-default>.panel-heading {
+   background-color: transparent;
+}
+
+.panel 
+{
+  text-align: left;
+  background-color: transparent;
+}
 
 
 /*
