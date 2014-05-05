@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.testing;
 
 import com.itworks.snamp.internal.ReflectionUtils;
 import org.junit.Test;

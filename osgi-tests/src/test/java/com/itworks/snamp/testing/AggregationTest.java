@@ -1,5 +1,6 @@
-package com.itworks.snamp;
+package com.itworks.snamp.testing;
 
+import com.itworks.snamp.AbstractAggregator;
 import org.junit.Test;
 import org.apache.commons.lang3.Range;
 

@@ -471,7 +471,6 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          */
         @SuppressWarnings("unchecked")
         @Override
-        @XmlTransient
         public <T extends ManageableEntity> Map<String, T> getElements(final Class<T> elementType) {
             if(elementType == null) return null;
             else if(Objects.equals(elementType, AttributeConfiguration.class))

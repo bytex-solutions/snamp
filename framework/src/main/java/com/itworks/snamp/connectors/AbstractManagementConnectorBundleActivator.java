@@ -1,21 +1,26 @@
 package com.itworks.snamp.connectors;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration;
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.*;
-
-import com.itworks.snamp.configuration.*;
+import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.configuration.ConfigurationManager;
 import com.itworks.snamp.core.AbstractLoggableBundleActivator;
-import org.apache.commons.collections4.*;
+import org.apache.commons.collections4.Closure;
+import org.apache.commons.collections4.FactoryUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import static com.itworks.snamp.connectors.NotificationSupport.*;
-import static com.itworks.snamp.connectors.util.NotificationUtils.NotificationEvent;
-import static com.itworks.snamp.internal.ReflectionUtils.getProperty;
-
+import org.osgi.framework.*;
 import org.osgi.service.event.EventAdmin;
 
-import java.lang.ref.*;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.itworks.snamp.connectors.NotificationSupport.Notification;
+import static com.itworks.snamp.connectors.NotificationSupport.NotificationListener;
+import static com.itworks.snamp.connectors.util.NotificationUtils.NotificationEvent;
+import static com.itworks.snamp.internal.ReflectionUtils.getProperty;
 
 /**
  * Represents a base class for management connector bundle.
@@ -29,6 +34,18 @@ import java.util.logging.Logger;
  * @version 1.0
  */
 public abstract class AbstractManagementConnectorBundleActivator<TConnector extends ManagementConnector<?>> extends AbstractLoggableBundleActivator {
+    /**
+     * Represents name of the manifest header which contains the name of the management connector.
+     * <p>
+     *     The following example demonstrates how to set the name of the management connector
+     *     in the connector's bundle manifest:
+     *     <pre><tt>
+     *          SNAMP-Management-Connector: jmx
+     *     </tt></pre>
+     * </p>
+     */
+    public static String CONNECTOR_NAME_MANIFEST_HEADER = "SNAMP-Management-Connector";
+    private static final String MGMT_TARGET_NAME_IDENTITY_PROPERTY = "managementTarget";
     private static final String CONNECTION_STRING_IDENTITY_PROPERTY = "connectionString";
     private static final String CONNECTION_TYPE_IDENTITY_PROPERTY = "connectionType";
     private static final String PREFIX_IDENTITY_PROPERTY = "prefix";
@@ -72,7 +89,7 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
         @Override
         public final void provide(final Collection<ProvidedService<?, ?>> services, final Map<String, ?> sharedContext) {
             //iterates through each compliant target and instantate factory for the management connector
-            Map<String, ManagementTargetConfiguration> targets = getProperty(sharedContext,
+            final Map<String, ManagementTargetConfiguration> targets = getProperty(sharedContext,
                     COMPLIANT_TARGETS_INIT_PROPERTY,
                     CompliantTargets.class,
                     FactoryUtils.<CompliantTargets>nullFactory());
@@ -183,7 +200,7 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
                     connector.queryObject(AttributeSupport.class));
             exposeEvents(config.getElements(EventConfiguration.class),
                     connector.queryObject(NotificationSupport.class));
-            createIdentity(getConfiguration(), identity);
+            createIdentity(managementTargetName, getConfiguration(), identity);
             return connector;
         }
 
@@ -340,15 +357,91 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
 
     /**
      * Configures management connector identity.
+     * @param managementTarget The name of the management target.
      * @param config The management target configuration used to create identity.
      * @param identity The identity map to fill.
      */
-    public static void createIdentity(final ManagementTargetConfiguration config, final Map<String, Object> identity){
+    public static void createIdentity(final String managementTarget,
+                                      final ManagementTargetConfiguration config,
+                                      final Map<String, Object> identity){
+        identity.put(MGMT_TARGET_NAME_IDENTITY_PROPERTY, managementTarget);
         identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, config.getConnectionType());
         identity.put(CONNECTION_STRING_IDENTITY_PROPERTY, config.getConnectionString());
         identity.put(PREFIX_IDENTITY_PROPERTY, config.getNamespace());
         for(final Map.Entry<String, String> option: config.getAdditionalElements().entrySet())
             identity.put(option.getKey(), option.getValue());
+    }
+
+    /**
+     * Gets type of the management connector by its reference.
+     * @param connectorRef The reference to the management connector.
+     * @return The type of the management connector.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public static String getConnectorType(final ServiceReference<ManagementConnector<?>> connectorRef){
+        return connectorRef != null ?
+                Objects.toString(connectorRef.getProperty(CONNECTION_TYPE_IDENTITY_PROPERTY), ""):
+                "";
+    }
+
+    /**
+     * Gets connection string used by management connector by its reference.
+     * @param connectorRef The reference to the management connector.
+     * @return The connection string used by management connector.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public static String getConnectionString(final ServiceReference<ManagementConnector<?>> connectorRef){
+        return connectorRef != null ?
+                Objects.toString(connectorRef.getProperty(CONNECTION_STRING_IDENTITY_PROPERTY), ""):
+                "";
+    }
+
+    /**
+     * Gets prefix of the management connector by its reference.
+     * @param connectorRef The reference to the management connector.
+     * @return The prefix of the management connector.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public static String getPrefix(final ServiceReference<ManagementConnector<?>> connectorRef){
+        return connectorRef != null ?
+                Objects.toString(connectorRef.getProperty(PREFIX_IDENTITY_PROPERTY), ""):
+                "";
+    }
+
+    /**
+     * Gets name of the management target that is represented by the specified management
+     * connector reference.
+     * @param connectorRef The reference to the management connector.
+     * @return The name of the management target.
+     */
+    public static String getManagementTarget(final ServiceReference<ManagementConnector<?>> connectorRef){
+        return connectorRef != null ?
+                Objects.toString(connectorRef.getProperty(MGMT_TARGET_NAME_IDENTITY_PROPERTY), ""):
+                "";
+    }
+
+    /**
+     * Gets a map of available management connectors in the current OSGi environment.
+     * @param context The context of the callee bundle.
+     * @return A map of management connector references where the key of the map represents
+     *          a name of the management target.
+     */
+    public static Map<String, ServiceReference<ManagementConnector<?>>> getManagementConnectorInstances(final BundleContext context){
+        if(context == null) return Collections.emptyMap();
+        else try {
+            ServiceReference<?>[] connectors = context.getAllServiceReferences(ManagementConnector.class.getName(), null);
+            if(connectors == null) connectors = new ServiceReference<?>[0];
+            final Map<String, ServiceReference<ManagementConnector<?>>> result = new HashMap<>(connectors.length);
+            for(final ServiceReference<?> serviceRef: connectors) {
+                @SuppressWarnings("unchecked")
+                final ServiceReference<ManagementConnector<?>> connectorRef = (ServiceReference<ManagementConnector<?>>)serviceRef;
+                result.put(getManagementTarget(connectorRef), connectorRef);
+            }
+            return result;
+        }
+        catch (final InvalidSyntaxException e) {
+            return Collections.emptyMap();
+        }
     }
 
     /**
@@ -401,6 +494,82 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
      */
     @Override
     public final boolean equals(final Object factory){
-        return factory instanceof AbstractManagementConnectorBundleActivator && equals((AbstractManagementConnectorBundleActivator<?>)factory);
+        return factory instanceof AbstractManagementConnectorBundleActivator && equals((AbstractManagementConnectorBundleActivator<?>) factory);
+    }
+
+    /**
+     * Determines whether the specified bundle provides implementation of the SNAMP Management Connector.
+     * @param bnd The bundle to check.
+     * @return {@literal true}, if the specified bundle provides implementation of the management connector;
+     *      otherwise, {@literal false}.
+     */
+    public static boolean isManagementConnectorBundle(final Bundle bnd){
+        return bnd != null && bnd.getHeaders().get(CONNECTOR_NAME_MANIFEST_HEADER) != null;
+    }
+
+    private static Collection<Bundle> getManagementConnectorBundles(final BundleContext context){
+        final Bundle[] bundles = context.getBundles();
+        final Collection<Bundle> result = new ArrayList<>(bundles.length);
+        for(final Bundle bnd: bundles)
+            if(isManagementConnectorBundle(bnd)) result.add(bnd);
+        return result;
+    }
+
+    private static Collection<Bundle> getManagementConnectorBundles(final BundleContext context, final String connectorName){
+        final Bundle[] bundles = context.getBundles();
+        final Collection<Bundle> result = new ArrayList<>(bundles.length);
+        for(final Bundle bnd: bundles)
+            if(Objects.equals(bnd.getHeaders().get(CONNECTOR_NAME_MANIFEST_HEADER), connectorName))
+                result.add(bnd);
+        return result;
+    }
+
+    /**
+     * Stops all bundles with management connectors.
+     * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @throws java.lang.IllegalArgumentException context is {@literal null}.
+     * @throws org.osgi.framework.BundleException Unable to stop management connectors.
+     */
+    public static void stopManagementConnectors(final BundleContext context) throws BundleException {
+        if(context == null) throw new IllegalArgumentException("context is null.");
+        for(final Bundle bnd: getManagementConnectorBundles(context))
+            bnd.stop();
+    }
+
+    /**
+     * Stops the specified management connector.
+     * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @param connectorName The name of the connector to stop.
+     * @throws BundleException Unable to stop management connector.
+     * @throws java.lang.IllegalArgumentException context is {@literal null}.
+     */
+    public static void stopManagementConnector(final BundleContext context, final String connectorName) throws BundleException {
+        for(final Bundle bnd: getManagementConnectorBundles(context, connectorName))
+            bnd.stop();
+    }
+
+    /**
+     * Starts all bundles with management connectors.
+     * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @throws java.lang.IllegalArgumentException context is {@literal null}.
+     * @throws org.osgi.framework.BundleException Unable to start management connectors.
+     */
+    public static void startManagementConnectors(final BundleContext context) throws BundleException{
+        if(context == null) throw new IllegalArgumentException("context is null.");
+        for(final Bundle bnd: getManagementConnectorBundles(context))
+            bnd.stop();
+    }
+
+    /**
+     * Starts management connector.
+     * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @param connectorName The name of the connector to start.
+     * @throws java.lang.IllegalArgumentException context is {@literal null}.
+     * @throws BundleException Unable to start management connector.
+     */
+    public static void startManagementConnector(final BundleContext context, final String connectorName) throws BundleException{
+        if(context == null) throw new IllegalArgumentException("context is null.");
+        for(final Bundle bnd: getManagementConnectorBundles(context, connectorName))
+            bnd.start();
     }
 }

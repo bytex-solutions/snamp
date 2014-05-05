@@ -1,12 +1,12 @@
-package com.itworks.snamp;
+package com.itworks.snamp.testing;
 
 import com.itworks.snamp.configuration.*;
 import com.itworks.snamp.licensing.*;
 import org.apache.commons.collections4.Factory;
-import org.apache.commons.collections4.FactoryUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.options.*;
+import org.osgi.framework.BundleContext;
 
 import javax.inject.Inject;
 import java.io.*;
@@ -74,22 +74,42 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         return configManager.getCurrentConfiguration();
     }
 
+    protected void beforeStartTest(final BundleContext context) throws Exception{
+
+    }
+
+    protected void afterStartTest(final BundleContext context) throws Exception{
+
+    }
+
     /**
      * Saves SNAMP configuration into the output stream.
      * @throws IOException
      */
     @Before
-    public final void prepare() throws IOException{
+    public final void prepare() throws Exception{
+        beforeStartTest(getTestBundleContext());
         //read SNAMP configuration
         assertNotNull(configManager);
         setupTestConfiguration(configManager.getCurrentConfiguration());
         //verify licensing engine
         assertNotNull(licenseReader);
+        afterStartTest(getTestBundleContext());
+    }
+
+    protected void beforeCleanupTest(final BundleContext context) throws Exception{
+
+    }
+
+    protected void afterCleanupTest(final BundleContext context) throws Exception{
+
     }
 
     @After
-    public final void cleanup() throws IOException{
+    public final void cleanup() throws Exception{
+        beforeCleanupTest(getTestBundleContext());
         configManager.getCurrentConfiguration().clear();
+        afterCleanupTest(getTestBundleContext());
     }
 
     /**

@@ -22,6 +22,8 @@
                         <Bundle-SymbolicName>com.itworks.snamp.connectors.jmx</Bundle-SymbolicName>
                         <Bundle-Activator>com.itworks.snamp.connectors.impl.JmxConnectorBundleActivator</Bundle-Activator>
                         <Export-Package/>
+                        <!--SNAMP specific header-->
+                        <SNAMP-Management-Connector>jmx</SNAMP-Management-Connector>
                     </instructions>
                 </configuration>
             </plugin>

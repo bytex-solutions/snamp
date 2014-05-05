@@ -1,10 +1,10 @@
-package com.itworks.snamp.configuration;
+package com.itworks.snamp.testing.configuration;
 
-import com.itworks.snamp.AbstractSnampIntegrationTest;
+import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerMethod;
-import static org.ops4j.pax.exam.CoreOptions.*;
 
 import java.io.IOException;
 

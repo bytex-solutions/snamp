@@ -391,7 +391,7 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
                     assertEquals(NotificationSupport.Notification.Severity.NOTICE, notif.getSeverity());
                     assertEquals("Property int32 is changed", notif.getMessage());
                 continue;
-                case "com.itworks.snamp.connectors.jmx.testnotif":
+                case "com.itworks.snamp.connectors.tests.jmx.testnotif":
                     assertEquals(NotificationSupport.Notification.Severity.PANIC, notif.getSeverity());
                     assertEquals("Property changed", notif.getMessage());
                 continue;
@@ -449,7 +449,7 @@ public final class RestAdapterTest extends JmxConnectorTest<TestManagementBean> 
         events.put("attributeChanged", event);
 
         event = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration();
-        event.setCategory("com.itworks.snamp.connectors.jmx.testnotif");
+        event.setCategory("com.itworks.snamp.connectors.tests.jmx.testnotif");
         event.getAdditionalElements().put("severity", "panic");
         event.getAdditionalElements().put("objectName", BEAN_NAME);
         events.put("testNotification", event);

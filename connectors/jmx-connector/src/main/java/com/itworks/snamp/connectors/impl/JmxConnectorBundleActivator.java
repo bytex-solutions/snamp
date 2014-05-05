@@ -35,7 +35,6 @@ public final class JmxConnectorBundleActivator extends AbstractManagementConnect
                                                       final Map<String, String> connectionOptions,
                                                       final RequiredService<?>... dependencies) throws MalformedURLException {
             return new JmxConnector(connectionString, connectionOptions);
-
         }
     }
 
@@ -63,6 +62,4 @@ public final class JmxConnectorBundleActivator extends AbstractManagementConnect
                 new ProvidedJmxConnectors(),
                 JmxConnectorHelpers.getLogger());
     }
-
-
 }

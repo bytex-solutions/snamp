@@ -1,14 +1,21 @@
-package com.itworks.snamp.connectors;
+package com.itworks.snamp.testing.connectors;
 
-import com.itworks.snamp.AbstractUnitTest;
 import com.itworks.snamp.TimeSpan;
-import static com.itworks.snamp.connectors.util.NotificationUtils.*;
-import static com.itworks.snamp.connectors.NotificationSupport.Notification;
+import com.itworks.snamp.connectors.AttributeMetadata;
+import com.itworks.snamp.connectors.ManagementConnector;
+import com.itworks.snamp.connectors.ManagementConnectorBean;
+import com.itworks.snamp.connectors.WellKnownTypeSystem;
+import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 
 import java.beans.IntrospectionException;
 import java.util.HashMap;
-import java.util.concurrent.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static com.itworks.snamp.connectors.NotificationSupport.Notification;
+import static com.itworks.snamp.connectors.util.NotificationUtils.SynchronizationListener;
+import static com.itworks.snamp.connectors.util.NotificationUtils.generateListenerId;
 
 /**
  * Represents tests for {@link com.itworks.snamp.connectors.ManagementConnectorBean} class.

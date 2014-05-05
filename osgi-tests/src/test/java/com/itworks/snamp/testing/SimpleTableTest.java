@@ -1,5 +1,7 @@
-package com.itworks.snamp;
+package com.itworks.snamp.testing;
 
+import com.itworks.snamp.SimpleTable;
+import com.itworks.snamp.Table;
 import org.junit.Test;
 
 import java.util.*;

@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.testing;
 
 /**
  * Represents a base class for all test classes.

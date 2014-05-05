@@ -77,4 +77,6 @@ public abstract class StreamedConfigurationManager<T extends AgentConfiguration>
             getLogger().log(Level.SEVERE, "Unable to store SNAMP configuration", e);
         }
     }
+
+
 }

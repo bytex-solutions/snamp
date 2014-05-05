@@ -1,4 +1,4 @@
-package com.itworks.snamp.licensing.limitations;
+package com.itworks.snamp.testing.licensing.limitations;
 
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
 import com.itworks.snamp.licensing.LicensingException;

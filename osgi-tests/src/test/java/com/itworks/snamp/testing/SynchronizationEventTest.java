@@ -1,5 +1,6 @@
-package com.itworks.snamp;
+package com.itworks.snamp.testing;
 
+import com.itworks.snamp.SynchronizationEvent;
 import org.junit.Test;
 import static com.itworks.snamp.SynchronizationEvent.Awaitor;
 

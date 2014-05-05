@@ -1,6 +1,9 @@
-package com.itworks.snamp.core.maintenance;
+package com.itworks.snamp.testing.core.maintenance;
 
-import com.itworks.snamp.AbstractUnitTest;
+import com.itworks.snamp.core.maintenance.AbstractMaintainable;
+import com.itworks.snamp.core.maintenance.Maintainable;
+import com.itworks.snamp.core.maintenance.MaintenanceActionInfo;
+import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 
 import java.util.Locale;

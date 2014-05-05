@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.testing.connectors.jmx;
 
 
 import javax.management.*;
@@ -11,12 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Created with IntelliJ IDEA.
- * User: temni
- * Date: 20.10.13
- * Time: 17:16
- * This class implements com.itworks.snamp.adapters.TestManagementBeanInterface interface and needed to test
- * attributes supported by JMX adapter
+ * Represents simple management bean.
  */
 public final class TestManagementBean extends NotificationBroadcasterSupport implements DynamicMBean {
     public static final String BEAN_NAME = "com.snampy.jmx:type=com.itworks.snamp.adapters.TestManagementBean";
@@ -105,7 +100,7 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
     );
 
     private static final MBeanNotificationInfo TIMER_EVENT = new MBeanNotificationInfo(
-            new String[]{"com.itworks.snamp.connectors.jmx.testnotif"},
+            new String[]{"com.itworks.snamp.connectors.tests.jmx.testnotif"},
             TimerNotification.class.getName(),
             "Occurs when timer is changed"
     );
@@ -274,7 +269,7 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
                 attributeType,
                 oldValue,
                 newValue));
-        sendNotification(new TimerNotification("com.itworks.snamp.connectors.jmx.testnotif",
+        sendNotification(new TimerNotification("com.itworks.snamp.connectors.tests.jmx.testnotif",
                 this,
                 sequenceCounter.getAndIncrement(),
                 System.currentTimeMillis(),

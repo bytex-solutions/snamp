@@ -341,7 +341,7 @@ public class JmxToSnmpLdapTest extends JmxConnectorTest<TestManagementBean> {
         events.put("19.1", event);
 
         event = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration();
-        event.setCategory("com.itworks.snamp.connectors.jmx.testnotif");
+        event.setCategory("com.itworks.snamp.connectors.tests.jmx.testnotif");
         event.getAdditionalElements().put("severity", "panic");
         event.getAdditionalElements().put("objectName", BEAN_NAME);
         event.getAdditionalElements().put("receiverAddress", addressForSNMP+"/"+client.getClientPort());

@@ -1,5 +1,6 @@
-package com.itworks.snamp;
+package com.itworks.snamp.testing;
 
+import com.itworks.snamp.FutureThread;
 import org.junit.Test;
 
 import java.util.concurrent.Callable;

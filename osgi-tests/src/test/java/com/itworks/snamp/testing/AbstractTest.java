@@ -1,10 +1,8 @@
-package com.itworks.snamp;
+package com.itworks.snamp.testing;
 
 import org.junit.Assert;
 
 import java.lang.reflect.Array;
-
-import static com.itworks.snamp.licensing.LicenseReader.LICENSE_FILE_PROPERTY;
 
 /**
  * Represents a base class for all SNAMP-specific tests.
@@ -13,6 +11,7 @@ import static com.itworks.snamp.licensing.LicenseReader.LICENSE_FILE_PROPERTY;
  * @since 1.0
  */
 public abstract class AbstractTest extends Assert {
+    @SafeVarargs
     protected static <T> T[] concat(final T[] array1, final T... array2){
         @SuppressWarnings("unchecked")
         final T[] joinedArray = (T[]) Array.newInstance(array1.getClass().getComponentType(), array1.length + array2.length);

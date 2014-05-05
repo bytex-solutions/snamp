@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.testing;
 
 import org.ops4j.pax.exam.options.*;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
@@ -12,7 +12,8 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 public enum SnampArtifact {
     CORLIB("framework", "1.0.0"),
     CONFIG_BUNDLE("config-bundle", "1.0.0"),
-    LICENSING_BUNDLE("licensing-bundle", "1.0.0");
+    LICENSING_BUNDLE("licensing-bundle", "1.0.0"),
+    JMX_CONNECTOR("jmx-connector", "1.0.0");
     public static final String GROUP_ID = "com.itworks.snamp";
 
     private final String artifactId;

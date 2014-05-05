@@ -1,5 +1,7 @@
-package com.itworks.snamp;
+package com.itworks.snamp.testing;
 
+import com.itworks.snamp.Repeater;
+import com.itworks.snamp.TimeSpan;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;

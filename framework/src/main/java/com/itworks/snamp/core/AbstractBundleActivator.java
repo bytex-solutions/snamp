@@ -4,7 +4,6 @@ import com.itworks.snamp.internal.MethodStub;
 import org.apache.commons.collections4.Closure;
 import org.osgi.framework.*;
 import org.osgi.service.log.LogService;
-
 import java.util.*;
 
 import static com.itworks.snamp.internal.ReflectionUtils.*;
@@ -134,7 +133,7 @@ public abstract class AbstractBundleActivator implements BundleActivator {
             handleService(reference, eventType, Collections.<String, Object>emptyMap());
         }
 
-        private void handleService(final BundleContext context,
+        private synchronized void handleService(final BundleContext context,
                                    final ServiceReference<?> reference,
                                    final int eventType,
                                    Map<String, ?> sharedContext) {
@@ -142,9 +141,11 @@ public abstract class AbstractBundleActivator implements BundleActivator {
             switch (eventType){
                 case ServiceEvent.REGISTERED:
                     bind(context, reference, sharedContext);
+                return;
                 case ServiceEvent.UNREGISTERING:
                 case ServiceEvent.MODIFIED_ENDMATCH:
                     unbind(context, reference, sharedContext);
+                return;
                 case ServiceEvent.MODIFIED:
                     update(reference, sharedContext);
             }
@@ -311,24 +312,21 @@ public abstract class AbstractBundleActivator implements BundleActivator {
             return sharedContext;
         }
 
-        /**
-         * Recompute all dependencies.
-         *
-         * @param event The {@code ServiceEvent} object.
-         */
-        @Override
-        public final void serviceChanged(final ServiceEvent event) {
-            final BundleContext context = getBundleContextByObject(this);
+        private synchronized void serviceChanged(final BundleContext context, final ServiceEvent event) {
+            //avoid cyclic reference tracking
+            if(ownDependencies.isEmpty() || registration != null &&
+                    Objects.equals(registration.getReference(), event.getServiceReference())) return;
             int resolvedDependencies = 0;
             for(final RequiredService<?> dependency: ownDependencies){
                 dependency.handleService(context, event.getServiceReference(), event.getType(), sharedContext);
                 if(dependency.isResolved()) resolvedDependencies += 1;
             }
             //determines whether all dependencies are resolved
-            if(resolvedDependencies == ownDependencies.size())
+            if(resolvedDependencies == ownDependencies.size() && !isPublished())
                 try {
                     activateAndRegisterService(context);
-                } catch (final Exception e) {
+                }
+                catch (final Exception e) {
                     throw new ServiceException(String.format("Unable to activate %s service", serviceContract),
                             ServiceException.FACTORY_EXCEPTION, e);
                 }
@@ -345,6 +343,16 @@ public abstract class AbstractBundleActivator implements BundleActivator {
                     serviceInstance = null;
                 }
             }
+        }
+
+        /**
+         * Recompute all dependencies.
+         *
+         * @param event The {@code ServiceEvent} object.
+         */
+        @Override
+        public final void serviceChanged(final ServiceEvent event) {
+            serviceChanged(getBundleContextByObject(this), event);
         }
 
         /**
@@ -366,23 +374,28 @@ public abstract class AbstractBundleActivator implements BundleActivator {
             this.sharedContext.putAll(sharedState);
             if(ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies
                 activateAndRegisterService(context);
-            else  //dependency tracking required
-                context.addServiceListener(this);
+            else for(final RequiredService<?> dependency: ownDependencies) {
+                ServiceReference<?>[] refs = context.getAllServiceReferences(dependency.dependencyContract.getName(), null);
+                if(refs == null) refs = new ServiceReference<?>[0];
+                for (final ServiceReference<?> serviceRef : refs)
+                    serviceChanged(context, new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
+            }
+            //dependency tracking required
+            context.addServiceListener(this);
         }
 
         private void unregister(final BundleContext context) throws Exception{
             if(!ownDependencies.isEmpty()) context.removeServiceListener(this);
-            if(registration != null) registration.unregister();
-            registration = null;
             try{
-                cleanupService(this.serviceInstance, true);
+                if(registration != null) registration.unregister();
+                registration = null;
+                if(serviceInstance != null) cleanupService(serviceInstance, true);
             }
             finally {
                 this.serviceInstance = null;
                 //releases all dependencies
                 for(final RequiredService<?> dependency: ownDependencies)
                     dependency.unbind(context, sharedContext);
-                ownDependencies.clear();
                 this.sharedContext.clear();
             }
         }

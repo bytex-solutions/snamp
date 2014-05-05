@@ -13,7 +13,7 @@ public final class LicensingTest extends SnampTestSet {
     public void jmxConnectorLicenseLimitations() throws ClassNotFoundException {
         JmxConnectorLimitations.current().verifyMaxAttributeCount(10);
         JmxConnectorLimitations.current().verifyMaxInstanceCount(10);
-        //JmxConnectorLimitations.current().verifyPluginVersion((Class<AbstractManagementConnectorFactory>)Class.forName("com.itworks.snamp.connectors.jmx.JmxConnectorFactory"));
+        //JmxConnectorLimitations.current().verifyPluginVersion((Class<AbstractManagementConnectorFactory>)Class.forName("com.itworks.snamp.connectors.tests.jmx.JmxConnectorFactory"));
     }
 
     @Test(expected = LicensingException.class)
