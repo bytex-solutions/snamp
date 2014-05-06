@@ -103,7 +103,7 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
                                            final T attributeValue,
                                            final Equator<T> comparator) throws TimeoutException {
         try{
-            final AttributeSupport connector = getManagementConnector(getTestBundleContext());
+            final AttributeSupport connector = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
             assertNotNull(connector);
             final AttributeMetadata metadata = connector.getAttributeInfo(attributeID);
             assertEquals(attributeName, metadata.getName());

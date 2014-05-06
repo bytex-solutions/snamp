@@ -1,18 +1,31 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
-import com.itworks.snamp.*;
-import org.apache.commons.collections4.*;
+import com.itworks.snamp.SimpleTable;
+import com.itworks.snamp.SynchronizationEvent;
+import com.itworks.snamp.Table;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.connectors.AttributeSupport;
+import com.itworks.snamp.connectors.NotificationSupport;
+import org.apache.commons.collections4.Equator;
+import org.apache.commons.collections4.Factory;
+import org.apache.commons.collections4.SetUtils;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerMethod;
 
+import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
+import static com.itworks.snamp.connectors.util.NotificationUtils.SynchronizationListener;
 
 /**
  * @author Roman Sakno
@@ -72,6 +85,53 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         attribute.setAttributeName("date");
         attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("9.0", attribute);
+    }
+
+    @Override
+    protected void fillEvents(final Map<String, EventConfiguration> events, final Factory<EventConfiguration> eventFactory) {
+        EventConfiguration event = eventFactory.create();
+        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event.getAdditionalElements().put("severity", "notice");
+        event.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        events.put("19.1", event);
+
+        event = eventFactory.create();
+        event.setCategory("com.itworks.snamp.connectors.tests.jmx.testnotif");
+        event.getAdditionalElements().put("severity", "panic");
+        event.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        events.put("20.1", event);
+    }
+
+    @Test
+    public final void notificationTest() throws TimeoutException, InterruptedException {
+        final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
+        final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
+        assertNotNull(notificationSupport);
+        assertEquals(2, notificationSupport.getEnabledNotifications().size());
+        assertTrue(notificationSupport.getEnabledNotifications().contains("19.1"));
+        assertTrue(notificationSupport.getEnabledNotifications().contains("20.1"));
+        final String TEST_LISTENER1_ID = "test-listener";
+        final String TEST_LISTENER2_ID = "test-listener-2";
+        final SynchronizationListener listener1 = new SynchronizationListener("19.1");
+        final SynchronizationListener listener2 = new SynchronizationListener("20.1");
+        assertTrue(notificationSupport.subscribe(TEST_LISTENER1_ID,  listener1));
+        assertTrue(notificationSupport.subscribe(TEST_LISTENER2_ID, listener2));
+        final SynchronizationEvent.Awaitor<NotificationSupport.Notification> awaitor1 = listener1.getAwaitor();
+        final SynchronizationEvent.Awaitor<NotificationSupport.Notification> awaitor2 = listener2.getAwaitor();
+        //force property changing
+        assertTrue(attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood"));
+        final NotificationSupport.Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
+        assertNotNull(notif1);
+        assertEquals(NotificationSupport.Notification.Severity.NOTICE, notif1.getSeverity());
+        assertEquals("Property string is changed", notif1.getMessage());
+        assertEquals("string", notif1.get("attributeName"));
+        assertEquals("NO VALUE", notif1.get("oldValue"));
+        assertEquals("Frank Underwood", notif1.get("newValue"));
+        assertEquals(String.class.getName(), notif1.get("attributeType"));
+        final NotificationSupport.Notification notif2 = awaitor2.await(TimeSpan.fromSeconds(5L));
+        assertNotNull(notif2);
+        assertEquals(NotificationSupport.Notification.Severity.PANIC, notif2.getSeverity());
+        assertEquals("Property changed", notif2.getMessage());
     }
 
     @Test

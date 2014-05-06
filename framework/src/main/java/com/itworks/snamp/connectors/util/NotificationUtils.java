@@ -2,11 +2,16 @@ package com.itworks.snamp.connectors.util;
 
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.connectors.NotificationMetadata;
-import static com.itworks.snamp.connectors.NotificationSupport.*;
 import org.apache.commons.collections4.MapUtils;
 import org.osgi.service.event.Event;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+import static com.itworks.snamp.connectors.NotificationSupport.Notification;
+import static com.itworks.snamp.connectors.NotificationSupport.NotificationListener;
 
 /**
  * Represents utility methods that simplifies working with notifications.
@@ -117,11 +122,24 @@ public final class NotificationUtils {
      * @version 1.0
      */
     public static final class SynchronizationListener extends SynchronizationEvent<Notification> implements NotificationListener{
+        private static final String ANY_SUBSCRIPTION_LIST = "*";
+        private final String expectedSubscriptionList;
+
+        /**
+         * Initializes a new synchronizer with the specified filter.
+         * @param subscriptionList An identifier of the expected subscription list.
+         */
+        public SynchronizationListener(final String subscriptionList){
+            super(true);
+            expectedSubscriptionList = subscriptionList == null || subscriptionList.isEmpty() ?
+                    ANY_SUBSCRIPTION_LIST: subscriptionList;
+        }
+
         /**
          * Initializes a new synchronizer for the notification delivery process.
          */
         public SynchronizationListener(){
-            super(true);
+            this(ANY_SUBSCRIPTION_LIST);
         }
 
         /**
@@ -133,7 +151,8 @@ public final class NotificationUtils {
          */
         @Override
         public boolean handle(final String listId, final Notification n) {
-            return fire(n);
+            return (Objects.equals(listId, expectedSubscriptionList) ||
+                    Objects.equals(expectedSubscriptionList, ANY_SUBSCRIPTION_LIST)) && fire(n);
         }
     }
 
