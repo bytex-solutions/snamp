@@ -1,10 +1,10 @@
 package com.itworks.snamp.adapters;
 
 import com.itworks.snamp.core.FrameworkService;
-import com.itworks.snamp.internal.*;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
 
 /**
  * Represents hosting adapter, that exposes management information to the outside world.
@@ -14,7 +14,6 @@ import java.util.*;
  * @see AttributePublisher
  * @see NotificationPublisher
  */
-@Lifecycle(InstanceLifecycle.SINGLE_PER_PROCESS)
 public interface Adapter extends AutoCloseable, FrameworkService, AttributePublisher {
     /**
      * Represents name of the port definition parameter.
@@ -31,7 +30,7 @@ public interface Adapter extends AutoCloseable, FrameworkService, AttributePubli
      * @param parameters The adapter startup parameters.
      * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
      */
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    @ThreadSafe(false)
     public boolean start(final Map<String, String> parameters) throws IOException;
 
     /**
@@ -40,7 +39,7 @@ public interface Adapter extends AutoCloseable, FrameworkService, AttributePubli
      *                                      clear internal list of exposed management entities.
      * @return {@literal true}, if adapter is previously started; otherwise, {@literal false}.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
+    @ThreadSafe(false)
     public boolean stop(final boolean saveState);
 
 

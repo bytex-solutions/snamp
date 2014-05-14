@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.util;
 
-import com.itworks.snamp.internal.Internal;
+import com.itworks.snamp.internal.semantics.Internal;
 
 /**
  * Represents utility interface for connecting and reading management managementAttributes.

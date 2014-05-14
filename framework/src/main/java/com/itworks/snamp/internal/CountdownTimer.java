@@ -1,5 +1,7 @@
 package com.itworks.snamp.internal;
 
+import com.itworks.snamp.internal.semantics.Internal;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
 import org.apache.commons.collections4.Factory;
 import com.itworks.snamp.TimeSpan;
 
@@ -58,7 +60,7 @@ public class CountdownTimer {
      * Returns the elapsed time.
      * @return The elapsed time.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final TimeSpan getElapsedTime(){
         return elapsed;
     }
@@ -83,7 +85,7 @@ public class CountdownTimer {
      * Starts the timer.
      * @return {@literal true}, if timer is started successfully; otherwise, {@literal false}.
      */
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    @ThreadSafe(false)
     public final boolean start(){
         if(isEmpty()) return false;
         beginning = new Date();
@@ -92,11 +94,12 @@ public class CountdownTimer {
 
     /**
      * Starts the timer.
-     * @param timeoutException
+     * @param timeoutException A factory that produces a new instance of the exception
+     *                         that can be raised when this timer is empty.
      * @return {@literal true}, if timer started successfully; otherwise, {@literal false}.
      * @throws TimeoutException Attempts to start empty timer.
      */
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    @ThreadSafe(false)
     public final boolean start(final Factory<TimeoutException> timeoutException) throws TimeoutException{
         if(timeoutException == null) return start();
         else if(isEmpty()) throw timeoutException.create();
@@ -107,7 +110,7 @@ public class CountdownTimer {
      * Composes {@link #stop()} and {@link #getElapsedTime()} methods.
      * @return The elapsed time.
      */
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    @ThreadSafe(false)
     public final TimeSpan stopAndGetElapsedTime(){
         stop();
         return getElapsedTime();
@@ -117,7 +120,7 @@ public class CountdownTimer {
      * Stops the timer.
      * @return {@literal}
      */
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    @ThreadSafe(false)
     public final boolean stop(){
         if(beginning == null) return false;
         elapsed = TimeSpan.diff(new Date(), beginning, TimeUnit.MILLISECONDS);
@@ -131,7 +134,7 @@ public class CountdownTimer {
      * @return {@literal true}, if timer is stopped successfully but not empty; otherwise, {@literal false}.
      * @throws TimeoutException The timer is empty.
      */
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    @ThreadSafe(false)
     public final boolean stop(final Factory<TimeoutException> timeoutException) throws TimeoutException{
         if(timeoutException == null) return stop();
         else if(stop())

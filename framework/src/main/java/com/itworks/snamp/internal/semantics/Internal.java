@@ -1,10 +1,10 @@
-package com.itworks.snamp.internal;
+package com.itworks.snamp.internal.semantics;
 
 import java.lang.annotation.*;
 
 /**
  * Indicates that the annotated element is for internal purposes only and not intended to use directly from
- * your code,
+ * your code.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

@@ -1,7 +1,6 @@
 package com.itworks.snamp;
 
-import com.itworks.snamp.internal.MethodThreadSafety;
-import com.itworks.snamp.internal.ThreadSafety;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -75,6 +74,7 @@ public final class TimeSpan {
      * @param hours Time span, in hours.
      * @return A new time span.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static TimeSpan fromHours(final long hours){
         return new TimeSpan(hours, TimeUnit.HOURS);
     }
@@ -105,7 +105,7 @@ public final class TimeSpan {
      * @param unit A new time interval measurement unit.
      * @return A new time interval with the specified measurement unit.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public TimeSpan convert(TimeUnit unit){
         if(unit == null) unit = TimeUnit.MILLISECONDS;
         return new TimeSpan(unit.convert(this.duration, this.unit));
@@ -124,7 +124,7 @@ public final class TimeSpan {
      * </p>
      * @return A newly created time span with increased scale,
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final TimeSpan up(){
         switch (this.unit){
             case NANOSECONDS: return convert(TimeUnit.MICROSECONDS);
@@ -149,7 +149,7 @@ public final class TimeSpan {
      * @return The auto-scaled time interval.
      * @see #autoScale(long, java.util.concurrent.TimeUnit)
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final TimeSpan autoScale(){
         TimeSpan result = this;
         while (result.duration > 0 && result.unit != TimeUnit.DAYS)
@@ -164,7 +164,7 @@ public final class TimeSpan {
      * @return Auto-scaled time interval.
      * @see #autoScale()
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     @SuppressWarnings("UnusedDeclaration")
     public static TimeSpan autoScale(final long duration, final TimeUnit unit){
         final TimeSpan temp = new TimeSpan(duration, unit);
@@ -176,7 +176,7 @@ public final class TimeSpan {
      * @return The string representation of this instance.
      */
     @Override
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final String toString() {
         return String.format("%s %s", duration, unit);
     }
@@ -186,7 +186,7 @@ public final class TimeSpan {
      * @param obj An object to compare.
      * @return {@literal true}, if this object the same duration as the specified object.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public boolean equals(final TimeSpan obj) {
         return obj != null && unit.toMillis(duration) == obj.unit.toMillis(obj.duration);
     }
@@ -197,7 +197,7 @@ public final class TimeSpan {
      * @return {@literal true}, if this object the same duration as the specified object.
      */
     @Override
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public boolean equals(final Object obj) {
         return obj instanceof TimeSpan && equals((TimeSpan)obj);
     }
@@ -209,7 +209,7 @@ public final class TimeSpan {
      * @param unit The time measurement unit.
      * @return The difference between two dates.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public static TimeSpan diff(final Date left, final Date right, final TimeUnit unit){
         final TimeSpan temp = new TimeSpan(left.getTime() - right.getTime(), TimeUnit.MILLISECONDS);
         return temp.convert(unit);

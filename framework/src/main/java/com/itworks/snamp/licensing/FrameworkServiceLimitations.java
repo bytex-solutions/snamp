@@ -1,9 +1,7 @@
 package com.itworks.snamp.licensing;
 
 import com.itworks.snamp.core.FrameworkService;
-import com.itworks.snamp.internal.Internal;
-import com.itworks.snamp.internal.MethodThreadSafety;
-import com.itworks.snamp.internal.ThreadSafety;
+import com.itworks.snamp.internal.semantics.*;
 
 /**
  * Represents an interface that describes license limitations of the SNAMP service.
@@ -14,10 +12,10 @@ import com.itworks.snamp.internal.ThreadSafety;
 @Internal
 public interface FrameworkServiceLimitations<T extends FrameworkService> extends LicenseLimitations {
     /**
-     *
-     * @param pluginImpl
-     * @throws LicensingException
+     * Verifies version of the SNAMP-specific version.
+     * @param serviceContract Type of the service contract to verify.
+     * @throws LicensingException Actual version of the service doesn't met to license requirements.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
-    public void verifyPluginVersion(final Class<? extends T> pluginImpl) throws LicensingException;
+    @ThreadSafe
+    void verifyServiceVersion(final Class<? extends T> serviceContract) throws LicensingException;
 }

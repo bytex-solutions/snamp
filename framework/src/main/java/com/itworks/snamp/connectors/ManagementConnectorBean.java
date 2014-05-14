@@ -1,21 +1,28 @@
 package com.itworks.snamp.connectors;
 
-import com.itworks.snamp.*;
-import com.itworks.snamp.connectors.util.*;
-import com.itworks.snamp.internal.*;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.TypeConverter;
+import com.itworks.snamp.connectors.util.NotificationListenerInvoker;
+import com.itworks.snamp.connectors.util.NotificationListenerInvokerFactory;
+import com.itworks.snamp.internal.semantics.Internal;
+import com.itworks.snamp.internal.semantics.MethodStub;
 
-import static com.itworks.snamp.internal.ReflectionUtils.safeCast;
-
-import java.beans.*;
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.lang.annotation.*;
-import java.lang.ref.*;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
-import java.lang.reflect.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.internal.ReflectionUtils.safeCast;
 
 /**
  * Represents SNAMP in-process management connector that exposes Java Bean properties through connector managementAttributes.
@@ -74,7 +81,6 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 1.0
  */
-@Lifecycle(InstanceLifecycle.NORMAL)
 public class ManagementConnectorBean extends AbstractManagementConnector<ManagementConnectorBean.ManageableBeanDescriptor<?>> implements NotificationSupport {
 
     /**

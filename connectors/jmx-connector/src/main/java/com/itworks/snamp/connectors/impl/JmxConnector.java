@@ -3,7 +3,7 @@ package com.itworks.snamp.connectors.impl;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.*;
 import com.itworks.snamp.core.maintenance.*;
-import com.itworks.snamp.internal.MethodStub;
+import com.itworks.snamp.internal.semantics.MethodStub;
 
 import com.itworks.snamp.connectors.util.NotificationListenerInvokerFactory;
 import org.apache.commons.beanutils.PropertyUtils;

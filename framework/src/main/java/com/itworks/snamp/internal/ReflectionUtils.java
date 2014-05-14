@@ -1,5 +1,6 @@
 package com.itworks.snamp.internal;
 
+import com.itworks.snamp.internal.semantics.Internal;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.FactoryUtils;
 import org.osgi.framework.*;

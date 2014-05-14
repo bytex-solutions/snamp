@@ -2,9 +2,8 @@ package com.itworks.snamp.connectors.util;
 
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.connectors.ManagementEntityType;
-import com.itworks.snamp.internal.Internal;
-import com.itworks.snamp.internal.MethodThreadSafety;
-import com.itworks.snamp.internal.ThreadSafety;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.semantics.Internal;
 
 /**
  * Represents utility class that represents raw attribute value and its type.
@@ -39,8 +38,9 @@ public final class AttributeValue<T extends ManagementEntityType> {
     /**
      * Determines whether this value is trivial and projection will be available for rawValue's
      * {@link Object#getClass()} method invocation result.
-     * @return
+     * @return {@literal true}, if the stored value can be used by calling code without transformation.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public final boolean isTrivial(){
         return rawValue != null && type.getProjection(rawValue.getClass()) != null;
     }
@@ -52,7 +52,7 @@ public final class AttributeValue<T extends ManagementEntityType> {
      * @param <G>    The type of the conversion result.
      * @return {@literal true}, if conversion to the specified type is supported.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final <G> boolean canConvertTo(final Class<G> target) {
         return target != null &&
                 (target.isInstance(rawValue) || type.getProjection(target) != null);
@@ -66,7 +66,7 @@ public final class AttributeValue<T extends ManagementEntityType> {
      * @return The conversion result.
      * @throws IllegalArgumentException The target type is not supported.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final <G> G convertTo(final Class<G> target) throws IllegalArgumentException {
         if(target == null) throw new IllegalArgumentException("target is null.");
         else if(target.isInstance(rawValue)) return target.cast(rawValue);
@@ -82,7 +82,7 @@ public final class AttributeValue<T extends ManagementEntityType> {
      * @param attributeType The attribute type to check.
      * @return {@literal true}, if the current attribute type is compliant with the specified attribute type; otherwise, {@literal false}.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final boolean isTypeOf(final Class<? extends ManagementEntityType> attributeType){
         return attributeType.isInstance(type);
     }
@@ -93,7 +93,7 @@ public final class AttributeValue<T extends ManagementEntityType> {
      * @param <G> A new attribute type for upper type casting.
      * @return A new instance of attribute value. Field {@link #rawValue} will not be changed.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final <G extends ManagementEntityType> AttributeValue<G> cast(final Class<G> attributeType){
         return new AttributeValue<>(rawValue, attributeType.cast(type));
     }

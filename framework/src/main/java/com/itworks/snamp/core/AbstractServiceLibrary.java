@@ -1,6 +1,6 @@
 package com.itworks.snamp.core;
 
-import com.itworks.snamp.internal.MethodStub;
+import com.itworks.snamp.internal.semantics.MethodStub;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.osgi.framework.*;

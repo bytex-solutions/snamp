@@ -3,7 +3,7 @@ package com.itworks.snamp.connectors;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationManager;
 import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
-import com.itworks.snamp.internal.MethodStub;
+import com.itworks.snamp.internal.semantics.MethodStub;
 import org.apache.commons.collections4.FactoryUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.osgi.framework.*;
@@ -50,7 +50,7 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
     private static final String CONNECTION_TYPE_IDENTITY_PROPERTY = "connectionType";
     private static final String PREFIX_IDENTITY_PROPERTY = "prefix";
 
-    private static final ActivationProperty<CompliantTargets> COMPLIANT_TARGETS_HOLDER = defineProperty(CompliantTargets.class, CompliantTargets.EMPTY);
+    private static final ActivationProperty<CompliantTargets> COMPLIANT_TARGETS_HOLDER = defineActivationProperty(CompliantTargets.class, CompliantTargets.EMPTY);
 
     private static final class CompliantTargets extends HashMap<String, ManagementTargetConfiguration>{
 

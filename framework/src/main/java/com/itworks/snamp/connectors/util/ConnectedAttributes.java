@@ -4,14 +4,13 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AttributeMetadata;
 import com.itworks.snamp.connectors.AttributeSupport;
 import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.internal.semantics.Internal;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
+
+import java.util.HashMap;
+import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import com.itworks.snamp.internal.Internal;
-import com.itworks.snamp.internal.MethodThreadSafety;
-import com.itworks.snamp.internal.ThreadSafety;
-
-import java.util.*;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Represents a map of exposed managementAttributes to the adapter.
@@ -54,7 +53,7 @@ public abstract class ConnectedAttributes<TAttributeDescriptor> extends HashMap<
      * @param postfix The attribute postfix (id in attribute configuration).
      * @return A new combination of the attribute namespace and postfix.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public abstract String makeAttributeId(final String prefix, final String postfix);
 
     /**
@@ -64,7 +63,7 @@ public abstract class ConnectedAttributes<TAttributeDescriptor> extends HashMap<
      * @param config
      * @return
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public abstract TAttributeDescriptor createDescription(final String prefix, final String postfix, final AttributeConfiguration config);
 
     /**

@@ -1,7 +1,7 @@
 package com.itworks.snamp.core;
 
 import com.itworks.snamp.internal.OsgiLoggerBridge;
-import com.itworks.snamp.internal.Partial;
+import com.itworks.snamp.internal.semantics.Partial;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 
@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public abstract class AbstractLoggableServiceLibrary extends AbstractServiceLibrary {
-    private static final ActivationProperty<Logger> LOGGER_HOLDER = defineProperty(Logger.class);
+    private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
 
     /**
      * Represents {@link org.osgi.service.log.LogService} dependency descriptor.

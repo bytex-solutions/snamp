@@ -1,14 +1,15 @@
 package com.itworks.snamp.core;
 
-import com.itworks.snamp.internal.MethodStub;
-import org.apache.commons.collections4.Closure;
+import com.itworks.snamp.internal.semantics.MethodStub;
 import org.apache.commons.collections4.Predicate;
-import org.apache.commons.lang3.mutable.*;
+import org.apache.commons.lang3.mutable.Mutable;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.osgi.framework.*;
 
 import java.util.*;
 
-import static com.itworks.snamp.internal.ReflectionUtils.*;
+import static com.itworks.snamp.internal.ReflectionUtils.getBundleContextByObject;
+import static com.itworks.snamp.internal.ReflectionUtils.isInstanceOf;
 
 /**
  * Represents an abstract for all SNAMP-specific bundle activators.
@@ -178,25 +179,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
                 }
             return null;
         }
-    }
-
-    /**
-     * Provides access to the OSGi service registry at bundle's initialization phase.
-     * <p>
-     *     You should not implement this interface directly in your code.
-     * </p>
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    protected static interface ServiceRegistryProcessor{
-        /**
-         * Queries and processes the specified service obtained from OSGi service registry.
-         * @param serviceType Requested service contract descriptor.
-         * @param processor An object that handles the resolved service.
-         * @param <S> Type of the requested service contract.
-         */
-        <S> boolean processService(final Class<S> serviceType, final Closure<S> processor);
     }
 
     /**
@@ -454,7 +436,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @param <T> Type of the property.
      * @return Activation property definition.
      */
-    protected static <T> ActivationProperty<T> defineProperty(final Class<T> propertyType, final T defaultValue){
+    protected static <T> ActivationProperty<T> defineActivationProperty(final Class<T> propertyType, final T defaultValue){
         return new ActivationProperty<T>() {
             @Override
             public Class<T> getType() {
@@ -474,8 +456,58 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @param <T> The type of the property.
      * @return Activation property definition.
      */
-    protected static <T> ActivationProperty<T> defineProperty(final Class<T> propertyType){
-        return defineProperty(propertyType, null);
+    protected static <T> ActivationProperty<T> defineActivationProperty(final Class<T> propertyType){
+        return defineActivationProperty(propertyType, null);
+    }
+
+    /**
+     * Defines named activation property.
+     * @param propertyName The name of the property.
+     * @param propertyType The type of the property.
+     * @param defaultValue The default value of the property.
+     * @param <T> Type of the property.
+     * @return Named activation property definition.
+     */
+    protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType, final T defaultValue){
+        return new NamedActivationProperty<T>() {
+            @Override
+            public String getName() {
+                return propertyName;
+            }
+
+            @Override
+            public Class<T> getType() {
+                return propertyType;
+            }
+
+            @Override
+            public T getDefaultValue() {
+                return defaultValue;
+            }
+
+            @Override
+            public int hashCode() {
+                return propertyName.hashCode();
+            }
+
+            @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+            @Override
+            public boolean equals(final Object obj) {
+                return propertyName.equals(obj);
+            }
+        };
+    }
+
+    /**
+     * Defines named activation property without default value.
+     * @param propertyName The name of the property.
+     * @param propertyType The type of the property.
+     * @param <T> Type of the property.
+     * @return Named activation property definition.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType){
+        return defineActivationProperty(propertyName, propertyType, null);
     }
 
     /**

@@ -2,8 +2,7 @@ package com.itworks.snamp.adapters;
 
 import com.itworks.snamp.connectors.AttributeSupport;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.internal.MethodThreadSafety;
-import com.itworks.snamp.internal.ThreadSafety;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
 
 import java.util.Map;
 
@@ -21,6 +20,6 @@ public interface AttributePublisher {
      * @param namespace The managementAttributes namespace.
      * @param attributes The dictionary of managementAttributes.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
+    @ThreadSafe(false)
     public void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attributes);
 }

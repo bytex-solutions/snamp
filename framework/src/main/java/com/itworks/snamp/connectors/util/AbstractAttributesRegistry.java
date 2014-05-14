@@ -5,15 +5,13 @@ import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.connectors.AttributeMetadata;
 import com.itworks.snamp.connectors.AttributeSupport;
 import com.itworks.snamp.connectors.ManagementEntityType;
-import com.itworks.snamp.internal.Internal;
-import com.itworks.snamp.internal.MethodThreadSafety;
-import com.itworks.snamp.internal.SynchronizationType;
-import com.itworks.snamp.internal.ThreadSafety;
-
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import com.itworks.snamp.internal.semantics.Internal;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
 /**
  * Represents registry of exposed managementAttributes based on attribute namespace.
@@ -32,10 +30,10 @@ public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends H
         super(10);
     }
 
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     protected abstract ConnectedAttributes<TAttributeDescriptor> createBinding(final AttributeSupport connector);
 
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    @ThreadSafe(false)
     @Override
     public final Collection<String> putAll(final AttributeSupport connector, final String prefix, final Map<String, AttributeConfiguration> attributes){
         final ConnectedAttributes<TAttributeDescriptor> binding;
@@ -57,7 +55,7 @@ public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends H
         return connectedAttributes;
     }
 
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
+    @ThreadSafe(false)
     @Override
     public final <T> T getAttribute(final String prefix, final String postfix, final Class<T> attributeType, final T defaultValue, final TimeSpan readTimeout){
         if(containsKey(prefix)){
@@ -76,7 +74,7 @@ public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends H
         return defaultValue;
     }
 
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
+    @ThreadSafe(false)
     @Override
     public final AttributeValue<? extends ManagementEntityType> getAttribute(final String prefix, final String postfix, final TimeSpan readTimeout){
         if(containsKey(prefix)){
@@ -95,7 +93,7 @@ public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends H
     }
 
     @Override
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
+    @ThreadSafe(false)
     public final ManagementEntityType getAttributeType(final String prefix, final String postfix){
         if(containsKey(prefix)){
             final ConnectedAttributes<TAttributeDescriptor> binding = get(prefix);
@@ -104,7 +102,7 @@ public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends H
         else return null;
     }
 
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    @ThreadSafe(false)
     @Override
     public final boolean setAttribute(final String prefix, final String postfix, final Object value, final TimeSpan writeTimeout){
         if(containsKey(prefix)){
@@ -126,7 +124,7 @@ public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends H
      * @return A read-only collection of registered namespaces.
      */
     @Override
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
+    @ThreadSafe(false)
     public final Collection<String> getNamespaces() {
         return keySet();
     }
@@ -138,7 +136,7 @@ public abstract class AbstractAttributesRegistry<TAttributeDescriptor> extends H
      * @return A collection of registered managementAttributes located in the specified namespace.
      */
     @Override
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
+    @ThreadSafe(false)
     public final Collection<String> getRegisteredAttributes(final String namespace) {
         return containsKey(namespace) ? get(namespace).keySet() : Arrays.<String>asList();
     }

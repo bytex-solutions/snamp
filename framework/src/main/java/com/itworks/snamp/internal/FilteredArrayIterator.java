@@ -1,5 +1,7 @@
 package com.itworks.snamp.internal;
 
+import com.itworks.snamp.internal.semantics.Internal;
+
 import java.util.Iterator;
 
 /**

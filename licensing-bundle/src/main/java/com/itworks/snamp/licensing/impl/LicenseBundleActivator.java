@@ -1,7 +1,7 @@
 package com.itworks.snamp.licensing.impl;
 
 import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
-import com.itworks.snamp.internal.MethodStub;
+import com.itworks.snamp.internal.semantics.MethodStub;
 import com.itworks.snamp.licensing.LicenseReader;
 
 import java.util.Map;

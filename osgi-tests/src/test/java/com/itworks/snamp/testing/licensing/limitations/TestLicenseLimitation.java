@@ -39,12 +39,12 @@ public final class TestLicenseLimitation extends AbstractLicenseLimitations impl
     };
 
     /**
-     * @param pluginImpl
+     * @param serviceContract
      * @throws com.itworks.snamp.licensing.LicensingException
      */
     @Override
-    public void verifyPluginVersion(final Class<? extends TestPlugin> pluginImpl) throws LicensingException {
-        verifyPluginVersion(maxVersion, pluginImpl);
+    public void verifyServiceVersion(final Class<? extends TestPlugin> serviceContract) throws LicensingException {
+        verifyPluginVersion(maxVersion, serviceContract);
     }
 
     private static final class MaxRegisteredAttributeCountAdapter extends RequirementParser<Comparable<Long>, Long, MaxValueLimitation<Long>> {

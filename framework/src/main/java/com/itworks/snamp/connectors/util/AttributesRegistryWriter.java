@@ -1,14 +1,13 @@
 package com.itworks.snamp.connectors.util;
 
 import com.itworks.snamp.connectors.AttributeSupport;
-import com.itworks.snamp.internal.Internal;
-import com.itworks.snamp.internal.MethodThreadSafety;
-import com.itworks.snamp.internal.ThreadSafety;
-
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
+import com.itworks.snamp.internal.semantics.Internal;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
 
 import java.util.Collection;
 import java.util.Map;
+
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
 
 /**
  * Represents utility interface for connecting managementAttributes.
@@ -18,7 +17,7 @@ import java.util.Map;
  */
 @Internal
 public interface AttributesRegistryWriter {
-    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
+    @ThreadSafe
     public Collection<String> putAll(final AttributeSupport connector, final String prefix, final Map<String, AttributeConfiguration> attributes);
 
     public void clear();

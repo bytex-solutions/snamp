@@ -1,17 +1,25 @@
 package com.itworks.snamp.connectors;
 
-import com.itworks.snamp.*;
-import com.itworks.snamp.core.AbstractFrameworkService;
-import com.itworks.snamp.internal.*;
+import com.itworks.snamp.ConcurrentResourceAccess;
+import com.itworks.snamp.IllegalStateFlag;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.util.NotificationListenerInvoker;
-
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.*;
-import static com.itworks.snamp.connectors.NotificationSupport.NotificationListener;
+import com.itworks.snamp.core.AbstractFrameworkService;
+import com.itworks.snamp.internal.AbstractKeyedObjects;
+import com.itworks.snamp.internal.CountdownTimer;
+import com.itworks.snamp.internal.KeyedObjects;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.AbstractConcurrentResourceAccess.Action;
+import static com.itworks.snamp.AbstractConcurrentResourceAccess.ConsistentAction;
+import static com.itworks.snamp.connectors.NotificationSupport.NotificationListener;
 
 /**
  * Represents an abstract class for building custom management connectors.
@@ -20,7 +28,6 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 1.0
  */
-@Lifecycle(InstanceLifecycle.NORMAL)
 public abstract class AbstractManagementConnector<TConnectionOptions> extends AbstractFrameworkService implements ManagementConnector<TConnectionOptions> {
 
     /**
@@ -518,7 +525,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
          * @param <T> The type of requested notification metadata.
          * @return A map of registered notifications (values) and subscription lists (keys).
          */
-        @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+        @ThreadSafe
         protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType){
             return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Map<String, T>>() {
                 @Override
@@ -536,7 +543,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
          * Returns a collection of active categories.
          * @return A collection of active categories.
          */
-        @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+        @ThreadSafe
         protected final Set<String> getCategories(){
             return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Set<String>>() {
                 @Override
@@ -741,7 +748,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      * Returns a count of connected managementAttributes.
      * @return The count of connected managementAttributes.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     protected final int attributesCount(){
         return attributes.read(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Integer>() {
             @Override
@@ -779,6 +786,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      * @return The description of the attribute.
      */
     @Override
+    @ThreadSafe
     public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) {
         verifyInitialization();
         return attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, AttributeMetadata>() {
@@ -813,6 +821,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
      */
     @Override
+    @ThreadSafe
     public final Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException{
         verifyInitialization();
         final CountdownTimer timer = CountdownTimer.start(readTimeout);
@@ -832,6 +841,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
      */
     @Override
+    @ThreadSafe
     public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException {
         final CountdownTimer timer = CountdownTimer.start(readTimeout);
         return attributes.read(new Action<Map<String, GenericAttributeMetadata<?>>, Set<String>, TimeoutException>() {
@@ -873,6 +883,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      * @throws TimeoutException The attribute value cannot be write in the specified duration.
      */
     @Override
+    @ThreadSafe
     public final boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException {
         verifyInitialization();
         final CountdownTimer timer = CountdownTimer.start(writeTimeout);
@@ -892,6 +903,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      * @throws TimeoutException
      */
     @Override
+    @ThreadSafe
     public boolean setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException {
         final CountdownTimer timer = CountdownTimer.start(writeTimeout);
         return attributes.write(new Action<Map<String, GenericAttributeMetadata<?>>, Boolean, TimeoutException>() {
@@ -926,6 +938,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
      */
     @Override
+    @ThreadSafe
     public final boolean disconnectAttribute(final String id) {
         verifyInitialization();
         return attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Boolean>() {
@@ -945,6 +958,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      * @return The attribute descriptor; or {@literal null} if attribute is not connected.
      */
     @Override
+    @ThreadSafe
     public final AttributeMetadata getAttributeInfo(final String id) {
         verifyInitialization();
         return attributes.read(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, AttributeMetadata>() {
@@ -961,6 +975,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      * @return A read-only collection of registered managementAttributes.
      */
     @Override
+    @ThreadSafe
     public final Collection<String> getConnectedAttributes() {
         return attributes.read(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Collection<String>>() {
             @Override
@@ -975,6 +990,7 @@ public abstract class AbstractManagementConnector<TConnectionOptions> extends Ab
      * @throws Exception
      */
     @Override
+    @ThreadSafe(false)
     public void close() throws Exception {
         //remove all registered managementAttributes
         attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Void>() {

@@ -1,7 +1,6 @@
 package com.itworks.snamp;
 
-import com.itworks.snamp.internal.MethodThreadSafety;
-import com.itworks.snamp.internal.ThreadSafety;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,7 +40,7 @@ public class WriteOnceRef<T> implements Wrapper<T> {
      * @param value The value to set.
      * @return {@literal true}, if container is changed successfully; otherwise, {@literal false}.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final boolean set(final T value){
         if(locked.getAndSet(true)) return false;
         this.value = value;
@@ -53,7 +52,7 @@ public class WriteOnceRef<T> implements Wrapper<T> {
      * @return {@literal true}, if this container is locked; otherwise, {@literal false}.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final boolean isLocked(){
         return locked.get();
     }
@@ -62,7 +61,7 @@ public class WriteOnceRef<T> implements Wrapper<T> {
      * Gets the value stored in this container.
      * @return The value stored in this container.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final T get(){
         return value;
     }

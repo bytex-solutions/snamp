@@ -1,7 +1,6 @@
 package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.core.FrameworkService;
-import com.itworks.snamp.internal.*;
 
 /**
  * Represents management connector that provides unified access to the management information.
@@ -10,7 +9,6 @@ import com.itworks.snamp.internal.*;
  * @since 1.0
  * @version 1.0
  */
-@Lifecycle(InstanceLifecycle.NORMAL)
 public interface ManagementConnector<TConnectionOptions> extends AutoCloseable, FrameworkService, AttributeSupport {
     /**
      * Returns connection options used by this management connector.
