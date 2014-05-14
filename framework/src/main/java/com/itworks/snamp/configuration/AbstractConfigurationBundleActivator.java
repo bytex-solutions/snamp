@@ -1,6 +1,6 @@
 package com.itworks.snamp.configuration;
 
-import com.itworks.snamp.core.AbstractLoggableBundleActivator;
+import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
 
 /**
  * Represents an abstract class for SNAMP configuration bundle activator.
@@ -8,7 +8,7 @@ import com.itworks.snamp.core.AbstractLoggableBundleActivator;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractConfigurationBundleActivator extends AbstractLoggableBundleActivator {
+public abstract class AbstractConfigurationBundleActivator extends AbstractLoggableServiceLibrary {
 
     /**
      * Represents an abstract class for {@link ConfigurationManager} factory.

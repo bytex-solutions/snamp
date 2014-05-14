@@ -4,7 +4,7 @@ import java.lang.annotation.*;
 import java.lang.reflect.*;
 
 /**
- * Represents a base class for all aggregators.
+ * Represents a basic support for aggregation.
  * <p>
  *  You can use {@link Aggregation} annotation for annotating fields and parameterless methods. These
  *  program elements will be automatically recognized as aggregated object and available for requesting

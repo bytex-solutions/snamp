@@ -2,8 +2,8 @@ package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationManager;
-import com.itworks.snamp.core.AbstractLoggableBundleActivator;
-import org.apache.commons.collections4.Closure;
+import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
+import com.itworks.snamp.internal.MethodStub;
 import org.apache.commons.collections4.FactoryUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.osgi.framework.*;
@@ -33,7 +33,7 @@ import static com.itworks.snamp.internal.ReflectionUtils.getProperty;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractManagementConnectorBundleActivator<TConnector extends ManagementConnector<?>> extends AbstractLoggableBundleActivator {
+public abstract class AbstractManagementConnectorBundleActivator<TConnector extends ManagementConnector<?>> extends AbstractLoggableServiceLibrary {
     /**
      * Represents name of the manifest header which contains the name of the management connector.
      * <p>
@@ -49,9 +49,17 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
     private static final String CONNECTION_STRING_IDENTITY_PROPERTY = "connectionString";
     private static final String CONNECTION_TYPE_IDENTITY_PROPERTY = "connectionType";
     private static final String PREFIX_IDENTITY_PROPERTY = "prefix";
-    private static final String COMPLIANT_TARGETS_INIT_PROPERTY = "compliant-targets";
+
+    private static final ActivationProperty<CompliantTargets> COMPLIANT_TARGETS_HOLDER = defineProperty(CompliantTargets.class, CompliantTargets.EMPTY);
 
     private static final class CompliantTargets extends HashMap<String, ManagementTargetConfiguration>{
+
+        private CompliantTargets(){
+
+        }
+
+        public static final CompliantTargets EMPTY = new CompliantTargets();
+
         public CompliantTargets(final String connectorName, final AgentConfiguration configuration){
             this(connectorName, configuration.getTargets());
         }
@@ -75,26 +83,27 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
         /**
          * Creates a new instance of the management connector factory.
          * @param targetName The The name of the management target.
-         * @param sharedContext Shared context.
+         * @param activationProperties A collection of activation properties to read.
          * @return A new instance of the management connector factory.
          */
-        protected abstract ManagementConnectorProvider<TConnectorImpl> createConnectorFactory(final String targetName, final Map<String, ?> sharedContext);
+        protected abstract ManagementConnectorProvider<TConnectorImpl> createConnectorFactory(final String targetName,
+                                                                                              final ActivationPropertyReader activationProperties);
 
         /**
          * Exposes all provided services via the input collection.
          *
          * @param services      A collection of provided services to fill.
-         * @param sharedContext Shared context.
+         * @param activationProperties Activation properties to read.
+         * @param bundleLevelDependencies A collection of bundle-level dependencies.
          */
         @Override
-        public final void provide(final Collection<ProvidedService<?, ?>> services, final Map<String, ?> sharedContext) {
+        public final void provide(final Collection<ProvidedService<?, ?>> services,
+                                  final ActivationPropertyReader activationProperties,
+                                  final RequiredService<?>... bundleLevelDependencies) {
             //iterates through each compliant target and instantate factory for the management connector
-            final Map<String, ManagementTargetConfiguration> targets = getProperty(sharedContext,
-                    COMPLIANT_TARGETS_INIT_PROPERTY,
-                    CompliantTargets.class,
-                    FactoryUtils.<CompliantTargets>nullFactory());
+            final Map<String, ManagementTargetConfiguration> targets = activationProperties.getValue(COMPLIANT_TARGETS_HOLDER);
             for(final String targetName: targets != null ? targets.keySet() : Collections.<String>emptySet())
-                services.add(createConnectorFactory(targetName, sharedContext));
+                services.add(createConnectorFactory(targetName, activationProperties));
         }
     }
 
@@ -123,11 +132,7 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
         }
 
         private ManagementTargetConfiguration getConfiguration(){
-            final CompliantTargets targets = getProperty(getSharedContext(),
-                    COMPLIANT_TARGETS_INIT_PROPERTY,
-                    CompliantTargets.class,
-                    FactoryUtils.<CompliantTargets>nullFactory());
-            return getProperty(targets,
+            return getProperty(getActivationPropertyValue(COMPLIANT_TARGETS_HOLDER),
                     managementTargetName,
                     ManagementTargetConfiguration.class,
                     FactoryUtils.<ManagementTargetConfiguration>nullFactory());
@@ -280,7 +285,7 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
         /**
          * Initializes a new factory for the management connector with notification support.
          * <p>
-         *     This constructor calls {@link #NotificationSupportProvider(String, com.itworks.snamp.core.AbstractBundleActivator.RequiredServiceAccessor, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])}
+         *     This constructor calls {@link #NotificationSupportProvider(String, com.itworks.snamp.core.AbstractServiceLibrary.RequiredServiceAccessor, com.itworks.snamp.core.AbstractServiceLibrary.RequiredService[])}
          *     and pass {@link com.itworks.snamp.core.AbstractBundleActivator.SimpleDependency} as dependency
          *     descriptor for {@link org.osgi.service.event.EventAdmin} service.
          * </p>
@@ -445,24 +450,27 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
     }
 
     /**
-     * Reads management targets from the SNAMP configuration manager.
-     *
-     * @param sharedContext           The activation context to initialize.
-     * @param serviceReg              An object that provides access to the OSGi service registry.
-     * @param bundleLevelDependencies A collection of bundle-level dependencies.
+     * Initializes the library.
+     * @param bundleLevelDependencies A collection of library-level dependencies to fill.
+     * @throws Exception An error occurred during bundle initialization.
      */
     @Override
-    protected void init(final Map<String, Object> sharedContext,
-                              final ServiceRegistryProcessor serviceReg,
-                              final Collection<BundleLevelDependency<?>> bundleLevelDependencies) throws Exception{
-        super.init(sharedContext, serviceReg, bundleLevelDependencies);
-        //read management targets from configuration
-        if(!serviceReg.processService(ConfigurationManager.class, new Closure<ConfigurationManager>() {
-            @Override
-            public final void execute(final ConfigurationManager input) {
-                sharedContext.put(COMPLIANT_TARGETS_INIT_PROPERTY, new CompliantTargets(connectorName, input.getCurrentConfiguration()));
-            }
-        })) getLogger().severe("Configuration manager is not detected. No management connectors instantiated.");
+    protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
+        super.start(bundleLevelDependencies);
+        bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationManager.class));
+    }
+
+    /**
+     * Activates this service library.
+     * @param activationProperties A collection of library activation properties to fill.
+     * @param dependencies         A collection of resolved library-level dependencies.
+     * @throws Exception Unable to activate this library.
+     */
+    @Override
+    protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
+        super.activate(activationProperties, dependencies);
+        final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
+        activationProperties.publish(COMPLIANT_TARGETS_HOLDER, new CompliantTargets(connectorName, configManager.getCurrentConfiguration()));
     }
 
     /**
@@ -530,6 +538,7 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws org.osgi.framework.BundleException Unable to stop management connectors.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static void stopManagementConnectors(final BundleContext context) throws BundleException {
         if(context == null) throw new IllegalArgumentException("context is null.");
         for(final Bundle bnd: getManagementConnectorBundles(context))
@@ -554,6 +563,7 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws org.osgi.framework.BundleException Unable to start management connectors.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static void startManagementConnectors(final BundleContext context) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
         for(final Bundle bnd: getManagementConnectorBundles(context))
@@ -571,5 +581,16 @@ public abstract class AbstractManagementConnectorBundleActivator<TConnector exte
         if(context == null) throw new IllegalArgumentException("context is null.");
         for(final Bundle bnd: getManagementConnectorBundles(context, connectorName))
             bnd.start();
+    }
+
+    /**
+     * Deactivates this library.
+     *
+     * @param activationProperties A collection of library activation properties to read.
+     */
+    @Override
+    @MethodStub
+    protected final void deactivate(final ActivationPropertyReader activationProperties) {
+
     }
 }

@@ -1,6 +1,7 @@
 package com.itworks.snamp.configuration.impl;
 
 import com.itworks.snamp.configuration.AbstractConfigurationBundleActivator;
+import com.itworks.snamp.internal.MethodStub;
 
 import java.util.Map;
 
@@ -36,5 +37,16 @@ public final class ConfigurationBundleActivator extends AbstractConfigurationBun
      */
     public ConfigurationBundleActivator(){
         super(LOGGER_NAME, new XmlConfigurationManagerProvider());
+    }
+
+    /**
+     * Deactivates this library.
+     *
+     * @param activationProperties A collection of library activation properties to read.
+     */
+    @Override
+    @MethodStub
+    protected void deactivate(final ActivationPropertyReader activationProperties) {
+
     }
 }

@@ -1,12 +1,18 @@
 package com.itworks.snamp.connectors.impl;
 
-import static com.itworks.snamp.core.AbstractBundleActivator.*;
-import com.itworks.snamp.licensing.*;
+import com.itworks.snamp.licensing.AbstractLicenseLimitations;
+import com.itworks.snamp.licensing.FrameworkServiceLimitations;
+import com.itworks.snamp.licensing.LicenseReader;
+import com.itworks.snamp.licensing.LicensingException;
 import org.apache.commons.collections4.Factory;
 import org.osgi.framework.Version;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import static com.itworks.snamp.core.AbstractServiceLibrary.RequiredServiceAccessor;
+import static com.itworks.snamp.core.AbstractServiceLibrary.SimpleDependency;
 
 /**
  * Represents license descriptor of the JMX connector.

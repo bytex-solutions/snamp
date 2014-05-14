@@ -1,9 +1,9 @@
 package com.itworks.snamp.core;
 
 import com.itworks.snamp.internal.OsgiLoggerBridge;
-import org.osgi.framework.*;
+import com.itworks.snamp.internal.Partial;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
-import static com.itworks.snamp.internal.ReflectionUtils.getProperty;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -14,12 +14,8 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractLoggableBundleActivator extends AbstractBundleActivator {
-    /**
-     * Represents a property in the shared context that contains a reference to the
-     * {@link Logger} instance that wraps OSGi log service.
-     */
-    protected static final String LOGGER_INIT_PROPERTY = "logger";
+public abstract class AbstractLoggableServiceLibrary extends AbstractServiceLibrary {
+    private static final ActivationProperty<Logger> LOGGER_HOLDER = defineProperty(Logger.class);
 
     /**
      * Represents {@link org.osgi.service.log.LogService} dependency descriptor.
@@ -27,29 +23,14 @@ public abstract class AbstractLoggableBundleActivator extends AbstractBundleActi
      * @since 1.0
      * @version 1.0
      */
-    protected static final class LoggerServiceDependency extends BundleLevelDependency<LogService> {
-        /**
-         * Represents logger that wraps OSGi logging service.
-         */
-        public final Logger logger;
+    private static final class LoggerServiceDependency extends RequiredService<LogService> {
 
         /**
          * Initializes a new {@link LogService} dependency descriptor.
-         * @param loggerName The name of the logger.
-         */
-        public LoggerServiceDependency(final String loggerName){
-            this(Logger.getLogger(loggerName));
-        }
-
-        /**
-         * Initializes a new {@link LogService} dependency descriptor.
-         * @param loggerInstance A logger to wrap. Cannot be {@literal null}.
          * @throws java.lang.IllegalArgumentException loggerInstance is {@literal null}.
          */
-        public LoggerServiceDependency(final Logger loggerInstance){
+        public LoggerServiceDependency(){
             super(LogService.class);
-            if(loggerInstance == null) throw new IllegalArgumentException("loggerInstance is null.");
-            this.logger = loggerInstance;
         }
 
         /**
@@ -65,27 +46,16 @@ public abstract class AbstractLoggableBundleActivator extends AbstractBundleActi
             return true;
         }
 
-        /**
-         * Informs this dependency about resolving dependency.
-         *
-         * @param serviceInstance An instance of the resolved service.
-         * @param properties      Service properties.
-         * @param processingContext A map that comes from the provided service that owns this dependency.
-         */
         @Override
         protected void bind(final LogService serviceInstance,
                             final Dictionary<String, ?> properties,
-                            final Map<String, ?> processingContext) {
-            OsgiLoggerBridge.connectToLogService(logger, serviceInstance);
+                            final ActivationPropertyReader activationProps) {
+            OsgiLoggerBridge.connectToLogService(activationProps.getValue(LOGGER_HOLDER), serviceInstance);
         }
 
-        /**
-         * Informs this dependency about detaching dependency.
-         * @param processingContext A map that comes from the provided service that owns this dependency.
-         */
         @Override
-        protected void unbind(final Map<String, ?> processingContext) {
-            OsgiLoggerBridge.disconnectFromLogService(logger);
+        protected void unbind(final ActivationPropertyReader activationProps) {
+            OsgiLoggerBridge.disconnectFromLogService(activationProps.getValue(LOGGER_HOLDER));
         }
     }
 
@@ -115,11 +85,11 @@ public abstract class AbstractLoggableBundleActivator extends AbstractBundleActi
          * @return The logger from the shared context.
          */
         protected final Logger getLogger(){
-            return getProperty(getSharedContext(), LOGGER_INIT_PROPERTY, Logger.class, Logger.getAnonymousLogger());
+            return getActivationPropertyValue(LOGGER_HOLDER);
         }
     }
 
-    private final LoggerServiceDependency loggerDependency;
+    private final Logger bundleLogger;
 
     /**
      * Initializes a new instance of the bundle activator.
@@ -127,9 +97,9 @@ public abstract class AbstractLoggableBundleActivator extends AbstractBundleActi
      *                   provided services.
      * @param providedServices A collection of provided services.
      */
-    protected AbstractLoggableBundleActivator(final String loggerName, final ProvidedService<?, ?>... providedServices){
+    protected AbstractLoggableServiceLibrary(final String loggerName, final ProvidedService<?, ?>... providedServices){
         super(providedServices);
-        loggerDependency = new LoggerServiceDependency(loggerName);
+        bundleLogger = Logger.getLogger(loggerName);
     }
 
     /**
@@ -139,9 +109,10 @@ public abstract class AbstractLoggableBundleActivator extends AbstractBundleActi
      * @param providedServices A collection of provided services. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException providedServices is {@literal null}.
      */
-    protected AbstractLoggableBundleActivator(final String loggerName, final ProvidedServices providedServices){
+    @SuppressWarnings("UnusedDeclaration")
+    protected AbstractLoggableServiceLibrary(final String loggerName, final ProvidedServices providedServices){
         super(providedServices);
-        loggerDependency = new LoggerServiceDependency(loggerName);
+        bundleLogger = Logger.getLogger(loggerName);
     }
 
     /**
@@ -149,9 +120,10 @@ public abstract class AbstractLoggableBundleActivator extends AbstractBundleActi
      * @param loggerInstance An instance of the logger to be attached to {@link LogService} service.
      * @param providedServices A collection of provided services.
      */
-    protected AbstractLoggableBundleActivator(final Logger loggerInstance, final ProvidedService<?, ?>... providedServices){
+    @SuppressWarnings("UnusedDeclaration")
+    protected AbstractLoggableServiceLibrary(final Logger loggerInstance, final ProvidedService<?, ?>... providedServices){
         super(providedServices);
-        loggerDependency = new LoggerServiceDependency(loggerInstance);
+        bundleLogger = loggerInstance != null ? loggerInstance : Logger.getLogger(getClass().getName());
     }
 
     /**
@@ -160,9 +132,9 @@ public abstract class AbstractLoggableBundleActivator extends AbstractBundleActi
      * @param providedServices A collection of provided services. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException providedServices is {@literal null}.
      */
-    protected AbstractLoggableBundleActivator(final Logger loggerInstance, final ProvidedServices providedServices){
+    protected AbstractLoggableServiceLibrary(final Logger loggerInstance, final ProvidedServices providedServices){
         super(providedServices);
-        loggerDependency = new LoggerServiceDependency(loggerInstance);
+        bundleLogger = loggerInstance != null ? loggerInstance : Logger.getLogger(getClass().getName());
     }
 
     /**
@@ -170,25 +142,37 @@ public abstract class AbstractLoggableBundleActivator extends AbstractBundleActi
      * @return The logger associated with this activator.
      */
     protected final Logger getLogger(){
-        return loggerDependency.logger;
+        return bundleLogger;
     }
 
     /**
-     * Initializes a bundle and fills the map that will be shared between provided services.
+     * Initializes the library.
      * <p>
-     * In the default implementation this method does nothing.
+     *     You should override this method and call this implementation at the first line using
+     *     <b>super keyword</b>.
      * </p>
-     *
-     * @param sharedContext           The activation context to initialize.
-     * @param serviceReg              An object that provides access to the OSGi service registry.
-     * @param bundleLevelDependencies A collection of bundle-level dependencies.
-     * @throws java.lang.Exception Initialization error.
+     * @param bundleLevelDependencies A collection of library-level dependencies to fill.
+     * @throws Exception An error occurred during bundle initialization.
      */
     @Override
-    protected void init(final Map<String, Object> sharedContext,
-                        final ServiceRegistryProcessor serviceReg,
-                        final Collection<BundleLevelDependency<?>> bundleLevelDependencies) throws Exception{
-        bundleLevelDependencies.add(loggerDependency);
-        sharedContext.put(LOGGER_INIT_PROPERTY, loggerDependency.logger);
+    @Partial
+    protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
+        bundleLevelDependencies.add(new LoggerServiceDependency());
+    }
+
+    /**
+     * Activates this service library.
+     * <p>
+     *     You should override this method and call this implementation at the first line using
+     *     <b>super keyword</b>.
+     * </p>
+     * @param activationProperties A collection of library activation properties to fill.
+     * @param dependencies         A collection of resolved library-level dependencies.
+     * @throws Exception Unable to activate this library.
+     */
+    @Override
+    @Partial
+    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
+        activationProperties.publish(LOGGER_HOLDER, bundleLogger);
     }
 }

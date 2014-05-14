@@ -43,12 +43,13 @@ public final class JmxConnectorBundleActivator extends AbstractManagementConnect
         /**
          * Creates a new instance of the management connector factory.
          *
-         * @param targetName    The The name of the management target.
-         * @param sharedContext Shared context.
+         * @param targetName           The The name of the management target.
+         * @param activationProperties A collection of activation properties to read.
          * @return A new instance of the management connector factory.
          */
         @Override
-        protected ManagementConnectorProvider<JmxConnector> createConnectorFactory(final String targetName, final Map<String, ?> sharedContext) {
+        protected ManagementConnectorProvider<JmxConnector> createConnectorFactory(final String targetName,
+                                                                                   final ActivationPropertyReader activationProperties) {
             return new JmxConnectorProvider(targetName);
         }
     }

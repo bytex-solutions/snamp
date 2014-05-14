@@ -17,7 +17,7 @@ public abstract class AbstractConfigurationManager<T extends AgentConfiguration>
     /**
      * Initializes a new configuration management service.
      * @param serviceLogger OSGi logging service wrapped into {@link Logger} instance. Can be obtained
-     *                      from {@link com.itworks.snamp.core.AbstractLoggableBundleActivator.LoggableProvidedService#getLogger()} method.
+     *                      from {@link com.itworks.snamp.core.AbstractLoggableServiceLibrary.LoggableProvidedService#getLogger()} method.
      */
     protected AbstractConfigurationManager(final Logger serviceLogger){
         super(serviceLogger);

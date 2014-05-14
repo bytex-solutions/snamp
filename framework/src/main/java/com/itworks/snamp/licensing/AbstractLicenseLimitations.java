@@ -3,12 +3,16 @@ package com.itworks.snamp.licensing;
 import com.itworks.snamp.core.FrameworkService;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.lang3.Range;
-import org.osgi.framework.*;
-import static com.itworks.snamp.core.AbstractBundleActivator.RequiredServiceAccessor;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.Version;
 
-import javax.xml.bind.annotation.adapters.*;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.lang.reflect.Field;
 import java.util.*;
+
+import static com.itworks.snamp.core.AbstractServiceLibrary.RequiredServiceAccessor;
 
 /**
  * Represents an abstract class for all licensed objects.
