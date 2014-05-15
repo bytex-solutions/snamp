@@ -86,7 +86,7 @@
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">com.itworks.snamp.connectors.AbstractManagementConnector</a></li>
+<li><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">com.itworks.snamp.connectors.AbstractManagedResourceConnector</a></li>
 <li>
 <ul class="inheritance">
 <li>com.itworks.snamp.connectors.FileBasedManagementConnector</li>
@@ -204,7 +204,7 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected java.lang.Object</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/FileBasedManagementConnector.html#getAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">getAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/FileBasedManagementConnector.html#getAttributeValue(com.itworks.snamp.connectors.attributes.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">getAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
                  <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;readTimeout,
                  java.lang.Object&nbsp;defaultValue)</code>
 <div class="block">Returns the value of the attribute.</div>
@@ -212,7 +212,7 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected boolean</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/FileBasedManagementConnector.html#setAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">setAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/FileBasedManagementConnector.html#setAttributeValue(com.itworks.snamp.connectors.attributes.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">setAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
                  <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;writeTimeout,
                  java.lang.Object&nbsp;value)</code>
 <div class="block">Sends the attribute value to the remote agent.</div>
@@ -230,7 +230,7 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.itworks.snamp.connectors.<a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></h3>
-<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#attributesCount()">attributesCount</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#connectAttribute(java.lang.String, java.lang.String, java.util.Map)">connectAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disableNotifications(java.lang.String)">disableNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disableNotificationsCore(com.itworks.snamp.connectors.NotificationMetadata)">disableNotificationsCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disconnectAttribute(java.lang.String)">disconnectAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disconnectAttributeCore(java.lang.String)">disconnectAttributeCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#enableNotifications(java.lang.String, java.lang.String, java.util.Map)">enableNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#enableNotificationsCore(java.lang.String, java.util.Map)">enableNotificationsCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttribute(java.lang.String, com.snamp.TimeSpan, java.lang.Object)">getAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributeInfo(java.lang.String)">getAttributeInfo</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributes(java.util.Map, com.snamp.TimeSpan)">getAttributes</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getEnabledNotifications(java.lang.String, java.lang.Class)">getEnabledNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getNotificationInfo(java.lang.String)">getNotificationInfo</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#iterator()">iterator</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttribute(java.lang.String, com.snamp.TimeSpan, java.lang.Object)">setAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttributes(java.util.Map, com.snamp.TimeSpan)">setAttributes</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribe(java.lang.String, com.itworks.snamp.connectors.NotificationListener)">subscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribeCore(com.itworks.snamp.connectors.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener)">subscribeCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribe(java.lang.Long)">unsubscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribe(java.lang.Object)">unsubscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribeCore(com.itworks.snamp.connectors.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener, java.lang.Object)">unsubscribeCore</a></code></li>
+<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#attributesCount()">attributesCount</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#connectAttribute(java.lang.String, java.lang.String, java.util.Map)">connectAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disableNotifications(java.lang.String)">disableNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disableNotificationsCore(com.itworks.snamp.connectors.notifications.NotificationMetadata)">disableNotificationsCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disconnectAttribute(java.lang.String)">disconnectAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disconnectAttributeCore(java.lang.String)">disconnectAttributeCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#enableNotifications(java.lang.String, java.lang.String, java.util.Map)">enableNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#enableNotificationsCore(java.lang.String, java.util.Map)">enableNotificationsCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttribute(java.lang.String, com.snamp.TimeSpan, java.lang.Object)">getAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributeInfo(java.lang.String)">getAttributeInfo</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributes(java.util.Map, com.snamp.TimeSpan)">getAttributes</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getEnabledNotifications(java.lang.String, java.lang.Class)">getEnabledNotifications</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getNotificationInfo(java.lang.String)">getNotificationInfo</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#iterator()">iterator</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttribute(java.lang.String, com.snamp.TimeSpan, java.lang.Object)">setAttribute</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttributes(java.util.Map, com.snamp.TimeSpan)">setAttributes</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribe(java.lang.String, com.itworks.snamp.connectors.NotificationListener)">subscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribeCore(com.itworks.snamp.connectors.notifications.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener)">subscribeCore</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribe(java.lang.Long)">unsubscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribe(java.lang.Object)">unsubscribe</a>, <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribeCore(com.itworks.snamp.connectors.notifications.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener, java.lang.Object)">unsubscribeCore</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods_inherited_from_class_java.lang.Object">
@@ -318,7 +318,7 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <dt><span class="strong">Returns:</span></dt><dd>The description of the attribute.</dd></dl>
 </li>
 </ul>
-<a name="getAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
+<a name="getAttributeValue(com.itworks.snamp.connectors.attributes.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -331,14 +331,14 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <div class="block">Returns the value of the attribute.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
-<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">getAttributeValue</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></code></dd>
+<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributeValue(com.itworks.snamp.connectors.attributes.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">getAttributeValue</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></code></dd>
 <dt><span class="strong">Parameters:</span></dt><dd><code>attribute</code> - The metadata of the attribute to get.</dd><dd><code>readTimeout</code> - </dd><dd><code>defaultValue</code> - The default value of the attribute if reading fails.</dd>
 <dt><span class="strong">Returns:</span></dt><dd>The value of the attribute.</dd>
 <dt><span class="strong">Throws:</span></dt>
 <dd><code>java.util.concurrent.TimeoutException</code></dd></dl>
 </li>
 </ul>
-<a name="setAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
+<a name="setAttributeValue(com.itworks.snamp.connectors.attributes.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -350,7 +350,7 @@ extends <a href="../../../com/snamp/connectors/AbstractManagementConnector.html"
 <div class="block">Sends the attribute value to the remote agent.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
-<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">setAttributeValue</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></code></dd>
+<dd><code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttributeValue(com.itworks.snamp.connectors.attributes.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">setAttributeValue</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></code></dd>
 <dt><span class="strong">Parameters:</span></dt><dd><code>attribute</code> - The metadata of the attribute to set.</dd><dd><code>writeTimeout</code> - </dd><dd><code>value</code> - </dd>
 <dt><span class="strong">Returns:</span></dt><dd>true if attribute value is overridden successfully; otherwise, false.</dd></dl>
 </li>

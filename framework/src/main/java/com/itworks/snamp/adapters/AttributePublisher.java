@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters;
 
-import com.itworks.snamp.connectors.AttributeSupport;
+import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.internal.semantics.ThreadSafe;
 
@@ -21,5 +21,5 @@ public interface AttributePublisher {
      * @param attributes The dictionary of managementAttributes.
      */
     @ThreadSafe(false)
-    public void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attributes);
+    public void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes);
 }

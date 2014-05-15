@@ -5,7 +5,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
 /**
  * Represents a base interface for all other interfaces that describes
  * publishing of the specified management information.
- * @param <F> Type of the management connector feature, such as {@link com.itworks.snamp.connectors.NotificationSupport}.
+ * @param <F> Type of the management connector feature, such as {@link com.itworks.snamp.connectors.notifications.NotificationSupport}.
  * @param <C> Type of the configuration element that describes the configuration of the MIB element.
  * @author Roman Sakno
  * @version 1.0

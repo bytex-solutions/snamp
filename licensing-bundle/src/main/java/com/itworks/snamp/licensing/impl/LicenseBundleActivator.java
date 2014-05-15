@@ -48,7 +48,6 @@ public final class LicenseBundleActivator extends AbstractLoggableServiceLibrary
      * Deactivates this library.
      *
      * @param activationProperties A collection of library activation properties to read.
-     * @throws Exception Unable to deactivate this library.
      */
     @Override
     @MethodStub

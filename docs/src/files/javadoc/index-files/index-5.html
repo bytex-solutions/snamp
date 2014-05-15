@@ -122,7 +122,7 @@
 </dd>
 <dt><a href="../com/snamp/connectors/util/EnabledNotification.html" title="class in com.itworks.snamp.connectors.util"><span class="strong">EnabledNotification</span></a> - Class in <a href="../com/snamp/connectors/util/package-summary.html">com.itworks.snamp.connectors.util</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="strong"><a href="../com/snamp/connectors/util/EnabledNotification.html#EnabledNotification(com.itworks.snamp.connectors.ManagementConnector)">EnabledNotification(ManagementConnector)</a></span> - Constructor for class com.itworks.snamp.connectors.util.<a href="../com/snamp/connectors/util/EnabledNotification.html" title="class in com.itworks.snamp.connectors.util">EnabledNotification</a></dt>
+<dt><span class="strong"><a href="../com/snamp/connectors/util/EnabledNotification.html#EnabledNotification(com.itworks.snamp.connectors.ManagedResourceConnector)">EnabledNotification(ManagementConnector)</a></span> - Constructor for class com.itworks.snamp.connectors.util.<a href="../com/snamp/connectors/util/EnabledNotification.html" title="class in com.itworks.snamp.connectors.util">EnabledNotification</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="strong"><a href="../com/snamp/connectors/AbstractManagementConnector.html#enableNotifications(java.lang.String, java.lang.String, java.util.Map)">enableNotifications(String, String, Map&lt;String, String&gt;)</a></span> - Method in class com.itworks.snamp.connectors.<a href="../com/snamp/connectors/AbstractManagementConnector.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnector</a></dt>
 <dd>
@@ -154,7 +154,7 @@
 <dd>
 <div class="block">Determines whether the specified object is equal to the stored object.</div>
 </dd>
-<dt><span class="strong"><a href="../com/snamp/connectors/AbstractManagementConnectorFactory.html#equals(com.itworks.snamp.connectors.AbstractManagementConnectorBundleActivator)">equals(AbstractManagementConnectorFactory&lt;?&gt;)</a></span> - Method in class com.itworks.snamp.connectors.<a href="../com/snamp/connectors/AbstractManagementConnectorFactory.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnectorFactory</a></dt>
+<dt><span class="strong"><a href="../com/snamp/connectors/AbstractManagementConnectorFactory.html#equals(com.itworks.snamp.connectors.AbstractManagedResourceActivator)">equals(AbstractManagementConnectorFactory&lt;?&gt;)</a></span> - Method in class com.itworks.snamp.connectors.<a href="../com/snamp/connectors/AbstractManagementConnectorFactory.html" title="class in com.itworks.snamp.connectors">AbstractManagementConnectorFactory</a></dt>
 <dd>
 <div class="block">Determines whether the specified factory equals to this factory and produces
  the same type of the SNAMP management connector.</div>
@@ -184,23 +184,23 @@
 <dd>
 <div class="block">Determines whether this instance represents the same duration as the specified object.</div>
 </dd>
-<dt><span class="strong"><a href="../com/snamp/adapters/Adapter.html#exposeAttributes(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeAttributes(ManagementConnector, String, Map&lt;String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration&gt;)</a></span> - Method in interface com.itworks.snamp.adapters.<a href="../com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters">Adapter</a></dt>
+<dt><span class="strong"><a href="../com/snamp/adapters/Adapter.html#exposeAttributes(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">exposeAttributes(ManagementConnector, String, Map&lt;String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration&gt;)</a></span> - Method in interface com.itworks.snamp.adapters.<a href="../com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters">Adapter</a></dt>
 <dd>
 <div class="block">Exposes management attributes.</div>
 </dd>
-<dt><span class="strong"><a href="../com/snamp/adapters/EmbeddedAdapter.html#exposeAttributes(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeAttributes(ManagementConnector, String, Map&lt;String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration&gt;)</a></span> - Method in class com.itworks.snamp.adapters.<a href="../com/snamp/adapters/EmbeddedAdapter.html" title="class in com.itworks.snamp.adapters">EmbeddedAdapter</a></dt>
+<dt><span class="strong"><a href="../com/snamp/adapters/EmbeddedAdapter.html#exposeAttributes(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">exposeAttributes(ManagementConnector, String, Map&lt;String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration&gt;)</a></span> - Method in class com.itworks.snamp.adapters.<a href="../com/snamp/adapters/EmbeddedAdapter.html" title="class in com.itworks.snamp.adapters">EmbeddedAdapter</a></dt>
 <dd>
 <div class="block">Exposes management attributes.</div>
 </dd>
-<dt><span class="strong"><a href="../com/snamp/adapters/AbstractAdapter.html#exposeEvents(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeEvents(ManagementConnector, String, Map&lt;String, AgentConfiguration.ManagementTargetConfiguration.EventConfiguration&gt;)</a></span> - Method in class com.itworks.snamp.adapters.<a href="../com/snamp/adapters/AbstractAdapter.html" title="class in com.itworks.snamp.adapters">AbstractAdapter</a></dt>
+<dt><span class="strong"><a href="../com/snamp/adapters/AbstractAdapter.html#exposeEvents(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">exposeEvents(ManagementConnector, String, Map&lt;String, AgentConfiguration.ManagementTargetConfiguration.EventConfiguration&gt;)</a></span> - Method in class com.itworks.snamp.adapters.<a href="../com/snamp/adapters/AbstractAdapter.html" title="class in com.itworks.snamp.adapters">AbstractAdapter</a></dt>
 <dd>
 <div class="block">Exposes monitoring events.</div>
 </dd>
-<dt><span class="strong"><a href="../com/snamp/adapters/Adapter.html#exposeEvents(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeEvents(ManagementConnector, String, Map&lt;String, AgentConfiguration.ManagementTargetConfiguration.EventConfiguration&gt;)</a></span> - Method in interface com.itworks.snamp.adapters.<a href="../com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters">Adapter</a></dt>
+<dt><span class="strong"><a href="../com/snamp/adapters/Adapter.html#exposeEvents(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">exposeEvents(ManagementConnector, String, Map&lt;String, AgentConfiguration.ManagementTargetConfiguration.EventConfiguration&gt;)</a></span> - Method in interface com.itworks.snamp.adapters.<a href="../com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters">Adapter</a></dt>
 <dd>
 <div class="block">Exposes monitoring events.</div>
 </dd>
-<dt><span class="strong"><a href="../com/snamp/adapters/EmbeddedAdapter.html#exposeEvents(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeEvents(ManagementConnector, String, Map&lt;String, AgentConfiguration.ManagementTargetConfiguration.EventConfiguration&gt;)</a></span> - Method in class com.itworks.snamp.adapters.<a href="../com/snamp/adapters/EmbeddedAdapter.html" title="class in com.itworks.snamp.adapters">EmbeddedAdapter</a></dt>
+<dt><span class="strong"><a href="../com/snamp/adapters/EmbeddedAdapter.html#exposeEvents(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">exposeEvents(ManagementConnector, String, Map&lt;String, AgentConfiguration.ManagementTargetConfiguration.EventConfiguration&gt;)</a></span> - Method in class com.itworks.snamp.adapters.<a href="../com/snamp/adapters/EmbeddedAdapter.html" title="class in com.itworks.snamp.adapters">EmbeddedAdapter</a></dt>
 <dd>
 <div class="block">Exposes monitoring events.</div>
 </dd>

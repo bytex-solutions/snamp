@@ -86,7 +86,7 @@
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>com.itworks.snamp.connectors.util.NotificationUtils</li>
+<li>com.itworks.snamp.connectors.notifications.NotificationUtils</li>
 </ul>
 </li>
 </ul>
@@ -146,14 +146,14 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/snamp/SynchronizationEvent.Awaitor.html" title="interface in com.snamp">SynchronizationEvent.Awaitor</a>&lt;<a href="../../../../com/snamp/connectors/Notification.html" title="interface in com.itworks.snamp.connectors">Notification</a>&gt;</code></td>
-<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/NotificationUtils.html#createAwaitor(com.itworks.snamp.connectors.ManagementConnector, java.lang.String)">createAwaitor</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
+<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/NotificationUtils.html#createAwaitor(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String)">createAwaitor</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
              java.lang.String&nbsp;listId)</code>
 <div class="block">Adds a new notification listener and returns synchronous awaitor for it.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/snamp/SynchronizationEvent.Awaitor.html" title="interface in com.snamp">SynchronizationEvent.Awaitor</a>&lt;<a href="../../../../com/snamp/connectors/Notification.html" title="interface in com.itworks.snamp.connectors">Notification</a>&gt;</code></td>
-<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/NotificationUtils.html#createAwaitor(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, com.itworks.snamp.connectors.NotificationListener)">createAwaitor</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
+<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/NotificationUtils.html#createAwaitor(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, com.itworks.snamp.connectors.NotificationListener)">createAwaitor</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
              java.lang.String&nbsp;listId,
              <a href="../../../../com/snamp/connectors/NotificationListener.html" title="interface in com.itworks.snamp.connectors">NotificationListener</a>&nbsp;listener)</code>
 <div class="block">Adds a new notification listener and returns synchronous awaitor for it.</div>
@@ -181,7 +181,7 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="createAwaitor(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, com.itworks.snamp.connectors.NotificationListener)">
+<a name="createAwaitor(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, com.itworks.snamp.connectors.NotificationListener)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -202,7 +202,7 @@ extends java.lang.Object</pre>
  by connector.</dd></dl>
 </li>
 </ul>
-<a name="createAwaitor(com.itworks.snamp.connectors.ManagementConnector, java.lang.String)">
+<a name="createAwaitor(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String)">
 <!--   -->
 </a>
 <ul class="blockListLast">

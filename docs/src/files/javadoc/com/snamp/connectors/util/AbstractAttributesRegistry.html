@@ -92,7 +92,7 @@
 <li>java.util.HashMap&lt;java.lang.String,<a href="../../../../com/snamp/connectors/util/ConnectedAttributes.html" title="class in com.itworks.snamp.connectors.util">ConnectedAttributes</a>&gt;</li>
 <li>
 <ul class="inheritance">
-<li>com.itworks.snamp.connectors.util.AbstractAttributesRegistry</li>
+<li>com.itworks.snamp.connectors.attributes.AbstractAttributesRegistry</li>
 </ul>
 </li>
 </ul>
@@ -119,7 +119,7 @@ implements <a href="../../../../com/snamp/connectors/util/AttributesRegistry.htm
   <dd>1.0</dd>
 <dt><span class="strong">Author:</span></dt>
   <dd>Roman Sakno</dd>
-<dt><span class="strong">See Also:</span></dt><dd><a href="../../../../serialized-form.html#com.itworks.snamp.connectors.util.AbstractAttributesRegistry">Serialized Form</a></dd></dl>
+<dt><span class="strong">See Also:</span></dt><dd><a href="../../../../serialized-form.html#com.itworks.snamp.connectors.attributes.AbstractAttributesRegistry">Serialized Form</a></dd></dl>
 </li>
 </ul>
 </div>
@@ -176,7 +176,7 @@ implements <a href="../../../../com/snamp/connectors/util/AttributesRegistry.htm
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected abstract <a href="../../../../com/snamp/connectors/util/ConnectedAttributes.html" title="class in com.itworks.snamp.connectors.util">ConnectedAttributes</a></code></td>
-<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/AbstractAttributesRegistry.html#createBinding(com.itworks.snamp.connectors.ManagementConnector)">createBinding</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector)</code>&nbsp;</td>
+<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/AbstractAttributesRegistry.html#createBinding(com.itworks.snamp.connectors.ManagedResourceConnector)">createBinding</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>&lt;L&gt;&nbsp;L</code></td>
@@ -211,7 +211,7 @@ implements <a href="../../../../com/snamp/connectors/util/AttributesRegistry.htm
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/AbstractAttributesRegistry.html#putAll(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">putAll</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
+<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/AbstractAttributesRegistry.html#putAll(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">putAll</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
       java.lang.String&nbsp;prefix,
       java.util.Map&lt;java.lang.String,<a href="../../../../com/snamp/hosting/AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration.html" title="interface in com.itworks.snamp.hosting">AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration</a>&gt;&nbsp;attributes)</code>&nbsp;</td>
 </tr>
@@ -283,7 +283,7 @@ implements <a href="../../../../com/snamp/connectors/util/AttributesRegistry.htm
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="createBinding(com.itworks.snamp.connectors.ManagementConnector)">
+<a name="createBinding(com.itworks.snamp.connectors.ManagedResourceConnector)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -292,7 +292,7 @@ implements <a href="../../../../com/snamp/connectors/util/AttributesRegistry.htm
 <pre>protected abstract&nbsp;<a href="../../../../com/snamp/connectors/util/ConnectedAttributes.html" title="class in com.itworks.snamp.connectors.util">ConnectedAttributes</a>&nbsp;createBinding(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector)</pre>
 </li>
 </ul>
-<a name="putAll(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">
+<a name="putAll(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -303,7 +303,7 @@ implements <a href="../../../../com/snamp/connectors/util/AttributesRegistry.htm
                                             java.util.Map&lt;java.lang.String,<a href="../../../../com/snamp/hosting/AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration.html" title="interface in com.itworks.snamp.hosting">AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration</a>&gt;&nbsp;attributes)</pre>
 <dl>
 <dt><strong>Specified by:</strong></dt>
-<dd><code><a href="../../../../com/snamp/connectors/util/AttributesRegistryWriter.html#putAll(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">putAll</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/snamp/connectors/util/AttributesRegistryWriter.html" title="interface in com.itworks.snamp.connectors.util">AttributesRegistryWriter</a></code></dd>
+<dd><code><a href="../../../../com/snamp/connectors/util/AttributesRegistryWriter.html#putAll(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">putAll</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/snamp/connectors/util/AttributesRegistryWriter.html" title="interface in com.itworks.snamp.connectors.util">AttributesRegistryWriter</a></code></dd>
 </dl>
 </li>
 </ul>

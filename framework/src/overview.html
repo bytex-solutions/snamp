@@ -5,12 +5,11 @@ such as Apache Felix, Knopflerfish, Eclipse Equinox.
 It consists of the following parts (bundles):
 <ul>
     <li>SNAMP Framework - reusable set of classes and interfaces used to write SNAMP components.</li>
-    <li>Management connector - provides connection to the management information base and exposes
-    atomic management entities (called attributes) through OSGi. This component is a back-end
-    of the SNAMP solution.</li>
-    <li>Adapter - provides conversion of the management information supplied by connector into the new
-    representation and exposes this information to the outside world. This component is a front-end of the
-    SNAMP solution.</li>
+    <li>Resource connector - provides connection to the managed resource such as server.
+        This is a back-end component of the SNAMP solution.</li>
+    <li>Resource Adapter - provides access to the managed resource in protocol-specific manner (such as SNMP).
+    Resource adapter provides conversion between management protocol and resource connector interface.
+    This is a front-end of the SNAMP solution.</li>
     <li>Manager - provides SNAMP management interface for configuring SNAMP, such as Web console or
     command-line interface.</li>
     <li>(Agent) configuration - the configuration of the SNAMP specific bundles used to instantiate

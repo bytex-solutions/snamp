@@ -68,7 +68,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
      * @since 1.0
      * @version 1.0
      */
-    public static final class InMemoryManagementTargetConfiguration implements ManagementTargetConfiguration, Serializable{
+    public static final class InMemoryManagedResourceConfiguration implements ManagedResourceConfiguration, Serializable{
 
         /**
          * Represents configuration of the event source. This class cannot be inherited.
@@ -107,7 +107,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
              * @return The map of event options.
              */
             @Override
-            public final Map<String, String> getAdditionalElements() {
+            public final Map<String, String> getParameters() {
                 return additionalElements;
             }
 
@@ -277,7 +277,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
              * @return Additional options associated with the management attribute configuration.
              */
             @Override
-            public final Map<String, String> getAdditionalElements() {
+            public final Map<String, String> getParameters() {
                 return additionalElements;
             }
         }
@@ -292,7 +292,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
         /**
          * Initializes a new empty configuration of the management information source.
          */
-        public InMemoryManagementTargetConfiguration(){
+        public InMemoryManagedResourceConfiguration(){
             connectionString = connectionType = namespace = "";
             attributes = new HashMap<>(10);
             additionalElements = new HashMap<>(10);
@@ -366,12 +366,12 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          *
          * @param elementType The type of the manageable element.
          * @return A map of manageable elements; or {@literal null}, if element type is not supported.
-         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration
-         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
          */
         @SuppressWarnings("unchecked")
         @Override
-        public <T extends ManageableEntity> Map<String, T> getElements(final Class<T> elementType) {
+        public <T extends ManagedEntity> Map<String, T> getElements(final Class<T> elementType) {
             if(elementType == null) return null;
             else if(Objects.equals(elementType, AttributeConfiguration.class))
                 return (Map<String, T>)getAttributes();
@@ -388,7 +388,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          * if the specified element type is not supported.
          */
         @Override
-        public <T extends ManageableEntity> T newElement(final Class<T> elementType) {
+        public <T extends ManagedEntity> T newElement(final Class<T> elementType) {
             if(elementType == null) return null;
             else if(elementType.isAssignableFrom(InMemoryAttributeConfiguration.class))
                 return elementType.cast(newAttributeConfiguration());
@@ -421,7 +421,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          * @return The dictionary of additional configuration elements.
          */
         @Override
-        public final Map<String, String> getAdditionalElements() {
+        public final Map<String, String> getParameters() {
             return additionalElements;
         }
 
@@ -449,7 +449,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
     }
 
     private final InMemoryHostingConfiguration hostingConfig;
-    private final Map<String, ManagementTargetConfiguration> targets;
+    private final Map<String, ManagedResourceConfiguration> targets;
 
     /**
      * Initializes a new empty agent configuration.
@@ -488,18 +488,18 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
      * @return The dictionary of management targets (management back-ends).
      */
     @Override
-    public final Map<String, ManagementTargetConfiguration> getTargets() {
+    public final Map<String, ManagedResourceConfiguration> getManagedResources() {
         return targets;
     }
 
     /**
-     * Creates a new instance of the {@link com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagementTargetConfiguration}.
+     * Creates a new instance of the {@link com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration}.
      *
-     * @return A new instance of the {@link com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagementTargetConfiguration}.
+     * @return A new instance of the {@link com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration}.
      */
     @Override
-    public final InMemoryManagementTargetConfiguration newManagementTargetConfiguration() {
-        return new InMemoryManagementTargetConfiguration();
+    public final InMemoryManagedResourceConfiguration newManagedResourceConfiguration() {
+        return new InMemoryManagedResourceConfiguration();
     }
 
     /**

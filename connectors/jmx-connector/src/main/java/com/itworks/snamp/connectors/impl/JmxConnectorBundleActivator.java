@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.impl;
 
-import com.itworks.snamp.connectors.AbstractManagementConnectorBundleActivator;
+import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
 
 import java.net.MalformedURLException;
 import java.util.Map;
@@ -13,7 +13,7 @@ import java.util.Map;
  * @since 1.0
  */
 @SuppressWarnings("UnusedDeclaration")
-public final class JmxConnectorBundleActivator extends AbstractManagementConnectorBundleActivator<JmxConnector> {
+public final class JmxConnectorBundleActivator extends AbstractManagedResourceActivator<JmxConnector> {
 
     private static final class JmxConnectorProvider extends NotificationSupportProvider<JmxConnector>{
 

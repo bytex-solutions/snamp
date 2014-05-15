@@ -1,31 +1,41 @@
 package com.itworks.snamp.connectors.impl;
 
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.connectors.*;
-import com.itworks.snamp.core.maintenance.*;
+import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
+import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.connectors.notifications.NotificationListener;
+import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.core.maintenance.AbstractMaintainable;
+import com.itworks.snamp.core.maintenance.Maintainable;
+import com.itworks.snamp.core.maintenance.MaintenanceActionInfo;
 import com.itworks.snamp.internal.semantics.MethodStub;
-
-import com.itworks.snamp.connectors.util.NotificationListenerInvokerFactory;
 import org.apache.commons.beanutils.PropertyUtils;
-
-import static com.itworks.snamp.connectors.impl.JmxConnectionManager.MBeanServerConnectionHandler;
-import static com.itworks.snamp.connectors.impl.JmxConnectorConfigurationDescriptor.*;
 
 import javax.management.*;
 import javax.management.openmbean.*;
-import java.beans.*;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.itworks.snamp.connectors.impl.JmxConnectionManager.MBeanServerConnectionHandler;
+import static com.itworks.snamp.connectors.impl.JmxConnectorConfigurationDescriptor.OBJECT_NAME_PROPERTY;
 
 /**
  * Represents JMX connector.
  * @author Roman Sakno
  */
-final class JmxConnector extends AbstractManagementConnector<JmxConnectionOptions> implements NotificationSupport, Maintainable {
+final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionOptions> implements AttributeSupport, NotificationSupport, Maintainable {
     /**
      * Represents JMX connector name.
      */
@@ -85,21 +95,21 @@ final class JmxConnector extends AbstractManagementConnector<JmxConnectionOption
             this.executor = Executors.newSingleThreadExecutor();
         }
 
-        public final Notification.Severity getSeverity(){
+        public final com.itworks.snamp.connectors.notifications.Notification.Severity getSeverity(){
             if(options.containsKey(severityOption))
                 switch (options.get(severityOption)){
-                    case "panic": return Notification.Severity.PANIC;
-                    case "alert": return Notification.Severity.ALERT;
-                    case "critical": return Notification.Severity.CRITICAL;
-                    case "error": return Notification.Severity.ERROR;
-                    case "warning": return Notification.Severity.WARNING;
-                    case "notice": return Notification.Severity.NOTICE;
-                    case "info": return Notification.Severity.INFO;
-                    case "debug": return Notification.Severity.DEBUG;
-                    default: return Notification.Severity.UNKNOWN;
+                    case "panic": return com.itworks.snamp.connectors.notifications.Notification.Severity.PANIC;
+                    case "alert": return com.itworks.snamp.connectors.notifications.Notification.Severity.ALERT;
+                    case "critical": return com.itworks.snamp.connectors.notifications.Notification.Severity.CRITICAL;
+                    case "error": return com.itworks.snamp.connectors.notifications.Notification.Severity.ERROR;
+                    case "warning": return com.itworks.snamp.connectors.notifications.Notification.Severity.WARNING;
+                    case "notice": return com.itworks.snamp.connectors.notifications.Notification.Severity.NOTICE;
+                    case "info": return com.itworks.snamp.connectors.notifications.Notification.Severity.INFO;
+                    case "debug": return com.itworks.snamp.connectors.notifications.Notification.Severity.DEBUG;
+                    default: return com.itworks.snamp.connectors.notifications.Notification.Severity.UNKNOWN;
 
                 }
-            else return Notification.Severity.UNKNOWN;
+            else return com.itworks.snamp.connectors.notifications.Notification.Severity.UNKNOWN;
         }
 
         /**
@@ -180,6 +190,214 @@ final class JmxConnector extends AbstractManagementConnector<JmxConnectionOption
         }
     }
 
+    private static final class JmxAttributeSupport extends AbstractAttributeSupport{
+        private final JmxConnectionManager connectionManager;
+
+        public JmxAttributeSupport(final JmxConnectionManager connectionManager){
+            this.connectionManager = connectionManager;
+        }
+
+        private JmxAttributeProvider createPlainAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
+            //extracts JMX attribute metadata
+            final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
+                @Override
+                public MBeanAttributeInfo handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    for (final MBeanAttributeInfo attr : connection.getMBeanInfo(namespace).getAttributes())
+                        if (attributeName.equals(attr.getName())) return attr;
+                    return null;
+                }
+            }, null);
+            return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
+                @Override
+                protected final JmxManagementEntityType detectAttributeType() {
+                    if(targetAttr instanceof OpenMBeanAttributeInfoSupport)
+                        return typeSystem.createEntityType(((OpenMBeanAttributeInfoSupport) targetAttr).getOpenType());
+                    else return typeSystem.createEntityType(targetAttr.getType());
+                }
+
+                /**
+                 * Determines whether the value of this attribute can be changed, returns {@literal true} by default.
+                 *
+                 * @return {@literal true}, if the attribute value can be changed; otherwise, {@literal false}.
+                 */
+                @Override
+                public boolean canWrite() {
+                    return targetAttr.isWritable();
+                }
+
+                @Override
+                public boolean canRead() {
+                    return targetAttr.isReadable();
+                }
+
+                @Override
+                protected final MBeanServerConnectionHandler<Object> createAttributeValueReader() {
+                    return new MBeanServerConnectionHandler<Object>(){
+                        @Override
+                        public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
+                            return connection.getAttribute(namespace, getName());
+                        }
+                    };
+                }
+
+                @Override
+                protected final MBeanServerConnectionHandler<Boolean> createAttributeValueWriter(final Object value) {
+                    return new MBeanServerConnectionHandler<Boolean>(){
+                        @Override
+                        public Boolean handle(final MBeanServerConnection connection) throws IOException, JMException {
+                            connection.setAttribute(namespace, new Attribute(getName(), value));
+                            return true;
+                        }
+                    };
+                }
+
+                @Override
+                public final String getDescription(final Locale locale) {
+                    return targetAttr.getDescription();
+                }
+            } : null;
+        }
+
+        private JmxAttributeProvider createCompositeAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
+            final CompositeValueNavigator navigator = new CompositeValueNavigator(attributeName);
+            //получить описатель поля, этот описатель может содержать знак @ для вложенного атрибута
+            final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
+                @Override
+                public MBeanAttributeInfo handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    for(final MBeanAttributeInfo attr: connection.getMBeanInfo(namespace).getAttributes())
+                        if(navigator.attributeName.equals(attr.getName())) return attr;
+                    return null;
+                }
+            }, null);
+            return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
+                private final OpenType<?> compositeType = targetAttr instanceof OpenMBeanAttributeInfoSupport ? ((OpenMBeanAttributeInfoSupport)targetAttr).getOpenType() : SimpleType.STRING;
+
+                @Override
+                public final boolean canRead() {
+                    return targetAttr.isReadable();
+                }
+
+                @Override
+                public final boolean canWrite(){
+                    return false;
+                }
+
+                @Override
+                public final String getDescription(final Locale locale) {
+                    return targetAttr.getDescription();
+                }
+
+                @Override
+                protected final MBeanServerConnectionHandler<Object> createAttributeValueReader() {
+                    return new MBeanServerConnectionHandler<Object>(){
+                        @Override
+                        public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
+                            return navigator.getValue(connection.getAttribute(namespace, navigator.attributeName));
+                        }
+                    };
+                }
+
+                @Override
+                protected final MBeanServerConnectionHandler<Boolean> createAttributeValueWriter(Object value) {
+                    return new MBeanServerConnectionHandler<Boolean>() {
+                        @Override
+                        public Boolean handle(MBeanServerConnection connection) {
+                            return false;
+                        }
+                    };
+                }
+
+                @Override
+                protected final JmxManagementEntityType detectAttributeType() {
+                    final Object attributeType = navigator.getType(compositeType);
+                    if(attributeType instanceof OpenType<?>)
+                        return typeSystem.createEntityType((OpenType<?>)attributeType);
+                    else if(attributeType instanceof Class<?>)
+                        return typeSystem.createEntityType((Class<?>)attributeType);
+                    else return typeSystem.createEntityType(Objects.toString(attributeType, ""));
+                }
+            } : null;
+        }
+
+        private ObjectName findObjectName(final ObjectName namespace){
+            return connectionManager.handleConnection(new MBeanServerConnectionHandler<ObjectName>() {
+                @Override
+                public ObjectName handle(final MBeanServerConnection connection) throws IOException, JMException {
+
+                    final Set<ObjectInstance> beans = connection.queryMBeans(namespace, null);
+                    return beans.size() > 0 ? beans.iterator().next().getObjectName() : null;
+                }
+            }, null);
+        }
+
+        private static boolean useRegexpOption(final Map<String, String> options){
+            return options.containsKey("useRegexp") && Boolean.TRUE.toString().equals(options.get("useRegexp"));
+        }
+
+        private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options, final boolean useRegexp){
+            //creates JMX attribute provider based on its metadata and connection options.
+            if(namespace == null) return null;
+            if(CompositeValueNavigator.isCompositeAttribute(attributeName))
+                return createCompositeAttribute(namespace, attributeName, options);
+            else if(useRegexp) return connectAttribute(findObjectName(namespace), attributeName, options, false);
+            else return createPlainAttribute(namespace, attributeName, options);
+        }
+
+        private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
+            //creates JMX attribute provider based on its metadata and connection options.
+            return connectAttribute(namespace, attributeName, options, useRegexpOption(options));
+        }
+
+        /**
+         * Connects to the specified attribute.
+         * @param attributeName The name of the attribute.
+         * @param options The attribute discovery options.
+         * @return The description of the attribute.
+         */
+        @Override
+        protected JmxAttributeProvider connectAttribute(final String attributeName, final Map<String, String> options){
+
+            final String namespace = Objects.toString(options.get(OBJECT_NAME_PROPERTY), "");
+            try {
+                return connectAttribute(new ObjectName(namespace), attributeName, options);
+            } catch (final MalformedObjectNameException e) {
+                logger.log(Level.SEVERE, String.format("Unsupported JMX object name: %s", namespace), e);
+                return null;
+            }
+            finally {
+                JmxConnectorLimitations.current().verifyMaxAttributeCount(attributesCount());
+            }
+        }
+
+        /**
+         * Returns the value of the attribute.
+         *
+         * @param attribute    The metadata of the attribute to get.
+         * @param readTimeout Read operation timeout.
+         * @param defaultValue The default value of the attribute if reading fails.
+         * @return The value of the attribute.
+         * @throws java.util.concurrent.TimeoutException
+         *
+         */
+        @Override
+        protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
+            return attribute instanceof JmxAttributeProvider ? ((JmxAttributeProvider)attribute).getValue(defaultValue) : defaultValue;
+        }
+
+        /**
+         * Sends the attribute value to the remote agent.
+         *
+         * @param attribute    The metadata of the attribute to set.
+         * @param writeTimeout Write operation timeout.
+         * @param value The value to write.
+         * @return {@literal true}, if attribute is written successfully.
+         */
+        @Override
+        protected final boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
+            return attribute instanceof JmxAttributeProvider && ((JmxAttributeProvider)attribute).setValue(value);
+        }
+    }
+
     private static final class JmxNotificationSupport extends AbstractNotificationSupport implements javax.management.NotificationListener, MBeanServerConnectionHandler<Void>{
         private final JmxConnectionManager connectionManager;
 
@@ -243,7 +461,7 @@ final class JmxConnector extends AbstractManagementConnector<JmxConnectionOption
          * Cancels the notification listening.
          *
          * @param listener The notification listener to remove.
-         * @param data     The custom data associated with subscription that returned from {@link #subscribe(com.itworks.snamp.connectors.NotificationSupport.NotificationListener)}
+         * @param data     The custom data associated with subscription that returned from {@link #subscribe(com.itworks.snamp.connectors.notifications.NotificationListener)}
          */
         @Override
         @MethodStub
@@ -557,7 +775,7 @@ final class JmxConnector extends AbstractManagementConnector<JmxConnectionOption
         }
     }
 
-    private final static class JmxNotificationWrapper extends HashMap<String, Object> implements Notification{
+    private final static class JmxNotificationWrapper extends HashMap<String, Object> implements com.itworks.snamp.connectors.notifications.Notification {
         private final javax.management.Notification jmxNotification;
         private final Severity notificationSeverity;
 
@@ -615,139 +833,6 @@ final class JmxConnector extends AbstractManagementConnector<JmxConnectionOption
         }
     }
 
-    private JmxAttributeProvider createPlainAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
-        //extracts JMX attribute metadata
-        final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
-            @Override
-            public MBeanAttributeInfo handle(final MBeanServerConnection connection) throws IOException, JMException {
-                for (final MBeanAttributeInfo attr : connection.getMBeanInfo(namespace).getAttributes())
-                    if (attributeName.equals(attr.getName())) return attr;
-                return null;
-            }
-        }, null);
-        return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
-            @Override
-            protected final JmxManagementEntityType detectAttributeType() {
-                if(targetAttr instanceof OpenMBeanAttributeInfoSupport)
-                    return typeSystem.createEntityType(((OpenMBeanAttributeInfoSupport) targetAttr).getOpenType());
-                else return typeSystem.createEntityType(targetAttr.getType());
-            }
-
-            /**
-             * Determines whether the value of this attribute can be changed, returns {@literal true} by default.
-             *
-             * @return {@literal true}, if the attribute value can be changed; otherwise, {@literal false}.
-             */
-            @Override
-            public boolean canWrite() {
-                return targetAttr.isWritable();
-            }
-
-            @Override
-            public boolean canRead() {
-                return targetAttr.isReadable();
-            }
-
-            @Override
-            protected final MBeanServerConnectionHandler<Object> createAttributeValueReader() {
-                return new MBeanServerConnectionHandler<Object>(){
-                    @Override
-                    public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
-                        return connection.getAttribute(namespace, getName());
-                    }
-                };
-            }
-
-            @Override
-            protected final MBeanServerConnectionHandler<Boolean> createAttributeValueWriter(final Object value) {
-                return new MBeanServerConnectionHandler<Boolean>(){
-                    @Override
-                    public Boolean handle(final MBeanServerConnection connection) throws IOException, JMException {
-                        connection.setAttribute(namespace, new Attribute(getName(), value));
-                        return true;
-                    }
-                };
-            }
-
-            @Override
-            public final String getDescription(final Locale locale) {
-                return targetAttr.getDescription();
-            }
-        } : null;
-    }
-
-    private JmxAttributeProvider createCompositeAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
-        final CompositeValueNavigator navigator = new CompositeValueNavigator(attributeName);
-        //получить описатель поля, этот описатель может содержать знак @ для вложенного атрибута
-        final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
-            @Override
-            public MBeanAttributeInfo handle(final MBeanServerConnection connection) throws IOException, JMException {
-                for(final MBeanAttributeInfo attr: connection.getMBeanInfo(namespace).getAttributes())
-                    if(navigator.attributeName.equals(attr.getName())) return attr;
-                return null;
-            }
-        }, null);
-        return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
-            private final OpenType<?> compositeType = targetAttr instanceof OpenMBeanAttributeInfoSupport ? ((OpenMBeanAttributeInfoSupport)targetAttr).getOpenType() : SimpleType.STRING;
-
-            @Override
-            public final boolean canRead() {
-                return targetAttr.isReadable();
-            }
-
-            @Override
-            public final boolean canWrite(){
-                return false;
-            }
-
-            @Override
-            public final String getDescription(final Locale locale) {
-                return targetAttr.getDescription();
-            }
-
-            @Override
-            protected final MBeanServerConnectionHandler<Object> createAttributeValueReader() {
-                return new MBeanServerConnectionHandler<Object>(){
-                    @Override
-                    public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
-                        return navigator.getValue(connection.getAttribute(namespace, navigator.attributeName));
-                    }
-                };
-            }
-
-            @Override
-            protected final MBeanServerConnectionHandler<Boolean> createAttributeValueWriter(Object value) {
-                return new MBeanServerConnectionHandler<Boolean>() {
-                    @Override
-                    public Boolean handle(MBeanServerConnection connection) {
-                        return false;
-                    }
-                };
-            }
-
-            @Override
-            protected final JmxManagementEntityType detectAttributeType() {
-                final Object attributeType = navigator.getType(compositeType);
-                if(attributeType instanceof OpenType<?>)
-                    return typeSystem.createEntityType((OpenType<?>)attributeType);
-                else if(attributeType instanceof Class<?>)
-                    return typeSystem.createEntityType((Class<?>)attributeType);
-                else return typeSystem.createEntityType(Objects.toString(attributeType, ""));
-            }
-        } : null;
-    }
-
-    private ObjectName findObjectName(final ObjectName namespace){
-        return connectionManager.handleConnection(new MBeanServerConnectionHandler<ObjectName>() {
-            @Override
-            public ObjectName handle(final MBeanServerConnection connection) throws IOException, JMException {
-
-                final Set<ObjectInstance> beans = connection.queryMBeans(namespace, null);
-                return beans.size() > 0 ? beans.iterator().next().getObjectName() : null;
-            }
-        }, null);
-    }
-
     private static Maintainable createMaintainable(final JmxConnectionManager connectionManager){
         return new AbstractMaintainable<JmxMaintenanceActions>(JmxMaintenanceActions.class) {
             @Override
@@ -764,88 +849,24 @@ final class JmxConnector extends AbstractManagementConnector<JmxConnectionOption
         };
     }
 
-    private final JmxConnectionManager connectionManager;
+
     private final JmxNotificationSupport notifications;
     private final Maintainable maintenance;
+    private final JmxAttributeSupport attributes;
+    private final JmxConnectionManager connectionManager;
 
     public JmxConnector(final JmxConnectionOptions connectionOptions){
         super(connectionOptions, logger);
         JmxConnectorLimitations.current().verifyMaxInstanceCount(instanceCounter.incrementAndGet());
         this.connectionManager = connectionOptions.createConnectionManager();
-        this.notifications = new JmxNotificationSupport(this.connectionManager);
+        this.notifications = new JmxNotificationSupport(connectionManager);
+        this.attributes = new JmxAttributeSupport(connectionManager);
         //create maintainer
         this.maintenance = createMaintainable(connectionManager);
     }
 
     public JmxConnector(final String connectionString, final Map<String, String> connectionOptions) throws MalformedURLException {
         this(new JmxConnectionOptions(connectionString, connectionOptions));
-    }
-
-    private static boolean useRegexpOption(final Map<String, String> options){
-        return options.containsKey("useRegexp") && Boolean.TRUE.toString().equals(options.get("useRegexp"));
-    }
-
-    private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options, final boolean useRegexp){
-        //creates JMX attribute provider based on its metadata and connection options.
-        if(namespace == null) return null;
-        if(CompositeValueNavigator.isCompositeAttribute(attributeName))
-            return createCompositeAttribute(namespace, attributeName, options);
-        else if(useRegexp) return connectAttribute(findObjectName(namespace), attributeName, options, false);
-        else return createPlainAttribute(namespace, attributeName, options);
-    }
-
-    private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
-        //creates JMX attribute provider based on its metadata and connection options.
-        return connectAttribute(namespace, attributeName, options, useRegexpOption(options));
-    }
-
-    /**
-     * Connects to the specified attribute.
-     * @param attributeName The name of the attribute.
-     * @param options The attribute discovery options.
-     * @return The description of the attribute.
-     */
-    @Override
-    protected JmxAttributeProvider connectAttribute(final String attributeName, final Map<String, String> options){
-
-        final String namespace = Objects.toString(options.get(OBJECT_NAME_PROPERTY), "");
-        try {
-            return connectAttribute(new ObjectName(namespace), attributeName, options);
-        } catch (final MalformedObjectNameException e) {
-            logger.log(Level.SEVERE, String.format("Unsupported JMX object name: %s", namespace), e);
-            return null;
-        }
-        finally {
-            JmxConnectorLimitations.current().verifyMaxAttributeCount(attributesCount());
-        }
-    }
-
-    /**
-     * Returns the value of the attribute.
-     *
-     * @param attribute    The metadata of the attribute to get.
-     * @param readTimeout Read operation timeout.
-     * @param defaultValue The default value of the attribute if reading fails.
-     * @return The value of the attribute.
-     * @throws java.util.concurrent.TimeoutException
-     *
-     */
-    @Override
-    protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
-        return attribute instanceof JmxAttributeProvider ? ((JmxAttributeProvider)attribute).getValue(defaultValue) : defaultValue;
-    }
-
-    /**
-     * Sends the attribute value to the remote agent.
-     *
-     * @param attribute    The metadata of the attribute to set.
-     * @param writeTimeout Write operation timeout.
-     * @param value The value to write.
-     * @return {@literal true}, if attribute is written successfully.
-     */
-    @Override
-    protected final boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
-        return attribute instanceof JmxAttributeProvider && ((JmxAttributeProvider)attribute).setValue(value);
     }
 
     /**
@@ -920,7 +941,7 @@ final class JmxConnector extends AbstractManagementConnector<JmxConnectionOption
     /**
      * Removes the notification listener.
      *
-     * @param listenerId An identifier previously passed to {@link #subscribe(String, com.itworks.snamp.connectors.NotificationSupport.NotificationListener)}.
+     * @param listenerId An identifier previously passed to {@link #subscribe(String, com.itworks.snamp.connectors.notifications.NotificationListener)}.
      * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
      */
     @Override
@@ -930,12 +951,118 @@ final class JmxConnector extends AbstractManagementConnector<JmxConnectionOption
     }
 
     /**
+     * Connects to the specified attribute.
+     *
+     * @param id            A key string that is used to invoke attribute from this connector.
+     * @param attributeName The name of the attribute.
+     * @param options       The attribute discovery options.
+     * @return The description of the attribute.
+     */
+    @Override
+    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) {
+        verifyInitialization();
+        return attributes.connectAttribute(id, attributeName, options);
+    }
+
+    /**
+     * Returns the attribute value.
+     *
+     * @param id           A key string that is used to invoke attribute from this connector.
+     * @param readTimeout  The attribute value invoke operation timeout.
+     * @param defaultValue The default value of the attribute if it is real value is not available.
+     * @return The value of the attribute, or default value.
+     * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
+     */
+    @Override
+    public Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
+        verifyInitialization();
+        return attributes.getAttribute(id, readTimeout, defaultValue);
+    }
+
+    /**
+     * Reads a set of managementAttributes.
+     *
+     * @param output      The dictionary with set of attribute keys to invoke and associated default values.
+     * @param readTimeout The attribute value invoke operation timeout.
+     * @return The set of managementAttributes ids really written to the dictionary.
+     * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
+     */
+    @Override
+    public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException {
+        verifyInitialization();
+        return attributes.getAttributes(output, readTimeout);
+    }
+
+    /**
+     * Writes the value of the specified attribute.
+     *
+     * @param id           An identifier of the attribute,
+     * @param writeTimeout The attribute value write operation timeout.
+     * @param value        The value to write.
+     * @return {@literal true} if attribute set operation is supported by remote provider; otherwise, {@literal false}.
+     * @throws java.util.concurrent.TimeoutException The attribute value cannot be write in the specified duration.
+     */
+    @Override
+    public boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException {
+        verifyInitialization();
+        return attributes.setAttribute(id, writeTimeout, value);
+    }
+
+    /**
+     * Writes a set of managementAttributes inside of the transaction.
+     *
+     * @param values       The dictionary of managementAttributes keys and its values.
+     * @param writeTimeout Batch write operation timeout.
+     * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
+     * @throws java.util.concurrent.TimeoutException
+     */
+    @Override
+    public boolean setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException {
+        verifyInitialization();
+        return attributes.setAttributes(values, writeTimeout);
+    }
+
+    /**
+     * Removes the attribute from the connector.
+     *
+     * @param id The unique identifier of the attribute.
+     * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
+     */
+    @Override
+    public boolean disconnectAttribute(final String id) {
+        verifyInitialization();
+        return attributes.disconnectAttribute(id);
+    }
+
+    /**
+     * Returns the information about the connected attribute.
+     *
+     * @param id An identifier of the attribute.
+     * @return The attribute descriptor; or {@literal null} if attribute is not connected.
+     */
+    @Override
+    public AttributeMetadata getAttributeInfo(final String id) {
+        return attributes.getAttributeInfo(id);
+    }
+
+    /**
+     * Returns a read-only collection of registered IDs of managementAttributes.
+     *
+     * @return A read-only collection of registered IDs of managementAttributes.
+     */
+    @Override
+    public Collection<String> getConnectedAttributes() {
+        return attributes.getConnectedAttributes();
+    }
+
+    /**
      * Releases all resources associated with this connector.
      * @throws java.lang.Exception Some I/O error occurs.
      */
     @Override
     public final void close() throws Exception{
         super.close();
+        attributes.clear();
         notifications.unsubscribeAll();
         notifications.clear();
         try{

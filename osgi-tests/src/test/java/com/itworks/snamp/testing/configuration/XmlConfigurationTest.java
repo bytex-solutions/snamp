@@ -23,7 +23,7 @@ public final class XmlConfigurationTest extends AbstractSnampIntegrationTest {
         assertNotNull(currentConfig);
         assertEquals("TEST ADAPTER", currentConfig.getAgentHostingConfig().getAdapterName());
         assertEquals("value1", currentConfig.getAgentHostingConfig().getHostingParams().get("param1"));
-        assertEquals(0, currentConfig.getTargets().size());
+        assertEquals(0, currentConfig.getManagedResources().size());
     }
 
     /**

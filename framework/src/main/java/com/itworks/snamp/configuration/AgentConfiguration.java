@@ -10,18 +10,18 @@ import java.util.*;
  * <p>The agent configuration consists of the following parts:
  * <ul>
  *     <li>Hosting configuration - contains configuration of the adapter.</li>
- *     <li>Management targets - set of management information sources.</li>
+ *     <li>Configuration of the managed resources.</li>
  * </ul><br/>
  * Hosting configuration describes configuration of the adapter, that exposes
  * the management information to the outside world.
  * This configuration part contains adapter name (name of the Adapter Plug-in) and
  * additional elements, such as port number and host name.<br/>
- * Each management target contains information about management information source in the form
+ * Each managed resource configuration contains information about management information source in the form
  * of the following elements:
  * <ul>
  *     <li>Connection string - source-specific string, that describes management information source.</li>
  *     <li>Connection type - name of the connector plug-in that is used to organize management information exchange with source.</li>
- *     <li>Management managementAttributes - a set of atomic management entity that supplies management data.</li>
+ *     <li>Management attributes - a set of atomic management entities that supplies management data.</li>
  * </ul><br/>
  * Each management attribute describes the single entry in the remote management information database. This
  * entry can have getter or setter for its value.
@@ -73,20 +73,21 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
     /**
      * Represents management target configuration (back-end management information providers).
      */
-    public static interface ManagementTargetConfiguration extends ConfigurationEntity {
+    public static interface ManagedResourceConfiguration extends ConfigurationEntity {
 
         /**
-         * Represents manageable entity inside of the management target.
+         * Represents a managed communication entity (such as attributes and events)
+         * as a part of the managed resource.
          * @author Roman Sakno
          * @since 1.0
          * @version 1.0
          */
-        public static interface ManageableEntity extends ConfigurationEntity{
+        public static interface ManagedEntity extends ConfigurationEntity{
             /**
-             * Gets a map of manageable entity options.
-             * @return The map of manageable entity options.
+             * Gets configuration parameters of this entity.
+             * @return A map of configuration parameters.
              */
-            Map<String, String> getAdditionalElements();
+            Map<String, String> getParameters();
         }
 
         /**
@@ -95,7 +96,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
          * @since 1.0
          * @version 1.0
          */
-        public static interface EventConfiguration extends ManageableEntity{
+        public static interface EventConfiguration extends ManagedEntity {
             /**
              * Gets the event category.
              * @return The event category.
@@ -116,7 +117,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
          * @since 1.0
          * @version 1.0
          */
-        public static interface AttributeConfiguration extends ManageableEntity {
+        public static interface AttributeConfiguration extends ManagedEntity {
             /**
              * Gets attribute value invoke/write operation timeout.
              * @return Gets attribute value invoke/write operation timeout.
@@ -184,10 +185,10 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
          * @param elementType The type of the manageable element.
          * @param <T> The type of the manageable element.
          * @return A map of manageable elements; or {@literal null}, if element type is not supported.
-         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration
-         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
          */
-        <T extends ManageableEntity> Map<String, T> getElements(final Class<T> elementType);
+        <T extends ManagedEntity> Map<String, T> getElements(final Class<T> elementType);
 
         /**
          * Creates a new instances of the specified manageable element.
@@ -196,13 +197,13 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
          * @return A new empty manageable element; or {@literal null},
          *      if the specified element type is not supported.
          */
-        <T extends ManageableEntity> T newElement(final Class<T> elementType);
+        <T extends ManagedEntity> T newElement(final Class<T> elementType);
 
         /**
-         * Returns the dictionary of additional configuration elements.
-         * @return The dictionary of additional configuration elements.
+         * Returns the dictionary of additional configuration parameters.
+         * @return The dictionary of additional configuration parameters.
          */
-        Map<String, String> getAdditionalElements();
+        Map<String, String> getParameters();
     }
 
     /**
@@ -215,13 +216,13 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
      * Represents management targets.
      * @return The dictionary of management targets (management back-ends).
      */
-    Map<String, ManagementTargetConfiguration> getTargets();
+    Map<String, ManagedResourceConfiguration> getManagedResources();
 
     /**
-     * Empty implementation of ManagementTargetConfiguration interface
-     * @return implementation of ManagementTargetConfiguration interface
+     * Empty implementation of ManagedResourceConfiguration interface
+     * @return implementation of ManagedResourceConfiguration interface
      */
-    ManagementTargetConfiguration newManagementTargetConfiguration();
+    ManagedResourceConfiguration newManagedResourceConfiguration();
 
     /**
      * Imports the state of specified object into this object.
