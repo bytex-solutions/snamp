@@ -86,7 +86,7 @@
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>com.itworks.snamp.connectors.util.AbstractNotificationListener</li>
+<li>com.itworks.snamp.connectors.notifications.AbstractNotificationListener</li>
 </ul>
 </li>
 </ul>
@@ -189,13 +189,13 @@ implements <a href="../../../../com/snamp/connectors/NotificationListener.html" 
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/AbstractNotificationListener.html#attachTo(com.itworks.snamp.connectors.ManagementConnector)">attachTo</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector)</code>
+<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/AbstractNotificationListener.html#attachTo(com.itworks.snamp.connectors.ManagedResourceConnector)">attachTo</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector)</code>
 <div class="block">Attaches this listener to the specified management connector.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/AbstractNotificationListener.html#detachFrom(com.itworks.snamp.connectors.ManagementConnector)">detachFrom</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector)</code>
+<td class="colLast"><code><strong><a href="../../../../com/snamp/connectors/util/AbstractNotificationListener.html#detachFrom(com.itworks.snamp.connectors.ManagedResourceConnector)">detachFrom</a></strong>(<a href="../../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector)</code>
 <div class="block">Detaches this listener from the specified management connector.</div>
 </td>
 </tr>
@@ -323,7 +323,7 @@ implements <a href="../../../../com/snamp/connectors/NotificationListener.html" 
 <dl><dt><span class="strong">Returns:</span></dt><dd>true, if this listener is attached to the management connector; otherwise, false.</dd></dl>
 </li>
 </ul>
-<a name="attachTo(com.itworks.snamp.connectors.ManagementConnector)">
+<a name="attachTo(com.itworks.snamp.connectors.ManagedResourceConnector)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -336,7 +336,7 @@ implements <a href="../../../../com/snamp/connectors/NotificationListener.html" 
 <dd><code>java.lang.IllegalStateException</code> - This listener was previously attached to the management connector.</dd></dl>
 </li>
 </ul>
-<a name="detachFrom(com.itworks.snamp.connectors.ManagementConnector)">
+<a name="detachFrom(com.itworks.snamp.connectors.ManagedResourceConnector)">
 <!--   -->
 </a>
 <ul class="blockList">

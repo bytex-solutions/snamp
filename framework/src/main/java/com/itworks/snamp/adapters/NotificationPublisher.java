@@ -1,8 +1,7 @@
 package com.itworks.snamp.adapters;
 
-import com.itworks.snamp.internal.MethodThreadSafety;
-import com.itworks.snamp.internal.ThreadSafety;
-import com.itworks.snamp.connectors.NotificationSupport;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.configuration.AgentConfiguration;
 
 import java.util.Map;
@@ -21,6 +20,6 @@ public interface NotificationPublisher {
      * @param namespace The events namespace.
      * @param events The collection of configured notifications.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_UNSAFE)
-    public void exposeEvents(final NotificationSupport connector, final String namespace, final Map<String, AgentConfiguration.ManagementTargetConfiguration.EventConfiguration> events);
+    @ThreadSafe(false)
+    public void exposeEvents(final NotificationSupport connector, final String namespace, final Map<String, AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events);
 }

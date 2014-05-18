@@ -45,10 +45,10 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
      * Returns a type of the configuration entity.
      *
      * @return A type of the configuration entity.
-     * @see AgentConfiguration.HostingConfiguration
-     * @see AgentConfiguration.ManagementTargetConfiguration
-     * @see AgentConfiguration.ManagementTargetConfiguration.EventConfiguration
-     * @see AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
      */
     @Override
     public final Class<T> getEntityType() {

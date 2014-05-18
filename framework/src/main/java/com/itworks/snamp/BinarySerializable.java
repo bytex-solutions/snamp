@@ -15,7 +15,7 @@ public interface BinarySerializable {
      * @throws UnsupportedOperationException Serialization is not supported.
      * @throws IOException Cannot write to the specified stream.
      */
-    public void save(final OutputStream output) throws IOException;
+    void save(final OutputStream output) throws IOException;
 
     /**
      * Restores the state of this object from the specified stream.
@@ -23,5 +23,5 @@ public interface BinarySerializable {
      * @throws UnsupportedOperationException Deserialization is not supported.
      * @throws IOException Cannot invoke from the specified stream.
      */
-    public void load(final InputStream input) throws IOException;
+    void load(final InputStream input) throws IOException;
 }

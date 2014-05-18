@@ -1,7 +1,7 @@
 package com.itworks.snamp.core;
 
 import com.itworks.snamp.Aggregator;
-import com.itworks.snamp.internal.Internal;
+import com.itworks.snamp.internal.semantics.Internal;
 import java.util.logging.Logger;
 
 /**

@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.impl;
 
-import com.itworks.snamp.connectors.AbstractManagementConnector;
+import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 
 import java.util.logging.Logger;
 
@@ -24,6 +24,6 @@ final class JmxConnectorHelpers {
      * @return
      */
     public static Logger getLogger(){
-        return AbstractManagementConnector.getLogger(CONNECTOR_NAME);
+        return AbstractManagedResourceConnector.getLogger(CONNECTOR_NAME);
     }
 }

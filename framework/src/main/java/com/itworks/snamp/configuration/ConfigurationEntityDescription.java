@@ -9,10 +9,10 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * Represents description of the SNAMP plugin configuration model.
  * <p>
  *     This interface provides description of additional configuration properties that can be obtained
- *     via {@link AgentConfiguration.HostingConfiguration#getHostingParams()},
- *     {@link AgentConfiguration.ManagementTargetConfiguration#getAdditionalElements()},
- *     {@link AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration#getAdditionalElements()}
- *     or {@link AgentConfiguration.ManagementTargetConfiguration.EventConfiguration#getAdditionalElements()}.
+ *     via {@link com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration#getHostingParams()},
+ *     {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getParameters()},
+ *     {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration#getParameters()}
+ *     or {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration#getParameters()}.
  *     Each element of the collection represents parameter name and this collection is read-only.
  * </p>
  * @author Roman Sakno
@@ -101,10 +101,10 @@ public interface ConfigurationEntityDescription<T extends ConfigurationEntity> e
     /**
      * Returns a type of the configuration entity.
      * @return A type of the configuration entity.
-     * @see AgentConfiguration.HostingConfiguration
-     * @see AgentConfiguration.ManagementTargetConfiguration
-     * @see AgentConfiguration.ManagementTargetConfiguration.EventConfiguration
-     * @see AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
      */
     public Class<T> getEntityType();
 

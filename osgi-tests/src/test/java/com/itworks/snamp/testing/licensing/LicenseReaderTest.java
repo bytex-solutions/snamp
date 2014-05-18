@@ -3,7 +3,7 @@ package com.itworks.snamp.testing.licensing;
 import com.itworks.snamp.licensing.LicensingException;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.internal.MethodStub;
+import com.itworks.snamp.internal.semantics.MethodStub;
 import com.itworks.snamp.testing.licensing.limitations.TestLicenseLimitation;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;

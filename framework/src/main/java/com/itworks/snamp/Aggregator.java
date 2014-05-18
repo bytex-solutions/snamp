@@ -1,8 +1,6 @@
 package com.itworks.snamp;
 
-import com.itworks.snamp.internal.MethodThreadSafety;
-import com.itworks.snamp.internal.SynchronizationType;
-import com.itworks.snamp.internal.ThreadSafety;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
 
 /**
  * Represents an object that aggregates another objects.<br/>
@@ -35,6 +33,6 @@ public interface Aggregator {
      * @param <T> Type of the aggregated object.
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.READ_LOCK)
-    public <T> T queryObject(final Class<T> objectType);
+    @ThreadSafe(false)
+    <T> T queryObject(final Class<T> objectType);
 }

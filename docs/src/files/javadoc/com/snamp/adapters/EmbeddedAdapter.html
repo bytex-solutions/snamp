@@ -193,7 +193,7 @@ extends <a href="../../../com/snamp/adapters/AbstractAdapter.html" title="class 
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/adapters/EmbeddedAdapter.html#exposeAttributes(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeAttributes</a></strong>(<a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
+<td class="colLast"><code><strong><a href="../../../com/snamp/adapters/EmbeddedAdapter.html#exposeAttributes(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">exposeAttributes</a></strong>(<a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
                 java.lang.String&nbsp;namespace,
                 java.util.Map&lt;java.lang.String,<a href="../../../com/snamp/hosting/AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration.html" title="interface in com.itworks.snamp.hosting">AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration</a>&gt;&nbsp;attributes)</code>
 <div class="block">Exposes management attributes.</div>
@@ -201,7 +201,7 @@ extends <a href="../../../com/snamp/adapters/AbstractAdapter.html" title="class 
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/adapters/EmbeddedAdapter.html#exposeEvents(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeEvents</a></strong>(<a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
+<td class="colLast"><code><strong><a href="../../../com/snamp/adapters/EmbeddedAdapter.html#exposeEvents(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">exposeEvents</a></strong>(<a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
             java.lang.String&nbsp;namespace,
             java.util.Map&lt;java.lang.String,<a href="../../../com/snamp/hosting/AgentConfiguration.ManagementTargetConfiguration.EventConfiguration.html" title="interface in com.itworks.snamp.hosting">AgentConfiguration.ManagementTargetConfiguration.EventConfiguration</a>&gt;&nbsp;events)</code>
 <div class="block">Exposes monitoring events.</div>
@@ -354,7 +354,7 @@ extends <a href="../../../com/snamp/adapters/AbstractAdapter.html" title="class 
 <dt><span class="strong">Returns:</span></dt><dd>true, if adapter is previously started; otherwise, false.</dd></dl>
 </li>
 </ul>
-<a name="exposeAttributes(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">
+<a name="exposeAttributes(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -398,7 +398,7 @@ extends <a href="../../../com/snamp/adapters/AbstractAdapter.html" title="class 
 <dt><span class="strong">Returns:</span></dt><dd>true, if attribute is overwritten successfully; otherwise, false;</dd></dl>
 </li>
 </ul>
-<a name="exposeEvents(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">
+<a name="exposeEvents(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -410,9 +410,9 @@ extends <a href="../../../com/snamp/adapters/AbstractAdapter.html" title="class 
 <div class="block">Exposes monitoring events.</div>
 <dl>
 <dt><strong>Specified by:</strong></dt>
-<dd><code><a href="../../../com/snamp/adapters/Adapter.html#exposeEvents(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeEvents</a></code>&nbsp;in interface&nbsp;<code><a href="../../../com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters">Adapter</a></code></dd>
+<dd><code><a href="../../../com/snamp/adapters/Adapter.html#exposeEvents(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">exposeEvents</a></code>&nbsp;in interface&nbsp;<code><a href="../../../com/snamp/adapters/Adapter.html" title="interface in com.itworks.snamp.adapters">Adapter</a></code></dd>
 <dt><strong>Overrides:</strong></dt>
-<dd><code><a href="../../../com/snamp/adapters/AbstractAdapter.html#exposeEvents(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeEvents</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/adapters/AbstractAdapter.html" title="class in com.itworks.snamp.adapters">AbstractAdapter</a></code></dd>
+<dd><code><a href="../../../com/snamp/adapters/AbstractAdapter.html#exposeEvents(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">exposeEvents</a></code>&nbsp;in class&nbsp;<code><a href="../../../com/snamp/adapters/AbstractAdapter.html" title="class in com.itworks.snamp.adapters">AbstractAdapter</a></code></dd>
 <dt><span class="strong">Parameters:</span></dt><dd><code>connector</code> - The management connector that provides notification listening and subscribing.</dd><dd><code>namespace</code> - The events namespace.</dd><dd><code>events</code> - The collection of configured notifications.</dd></dl>
 </li>
 </ul>

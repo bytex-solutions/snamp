@@ -21,19 +21,23 @@ public final class XmlConfigurationTest extends AbstractSnampIntegrationTest {
     public final void configManagerTest() throws IOException {
         final AgentConfiguration currentConfig = readSnampConfiguration();
         assertNotNull(currentConfig);
-        assertEquals("TEST ADAPTER", currentConfig.getAgentHostingConfig().getAdapterName());
-        assertEquals("value1", currentConfig.getAgentHostingConfig().getHostingParams().get("param1"));
-        assertEquals(0, currentConfig.getTargets().size());
+        assertEquals(1, currentConfig.getResourceAdapters().size());
+        assertTrue(currentConfig.getResourceAdapters().containsKey("jmx-adapter"));
+        final AgentConfiguration.ResourceAdapterConfiguration adapter = currentConfig.getResourceAdapters().get("jmx-adapter");
+        assertEquals("TEST ADAPTER", adapter.getAdapterName());
+        assertEquals("value1", adapter.getHostingParams().get("param1"));
+        assertEquals(0, currentConfig.getManagedResources().size());
     }
 
     /**
      * Creates a new configuration for running this test.
-     *
-     * @return A new SNAMP configuration used for executing SNAMP bundles.
      */
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
-        config.getAgentHostingConfig().setAdapterName("TEST ADAPTER");
-        config.getAgentHostingConfig().getHostingParams().put("param1", "value1");
+        final AgentConfiguration.ResourceAdapterConfiguration adapter =
+                config.newConfigurationEntity(AgentConfiguration.ResourceAdapterConfiguration.class);
+        adapter.setAdapterName("TEST ADAPTER");
+        adapter.getHostingParams().put("param1", "value1");
+        config.getResourceAdapters().put("jmx-adapter", adapter);
     }
 }

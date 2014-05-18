@@ -1,6 +1,7 @@
 package com.itworks.snamp.licensing.impl;
 
-import com.itworks.snamp.core.AbstractLoggableBundleActivator;
+import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
+import com.itworks.snamp.internal.semantics.MethodStub;
 import com.itworks.snamp.licensing.LicenseReader;
 
 import java.util.Map;
@@ -11,10 +12,10 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-public final class LicenseBundleActivator extends AbstractLoggableBundleActivator {
+public final class LicenseBundleActivator extends AbstractLoggableServiceLibrary {
     public static final String LOGGER_NAME = "itworks.snamp.licensing";
 
-    protected static final class XmlLicenseReaderProvider extends LoggableProvidedService<LicenseReader, XmlLicenseReader>{
+    private static final class XmlLicenseReaderProvider extends LoggableProvidedService<LicenseReader, XmlLicenseReader>{
 
         /**
          * Initializes a new holder for the provided service.
@@ -40,5 +41,16 @@ public final class LicenseBundleActivator extends AbstractLoggableBundleActivato
 
     public LicenseBundleActivator(){
         super(LOGGER_NAME, new XmlLicenseReaderProvider());
+    }
+
+
+    /**
+     * Deactivates this library.
+     *
+     * @param activationProperties A collection of library activation properties to read.
+     */
+    @Override
+    @MethodStub
+    protected void deactivate(final ActivationPropertyReader activationProperties) {
     }
 }

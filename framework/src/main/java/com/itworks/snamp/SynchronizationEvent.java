@@ -17,6 +17,9 @@ public class SynchronizationEvent<T> {
      *     This interface should be used by event consumer.
      * </p>
      * @param <T> Type of the event result.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
     public static interface Awaitor<T>{
         /**
@@ -26,7 +29,6 @@ public class SynchronizationEvent<T> {
          * @throws TimeoutException timeout parameter too small for waiting.
          * @throws InterruptedException Waiting thread is aborted.
          */
-        @SuppressWarnings("UnusedDeclaration")
         public T await(final TimeSpan timeout) throws TimeoutException, InterruptedException;
 
         /**
@@ -106,7 +108,6 @@ public class SynchronizationEvent<T> {
     /**
      * Initializes a new synchronization event.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public SynchronizationEvent(){
         this(false);
     }

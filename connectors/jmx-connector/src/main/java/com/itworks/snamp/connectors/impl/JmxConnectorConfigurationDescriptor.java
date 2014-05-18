@@ -21,11 +21,11 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
      * @version 1.0
      * @since 1.0
      */
-    private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> {
+    private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> {
         private static final String RESOURCE_NAME = "JmxAttributeConfig";
 
         public AttributeConfigurationInfo(){
-            super(AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration.class, RESOURCE_NAME, OBJECT_NAME_PROPERTY);
+            super(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class, RESOURCE_NAME, OBJECT_NAME_PROPERTY);
         }
 
         /**

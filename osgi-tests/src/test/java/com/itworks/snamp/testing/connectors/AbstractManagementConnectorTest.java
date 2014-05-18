@@ -1,12 +1,12 @@
 package com.itworks.snamp.testing.connectors;
 
+import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.connectors.AttributeMetadata;
-import com.itworks.snamp.connectors.AttributeSupport;
-import com.itworks.snamp.connectors.ManagementConnector;
+import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import org.apache.commons.collections4.Equator;
 import org.apache.commons.collections4.Factory;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.connectors.AbstractManagementConnectorBundleActivator.*;
+import static com.itworks.snamp.connectors.AbstractManagedResourceActivator.*;
 
 /**
  * Represents an abstract class for all integration tests that checks management connectors.
@@ -38,14 +38,14 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
         this.connectionString = connectionString;
     }
 
-    protected final ManagementConnector<?> getManagementConnector(final BundleContext context){
-        final ServiceReference<ManagementConnector<?>> connectorRef =
+    protected final ManagedResourceConnector<?> getManagementConnector(final BundleContext context){
+        final ServiceReference<ManagedResourceConnector<?>> connectorRef =
                 getManagementConnectorInstances(context).get(testManagementTarget);
         return connectorRef != null ? getTestBundleContext().getService(connectorRef) : null;
     }
 
     protected final boolean releaseManagementConnector(final BundleContext context){
-        final ServiceReference<ManagementConnector<?>> connectorRef =
+        final ServiceReference<ManagedResourceConnector<?>> connectorRef =
                 getManagementConnectorInstances(context).get(testManagementTarget);
         return connectorRef != null && getTestBundleContext().ungetService(connectorRef);
     }
@@ -55,12 +55,12 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
     }
 
     @SuppressWarnings("UnusedParameters")
-    protected void fillAttributes(final Map<String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attributes, final Factory<AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attributeFactory){
+    protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Factory<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributeFactory){
 
     }
 
     @SuppressWarnings("UnusedParameters")
-    protected void fillEvents(final Map<String, AgentConfiguration.ManagementTargetConfiguration.EventConfiguration> events, final Factory<AgentConfiguration.ManagementTargetConfiguration.EventConfiguration> eventFactory){
+    protected void fillEvents(final Map<String, AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events, final Factory<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> eventFactory){
 
     }
 
@@ -78,23 +78,24 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
      */
     @Override
     protected final void setupTestConfiguration(final AgentConfiguration config) {
-        final AgentConfiguration.ManagementTargetConfiguration targetConfig = config.newManagementTargetConfiguration();
+        final AgentConfiguration.ManagedResourceConfiguration targetConfig =
+                config.newConfigurationEntity(AgentConfiguration.ManagedResourceConfiguration.class);
         targetConfig.setConnectionString(connectionString);
         targetConfig.setConnectionType(connectorType);
         targetConfig.setNamespace(getAttributesNamespace());
-        fillAttributes(targetConfig.getElements(AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration.class), new Factory<AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration>() {
+        fillAttributes(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class), new Factory<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration>() {
             @Override
-            public AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration create() {
-                return targetConfig.newElement(AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration.class);
+            public AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration create() {
+                return targetConfig.newElement(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class);
             }
         });
-        fillEvents(targetConfig.getElements(AgentConfiguration.ManagementTargetConfiguration.EventConfiguration.class), new Factory<AgentConfiguration.ManagementTargetConfiguration.EventConfiguration>() {
+        fillEvents(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class), new Factory<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration>() {
             @Override
-            public AgentConfiguration.ManagementTargetConfiguration.EventConfiguration create() {
-                return targetConfig.newElement(AgentConfiguration.ManagementTargetConfiguration.EventConfiguration.class);
+            public AgentConfiguration.ManagedResourceConfiguration.EventConfiguration create() {
+                return targetConfig.newElement(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
             }
         });
-        config.getTargets().put(testManagementTarget, targetConfig);
+        config.getManagedResources().put(testManagementTarget, targetConfig);
     }
 
     protected final <T> void testAttribute(final String attributeID,

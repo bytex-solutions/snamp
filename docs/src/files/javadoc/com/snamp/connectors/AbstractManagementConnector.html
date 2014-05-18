@@ -86,7 +86,7 @@
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>com.itworks.snamp.connectors.AbstractManagementConnector</li>
+<li>com.itworks.snamp.connectors.AbstractManagedResourceConnector</li>
 </ul>
 </li>
 </ul>
@@ -208,7 +208,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disableNotificationsCore(com.itworks.snamp.connectors.NotificationMetadata)">disableNotificationsCore</a></strong>(<a href="../../../com/snamp/connectors/NotificationMetadata.html" title="interface in com.itworks.snamp.connectors">NotificationMetadata</a>&nbsp;notificationType)</code>
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#disableNotificationsCore(com.itworks.snamp.connectors.notifications.NotificationMetadata)">disableNotificationsCore</a></strong>(<a href="../../../com/snamp/connectors/NotificationMetadata.html" title="interface in com.itworks.snamp.connectors">NotificationMetadata</a>&nbsp;notificationType)</code>
 <div class="block">Disable all notifications associated with the specified event.</div>
 </td>
 </tr>
@@ -262,7 +262,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected abstract java.lang.Object</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">getAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#getAttributeValue(com.itworks.snamp.connectors.attributes.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">getAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
                  <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;readTimeout,
                  java.lang.Object&nbsp;defaultValue)</code>
 <div class="block">Returns the value of the attribute.</div>
@@ -304,7 +304,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected abstract boolean</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">setAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#setAttributeValue(com.itworks.snamp.connectors.attributes.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">setAttributeValue</a></strong>(<a href="../../../com/snamp/connectors/AttributeMetadata.html" title="interface in com.itworks.snamp.connectors">AttributeMetadata</a>&nbsp;attribute,
                  <a href="../../../com/snamp/TimeSpan.html" title="class in com.snamp">TimeSpan</a>&nbsp;writeTimeout,
                  java.lang.Object&nbsp;value)</code>
 <div class="block">Sends the attribute value to the remote agent.</div>
@@ -319,7 +319,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected java.lang.Object</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribeCore(com.itworks.snamp.connectors.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener)">subscribeCore</a></strong>(<a href="../../../com/snamp/connectors/NotificationMetadata.html" title="interface in com.itworks.snamp.connectors">NotificationMetadata</a>&nbsp;notificationType,
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribeCore(com.itworks.snamp.connectors.notifications.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener)">subscribeCore</a></strong>(<a href="../../../com/snamp/connectors/NotificationMetadata.html" title="interface in com.itworks.snamp.connectors">NotificationMetadata</a>&nbsp;notificationType,
              <a href="../../../com/snamp/connectors/NotificationListener.html" title="interface in com.itworks.snamp.connectors">NotificationListener</a>&nbsp;listener)</code>
 <div class="block">Adds a new listener for the specified notification.</div>
 </td>
@@ -338,7 +338,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribeCore(com.itworks.snamp.connectors.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener, java.lang.Object)">unsubscribeCore</a></strong>(<a href="../../../com/snamp/connectors/NotificationMetadata.html" title="interface in com.itworks.snamp.connectors">NotificationMetadata</a>&nbsp;metadata,
+<td class="colLast"><code><strong><a href="../../../com/snamp/connectors/AbstractManagementConnector.html#unsubscribeCore(com.itworks.snamp.connectors.notifications.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener, java.lang.Object)">unsubscribeCore</a></strong>(<a href="../../../com/snamp/connectors/NotificationMetadata.html" title="interface in com.itworks.snamp.connectors">NotificationMetadata</a>&nbsp;metadata,
                <a href="../../../com/snamp/connectors/NotificationListener.html" title="interface in com.itworks.snamp.connectors">NotificationListener</a>&nbsp;listener,
                java.lang.Object&nbsp;data)</code>
 <div class="block">Cancels the notification listening.</div>
@@ -471,7 +471,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 <dt><span class="strong">Returns:</span></dt><dd>The description of the attribute.</dd></dl>
 </li>
 </ul>
-<a name="getAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
+<a name="getAttributeValue(com.itworks.snamp.connectors.attributes.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -527,7 +527,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 <dd><code>java.util.concurrent.TimeoutException</code> - The attribute value cannot be invoke in the specified duration.</dd></dl>
 </li>
 </ul>
-<a name="setAttributeValue(com.itworks.snamp.connectors.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
+<a name="setAttributeValue(com.itworks.snamp.connectors.attributes.AttributeMetadata, com.snamp.TimeSpan, java.lang.Object)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -669,7 +669,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 <dt><span class="strong">Returns:</span></dt><dd>The metadata of the event to listen; or null, if the specified category is not supported.</dd></dl>
 </li>
 </ul>
-<a name="disableNotificationsCore(com.itworks.snamp.connectors.NotificationMetadata)">
+<a name="disableNotificationsCore(com.itworks.snamp.connectors.notifications.NotificationMetadata)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -714,7 +714,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
          for the specified category is not enabled by <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#enableNotifications(java.lang.String, java.lang.String, java.util.Map)"><code>enableNotifications(String, String, java.util.Map)</code></a> method.</dd></dl>
 </li>
 </ul>
-<a name="subscribeCore(com.itworks.snamp.connectors.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener)">
+<a name="subscribeCore(com.itworks.snamp.connectors.notifications.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -743,7 +743,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
 <dt><span class="strong">Returns:</span></dt><dd>An identifier of the notification listener generated by this connector.</dd></dl>
 </li>
 </ul>
-<a name="unsubscribeCore(com.itworks.snamp.connectors.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener, java.lang.Object)">
+<a name="unsubscribeCore(com.itworks.snamp.connectors.notifications.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener, java.lang.Object)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -753,7 +753,7 @@ implements <a href="../../../com/snamp/connectors/ManagementConnector.html" titl
                    <a href="../../../com/snamp/connectors/NotificationListener.html" title="interface in com.itworks.snamp.connectors">NotificationListener</a>&nbsp;listener,
                    java.lang.Object&nbsp;data)</pre>
 <div class="block">Cancels the notification listening.</div>
-<dl><dt><span class="strong">Parameters:</span></dt><dd><code>metadata</code> - The event type.</dd><dd><code>listener</code> - The notification listener to remove.</dd><dd><code>data</code> - The custom data associated with subscription that returned from <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribeCore(com.itworks.snamp.connectors.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener)"><code>subscribeCore(NotificationMetadata, NotificationListener)</code></a>
+<dl><dt><span class="strong">Parameters:</span></dt><dd><code>metadata</code> - The event type.</dd><dd><code>listener</code> - The notification listener to remove.</dd><dd><code>data</code> - The custom data associated with subscription that returned from <a href="../../../com/snamp/connectors/AbstractManagementConnector.html#subscribeCore(com.itworks.snamp.connectors.notifications.NotificationMetadata, com.itworks.snamp.connectors.NotificationListener)"><code>subscribeCore(NotificationMetadata, NotificationListener)</code></a>
              method.</dd></dl>
 </li>
 </ul>

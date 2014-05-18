@@ -1,6 +1,7 @@
 package com.itworks.snamp;
 
-import com.itworks.snamp.internal.*;
+import com.itworks.snamp.internal.semantics.Internal;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
 import org.apache.commons.collections4.Factory;
 
 /**
@@ -22,7 +23,7 @@ public abstract class IllegalStateFlag extends WriteOnceRef<Boolean> implements 
      * Verifies that this state is legal.
      * @throws java.lang.IllegalStateException Occurs if state of this container is {@literal true}.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final void verify(){
         if(get()) throw create();
     }
@@ -31,7 +32,7 @@ public abstract class IllegalStateFlag extends WriteOnceRef<Boolean> implements 
      * Sets the illegal object state to {@literal true}.
      * @return {@literal true}, if container is changed successfully; otherwise, {@literal false}.
      */
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final boolean set(){
         return set(true);
     }

@@ -1,9 +1,7 @@
 package com.itworks.snamp.connectors.impl;
 
-import com.itworks.snamp.internal.Internal;
-import com.itworks.snamp.internal.MethodThreadSafety;
-import com.itworks.snamp.internal.SynchronizationType;
-import com.itworks.snamp.internal.ThreadSafety;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.semantics.Internal;
 
 import javax.management.*;
 import javax.management.remote.*;
@@ -116,7 +114,7 @@ final class JmxConnectionManager implements Closeable {
         return true;
     }
 
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final <T> T handleConnection(final MBeanServerConnectionHandler<T> handler, final T defaultValue){
         synchronized (coordinator){
             try {
@@ -141,7 +139,7 @@ final class JmxConnectionManager implements Closeable {
         }
     }
 
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final void addReconnectionHandler(final MBeanServerConnectionHandler<Void> handler){
         synchronized (coordinator){
             reconnectionHandlers.add(handler);
@@ -149,7 +147,7 @@ final class JmxConnectionManager implements Closeable {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @ThreadSafety(MethodThreadSafety.THREAD_SAFE)
+    @ThreadSafe
     public final void removeReconnectionHandler(final MBeanServerConnectionHandler<Void> handler){
         synchronized (coordinator){
             reconnectionHandlers.remove(handler);
@@ -178,7 +176,7 @@ final class JmxConnectionManager implements Closeable {
     }
 
     @Override
-    @ThreadSafety(value = MethodThreadSafety.THREAD_UNSAFE, advice = SynchronizationType.EXCLUSIVE_LOCK)
+    @ThreadSafe(false)
     public final void close() throws IOException {
         if(connection != null) connection.close();
     }

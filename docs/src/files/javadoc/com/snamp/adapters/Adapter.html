@@ -154,7 +154,7 @@ extends java.lang.AutoCloseable, <a href="../../../com/snamp/PlatformPlugin.html
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/adapters/Adapter.html#exposeAttributes(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeAttributes</a></strong>(<a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
+<td class="colLast"><code><strong><a href="../../../com/snamp/adapters/Adapter.html#exposeAttributes(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">exposeAttributes</a></strong>(<a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
                 java.lang.String&nbsp;namespace,
                 java.util.Map&lt;java.lang.String,<a href="../../../com/snamp/hosting/AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration.html" title="interface in com.itworks.snamp.hosting">AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration</a>&gt;&nbsp;attributes)</code>
 <div class="block">Exposes management attributes.</div>
@@ -162,7 +162,7 @@ extends java.lang.AutoCloseable, <a href="../../../com/snamp/PlatformPlugin.html
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><strong><a href="../../../com/snamp/adapters/Adapter.html#exposeEvents(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">exposeEvents</a></strong>(<a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
+<td class="colLast"><code><strong><a href="../../../com/snamp/adapters/Adapter.html#exposeEvents(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">exposeEvents</a></strong>(<a href="../../../com/snamp/connectors/ManagementConnector.html" title="interface in com.itworks.snamp.connectors">ManagementConnector</a>&nbsp;connector,
             java.lang.String&nbsp;namespace,
             java.util.Map&lt;java.lang.String,<a href="../../../com/snamp/hosting/AgentConfiguration.ManagementTargetConfiguration.EventConfiguration.html" title="interface in com.itworks.snamp.hosting">AgentConfiguration.ManagementTargetConfiguration.EventConfiguration</a>&gt;&nbsp;events)</code>
 <div class="block">Exposes monitoring events.</div>
@@ -274,7 +274,7 @@ extends java.lang.AutoCloseable, <a href="../../../com/snamp/PlatformPlugin.html
 <dt><span class="strong">Returns:</span></dt><dd>true, if adapter is previously started; otherwise, false.</dd></dl>
 </li>
 </ul>
-<a name="exposeAttributes(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">
+<a name="exposeAttributes(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -287,7 +287,7 @@ extends java.lang.AutoCloseable, <a href="../../../com/snamp/PlatformPlugin.html
 <dl><dt><span class="strong">Parameters:</span></dt><dd><code>connector</code> - The management connector that provides access to the specified attributes.</dd><dd><code>namespace</code> - The attributes namespace.</dd><dd><code>attributes</code> - The dictionary of attributes.</dd></dl>
 </li>
 </ul>
-<a name="exposeEvents(com.itworks.snamp.connectors.ManagementConnector, java.lang.String, java.util.Map)">
+<a name="exposeEvents(com.itworks.snamp.connectors.ManagedResourceConnector, java.lang.String, java.util.Map)">
 <!--   -->
 </a>
 <ul class="blockListLast">

@@ -3,12 +3,16 @@ package com.itworks.snamp.configuration.impl;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AbstractAgentConfiguration;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import javax.xml.bind.*;
-import javax.xml.bind.annotation.*;
-import javax.xml.bind.annotation.adapters.*;
 
 /**
  * Represents JAXB-compliant representation of the SNAMP configuration. This class cannot be inherited.
@@ -73,7 +77,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * @param value A new key.
          */
         @SuppressWarnings("UnusedDeclaration")
-        @XmlAttribute(name = "name", required = true, namespace = XmlConstants.namespace)
+        @XmlAttribute(name = "id", required = true, namespace = XmlConstants.namespace)
         public void setKey(final String value){
             this.key = value != null ? value : "";
         }
@@ -148,15 +152,34 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
      * @version 1.0
      */
     @XmlAccessorType(XmlAccessType.PROPERTY)
-    @XmlType(name = "HostingConfiguration", namespace = XmlConstants.namespace)
-    public final static class XmlHostingConfiguration extends ConfigurationEntityWithCustomParameters implements HostingConfiguration{
+    @XmlType(name = "ResourceAdapterConfiguration", namespace = XmlConstants.namespace)
+    public final static class XmlResourceAdapterConfiguration extends ConfigurationEntityWithCustomParameters implements ResourceAdapterConfiguration {
         @XmlTransient
         private String adapterName = "";
+        @XmlTransient
+        private String id = "";
 
         /**
-         * Gets the hosting adapter name.
+         * Gets unique id of this managed resource.
+         * @return The unique id of this managed resource.
+         */
+        @XmlAttribute(name = "id", namespace = XmlConstants.namespace)
+        public String getID(){
+            return id;
+        }
+
+        /**
+         * Sets unique id of this management target.
+         * @param value The id of the management target (short remote server id).
+         */
+        public void setID(final String value){
+            this.id = value != null ? value : "";
+        }
+
+        /**
+         * Gets the hosting adapter id.
          *
-         * @return The hosting adapter name.
+         * @return The hosting adapter id.
          */
         @Override
         public String getAdapterName() {
@@ -164,9 +187,9 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
         }
 
         /**
-         * Sets the hosting adapter name.
+         * Sets the hosting adapter id.
          *
-         * @param value The adapter name.
+         * @param value The adapter id.
          */
         @Override
         @XmlElement(nillable = false, required = true, namespace = XmlConstants.namespace, name = "adapterName")
@@ -192,9 +215,9 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
      * @since 1.0
      * @version 1.0
      */
-    @XmlType(name = "ManagementTarget", namespace = XmlConstants.namespace)
+    @XmlType(name = "ManagedResource", namespace = XmlConstants.namespace)
     @XmlAccessorType(XmlAccessType.PROPERTY)
-    public static final class XmlManagementTargetConfiguration extends ConfigurationEntityWithCustomParameters implements ManagementTargetConfiguration{
+    public static final class XmlManagedResourceConfiguration extends ConfigurationEntityWithCustomParameters implements ManagedResourceConfiguration {
         /**
          * Represents configuration of the management attribute. This class cannot be inherited.
          * @author Roman Sakno
@@ -254,7 +277,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
              */
             @Override
             @XmlTransient
-            public Map<String, String> getAdditionalElements() {
+            public Map<String, String> getParameters() {
                 return params;
             }
         }
@@ -297,7 +320,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
             /**
              * Gets unique postfix of this attribute.
              * <p>
-             *     The full unique name of the attribute consists of the management target namespace
+             *     The full unique id of the attribute consists of the management target namespace
              *     and attribute postfix.
              * </p>
              * @return Unique postfix of this attribute.
@@ -337,18 +360,18 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
             }
 
             /**
-             * Returns the attribute name.
-             * @return The attribute name,
+             * Returns the attribute id.
+             * @return The attribute id,
              */
             @Override
-            @XmlAttribute(name = "name", namespace = XmlConstants.namespace, required = true)
+            @XmlAttribute(name = "id", namespace = XmlConstants.namespace, required = true)
             public String getAttributeName() {
                 return name;
             }
 
             /**
-             * Sets the attribute name.
-             * @param value The attribute name.
+             * Sets the attribute id.
+             * @param value The attribute id.
              */
             @Override
             public void setAttributeName(final String value) {
@@ -362,7 +385,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
              */
             @Override
             @XmlTransient
-            public Map<String, String> getAdditionalElements() {
+            public Map<String, String> getParameters() {
                 return params;
             }
         }
@@ -373,27 +396,27 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
         @XmlTransient
         private String namespace = "";
         @XmlTransient
-        private String name = "";
+        private String id = "";
         @XmlTransient
         private final Map<String, AttributeConfiguration> attributes = new HashMap<>(10);
         @XmlTransient
         private final Map<String, EventConfiguration> events = new HashMap<>(10);
 
         /**
-         * Gets unique name of this management target.
-         * @return The unique name of this management target.
+         * Gets unique id of this managed resource.
+         * @return The unique id of this managed resource.
          */
-        @XmlAttribute(name = "name", namespace = XmlConstants.namespace)
-        public String getName(){
-            return name;
+        @XmlAttribute(name = "id", namespace = XmlConstants.namespace)
+        public String getID(){
+            return id;
         }
 
         /**
-         * Sets unique name of this management target.
-         * @param value The name of the management target (short remote server name).
+         * Sets unique id of this management target.
+         * @param value The id of the management target (short remote server id).
          */
-        public void setName(final String value){
-            this.name = value != null ? value : "";
+        public void setID(final String value){
+            this.id = value != null ? value : "";
         }
 
         /**
@@ -466,12 +489,12 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          *
          * @param elementType The type of the manageable element.
          * @return A map of manageable elements; or {@literal null}, if element type is not supported.
-         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration
-         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
+         * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
          */
         @SuppressWarnings("unchecked")
         @Override
-        public <T extends ManageableEntity> Map<String, T> getElements(final Class<T> elementType) {
+        public <T extends ManagedEntity> Map<String, T> getElements(final Class<T> elementType) {
             if(elementType == null) return null;
             else if(Objects.equals(elementType, AttributeConfiguration.class))
                 return (Map<String, T>)getAttributes();
@@ -488,7 +511,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * if the specified element type is not supported.
          */
         @Override
-        public <T extends ManageableEntity> T newElement(final Class<T> elementType) {
+        public <T extends ManagedEntity> T newElement(final Class<T> elementType) {
             if(elementType == null) return null;
             else if(elementType.isAssignableFrom(XmlAttributeConfiguration.class))
                 return elementType.cast(newAttributeConfiguration());
@@ -568,7 +591,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          */
         @Override
         @XmlTransient
-        public Map<String, String> getAdditionalElements() {
+        public Map<String, String> getParameters() {
             return params;
         }
 
@@ -602,9 +625,9 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
     }
 
     @XmlTransient
-    private XmlHostingConfiguration agentConfig = new XmlHostingConfiguration();
+    private Map<String, ResourceAdapterConfiguration> adapters = new HashMap<>(3);
     @XmlTransient
-    private Map<String, ManagementTargetConfiguration> managementTargets = new HashMap<>(10);
+    private Map<String, ManagedResourceConfiguration> resources = new HashMap<>(10);
 
     /**
      * Creates clone of this configuration.
@@ -620,66 +643,88 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
     }
 
     /**
-     * Returns the agent hosting configuration.
-     *
-     * @return The agent hosting configuration.
-     */
-    @Override
-    public XmlHostingConfiguration getAgentHostingConfig() {
-        return agentConfig;
-    }
-
-    /**
-     * Sets agent hosting configuration.
-     * @param value The agent hosting configuration.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @XmlElement(name = "hosting", namespace = XmlConstants.namespace, required = true, nillable = false)
-    public void setAgentHostingConfig(final XmlHostingConfiguration value){
-        this.agentConfig = value != null ? value : new XmlHostingConfiguration();
-    }
-
-    /**
      * Represents management targets.
      *
      * @return The dictionary of management targets (management back-ends).
      */
     @Override
     @XmlTransient
-    public Map<String, ManagementTargetConfiguration> getTargets() {
-        return managementTargets;
+    public Map<String, ManagedResourceConfiguration> getManagedResources() {
+        return resources;
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @XmlElement(name = "managementTarget", namespace = XmlConstants.namespace, type = XmlManagementTargetConfiguration.class)
-    private List<XmlManagementTargetConfiguration> getTargetsInternal() {
-        final List<XmlManagementTargetConfiguration> result = new ArrayList<>(managementTargets.size());
-        for(final String name: managementTargets.keySet()){
-            final ManagementTargetConfiguration target = managementTargets.get(name);
-            if(target instanceof XmlManagementTargetConfiguration){
-                final XmlManagementTargetConfiguration xmlTarget = (XmlManagementTargetConfiguration)target;
-                xmlTarget.setName(name);
-                result.add(xmlTarget);
+    @XmlElement(name = "managedResource", namespace = XmlConstants.namespace, type = XmlManagedResourceConfiguration.class)
+    private List<XmlManagedResourceConfiguration> getManagedResourcesInternal() {
+        final List<XmlManagedResourceConfiguration> result = new ArrayList<>(resources.size());
+        for(final String name: resources.keySet()){
+            final ManagedResourceConfiguration res = resources.get(name);
+            if(res instanceof XmlManagedResourceConfiguration){
+                final XmlManagedResourceConfiguration xmlres = (XmlManagedResourceConfiguration)res;
+                xmlres.setID(name);
+                result.add(xmlres);
             }
         }
         return result;
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    private void setTargetsInternal(final List<XmlManagementTargetConfiguration> items) {
-        managementTargets.clear();
-        for(final XmlManagementTargetConfiguration i: items)
-            managementTargets.put(i.getName(), i);
+    private void setManagedResourcesInternal(final List<XmlManagedResourceConfiguration> items) {
+        resources.clear();
+        for(final XmlManagedResourceConfiguration i: items)
+            resources.put(i.getID(), i);
     }
 
     /**
-     * Empty implementation of ManagementTargetConfiguration interface
+     * Gets a collection of resource adapters.
      *
-     * @return implementation of ManagementTargetConfiguration interface
+     * @return A collection of resource adapters.
      */
     @Override
-    public XmlManagementTargetConfiguration newManagementTargetConfiguration() {
-        return new XmlManagementTargetConfiguration();
+    @XmlTransient
+    public Map<String, ResourceAdapterConfiguration> getResourceAdapters() {
+        return adapters;
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    @XmlElement(name = "resourceAdapter", namespace = XmlConstants.namespace, type = XmlResourceAdapterConfiguration.class)
+    private List<XmlResourceAdapterConfiguration> getAdaptersInternal(){
+        final List<XmlResourceAdapterConfiguration> result = new ArrayList<>(resources.size());
+        for(final String name: adapters.keySet()){
+            final ResourceAdapterConfiguration adapter = adapters.get(name);
+            if(adapter instanceof XmlResourceAdapterConfiguration){
+                final XmlResourceAdapterConfiguration xmlAdapter = (XmlResourceAdapterConfiguration)adapter;
+                xmlAdapter.setID(name);
+                result.add(xmlAdapter);
+            }
+        }
+        return result;
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private void setAdaptersInternal(final List<XmlResourceAdapterConfiguration> items){
+        adapters.clear();
+        for(final XmlResourceAdapterConfiguration i: items)
+            adapters.put(i.getID(), i);
+    }
+
+    /**
+     * Creates a new instance of the configuration entity.
+     *
+     * @param entityType Type of the entity to instantiate.
+     * @return A new instance of the configuration entity; or {@literal null}, if entity
+     * is not supported.
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
+     */
+    @Override
+    public <T extends ConfigurationEntity> T newConfigurationEntity(final Class<T> entityType) {
+        if(entityType == null) return null;
+        else if(entityType.isAssignableFrom(XmlManagedResourceConfiguration.class))
+            return entityType.cast(new XmlManagedResourceConfiguration());
+        else if(entityType.isAssignableFrom(XmlResourceAdapterConfiguration.class))
+            return entityType.cast(new XmlResourceAdapterConfiguration());
+        else return null;
     }
 
     /**

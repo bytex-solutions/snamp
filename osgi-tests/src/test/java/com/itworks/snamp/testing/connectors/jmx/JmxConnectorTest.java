@@ -4,8 +4,9 @@ import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.connectors.AttributeSupport;
-import com.itworks.snamp.connectors.NotificationSupport;
+import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import org.apache.commons.collections4.Equator;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.SetUtils;
@@ -23,9 +24,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
-import static com.itworks.snamp.connectors.util.NotificationUtils.SynchronizationListener;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.itworks.snamp.connectors.notifications.NotificationUtils.SynchronizationListener;
 
 /**
  * @author Roman Sakno
@@ -43,47 +44,47 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
     protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Factory<AttributeConfiguration> attributeFactory) {
         AttributeConfiguration attribute = attributeFactory.create();
         attribute.setAttributeName("string");
-        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("1.0", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("boolean");
-        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("2.0", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("int32");
-        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("3.0", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("bigint");
-        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("4.0", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("array");
-        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("5.1", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("dictionary");
-        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("6.1", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("table");
-        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("7.1", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("float");
-        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("8.0", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("date");
-        attribute.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         attributes.put("9.0", attribute);
     }
 
@@ -91,14 +92,14 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
     protected void fillEvents(final Map<String, EventConfiguration> events, final Factory<EventConfiguration> eventFactory) {
         EventConfiguration event = eventFactory.create();
         event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
-        event.getAdditionalElements().put("severity", "notice");
-        event.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         events.put("19.1", event);
 
         event = eventFactory.create();
         event.setCategory("com.itworks.snamp.connectors.tests.jmx.testnotif");
-        event.getAdditionalElements().put("severity", "panic");
-        event.getAdditionalElements().put("objectName", TestManagementBean.BEAN_NAME);
+        event.getParameters().put("severity", "panic");
+        event.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         events.put("20.1", event);
     }
 
@@ -116,21 +117,21 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
         assertTrue(notificationSupport.subscribe(TEST_LISTENER1_ID,  listener1));
         assertTrue(notificationSupport.subscribe(TEST_LISTENER2_ID, listener2));
-        final SynchronizationEvent.Awaitor<NotificationSupport.Notification> awaitor1 = listener1.getAwaitor();
-        final SynchronizationEvent.Awaitor<NotificationSupport.Notification> awaitor2 = listener2.getAwaitor();
+        final SynchronizationEvent.Awaitor<Notification> awaitor1 = listener1.getAwaitor();
+        final SynchronizationEvent.Awaitor<Notification> awaitor2 = listener2.getAwaitor();
         //force property changing
         assertTrue(attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood"));
-        final NotificationSupport.Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
+        final Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif1);
-        assertEquals(NotificationSupport.Notification.Severity.NOTICE, notif1.getSeverity());
+        assertEquals(Notification.Severity.NOTICE, notif1.getSeverity());
         assertEquals("Property string is changed", notif1.getMessage());
         assertEquals("string", notif1.get("attributeName"));
         assertEquals("NO VALUE", notif1.get("oldValue"));
         assertEquals("Frank Underwood", notif1.get("newValue"));
         assertEquals(String.class.getName(), notif1.get("attributeType"));
-        final NotificationSupport.Notification notif2 = awaitor2.await(TimeSpan.fromSeconds(5L));
+        final Notification notif2 = awaitor2.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif2);
-        assertEquals(NotificationSupport.Notification.Severity.PANIC, notif2.getSeverity());
+        assertEquals(Notification.Severity.PANIC, notif2.getSeverity());
         assertEquals("Property changed", notif2.getMessage());
     }
 
