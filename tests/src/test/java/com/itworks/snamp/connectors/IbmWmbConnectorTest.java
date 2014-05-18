@@ -5,7 +5,7 @@ import com.itworks.snamp.hosting.HostingTest;
 
 import java.util.HashMap;
 import java.util.Map;
-
+                   ё
 /**
  * Represents tests for {@link com.itworks.snamp.connectors.ManagementConnectorBean} class.
  * @author Roman Sakno
