@@ -43,7 +43,7 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
     /**
      * Represents hosting configuration (front-end configuration).
      */
-    public static interface HostingConfiguration extends ConfigurationEntity {
+    public static interface ResourceAdapterConfiguration extends ConfigurationEntity {
         /**
          * Gets the hosting adapter name.
          * @return The hosting adapter name.
@@ -207,22 +207,27 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
     }
 
     /**
-     * Returns the agent hosting configuration.
-     * @return The agent hosting configuration.
+     * Gets a collection of resource adapters.
+     * @return A collection of resource adapters.
      */
-    HostingConfiguration getAgentHostingConfig();
+    Map<String, ResourceAdapterConfiguration> getResourceAdapters();
 
     /**
-     * Represents management targets.
-     * @return The dictionary of management targets (management back-ends).
+     * Gets a collection of managed resources.
+     * @return The dictionary of managed resources.
      */
     Map<String, ManagedResourceConfiguration> getManagedResources();
 
     /**
-     * Empty implementation of ManagedResourceConfiguration interface
-     * @return implementation of ManagedResourceConfiguration interface
+     * Creates a new instance of the configuration entity.
+     * @param entityType Type of the entity to instantiate.
+     * @param <T> Type of the entity to instantiate.
+     * @return A new instance of the configuration entity; or {@literal null}, if entity
+     * is not supported.
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
      */
-    ManagedResourceConfiguration newManagedResourceConfiguration();
+    <T extends ConfigurationEntity> T newConfigurationEntity(final Class<T> entityType);
 
     /**
      * Imports the state of specified object into this object.

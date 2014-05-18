@@ -24,13 +24,15 @@ public abstract class AbstractLoggableServiceLibrary extends AbstractServiceLibr
      * @version 1.0
      */
     private static final class LoggerServiceDependency extends RequiredService<LogService> {
+        private final Logger logger;
 
         /**
          * Initializes a new {@link LogService} dependency descriptor.
          * @throws java.lang.IllegalArgumentException loggerInstance is {@literal null}.
          */
-        public LoggerServiceDependency(){
+        public LoggerServiceDependency(final Logger logger){
             super(LogService.class);
+            this.logger = logger;
         }
 
         /**
@@ -48,14 +50,13 @@ public abstract class AbstractLoggableServiceLibrary extends AbstractServiceLibr
 
         @Override
         protected void bind(final LogService serviceInstance,
-                            final Dictionary<String, ?> properties,
-                            final ActivationPropertyReader activationProps) {
-            OsgiLoggerBridge.connectToLogService(activationProps.getValue(LOGGER_HOLDER), serviceInstance);
+                            final Dictionary<String, ?> properties) {
+            OsgiLoggerBridge.connectToLogService(logger, serviceInstance);
         }
 
         @Override
-        protected void unbind(final ActivationPropertyReader activationProps) {
-            OsgiLoggerBridge.disconnectFromLogService(activationProps.getValue(LOGGER_HOLDER));
+        protected void unbind() {
+            OsgiLoggerBridge.disconnectFromLogService(logger);
         }
     }
 
@@ -157,7 +158,7 @@ public abstract class AbstractLoggableServiceLibrary extends AbstractServiceLibr
     @Override
     @Partial
     protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-        bundleLevelDependencies.add(new LoggerServiceDependency());
+        bundleLevelDependencies.add(new LoggerServiceDependency(bundleLogger));
     }
 
     /**

@@ -52,7 +52,7 @@ public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadW
          * @return The value obtained from the specified resource.
          * @throws E An exception that can be raised by action.
          */
-        public V invoke(final R resource) throws E;
+        V invoke(final R resource) throws E;
     }
 
     /**
@@ -67,7 +67,7 @@ public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadW
          * @return The value obtained from the specified resource.
          */
         @Override
-        public V invoke(final R resource);
+        V invoke(final R resource);
     }
 
     /**
@@ -262,7 +262,7 @@ public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadW
      */
     public final <O, E extends Throwable> O write(final Action<R, O, E> writer, final TimeSpan writeTimeout) throws E, TimeoutException{
         if(writer == null) return null;
-        final WriteLock wl = writeLock();
+        final Lock wl = writeLock();
         if(writeTimeout == TimeSpan.INFINITE) wl.lock();
         else try {
             if(!wl.tryLock(writeTimeout.duration, writeTimeout.unit))

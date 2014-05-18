@@ -34,5 +34,5 @@ public interface Aggregator {
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
     @ThreadSafe(false)
-    public <T> T queryObject(final Class<T> objectType);
+    <T> T queryObject(final Class<T> objectType);
 }

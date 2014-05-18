@@ -78,7 +78,8 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
      */
     @Override
     protected final void setupTestConfiguration(final AgentConfiguration config) {
-        final AgentConfiguration.ManagedResourceConfiguration targetConfig = config.newManagedResourceConfiguration();
+        final AgentConfiguration.ManagedResourceConfiguration targetConfig =
+                config.newConfigurationEntity(AgentConfiguration.ManagedResourceConfiguration.class);
         targetConfig.setConnectionString(connectionString);
         targetConfig.setConnectionType(connectorType);
         targetConfig.setNamespace(getAttributesNamespace());

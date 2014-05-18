@@ -9,7 +9,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * Represents description of the SNAMP plugin configuration model.
  * <p>
  *     This interface provides description of additional configuration properties that can be obtained
- *     via {@link AgentConfiguration.HostingConfiguration#getHostingParams()},
+ *     via {@link com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration#getHostingParams()},
  *     {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getParameters()},
  *     {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration#getParameters()}
  *     or {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration#getParameters()}.
@@ -101,7 +101,7 @@ public interface ConfigurationEntityDescription<T extends ConfigurationEntity> e
     /**
      * Returns a type of the configuration entity.
      * @return A type of the configuration entity.
-     * @see AgentConfiguration.HostingConfiguration
+     * @see com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
      * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
      * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
      * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration

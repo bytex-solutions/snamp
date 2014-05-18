@@ -10,11 +10,12 @@ import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.maintenance.AbstractMaintainable;
 import com.itworks.snamp.core.maintenance.Maintainable;
 import com.itworks.snamp.core.maintenance.MaintenanceActionInfo;
+import com.itworks.snamp.internal.ReflectionUtils;
 import com.itworks.snamp.internal.semantics.MethodStub;
-import org.apache.commons.beanutils.PropertyUtils;
 
 import javax.management.*;
 import javax.management.openmbean.*;
+import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
@@ -784,8 +785,9 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             notificationSeverity = severity != null ? severity : Severity.UNKNOWN;
             //loads notification as Java Bean and explore each JB property as attachment
             try {
-                for(final PropertyDescriptor property: Introspector.getBeanInfo(jmxNotification.getClass(), javax.management.Notification.class).getPropertyDescriptors())
-                    put(property.getName(), PropertyUtils.getProperty(jmxNotification, property.getName()));
+                final BeanInfo descriptor = Introspector.getBeanInfo(jmxNotification.getClass(), javax.management.Notification.class);
+                for(final PropertyDescriptor property: descriptor.getPropertyDescriptors())
+                    put(property.getName(), ReflectionUtils.getProperty(jmxNotification, descriptor, property.getName()));
             }
             catch (final java.beans.IntrospectionException | ReflectiveOperationException e) {
                 logger.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);

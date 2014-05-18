@@ -18,7 +18,6 @@ public abstract class AbstractConfigurationBundleActivator extends AbstractLogga
      * @version 1.0
      */
     protected static abstract class ConfigurationManagerProvider<T extends ConfigurationManager> extends LoggableProvidedService<ConfigurationManager, T>{
-
         /**
          * Initializes a new holder for the configuration manager service.
          *

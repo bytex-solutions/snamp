@@ -3,7 +3,7 @@ package com.itworks.snamp.core;
 import com.itworks.snamp.internal.semantics.MethodStub;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang3.mutable.Mutable;
-import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -216,17 +216,14 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
          * Informs this dependency about resolving dependency.
          * @param serviceInstance An instance of the resolved service.
          * @param properties Service properties.
-         * @param bundleState The state of the underlying bundle.
          */
         protected abstract void bind(final S serviceInstance,
-                                     final Dictionary<String, ?> properties,
-                                     final ActivationPropertyReader bundleState);
+                                     final Dictionary<String, ?> properties);
 
         /**
          * Informs this dependency about detaching dependency.
-         * @param bundleState The state of the underlying bundle.
          */
-        protected abstract void unbind(final ActivationPropertyReader bundleState);
+        protected abstract void unbind();
 
         /**
          * Informs this dependency about modification of the service properties.
@@ -234,11 +231,10 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
          *     In the default implementation this method does nothing.
          * </p>
          * @param properties A new properties of the service.
-         * @param bundleState The state of the underlying bundle.
          */
         @SuppressWarnings("UnusedParameters")
         @MethodStub
-        protected void update(final Dictionary<String, ?> properties, final ActivationPropertyReader bundleState){
+        protected void update(final Dictionary<String, ?> properties){
 
         }
 
@@ -251,24 +247,29 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
             return reference != null;
         }
 
-        private boolean bind(final BundleContext context, final ServiceReference<?> reference, final ActivationPropertyReader bundleState){
-            if(!isResolved() && match(reference) && isInstanceOf(reference, dependencyContract))
+        private boolean matchExact(final ServiceReference<?> candidate){
+            return isInstanceOf(candidate, dependencyContract) && match(candidate);
+        }
+
+        private boolean bind(final BundleContext context, final ServiceReference<?> reference){
+            if(isResolved()) return false;
+            else if(matchExact(reference))
                 try {
-                    bind(dependencyContract.cast(context.getService(reference)), getProperties(reference), bundleState);
+                    bind(dependencyContract.cast(context.getService(reference)), getProperties(reference));
                     return true;
                 }
                 finally {
                     this.reference = reference;
                 }
-            return false;
+            else return false;
         }
 
         private boolean unbind(final BundleContext context,
-                               final ServiceReference<?> reference,
-                               final ActivationPropertyReader bundleState){
-            if(isResolved() && match(reference))
+                               final ServiceReference<?> reference){
+            if(!isResolved()) return false;
+            else if(matchExact(reference))
                 try {
-                    unbind(bundleState);
+                    unbind();
                     return true;
                 }
                 finally {
@@ -278,36 +279,31 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
             else return false;
         }
 
-        boolean unbind(final BundleContext context, final ActivationPropertyReader bundleState){
-            return unbind(context, this.reference, bundleState);
+        boolean unbind(final BundleContext context){
+            return unbind(context, this.reference);
         }
 
-        private boolean update(final ServiceReference<?> reference, final ActivationPropertyReader bundleState) {
-            if(isResolved() && match(reference)){
-                update(getProperties(reference), bundleState);
+        private boolean update(final ServiceReference<?> reference) {
+            if(isResolved()){
+                update(getProperties(reference));
                 return true;
             }
             return false;
         }
 
-        protected final void handleService(final ServiceReference<?> reference, final int eventType, final ActivationPropertyReader bundleState){
-            handleService(getBundleContextByObject(this), reference, eventType, bundleState);
-        }
-
-        synchronized void handleService(final BundleContext context,
-                                                final ServiceReference<?> reference,
-                                                final int eventType,
-                                                final ActivationPropertyReader bundleState) {
+        synchronized void processServiceEvent(final BundleContext context,
+                                              final ServiceReference<?> reference,
+                                              final int eventType) {
             switch (eventType){
                 case ServiceEvent.REGISTERED:
-                    bind(context, reference, bundleState);
+                    bind(context, reference);
                     return;
                 case ServiceEvent.UNREGISTERING:
                 case ServiceEvent.MODIFIED_ENDMATCH:
-                    unbind(context, reference, bundleState);
+                    unbind(context, reference);
                     return;
                 case ServiceEvent.MODIFIED:
-                    update(reference, bundleState);
+                    update(reference);
             }
         }
 
@@ -359,21 +355,18 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
          *
          * @param serviceInstance An instance of the resolved service.
          * @param properties      Service properties.
-         * @param bundleState The state of the underlying bundle.
          */
         @Override
         protected void bind(final S serviceInstance,
-                            final Dictionary<String, ?> properties,
-                            final ActivationPropertyReader bundleState) {
+                            final Dictionary<String, ?> properties) {
             this.serviceInstance = serviceInstance;
         }
 
         /**
          * Informs this dependency about detaching dependency.
-         * @param bundleState The state of the underlying bundle.
          */
         @Override
-        protected void unbind(final ActivationPropertyReader bundleState) {
+        protected void unbind() {
             serviceInstance = null;
         }
     }
@@ -411,6 +404,28 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
         protected boolean match(final ServiceReference<?> reference) {
             return true;
         }
+    }
+
+    /**
+     * Represents activation state of the bundle or other OSGi component.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+     private static enum ActivationState {
+        /**
+         * Components is not activated.
+         */
+        NOT_ACTIVATED,
+        /**
+         * Component is activating.
+         */
+        ACTIVATING,
+
+        /**
+         * Component is activated.
+         */
+        ACTIVATED
     }
 
     /**
@@ -538,44 +553,47 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
 
     private final List<RequiredService<?>> bundleLevelDependencies;
     private final ActivationProperties properties;
-    private final Mutable<Boolean> activationState;
+    private final Mutable<ActivationState> state;
 
     protected AbstractBundleActivator(){
         bundleLevelDependencies = new ArrayList<>(5);
-        activationState = new MutableBoolean(false);
+        state = new MutableObject<>(ActivationState.NOT_ACTIVATED);
         properties = new ActivationProperties();
     }
 
-    private void serviceChanged(final BundleContext context, final ServiceEvent event){
+    private synchronized void serviceChanged(final BundleContext context, final ServiceEvent event){
+        if(this.state.getValue() == ActivationState.ACTIVATING) return;
         int resolvedDependencies = 0;
         for(final RequiredService<?> dependency: bundleLevelDependencies) {
-            dependency.handleService(event.getServiceReference(), event.getType(), properties);
+            dependency.processServiceEvent(context, event.getServiceReference(), event.getType());
             if(dependency.isResolved()) resolvedDependencies += 1;
         }
-        int state = resolvedDependencies == bundleLevelDependencies.size() ? 1 : 0;
-        state |= (activationState.getValue() ? 1 : 0) << 1;
-        switch (state){
-            case 1: //all dependencies resolved but bundle is not activated
-                try {
-                    activate(context,
-                            properties,
-                            bundleLevelDependencies.toArray(new RequiredService<?>[resolvedDependencies]));
-                }
-                catch (final Exception e) {
-                    activationFailure(e, properties);
-                }
+        switch (state.getValue()){
+            case ACTIVATED: //dependency lost but bundle is activated
+                if(resolvedDependencies != bundleLevelDependencies.size())
+                    try {
+                        deactivate(context, properties);
+                    }
+                    catch (final Exception e) {
+                        deactivationFailure(e, properties);
+                    }
+                    finally {
+                        state.setValue(ActivationState.NOT_ACTIVATED);
+                    }
                 return;
-            case 2: //dependency lost but bundle is activated
-                try {
-                    deactivate(context, properties);
-                }
-                catch (final Exception e) {
-                    deactivationFailure(e, properties);
-                }
-                //dependency lost and bundle is not activated
-                //-or-
-                //dependency resolved and bundle is activated
-                //then nothing to do
+            case NOT_ACTIVATED:    //dependencies resolved but bundle is not activated
+                if(resolvedDependencies == bundleLevelDependencies.size())
+                    try {
+                        state.setValue(ActivationState.ACTIVATING);
+                        activate(context,
+                                properties,
+                                bundleLevelDependencies.toArray(new RequiredService<?>[resolvedDependencies]));
+                        state.setValue(ActivationState.ACTIVATED);
+                    }
+                    catch (final Exception e) {
+                        activationFailure(e, properties);
+                        this.state.setValue(ActivationState.NOT_ACTIVATED);
+                    }
         }
     }
 

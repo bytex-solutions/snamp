@@ -11,6 +11,10 @@ import java.util.*;
  * @version 1.0
  */
 public abstract class AbstractAgentConfiguration implements AgentConfiguration {
+    private static interface ConfigurationEntityCopier<T extends ConfigurationEntity>{
+        void copy(final T input, final T output);
+    }
+
     /**
      * Initializes a new empty agent configuration.
      */
@@ -24,8 +28,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     @Override
     public void clear() {
         getManagedResources().clear();
-        getAgentHostingConfig().setAdapterName("");
-        getAgentHostingConfig().getHostingParams().clear();
+        getResourceAdapters().clear();
     }
 
     /**
@@ -46,13 +49,6 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         }
     }
 
-    private static void copy(final HostingConfiguration input, final HostingConfiguration output){
-        output.setAdapterName(input.getAdapterName());
-        final Map<String, String> hostingParams = output.getHostingParams();
-        hostingParams.clear();
-        hostingParams.putAll(input.getHostingParams());
-    }
-
     private static void copyAttributes(final Map<String, ManagedResourceConfiguration.AttributeConfiguration> input, final Map<String, ManagedResourceConfiguration.AttributeConfiguration> output, final Factory<ManagedResourceConfiguration.AttributeConfiguration> attributeFactory){
         if(input != null && output != null)
             for(final String attributeId: input.keySet()){
@@ -67,7 +63,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
             }
     }
 
-    private static void copyTargets(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
+    private static void copyConnector(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
         output.setConnectionString(input.getConnectionString());
         output.setConnectionType(input.getConnectionType());
         output.setNamespace(input.getNamespace());
@@ -79,19 +75,31 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         copyAttributes(input.getElements(ManagedResourceConfiguration.AttributeConfiguration.class),
                 output.getElements(ManagedResourceConfiguration.AttributeConfiguration.class),
                 new Factory<ManagedResourceConfiguration.AttributeConfiguration>() {
-            @Override
-            public ManagedResourceConfiguration.AttributeConfiguration create() {
-                return output.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
-            }
-        });
+                    @Override
+                    public ManagedResourceConfiguration.AttributeConfiguration create() {
+                        return output.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
+                    }
+                }
+        );
     }
 
-    private static void copy(final Map<String, ManagedResourceConfiguration> input, final Map<String, ManagedResourceConfiguration> output, final Factory<ManagedResourceConfiguration> configFactory){
+    private static void copyAdapter(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output){
+        output.setAdapterName(input.getAdapterName());
+        final Map<String, String> additionalElements = output.getHostingParams();
+        additionalElements.clear();
+        additionalElements.putAll(input.getHostingParams());
+    }
+
+    private static <T extends ConfigurationEntity> void copy(final Map<String, T> input,
+                             final Map<String, T> output,
+                             final Factory<T> entityFactory,
+                             final ConfigurationEntityCopier<T> copier){
         output.clear();
-        for(final String targetName: input.keySet()){
-            final ManagedResourceConfiguration outputConfig = configFactory.create();
-            copyTargets(input.get(targetName), outputConfig);
-            output.put(targetName, outputConfig);
+        for(final String entry: input.keySet()){
+            final T source = input.get(entry);
+            final T dest = entityFactory.create();
+            copier.copy(source, dest);
+            output.put(entry, dest);
         }
     }
 
@@ -113,61 +121,34 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     public static void copy(final AgentConfiguration input, final AgentConfiguration output){
         if(input == null || output == null) return;
         //import hosting configuration
-        copy(input.getAgentHostingConfig(), output.getAgentHostingConfig());
-        //import management targets
-        copy(input.getManagedResources(), output.getManagedResources(), new Factory<ManagedResourceConfiguration>() {
+        copy(input.getResourceAdapters(), output.getResourceAdapters(),
+                new Factory<ResourceAdapterConfiguration>() {
             @Override
-            public final ManagedResourceConfiguration create() {
-                return output.newManagedResourceConfiguration();
+            public ResourceAdapterConfiguration create() {
+                return output.newConfigurationEntity(ResourceAdapterConfiguration.class);
+            }
+        },
+        new ConfigurationEntityCopier<ResourceAdapterConfiguration>() {
+            @Override
+            public void copy(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output) {
+                copyAdapter(input, output);
             }
         });
-    }
+        //import management targets
+        copy(input.getManagedResources(), output.getManagedResources(),
+                new Factory<ManagedResourceConfiguration>() {
+                    @Override
+                    public ManagedResourceConfiguration create() {
+                        return output.newConfigurationEntity(ManagedResourceConfiguration.class);
+                    }
+                },
+        new ConfigurationEntityCopier<ManagedResourceConfiguration>() {
+            @Override
+            public void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output) {
+                copyConnector(input, output);
+            }
+        });
 
-    private static boolean paramsAreEqual(final Map<String, String> params1, final Map<String, String> params2){
-        if(params1 == params2) return true;
-        else if(params1 == null || params2 == null) return false;
-        else if(params1.size() == params2.size()){
-            for(final String key1: params1.keySet())
-                if(!Objects.equals(params1.get(key1), params2.get(key1))) return false;
-            return true;
-        }
-        else return false;
-    }
-
-    public static boolean equals(final HostingConfiguration obj1, final HostingConfiguration obj2){
-        return obj1 == obj2 ||
-                !(obj1 == null || obj2 == null) &&
-                        Objects.equals(obj1.getAdapterName(), obj2.getAdapterName()) &&
-                        paramsAreEqual(obj1.getHostingParams(), obj2.getHostingParams());
-    }
-
-    public static boolean equals(final ManagedResourceConfiguration target1, final ManagedResourceConfiguration target2){
-        return target1 == target2 ||
-                !(target1 == null || target2 == null) &&
-                        Objects.equals(target1.getNamespace(), target2.getNamespace()) &&
-                        paramsAreEqual(target1.getParameters(), target2.getParameters()) &&
-                        Objects.equals(target1.getConnectionString(), target2.getConnectionString()) &&
-                        Objects.equals(target1.getConnectionType(), target2.getConnectionType()) &&
-                        attributesAreEqual(target1.getElements(ManagedResourceConfiguration.AttributeConfiguration.class), target2.getElements(ManagedResourceConfiguration.AttributeConfiguration.class)) &&
-                        eventsAreEqual(target1.getElements(ManagedResourceConfiguration.EventConfiguration.class), target2.getElements(ManagedResourceConfiguration.EventConfiguration.class));
-    }
-
-    public static boolean equals(final ManagedResourceConfiguration.EventConfiguration ev1, final ManagedResourceConfiguration.EventConfiguration ev2){
-        return ev1 == ev2 ||
-                !(ev1 == null || ev2 == null) &&
-                        Objects.equals(ev1.getCategory(), ev2.getCategory()) &&
-                        paramsAreEqual(ev1.getParameters(), ev2.getParameters());
-    }
-
-    private static boolean eventsAreEqual(final Map<String, ManagedResourceConfiguration.EventConfiguration> evs1, final Map<String, ManagedResourceConfiguration.EventConfiguration> evs2) {
-        if(evs1 == evs2) return true;
-        else if(evs1 == null || evs2 == null) return false;
-        else if(evs1.size() == evs2.size()){
-            for(final String key1: evs1.keySet())
-                if(!equals(evs1.get(key1), evs2.get(key1))) return false;
-            return true;
-        }
-        else return false;
     }
 
     /**
@@ -181,26 +162,15 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
                 !(attr1 == null || attr2 == null) &&
                         Objects.equals(attr1.getAttributeName(), attr2.getAttributeName()) &&
                         Objects.equals(attr1.getReadWriteTimeout(), attr2.getReadWriteTimeout()) &&
-                        paramsAreEqual(attr1.getParameters(), attr2.getParameters());
+                        equals(attr1.getParameters(), attr2.getParameters());
     }
 
-    private static boolean attributesAreEqual(final Map<String, ManagedResourceConfiguration.AttributeConfiguration> attrs1, final Map<String, ManagedResourceConfiguration.AttributeConfiguration> attrs2) {
-        if(attrs1 == attrs2) return true;
-        else if(attrs1 == null || attrs2 == null) return attrs2 == null;
-        else if(attrs1.size() == attrs2.size()){
-            for(final String key1: attrs1.keySet())
-                if(!equals(attrs1.get(key1), attrs2.get(key1))) return false;
-            return true;
-        }
-        else return false;
-    }
-
-    private static boolean targetsAreEqual(final Map<String, ManagedResourceConfiguration> obj1, final Map<String, ManagedResourceConfiguration> obj2){
+    private static boolean equals(final Map<String, ?> obj1, final Map<String, ?> obj2){
         if(obj1 == obj2) return true;
         else if(obj1 == null || obj2 == null) return false;
         else if(obj1.size() == obj2.size()){
             for(final String key1: obj1.keySet())
-                if(!equals(obj1.get(key1), obj2.get(key1))) return false;
+                if(!Objects.equals(obj1.get(key1), obj2.get(key1))) return false;
             return true;
         }
         else return false;
@@ -215,7 +185,24 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     public static boolean equals(final AgentConfiguration obj1, final AgentConfiguration obj2){
         return obj1 == obj2 ||
                 !(obj1 == null || obj2 == null) &&
-                        equals(obj1.getAgentHostingConfig(), obj2.getAgentHostingConfig()) &&
-                        targetsAreEqual(obj1.getManagedResources(), obj2.getManagedResources());
+                        equals(obj1.getResourceAdapters(), obj2.getResourceAdapters()) &&
+                        equals(obj1.getManagedResources(), obj2.getManagedResources());
+    }
+
+    public static boolean equals(final ResourceAdapterConfiguration adapter1, final ResourceAdapterConfiguration adapter2){
+        if(adapter1 == null) return adapter2 == null;
+        else
+            return adapter2 != null &&
+                    Objects.equals(adapter1.getAdapterName(), adapter2.getAdapterName()) &&
+                    equals(adapter1.getHostingParams(), adapter2.getHostingParams());
+    }
+
+    public static boolean equals(final ManagedResourceConfiguration resource1, final ManagedResourceConfiguration resource2){
+        if(resource1 == null) return resource2 == null;
+        else return resource2 != null &&
+                Objects.equals(resource1.getConnectionString(),  resource2.getConnectionString()) &&
+                Objects.equals(resource1.getConnectionType(), resource2.getConnectionType()) &&
+                Objects.equals(resource1.getNamespace(), resource2.getNamespace()) &&
+                equals(resource1.getParameters(), resource2.getParameters());
     }
 }

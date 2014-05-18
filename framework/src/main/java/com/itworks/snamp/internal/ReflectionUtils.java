@@ -3,12 +3,24 @@ package com.itworks.snamp.internal;
 import com.itworks.snamp.internal.semantics.Internal;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.FactoryUtils;
-import org.osgi.framework.*;
-import static org.osgi.framework.Constants.OBJECTCLASS;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceReference;
 
-import java.lang.ref.*;
-import java.lang.reflect.*;
-import java.util.*;
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Dictionary;
+import java.util.Map;
+import java.util.Objects;
+
+import static org.osgi.framework.Constants.OBJECTCLASS;
 
 /**
  * Represents advanced reflection subroutines.
@@ -281,5 +293,27 @@ public final class ReflectionUtils {
                                      final Class<V> propertyType,
                                      final V defaultValue){
         return getProperty(dict, propertyKey, propertyType, FactoryUtils.constantFactory(defaultValue));
+    }
+
+    /**
+     * Gets value of the Java Bean property.
+     * @param obj An object that contains a property.
+     * @param descriptor Descriptor of the object that contains a property.
+     * @param propertyName The name of the property to get.
+     * @return The value of the property.
+     * @throws IntrospectionException Unable to get property value.
+     */
+    public static Object getProperty(final Object obj,
+                                     final BeanInfo descriptor,
+                                     final String propertyName) throws IntrospectionException, ReflectiveOperationException{
+        if(obj == null) throw new IllegalArgumentException("obj is null.");
+        else if(descriptor == null) throw new IllegalArgumentException("descriptor is null.");
+        else for(final PropertyDescriptor pd: descriptor.getPropertyDescriptors())
+                if(Objects.equals(propertyName, pd.getName())){
+                    final Method getter = pd.getReadMethod();
+                    if(getter == null) throw new IntrospectionException(String.format("Property %s has no getter", propertyName));
+                    else return getter.invoke(obj);
+                }
+        throw new IntrospectionException(String.format("Property %s not found", propertyName));
     }
 }

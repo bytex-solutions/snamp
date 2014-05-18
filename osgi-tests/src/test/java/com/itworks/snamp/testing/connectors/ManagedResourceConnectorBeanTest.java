@@ -71,9 +71,9 @@ public final class ManagedResourceConnectorBeanTest extends AbstractUnitTest<Man
     public final void testConnectorBean() throws IntrospectionException, TimeoutException, InterruptedException {
         final TestManagementConnectorBeanTest connector = new TestManagementConnectorBeanTest();
         connector.setProperty1("123");
-        connector.connectAttribute("0", "property1", new HashMap<String, String>());
+        assertNotNull(connector.connectAttribute("0", "property1", new HashMap<String, String>()));
         //enables notifications
-        connector.enableNotifications("list1", "propertyChanged", null);
+        assertNotNull(connector.enableNotifications("list1", "propertyChanged", null));
         final SynchronizationListener listener = new SynchronizationListener();
         connector.subscribe(generateListenerId(listener), listener);
         assertEquals(connector.getProperty1(), connector.getAttribute("0", TimeSpan.INFINITE, ""));
@@ -103,8 +103,8 @@ public final class ManagedResourceConnectorBeanTest extends AbstractUnitTest<Man
                 simpleField = value;
             }
         }, new WellKnownTypeSystem());
-        mc.connectAttribute("1", "property", new HashMap<String, String>());
-        mc.setAttribute("1", TimeSpan.INFINITE, 42);
+        assertNotNull(mc.connectAttribute("1", "property", new HashMap<String, String>()));
+        assertTrue(mc.setAttribute("1", TimeSpan.INFINITE, 42));
         assertEquals(42, mc.getAttribute("1", TimeSpan.INFINITE, 0));
     }
 }

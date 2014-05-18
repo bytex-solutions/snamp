@@ -1,8 +1,6 @@
 package com.itworks.snamp.core;
 
 import com.itworks.snamp.internal.semantics.MethodStub;
-import org.apache.commons.lang3.mutable.Mutable;
-import org.apache.commons.lang3.mutable.MutableObject;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -18,6 +16,29 @@ import static com.itworks.snamp.internal.ReflectionUtils.getBundleContextByObjec
 public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
     /**
+     * Represents state of the service publication.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static enum ProvidedServiceState{
+        /**
+         * Service is not published.
+         */
+        NOT_PUBLISHED,
+
+        /**
+         * Service publishing is in progress.
+         */
+        PUBLISHING,
+
+        /**
+         * Service is published.
+         */
+        PUBLISHED
+    }
+
+    /**
      * Represents a holder for the provided service.
      * <p>
      *     The derived class must have parameterless constructor.
@@ -31,9 +52,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         public final Class<S> serviceContract;
         private final List<RequiredService<?>> ownDependencies;
+
         private ServiceRegistration<S> registration;
         private T serviceInstance;
-        private final Mutable<ActivationPropertyReader> properties;
+        private ActivationPropertyReader properties;
 
         /**
          * Initializes a new holder for the provided service.
@@ -43,11 +65,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         protected ProvidedService(final Class<S> contract, final RequiredService<?>... dependencies){
             if(contract == null) throw new IllegalArgumentException("contract is null.");
-            this.serviceContract = contract;
-            this.ownDependencies = Arrays.asList(dependencies);
-            this.serviceInstance = null;
-            this.registration = null;
-            properties = new MutableObject<>(emptyActivationPropertyReader);
+            serviceContract = contract;
+            ownDependencies = Arrays.asList(dependencies);
+            registration = null;
+            serviceInstance = null;
+            properties = emptyActivationPropertyReader;
         }
 
         /**
@@ -57,44 +79,46 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @return The value of the property.
          */
         protected final <V> V getActivationPropertyValue(final ActivationProperty<V> propertyDef){
-            return properties.getValue().getValue(propertyDef);
+            return properties.getValue(propertyDef);
         }
 
         private synchronized void serviceChanged(final BundleContext context, final ServiceEvent event) {
             //avoid cyclic reference tracking
-            if(ownDependencies.isEmpty() || registration != null &&
+            if(getState() == ProvidedServiceState.PUBLISHING || registration != null &&
                     Objects.equals(registration.getReference(), event.getServiceReference())) return;
             int resolvedDependencies = 0;
             for(final RequiredService<?> dependency: ownDependencies){
-                dependency.handleService(context, event.getServiceReference(), event.getType(), properties.getValue());
+                dependency.processServiceEvent(context, event.getServiceReference(), event.getType());
                 if(dependency.isResolved()) resolvedDependencies += 1;
             }
-            //determines whether all dependencies are resolved
-            int resolvingState = resolvedDependencies == ownDependencies.size() ? 1 : 0;
-            resolvingState |= (isPublished() ? 1 : 0) << 1;
-            switch (resolvingState){
-                case 1: //all dependencies resolved but service is not activated
-                    try {
-                        activateAndRegisterService(context);
-                    }
-                    catch (final Exception e) {
-                        throw new ServiceException(String.format("Unable to activate %s service", serviceContract),
-                                ServiceException.FACTORY_EXCEPTION, e);
-                    }
-                    break;
-                case 2://dependency lost but service is activated
-                    registration.unregister();
-                    registration = null;
-                    try{
-                        cleanupService(serviceInstance, false);
-                    }
-                    catch (final Exception e){
-                        //ignores this exception
-                    }
-                    finally {
-                        serviceInstance = null;
-                    }
-                    break;
+            switch (getState()){
+                case PUBLISHED:
+                    //dependency lost but service is activated
+                    if(resolvedDependencies != ownDependencies.size())
+                        try{
+                            registration.unregister();
+                            cleanupService(serviceInstance, false);
+                        }
+                        catch (final Exception e){
+                            //ignores this exception
+                        }
+                        finally {
+                            serviceInstance = null;
+                            registration = null;
+                        }
+                return;
+                case NOT_PUBLISHED:
+                    if(resolvedDependencies == ownDependencies.size())
+                        try {
+                            activateAndRegisterService(context);
+                        }
+                        catch (final Exception e) {
+                            if(registration != null) registration.unregister();
+                            serviceInstance = null;
+                            registration = null;
+                            throw new ServiceException(String.format("Unable to activate %s service", serviceContract),
+                                    ServiceException.FACTORY_EXCEPTION, e);
+                        }
             }
         }
 
@@ -109,12 +133,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         /**
-         * Determines whether this service is published and accessible to other bundles.
-         * @return {@literal true}, if this service is published and accessible to other bundles;
-         *          otherwise, {@literal false}.
+         * Gets state of this service provider.
+         * @return The state of this service provider.[
          */
-        public final boolean isPublished(){
-            return registration != null && serviceInstance != null;
+        public final ProvidedServiceState getState(){
+            if(serviceInstance != null) return registration == null ? ProvidedServiceState.PUBLISHING : ProvidedServiceState.PUBLISHED;
+            else return ProvidedServiceState.NOT_PUBLISHED;
         }
 
         private void activateAndRegisterService(final BundleContext context) throws Exception{
@@ -124,15 +148,16 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         private void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception{
-            this.properties.setValue(properties);
+            this.properties = properties;
             if(ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies
                 activateAndRegisterService(context);
-            else
-                for(final RequiredService<?> dependency: ownDependencies)
+            else {
+                for (final RequiredService<?> dependency : ownDependencies)
                     for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))
                         serviceChanged(context, new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
-            //dependency tracking required
-            context.addServiceListener(this);
+                //dependency tracking required
+                context.addServiceListener(this);
+            }
         }
 
         private void unregister(final BundleContext context) throws Exception{
@@ -146,8 +171,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                 this.serviceInstance = null;
                 //releases all dependencies
                 for(final RequiredService<?> dependency: ownDependencies)
-                    dependency.unbind(context, properties.getValue());
-                properties.setValue(emptyActivationPropertyReader);
+                    dependency.unbind(context);
+                properties = emptyActivationPropertyReader;
             }
         }
 
