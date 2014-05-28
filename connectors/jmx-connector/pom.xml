@@ -20,10 +20,10 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>com.itworks.snamp.connectors.jmx</Bundle-SymbolicName>
-                        <Bundle-Activator>com.itworks.snamp.connectors.impl.JmxConnectorBundleActivator</Bundle-Activator>
+                        <Bundle-Activator>com.itworks.snamp.connectors.jmx.JmxConnectorBundleActivator</Bundle-Activator>
                         <Export-Package/>
                         <!--SNAMP specific header-->
-                        <SNAMP-Management-Connector>jmx</SNAMP-Management-Connector>
+                        <SNAMP-Resource-Connector>jmx</SNAMP-Resource-Connector>
                     </instructions>
                 </configuration>
             </plugin>

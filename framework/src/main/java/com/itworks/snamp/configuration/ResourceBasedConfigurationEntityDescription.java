@@ -1,10 +1,10 @@
 package com.itworks.snamp.configuration;
 
-import com.itworks.snamp.internal.ReflectionUtils;
-
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import com.itworks.snamp.internal.Utils;
 
 import java.util.*;
+
+import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
 
 /**
  * Represents resource-based configuration entity descriptor.
@@ -58,11 +58,11 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
     /**
      * Returns full resource name constructed from the namespace of the derived class and the
      * specified resource name.
-     * @param baseName The name of the resource impl.
+     * @param baseName The name of the resource jmx.
      * @return The full resource name.
      */
     protected final String getResourceName(final String baseName){
-        return ReflectionUtils.getFullyQualifiedResourceName(getClass(), baseName);
+        return Utils.getFullyQualifiedResourceName(getClass(), baseName);
     }
 
     /**

@@ -47,7 +47,7 @@ public class FutureThread<V> extends Thread implements Future<V> {
      * @param impl Implementation of the thread.
      */
     public FutureThread(final Callable<V> impl){
-        if(impl == null) throw new IllegalArgumentException("impl is null.");
+        if(impl == null) throw new IllegalArgumentException("jmx is null.");
         implementation = impl;
         result = null;
         error = null;

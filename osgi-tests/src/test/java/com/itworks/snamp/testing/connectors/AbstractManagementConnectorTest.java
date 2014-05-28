@@ -5,6 +5,7 @@ import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import org.apache.commons.collections4.Equator;
@@ -13,6 +14,7 @@ import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
@@ -40,13 +42,13 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
 
     protected final ManagedResourceConnector<?> getManagementConnector(final BundleContext context){
         final ServiceReference<ManagedResourceConnector<?>> connectorRef =
-                getManagementConnectorInstances(context).get(testManagementTarget);
+                getConnectors(context).get(testManagementTarget);
         return connectorRef != null ? getTestBundleContext().getService(connectorRef) : null;
     }
 
     protected final boolean releaseManagementConnector(final BundleContext context){
         final ServiceReference<ManagedResourceConnector<?>> connectorRef =
-                getManagementConnectorInstances(context).get(testManagementTarget);
+                getConnectors(context).get(testManagementTarget);
         return connectorRef != null && getTestBundleContext().ungetService(connectorRef);
     }
 
@@ -67,8 +69,8 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         //restart management connector bundle for updating SNAMP configuration
-        stopManagementConnector(context, connectorType);
-        startManagementConnector(context, connectorType);
+        stopResourceConnector(context, connectorType);
+        startResourceConnector(context, connectorType);
     }
 
     /**
@@ -102,11 +104,15 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
                                            final String attributeName,
                                            final Class<T> attributeType,
                                            final T attributeValue,
-                                           final Equator<T> comparator) throws TimeoutException {
+                                           final Equator<T> comparator) throws TimeoutException, IOException {
+        final Map<String, String> attributeOptions = readSnampConfiguration().
+                getManagedResources().
+                get(testManagementTarget).getElements(AttributeConfiguration.class).get(attributeID).getParameters();
+        assertNotNull(String.format("Attribute %s with postfix %s doesn't exist in configuration.", attributeName, attributeID), attributeOptions);
         try{
             final AttributeSupport connector = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
             assertNotNull(connector);
-            final AttributeMetadata metadata = connector.getAttributeInfo(attributeID);
+            final AttributeMetadata metadata = connector.connectAttribute(attributeID, attributeName, attributeOptions);
             assertEquals(attributeName, metadata.getName());
             final TypeConverter<T> projection = metadata.getType().getProjection(attributeType);
             assertNotNull(projection);
@@ -114,6 +120,7 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
             final T newValue = projection.convertFrom(connector.getAttribute(attributeID, TimeSpan.INFINITE, new Object()));
             assertNotNull(newValue);
             assertTrue(comparator.equate(attributeValue, newValue));
+            assertTrue(connector.disconnectAttribute(attributeID));
         }
         finally {
             releaseManagementConnector(getTestBundleContext());
@@ -123,7 +130,7 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
     protected final <T> void testAttribute(final String attributeID,
                                        final String attributeName,
                                        final Class<T> attributeType,
-                                       final T attributeValue) throws TimeoutException {
+                                       final T attributeValue) throws TimeoutException, IOException {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, new Equator<T>() {
             @Override
             public boolean equate(final T o1, final T o2) {

@@ -4,6 +4,8 @@ import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
+import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
@@ -17,11 +19,9 @@ import org.ops4j.pax.exam.spi.reactors.PerMethod;
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -136,7 +136,7 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
     }
 
     @Test
-    public final void testForTableProperty() throws TimeoutException{
+    public final void testForTableProperty() throws TimeoutException, IOException {
         final Table<String> table = new SimpleTable<>(new HashMap<String, Class<?>>(3){{
             put("col1", Boolean.class);
             put("col2", Integer.class);
@@ -167,7 +167,7 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
     }
 
     @Test
-    public final void testForDictionaryProperty() throws TimeoutException{
+    public final void testForDictionaryProperty() throws TimeoutException, IOException {
         final Map<String, Object> dict = new HashMap<>(3);
         dict.put("col1", Boolean.TRUE);
         dict.put("col2", 42);
@@ -191,7 +191,7 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
     }
 
     @Test
-    public final void testForArrayProperty() throws TimeoutException{
+    public final void testForArrayProperty() throws TimeoutException, IOException {
         final Object[] array = new Short[]{10, 20, 30, 40, 50};
         testAttribute("5.1", "array", Object[].class, array, new Equator<Object[]>() {
             @Override
@@ -207,32 +207,45 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
     }
 
     @Test
-    public final void testForDateProperty() throws TimeoutException{
+    public final void testForDateProperty() throws TimeoutException, IOException {
         testAttribute("9.0", "date", Date.class, new Date());
     }
 
     @Test
-    public final void testForFloatProperty() throws TimeoutException{
+    public final void testForFloatProperty() throws TimeoutException, IOException {
         testAttribute("8.0", "float", Float.class, 3.14F);
     }
 
     @Test
-    public final void testForBigIntProperty() throws TimeoutException{
+    public final void testForBigIntProperty() throws TimeoutException, IOException {
         testAttribute("4.0", "bigint", BigInteger.class, BigInteger.valueOf(100500));
     }
 
     @Test
-    public final void testForInt32Property() throws TimeoutException{
+    public final void testForInt32Property() throws TimeoutException, IOException {
         testAttribute("3.0", "int32", Integer.class, 42);
     }
 
     @Test
-    public final void testForBooleanProperty() throws TimeoutException {
+    public final void testForBooleanProperty() throws TimeoutException, IOException {
         testAttribute("2.0", "boolean", Boolean.class, Boolean.TRUE);
     }
 
     @Test
-    public final void testForStringProperty() throws TimeoutException {
+    public final void testForStringProperty() throws TimeoutException, IOException {
         testAttribute("1.0", "string", String.class, "Frank Underwood");
+    }
+
+    @Test
+    public final void testForAttributeConfigDescription(){
+        final ConfigurationEntityDescription<AttributeConfiguration> description = AbstractManagedResourceActivator.getConfigurationEntityDescriptor(getTestBundleContext(),
+                CONNECTOR_NAME,
+                AttributeConfiguration.class);
+        final ConfigurationEntityDescription.ParameterDescription param = description.getParameterDescriptor("objectName");
+        final String defValue = param.getDescription(null);//default locale
+        assertTrue(defValue.length() > 0);
+        final String ruValue = param.getDescription(Locale.forLanguageTag("RU"));
+        assertTrue(ruValue.length() > 0);
+        assertNotEquals(defValue, ruValue);
     }
 }

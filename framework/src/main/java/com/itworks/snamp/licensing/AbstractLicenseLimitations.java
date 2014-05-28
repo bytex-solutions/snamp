@@ -152,7 +152,8 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
         public final boolean validate(final Version actualValue) {
             switch (requiredValue){
                 case "*": return true;
-                default: return actualValue.compareTo(new Version(requiredValue)) <= 0;
+                default:
+                    return actualValue.compareTo(new Version(requiredValue.replaceAll("\\*", Integer.toString(Integer.MAX_VALUE)))) <= 0;
             }
         }
     }

@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.internal.ReflectionUtils.safeCast;
+import static com.itworks.snamp.internal.Utils.safeCast;
 
 /**
  * Represents SNAMP in-process management connector that exposes Java Bean properties through connector managementAttributes.

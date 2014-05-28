@@ -16,9 +16,10 @@ import java.lang.management.ManagementFactory;
 public abstract class AbstractJmxConnectorTest<MBean> extends AbstractManagementConnectorTest {
     private final ObjectName beanName;
     protected final MBean beanInstance;
+    protected static final String CONNECTOR_NAME = "jmx";
 
     protected AbstractJmxConnectorTest(final MBean beanInstance, final ObjectName beanName){
-        super("jmx", getJmxConnectionString(), SnampArtifact.JMX_CONNECTOR.getReference());
+        super(CONNECTOR_NAME, getJmxConnectionString(), SnampArtifact.JMX_CONNECTOR.getReference());
         this.beanName = beanName;
         this.beanInstance = beanInstance;
     }
