@@ -8,6 +8,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
+@SuppressWarnings("UnusedDeclaration")
 public class NotificationBuilder {
     /**
      * Determines whether the sequence number

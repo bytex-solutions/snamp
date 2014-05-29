@@ -9,14 +9,19 @@ import com.itworks.snamp.connectors.ManagementEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeValue;
+import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
+import com.itworks.snamp.connectors.notifications.NotificationUtils;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
-import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.ServiceReferenceHolder;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.semantics.ThreadSafe;
-import org.apache.commons.collections4.Factory;
 import org.osgi.framework.*;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventConstants;
+import org.osgi.service.event.EventHandler;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -25,6 +30,8 @@ import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.itworks.snamp.connectors.notifications.NotificationUtils.NotificationEvent;
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 import static com.itworks.snamp.internal.Utils.isInstanceOf;
 
@@ -39,9 +46,77 @@ import static com.itworks.snamp.internal.Utils.isInstanceOf;
  * @version 1.0
  */
 public abstract class AbstractResourceAdapter implements AllServiceListener, AutoCloseable{
-    public static abstract class AbstractNotificationsModel<TNotificationView> extends HashMap<String, TNotificationView>{
+    /**
+     * Represents resource management model based on notifications.
+     * @param <TNotificationView> Type of the notification metadata.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static abstract class AbstractNotificationsModel<TNotificationView> extends HashMap<String, TNotificationView> implements EventHandler{
+        private ServiceRegistration<EventHandler> registration;
+
+        /**
+         * Initializes a new notifications-based resource management model.
+         */
         protected AbstractNotificationsModel(){
             super(10);
+            registration = null;
+        }
+
+        /**
+         * Creates subscription list ID.
+         * @param prefix The namespace of the event.
+         * @param postfix The resource-local identifier of the event.
+         * @return A new unique subscription list ID.
+         */
+        protected String makeSubscriptionListID(final String prefix, final String postfix){
+            return String.format("%s-%s-%s", hashCode(), prefix, postfix);
+        }
+
+        /**
+         * Creates a new notification metadata representation.
+         * @param prefix The namespace of the event.
+         * @param postfix The resource-local identifier of the event.
+         * @param notifMeta The notification metadata to wrap.
+         * @return A new notification metadata representation.
+         */
+        protected abstract TNotificationView createNotificationView(final String prefix, final String postfix, final NotificationMetadata notifMeta);
+
+        /**
+         * Processes SNMP notification.
+         * @param notif The notification to process.
+         * @param notificationMetadata The metadata of the notification.
+         */
+        protected abstract void handleNotification(final Notification notif, final TNotificationView notificationMetadata);
+
+        /**
+         * Handles an event received through OSGi message pipe as SNAMP notification.
+         * @param event The event that occurred.
+         */
+        @Override
+        public final void handleEvent(final Event event) {
+            final NotificationEvent notif = new NotificationEvent(event);
+            if(containsKey(notif.getSubscriptionListID()))
+                handleNotification(notif, get(notif.getSubscriptionListID()));
+        }
+
+        private void startListening(final BundleContext context, final Collection<String> topics) {
+            if(registration != null)
+                registration.unregister();
+            final Dictionary<String, Object> identity = new Hashtable<>();
+            identity.put(EventConstants.EVENT_TOPIC, topics.toArray(new String[topics.size()]));
+            registration = context.registerService(EventHandler.class, this, identity);
+        }
+
+        private void stopListening(){
+            if(registration != null)
+                try {
+                    registration.unregister();
+                }
+                finally {
+                    registration = null;
+                }
         }
     }
 
@@ -446,15 +521,6 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
          */
         @ThreadSafe
         protected abstract TAttributeView createAttributeView(final String prefix, final String postfix, final AttributeAccessor accessor);
-
-        private void put(final String prefix,
-                       final String postfix,
-                       final AttributeConfiguration attributeConfig,
-                       final AttributeSupport attributeProvider){
-            final String attributeID = makeAttributeID(prefix, postfix);
-            final AttributeAccessor accessor = new AttributeAccessor(attributeID, attributeConfig, attributeProvider);
-            put(attributeID, createAttributeView(prefix, postfix, accessor));
-        }
     }
 
 
@@ -482,6 +548,10 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
 
         public final AttributeSupport getWeakAttributeSupport(){
             return queryWeakObject(AttributeSupport.class);
+        }
+
+        public final NotificationSupport getWeakNotificationSupport(){
+            return queryWeakObject(NotificationSupport.class);
         }
 
         /**
@@ -588,43 +658,85 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
      *     then it will be ignore and management attributes will not be added into the model.
      *     It is recommended to call this method inside of {@link #start()} method.
      * </p>
-     * @param attributesModelFactory The factory that produces a new instance of the empty model. Cannot be {@literal null}.
-     * @throws java.lang.IllegalArgumentException attributesModelFactory is null.
-     */
-    protected final void populateModel(final Factory<AbstractAttributesModel<?>> attributesModelFactory){
-        if(attributesModelFactory == null) throw new IllegalArgumentException("attributesModelFactory is null.");
-        else populateModel(attributesModelFactory.create());
-    }
-
-    /**
-     * Populates the model with management attributes.
-     * <p>
-     *     This method extracts management attributes via managed resource connectors
-     *     and put them into the model. If managed resource connector doesn't support
-     *     {@link com.itworks.snamp.connectors.attributes.AttributeSupport} interface
-     *     then it will be ignore and management attributes will not be added into the model.
-     *     It is recommended to call this method inside of {@link #start()} method.
-     * </p>
+     * @param <TAttributeView> Type of the attribute metadata representation.
      * @param attributesModel The model to populate. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
      */
-    protected final void populateModel(final AbstractAttributesModel<?> attributesModel){
+    protected final <TAttributeView> void populateModel(final AbstractAttributesModel<TAttributeView> attributesModel){
         if(attributesModel == null) throw new IllegalArgumentException("attributesModel is null.");
         for(final ManagedResourceConnectorConsumer consumer: connectors.values())
             if(consumer.isAttributesSupported()){
                 final AttributeSupport support = consumer.getWeakAttributeSupport();
-                if(support == null) return;
                 final Map<String, AttributeConfiguration> attributes = consumer.resourceConfiguration.getElements(AttributeConfiguration.class);
-                if(attributes == null) return;
-                for(final Map.Entry<String, AttributeConfiguration> entry: attributes.entrySet())
-                    attributesModel.put(consumer.resourceConfiguration.getNamespace(),
+                if(attributes == null) continue;
+                for(final Map.Entry<String, AttributeConfiguration> entry: attributes.entrySet()){
+                    final String attributeID = attributesModel.makeAttributeID(consumer.resourceConfiguration.getNamespace(),
+                            entry.getKey());
+                    final AttributeAccessor accessor = new AttributeAccessor(attributeID, entry.getValue(), support);
+                    attributesModel.put(attributeID, attributesModel.createAttributeView(consumer.resourceConfiguration.getNamespace(),
                             entry.getKey(),
-                            entry.getValue(),
-                            support);
+                            accessor));
+                }
             }
             else getLogger().log(Level.INFO, String.format("Managed resource connector %s (connection string %s) doesn't support attributes.",
                     consumer.resourceConfiguration.getConnectionType(),
                     consumer.resourceConfiguration.getConnectionString()));
+    }
+
+    /**
+     * Populates model with notifications and starts listening for incoming notifications.
+     * <p>
+     *     This method enables notifications via managed resource connectors and
+     *     put notification metadata into the model. If managed resource connector
+     *     doesn't support {@link com.itworks.snamp.connectors.notifications.NotificationSupport} interface
+     *     then it will be ignored and notifications will not be added into the model.
+     *     It is recommended to call this method inside {@link #start()} method.
+     * </p>
+     * @param notificationsModel The model to populate. Cannot be {@literal null}.
+     * @param <TNotificationView> Type of the notification metadata.
+     * @throws java.lang.IllegalArgumentException notificationsModel is {@literal null}.
+     */
+    protected final <TNotificationView> void populateModel(final AbstractNotificationsModel<TNotificationView> notificationsModel){
+        if(notificationsModel == null) throw new IllegalArgumentException("notificationsModel is null.");
+        final Collection<String> topics = new HashSet<>(10);
+        for(final ManagedResourceConnectorConsumer consumer: connectors.values())
+            if(consumer.isNotificationsSupported()){
+                final NotificationSupport support = consumer.getWeakNotificationSupport();
+                final Map<String, EventConfiguration> events = consumer.resourceConfiguration.getElements(EventConfiguration.class);
+                if(events == null) continue;
+                for(final Map.Entry<String, EventConfiguration> entry: events.entrySet()){
+                    final String listID = notificationsModel.makeSubscriptionListID(consumer.resourceConfiguration.getNamespace(), entry.getKey());
+                    final EventConfiguration eventConfig = entry.getValue();
+                    final NotificationMetadata metadata = support.enableNotifications(listID, eventConfig.getCategory(), eventConfig.getParameters());
+                    if(metadata != null) {
+                        notificationsModel.put(listID, notificationsModel.createNotificationView(consumer.resourceConfiguration.getNamespace(), entry.getKey(), metadata));
+                        topics.add(NotificationUtils.getTopicName(consumer.resourceConfiguration.getConnectionType(), metadata.getCategory(), listID));
+                    }
+                    else getLogger().log(Level.WARNING, String.format("Event %s cannot be enabled for %s resource.", eventConfig.getCategory(), consumer.resourceConfiguration.getConnectionString()));
+                }
+            }
+        //starts listening for events received through EventAdmin
+        notificationsModel.startListening(Utils.getBundleContextByObject(notificationsModel), topics);
+    }
+
+    /**
+     * Removes all listeners, disable notifications and stops the listening for incoming notifications.
+     * <p>
+     *     It is recommended to call this method inside of {@link #stop()} method.
+     * </p>
+     * @param notificationsModel The model to clear. Cannot be {@literal null}.
+     * @throws java.lang.IllegalArgumentException notificationsModel is {@literal null}.
+     */
+    protected final void clearModel(final AbstractNotificationsModel<?> notificationsModel){
+        if(notificationsModel == null) throw new IllegalArgumentException("notificationsModel is null.");
+        notificationsModel.stopListening();
+        for(final ManagedResourceConnectorConsumer consumer: connectors.values())
+            if(consumer.isReferenced() && consumer.isNotificationsSupported()){
+                final NotificationSupport support = consumer.getWeakNotificationSupport();
+                for(final String listID: notificationsModel.keySet())
+                    support.disableNotifications(listID);
+            }
+        notificationsModel.clear();
     }
 
     /**
@@ -639,12 +751,10 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
     protected final void clearModel(final AbstractAttributesModel<?> attributesModel){
         if(attributesModel == null) throw new IllegalArgumentException("attributesModel is null.");
         for(final ManagedResourceConnectorConsumer consumer: connectors.values())
-            if(consumer.isReferenced()){
-                final AttributeSupport attributes = consumer.getWeakAttributeSupport();
+            if(consumer.isReferenced() && consumer.isAttributesSupported()) {
+                final AttributeSupport attributeProvider = consumer.getWeakAttributeSupport();
                 for(final String attributeID: attributesModel.keySet())
-                    if(!attributes.disconnectAttribute(attributeID))
-                        getLogger().log(Level.INFO, String.format("Attribute %s cannot be disconnected from managed resource connector %s (connection string %s).",
-                                attributeID, consumer.resourceConfiguration.getConnectionType(), consumer.resourceConfiguration.getConnectionString()));
+                    attributeProvider.disconnectAttribute(attributeID);
             }
         attributesModel.clear();
     }
@@ -732,9 +842,15 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
      */
     @Override
     public void close() throws Exception{
-        for(final ManagedResourceConnectorConsumer consumer: connectors.values())
-            consumer.close();
-        connectors.clear();
-        state = AdapterState.CLOSED;
+        try{
+            if(state == AdapterState.STARTED)
+                stop();
+        }
+        finally {
+            for(final ManagedResourceConnectorConsumer consumer: connectors.values())
+                consumer.close();
+            connectors.clear();
+            state = AdapterState.CLOSED;
+        }
     }
 }

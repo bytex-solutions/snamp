@@ -929,12 +929,13 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      *
      * @param listenerId Unique identifier of the listener.
      * @param listener   The notification listener.
+     * @param delayed Specifies delayed subscription.
      * @return {@literal true}, if listener is added successfully; otherwise, {@literal false}.
      */
     @Override
-    public boolean subscribe(final String listenerId, final NotificationListener listener) {
+    public boolean subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) {
         verifyInitialization();
-        return notifications.subscribe(listenerId, listener);
+        return notifications.subscribe(listenerId, listener, delayed);
     }
 
     /**

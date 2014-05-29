@@ -133,6 +133,11 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
             }
     }
 
+    private void deactivate() throws Exception{
+        for(final TAdapter adapter: adapters.values())
+            adapter.close();
+    }
+
     /**
      * Deactivates the bundle.
      * <p>
@@ -145,8 +150,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      */
     @Override
     protected final void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
-        for(final TAdapter adapter: adapters.values())
-            adapter.close();
+        deactivate();
     }
 
     /**
@@ -158,7 +162,8 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     @Override
     @MethodStub
     protected final void shutdown(final BundleContext context) throws Exception {
-
+        if(getState() == ActivationState.ACTIVATED)
+            deactivate();
     }
 
     /**

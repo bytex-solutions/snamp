@@ -115,8 +115,8 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         final String TEST_LISTENER2_ID = "test-listener-2";
         final SynchronizationListener listener1 = new SynchronizationListener("19.1");
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
-        assertTrue(notificationSupport.subscribe(TEST_LISTENER1_ID,  listener1));
-        assertTrue(notificationSupport.subscribe(TEST_LISTENER2_ID, listener2));
+        assertTrue(notificationSupport.subscribe(TEST_LISTENER1_ID,  listener1, false));
+        assertTrue(notificationSupport.subscribe(TEST_LISTENER2_ID, listener2, false));
         final SynchronizationEvent.Awaitor<Notification> awaitor1 = listener1.getAwaitor();
         final SynchronizationEvent.Awaitor<Notification> awaitor2 = listener2.getAwaitor();
         //force property changing

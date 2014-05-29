@@ -55,13 +55,16 @@ public interface NotificationSupport {
      * Attaches the notification listener.
      * @param listenerId Unique identifier of the listener.
      * @param listener The notification listener.
+     * @param delayed {@literal true} to force delayed subscription. This flag indicates
+     *                               that you can attach a listener even if this object
+     *                               has no enabled notifications.
      * @return {@literal true}, if listener is added successfully; otherwise, {@literal false}.
      */
-    boolean subscribe(final String listenerId, final NotificationListener listener);
+    boolean subscribe(final String listenerId, final NotificationListener listener, final boolean delayed);
 
     /**
      * Removes the notification listener.
-     * @param listenerId An identifier previously returned by {@link #subscribe(String, NotificationListener)}.
+     * @param listenerId An identifier previously returned by {@link #subscribe(String, NotificationListener, boolean)}.
      * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
      */
     boolean unsubscribe(final String listenerId);

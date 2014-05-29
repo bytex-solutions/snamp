@@ -369,7 +369,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
             final RequiredServiceAccessor<EventAdmin> eventAdmin = findDependency(RequiredServiceAccessor.class, EventAdmin.class, dependencies);
             final TConnectorImpl connector = newNotificationSupport(connectionString, connectionOptions, dependencies);
             if(!connector.subscribe(NOTIF_TRANSPORT_LISTENER_ID,
-                    new EventAdminTransport(getConnectorName(), eventAdmin, connector)))
+                    new EventAdminTransport(getConnectorName(), eventAdmin, connector), true))
                 getLogger().warning(String.format("Unable to attach notification transport for %s connector.", getConnectorName()));
             return connector;
         }

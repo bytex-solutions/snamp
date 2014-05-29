@@ -82,6 +82,7 @@ public interface Notification extends Map<String, Object> {
      *     For more information, see SYSLOG facility levels.
      * </p>
      */
+    @SuppressWarnings("UnusedDeclaration")
     static final String FACILITY_LEVEL = "facilityLevel";
 
     /**
