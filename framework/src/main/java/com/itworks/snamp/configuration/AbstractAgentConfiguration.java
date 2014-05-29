@@ -66,7 +66,6 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     private static void copyConnector(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
         output.setConnectionString(input.getConnectionString());
         output.setConnectionType(input.getConnectionType());
-        output.setNamespace(input.getNamespace());
         //import additional elements
         final Map<String, String> additionalElements = output.getParameters();
         additionalElements.clear();
@@ -202,7 +201,6 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         else return resource2 != null &&
                 Objects.equals(resource1.getConnectionString(),  resource2.getConnectionString()) &&
                 Objects.equals(resource1.getConnectionType(), resource2.getConnectionType()) &&
-                Objects.equals(resource1.getNamespace(), resource2.getNamespace()) &&
                 equals(resource1.getParameters(), resource2.getParameters());
     }
 }

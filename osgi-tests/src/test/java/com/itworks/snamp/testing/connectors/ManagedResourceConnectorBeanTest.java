@@ -75,7 +75,7 @@ public final class ManagedResourceConnectorBeanTest extends AbstractUnitTest<Man
         //enables notifications
         assertNotNull(connector.enableNotifications("list1", "propertyChanged", null));
         final SynchronizationListener listener = new SynchronizationListener();
-        connector.subscribe(generateListenerId(listener), listener);
+        connector.subscribe(generateListenerId(listener), listener, false);
         assertEquals(connector.getProperty1(), connector.getAttribute("0", TimeSpan.INFINITE, ""));
         connector.setAttribute("0", TimeSpan.INFINITE, "1234567890");
         final Notification n = listener.getAwaitor().await(new TimeSpan(10, TimeUnit.SECONDS));

@@ -52,7 +52,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     private static final String MGMT_TARGET_NAME_IDENTITY_PROPERTY = "managementTarget";
     private static final String CONNECTOR_STRING_IDENTITY_PROPERTY = "connectionString";
     private static final String CONNECTOR_TYPE_IDENTITY_PROPERTY = "connectionType";
-    private static final String PREFIX_IDENTITY_PROPERTY = "prefix";
+    private static final String RESOURCE_NAME_IDENTITY_PROPERTY = "prefix";
 
     private static final ActivationProperty<CompliantTargets> COMPLIANT_TARGETS_HOLDER = defineActivationProperty(CompliantTargets.class, CompliantTargets.EMPTY);
     private static final ActivationProperty<String> CONNECTOR_NAME_HOLDER = defineActivationProperty(String.class);
@@ -406,17 +406,17 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
 
     /**
      * Configures management connector identity.
-     * @param managementTarget The name of the management target.
+     * @param resourceName The name of the management target.
      * @param config The management target configuration used to create identity.
      * @param identity The identity map to fill.
      */
-    public static void createIdentity(final String managementTarget,
+    public static void createIdentity(final String resourceName,
                                       final ManagedResourceConfiguration config,
                                       final Map<String, Object> identity){
-        identity.put(MGMT_TARGET_NAME_IDENTITY_PROPERTY, managementTarget);
+        identity.put(MGMT_TARGET_NAME_IDENTITY_PROPERTY, resourceName);
         identity.put(CONNECTOR_TYPE_IDENTITY_PROPERTY, config.getConnectionType());
         identity.put(CONNECTOR_STRING_IDENTITY_PROPERTY, config.getConnectionString());
-        identity.put(PREFIX_IDENTITY_PROPERTY, config.getNamespace());
+        identity.put(RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
         for(final Map.Entry<String, String> option: config.getParameters().entrySet())
             identity.put(option.getKey(), option.getValue());
     }
@@ -446,14 +446,14 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     }
 
     /**
-     * Gets prefix of the management connector by its reference.
+     * Gets user-defined name of the managed resource.
      * @param connectorRef The reference to the management connector.
-     * @return The prefix of the management connector.
+     * @return User-defined name of the managed resource.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public static String getPrefix(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
+    public static String getResourceName(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
         return connectorRef != null ?
-                Objects.toString(connectorRef.getProperty(PREFIX_IDENTITY_PROPERTY), ""):
+                Objects.toString(connectorRef.getProperty(RESOURCE_NAME_IDENTITY_PROPERTY), ""):
                 "";
     }
 

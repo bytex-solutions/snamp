@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.connectors.AttributeMetadata;
+import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import org.snmp4j.agent.ManagedObjectValueAccess;
 
 import java.util.logging.Logger;
@@ -10,7 +10,8 @@ import java.util.logging.Logger;
  * @author Roman Sakno
  */
 interface SnmpAttributeMapping extends ManagedObjectValueAccess {
-    static Logger log = Logger.getLogger("snamp.snmp.log");
+    static Logger log = SnmpHelpers.getLogger();
+
     /**
      * Returns the metadata of the underlying attribute.
      * @return The metadata of the underlying attribute.

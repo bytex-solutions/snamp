@@ -31,19 +31,9 @@ import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor
  * @author Roman Sakno, Evgeniy Kirichenko
  * 
  */
-@PluginImplementation
-final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugin<SnmpAdapterLimitations> {
+final class SnmpAgent extends BaseAgent {
     private static final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
-
-    /**
-     * Returns license limitations associated with this plugin.
-     *
-     * @return The license limitations applied to this plugin.
-     */
-    @Override
-    public final SnmpAdapterLimitations getLimitations() {
-        return SnmpAdapterLimitations.current();
-    }
+    private static final Logger logger = SnmpHelpers.getLogger();
 
     /**
      * Used for converting Management Connector notification into SNMP traps and sending traps.
@@ -303,28 +293,27 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         }
     }
 
-	private String address;
-    private int port;
-    private int socketTimeout;
+	private final String hostName;
+    private final int port;
+    private final int socketTimeout;
     private boolean coldStart;
     private final ManagementAttributes attributes;
     private final ManagementNotifications senders;
     private SecurityConfiguration security;
 
-	public SnmpAdapter() throws IOException {
+	public SnmpAgent(final int port, final String hostName, final SecurityConfiguration securityOptions, final int socketTimeout) throws IOException {
 		// These files does not exist and are not used but has to be specified
 		// Read snmp4j docs for more info
 		super(new File("conf.agent"), null,
                 new CommandProcessor(
                         new OctetString(MPv3.createLocalEngineID())));
-        SnmpAdapterLimitations.current().verifyPluginVersion(getClass());
         coldStart = true;
-        port = defaultPort;
-        address = defaultAddress;
         attributes = new ManagementAttributes();
         this.senders = new ManagementNotifications();
-        this.socketTimeout = 0;
-        security = null;
+        this.hostName = hostName;
+        this.port = port;
+        this.socketTimeout = socketTimeout;
+        this.security = securityOptions;
 	}
 
 	@Override
@@ -400,7 +389,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
         }
 	}
 
-	private void start() throws IOException {
+	public boolean start() throws IOException {
 		switch (agentState){
             case STATE_STOPPED:
             case STATE_CREATED:
@@ -410,15 +399,18 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                 run();
                 if(coldStart) sendColdStartNotification();
                 coldStart = false;
-            return;
-            default: throw new IOException(String.format("SNMP agent already started (state %s).", agentState));
+            return true;
+            default:
+                logger.log(Level.SEVERE, String.format("SNMP agent already started (state %s).", agentState));
+            return false;
         }
 	}
 
     /**
 	 * Initializes SNMP communities.
 	 */
-	protected void addCommunities(final SnmpCommunityMIB communityMIB) {
+	@SuppressWarnings("unchecked")
+    protected void addCommunities(final SnmpCommunityMIB communityMIB) {
 		final Variable[] com2sec = new Variable[] { new OctetString("public"), // community
 																			// name
 				new OctetString("cpublic"), // security name
@@ -433,82 +425,25 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
 		communityMIB.getSnmpCommunityEntry().addRow(row);
 	}
 
-    private boolean start(final Integer port, final String address, final int socketTimeout, final SecurityConfiguration security) throws IOException{
-        this.port = port != null ? port.intValue() : defaultPort;
-        this.address = address != null && address.length() > 0 ? address : defaultAddress;
-        this.socketTimeout = socketTimeout;
-        this.security = security;
-        start();
-        return true;
-    }
-
     /**
-     * Exposes the connector to the world.
+     * Stops the agent by closing the SNMP session and associated transport
+     * mappings.
      *
-     * @param parameters The adapter startup parameters.
-     * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
+     * @since 1.1
      */
     @Override
-    public boolean start(final Map<String, String> parameters) throws IOException{
-        switch (agentState){
-            case STATE_CREATED:
-            case STATE_STOPPED:
-                final String port = parameters.containsKey(PORT_PARAM_NAME) ? parameters.get(PORT_PARAM_NAME) : "161";
-                final String address = parameters.containsKey(ADDRESS_PARAM_NAME) ? parameters.get(ADDRESS_PARAM_NAME) : "127.0.0.1";
-                final String socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ? parameters.get(SOCKET_TIMEOUT_PARAM) : "0";
-                if(parameters.containsKey(SNMPv3_GROUPS_PARAM) || parameters.containsKey(LDAP_GROUPS_PARAM)){
-                    SnmpAdapterLimitations.current().verifyAuthenticationFeature();
-                    final SecurityConfiguration security = new SecurityConfiguration(MPv3.createLocalEngineID());
-                    security.read(parameters);
-                    return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout), security);
-                }
-                else return start(Integer.valueOf(port), address, Integer.valueOf(socketTimeout), null);
-            default:return false;
+    public void stop() {
+        if(agentState == STATE_RUNNING){
+            super.stop();
+            snmpTargetMIB.getSnmpTargetAddrEntry().removeAll();
+            snmpTargetMIB.getSnmpTargetParamsEntry().removeAll();
+            senders.cancelSubscription();
+            unregisterSnmpMIBs();
+            attributes.disconnect();
+            attributes.clear();
+            senders.disable();
+            senders.clear();
         }
-    }
-
-    /**
-     * Stops the connector hosting.
-     *
-     * @param saveState {@literal true} to save previously exposed attributes for reuse; otherwise,
-     *                       clear internal list of exposed attributes.
-     * @return {@literal true}, if adapter is previously started; otherwise, {@literal false}.
-     */
-    @Override
-    public final boolean stop(final boolean saveState) {
-        switch (agentState){
-            case STATE_RUNNING:
-                super.stop();
-                snmpTargetMIB.getSnmpTargetAddrEntry().removeAll();
-                snmpTargetMIB.getSnmpTargetParamsEntry().removeAll();
-                senders.cancelSubscription();
-                unregisterSnmpMIBs();
-                if(!saveState) {
-                    attributes.disconnect();
-                    attributes.clear();
-                    senders.disable();
-                    senders.clear();
-                }
-                return true;
-            default:return false;
-        }
-    }
-
-    /**
-     * Exposes management attributes.
-     *
-     * @param connector The attribute value provider.
-     * @param namespace  The attributes namespace.
-     * @param attrs The dictionary of attributes.
-     */
-    @Override
-    public final void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AttributeConfiguration> attrs) {
-        attributes.putAll(connector, namespace, attrs);
-    }
-
-    @Override
-    public final void exposeEvents(final NotificationSupport connector, final String namespace, final Map<String, EventConfiguration> events) {
-        senders.putAll(connector, namespace, events);
     }
 
     /**
@@ -526,7 +461,7 @@ final class SnmpAdapter extends SnmpAdapterBase implements LicensedPlatformPlugi
                 unregisterSnmpMIBs();
             break;
             default:
-                getAdapterLogger().log(Level.SEVERE, String.format("Unknown SNMP agent state: %s", agentState)); break;
+                logger.log(Level.SEVERE, String.format("Unknown SNMP agent state: %s", agentState)); break;
         }
         attributes.disconnect();
         attributes.clear();

@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.connectors.AttributeMetadata;
+import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.smi.Variable;
@@ -19,8 +19,8 @@ final class SnmpHelpers {
 
     }
 
-    public static final Logger getLogger(){
-        return Logger.getLogger("snamp.snmp.log");
+    public static Logger getLogger(){
+        return Logger.getLogger("itworks.snamp.adapters.snmp");
     }
 
     /**
@@ -195,7 +195,7 @@ final class SnmpHelpers {
         private final Pattern pattern;
 
         public Rfc1903HumanReadableDateTimeFormatter(){
-            pattern = Pattern.compile("(\\d{4})-(\\d{1,2})-(\\d{1,2}),([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:\\.([0-9]{1})),(\\+)(\\d{1,2}):(\\d{1,2})?");
+            pattern = Pattern.compile("(\\d{4})-(\\d{1,2})-(\\d{1,2}),([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:\\.([0-9])),(\\+)(\\d{1,2}):(\\d{1,2})?");
         }
 
         private static String addLeadingZeroes(final String value, final int requiredLength){

@@ -10,7 +10,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTarge
 import static com.itworks.snamp.adapters.Adapter.*;
 
 /**
- * Represents descriptor of SnmpAdapter-specific configuration elements.
+ * Represents descriptor of SnmpAgent-specific configuration elements.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
@@ -78,6 +78,10 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
      */
     public static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
 
+    public static final String PORT_PARAM_NAME = "port";
+
+    public static final String HOST_PARAM_NAME = "host";
+
     /**
      * Represents name of the metadata property that specifies unix time display format.
      */
@@ -97,7 +101,7 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
                     SNMPv3_GROUPS_PARAM,
                     SOCKET_TIMEOUT_PARAM,
                     PORT_PARAM_NAME,
-                    ADDRESS_PARAM_NAME,
+                    HOST_PARAM_NAME,
                     LDAP_URI_PARAM);
         }
 

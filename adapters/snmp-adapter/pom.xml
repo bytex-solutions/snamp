@@ -8,48 +8,57 @@
   </parent>
   <artifactId>snmp</artifactId>
   <version>1.0.0</version>
-  <packaging>jar</packaging>
-  <name>SNMP Adapter</name>
+  <packaging>bundle</packaging>
+  <name>SNMP Resource Adapter</name>
+  <description>Resource adapter that exposes managed resource via SNMPv2 and SNMPv3 protocols.</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
   </properties>
-  <description>SNMP Adapter implementation</description>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.3.2</version>
-          <configuration>
-            <archive>
-              <manifest>
-                <addClasspath>true</addClasspath>
-                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-              </manifest>
-            </archive>
-          </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>com.itworks.snamp.adapters.snmp</Bundle-SymbolicName>
+                        <Export-Package/>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
   <dependencies>
-    <dependency>
-      <groupId>org.snmp4j</groupId>
-      <artifactId>snmp4j</artifactId>
-      <version>2.2.3</version>
-    </dependency>
+      <dependency>
+          <scope>provided</scope>
+          <groupId>com.itworks.snamp</groupId>
+          <artifactId>framework</artifactId>
+          <version>1.0.0</version>
+      </dependency>
+      <dependency>
+          <scope>provided</scope>
+          <groupId>com.itworks.snamp</groupId>
+          <artifactId>snmp4j</artifactId>
+          <version>2.2.3</version>
+      </dependency>
     <dependency>
       <groupId>org.snmp4j</groupId>
       <artifactId>snmp4j-agent</artifactId>
       <version>2.0.10a</version>
     </dependency>
+      <dependency>
+          <scope>provided</scope>
+          <groupId>org.osgi</groupId>
+          <artifactId>org.osgi.core</artifactId>
+          <version>4.3.1</version>
+      </dependency>
+      <dependency>
+          <scope>provided</scope>
+          <groupId>org.osgi</groupId>
+          <artifactId>org.osgi.compendium</artifactId>
+          <version>4.3.1</version>
+      </dependency>
   </dependencies>
 </project>

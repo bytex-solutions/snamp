@@ -1,8 +1,8 @@
 package com.itworks.snamp.adapters;
 
+import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagementEntityType;
@@ -13,6 +13,7 @@ import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.connectors.notifications.NotificationUtils;
+import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.ServiceReferenceHolder;
@@ -45,7 +46,7 @@ import static com.itworks.snamp.internal.Utils.isInstanceOf;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractResourceAdapter implements AllServiceListener, AutoCloseable{
+public abstract class AbstractResourceAdapter extends AbstractAggregator implements FrameworkService, AllServiceListener, AutoCloseable{
     /**
      * Represents resource management model based on notifications.
      * @param <TNotificationView> Type of the notification metadata.
@@ -66,12 +67,12 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
 
         /**
          * Creates subscription list ID.
-         * @param prefix The namespace of the event.
-         * @param postfix The resource-local identifier of the event.
+         * @param resourceName User-defined name of the managed resource which can emit the notification.
+         * @param eventName User-defined name of the event.
          * @return A new unique subscription list ID.
          */
-        protected String makeSubscriptionListID(final String prefix, final String postfix){
-            return String.format("%s-%s-%s", hashCode(), prefix, postfix);
+        protected String makeSubscriptionListID(final String resourceName, final String eventName){
+            return String.format("%s-%s-%s", hashCode(), resourceName, eventName);
         }
 
         /**
@@ -503,13 +504,13 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
          * <p>
          *     The identifier must be unique through all instances of the resource adapter.
          * </p>
-         * @param prefix The namespace of the attribute.
-         * @param postfix The resource-local identifier of the attribute.
+         * @param resourceName User-defined name of the managed resource which supply the attribute.
+         * @param attributeUserDefinedName User-defined name of the attribute.
          * @return A new unique identifier of the management attribute.
          */
         @ThreadSafe
-        protected String makeAttributeID(final String prefix, final String postfix){
-            return String.format("%s-%s-%s", hashCode(), prefix, postfix);
+        protected String makeAttributeID(final String resourceName, final String attributeUserDefinedName){
+            return String.format("%s-%s-%s", hashCode(), resourceName, attributeUserDefinedName);
         }
 
         /**
@@ -527,14 +528,20 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
     private static final class ManagedResourceConnectorConsumer implements AllServiceListener, AutoCloseable{
         public final ManagedResourceConfiguration resourceConfiguration;
         private ServiceReferenceHolder<ManagedResourceConnector<?>> resourceConnector;
+        /**
+         * The name of the managed resource.
+         */
+        public final String resourceName;
 
         /**
          * Initializes a new resource connector consumer.
+         * @param resourceName User-defined name of the managed resource.
          * @param config The configuration of the managed resource. Cannot be {@literal null}.
          */
-        public ManagedResourceConnectorConsumer(final ManagedResourceConfiguration config){
+        public ManagedResourceConnectorConsumer(final String resourceName, final ManagedResourceConfiguration config){
             this.resourceConfiguration = config;
             this.resourceConnector = null;
+            this.resourceName = resourceName;
         }
 
         private <T> T queryWeakObject(final Class<T> queryObject){
@@ -579,7 +586,7 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
         }
 
         private synchronized void processResourceConnector(final ServiceReference<ManagedResourceConnector<?>> connectorRef, final int eventType){
-            if(Objects.equals(AbstractManagedResourceActivator.getPrefix(connectorRef), resourceConfiguration.getNamespace()))
+            if(Objects.equals(AbstractManagedResourceActivator.getResourceName(connectorRef), resourceName))
                 switch (eventType){
                     case ServiceEvent.REGISTERED:
                         if(resourceConnector == null)
@@ -623,23 +630,17 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
      * @param resources A collection of managed resources to be exposed in protocol-specific manner
      *                  to the outside world.
      */
-    protected AbstractResourceAdapter(final Collection<ManagedResourceConfiguration> resources){
+    protected AbstractResourceAdapter(final Map<String, ManagedResourceConfiguration> resources){
         connectors = new AbstractKeyedObjects<String, ManagedResourceConnectorConsumer>(resources.size()){
             @Override
             public String getKey(final ManagedResourceConnectorConsumer item) {
-                return item.resourceConfiguration.getNamespace();
+                return item.resourceName;
             }
         };
-        for(final AgentConfiguration.ManagedResourceConfiguration resourceConfig: resources)
-            connectors.put(new ManagedResourceConnectorConsumer(resourceConfig));
+        for(final Map.Entry<String, ManagedResourceConfiguration> resourceConfig: resources.entrySet())
+            connectors.put(new ManagedResourceConnectorConsumer(resourceConfig.getKey(), resourceConfig.getValue()));
         state = AdapterState.CREATED;
     }
-
-    /**
-     * Gets logger associated with this adapter.
-     * @return The logger associated with this adapter.
-     */
-    protected abstract Logger getLogger();
 
     /**
      * Gets state of this adapter.
@@ -670,10 +671,10 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
                 final Map<String, AttributeConfiguration> attributes = consumer.resourceConfiguration.getElements(AttributeConfiguration.class);
                 if(attributes == null) continue;
                 for(final Map.Entry<String, AttributeConfiguration> entry: attributes.entrySet()){
-                    final String attributeID = attributesModel.makeAttributeID(consumer.resourceConfiguration.getNamespace(),
+                    final String attributeID = attributesModel.makeAttributeID(consumer.resourceName,
                             entry.getKey());
                     final AttributeAccessor accessor = new AttributeAccessor(attributeID, entry.getValue(), support);
-                    attributesModel.put(attributeID, attributesModel.createAttributeView(consumer.resourceConfiguration.getNamespace(),
+                    attributesModel.put(attributeID, attributesModel.createAttributeView(consumer.resourceName,
                             entry.getKey(),
                             accessor));
                 }
@@ -705,11 +706,11 @@ public abstract class AbstractResourceAdapter implements AllServiceListener, Aut
                 final Map<String, EventConfiguration> events = consumer.resourceConfiguration.getElements(EventConfiguration.class);
                 if(events == null) continue;
                 for(final Map.Entry<String, EventConfiguration> entry: events.entrySet()){
-                    final String listID = notificationsModel.makeSubscriptionListID(consumer.resourceConfiguration.getNamespace(), entry.getKey());
+                    final String listID = notificationsModel.makeSubscriptionListID(consumer.resourceName, entry.getKey());
                     final EventConfiguration eventConfig = entry.getValue();
                     final NotificationMetadata metadata = support.enableNotifications(listID, eventConfig.getCategory(), eventConfig.getParameters());
                     if(metadata != null) {
-                        notificationsModel.put(listID, notificationsModel.createNotificationView(consumer.resourceConfiguration.getNamespace(), entry.getKey(), metadata));
+                        notificationsModel.put(listID, notificationsModel.createNotificationView(consumer.resourceName, entry.getKey(), metadata));
                         topics.add(NotificationUtils.getTopicName(consumer.resourceConfiguration.getConnectionType(), metadata.getCategory(), listID));
                     }
                     else getLogger().log(Level.WARNING, String.format("Event %s cannot be enabled for %s resource.", eventConfig.getCategory(), consumer.resourceConfiguration.getConnectionString()));

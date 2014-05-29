@@ -394,8 +394,6 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
         @XmlTransient
         private String connectionType = "";
         @XmlTransient
-        private String namespace = "";
-        @XmlTransient
         private String id = "";
         @XmlTransient
         private final Map<String, AttributeConfiguration> attributes = new HashMap<>(10);
@@ -461,27 +459,6 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
         @XmlElement(name = "connectionType", namespace = XmlConstants.namespace, required = true, nillable = false)
         public void setConnectionType(final String value) {
             this.connectionType = value != null ? value : "";
-        }
-
-        /**
-         * Returns the monitoring namespace that is visible outside from the agent and the front-end.
-         *
-         * @return The namespace of the management target (such as SNMP OID prefix).
-         */
-        @Override
-        public String getNamespace() {
-            return namespace;
-        }
-
-        /**
-         * Sets the monitoring namespace.
-         *
-         * @param value The namespace of the management target (such as SNMP OID prefix).
-         */
-        @Override
-        @XmlElement(name = "namespace", namespace = XmlConstants.namespace, required = true, nillable = false)
-        public void setNamespace(final String value) {
-            this.namespace = value != null ? value : "";
         }
 
         /**

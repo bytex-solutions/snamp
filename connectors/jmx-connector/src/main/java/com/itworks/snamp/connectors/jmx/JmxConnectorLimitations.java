@@ -125,7 +125,7 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
 
     @Override
     public void verifyServiceVersion(final Class<? extends JmxConnector> serviceContract) throws LicensingException {
-        verifyPluginVersion(maxVersion, serviceContract);
+        verifyServiceVersion(maxVersion, serviceContract);
     }
 
     public void verifyServiceVersion() throws LicensingException{

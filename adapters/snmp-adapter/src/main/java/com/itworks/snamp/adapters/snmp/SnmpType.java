@@ -123,7 +123,7 @@ enum SnmpType {
             switch (toVariableConverter.getParameterTypes().length){
                 case 2: return (Variable)toVariableConverter.invoke(null, new Object[]{value, valueType});
                 case 3: return (Variable)toVariableConverter.invoke(null, new Object[]{value, valueType, options});
-                default: throw new ReflectiveOperationException("SnmpAdapter: java-to-snmp converter not found.");
+                default: throw new ReflectiveOperationException("SnmpAgent: java-to-snmp converter not found.");
             }
         }
         catch (final ReflectiveOperationException e) {

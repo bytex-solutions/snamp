@@ -10,6 +10,7 @@ import com.itworks.snamp.internal.semantics.MethodStub;
 import org.osgi.framework.*;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.*;
@@ -165,8 +166,9 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @param parameters A collection of initialization parameters.
      * @param resources A collection of managed resources to be exposed via adapter.
      * @return A new instance of the adapter.
+     * @throws java.lang.Exception Unable to instantiate resource adapter.
      */
-    protected abstract TAdapter createAdapter(final Map<String, String> parameters, final Collection<ManagedResourceConfiguration> resources);
+    protected abstract TAdapter createAdapter(final Map<String, String> parameters, final Collection<ManagedResourceConfiguration> resources) throws Exception;
 
     /**
      * Activates this service library.
@@ -211,6 +213,28 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     @Override
     protected final void deactivate(final ActivationPropertyReader activationProperties) throws Exception {
         deactivate();
+    }
+
+    /**
+     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.itworks.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])}  method.
+     *
+     * @param e                    An exception to handle.
+     * @param activationProperties A collection of activation properties to read.
+     */
+    @Override
+    protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
+        getLogger().log(Level.SEVERE, String.format("Unable to activate %s resource adapter instance", adapterName), e);
+    }
+
+    /**
+     * Handles an exception thrown by {@link } method.
+     *
+     * @param e                    An exception to handle.
+     * @param activationProperties A collection of activation properties to read.
+     */
+    @Override
+    protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
+        getLogger().log(Level.SEVERE, String.format("Unable to deactivate %s resource adapter instance.", adapterName));
     }
 
     /**

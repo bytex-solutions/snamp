@@ -44,7 +44,7 @@ public final class TestLicenseLimitation extends AbstractLicenseLimitations impl
      */
     @Override
     public void verifyServiceVersion(final Class<? extends TestPlugin> serviceContract) throws LicensingException {
-        verifyPluginVersion(maxVersion, serviceContract);
+        verifyServiceVersion(maxVersion, serviceContract);
     }
 
     private static final class MaxRegisteredAttributeCountAdapter extends RequirementParser<Comparable<Long>, Long, MaxValueLimitation<Long>> {

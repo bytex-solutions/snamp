@@ -1,19 +1,29 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.itworks.snamp.licensing.AbstractLicenseLimitations;
+import com.itworks.snamp.licensing.FrameworkServiceLimitations;
+import com.itworks.snamp.licensing.LicenseReader;
+import com.itworks.snamp.licensing.LicensingException;
 import org.apache.commons.collections4.Factory;
+import org.osgi.framework.Version;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import static com.itworks.snamp.core.AbstractBundleActivator.RequiredServiceAccessor;
+import static com.itworks.snamp.core.AbstractBundleActivator.SimpleDependency;
 
 /**
  * @author Roman Sakno
  */
 @XmlRootElement(name = "snmpAdapterLimitations")
-public final class SnmpAdapterLimitations extends AbstractLicenseLimitations implements PluginLicenseLimitations<SnmpAdapterBase> {
+final class SnmpAdapterLimitations extends AbstractLicenseLimitations implements FrameworkServiceLimitations<SnmpResourceAdapter> {
+    public static final RequiredServiceAccessor<LicenseReader> licenseReader = new SimpleDependency<>(LicenseReader.class);
 
-    private static final class PluginVersionLimitationAdapter extends RequirementParser<String, String, VersionLimitation> {
+    private static final class PluginVersionLimitationAdapter extends RequirementParser<Version, String, VersionLimitation> {
 
-        public static final VersionLimitation createLimitation(final String requiredVersion){
+        public static VersionLimitation createLimitation(final String requiredVersion){
             return new VersionLimitation(requiredVersion) {
                 @Override
                 public LicensingException createException() {
@@ -31,7 +41,7 @@ public final class SnmpAdapterLimitations extends AbstractLicenseLimitations imp
     private static final class AuthenticationFeatureLimitationAdapter extends RequirementParser<Boolean, Boolean, ExactLimitation<Boolean>>{
 
         public static ExactLimitation<Boolean> createLimitation(final boolean authenticationEnabled){
-            return new ExactLimitation<Boolean>(Boolean.TRUE) {
+            return new ExactLimitation<Boolean>(authenticationEnabled) {
                 @Override
                 public LicensingException createException() {
                     return new LicensingException("SNMPv3 is not allowed.");
@@ -48,7 +58,7 @@ public final class SnmpAdapterLimitations extends AbstractLicenseLimitations imp
          */
         @Override
         public final ExactLimitation<Boolean> unmarshal(final Boolean v) throws Exception {
-            return createLimitation(v != null && v.booleanValue());
+            return createLimitation(v != null && v);
         }
     }
 
@@ -60,7 +70,7 @@ public final class SnmpAdapterLimitations extends AbstractLicenseLimitations imp
     };
 
     public static SnmpAdapterLimitations current(){
-        return current(SnmpAdapterLimitations.class, fallbackFactory);
+        return AbstractLicenseLimitations.current(SnmpAdapterLimitations.class, licenseReader, fallbackFactory);
     }
 
     public SnmpAdapterLimitations(){
@@ -80,8 +90,9 @@ public final class SnmpAdapterLimitations extends AbstractLicenseLimitations imp
     @XmlElement(type = Boolean.class)
     private ExactLimitation<Boolean> authenticationEnabled;
 
-    public final void verifyPluginVersion(final Class<? extends SnmpAdapterBase> pluginImpl) throws LicensingException{
-        verifyPluginVersion(maxVersion, pluginImpl);
+    @Override
+    public void verifyServiceVersion(final Class<? extends SnmpResourceAdapter> serviceContract) throws LicensingException {
+        verifyServiceVersion(maxVersion, serviceContract);
     }
 
     public final void verifyAuthenticationFeature(){

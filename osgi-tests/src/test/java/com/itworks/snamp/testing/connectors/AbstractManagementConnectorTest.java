@@ -52,10 +52,6 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
         return connectorRef != null && getTestBundleContext().ungetService(connectorRef);
     }
 
-    protected String getAttributesNamespace(){
-        return "";
-    }
-
     @SuppressWarnings("UnusedParameters")
     protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Factory<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributeFactory){
 
@@ -84,7 +80,6 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
                 config.newConfigurationEntity(AgentConfiguration.ManagedResourceConfiguration.class);
         targetConfig.setConnectionString(connectionString);
         targetConfig.setConnectionType(connectorType);
-        targetConfig.setNamespace(getAttributesNamespace());
         fillAttributes(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class), new Factory<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration>() {
             @Override
             public AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration create() {

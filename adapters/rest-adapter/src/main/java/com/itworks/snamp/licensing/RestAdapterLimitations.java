@@ -65,6 +65,6 @@ public class RestAdapterLimitations extends AbstractLicenseLimitations implement
      */
     @Override
     public final void verifyPluginVersion(final Class<? extends AbstractAdapter> pluginImpl) throws LicensingException {
-        verifyPluginVersion(maxVersion, pluginImpl);
+        verifyServiceVersion(maxVersion, pluginImpl);
     }
 }
