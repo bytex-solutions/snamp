@@ -1,19 +1,18 @@
 package com.itworks.snamp.adapters;
 
 import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
+import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.ConfigurationManager;
-import com.itworks.snamp.core.AbstractBundleActivator;
 import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.semantics.MethodStub;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
+import org.osgi.framework.*;
 
 import java.util.*;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.*;
 import static java.util.Map.Entry;
 
 /**
@@ -28,17 +27,68 @@ import static java.util.Map.Entry;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> extends AbstractBundleActivator {
+public abstract class AbstractResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> extends AbstractLoggableServiceLibrary {
     /**
      * Represents name of the bundle manifest header that contains system name of the adapter.
      */
     public static final String ADAPTER_NAME_MANIFEST_HEADER = "SNAMP-Resource-Adapter";
 
+
+    private static final String ADAPTER_NAME_IDENTITY_PROPERTY = "adapterName";
+    private static final ActivationProperty<String> ADAPTER_NAME_HOLDER = defineActivationProperty(String.class);
+
+    /**
+     * Represents a holder for connector configuration descriptor.
+     * @param <T> Type of the configuration descriptor implementation.
+     * @author Roman Sakno
+     * @since 1.0
+     */
+    protected abstract static class ConfigurationEntityDescriptionProviderHolder<T extends ConfigurationEntityDescriptionProvider> extends LoggableProvidedService<ConfigurationEntityDescriptionProvider, T>{
+
+        /**
+         * Initializes a new holder for the provided service.
+         *
+         * @param dependencies A collection of service dependencies.
+         * @throws IllegalArgumentException contract is {@literal null}.
+         */
+        protected ConfigurationEntityDescriptionProviderHolder(final RequiredService<?>... dependencies) {
+            super(ConfigurationEntityDescriptionProvider.class, dependencies);
+        }
+
+        /**
+         * Gets name of the resource connector.
+         * @return The name of the resource connector.
+         */
+        protected final String getAdapterName(){
+            return getActivationPropertyValue(ADAPTER_NAME_HOLDER);
+        }
+
+        /**
+         * Creates a new instance of the configuration description provider.
+         * @param dependencies A collection of provider dependencies.
+         * @return A new instance of the configuration description provider.
+         * @throws Exception An exception occurred during provider instantiation.
+         */
+        protected abstract T createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception;
+
+        /**
+         * Creates a new instance of the service.
+         *
+         * @param identity     A dictionary of properties that uniquely identifies service instance.
+         * @param dependencies A collection of dependencies.
+         * @return A new instance of the service.
+         */
+        @Override
+        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+            identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getAdapterName());
+            return createConfigurationDescriptionProvider(dependencies);
+        }
+    }
+
     /**
      * Represents name of the adapter.
      */
     public final String adapterName;
-    private final Logger logger;
     private final Map<String, TAdapter> adapters;
 
     /**
@@ -55,17 +105,30 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @param loggerInstance The logger associated with the adapter.
      */
     protected AbstractResourceAdapterActivator(final String adapterName, final Logger loggerInstance){
+        super(loggerInstance != null ? loggerInstance : AbstractResourceAdapter.getLogger(adapterName));
         this.adapterName = adapterName;
-        this.logger = loggerInstance != null ? loggerInstance : AbstractResourceAdapter.getLogger(adapterName);
         adapters = new HashMap<>(4);
     }
 
     /**
-     * Gets logger associated with this resource adapter.
-     * @return The logger associated with this resource adapter.
+     * Initializes a new instance of the resource adapter lifetime manager.
+     * @param adapterName The name of the adapter.
+     * @param descriptionProvider A service that exposes configuration schema of the adapter. Cannot be {@literal null}.
      */
-    protected final Logger getLogger(){
-        return logger;
+    protected AbstractResourceAdapterActivator(final String adapterName, final ConfigurationEntityDescriptionProviderHolder<?> descriptionProvider){
+        this(adapterName, AbstractResourceAdapter.getLogger(adapterName), descriptionProvider);
+    }
+
+    /**
+     * Initializes a new instance of the resource adapter lifetime manager.
+     * @param adapterName The name of the adapter.
+     * @param loggerInstance The logger associated with the adapter.
+     * @param descriptionProvider A service that exposes configuration schema of the adapter. Cannot be {@literal null}.
+     */
+    protected AbstractResourceAdapterActivator(final String adapterName, final Logger loggerInstance, final ConfigurationEntityDescriptionProviderHolder<?> descriptionProvider){
+        super(loggerInstance != null ? loggerInstance : AbstractResourceAdapter.getLogger(adapterName), descriptionProvider);
+        this.adapterName = adapterName;
+        adapters = new HashMap<>(4);
     }
 
     /**
@@ -82,15 +145,17 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     }
 
     /**
-     * Starts the bundle and instantiate runtime state of the bundle.
+     * Initializes the library.
+     * <p>
+     * You should override this method and call this implementation at the first line using
+     * <b>super keyword</b>.
+     * </p>
      *
-     * @param context                 The execution context of the bundle being started.
-     * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
-     * @throws Exception An exception occurred during starting.
+     * @param bundleLevelDependencies A collection of library-level dependencies to fill.
+     * @throws Exception An error occurred during bundle initialization.
      */
     @Override
-    protected final void start(final BundleContext context, final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-        bundleLevelDependencies.add(new AbstractLoggableServiceLibrary.LoggerServiceDependency(logger));
+    protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
         bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationManager.class));
         addDependencies(bundleLevelDependencies);
     }
@@ -104,20 +169,18 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     protected abstract TAdapter createAdapter(final Map<String, String> parameters, final Collection<ManagedResourceConfiguration> resources);
 
     /**
-     * Activates the bundle.
+     * Activates this service library.
      * <p>
-     * This method will be called when all bundle-level dependencies will be resolved.
+     * You should override this method and call this implementation at the first line using
+     * <b>super keyword</b>.
      * </p>
      *
-     * @param context              The execution context of the bundle being activated.
-     * @param activationProperties A collection of bundle's activation properties to fill.
-     * @param dependencies         A collection of resolved dependencies.
-     * @throws Exception An exception occurred during activation.
+     * @param activationProperties A collection of library activation properties to fill.
+     * @param dependencies         A collection of resolved library-level dependencies.
+     * @throws Exception Unable to activate this library.
      */
     @Override
-    protected final void activate(final BundleContext context,
-                            final ActivationPropertyPublisher activationProperties,
-                            final RequiredService<?>... dependencies) throws Exception {
+    protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         final ConfigurationManager configManager =
                 getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
         final AgentConfiguration config = configManager.getCurrentConfiguration();
@@ -128,9 +191,10 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
                 if(resourceAdapter != null) {
                     adapters.put(adapter.getKey(), resourceAdapter);
                     //update the adapter with dependencies
-                    resourceAdapter.update(context);
+                    resourceAdapter.update(Utils.getBundleContextByObject(this));
                 }
             }
+        activationProperties.publish(ADAPTER_NAME_HOLDER, adapterName);
     }
 
     private void deactivate() throws Exception{
@@ -139,31 +203,14 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     }
 
     /**
-     * Deactivates the bundle.
-     * <p>
-     * This method will be called when at least one bundle-level dependency will be lost.
-     * </p>
+     * Deactivates this library.
      *
-     * @param context              The execution context of the bundle being deactivated.
-     * @param activationProperties A collection of activation properties to read.
-     * @throws Exception An exception occurred during bundle deactivation.
+     * @param activationProperties A collection of library activation properties to read.
+     * @throws Exception Unable to deactivate this library.
      */
     @Override
-    protected final void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
+    protected final void deactivate(final ActivationPropertyReader activationProperties) throws Exception {
         deactivate();
-    }
-
-    /**
-     * Stops the bundle.
-     *
-     * @param context The execution context of the bundle being stopped.
-     * @throws Exception An exception occurred during bundle stopping.
-     */
-    @Override
-    @MethodStub
-    protected final void shutdown(final BundleContext context) throws Exception {
-        if(getState() == ActivationState.ACTIVATED)
-            deactivate();
     }
 
     /**
@@ -242,5 +289,36 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
         if(context == null) throw new IllegalArgumentException("context is null.");
         for(final Bundle bnd: getResourceAdapterBundles(context, adapterName))
             bnd.start();
+    }
+
+    /**
+     * Gets configuration descriptor for the specified adapter.
+     * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @param adapterName The name of the adapter.
+     * @param configurationEntity Type of the configuration entity.
+     * @param <T> Type of the configuration entity.
+     * @return Configuration entity descriptor; or {@literal null}, if configuration description is not supported.
+     */
+    public static <T extends ConfigurationEntity> ConfigurationEntityDescription<T> getConfigurationEntityDescriptor(final BundleContext context,
+                                                                                                                                        final String adapterName,
+                                                                                                                                        final Class<T> configurationEntity){
+        if(context == null || configurationEntity == null) return null;
+        ServiceReference<?>[] refs;
+        try {
+            refs = context.getAllServiceReferences(ConfigurationEntityDescriptionProvider.class.getName(), String.format("(%s=%s)", ADAPTER_NAME_IDENTITY_PROPERTY, adapterName));
+        }
+        catch (final InvalidSyntaxException e) {
+            refs = null;
+        }
+        for(final ServiceReference<?> providerRef: refs != null ? refs : new ServiceReference<?>[0])
+            try{
+                final ConfigurationEntityDescriptionProvider provider = (ConfigurationEntityDescriptionProvider)context.getService(providerRef);
+                final ConfigurationEntityDescription<T> description = provider.getDescription(configurationEntity);
+                if(description != null) return description;
+            }
+            finally {
+                context.ungetService(providerRef);
+            }
+        return null;
     }
 }

@@ -44,6 +44,7 @@
      <module>config-bundle</module>
      <module>licensing-bundle</module>
      <module>osgi-tests</module>
+     <module>third-party-libs/bundlized/snmp4j</module>
   </modules>
     <repositories>
         <repository>
