@@ -27,7 +27,10 @@ class MONamedColumn<V extends Variable> extends MOMutableColumn<V> {
      */
     protected final SnmpType columnType;
 
-    protected MONamedColumn(final int columnID, final String columnName, final SnmpType columnType, final MOAccess access, final boolean isIndexed){
+    protected MONamedColumn(final int columnID,
+                            final String columnName,
+                            final SnmpType columnType,
+                            final MOAccess access, final boolean isIndexed){
         super(columnID, columnType.getSyntax(), access);
         this.name = columnName;
         this.isIndexed = isIndexed;
@@ -54,6 +57,7 @@ class MONamedColumn<V extends Variable> extends MOMutableColumn<V> {
         return columnType.convert(value, ct, conversionOptions);
     }
 
+    @SuppressWarnings("unchecked")
     public V createCellValue(final Object cell, final ManagementEntityType ct, final Map<String, String> conversionOptions) {
         return (V)columnType.convert(cell, ct, conversionOptions);
     }

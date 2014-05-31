@@ -31,7 +31,7 @@ public final class SnmpResourceAdapterActivator extends AbstractResourceAdapterA
     }
 
     @Override
-    protected SnmpResourceAdapter createAdapter(final Map<String, String> parameters, final Collection<ManagedResourceConfiguration> resources) throws IOException{
+    protected SnmpResourceAdapter createAdapter(final Map<String, String> parameters, final Map<String, ManagedResourceConfiguration> resources) throws IOException{
         final String port = parameters.containsKey(PORT_PARAM_NAME) ? parameters.get(PORT_PARAM_NAME) : "161";
         final String address = parameters.containsKey(HOST_PARAM_NAME) ? parameters.get(HOST_PARAM_NAME) : "127.0.0.1";
         final String socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ? parameters.get(SOCKET_TIMEOUT_PARAM) : "0";

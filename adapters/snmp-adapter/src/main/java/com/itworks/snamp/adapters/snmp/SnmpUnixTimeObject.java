@@ -1,24 +1,26 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.connectors.AttributeSupport;
+import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagementEntityType;
-import com.itworks.snamp.TimeSpan;
-import org.snmp4j.smi.*;
-import static com.itworks.snamp.connectors.util.ManagementEntityTypeHelper.*;
-import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
-import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.DATE_TIME_DISPLAY_FORMAT_PARAM;
+import org.snmp4j.smi.OctetString;
+import org.snmp4j.smi.Variable;
 
 import java.text.ParseException;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
 import java.util.logging.Level;
+
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.DATE_TIME_DISPLAY_FORMAT_PARAM;
+import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
+import static com.itworks.snamp.connectors.ManagementEntityTypeHelper.convertFrom;
 
 final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
     public static final String defaultValue = "1970-1-1,00:00:00.0,+0:0";
 
     private final DateTimeFormatter formatter;
 
-    public SnmpUnixTimeObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
-        super(oid, connector, new OctetString(defaultValue), timeouts);
+    public SnmpUnixTimeObject(final String oid, final AttributeAccessor connector){
+        super(oid, connector, new OctetString(defaultValue));
         formatter = createFormatter(getMetadata());
     }
 
@@ -31,7 +33,7 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
         return convert(value, attributeTypeInfo, createFormatter(options));
     }
 
-    private static Object convert(final OctetString value, final ManagementEntityType attributeTypeInfo, final DateTimeFormatter formatter){
+    private static Object convert(final OctetString value, final DateTimeFormatter formatter){
         try {
             return formatter.convert(value.toByteArray());
         } catch (final ParseException e) {
@@ -40,30 +42,18 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
         }
     }
 
-    public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo, final Map<String, String> options){
-        return convert((OctetString)value, attributeTypeInfo, createFormatter(options));
+    public static Object convert(final Variable value, final Map<String, String> options){
+        return convert((OctetString)value, createFormatter(options));
     }
 
-    /**
-     * Converts the attribute value into the SNMP-compliant value.
-     *
-     * @param value The value to convert.
-     * @return
-     */
     @Override
     protected OctetString convert(final Object value) {
-        return convert(value, attributeTypeInfo, formatter);
+        return convert(value, getMetadata().getType(), formatter);
     }
 
-    /**
-     * Converts the SNMP-compliant value to the management connector native value.
-     *
-     * @param value The value to convert.
-     * @return
-     */
     @Override
     protected Object convert(final OctetString value) {
-        return convert(value, attributeTypeInfo, formatter);
+        return convert(value, formatter);
     }
 
     private static DateTimeFormatter createFormatter(final Map<String, String> options){

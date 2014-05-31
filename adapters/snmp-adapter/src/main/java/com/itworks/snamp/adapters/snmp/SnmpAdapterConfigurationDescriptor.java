@@ -1,13 +1,15 @@
 package com.itworks.snamp.adapters.snmp;
 
 
+import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.HostingConfiguration;
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
-import static com.itworks.snamp.adapters.Adapter.*;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * Represents descriptor of SnmpAgent-specific configuration elements.
@@ -16,7 +18,7 @@ import static com.itworks.snamp.adapters.Adapter.*;
  * @version 1.0
  * @since 1.0
  */
-public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
     /**
      * Represents configuration property that provides a set of user groups.
      */
@@ -82,6 +84,8 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
 
     public static final String HOST_PARAM_NAME = "host";
 
+    public static final String OID_PARAM_NAME = "oidPostfix";
+
     /**
      * Represents name of the metadata property that specifies unix time display format.
      */
@@ -95,9 +99,9 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
     private static final String RESOURCE_NAME = "SnmpAdapterConfig";
 
 
-    private static final class HostingConfigurationInfo extends ResourceBasedConfigurationEntityDescription<HostingConfiguration> {
-        public HostingConfigurationInfo(){
-            super(HostingConfiguration.class,
+    private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> {
+        public ResourceAdapterConfigurationInfo(){
+            super(ResourceAdapterConfiguration.class,
                     SNMPv3_GROUPS_PARAM,
                     SOCKET_TIMEOUT_PARAM,
                     PORT_PARAM_NAME,
@@ -148,6 +152,6 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
     }
 
     public SnmpAdapterConfigurationDescriptor(){
-        super(new HostingConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());
+        super(new ResourceAdapterConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());
     }
 }

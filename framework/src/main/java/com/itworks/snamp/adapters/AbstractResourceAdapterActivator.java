@@ -168,7 +168,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @return A new instance of the adapter.
      * @throws java.lang.Exception Unable to instantiate resource adapter.
      */
-    protected abstract TAdapter createAdapter(final Map<String, String> parameters, final Collection<ManagedResourceConfiguration> resources) throws Exception;
+    protected abstract TAdapter createAdapter(final Map<String, String> parameters, final Map<String, ManagedResourceConfiguration> resources) throws Exception;
 
     /**
      * Activates this service library.
@@ -189,7 +189,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
         //select compliant adapters
         for(final Entry<String, ResourceAdapterConfiguration> adapter: config.getResourceAdapters().entrySet())
             if(Objects.equals(adapter.getValue().getAdapterName(), adapterName)) {
-                final TAdapter resourceAdapter = createAdapter(adapter.getValue().getHostingParams(), config.getManagedResources().values());
+                final TAdapter resourceAdapter = createAdapter(adapter.getValue().getHostingParams(), config.getManagedResources());
                 if(resourceAdapter != null) {
                     adapters.put(adapter.getKey(), resourceAdapter);
                     //update the adapter with dependencies

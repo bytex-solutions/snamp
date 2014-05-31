@@ -1,18 +1,18 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.connectors.AttributeMetadata;
-import com.itworks.snamp.connectors.AttributeSupport;
+import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagementEntityType;
-import com.itworks.snamp.TimeSpan;
-import org.snmp4j.agent.mo.*;
+import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import org.snmp4j.agent.mo.MOScalar;
 import org.snmp4j.mp.SnmpConstants;
-import org.snmp4j.smi.*;
+import org.snmp4j.smi.OID;
+import org.snmp4j.smi.Variable;
 
-import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
+
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
-import static com.itworks.snamp.connectors.util.ManagementEntityTypeHelper.ConversionFallback;
+import static com.itworks.snamp.connectors.ManagementEntityTypeHelper.ConversionFallback;
 
 /**
  * Represents a base class for scalar SNMP managed objects.
@@ -20,20 +20,12 @@ import static com.itworks.snamp.connectors.util.ManagementEntityTypeHelper.Conve
  */
 abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implements SnmpAttributeMapping {
     private final T defaultValue;
-    private final AttributeSupport connector;
-    private final TimeSpan timeouts;
-    /**
-     * Represents the type of the attribute.
-     */
-    protected final ManagementEntityType attributeTypeInfo;
+    private final AttributeAccessor attribute;
 
-    private SnmpScalarObject(final String oid, final AttributeSupport connector, final AttributeMetadata attributeInfo, final T defval, final TimeSpan timeouts){
-        super(new OID(oid), getAccessRestrictions(attributeInfo), defval);
-        if(connector == null) throw new IllegalArgumentException("connector is null.");
-        defaultValue = defval;
-        this.connector = connector;
-        this.timeouts = timeouts;
-        this.attributeTypeInfo = attributeInfo.getType();
+    protected SnmpScalarObject(final String oid, final AttributeAccessor attribute, final T defval){
+        super(new OID(oid), getAccessRestrictions(attribute), defval);
+        this.defaultValue = defval;
+        this.attribute = attribute;
     }
 
     protected static <T> T logAndReturnDefaultValue(final T defaultValue, final Variable originalValue, final ManagementEntityType attributeType){
@@ -51,79 +43,52 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     }
 
     /**
-     * Initializes a new SNMP scala value provider.
-     * @param oid Unique identifier of the new management object.
-     * @param connector The underlying management connector that provides access to the attribute.
-     * @param defval The default value of the management object.
-     * @param timeouts Read/write timeout.
-     * @exception IllegalArgumentException connector is null.
-     */
-    protected SnmpScalarObject(final String oid, final AttributeSupport connector, final T defval, final TimeSpan timeouts)
-    {
-        this(oid, connector, connector.getAttributeInfo(oid), defval, timeouts);
-    }
-
-    /**
      * Converts the attribute value into the SNMP-compliant value.
      * @param value The value to convert.
-     * @return
+     * @return SNMP-compliant representation of the specified value.
      */
     protected abstract T convert(final Object value);
 
     /**
-     * Converts the SNMP-compliant value to the management connector native value.
+     * Converts SNMP-compliant value to the resource-specific native value.
      * @param value The value to convert.
-     * @return
+     * @return Resource-specific representation of SNMP-compliant value.
      */
     protected abstract Object convert(final T value);
 
-    private final T getValue(final AttributeSupport connector){
-        if(connector == null) return defaultValue;
-        Object result = null;
+    /**
+     * Returns SNMP-compliant value of the attribute.
+     * @return SNMP-compliant value of the attribute.
+     */
+    @Override
+    public final T getValue() {
+        Object result;
         try{
-            result = connector.getAttribute(super.getID().toString(), timeouts, defaultValue);
+            result = attribute.getValue(defaultValue);
         }
         catch (final TimeoutException timeout){
-            log.log(Level.WARNING, timeout.getLocalizedMessage(), timeout);
+            log.log(Level.WARNING, String.format("Read operation timeout detected for %s attribute", attribute.getName()), timeout);
             result = defaultValue;
-
         }
         return result == null ? defaultValue : convert(result);
     }
 
     /**
-     * Returns the SNMP-compliant value of the attribute.
-     * @return
+     * Changes the SNMP management object.
+     * @param value The value to set.
+     * @return SNMP status code.
+     * @see {@link org.snmp4j.mp.SnmpConstants}
      */
     @Override
-    public final T getValue() {
-        return getValue(connector);
-    }
-
-    private final int setValue(final T value, final AttributeSupport connector) {
-        if(connector == null) return SnmpConstants.SNMP_ERROR_RESOURCE_UNAVAILABLE;
-        int result = SnmpConstants.SNMP_ERROR_SUCCESS;
+    public final int setValue(final T value) {
+        int result;
         try {
-            result = connector.setAttribute(super.getID().toString(), timeouts, convert(value)) ? SnmpConstants.SNMP_ERROR_BAD_VALUE : SnmpConstants.SNMP_ERROR_SUCCESS;
+            result = attribute.setValue(convert(value)) ? SnmpConstants.SNMP_ERROR_BAD_VALUE : SnmpConstants.SNMP_ERROR_SUCCESS;
         } catch (final TimeoutException timeout) {
             log.log(Level.WARNING, timeout.getLocalizedMessage(), timeout);
             result = SnmpConstants.SNMP_ERROR_SUCCESS;
         }
         return result;
-    }
-
-    /**
-     * Changes the SNMP management object.
-     * @param value
-     * @return
-     */
-    @Override
-    public final int setValue(final T value) {
-        return setValue(value, connector);
-    }
-
-    private final AttributeMetadata getMetadata(final AttributeSupport connector){
-        return connector != null ? connector.getAttributeInfo(Objects.toString(getID(), "")) : null;
     }
 
     /**
@@ -133,6 +98,6 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
      */
     @Override
     public final AttributeMetadata getMetadata() {
-        return getMetadata(connector);
+        return attribute;
     }
 }

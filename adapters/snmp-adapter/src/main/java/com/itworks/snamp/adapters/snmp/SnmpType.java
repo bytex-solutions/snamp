@@ -1,22 +1,18 @@
 package com.itworks.snamp.adapters.snmp;
 
-import static com.itworks.snamp.internal.ReflectionUtils.wrapReference;
-
-import com.itworks.snamp.connectors.AttributeMetadata;
-import com.itworks.snamp.connectors.AttributeSupport;
 import com.itworks.snamp.connectors.ManagementEntityType;
-import com.itworks.snamp.TimeSpan;
 import org.snmp4j.smi.Null;
 import org.snmp4j.smi.Variable;
 
-import static com.itworks.snamp.connectors.WellKnownTypeSystem.*;
-
-import java.lang.ref.WeakReference;
-import java.lang.reflect.*;
-import static org.snmp4j.smi.SMIConstants.EXCEPTION_NO_SUCH_OBJECT;
-
-import java.util.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.Map;
 import java.util.logging.Level;
+
+import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
+import static com.itworks.snamp.connectors.WellKnownTypeSystem.*;
+import static org.snmp4j.smi.SMIConstants.EXCEPTION_NO_SUCH_OBJECT;
 
 /**
  * Represents SNMP managed object factory.
@@ -68,10 +64,6 @@ enum SnmpType {
     private Method toVariableConverter;
     private Method fromVariableConverter;
 
-    /**
-     * Initializes a new well-known SNMP value provider.
-     * @param mapping
-     */
     private SnmpType(final Class<? extends SnmpAttributeMapping> mapping){
         this.mapping = mapping;
         this.syntax = mapping.getAnnotation(MOSyntax.class);
@@ -82,14 +74,13 @@ enum SnmpType {
     /**
      * Creates a new instance of the SNMP managed object.
      * @param oid OID of the managed object.
-     * @param connector The underlying connector that is used to
-     * @param timeouts
-     * @return
+     * @param accessor An object that provides access to the individual management attribute.
+     * @return A new mapping between resource attribute and its SNMP representation.
      */
-    public SnmpAttributeMapping createManagedObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
+    public SnmpAttributeMapping createManagedObject(final String oid, final AttributeAccessor accessor){
         try {
-            final Constructor<? extends SnmpAttributeMapping> ctor = mapping.getConstructor(String.class, AttributeSupport.class, TimeSpan.class);
-            return ctor.newInstance(oid, wrapReference(new WeakReference<>(connector), AttributeSupport.class), timeouts);
+            final Constructor<? extends SnmpAttributeMapping> ctor = mapping.getConstructor(String.class, AttributeAccessor.class);
+            return ctor.newInstance(oid, accessor);
         }
         catch (final ReflectiveOperationException e) {
             SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
@@ -121,8 +112,8 @@ enum SnmpType {
         //attempts to invoke the converter.
         try {
             switch (toVariableConverter.getParameterTypes().length){
-                case 2: return (Variable)toVariableConverter.invoke(null, new Object[]{value, valueType});
-                case 3: return (Variable)toVariableConverter.invoke(null, new Object[]{value, valueType, options});
+                case 2: return (Variable)toVariableConverter.invoke(null, value, valueType);
+                case 3: return (Variable)toVariableConverter.invoke(null, value, valueType, options);
                 default: throw new ReflectiveOperationException("SnmpAgent: java-to-snmp converter not found.");
             }
         }
@@ -159,8 +150,8 @@ enum SnmpType {
         //attempts to invoke the converter.
         try {
             switch (fromVariableConverter.getParameterTypes().length){
-                case 2: return fromVariableConverter.invoke(null, new Object[]{value, valueType});
-                case 3: return fromVariableConverter.invoke(null, new Object[]{value, valueType, options});
+                case 2: return fromVariableConverter.invoke(null, value, valueType);
+                case 3: return fromVariableConverter.invoke(null, value, valueType, options);
                 default: throw new ReflectiveOperationException("java-to-snmp converter not found.");
             }
         }
@@ -181,7 +172,7 @@ enum SnmpType {
             }
         //attempts to invoke the converter.
         try {
-            return fromVariableConverter.invoke(null, new Object[]{value, valueType});
+            return fromVariableConverter.invoke(null, value, valueType);
         }
         catch (final ReflectiveOperationException e) {
             SnmpAttributeMapping.log.log(Level.SEVERE, e.getLocalizedMessage(), e);
@@ -191,8 +182,8 @@ enum SnmpType {
 
     /**
      * Maps the attribute type to the SNMP-compliant type.
-     * @param attributeType
-     * @return
+     * @param attributeType Resource-specific type of the attribute.
+     * @return SNMP-compliant projection of the attribute type.
      */
     public static SnmpType map(final ManagementEntityType attributeType){
         if(supportsBoolean(attributeType))
@@ -210,35 +201,5 @@ enum SnmpType {
         else if(isTable(attributeType))
             return TABLE;
         else return TEXT;
-    }
-
-    /**
-     * Creates a new mapping for the specified attribute.
-     * @param connector
-     * @param oid
-     * @param attributeName
-     * @param options
-     * @param timeouts
-     * @return
-     */
-    public static SnmpAttributeMapping createManagedObject(final AttributeSupport connector,
-                                                    final String oid,
-                                                    final String attributeName,
-                                                    final Map<String, String> options,
-                                                   final TimeSpan timeouts){
-        final AttributeMetadata attribute = connector.connectAttribute(oid, attributeName, options);
-        if(attribute == null) return null;
-        final SnmpType type = map(attribute.getType());
-        final SnmpAttributeMapping mapping = type != null ? type.createManagedObject(oid, connector, timeouts) : null;
-        return mapping;
-    }
-
-    /**
-     * Returns a value from {@link org.snmp4j.smi.SMIConstants} that represents the specified attribute type.
-     * @param typeInfo
-     * @return
-     */
-    public static int getSyntax(final ManagementEntityType typeInfo){
-        return map(typeInfo).getSyntax();
     }
 }

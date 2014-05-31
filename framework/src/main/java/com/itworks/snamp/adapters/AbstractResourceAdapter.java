@@ -54,7 +54,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @since 1.0
      * @version 1.0
      */
-    public static abstract class AbstractNotificationsModel<TNotificationView> extends HashMap<String, TNotificationView> implements EventHandler{
+    protected static abstract class AbstractNotificationsModel<TNotificationView> extends HashMap<String, TNotificationView> implements EventHandler{
         private ServiceRegistration<EventHandler> registration;
 
         /**
@@ -77,12 +77,12 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
         /**
          * Creates a new notification metadata representation.
-         * @param prefix The namespace of the event.
-         * @param postfix The resource-local identifier of the event.
+         * @param resourceName User-defined name of the managed resource.
+         * @param eventName The resource-local identifier of the event.
          * @param notifMeta The notification metadata to wrap.
          * @return A new notification metadata representation.
          */
-        protected abstract TNotificationView createNotificationView(final String prefix, final String postfix, final NotificationMetadata notifMeta);
+        protected abstract TNotificationView createNotificationView(final String resourceName, final String eventName, final NotificationMetadata notifMeta);
 
         /**
          * Processes SNMP notification.
@@ -138,7 +138,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
         private AttributeAccessor(final String attributeID,
                                   final AttributeConfiguration attributeConfig,
-                                  final AttributeSupport attributeSupport){
+                                  final AttributeSupport attributeSupport) throws IllegalArgumentException{
             if(attributeSupport.connectAttribute(attributeID,
                     attributeConfig.getAttributeName(),
                     attributeConfig.getParameters()) == null)
@@ -183,6 +183,17 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         public AttributeValue<?> getValue() throws TimeoutException, IllegalStateException{
             final Object result = attributeSupport.getAttribute(attributeID, readWriteTimeout, null);
             return new AttributeValue<>(result, getType());
+        }
+
+        /**
+         * Gets value of the attribute.
+         * @param defaultValue Default value of the attribute if its original value is not accessible.
+         * @return The raw value of the attribute.
+         * @throws TimeoutException Attribute value cannot be obtained during the configured duration.
+         * @throws IllegalStateException The accessor is disconnected from the managed resource connector.
+         */
+        public Object getValue(final Object defaultValue) throws TimeoutException, IllegalStateException{
+            return attributeSupport.getAttribute(attributeID, readWriteTimeout, defaultValue);
         }
 
         /**
@@ -480,6 +491,28 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     /**
+     * Extension interface that can be used by {@link com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel}
+     * and {@link com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel} implementers
+     * to extend model with POPULATE and CLEAR event hooks.
+     * @param <TPopulateEventArgs>
+     * @param <TClearEventArgs>
+     */
+    protected static interface ModelEventsSupport<TPopulateEventArgs, TClearEventArgs>{
+        /**
+         * Called by SNAMP infrastructure after filling of this model.
+         * @param e Additional event arguments.
+         * @see com.itworks.snamp.adapters.AbstractResourceAdapter#populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel, Object)
+         */
+        void onPopulate(final TPopulateEventArgs e);
+
+        /**
+         * Called by SNAMP infrastructure after clearing of this model.
+         * @param e Additional event arguments.
+         */
+        void onClear(final TClearEventArgs e);
+    }
+
+    /**
      * Represents resource management model based on attributes.
      * <p>
      *     The derived class should not contain any management logic, just a factory
@@ -505,23 +538,23 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          *     The identifier must be unique through all instances of the resource adapter.
          * </p>
          * @param resourceName User-defined name of the managed resource which supply the attribute.
-         * @param attributeUserDefinedName User-defined name of the attribute.
+         * @param userDefinedAttributeName User-defined name of the attribute.
          * @return A new unique identifier of the management attribute.
          */
         @ThreadSafe
-        protected String makeAttributeID(final String resourceName, final String attributeUserDefinedName){
-            return String.format("%s-%s-%s", hashCode(), resourceName, attributeUserDefinedName);
+        protected String makeAttributeID(final String resourceName, final String userDefinedAttributeName){
+            return String.format("%s-%s-%s", hashCode(), resourceName, userDefinedAttributeName);
         }
 
         /**
          * Creates a new domain-specific representation of the management attribute.
-         * @param prefix The namespace of the attribute.
-         * @param postfix The resource-local identifier of the attribute.
+         * @param resourceName User-defined name of the managed resource.
+         * @param userDefinedAttributeName User-defined name of the attribute.
          * @param accessor An accessor for the individual management attribute.
          * @return A new domain-specific representation of the management attribute.
          */
         @ThreadSafe
-        protected abstract TAttributeView createAttributeView(final String prefix, final String postfix, final AttributeAccessor accessor);
+        protected abstract TAttributeView createAttributeView(final String resourceName, final String userDefinedAttributeName, final AttributeAccessor accessor);
     }
 
 
@@ -660,7 +693,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *     It is recommended to call this method inside of {@link #start()} method.
      * </p>
      * @param <TAttributeView> Type of the attribute metadata representation.
-     * @param attributesModel The model to populate. Cannot be {@literal null}.
+     * @param attributesModel The model to be populated. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
      */
     protected final <TAttributeView> void populateModel(final AbstractAttributesModel<TAttributeView> attributesModel){
@@ -673,15 +706,49 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 for(final Map.Entry<String, AttributeConfiguration> entry: attributes.entrySet()){
                     final String attributeID = attributesModel.makeAttributeID(consumer.resourceName,
                             entry.getKey());
-                    final AttributeAccessor accessor = new AttributeAccessor(attributeID, entry.getValue(), support);
-                    attributesModel.put(attributeID, attributesModel.createAttributeView(consumer.resourceName,
+                    AttributeAccessor accessor;
+                    try{
+                        accessor = new AttributeAccessor(attributeID, entry.getValue(), support);
+                    }
+                    catch (final IllegalArgumentException e){
+                        accessor = null;
+                    }
+                    final TAttributeView view = accessor != null ? attributesModel.createAttributeView(consumer.resourceName,
                             entry.getKey(),
-                            accessor));
+                            accessor) : null;
+                    if(view != null)
+                        attributesModel.put(attributeID, view);
+                    else support.disconnectAttribute(attributeID);
                 }
             }
             else getLogger().log(Level.INFO, String.format("Managed resource connector %s (connection string %s) doesn't support attributes.",
                     consumer.resourceConfiguration.getConnectionType(),
                     consumer.resourceConfiguration.getConnectionString()));
+    }
+
+    /**
+     * Populates model with management attributes.
+     * @param attributesModel The model to be populated. Cannot be {@literal null}.
+     * @param eventArgs Additional argument to be passed into {@link com.itworks.snamp.adapters.AbstractResourceAdapter.ModelEventsSupport#onPopulate(Object)} method.
+     * @param <TModel> Type of the management attributes model.
+     * @param <TPopulateEventArgs> Type of the POPULATE event argument.
+     * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
+     */
+    protected final <TAttributeView, TPopulateEventArgs, TModel extends AbstractAttributesModel<TAttributeView> & ModelEventsSupport<TPopulateEventArgs, ?>> void populateModel(final TModel attributesModel, final TPopulateEventArgs eventArgs){
+        populateModel(attributesModel);
+        attributesModel.onPopulate(eventArgs);
+    }
+
+    /**
+     * Populates model with notification descriptors.
+     * @param notificationsModel The model to be populated. Cannot be {@literal null}.
+     * @param eventArgs Additional argument to be passed into {@link com.itworks.snamp.adapters.AbstractResourceAdapter.ModelEventsSupport#onPopulate(Object)} method.
+     * @param <TPopulateEventArgs> Type of the POPULATE event argument.
+     * @param <TModel> Type of the notifications model.
+     */
+    protected final <TNotificationView, TPopulateEventArgs, TModel extends AbstractNotificationsModel<TNotificationView> & ModelEventsSupport<TPopulateEventArgs, ?>> void populateModel(final TModel notificationsModel, final TPopulateEventArgs eventArgs){
+        populateModel(notificationsModel);
+        notificationsModel.onPopulate(eventArgs);
     }
 
     /**
@@ -710,8 +777,12 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     final EventConfiguration eventConfig = entry.getValue();
                     final NotificationMetadata metadata = support.enableNotifications(listID, eventConfig.getCategory(), eventConfig.getParameters());
                     if(metadata != null) {
-                        notificationsModel.put(listID, notificationsModel.createNotificationView(consumer.resourceName, entry.getKey(), metadata));
-                        topics.add(NotificationUtils.getTopicName(consumer.resourceConfiguration.getConnectionType(), metadata.getCategory(), listID));
+                        final TNotificationView view = notificationsModel.createNotificationView(consumer.resourceName, entry.getKey(), metadata);
+                        if(view != null) {
+                            notificationsModel.put(listID, view);
+                            topics.add(NotificationUtils.getTopicName(consumer.resourceConfiguration.getConnectionType(), metadata.getCategory(), listID));
+                        }
+                        else support.disableNotifications(listID);
                     }
                     else getLogger().log(Level.WARNING, String.format("Event %s cannot be enabled for %s resource.", eventConfig.getCategory(), consumer.resourceConfiguration.getConnectionString()));
                 }
@@ -738,6 +809,33 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     support.disableNotifications(listID);
             }
         notificationsModel.clear();
+    }
+
+    /**
+     * Removes all attribute descriptors from the model.
+     * @param attributesModel The model to clear. Cannot be {@literal null}.
+     * @param eventArgs Additional argument to be passed into {@link com.itworks.snamp.adapters.AbstractResourceAdapter.ModelEventsSupport#onClear(Object)} method.
+     * @param <TAttributeView> Type of the attribute metadata.
+     * @param <TClearEventArgs> Type of the CLEAR event argument.
+     * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
+     */
+    protected final <TAttributeView, TClearEventArgs, TModel extends AbstractAttributesModel<TAttributeView> & ModelEventsSupport<?, TClearEventArgs>> void clearModel(final TModel attributesModel, final TClearEventArgs eventArgs){
+        clearModel(attributesModel);
+        attributesModel.onClear(eventArgs);
+    }
+
+    /**
+     * Removes all notification descriptors from the model.
+     * @param notificationsModel The model to clear. Cannot be {@literal null}.
+     * @param eventArgs Additional argument to be passed into {@link com.itworks.snamp.adapters.AbstractResourceAdapter.ModelEventsSupport#onClear(Object)}
+     * @param <TNotificationView> Type of the notification metadata.
+     * @param <TClearEventArgs> Type of the CLEAR event arguments.
+     * @param <TModel> Type of the notifications model.
+     * @throws java.lang.IllegalArgumentException notificationsModel is {@literal null}.
+     */
+    protected final <TNotificationView, TClearEventArgs, TModel extends AbstractNotificationsModel<TNotificationView> & ModelEventsSupport<?, TClearEventArgs>> void clearModel(final TModel notificationsModel, final TClearEventArgs eventArgs){
+        clearModel(notificationsModel);
+        notificationsModel.onClear(eventArgs);
     }
 
     /**

@@ -1,22 +1,21 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.connectors.AttributeSupport;
+import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagementEntityType;
-import com.itworks.snamp.TimeSpan;
 import org.snmp4j.smi.*;
 
 import java.math.*;
 import java.util.Objects;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
-import static com.itworks.snamp.connectors.util.ManagementEntityTypeHelper.*;
+import static com.itworks.snamp.connectors.ManagementEntityTypeHelper.*;
 
 @MOSyntax(SYNTAX_OCTET_STRING)
 final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
     public static final Number defaultValue = 0;
 
-    public SnmpBigNumberObject(final String oid, final AttributeSupport connector, final TimeSpan timeouts){
-        super(oid, connector, new OctetString(defaultValue.toString()), timeouts);
+    public SnmpBigNumberObject(final String oid, final AttributeAccessor attribute){
+        super(oid, attribute, new OctetString(defaultValue.toString()));
     }
 
     public static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo){
@@ -31,21 +30,21 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
      * Converts the attribute value into the SNMP-compliant value.
      *
      * @param value The value to convert.
-     * @return
+     * @return SNMP-compliant representation of the specified value.
      */
     @Override
-    protected final OctetString convert(final Object value) {
-        return convert(value, attributeTypeInfo);
+    protected OctetString convert(final Object value) {
+        return convert(value, getMetadata().getType());
     }
 
     /**
-     * Converts the SNMP-compliant value to the management connector native value.
+     * Converts SNMP-compliant value to the resource-specific native value.
      *
      * @param value The value to convert.
-     * @return
+     * @return Resource-specific representation of SNMP-compliant value.
      */
     @Override
-    protected final Object convert(final OctetString value) {
-        return convert(value, attributeTypeInfo);
+    protected Object convert(final OctetString value) {
+        return convert(value, getMetadata().getType());
     }
 }

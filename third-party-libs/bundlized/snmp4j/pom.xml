@@ -38,6 +38,11 @@
     <dependencies>
         <dependency>
             <groupId>org.snmp4j</groupId>
+            <artifactId>snmp4j-agent</artifactId>
+            <version>2.0.10a</version>
+        </dependency>
+        <dependency>
+            <groupId>org.snmp4j</groupId>
             <artifactId>snmp4j</artifactId>
             <version>2.2.3</version>
         </dependency>

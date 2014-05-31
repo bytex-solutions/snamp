@@ -2,14 +2,19 @@ package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import org.snmp4j.agent.MOAccess;
-import org.snmp4j.agent.mo.*;
+import org.snmp4j.agent.mo.MOAccessImpl;
+import org.snmp4j.agent.mo.MOColumn;
+import org.snmp4j.agent.mo.MOTable;
+import org.snmp4j.smi.OID;
 import org.snmp4j.smi.Variable;
 
 import java.io.*;
-import java.text.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.regex.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Roman Sakno
@@ -298,5 +303,27 @@ final class SnmpHelpers {
     public static int findColumnIndex(final MOTable<?, ? extends MOColumn<? extends Variable>, ?> table, final Class<? extends MOColumn<? extends Variable>> columnType){
         final MOColumn<? extends Variable> column = findColumn(table, columnType);
         return column != null ? column.getColumnID() : -1;
+    }
+
+    private static OID getPrefix(final OID objectId){
+        final OID result = new OID(objectId);
+        result.trim(2);
+        return result;
+    }
+
+    public static Set<OID> getPrefixes(final Collection<? extends SnmpEntity> objects){
+        //first two numbers of OID are identified as prefix
+        final Set<OID> result = new HashSet<>(objects.size());
+        for(final SnmpEntity obj: objects)
+            result.add(getPrefix(obj.getID()));
+        return result;
+    }
+
+    public static <T extends SnmpEntity> Collection<T> getObjectsByPrefix(final OID prefix, final Collection<T> objects){
+        final Collection<T> result = new ArrayList<>(objects.size());
+        for(final T obj: objects)
+            if(Objects.equals(getPrefix(obj.getID()), prefix))
+                result.add(obj);
+        return result;
     }
 }

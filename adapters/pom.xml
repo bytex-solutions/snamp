@@ -18,7 +18,7 @@
     </dependency>
   </dependencies>
   <modules>
-      <!--<module>snmp-adapter</module>
-      <module>rest-adapter</module>-->
+      <module>snmp-adapter</module>
+      <!--<module>rest-adapter</module>-->
   </modules>
 </project>
