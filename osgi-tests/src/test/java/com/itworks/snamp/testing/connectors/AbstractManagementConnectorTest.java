@@ -69,6 +69,10 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
         startResourceConnector(context, connectorType);
     }
 
+    protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Factory<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory){
+
+    }
+
     /**
      * Creates a new configuration for running this test.
      *
@@ -78,6 +82,12 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
     protected final void setupTestConfiguration(final AgentConfiguration config) {
         final AgentConfiguration.ManagedResourceConfiguration targetConfig =
                 config.newConfigurationEntity(AgentConfiguration.ManagedResourceConfiguration.class);
+        fillAdapters(config.getResourceAdapters(), new Factory<AgentConfiguration.ResourceAdapterConfiguration>() {
+            @Override
+            public AgentConfiguration.ResourceAdapterConfiguration create() {
+                return config.newConfigurationEntity(AgentConfiguration.ResourceAdapterConfiguration.class);
+            }
+        });
         targetConfig.setConnectionString(connectionString);
         targetConfig.setConnectionType(connectorType);
         fillAttributes(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class), new Factory<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration>() {

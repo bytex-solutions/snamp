@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.jmx;
 
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
+import com.itworks.snamp.connectors.DiscoveryService;
 import com.itworks.snamp.licensing.LicensingException;
 
 import java.net.MalformedURLException;
@@ -48,6 +49,16 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
                 @Override
                 protected JmxConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
                     return new JmxConnectorConfigurationDescriptor();
+                }
+            };
+        }
+
+        @Override
+        protected DiscoveryServiceProvider<?> createDiscoveryServiceProvider(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
+            return new DiscoveryServiceProvider<DiscoveryService>() {
+                @Override
+                protected DiscoveryService createDiscoveryService(final RequiredService<?>... dependencies) throws Exception {
+                    return new JmxDiscoveryService();
                 }
             };
         }

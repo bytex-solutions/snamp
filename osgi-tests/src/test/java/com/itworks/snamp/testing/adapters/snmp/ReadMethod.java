@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.testing.adapters.snmp;
 
 import org.snmp4j.PDU;
 import org.snmp4j.smi.OID;

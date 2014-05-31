@@ -29,7 +29,7 @@
                         <Export-Package>
                             org.snmp4j.*;
                         </Export-Package>
-                        <Embed-Dependency>snmp4j</Embed-Dependency>
+                        <Embed-Dependency>snmp4j; snmp4j-agent</Embed-Dependency>
                     </instructions>
                 </configuration>
             </plugin>

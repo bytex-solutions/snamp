@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.testing.adapters.snmp;
 
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.Table;
@@ -25,7 +25,7 @@ public interface SnmpClient {
      * @param notificationID
      * @return
      */
-    public SynchronizationEvent.Awaitor<SnmpWrappedNotification> addNotificationListener(final OID notificationID);
+    public SynchronizationEvent.Awaitor<SnmpNotification> addNotificationListener(final OID notificationID);
 
     /**
      * Writes table object to certain OID prefix table

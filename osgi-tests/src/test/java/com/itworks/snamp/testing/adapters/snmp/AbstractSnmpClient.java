@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.testing.adapters.snmp;
 
 import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.SynchronizationEvent;
@@ -115,8 +115,8 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @param notificationID
      * @return
      */
-    public final SynchronizationEvent.Awaitor<SnmpWrappedNotification> addNotificationListener(final OID notificationID){
-        final SynchronizationEvent<SnmpWrappedNotification> signaller = new SynchronizationEvent<>();
+    public final SynchronizationEvent.Awaitor<SnmpNotification> addNotificationListener(final OID notificationID){
+        final SynchronizationEvent<SnmpNotification> signaller = new SynchronizationEvent<>();
         snmp.addCommandResponder(new CommandResponder() {
             @Override
             public final void processPdu(final CommandResponderEvent event) {
@@ -124,15 +124,14 @@ public abstract class AbstractSnmpClient implements SnmpClient {
                 if(p.getVariableBindings().size() == 0) return;
                 else {
                     final Collection<? extends VariableBinding> bindings = p.getVariableBindings();
-                    SnmpWrappedNotification notif = null;
+                    SnmpNotification notif = null;
                     for(final VariableBinding binding: bindings)
                         if(binding.getOid().startsWith(notificationID)){
-                            if(notif == null) notif = new SnmpWrappedNotification(notificationID);
+                            if(notif == null) notif = new SnmpNotification(notificationID);
                             notif.put(binding);
                         }
                     if(notif != null && notif.size() > 0)
                         signaller.fire(notif);
-                    else notif = null;
                 }
             }
         });

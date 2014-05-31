@@ -1,6 +1,9 @@
 package com.itworks.snamp.connectors.jmx;
 
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,17 +42,31 @@ final class JmxConnectionOptions extends JMXServiceURL {
         else login = password = "";
     }
 
-    /**
-     * Creates a new instance of the connection manager.
-     * @return A new instance of the connection manager.
-     */
-    public final JmxConnectionManager createConnectionManager(){
+    private Map<String, Object> getJmxOptions(){
         final Map<String, Object> jmxOptions = new HashMap<>(3);
         if(login.length() > 0 && password.length() > 0)
             jmxOptions.put(javax.management.remote.JMXConnector.CREDENTIALS, new String[]{
                     login,
                     password
             });
-        return new JmxConnectionManager(this, jmxOptions);
+        return jmxOptions;
+    }
+
+    /**
+     * Creates a new instance of the connection manager.
+     * @return A new instance of the connection manager.
+     */
+    public final JmxConnectionManager createConnectionManager(){
+        return new JmxConnectionManager(this, getJmxOptions());
+    }
+
+    /**
+     * Creates a new direct connection to JMX endpoint.
+     * @return A new connection to JMX endpoint.
+     * @throws IOException If the connector client or the
+     * connection cannot be made because of a communication problem.
+     */
+    public final JMXConnector createConnection() throws IOException {
+        return JMXConnectorFactory.connect(this, getJmxOptions());
     }
 }

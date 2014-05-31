@@ -49,17 +49,48 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         }
     }
 
+    /**
+     * Copies management attributes.
+     * @param source The attribute to copy.
+     * @param dest The attribute to fill.
+     */
+    public static void copy(final ManagedResourceConfiguration.AttributeConfiguration source, final ManagedResourceConfiguration.AttributeConfiguration dest){
+        dest.setAttributeName(source.getAttributeName());
+        dest.setReadWriteTimeout(source.getReadWriteTimeout());
+        final Map<String, String> additionalElements = dest.getParameters();
+        additionalElements.clear();
+        additionalElements.putAll(source.getParameters());
+    }
+
+    /**
+     * Copies management events.
+     * @param source The event to copy.
+     * @param dest The event to fill.
+     */
+    public static void copy(final ManagedResourceConfiguration.EventConfiguration source, final ManagedResourceConfiguration.EventConfiguration dest){
+        dest.setCategory(source.getCategory());
+        final Map<String, String> additionalElements = dest.getParameters();
+        additionalElements.clear();
+        additionalElements.putAll(source.getParameters());
+    }
+
     private static void copyAttributes(final Map<String, ManagedResourceConfiguration.AttributeConfiguration> input, final Map<String, ManagedResourceConfiguration.AttributeConfiguration> output, final Factory<ManagedResourceConfiguration.AttributeConfiguration> attributeFactory){
         if(input != null && output != null)
             for(final String attributeId: input.keySet()){
                 final ManagedResourceConfiguration.AttributeConfiguration inputAttr = input.get(attributeId);
                 final ManagedResourceConfiguration.AttributeConfiguration outputAttr = attributeFactory.create();
-                outputAttr.setAttributeName(inputAttr.getAttributeName());
-                outputAttr.setReadWriteTimeout(inputAttr.getReadWriteTimeout());
-                final Map<String, String> additionalElements = outputAttr.getParameters();
-                additionalElements.clear();
-                additionalElements.putAll(inputAttr.getParameters());
+                copy(inputAttr, outputAttr);
                 output.put(attributeId, outputAttr);
+            }
+    }
+
+    private static void copyEvents(final Map<String, ManagedResourceConfiguration.EventConfiguration> input, final Map<String, ManagedResourceConfiguration.EventConfiguration> output, final Factory<ManagedResourceConfiguration.EventConfiguration> eventFactory){
+        if(input != null && output != null)
+            for(final String eventID: input.keySet()){
+                final ManagedResourceConfiguration.EventConfiguration inputEv = input.get(eventID);
+                final ManagedResourceConfiguration.EventConfiguration outputEv = eventFactory.create();
+                copy(inputEv, outputEv);
+                output.put(eventID, outputEv);
             }
     }
 
@@ -80,6 +111,14 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
                     }
                 }
         );
+        copyEvents(input.getElements(ManagedResourceConfiguration.EventConfiguration.class),
+                output.getElements(ManagedResourceConfiguration.EventConfiguration.class),
+                new Factory<ManagedResourceConfiguration.EventConfiguration>() {
+                    @Override
+                    public ManagedResourceConfiguration.EventConfiguration create() {
+                        return output.newElement(ManagedResourceConfiguration.EventConfiguration.class);
+                    }
+                });
     }
 
     private static void copyAdapter(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output){

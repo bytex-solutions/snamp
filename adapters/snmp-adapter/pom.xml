@@ -24,7 +24,10 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>com.itworks.snamp.adapters.snmp</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.adapters.snmp.SnmpResourceAdapterActivator</Bundle-Activator>
                         <Export-Package/>
+                        <!--SNAMP specific header-->
+                        <SNAMP-Resource-Adapter>snmp</SNAMP-Resource-Adapter>
                     </instructions>
                 </configuration>
             </plugin>

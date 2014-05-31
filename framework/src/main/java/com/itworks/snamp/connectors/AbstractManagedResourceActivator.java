@@ -78,6 +78,55 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     }
 
     /**
+     * Represents factory for {@link com.itworks.snamp.connectors.DiscoveryService} service.
+     * @param <T> The class that supplies implementation of {@link com.itworks.snamp.connectors.DiscoveryService}
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected abstract static class DiscoveryServiceProvider<T extends DiscoveryService> extends ProvidedService<DiscoveryService, T>{
+
+        /**
+         * Initializes a new holder for the provided service.
+         * @param dependencies A collection of service dependencies.
+         * @throws IllegalArgumentException contract is {@literal null}.
+         */
+        protected DiscoveryServiceProvider(final RequiredService<?>... dependencies) {
+            super(DiscoveryService.class, dependencies);
+        }
+
+        /**
+         * Creates a new instance of the discovery service.
+         * @param dependencies A collection of discovery service dependencies.
+         * @return A new instance of the discovery service.
+         * @throws java.lang.Exception Unable to instantiate discovery service.
+         */
+        protected abstract T createDiscoveryService(final RequiredService<?>... dependencies) throws Exception;
+
+        /**
+         * Gets name of the underlying connector.
+         * @return The name of the underlying connector.
+         */
+        protected final String getConnectorName(){
+            return getActivationPropertyValue(CONNECTOR_NAME_HOLDER);
+        }
+
+        /**
+         * Creates a new instance of the service.
+         *
+         * @param identity     A dictionary of properties that uniquely identifies service instance.
+         * @param dependencies A collection of dependencies.
+         * @return A new instance of the service.
+         * @throws java.lang.Exception Unable to instantiate discovery service.
+         */
+        @Override
+        protected T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+            identity.put(CONNECTOR_TYPE_IDENTITY_PROPERTY, getConnectorName());
+            return createDiscoveryService(dependencies);
+        }
+    }
+
+    /**
      * Represents a holder for connector configuration descriptor.
      * @param <T> Type of the configuration descriptor implementation.
      * @author Roman Sakno
@@ -159,7 +208,21 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
         @SuppressWarnings("UnusedParameters")
         @MethodStub
         protected ConfigurationEntityDescriptionProviderHolder<?> createDescriptionProvider(final ActivationPropertyReader activationProperties,
-                                                                                                                                                     final RequiredService<?>... bundleLevelDependencies){
+                                                                                                         final RequiredService<?>... bundleLevelDependencies){
+            return null;
+        }
+
+        /**
+         * Creates a new instance of the {@link com.itworks.snamp.connectors.DiscoveryService} factory.
+         * @param activationProperties A collection of activation properties to read.
+         * @param bundleLevelDependencies A collection of bundle-level dependencies.
+         * @return A new factory of the special service that can automatically discover elements of the managed resource.
+         * @see com.itworks.snamp.connectors.DiscoveryService
+         */
+        @SuppressWarnings("UnusedParameters")
+        @MethodStub
+        protected DiscoveryServiceProvider<?> createDiscoveryServiceProvider(final ActivationPropertyReader activationProperties,
+                                                                             final RequiredService<?>... bundleLevelDependencies){
             return null;
         }
 
@@ -182,8 +245,10 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
                 if(provider != null)
                     services.add(provider);
             }
-            final ProvidedService<?, ?> configDescriptor = createDescriptionProvider(activationProperties, bundleLevelDependencies);
-            if(configDescriptor != null) services.add(configDescriptor);
+            ProvidedService<?, ?> advancedService = createDescriptionProvider(activationProperties, bundleLevelDependencies);
+            if(advancedService != null) services.add(advancedService);
+            advancedService = createDiscoveryServiceProvider(activationProperties, bundleLevelDependencies);
+            if(advancedService != null) services.add(advancedService);
         }
     }
 
@@ -674,6 +739,41 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     @MethodStub
     protected final void deactivate(final ActivationPropertyReader activationProperties) {
 
+    }
+
+    /**
+     * Discovers elements for the managed resource.
+     * @param context The context of the caller bundle.
+     * @param connectorType The name of the connector.
+     * @param connectionString Managed resource connection string.
+     * @param connectionOptions Managed resource connection options.
+     * @param entityType Type of the managed resource element.
+     * @param <T> Type of the managed resource element.
+     * @return A collection of discovered managed resource elements; or empty collection, if
+     *  discovery is not supported.
+     */
+    public static <T extends ManagedResourceConfiguration.ManagedEntity> Collection<T> discoverEntities(final BundleContext context,
+                                                                                          final String connectorType,
+                                                                                          final String connectionString,
+                                                                                          final Map<String, String> connectionOptions,
+                                                                                          final Class<T> entityType){
+        if(context == null || entityType == null) return Collections.emptyList();
+        ServiceReference<?>[] refs;
+        try {
+            refs = context.getAllServiceReferences(DiscoveryService.class.getName(), String.format("(%s=%s)", CONNECTOR_TYPE_IDENTITY_PROPERTY, connectorType));
+        }
+        catch (final InvalidSyntaxException e) {
+            refs = null;
+        }
+        if(refs != null && refs.length > 0)
+            try{
+                final DiscoveryService service = (DiscoveryService)context.getService(refs[0]);
+                return service.discover(connectionString, connectionOptions, entityType);
+            }
+            finally {
+                context.ungetService(refs[0]);
+            }
+        else return Collections.emptyList();
     }
 
     /**

@@ -248,4 +248,32 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         assertTrue(ruValue.length() > 0);
         assertNotEquals(defValue, ruValue);
     }
+
+    @Test
+    public final void testForAttributesDiscovery(){
+        final Collection<AttributeConfiguration> discoveredAttributes = AbstractManagedResourceActivator.discoverEntities(getTestBundleContext(),
+                CONNECTOR_NAME,
+                getJmxConnectionString(),
+                Collections.<String, String>emptyMap(),
+                AttributeConfiguration.class);
+        assertTrue(discoveredAttributes.size() > 30);
+        for(final AttributeConfiguration config: discoveredAttributes) {
+            assertTrue(config.getParameters().containsKey("objectName"));
+            assertTrue(config.getAttributeName().length() > 0);
+        }
+    }
+
+    @Test
+    public final void testForNotificationsDiscovery(){
+        final Collection<EventConfiguration> discoveredEvents = AbstractManagedResourceActivator.discoverEntities(getTestBundleContext(),
+                CONNECTOR_NAME,
+                getJmxConnectionString(),
+                Collections.<String, String>emptyMap(),
+                EventConfiguration.class);
+        assertTrue(discoveredEvents.size() > 2);
+        for(final EventConfiguration config: discoveredEvents) {
+            assertTrue(config.getParameters().containsKey("objectName"));
+            assertTrue(config.getCategory().length() > 0);
+        }
+    }
 }

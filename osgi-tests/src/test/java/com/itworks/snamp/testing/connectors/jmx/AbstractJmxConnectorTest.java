@@ -2,6 +2,7 @@ package com.itworks.snamp.testing.connectors.jmx;
 
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.AbstractManagementConnectorTest;
+import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
@@ -18,13 +19,13 @@ public abstract class AbstractJmxConnectorTest<MBean> extends AbstractManagement
     protected final MBean beanInstance;
     protected static final String CONNECTOR_NAME = "jmx";
 
-    protected AbstractJmxConnectorTest(final MBean beanInstance, final ObjectName beanName){
-        super(CONNECTOR_NAME, getJmxConnectionString(), SnampArtifact.JMX_CONNECTOR.getReference());
+    protected AbstractJmxConnectorTest(final MBean beanInstance, final ObjectName beanName, final AbstractProvisionOption<?>... deps){
+        super(CONNECTOR_NAME, getJmxConnectionString(), concat(deps, SnampArtifact.JMX_CONNECTOR.getReference()));
         this.beanName = beanName;
         this.beanInstance = beanInstance;
     }
 
-    private static String getJmxConnectionString(){
+    protected static String getJmxConnectionString(){
         final String jmxPort =
                 System.getProperty("com.sun.management.jmxremote.port", "9010");
         return String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
