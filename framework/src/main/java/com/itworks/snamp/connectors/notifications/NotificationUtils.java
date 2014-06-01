@@ -92,7 +92,7 @@ public final class NotificationUtils {
                     case TIME_STAMP_EVENT_PROPERTY:
                     case MESSAGE_EVENT_PROPERTY:
                 }
-            return new Event(String.format("com/itworks/snamp/%s/%s/%s", connectorName, category, getSubscriptionListID()),
+            return new Event(getTopicName(connectorName, category, getSubscriptionListID()),
                     eventProps);
         }
     }
@@ -162,6 +162,18 @@ public final class NotificationUtils {
         return listener != null ? Integer.toString(listener.hashCode()) : null;
     }
 
+    private static String prepareTopicName(final String topicName){
+        final char[] chars = topicName.toCharArray();
+        for(int i = 0; i < chars.length; i++){
+            final char ch = chars[i];
+            if(ch != '/' && ch != '_' && ch != '-' &&
+                    !(ch >= '0' && ch <= '9') &&
+                    !(ch >= 'a' && ch <= 'z') &&
+                    !(ch >= 'A' && ch <= 'Z')) chars[i] = '_';
+        }
+        return new String(chars);
+    }
+
     /**
      * Constructs topic name for the {@link org.osgi.service.event.Event} that represents SNAMP notification.
      * @param connectorName The management connector name.
@@ -172,7 +184,7 @@ public final class NotificationUtils {
     public static String getTopicName(final String connectorName,
                                       final String notificationCategory,
                                       final String subscriptionList){
-        return String.format("com/itworks/snamp/%s/%s/%s", connectorName, notificationCategory, subscriptionList);
+        return prepareTopicName(String.format("com/itworks/snamp/%s/%s/%s", connectorName, notificationCategory, subscriptionList));
     }
 
     /**

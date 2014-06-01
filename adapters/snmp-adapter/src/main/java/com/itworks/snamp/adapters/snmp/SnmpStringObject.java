@@ -19,7 +19,9 @@ final class SnmpStringObject extends SnmpScalarObject<OctetString>{
         return new OctetString(convertFrom(attributeTypeInfo, value, String.class));
     }
 
-    public static String convertToString(final Variable value){
+    //do not remove 'type' argument because it is used by reflection in SnmpType
+    @SuppressWarnings("UnusedParameters")
+    public static String convert(final Variable value, final ManagementEntityType type){
         return value.toString();
     }
 
@@ -30,6 +32,6 @@ final class SnmpStringObject extends SnmpScalarObject<OctetString>{
 
     @Override
     protected String convert(final OctetString value) {
-        return convertToString(value);
+        return convert(value, getMetadata().getType());
     }
 }

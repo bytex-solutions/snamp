@@ -20,7 +20,10 @@ final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
         return new Integer32(convertFrom(attributeTypeInfo, value, Boolean.class) ? 1 : 0);
     }
 
-    public static Boolean convertToBoolean(final Variable value){
+
+    //do not remove 'type' argument because it is used by reflection in SnmpType
+    @SuppressWarnings("UnusedParameters")
+    public static Boolean convert(final Variable value, final ManagementEntityType type){
         return value.toLong() != 0;
     }
 
@@ -43,6 +46,6 @@ final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
      */
     @Override
     protected Object convert(final Integer32 value) {
-        return convertToBoolean(value);
+        return convert(value, getMetadata().getType());
     }
 }

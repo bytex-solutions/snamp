@@ -125,8 +125,8 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter implements Licen
                         notif,
                         notificationMetadata.getMetadata().getCategory(),
                         notificationMetadata.getTimestampFormatter());
-                if(originator.notify(new OctetString(), wrappedNotification.notificationID, wrappedNotification.getBindings()) == null) //for SNMPv3 sending
-                    originator.notify(new OctetString("public"), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv2 sending
+                originator.notify(new OctetString(), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv3 sending
+                originator.notify(new OctetString("public"), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv2 sending
             }
         }
 
