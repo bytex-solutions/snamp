@@ -5,6 +5,7 @@ import com.itworks.snamp.connectors.ManagedResourceConnectorBean;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.connectors.notifications.Severity;
 import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 
@@ -59,7 +60,7 @@ public final class ManagedResourceConnectorBeanTest extends AbstractUnitTest<Man
         }
 
         protected final void emitPropertyChanged(final String propertyName){
-            emitNotification("propertyChanged", Notification.Severity.NOTICE, String.format("Property %s is changed", propertyName), null);
+            emitNotification("propertyChanged", Severity.NOTICE, String.format("Property %s is changed", propertyName), null);
         }
     }
 
@@ -80,7 +81,7 @@ public final class ManagedResourceConnectorBeanTest extends AbstractUnitTest<Man
         connector.setAttribute("0", TimeSpan.INFINITE, "1234567890");
         final Notification n = listener.getAwaitor().await(new TimeSpan(10, TimeUnit.SECONDS));
         assertNotNull(n);
-        assertEquals(Notification.Severity.NOTICE, n.getSeverity());
+        assertEquals(Severity.NOTICE, n.getSeverity());
         assertEquals("Property property1 is changed", n.getMessage());
         assertEquals(connector.getProperty1(), connector.getAttribute("0", TimeSpan.INFINITE, ""));
         final AttributeMetadata md = connector.getAttributeInfo("0");

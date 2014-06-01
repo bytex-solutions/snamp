@@ -5,8 +5,6 @@ import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.connectors.notifications.NotificationListenerInvoker;
-import com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory;
 import com.itworks.snamp.internal.semantics.Internal;
 import com.itworks.snamp.internal.semantics.MethodStub;
 
@@ -430,7 +428,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
             this.listenerInvoker = listenerInvoker;
         }
 
-        public final void fireListeners(final Notification.Severity severity, final String message, final Map<String, Object> attachments){
+        public final void fireListeners(final Severity severity, final String message, final Map<String, Object> attachments){
             fire(new JavaBeanNotification(severity, sequenceCounter.getAndIncrement(), message, attachments), listenerInvoker);
         }
 
@@ -515,7 +513,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          * @param message Human-readable description of the event.
          * @param attachments A set of notification attachments. May be {@literal null}.
          */
-        public final void emitNotification(final String category, final Notification.Severity severity, final String message, final Map<String, Object> attachments){
+        public final void emitNotification(final String category, final Severity severity, final String message, final Map<String, Object> attachments){
             for(final JavaBeanEventMetadata eventMetadata: getEnabledNotifications(category, JavaBeanEventMetadata.class).values())
                 eventMetadata.fireListeners(severity, message, attachments);
         }
@@ -805,7 +803,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @param message Human-readable description of the event.
      * @param attachments A set of notification attachments. May be {@literal null}.
      */
-    protected final void emitNotification(final String category, final Notification.Severity severity, final String message, final Map<String, Object> attachments){
+    protected final void emitNotification(final String category, final Severity severity, final String message, final Map<String, Object> attachments){
         notifications.emitNotification(category, severity, message, attachments);
     }
 

@@ -84,7 +84,7 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
 
     public static final String HOST_PARAM_NAME = "host";
 
-    public static final String OID_PARAM_NAME = "oidPostfix";
+    public static final String OID_PARAM_NAME = "oid";
 
     /**
      * Represents name of the metadata property that specifies unix time display format.

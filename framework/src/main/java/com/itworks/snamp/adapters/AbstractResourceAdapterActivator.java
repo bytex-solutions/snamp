@@ -234,7 +234,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to deactivate %s resource adapter instance.", adapterName));
+        getLogger().log(Level.SEVERE, String.format("Unable to deactivate %s resource adapter instance.", adapterName), e);
     }
 
     /**

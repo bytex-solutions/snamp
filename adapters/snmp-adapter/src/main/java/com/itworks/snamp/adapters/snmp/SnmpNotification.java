@@ -8,7 +8,8 @@ import java.util.Date;
 import java.util.HashMap;
 
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
-import static com.itworks.snamp.connectors.notifications.Notification.Severity;
+
+import com.itworks.snamp.connectors.notifications.Severity;
 
 /**
  * Represents SNMP notification with attachments.
@@ -111,7 +112,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         return Severity.values()[value.toInt()];
     }
 
-    public final Notification.Severity getSeverity(){
+    public final Severity getSeverity(){
         return containsKey(severityId) ? getSeverity((Integer32)get(severityId)) : Severity.UNKNOWN;
     }
 

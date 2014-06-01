@@ -17,7 +17,7 @@ public class NotificationBuilder {
     private long sequenceNum;
     private Date timeStamp;
     private final Map<String, Object> attachments;
-    private Notification.Severity severity;
+    private Severity severity;
     private String message;
 
     /**
@@ -30,7 +30,7 @@ public class NotificationBuilder {
         sequenceNum = 0L;
         timeStamp = null;
         attachments = new HashMap<>(10);
-        severity = Notification.Severity.UNKNOWN;
+        severity = Severity.UNKNOWN;
         message = "";
     }
 
@@ -86,11 +86,11 @@ public class NotificationBuilder {
         return attachments.remove(name) != null;
     }
 
-    public final void setSeverity(final Notification.Severity value){
-        severity = value != null ? value : Notification.Severity.UNKNOWN;
+    public final void setSeverity(final Severity value){
+        severity = value != null ? value : Severity.UNKNOWN;
     }
 
-    public final Notification.Severity getSeverity(){
+    public final Severity getSeverity(){
         return severity;
     }
 

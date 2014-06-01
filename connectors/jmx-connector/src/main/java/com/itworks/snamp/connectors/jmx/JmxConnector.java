@@ -96,21 +96,21 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             this.executor = Executors.newSingleThreadExecutor();
         }
 
-        public final com.itworks.snamp.connectors.notifications.Notification.Severity getSeverity(){
+        public final Severity getSeverity(){
             if(options.containsKey(severityOption))
                 switch (options.get(severityOption)){
-                    case "panic": return com.itworks.snamp.connectors.notifications.Notification.Severity.PANIC;
-                    case "alert": return com.itworks.snamp.connectors.notifications.Notification.Severity.ALERT;
-                    case "critical": return com.itworks.snamp.connectors.notifications.Notification.Severity.CRITICAL;
-                    case "error": return com.itworks.snamp.connectors.notifications.Notification.Severity.ERROR;
-                    case "warning": return com.itworks.snamp.connectors.notifications.Notification.Severity.WARNING;
-                    case "notice": return com.itworks.snamp.connectors.notifications.Notification.Severity.NOTICE;
-                    case "info": return com.itworks.snamp.connectors.notifications.Notification.Severity.INFO;
-                    case "debug": return com.itworks.snamp.connectors.notifications.Notification.Severity.DEBUG;
-                    default: return com.itworks.snamp.connectors.notifications.Notification.Severity.UNKNOWN;
+                    case "panic": return Severity.PANIC;
+                    case "alert": return Severity.ALERT;
+                    case "critical": return Severity.CRITICAL;
+                    case "error": return Severity.ERROR;
+                    case "warning": return Severity.WARNING;
+                    case "notice": return Severity.NOTICE;
+                    case "info": return Severity.INFO;
+                    case "debug": return Severity.DEBUG;
+                    default: return Severity.UNKNOWN;
 
                 }
-            else return com.itworks.snamp.connectors.notifications.Notification.Severity.UNKNOWN;
+            else return Severity.UNKNOWN;
         }
 
         /**

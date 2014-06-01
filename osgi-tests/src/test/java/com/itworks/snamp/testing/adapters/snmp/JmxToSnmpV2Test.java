@@ -1,16 +1,21 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
+import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestManagementBean;
 import org.apache.commons.collections4.Factory;
 import org.junit.Test;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.snmp4j.smi.OID;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Map;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -34,13 +39,89 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestManageme
                 SnampArtifact.SNMP_ADAPTER.getReference());
     }
 
+    @Override
+    protected void afterStartTest(final BundleContext context) throws Exception {
+        super.afterStartTest(context);
+        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        AbstractResourceAdapterActivator.startResourceConnector(getTestBundleContext(), ADAPTER_NAME);
+    }
+
     @Test
-    public final void testForStringProperty() throws IOException {
-        final String valueToCheck = "SETTED VALUE";
-        final OID attributeId = new OID("1.1.1.0");
-        client.writeAttribute(attributeId, valueToCheck, String.class);
-        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, attributeId, String.class));
-        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, attributeId, String.class));
+    public final void testForStringProperty() throws IOException, BundleException {
+        try {
+            final String valueToCheck = "SETTED VALUE";
+            final OID attributeId = new OID("1.1.1.0");
+            client.writeAttribute(attributeId, valueToCheck, String.class);
+            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, attributeId, String.class));
+            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, attributeId, String.class));
+        }
+        finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
+    }
+
+    @Test
+    public final void testForFloatProperty() throws IOException, BundleException {
+        try {
+            final float valueToCheck = 31.337F;
+            final OID oid = new OID("1.1.8.0");
+            client.writeAttribute(oid, valueToCheck, Float.class);
+            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, Float.class), 0.000001);
+            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, Float.class), 0.000001);
+        }
+        finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
+    }
+
+    @Test
+    public final void testForDatePropertyCustomDisplayFormat() throws IOException, BundleException {
+        try {
+            final Calendar cal = Calendar.getInstance();
+            cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
+            final String valueToCheck = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(cal.getTime());
+            final OID oid = new OID("1.1.9.0");
+            client.writeAttribute(oid, valueToCheck, String.class);
+            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
+            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
+        }
+        finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
+    }
+
+    @Test
+    public final void testForDatePropertyRFC1903HumanReadable() throws IOException, BundleException {
+        try {
+            final Calendar cal = Calendar.getInstance();
+            cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
+            final SnmpHelpers.DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter("rfc1903-human-readable");
+            final String valueToCheck = new String(formatter.convert(cal.getTime()));
+            final OID oid = new OID("1.1.10.0");
+            client.writeAttribute(oid, valueToCheck, String.class);
+            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
+            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
+        }
+        finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
+    }
+
+    @Test
+    public final void testForDatePropertyRFC1903() throws IOException, BundleException {
+        try {
+            final Calendar cal = Calendar.getInstance();
+            cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
+            final SnmpHelpers.DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter("rfc1903");
+            final byte[] byteString = formatter.convert(cal.getTime());
+            final OID oid = new OID("1.1.11.0");
+            client.writeAttribute(oid, byteString, byte[].class);
+            assertArrayEquals(byteString, client.readAttribute(ReadMethod.GET, oid, byte[].class));
+            assertArrayEquals(byteString, client.readAttribute(ReadMethod.GETBULK, oid, byte[].class));
+        }
+        finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
     }
 
     @Override
@@ -50,6 +131,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestManageme
         snmpAdapter.getHostingParams().put("port", SNMP_PORT);
         snmpAdapter.getHostingParams().put("host", SNMP_HOST);
         snmpAdapter.getHostingParams().put("socketTimeout", "5000");
+        adapters.put("test-snmp", snmpAdapter);
     }
 
     @Override

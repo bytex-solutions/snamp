@@ -788,7 +788,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 }
             }
         //starts listening for events received through EventAdmin
-        notificationsModel.startListening(Utils.getBundleContextByObject(notificationsModel), topics);
+        if(notificationsModel.size() > 0)
+            notificationsModel.startListening(Utils.getBundleContextByObject(notificationsModel), topics);
     }
 
     /**
@@ -801,14 +802,16 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      */
     protected final void clearModel(final AbstractNotificationsModel<?> notificationsModel){
         if(notificationsModel == null) throw new IllegalArgumentException("notificationsModel is null.");
-        notificationsModel.stopListening();
-        for(final ManagedResourceConnectorConsumer consumer: connectors.values())
-            if(consumer.isReferenced() && consumer.isNotificationsSupported()){
-                final NotificationSupport support = consumer.getWeakNotificationSupport();
-                for(final String listID: notificationsModel.keySet())
-                    support.disableNotifications(listID);
-            }
-        notificationsModel.clear();
+        else if(notificationsModel.size() > 0) {
+            notificationsModel.stopListening();
+            for (final ManagedResourceConnectorConsumer consumer : connectors.values())
+                if (consumer.isReferenced() && consumer.isNotificationsSupported()) {
+                    final NotificationSupport support = consumer.getWeakNotificationSupport();
+                    for (final String listID : notificationsModel.keySet())
+                        support.disableNotifications(listID);
+                }
+            notificationsModel.clear();
+        }
     }
 
     /**

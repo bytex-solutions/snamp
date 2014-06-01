@@ -8,7 +8,8 @@ import java.util.Date;
 import java.util.HashMap;
 
 import static com.itworks.snamp.testing.adapters.snmp.SnmpHelpers.DateTimeFormatter;
-import static com.itworks.snamp.connectors.notifications.Notification.Severity;
+
+import com.itworks.snamp.connectors.notifications.Severity;
 
 /**
  * Represents SNMP notification with attachments.

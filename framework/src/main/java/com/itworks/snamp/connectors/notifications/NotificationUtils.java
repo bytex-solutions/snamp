@@ -36,7 +36,7 @@ public final class NotificationUtils {
          */
         @SuppressWarnings("UnusedDeclaration")
         public NotificationEvent(final Event ev){
-            super( getEventProperty(ev, SEVERITY_EVENT_PROPERTY, Notification.Severity.class, Notification.Severity.UNKNOWN),
+            super( getEventProperty(ev, SEVERITY_EVENT_PROPERTY, Severity.class, Severity.UNKNOWN),
                     getEventProperty(ev, SEQ_NUM_EVENT_PROPERTY, Long.class, 0L),
                     getEventProperty(ev, TIME_STAMP_EVENT_PROPERTY, Date.class, new Date()),
                     getEventProperty(ev, MESSAGE_EVENT_PROPERTY, String.class, ""));

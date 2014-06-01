@@ -53,14 +53,14 @@ public final class Utils {
         if(obj == null) return null;
         else if(weakIsolation){
             final Reference<T> weakObj = new WeakReference<>(obj);
-            return iface.cast(Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
+            return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
                 @Override
                 public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
                     return method.invoke(weakObj.get(), args);
                 }
             }));
         }
-        else return iface.cast(Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
+        else return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
             @Override
             public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
                 return method.invoke(obj, args);
@@ -90,7 +90,7 @@ public final class Utils {
      * @return A strong reference wrapper for the specified reference (soft, weak, phantom).
      */
     public static <I, T extends I> I wrapReference(final Reference<T> obj, final Class<I> iface){
-        return iface.cast(Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
+        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
             @Override
             public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
                 return method.invoke(obj.get(), args);

@@ -357,6 +357,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     @Override
     protected final void shutdown(final BundleContext context) throws Exception{
         if(getState() == ActivationState.ACTIVATED)
-            unregister(context, providedServices);
+            deactivate(context, getActivationProperties());
     }
 }

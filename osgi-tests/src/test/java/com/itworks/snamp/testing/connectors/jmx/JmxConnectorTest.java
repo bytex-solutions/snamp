@@ -9,6 +9,7 @@ import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
+import com.itworks.snamp.connectors.notifications.Severity;
 import org.apache.commons.collections4.Equator;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.SetUtils;
@@ -123,7 +124,7 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         assertTrue(attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood"));
         final Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif1);
-        assertEquals(Notification.Severity.NOTICE, notif1.getSeverity());
+        assertEquals(Severity.NOTICE, notif1.getSeverity());
         assertEquals("Property string is changed", notif1.getMessage());
         assertEquals("string", notif1.get("attributeName"));
         assertEquals("NO VALUE", notif1.get("oldValue"));
@@ -131,7 +132,7 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         assertEquals(String.class.getName(), notif1.get("attributeType"));
         final Notification notif2 = awaitor2.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif2);
-        assertEquals(Notification.Severity.PANIC, notif2.getSeverity());
+        assertEquals(Severity.PANIC, notif2.getSeverity());
         assertEquals("Property changed", notif2.getMessage());
     }
 
