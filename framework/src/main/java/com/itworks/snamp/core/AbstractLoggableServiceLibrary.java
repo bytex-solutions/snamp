@@ -6,6 +6,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -23,7 +24,7 @@ public abstract class AbstractLoggableServiceLibrary extends AbstractServiceLibr
      * @since 1.0
      * @version 1.0
      */
-    private static final class LoggerServiceDependency extends RequiredService<LogService> {
+    public static final class LoggerServiceDependency extends RequiredService<LogService> {
         private final Logger logger;
 
         /**
@@ -144,6 +145,28 @@ public abstract class AbstractLoggableServiceLibrary extends AbstractServiceLibr
      */
     protected final Logger getLogger(){
         return bundleLogger;
+    }
+
+    /**
+     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.itworks.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])}  method.
+     *
+     * @param e                    An exception to handle.
+     * @param activationProperties A collection of activation properties to read.
+     */
+    @Override
+    protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
+        bundleLogger.log(Level.SEVERE, "Unable to activate service.", e);
+    }
+
+    /**
+     * Handles an exception thrown by {@link } method.
+     *
+     * @param e                    An exception to handle.
+     * @param activationProperties A collection of activation properties to read.
+     */
+    @Override
+    protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
+        bundleLogger.log(Level.SEVERE, "Unable to deactivate service.", e);
     }
 
     /**

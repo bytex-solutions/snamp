@@ -36,16 +36,6 @@ public final class AttributeValue<T extends ManagementEntityType> {
     }
 
     /**
-     * Determines whether this value is trivial and projection will be available for rawValue's
-     * {@link Object#getClass()} method invocation result.
-     * @return {@literal true}, if the stored value can be used by calling code without transformation.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public final boolean isTrivial(){
-        return rawValue != null && type.getProjection(rawValue.getClass()) != null;
-    }
-
-    /**
      * Determines whether the attribute value can be converted into the specified type.
      *
      * @param target The result of the conversion.

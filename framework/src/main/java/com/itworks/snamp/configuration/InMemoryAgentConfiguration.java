@@ -209,7 +209,6 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
         private String connectionString;
         private final Map<String, AttributeConfiguration> attributes;
         private String connectionType;
-        private String namespace;
         private final Map<String, String> additionalElements;
         private final Map<String, EventConfiguration> events;
 
@@ -217,7 +216,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          * Initializes a new empty configuration of the management information source.
          */
         public InMemoryManagedResourceConfiguration(){
-            connectionString = connectionType = namespace = "";
+            connectionString = connectionType = "";
             attributes = new HashMap<>(10);
             additionalElements = new HashMap<>(10);
             this.events = new HashMap<>(10);
@@ -263,26 +262,6 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
         @Override
         public final void setConnectionType(final String connectorType) {
             this.connectionType = connectionType != null ? connectorType : "";
-        }
-
-        /**
-         * Returns the monitoring namespace that is visible outside from the agent and the front-end.
-         *
-         * @return The namespace of the management target (such as SNMP OID prefix).
-         */
-        @Override
-        public final String getNamespace() {
-            return namespace;
-        }
-
-        /**
-         * Sets the monitoring namespace.
-         *
-         * @param namespace The namespace of the management target (such as SNMP OID prefix).
-         */
-        @Override
-        public final void setNamespace(final String namespace) {
-            this.namespace = namespace != null ? namespace : "";
         }
 
         /**

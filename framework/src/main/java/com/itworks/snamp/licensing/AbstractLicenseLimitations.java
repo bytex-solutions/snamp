@@ -152,7 +152,8 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
         public final boolean validate(final Version actualValue) {
             switch (requiredValue){
                 case "*": return true;
-                default: return actualValue.compareTo(new Version(requiredValue)) <= 0;
+                default:
+                    return actualValue.compareTo(new Version(requiredValue.replaceAll("\\*", Integer.toString(Integer.MAX_VALUE)))) <= 0;
             }
         }
     }
@@ -244,12 +245,12 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
      * Throws {@link LicensingException} if the actual plugin version is greater than the specified in
      * the license limitation.
      * @param expectedImplVersion The version defined in the license.
-     * @param pluginType The plug-in to check.
+     * @param serviceType The plug-in to check.
      * @throws LicensingException The plugin has greater implementation version than the specified implementation version in the
      * license limitation.
      */
-    protected static void verifyPluginVersion(final VersionLimitation expectedImplVersion, final Class<? extends FrameworkService> pluginType) throws LicensingException{
-        verify(expectedImplVersion, getActualPluginVersion(pluginType));
+    protected static void verifyServiceVersion(final VersionLimitation expectedImplVersion, final Class<? extends FrameworkService> serviceType) throws LicensingException{
+        verify(expectedImplVersion, getActualPluginVersion(serviceType));
     }
 
     /**

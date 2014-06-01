@@ -1,10 +1,12 @@
 package com.itworks.snamp.internal;
 
-import java.util.Objects;
-import java.util.logging.*;
-
-import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
+
+import java.util.Objects;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  * Represents allow to operate with {@link LogService} through standard Java logging {@link Logger} class.
@@ -94,13 +96,12 @@ public class OsgiLoggerBridge extends Handler {
 
     /**
      * Adds log handler based on OSGi log service to the specified logger.
-     * @param logger
-     * @param logService
+     * @param logger The logger to be connected to the {@link org.osgi.service.log.LogService} service.
+     * @param logService OSGi logger service to wrap.
      */
     public static void connectToLogService(final Logger logger, final LogService logService){
         final OsgiLoggerBridge bridge = new OsgiLoggerBridge(logService);
         logger.addHandler(bridge);
-        logger.setUseParentHandlers(false);
     }
 
     /**
@@ -109,11 +110,11 @@ public class OsgiLoggerBridge extends Handler {
      * @param logService OSGi logger service to wrap.
      * @return A logger that can be used to transfer logs into OSGi logging service.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static Logger connectToLogService(final String name, final LogService logService){
         final Logger logger = Logger.getLogger(name);
         if(logService != null)
             connectToLogService(logger, logService);
-        else logger.setUseParentHandlers(true);
         return logger;
     }
 

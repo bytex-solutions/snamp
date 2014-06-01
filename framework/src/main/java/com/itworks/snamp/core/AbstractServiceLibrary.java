@@ -5,7 +5,7 @@ import org.osgi.framework.*;
 
 import java.util.*;
 
-import static com.itworks.snamp.internal.ReflectionUtils.getBundleContextByObject;
+import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
 /**
  * Represents an activator for SNAMP-specific bundle which exposes a set of services.
@@ -162,9 +162,18 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         private void unregister(final BundleContext context) throws Exception{
             if(!ownDependencies.isEmpty()) context.removeServiceListener(this);
+            //cancels registration
             try{
                 if(registration != null) registration.unregister();
-                registration = null;
+            }
+            catch (final IllegalStateException ignored){
+                //unregister can throws this exception and it must be suppressed
+            }
+            finally {
+                this.registration = null;
+            }
+            //release service instance
+            try{
                 if(serviceInstance != null) cleanupService(serviceInstance, true);
             }
             finally {
@@ -317,6 +326,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      */
     protected abstract void deactivate(final ActivationPropertyReader activationProperties) throws Exception;
 
+    private static void unregister(final BundleContext context, final Collection<ProvidedService<?, ?>> providedServices) throws Exception {
+        for (final ProvidedService<?, ?> service : providedServices)
+            service.unregister(context);
+        providedServices.clear();
+    }
+
     /**
      * Deactivates this library.
      * <p>
@@ -329,9 +344,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      */
     @Override
     protected final void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
-        for(final ProvidedService<?, ?> service: providedServices)
-            service.unregister(context);
-        providedServices.clear();
+        unregister(context, providedServices);
         deactivate(activationProperties);
     }
 
@@ -339,9 +352,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * Stops the library.
      *
      * @param context The execution context of the library being stopped.
+     * @throws java.lang.Exception Abnormal library termination.
      */
     @Override
-    @MethodStub
-    protected final void shutdown(final BundleContext context) {
+    protected final void shutdown(final BundleContext context) throws Exception{
+        if(getState() == ActivationState.ACTIVATED)
+            unregister(context, providedServices);
     }
 }

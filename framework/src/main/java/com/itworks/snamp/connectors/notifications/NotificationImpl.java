@@ -1,7 +1,5 @@
 package com.itworks.snamp.connectors.notifications;
 
-import com.itworks.snamp.connectors.notifications.Notification;
-
 import java.util.*;
 
 /**

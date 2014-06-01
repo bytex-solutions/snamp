@@ -2,14 +2,12 @@ package com.itworks.snamp.core;
 
 import com.itworks.snamp.internal.semantics.MethodStub;
 import org.apache.commons.collections4.Predicate;
-import org.apache.commons.lang3.mutable.Mutable;
-import org.apache.commons.lang3.mutable.MutableObject;
 import org.osgi.framework.*;
 
 import java.util.*;
 
-import static com.itworks.snamp.internal.ReflectionUtils.getBundleContextByObject;
-import static com.itworks.snamp.internal.ReflectionUtils.isInstanceOf;
+import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
+import static com.itworks.snamp.internal.Utils.isInstanceOf;
 
 /**
  * Represents an abstract for all SNAMP-specific bundle activators.
@@ -407,25 +405,34 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
     }
 
     /**
-     * Represents activation state of the bundle or other OSGi component.
+     * Represents activation state of the bundle.
+     * <p>
+     *     Activation is additional lifecycle on top of the bundle's lifecycle
+     *     and reflects dependency resolving semantics.
+     * </p>
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-     private static enum ActivationState {
+     protected static enum ActivationState {
         /**
-         * Components is not activated.
+         * Bundle is not activated.
          */
         NOT_ACTIVATED,
         /**
-         * Component is activating.
+         * Bundle is activating.
          */
         ACTIVATING,
 
         /**
-         * Component is activated.
+         * Bundle is activated.
          */
-        ACTIVATED
+        ACTIVATED,
+
+        /**
+         * Bundle is deactivating.
+         */
+        DEACTIVATING
     }
 
     /**
@@ -438,6 +445,19 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @return Search result; or {@literal null} if dependency not found.
      */
     public static <S, D extends RequiredService<S>> D findDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
+        return findDependency(descriptor, serviceContract, Arrays.asList(dependencies));
+    }
+
+    /**
+     * Finds dependency by its type and required service contract.
+     * @param descriptor The dependency descriptor.
+     * @param serviceContract The service contract required by dependency.
+     * @param dependencies A collection of dependencies.
+     * @param <S> Type of the service contract.
+     * @param <D> Type of the dependency.
+     * @return Search result; or {@literal null} if dependency not found.
+     */
+    public static <S, D extends RequiredService<S>> D findDependency(final Class<D> descriptor, final Class<S> serviceContract, final Iterable<RequiredService<?>> dependencies){
         for(final RequiredService<?> dependency: dependencies)
             if(descriptor.isInstance(dependency) && Objects.equals(dependency.dependencyContract, serviceContract))
                 return descriptor.cast(dependency);
@@ -534,6 +554,18 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      */
     @SuppressWarnings({"UnusedDeclaration", "unchecked"})
     public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final RequiredService<?>... dependencies){
+        return findDependency(serviceContract, Arrays.asList(dependencies));
+    }
+
+    /**
+     * Finds dependency by its required service contract.
+     * @param serviceContract The service contract required by dependency.
+     * @param dependencies A collection of dependencies.
+     * @param <S> Type of the service contract.
+     * @return Search result; or {@literal null} if dependency not found.
+     */
+    @SuppressWarnings({"UnusedDeclaration", "unchecked"})
+    public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final Iterable<RequiredService<?>> dependencies){
         return findDependency(RequiredService.class, serviceContract, dependencies);
     }
 
@@ -547,52 +579,78 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @return The resolved service; or {@literal null} if it is not available.
      */
     public static <S, D extends RequiredServiceAccessor<S>> S getDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
+        return getDependency(descriptor, serviceContract, Arrays.asList(dependencies));
+    }
+
+    /**
+     * Obtains a service from the collection of dependencies.
+     * @param descriptor The dependency type that provides direct access to the requested service.
+     * @param serviceContract The service contract required by dependency.
+     * @param dependencies A collection of dependencies.
+     * @param <S> Type of the service contract.
+     * @param <D> Type of the dependency.
+     * @return The resolved service; or {@literal null} if it is not available.
+     */
+    public static <S, D extends RequiredServiceAccessor<S>> S getDependency(final Class<D> descriptor, final Class<S> serviceContract, final Iterable<RequiredService<?>> dependencies){
         final D found = findDependency(descriptor, serviceContract, dependencies);
         return found != null ? found.getService() : null;
     }
 
     private final List<RequiredService<?>> bundleLevelDependencies;
     private final ActivationProperties properties;
-    private final Mutable<ActivationState> state;
+    private ActivationState state;
 
+    /**
+     * Initializes a new bundle activator in {@link com.itworks.snamp.core.AbstractBundleActivator.ActivationState#NOT_ACTIVATED} state.
+     */
     protected AbstractBundleActivator(){
         bundleLevelDependencies = new ArrayList<>(5);
-        state = new MutableObject<>(ActivationState.NOT_ACTIVATED);
+        state = ActivationState.NOT_ACTIVATED;
         properties = new ActivationProperties();
     }
 
+    /**
+     * Gets state of this activator.
+     * @return The state of this activator.
+     * @see com.itworks.snamp.core.AbstractBundleActivator.ActivationState
+     */
+    protected final ActivationState getState(){
+        return state;
+    }
+
     private synchronized void serviceChanged(final BundleContext context, final ServiceEvent event){
-        if(this.state.getValue() == ActivationState.ACTIVATING) return;
+        if(state == ActivationState.ACTIVATING) return;
         int resolvedDependencies = 0;
         for(final RequiredService<?> dependency: bundleLevelDependencies) {
             dependency.processServiceEvent(context, event.getServiceReference(), event.getType());
             if(dependency.isResolved()) resolvedDependencies += 1;
         }
-        switch (state.getValue()){
+        switch (state){
             case ACTIVATED: //dependency lost but bundle is activated
                 if(resolvedDependencies != bundleLevelDependencies.size())
                     try {
+                        state = ActivationState.DEACTIVATING;
                         deactivate(context, properties);
                     }
                     catch (final Exception e) {
                         deactivationFailure(e, properties);
                     }
                     finally {
-                        state.setValue(ActivationState.NOT_ACTIVATED);
+                        state = ActivationState.NOT_ACTIVATED;
                     }
                 return;
             case NOT_ACTIVATED:    //dependencies resolved but bundle is not activated
                 if(resolvedDependencies == bundleLevelDependencies.size())
                     try {
-                        state.setValue(ActivationState.ACTIVATING);
+                        state = ActivationState.ACTIVATING;
                         activate(context,
                                 properties,
                                 bundleLevelDependencies.toArray(new RequiredService<?>[resolvedDependencies]));
-                        state.setValue(ActivationState.ACTIVATED);
+                        state = ActivationState.ACTIVATED;
                     }
                     catch (final Exception e) {
                         activationFailure(e, properties);
-                        this.state.setValue(ActivationState.NOT_ACTIVATED);
+                        state = ActivationState.NOT_ACTIVATED;
                     }
         }
     }

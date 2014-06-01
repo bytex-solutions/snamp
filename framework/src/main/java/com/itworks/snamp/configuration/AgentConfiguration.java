@@ -169,18 +169,6 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
         void setConnectionType(final String connectorType);
 
         /**
-         * Returns the monitoring namespace that is visible outside from the agent and the front-end.
-         * @return The namespace of the management target (such as SNMP OID prefix).
-         */
-        String getNamespace();
-
-        /**
-         * Sets the monitoring namespace.
-         * @param namespace The namespace of the management target (such as SNMP OID prefix).
-         */
-        void setNamespace(final String namespace);
-
-        /**
          * Gets a collection of configured manageable elements for this target.
          * @param elementType The type of the manageable element.
          * @param <T> The type of the manageable element.
@@ -208,12 +196,18 @@ public interface AgentConfiguration extends BinarySerializable, Cloneable {
 
     /**
      * Gets a collection of resource adapters.
+     * <p>
+     *     The key represents user-defined unique name of the adapter.
+     * </p>
      * @return A collection of resource adapters.
      */
     Map<String, ResourceAdapterConfiguration> getResourceAdapters();
 
     /**
      * Gets a collection of managed resources.
+     * <p>
+     *     The key represents user-defined name of the managed resource.
+     * </p>
      * @return The dictionary of managed resources.
      */
     Map<String, ManagedResourceConfiguration> getManagedResources();

@@ -36,15 +36,16 @@
   <modules>
     <module>framework</module>
     <module>connectors</module>
-    <!--<module>adapters</module>
-    <module>licensing</module>
-    <module>tests</module>
-    <module>rest-manager</module>
-    <module>examples</module>-->
+    <module>adapters</module>
+    <module>license-generator</module>
+      <!--<module>tests</module>
+      <module>rest-manager</module>
+      <module>examples</module>-->
      <module>config-bundle</module>
      <module>licensing-bundle</module>
      <module>osgi-tests</module>
      <module>html</module>
+     <module>third-party-libs/bundlized/snmp4j</module>
   </modules>
     <repositories>
         <repository>
