@@ -64,6 +64,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.ops4j.pax.url</groupId>
+            <artifactId>pax-url-wrap</artifactId>
+            <version>${url.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
             <version>0.9.20</version>
@@ -99,11 +105,19 @@
             <groupId>com.itworks.snamp</groupId>
             <artifactId>snmp4j</artifactId>
             <version>2.2.3</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.framework</artifactId>
             <version>4.4.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.directory.server</groupId>
+            <artifactId>apacheds-all</artifactId>
+            <version>2.0.0-M16</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

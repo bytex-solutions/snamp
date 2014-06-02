@@ -1,20 +1,26 @@
 package com.itworks.snamp.adapters.snmp;
 
-import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
-
 import com.itworks.snamp.internal.KeyValueParser;
-import org.snmp4j.agent.mo.snmp.*;
+import org.snmp4j.agent.mo.snmp.StorageType;
+import org.snmp4j.agent.mo.snmp.VacmMIB;
 import org.snmp4j.agent.security.MutableVACM;
 import org.snmp4j.security.*;
-import org.snmp4j.smi.*;
+import org.snmp4j.smi.OID;
+import org.snmp4j.smi.OctetString;
 
-import java.util.*;
-import java.util.logging.*;
-import javax.naming.*;
+import javax.naming.AuthenticationException;
+import javax.naming.Context;
+import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import javax.naming.ldap.*;
+import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.LdapContext;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
 
 /**
  * Represents security configuration of the SNMP adapter that is used
@@ -482,10 +488,9 @@ final class SecurityConfiguration {
                                            final String userSearchFilter,
                                            final Map<String, UserGroup> groups,
                                            final String userPasswordHolder) throws NamingException{
-        final String GROUP_PARAM = "\\$GROUPNAME\\$";
         //parse each group
-        for(final String ldapGroupDn: ldapGroups)
-            importGroupFromLdap(directory, ldapGroupDn, userSearchFilter.replaceAll(GROUP_PARAM, ldapGroupDn), baseDn, groups, userPasswordHolder);
+        for(final String ldapGroupFilter: ldapGroups)
+            importGroupFromLdap(directory, ldapGroupFilter, userSearchFilter, baseDn, groups, userPasswordHolder);
     }
 
     private static void importGroupFromLdap(final LdapContext directory,
@@ -499,11 +504,10 @@ final class SecurityConfiguration {
         //import settings from LDAP group
         final Enumeration<SearchResult> searchResult = directory.search(baseDn, ldapGroup, groupControls);
         if(searchResult.hasMoreElements())
-            importGroupFromLdap(directory, ldapGroup, searchResult.nextElement(), userSearchFilter, baseDn, groups, userPasswordHolder);
+            importGroupFromLdap(directory, searchResult.nextElement(), userSearchFilter, baseDn, groups, userPasswordHolder);
     }
 
     private static void importGroupFromLdap(final LdapContext directory,
-                                            final String groupName,
                                             final SearchResult ldapGroup,
                                             final String userSearchFilter,
                                             final String baseDn,
@@ -519,14 +523,15 @@ final class SecurityConfiguration {
         //parse access rights
         final Collection<String> accessRights = new ArrayList<>(4);
         final Attribute accessRightsAttr = ldapGroup.getAttributes().get(SECURITY_ACCESS_RIGHTS_PARAM);
-        if(accessRightsAttr.size() == 0) return;
+        if(accessRightsAttr == null || accessRightsAttr.size() == 0) return;
         else for(int i = 0; i < accessRightsAttr.size(); i++)
             accessRights.add(Objects.toString(accessRightsAttr.get(i)));
         userGroup.setAccessRights(accessRights);
+        final String GROUP_PARAM = "\\$GROUPNAME\\$";
         //fill users
-        importUsersFromLdap(directory, userGroup, userSearchFilter, baseDn, userPasswordHolder);
+        importUsersFromLdap(directory, userGroup, userSearchFilter.replaceAll(GROUP_PARAM, ldapGroup.getNameInNamespace()), baseDn, userPasswordHolder);
         //add group to set
-        groups.put(groupName, userGroup);
+        groups.put(ldapGroup.getNameInNamespace(), userGroup);
     }
 
     private static void importUsersFromLdap(final LdapContext directory,

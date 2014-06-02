@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.testing.adapters.snmp;
 
 
 /*
@@ -20,12 +20,6 @@ package com.itworks.snamp.adapters;
  * under the License.
  */
 
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.apache.directory.api.ldap.model.entry.DefaultModification;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -53,6 +47,12 @@ import org.apache.directory.server.core.partition.ldif.LdifPartition;
 import org.apache.directory.server.i18n.I18n;
 import org.apache.directory.server.ldap.LdapServer;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -85,7 +85,7 @@ public class EmbeddedADSVerTrunk{
     private Partition addPartition( String partitionId, String partitionDn, DnFactory dnFactory ) throws Exception
     {
         // Create a new partition with the given partition id
-        JdbmPartition partition = new JdbmPartition(service.getSchemaManager());
+        JdbmPartition partition = new JdbmPartition(service.getSchemaManager(), dnFactory);
         partition.setId( partitionId );
         partition.setPartitionPath(new File(service.getInstanceLayout().getPartitionsDirectory(), partitionId).toURI());
         partition.setSuffixDn( new Dn( partitionDn ) );
@@ -198,7 +198,7 @@ public class EmbeddedADSVerTrunk{
         service.setSchemaManager(schemaManager);
 
         // Init the LdifPartition with schema
-        LdifPartition schemaLdifPartition = new LdifPartition( schemaManager );
+        LdifPartition schemaLdifPartition = new LdifPartition( schemaManager, service.getDnFactory() );
         schemaLdifPartition.setPartitionPath( schemaPartitionDirectory.toURI() );
 
         // The schema partition
@@ -223,6 +223,9 @@ public class EmbeddedADSVerTrunk{
         service.setAllowAnonymousAccess(true);
 
         CacheService cacheService = new CacheService();
+        //this line is necessary to valid loading of EHCACHE ReadWriteCopyStrategy
+        //see CopyStrategyConfiguration, line 69
+        Thread.currentThread().setContextClassLoader(cacheService.getClass().getClassLoader());
         cacheService.initialize( service.getInstanceLayout() );
 
         service.setCacheService( cacheService );
@@ -236,7 +239,7 @@ public class EmbeddedADSVerTrunk{
         // this is a MANDATORY partition
         // DO NOT add this via addPartition() method, trunk code complains about duplicate partition
         // while initializing
-        JdbmPartition systemPartition = new JdbmPartition(service.getSchemaManager());
+        JdbmPartition systemPartition = new JdbmPartition(service.getSchemaManager(), service.getDnFactory());
         systemPartition.setId( "system" );
         systemPartition.setPartitionPath( new File( service.getInstanceLayout().getPartitionsDirectory(), systemPartition.getId() ).toURI() );
         systemPartition.setSuffixDn( new Dn( ServerDNConstants.SYSTEM_DN ) );

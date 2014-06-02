@@ -12,6 +12,8 @@ import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestManagementBean;
 import org.apache.commons.collections4.Factory;
 import org.junit.Test;
+import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
+import org.ops4j.pax.exam.spi.reactors.PerMethod;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.snmp4j.smi.Integer32;
@@ -41,6 +43,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestManagementBean.BEAN_N
  * @version 1.0
  * @since 1.0
  */
+@ExamReactorStrategy(PerMethod.class)
 public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestManagementBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
