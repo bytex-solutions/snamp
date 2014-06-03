@@ -227,11 +227,7 @@ public class EmbeddedADSVerTrunk{
         //see CopyStrategyConfiguration, line 69
         Thread.currentThread().setContextClassLoader(cacheService.getClass().getClassLoader());
         cacheService.initialize( service.getInstanceLayout() );
-
         service.setCacheService( cacheService );
-
-
-
         // first load the schema
         initSchemaPartition();
 
