@@ -112,6 +112,18 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
         final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
         assertNotNull(notificationSupport);
+        assertNotNull(attributeSupport);
+        assertNotNull(attributeSupport.connectAttribute("1.0", "string", new HashMap<String, String>(2) {{
+            put("objectName", TestManagementBean.BEAN_NAME);
+        }}));
+        assertNotNull(notificationSupport.enableNotifications("19.1", AttributeChangeNotification.ATTRIBUTE_CHANGE, new HashMap<String, String>(2) {{
+            put("severity", "notice");
+            put("objectName", TestManagementBean.BEAN_NAME);
+        }}));
+        assertNotNull(notificationSupport.enableNotifications("20.1", "com.itworks.snamp.connectors.tests.impl.testnotif", new HashMap<String, String>(2){{
+            put("severity", "panic");
+            put("objectName", TestManagementBean.BEAN_NAME);
+        }}));
         assertEquals(2, notificationSupport.getEnabledNotifications().size());
         assertTrue(notificationSupport.getEnabledNotifications().contains("19.1"));
         assertTrue(notificationSupport.getEnabledNotifications().contains("20.1"));
@@ -123,6 +135,52 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         assertTrue(notificationSupport.subscribe(TEST_LISTENER2_ID, listener2, false));
         final SynchronizationEvent.Awaitor<Notification> awaitor1 = listener1.getAwaitor();
         final SynchronizationEvent.Awaitor<Notification> awaitor2 = listener2.getAwaitor();
+        //force property changing
+        assertTrue(attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood"));
+        final Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
+        assertNotNull(notif1);
+        assertEquals(Severity.NOTICE, notif1.getSeverity());
+        assertEquals("Property string is changed", notif1.getMessage());
+        assertEquals("string", notif1.get("attributeName"));
+        assertEquals("NO VALUE", notif1.get("oldValue"));
+        assertEquals("Frank Underwood", notif1.get("newValue"));
+        assertEquals(String.class.getName(), notif1.get("attributeType"));
+        final Notification notif2 = awaitor2.await(TimeSpan.fromSeconds(5L));
+        assertNotNull(notif2);
+        assertEquals(Severity.PANIC, notif2.getSeverity());
+        assertEquals("Property changed", notif2.getMessage());
+    }
+
+    @Test
+    public final void simulateConnectionAbortTest() throws TimeoutException, InterruptedException, ExecutionException {
+        final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
+        final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
+        assertNotNull(notificationSupport);
+        assertNotNull(attributeSupport);
+        assertNotNull(attributeSupport.connectAttribute("1.0", "string", new HashMap<String, String>(2) {{
+            put("objectName", TestManagementBean.BEAN_NAME);
+        }}));
+        assertNotNull(notificationSupport.enableNotifications("19.1", AttributeChangeNotification.ATTRIBUTE_CHANGE, new HashMap<String, String>(2) {{
+            put("severity", "notice");
+            put("objectName", TestManagementBean.BEAN_NAME);
+        }}));
+        assertNotNull(notificationSupport.enableNotifications("20.1", "com.itworks.snamp.connectors.tests.impl.testnotif", new HashMap<String, String>(2){{
+            put("severity", "panic");
+            put("objectName", TestManagementBean.BEAN_NAME);
+        }}));
+        assertEquals(2, notificationSupport.getEnabledNotifications().size());
+        assertTrue(notificationSupport.getEnabledNotifications().contains("19.1"));
+        assertTrue(notificationSupport.getEnabledNotifications().contains("20.1"));
+        final String TEST_LISTENER1_ID = "test-listener";
+        final String TEST_LISTENER2_ID = "test-listener-2";
+        final SynchronizationListener listener1 = new SynchronizationListener("19.1");
+        final SynchronizationListener listener2 = new SynchronizationListener("20.1");
+        assertTrue(notificationSupport.subscribe(TEST_LISTENER1_ID,  listener1, false));
+        assertTrue(notificationSupport.subscribe(TEST_LISTENER2_ID, listener2, false));
+        final SynchronizationEvent.Awaitor<Notification> awaitor1 = listener1.getAwaitor();
+        final SynchronizationEvent.Awaitor<Notification> awaitor2 = listener2.getAwaitor();
+        //simulate connection abort
+        assertEquals("OK", ManagedResourceConnectorClient.invokeMaintenanceAction(getTestBundleContext(), CONNECTOR_NAME, "simulateConnectionAbort", null, null).get(3, TimeUnit.SECONDS));
         //force property changing
         assertTrue(attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood"));
         final Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
