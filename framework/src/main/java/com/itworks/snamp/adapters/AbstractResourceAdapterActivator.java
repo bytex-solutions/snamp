@@ -2,7 +2,6 @@ package com.itworks.snamp.adapters;
 
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.ConfigurationManager;
 import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
@@ -12,15 +11,19 @@ import com.itworks.snamp.internal.semantics.MethodStub;
 import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
+import com.itworks.snamp.management.Maintainable;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.IteratorUtils;
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.*;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static java.util.Map.Entry;
 
 /**
@@ -60,6 +63,43 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
 
         private OptionalAdapterServiceProvider(final Class<S> contract, final RequiredService<?>... dependencies) {
             super(contract, dependencies);
+        }
+
+        /**
+         * Gets name of the adapter.
+         * @return The name of the adapter.
+         */
+        protected final String getAdapterName(){
+            return getActivationPropertyValue(ADAPTER_NAME_HOLDER);
+        }
+    }
+
+    /**
+     * Represents maintenance service provider.
+     * @param <T> Type of the maintenance service implementation.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static abstract class MaintenanceServiceProvider<T extends Maintainable> extends OptionalAdapterServiceProvider<Maintainable,T>{
+
+        protected MaintenanceServiceProvider(final RequiredService<?>... dependencies) {
+            super(Maintainable.class, dependencies);
+        }
+
+        protected abstract T createMaintenanceService(final RequiredService<?>... dependencies) throws Exception;
+
+        /**
+         * Creates a new instance of the service.
+         *
+         * @param identity     A dictionary of properties that uniquely identifies service instance.
+         * @param dependencies A collection of dependencies.
+         * @return A new instance of the service.
+         */
+        @Override
+        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+            identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getAdapterName());
+            return createMaintenanceService(dependencies);
         }
     }
 
@@ -133,7 +173,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
         @SuppressWarnings("unchecked")
         @Override
         protected final AdapterLicensingDescriptorService activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
-            identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getActivationPropertyValue(ADAPTER_NAME_HOLDER));
+            identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getAdapterName());
             return new AdapterLicensingDescriptorService(getDependency(SimpleDependency.class, LicenseReader.class, dependencies),
                     descriptor,
                     fallbackFactory,
@@ -157,14 +197,6 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
          */
         protected ConfigurationEntityDescriptionProviderHolder(final RequiredService<?>... dependencies) {
             super(ConfigurationEntityDescriptionProvider.class, dependencies);
-        }
-
-        /**
-         * Gets name of the resource connector.
-         * @return The name of the resource connector.
-         */
-        protected final String getAdapterName(){
-            return getActivationPropertyValue(ADAPTER_NAME_HOLDER);
         }
 
         /**
@@ -333,19 +365,19 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
         return bnd != null && bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER) != null;
     }
 
-    private static Collection<Bundle> getResourceAdapterBundles(final BundleContext context){
+    private static List<Bundle> getResourceAdapterBundles(final BundleContext context){
         final Bundle[] bundles = context.getBundles();
-        final Collection<Bundle> result = new ArrayList<>(bundles.length);
+        final List<Bundle> result = new ArrayList<>(bundles.length);
         for(final Bundle bnd: bundles)
             if(isResourceAdapterBundle(bnd)) result.add(bnd);
         return result;
     }
 
-    private static Collection<Bundle> getResourceAdapterBundles(final BundleContext context, final String connectorName){
+    static List<Bundle> getResourceAdapterBundles(final BundleContext context, final String adapterName){
         final Bundle[] bundles = context.getBundles();
-        final Collection<Bundle> result = new ArrayList<>(bundles.length);
+        final List<Bundle> result = new ArrayList<>(bundles.length);
         for(final Bundle bnd: bundles)
-            if(Objects.equals(bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER), connectorName))
+            if(Objects.equals(bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER), adapterName))
                 result.add(bnd);
         return result;
     }
@@ -401,64 +433,21 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     }
 
     /**
-     * Gets configuration descriptor for the specified adapter.
+     * Gets a collection of installed adapters (system names).
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param adapterName The name of the adapter.
-     * @param configurationEntity Type of the configuration entity.
-     * @param <T> Type of the configuration entity.
-     * @return Configuration entity descriptor; or {@literal null}, if configuration description is not supported.
+     * @return A collection of installed adapter (system names).
      */
-    public static <T extends ConfigurationEntity> ConfigurationEntityDescription<T> getConfigurationEntityDescriptor(final BundleContext context,
-                                                                                                                                        final String adapterName,
-                                                                                                                                        final Class<T> configurationEntity){
-        if(context == null || configurationEntity == null) return null;
-        ServiceReference<?>[] refs;
-        try {
-            refs = context.getAllServiceReferences(ConfigurationEntityDescriptionProvider.class.getName(), String.format("(%s=%s)", ADAPTER_NAME_IDENTITY_PROPERTY, adapterName));
-        }
-        catch (final InvalidSyntaxException e) {
-            refs = null;
-        }
-        for(final ServiceReference<?> providerRef: refs != null ? refs : new ServiceReference<?>[0])
-            try{
-                final ConfigurationEntityDescriptionProvider provider = (ConfigurationEntityDescriptionProvider)context.getService(providerRef);
-                final ConfigurationEntityDescription<T> description = provider.getDescription(configurationEntity);
-                if(description != null) return description;
-            }
-            finally {
-                context.ungetService(providerRef);
-            }
-        return null;
+    public static Collection<String> getInstalledResourceAdapters(final BundleContext context){
+        final Collection<Bundle> candidates = getResourceAdapterBundles(context);
+        final Collection<String> systemNames = new ArrayList<>(candidates.size());
+        for(final Bundle bnd: candidates)
+            systemNames.add(bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER));
+        return systemNames;
     }
 
-    /**
-     * Gets collection of license limitations associated with the specified adapter.
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param adapterName The name of the adapter.
-     * @param loc The locale of the description. May be {@literal null}.
-     * @return A map of license limitations with its human-readable description.
-     */
-    public static Map<String, String> getLicenseLimitations(final BundleContext context,
-                                                            final String adapterName,
-                                                            final Locale loc){
-        if(context == null) return null;
-        final Map<String, String> result = new HashMap<>(5);
-        ServiceReference<?>[] refs;
-        try {
-            refs = context.getAllServiceReferences(LicensingDescriptionService.class.getName(), String.format("(%s=%s)", ADAPTER_NAME_IDENTITY_PROPERTY, adapterName));
-        }
-        catch (final InvalidSyntaxException e) {
-            refs = null;
-        }
-        if(refs != null && refs.length > 0)
-            try{
-                final LicensingDescriptionService lims = (LicensingDescriptionService)context.getService(refs[0]);
-                for(final String limName: lims.getLimitations())
-                    result.put(limName, lims.getDescription(limName, loc));
-            }
-            finally {
-                context.ungetService(refs[0]);
-            }
-        return result;
+    static String createFilter(final String connectorType, final String filter){
+        return filter == null || filter.isEmpty() ?
+                String.format("(%s=%s)", ADAPTER_NAME_IDENTITY_PROPERTY, connectorType):
+                String.format("(&(%s=%s)%s)", ADAPTER_NAME_IDENTITY_PROPERTY, connectorType, filter);
     }
 }

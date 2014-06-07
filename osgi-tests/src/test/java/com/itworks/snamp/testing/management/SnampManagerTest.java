@@ -2,20 +2,29 @@ package com.itworks.snamp.testing.management;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.itworks.snamp.connectors.DiscoveryService;
+import com.itworks.snamp.licensing.LicensingDescriptionService;
+import com.itworks.snamp.management.Maintainable;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
+import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestManagementBean;
+import org.apache.commons.collections4.Closure;
 import org.apache.commons.collections4.Factory;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Version;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.itworks.snamp.testing.connectors.jmx.TestManagementBean.BEAN_NAME;
 
@@ -30,19 +39,109 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestManagem
     private static final String SNMP_HOST = "127.0.0.1";
 
     public SnampManagerTest() throws MalformedObjectNameException {
-        super(new TestManagementBean(), new ObjectName(TestManagementBean.BEAN_NAME));
+        super(new TestManagementBean(), new ObjectName(TestManagementBean.BEAN_NAME),
+                SnampArtifact.MONITORING.getReference(),
+                SnampArtifact.SNMP4J.getReference(),
+                SnampArtifact.SNMP_ADAPTER.getReference());
+    }
+
+    @Test
+    public void additionalComponentsTest(){
+        final ServiceReference<SnampManager> managerRef = getTestBundleContext().getServiceReference(SnampManager.class);
+        assertNotNull(managerRef);
+        try{
+            final SnampManager manager = getTestBundleContext().getService(managerRef);
+            final Collection<SnampComponentDescriptor> components = manager.getInstalledComponents();
+            assertFalse(components.isEmpty());
+            for(final SnampComponentDescriptor c: components){
+                assertFalse(c.getName(null).isEmpty());
+                assertFalse(c.getDescription(null).isEmpty());
+                assertNotNull(c.getVersion());
+            }
+        }
+        finally {
+            getTestBundleContext().ungetService(managerRef);
+        }
+    }
+
+    private void testSnmpAdapterDescriptor(final SnampComponentDescriptor descriptor){
+        assertEquals(new Version(1, 0, 0), descriptor.getVersion());
+        assertFalse(descriptor.getDescription(Locale.getDefault()).isEmpty());
+        descriptor.invokeManagementService(LicensingDescriptionService.class, new Closure<LicensingDescriptionService>() {
+            @Override
+            public void execute(final LicensingDescriptionService input) {
+                assertFalse(input.getLimitations().isEmpty());
+            }
+        });
+        descriptor.invokeManagementService(ConfigurationEntityDescriptionProvider.class, new Closure<ConfigurationEntityDescriptionProvider>() {
+            @Override
+            public void execute(final ConfigurationEntityDescriptionProvider input) {
+                assertNotNull(input.getDescription(AgentConfiguration.ResourceAdapterConfiguration.class));
+            }
+        });
+    }
+
+    @Test
+    public void adaptersManagementTest(){
+        final ServiceReference<SnampManager> managerRef = getTestBundleContext().getServiceReference(SnampManager.class);
+        assertNotNull(managerRef);
+        try{
+            final SnampManager manager = getTestBundleContext().getService(managerRef);
+            final Collection<SnampComponentDescriptor> adapters = manager.getInstalledResourceAdapters();
+            assertFalse(adapters.isEmpty());
+            boolean snmpAdapterDiscovered = false;
+            for(final SnampComponentDescriptor adapter: adapters)
+                if(Objects.equals("SNMP Resource Adapter", adapter.getName(null))){
+                    testSnmpAdapterDescriptor(adapter);
+                    snmpAdapterDiscovered = true;
+                }
+            assertTrue(snmpAdapterDiscovered);
+        }
+        finally {
+            getTestBundleContext().ungetService(managerRef);
+        }
+    }
+
+    private static void testJmxConnectorDescriptor(final SnampComponentDescriptor descriptor){
+        assertEquals(new Version(1, 0, 0), descriptor.getVersion());
+        assertFalse(descriptor.getDescription(Locale.getDefault()).isEmpty());
+        descriptor.invokeManagementService(DiscoveryService.class, new Closure<DiscoveryService>() {
+            @Override
+            public void execute(final DiscoveryService input) {
+                assertNotNull(input);
+            }
+        });
+        descriptor.invokeManagementService(LicensingDescriptionService.class, new Closure<LicensingDescriptionService>() {
+            @Override
+            public void execute(final LicensingDescriptionService input) {
+                assertNotNull(input);
+            }
+        });
+        descriptor.invokeManagementService(Maintainable.class, new Closure<Maintainable>() {
+            @Override
+            public void execute(final Maintainable input) {
+                assertNotNull(input);
+            }
+        });
     }
 
     @Test
     public void connectorsManagementTest(){
         final ServiceReference<SnampManager> managerRef = getTestBundleContext().getServiceReference(SnampManager.class);
+        assertNotNull(managerRef);
         try{
             final SnampManager manager = getTestBundleContext().getService(managerRef);
             final Collection<SnampComponentDescriptor> connectors = manager.getInstalledResourceConnectors();
             assertFalse(connectors.isEmpty());
+            boolean jmxConnectorDiscovered = false;
             for(final SnampComponentDescriptor descriptor: connectors){
                 assertEquals(Bundle.ACTIVE, descriptor.getState());
+                if(Objects.equals(descriptor.getName(null), "JMX Connector")){
+                    jmxConnectorDiscovered = true;
+                    testJmxConnectorDescriptor(descriptor);
+                }
             }
+            assertTrue(jmxConnectorDiscovered);
         }
         finally {
             getTestBundleContext().ungetService(managerRef);

@@ -15,7 +15,8 @@ public enum SnampArtifact {
     LICENSING_BUNDLE("licensing-bundle", "1.0.0"),
     JMX_CONNECTOR("jmx-connector", "1.0.0"),
     SNMP4J("snmp4j", "2.2.3"),
-    SNMP_ADAPTER("snmp-adapter", "1.0.0");
+    SNMP_ADAPTER("snmp-adapter", "1.0.0"),
+    MONITORING("monitoring-bundle", "1.0.0");
     public static final String GROUP_ID = "com.itworks.snamp";
 
     private final String artifactId;

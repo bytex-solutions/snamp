@@ -5,6 +5,7 @@ import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.notifications.Severity;
@@ -324,7 +325,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestManageme
     @Test
     public void licenseDescriptionTest() throws BundleException {
         try {
-            final Map<String, String> lims = AbstractResourceAdapterActivator.getLicenseLimitations(getTestBundleContext(), ADAPTER_NAME, null);
+            final Map<String, String> lims = ResourceAdapterClient.getLicenseLimitations(getTestBundleContext(), ADAPTER_NAME, null);
             assertFalse(lims.isEmpty());
             assertEquals(2, lims.size());
         }finally {
@@ -335,7 +336,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestManageme
     @Test
     public void configurationDescriptorTest() throws BundleException {
         try {
-            final ConfigurationEntityDescription desc = AbstractResourceAdapterActivator.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+            final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
             assertNotNull(desc);
             final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("ldap-uri");
             assertNotNull(param);

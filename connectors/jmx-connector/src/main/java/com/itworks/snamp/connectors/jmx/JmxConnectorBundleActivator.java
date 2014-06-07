@@ -79,7 +79,7 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
                 final Map<String, ServiceReference<ManagedResourceConnector<?>>> connectors = ManagedResourceConnectorClient.getConnectors(context);
                 final FutureThread<String> result = new FutureThread<>(new Callable<String>() {
                     @Override
-                    public String call() {
+                    public final String call() {
                         for(final ServiceReference<ManagedResourceConnector<?>> ref: connectors.values())
                             if(Objects.equals(getConnectorType(ref), JmxConnector.NAME))
                                 try{

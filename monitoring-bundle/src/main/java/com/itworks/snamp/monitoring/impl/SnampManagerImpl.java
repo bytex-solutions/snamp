@@ -1,5 +1,6 @@
 package com.itworks.snamp.monitoring.impl;
 
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.management.AbstractSnampManager;
 import org.osgi.framework.BundleContext;
 
@@ -34,6 +35,27 @@ final class SnampManagerImpl extends AbstractSnampManager {
         }
     }
 
+    private final static class ResourceAdapterDescriptorImpl extends ResourceAdapterDescriptor{
+
+        public ResourceAdapterDescriptorImpl(final String systemName) {
+            super(systemName);
+        }
+
+        /**
+         * Represents the bundle context of the derived class.
+         * <p>
+         * Use {@link com.itworks.snamp.internal.Utils#getBundleContextByObject(Object)} with
+         * {@literal this} parameter to implement this method.
+         * </p>
+         *
+         * @return The bundle context of the derived class.
+         */
+        @Override
+        protected BundleContext getItselfContext() {
+            return Utils.getBundleContextByObject(this);
+        }
+    }
+
     /**
      * Creates a new instance of the connector descriptor.
      *
@@ -43,6 +65,17 @@ final class SnampManagerImpl extends AbstractSnampManager {
     @Override
     protected ResourceConnectorDescriptorImpl createResourceConnectorDescriptor(final String systemName) {
         return new ResourceConnectorDescriptorImpl(systemName);
+    }
+
+    /**
+     * Creates a new instance of the resource adapter descriptor.
+     *
+     * @param systemName The system name of the adapter.
+     * @return A new instance of the resource adapter descriptor.
+     */
+    @Override
+    protected ResourceAdapterDescriptorImpl createResourceAdapterDescriptor(final String systemName) {
+        return new ResourceAdapterDescriptorImpl(systemName);
     }
 
     /**
