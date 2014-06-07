@@ -47,6 +47,20 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
          */
         protected final E requiredValue;
 
+        /**
+         * Returns the localized description of this limitation.
+         * <p>
+         *     In the default implementation this method calls {@link #toString()}.
+         * </p>
+         * @param locale The locale of the description. If it is {@literal null} then returns description
+         *               in the default locale.
+         * @return The localized description of this object.
+         */
+        @Override
+        public String getDescription(final Locale locale) {
+            return toString();
+        }
+
         protected Requirement(final E requiredValue){
             this.requiredValue = requiredValue;
         }
@@ -251,22 +265,6 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
      */
     protected static void verifyServiceVersion(final VersionLimitation expectedImplVersion, final Class<? extends FrameworkService> serviceType) throws LicensingException{
         verify(expectedImplVersion, getActualPluginVersion(serviceType));
-    }
-
-    /**
-     * Returns the localized description of this object.
-     * @param locale The locale of the description. If it is {@literal null} then returns description
-     *               in the default locale.
-     * @return The localized description of this object.
-     */
-    @Override
-    public String getDescription(final Locale locale) {
-        final StringBuilder result = new StringBuilder();
-        for(final String limName: this){
-            result.append(String.format("%s - %s.", limName, Objects.toString(getLimitation(limName), "")));
-            result.append(System.lineSeparator());
-        }
-        return result.toString();
     }
 
     /**

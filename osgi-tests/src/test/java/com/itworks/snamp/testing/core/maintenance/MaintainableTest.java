@@ -1,13 +1,14 @@
 package com.itworks.snamp.testing.core.maintenance;
 
-import com.itworks.snamp.core.maintenance.AbstractMaintainable;
-import com.itworks.snamp.core.maintenance.Maintainable;
-import com.itworks.snamp.core.maintenance.MaintenanceActionInfo;
+import com.itworks.snamp.management.AbstractMaintainable;
+import com.itworks.snamp.management.Maintainable;
+import com.itworks.snamp.management.MaintenanceActionInfo;
 import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 
 import java.util.Locale;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -73,6 +74,17 @@ public final class MaintainableTest extends AbstractUnitTest<AbstractMaintainabl
         @Action
         public String dec(final int value){
             return Integer.toString(value - 1);
+        }
+
+        /**
+         * Gets logger associated with this service.
+         *
+         * @return The logger associated with this service.
+         */
+        @Override
+        @Aggregation
+        public Logger getLogger() {
+            return Logger.getAnonymousLogger();
         }
     }
 

@@ -89,7 +89,7 @@ public final class EmbeddedAdapterTest extends JmxConnectorTest<TestManagementBe
         //obtains connector from testing context
         final Agent.InstantiatedConnectors connectors = getTestContext().queryObject(Agent.InstantiatedConnectors.class);
         assertTrue(connectors.size() > 0);
-        final ManagementConnector jmxConnector = connectors.getConnectors("jmx").iterator().next();
+        final ManagementConnector jmxConnector = connectors.getConnectors("impl").iterator().next();
         assertNotNull(jmxConnector);
         //aborts the connection
         jmxConnector.queryObject(Maintainable.class).doAction("simulateConnectionAbort", "", null).get();

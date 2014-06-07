@@ -338,7 +338,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestMana
     protected void afterStartTest(final BundleContext context) throws Exception {
         super.afterStartTest(context);
         AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        AbstractResourceAdapterActivator.startResourceConnector(getTestBundleContext(), ADAPTER_NAME);
+        AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
     }
 
     @Override
@@ -376,7 +376,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestMana
         events.put("19.1", event);
 
         event = eventFactory.create();
-        event.setCategory("com.itworks.snamp.connectors.tests.jmx.testnotif");
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
         event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());

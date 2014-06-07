@@ -27,6 +27,7 @@
                     <Embed-Dependency>commons-logging-api</Embed-Dependency>
                     <!--<Embed-Dependency>*;scope=compile|runtime;optional=false</Embed-Dependency>-->
                     <Import-Package>!*,
+                        javax.xml.bind.annotation.adapters,
                         org.osgi.framework,
                         org.osgi.service.log,
                         org.osgi.service.event
@@ -34,8 +35,7 @@
                     <Export-Package>
                         com.itworks.snamp.*,
                         org.apache.commons.collections4.*,
-                        org.apache.commons.lang3.*,
-                        org.apache.commons.beanutils.*
+                        org.apache.commons.lang3.*
                     </Export-Package>
                 </instructions>
             </configuration>
@@ -52,11 +52,6 @@
           <groupId>commons-logging</groupId>
           <artifactId>commons-logging-api</artifactId>
           <version>1.1</version>
-      </dependency>
-      <dependency>
-          <groupId>commons-beanutils</groupId>
-          <artifactId>commons-beanutils</artifactId>
-          <version>1.9.1</version>
       </dependency>
       <dependency>
           <groupId>org.apache.commons</groupId>

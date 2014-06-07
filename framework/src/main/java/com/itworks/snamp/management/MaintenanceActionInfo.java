@@ -1,4 +1,4 @@
-package com.itworks.snamp.core.maintenance;
+package com.itworks.snamp.management;
 
 import java.util.Locale;
 

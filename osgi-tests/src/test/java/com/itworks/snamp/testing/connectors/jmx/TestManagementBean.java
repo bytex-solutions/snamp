@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Represents simple management bean.
  */
 public final class TestManagementBean extends NotificationBroadcasterSupport implements DynamicMBean {
-    public static final String BEAN_NAME = "com.snampy.jmx:type=com.itworks.snamp.adapters.TestManagementBean";
+    public static final String BEAN_NAME = "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean";
 
     private static final MBeanAttributeInfo STRING_PROPERTY = new OpenMBeanAttributeInfoSupport("string",
             "Sample description",
@@ -100,7 +100,7 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
     );
 
     private static final MBeanNotificationInfo TIMER_EVENT = new MBeanNotificationInfo(
-            new String[]{"com.itworks.snamp.connectors.tests.jmx.testnotif"},
+            new String[]{"com.itworks.snamp.connectors.tests.impl.testnotif"},
             TimerNotification.class.getName(),
             "Occurs when timer is changed"
     );
@@ -269,7 +269,7 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
                 attributeType,
                 oldValue,
                 newValue));
-        sendNotification(new TimerNotification("com.itworks.snamp.connectors.tests.jmx.testnotif",
+        sendNotification(new TimerNotification("com.itworks.snamp.connectors.tests.impl.testnotif",
                 this,
                 sequenceCounter.getAndIncrement(),
                 System.currentTimeMillis(),

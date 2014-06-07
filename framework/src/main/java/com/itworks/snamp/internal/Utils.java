@@ -3,6 +3,7 @@ package com.itworks.snamp.internal;
 import com.itworks.snamp.internal.semantics.Internal;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.FactoryUtils;
+import org.apache.commons.collections4.Transformer;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
@@ -315,5 +316,23 @@ public final class Utils {
                     else return getter.invoke(obj);
                 }
         throw new IntrospectionException(String.format("Property %s not found", propertyName));
+    }
+
+    /**
+     * Converts functional interface with input and output parameter into functional interface
+     * with input parameter only.
+     * @param transformer The functional interface to convert.
+     * @param <I> Type of the value to be transformed.
+     * @param <O> Type of the transformation result.
+     * @return {@link org.apache.commons.collections4.Closure} representation of the transformer.
+     */
+    public static <I, O> TransformerClosure<I, O> toClosure(final Transformer<I, O> transformer){
+        return transformer != null ?
+                new TransformerClosure<I, O>() {
+                    @Override
+                    public O transform(final I input) {
+                        return transformer.transform(input);
+                    }
+                } : null;
     }
 }

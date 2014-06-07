@@ -1,9 +1,10 @@
 package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
-import com.itworks.snamp.core.FrameworkService;
+import com.itworks.snamp.management.ManagementService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Additional service that can be exposed by {@link com.itworks.snamp.connectors.AbstractManagedResourceActivator}
@@ -12,7 +13,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public interface DiscoveryService extends FrameworkService {
+public interface DiscoveryService extends ManagementService {
 
     /**
      * Attempts to discover collection of managed entities (such as attributes or notifications)

@@ -22,8 +22,8 @@ public final class XmlConfigurationTest extends AbstractSnampIntegrationTest {
         final AgentConfiguration currentConfig = readSnampConfiguration();
         assertNotNull(currentConfig);
         assertEquals(1, currentConfig.getResourceAdapters().size());
-        assertTrue(currentConfig.getResourceAdapters().containsKey("jmx-adapter"));
-        final AgentConfiguration.ResourceAdapterConfiguration adapter = currentConfig.getResourceAdapters().get("jmx-adapter");
+        assertTrue(currentConfig.getResourceAdapters().containsKey("impl-adapter"));
+        final AgentConfiguration.ResourceAdapterConfiguration adapter = currentConfig.getResourceAdapters().get("impl-adapter");
         assertEquals("TEST ADAPTER", adapter.getAdapterName());
         assertEquals("value1", adapter.getHostingParams().get("param1"));
         assertEquals(0, currentConfig.getManagedResources().size());
@@ -38,6 +38,6 @@ public final class XmlConfigurationTest extends AbstractSnampIntegrationTest {
                 config.newConfigurationEntity(AgentConfiguration.ResourceAdapterConfiguration.class);
         adapter.setAdapterName("TEST ADAPTER");
         adapter.getHostingParams().put("param1", "value1");
-        config.getResourceAdapters().put("jmx-adapter", adapter);
+        config.getResourceAdapters().put("impl-adapter", adapter);
     }
 }

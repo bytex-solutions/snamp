@@ -1,13 +1,26 @@
 package com.itworks.snamp.connectors.jmx;
 
+import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.FutureThread;
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
 import com.itworks.snamp.connectors.DiscoveryService;
+import com.itworks.snamp.connectors.ManagedResourceConnector;
+import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.licensing.LicensingException;
+import com.itworks.snamp.management.AbstractMaintainable;
+import com.itworks.snamp.management.Maintainable;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 import java.net.MalformedURLException;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.itworks.snamp.connectors.ManagedResourceConnectorClient.getConnectorType;
+import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
 
 /**
@@ -18,6 +31,93 @@ import java.util.logging.Level;
  */
 @SuppressWarnings("UnusedDeclaration")
 public final class JmxConnectorBundleActivator extends AbstractManagedResourceActivator<JmxConnector> {
+
+    private static final class JmxMaintenanceService extends AbstractAggregator implements Maintainable{
+        private final Logger logger;
+
+        public JmxMaintenanceService(final Logger l){
+            this.logger = l;
+        }
+
+        /**
+         * Returns read-only map of maintenance actions.
+         *
+         * @return Read-only map of maintenance action,
+         */
+        @Override
+        public Set<String> getActions() {
+            return AbstractMaintainable.getMaintenanceActions(JmxMaintenanceActions.class);
+        }
+
+        /**
+         * Returns human-readable description of the specified maintenance action that
+         * includes description of the arguments string.
+         *
+         * @param actionName The name of the maintenance action.
+         * @param loc        Target locale of the action description.
+         * @return Localized description of the action.
+         */
+        @Override
+        public String getActionDescription(final String actionName, final Locale loc) {
+            return AbstractMaintainable.getActionDescription(JmxMaintenanceActions.class, actionName, loc);
+        }
+
+        /**
+         * Invokes maintenance action.
+         *
+         * @param actionName The name of the action to invoke.
+         * @param arguments  The action invocation command line. May be {@literal null} or empty for parameterless
+         *                   action.
+         * @param loc        Localization of the action arguments string and invocation result.
+         * @return The localized result of the action invocation; or {@literal null}, if the specified
+         * action doesn't exist.
+         */
+        @Override
+        public Future<String> doAction(final String actionName, final String arguments, final Locale loc) {
+            if(Objects.equals(actionName, JmxMaintenanceActions.SIMULATE_CONNECTION_ABORT.getName())){
+                final BundleContext context = getBundleContextByObject(this);
+                final Map<String, ServiceReference<ManagedResourceConnector<?>>> connectors = ManagedResourceConnectorClient.getConnectors(context);
+                final FutureThread<String> result = new FutureThread<>(new Callable<String>() {
+                    @Override
+                    public String call() {
+                        for(final ServiceReference<ManagedResourceConnector<?>> ref: connectors.values())
+                            if(Objects.equals(getConnectorType(ref), JmxConnector.NAME))
+                                try{
+                                    final ManagedResourceConnector<?> connector = context.getService(ref);
+                                    connector.queryObject(JmxConnectionManager.class).simulateConnectionAbort();
+                                }
+                                finally {
+                                    context.ungetService(ref);
+                                }
+                        return "OK";
+                    }
+                });
+                result.start();
+                return result;
+            }
+            else return null;
+        }
+
+        /**
+         * Gets logger associated with this service.
+         *
+         * @return The logger associated with this service.
+         */
+        @Override
+        @Aggregation
+        public Logger getLogger() {
+            return logger;
+        }
+    }
+
+    private static final class JmxMaintenanceServiceProvider extends MaintenanceServiceProvider<JmxMaintenanceService>{
+
+        @Override
+        protected JmxMaintenanceService createMaintenanceService(final RequiredService<?>... dependencies) throws Exception {
+            return new JmxMaintenanceService(getLogger());
+        }
+    }
+
     private static final class JmxConnectorProvider extends NotificationSupportProvider<JmxConnector>{
 
         public JmxConnectorProvider(final String targetName){
@@ -53,6 +153,12 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
             };
         }
 
+        @SuppressWarnings("unchecked")
+        @Override
+        protected LicensingDescriptionServiceProvider createLicenseLimitationsProvider() {
+            return new LicensingDescriptionServiceProvider(JmxConnectorLimitations.class, JmxConnectorLimitations.fallbackFactory);
+        }
+
         @Override
         protected DiscoveryServiceProvider<?> createDiscoveryServiceProvider(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
             return new DiscoveryServiceProvider<DiscoveryService>() {
@@ -61,6 +167,11 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
                     return new JmxDiscoveryService();
                 }
             };
+        }
+
+        @Override
+        protected MaintenanceServiceProvider<?> createMaintenanceServiceProvider(final RequiredService<?>... dependencies) {
+            return new JmxMaintenanceServiceProvider();
         }
 
         /**

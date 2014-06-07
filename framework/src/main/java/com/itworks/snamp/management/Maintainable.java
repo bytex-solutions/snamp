@@ -1,4 +1,4 @@
-package com.itworks.snamp.core.maintenance;
+package com.itworks.snamp.management;
 
 import java.util.*;
 import java.util.concurrent.Future;
@@ -14,12 +14,12 @@ import java.util.concurrent.Future;
  * @since 1.0
  * @see AbstractMaintainable
  */
-public interface Maintainable {
+public interface Maintainable extends ManagementService {
     /**
      * Returns read-only map of maintenance actions.
      * @return Read-only map of maintenance action,
      */
-    public Set<String> getActions();
+    Set<String> getActions();
 
     /**
      * Returns human-readable description of the specified maintenance action that
@@ -28,7 +28,7 @@ public interface Maintainable {
      * @param loc Target locale of the action description.
      * @return Localized description of the action.
      */
-    public String getActionDescription(final String actionName, final Locale loc);
+    String getActionDescription(final String actionName, final Locale loc);
 
     /**
      * Invokes maintenance action.
@@ -39,5 +39,5 @@ public interface Maintainable {
      * @return The localized result of the action invocation; or {@literal null}, if the specified
      * action doesn't exist.
      */
-    public Future<String> doAction(final String actionName, final String arguments, final Locale loc);
+    Future<String> doAction(final String actionName, final String arguments, final Locale loc);
 }

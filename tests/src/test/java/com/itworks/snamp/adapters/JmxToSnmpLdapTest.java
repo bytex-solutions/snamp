@@ -49,7 +49,7 @@ public class JmxToSnmpLdapTest extends JmxConnectorTest<TestManagementBean> {
         put(LDAP_USER_SEARCH_FILTER_PARAM, String.format("(%s)", userName));
         put(LDAP_GROUPS_PARAM, "ou=users,dc=ad,dc=microsoft,dc=com;");
     }};
-    private static final String BEAN_NAME = "com.snampy.jmx:type=com.itworks.snamp.adapters.TestManagementBean";
+    private static final String BEAN_NAME = "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean";
 
     public JmxToSnmpLdapTest() throws MalformedObjectNameException {
         super("snmp", snmpAdapterSettings, new TestManagementBean(), new ObjectName(BEAN_NAME));
@@ -341,7 +341,7 @@ public class JmxToSnmpLdapTest extends JmxConnectorTest<TestManagementBean> {
         events.put("19.1", event);
 
         event = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration();
-        event.setCategory("com.itworks.snamp.connectors.tests.jmx.testnotif");
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.testnotif");
         event.getAdditionalElements().put("severity", "panic");
         event.getAdditionalElements().put("objectName", BEAN_NAME);
         event.getAdditionalElements().put("receiverAddress", addressForSNMP+"/"+client.getClientPort());

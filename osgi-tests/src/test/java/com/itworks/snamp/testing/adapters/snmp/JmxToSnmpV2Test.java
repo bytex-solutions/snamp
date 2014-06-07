@@ -6,6 +6,7 @@ import com.itworks.snamp.Table;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.notifications.Severity;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
@@ -60,7 +61,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestManageme
     protected void afterStartTest(final BundleContext context) throws Exception {
         super.afterStartTest(context);
         AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        AbstractResourceAdapterActivator.startResourceConnector(getTestBundleContext(), ADAPTER_NAME);
+        AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
     }
 
     @Test
@@ -320,6 +321,31 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestManageme
         }
     }
 
+    @Test
+    public void licenseDescriptionTest() throws BundleException {
+        try {
+            final Map<String, String> lims = AbstractResourceAdapterActivator.getLicenseLimitations(getTestBundleContext(), ADAPTER_NAME, null);
+            assertFalse(lims.isEmpty());
+            assertEquals(2, lims.size());
+        }finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
+    }
+
+    @Test
+    public void configurationDescriptorTest() throws BundleException {
+        try {
+            final ConfigurationEntityDescription desc = AbstractResourceAdapterActivator.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+            assertNotNull(desc);
+            final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("ldap-uri");
+            assertNotNull(param);
+            assertFalse(param.getDescription(null).isEmpty());
+        }
+        finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
+    }
+
     @Override
     protected void fillEvents(final Map<String, EventConfiguration> events, final Factory<EventConfiguration> eventFactory) {
         EventConfiguration event = eventFactory.create();
@@ -332,7 +358,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestManageme
         events.put("19.1", event);
 
         event = eventFactory.create();
-        event.setCategory("com.itworks.snamp.connectors.tests.jmx.testnotif");
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
         event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());

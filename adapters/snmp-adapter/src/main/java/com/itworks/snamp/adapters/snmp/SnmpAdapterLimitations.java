@@ -18,7 +18,7 @@ import static com.itworks.snamp.core.AbstractBundleActivator.SimpleDependency;
  * @author Roman Sakno
  */
 @XmlRootElement(name = "snmpAdapterLimitations")
-final class SnmpAdapterLimitations extends AbstractLicenseLimitations implements FrameworkServiceLimitations<SnmpResourceAdapter> {
+public final class SnmpAdapterLimitations extends AbstractLicenseLimitations implements FrameworkServiceLimitations<SnmpResourceAdapter> {
     public static final RequiredServiceAccessor<LicenseReader> licenseReader = new SimpleDependency<>(LicenseReader.class);
 
     private static final class PluginVersionLimitationAdapter extends RequirementParser<Version, String, VersionLimitation> {
@@ -62,7 +62,7 @@ final class SnmpAdapterLimitations extends AbstractLicenseLimitations implements
         }
     }
 
-    private static final Factory<SnmpAdapterLimitations> fallbackFactory = new Factory<SnmpAdapterLimitations>() {
+    static final Factory<SnmpAdapterLimitations> fallbackFactory = new Factory<SnmpAdapterLimitations>() {
         @Override
         public SnmpAdapterLimitations create() {
             return new SnmpAdapterLimitations();
@@ -95,7 +95,7 @@ final class SnmpAdapterLimitations extends AbstractLicenseLimitations implements
         verifyServiceVersion(maxVersion, serviceContract);
     }
 
-    public final void verifyAuthenticationFeature(){
+    final void verifyAuthenticationFeature(){
         verify(authenticationEnabled, Boolean.TRUE);
     }
 }

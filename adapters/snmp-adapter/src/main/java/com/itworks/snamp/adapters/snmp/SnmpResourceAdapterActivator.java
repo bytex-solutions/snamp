@@ -23,11 +23,26 @@ public final class SnmpResourceAdapterActivator extends AbstractResourceAdapterA
      */
     public static final String ADAPTER_NAME = "snmp";
 
+    private static final class SnmpAdapterConfigurationEntityDescriptionProviderHolder extends ConfigurationEntityDescriptionProviderHolder<SnmpAdapterConfigurationDescriptor>{
+
+        /**
+         * Creates a new instance of the configuration description provider.
+         *
+         * @param dependencies A collection of provider dependencies.
+         * @return A new instance of the configuration description provider.
+         * @throws Exception An exception occurred during provider instantiation.
+         */
+        @Override
+        protected SnmpAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
+            return new SnmpAdapterConfigurationDescriptor();
+        }
+    }
     /**
      * Initializes a new instance of the resource adapter lifetime manager.
      */
     public SnmpResourceAdapterActivator() {
-        super(ADAPTER_NAME, SnmpHelpers.getLogger());
+        super(ADAPTER_NAME, SnmpHelpers.getLogger(), new SnmpAdapterConfigurationEntityDescriptionProviderHolder(),
+                new LicensingDescriptionServiceProvider<>(SnmpAdapterLimitations.class, SnmpAdapterLimitations.fallbackFactory));
     }
 
     @Override

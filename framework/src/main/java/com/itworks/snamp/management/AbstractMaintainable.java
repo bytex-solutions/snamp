@@ -1,5 +1,6 @@
-package com.itworks.snamp.core.maintenance;
+package com.itworks.snamp.management;
 
+import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.FutureThread;
 
 import java.lang.annotation.*;
@@ -16,7 +17,7 @@ import java.util.concurrent.*;
  * @since 1.0
  * @see MaintenanceActionInfo
  */
-public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceActionInfo> implements Maintainable {
+public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceActionInfo> extends AbstractAggregator implements Maintainable {
 
     /**
      * Indicates that the annotated method is used for action invocation.

@@ -4,7 +4,6 @@ import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
-import com.itworks.snamp.licensing.LicensedFrameworkService;
 import org.snmp4j.agent.NotificationOriginator;
 import org.snmp4j.agent.mo.snmp.TransportDomains;
 import org.snmp4j.smi.OID;
@@ -27,7 +26,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
  * @version 1.0
  * @since 1.0
  */
-final class SnmpResourceAdapter extends AbstractResourceAdapter implements LicensedFrameworkService<SnmpAdapterLimitations> {
+final class SnmpResourceAdapter extends AbstractResourceAdapter {
     private static final class SnmpNotificationMappingImpl implements SnmpNotificationMapping{
         private final NotificationMetadata metadata;
 
@@ -254,15 +253,5 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter implements Licen
         agent.stop();
         clearModel(attributes);
         clearModel(notifications, agent);
-    }
-
-    /**
-     * Returns license limitations associated with this plugin.
-     *
-     * @return The license limitations applied to this plugin.
-     */
-    @Override
-    public SnmpAdapterLimitations getLimitations() {
-        return SnmpAdapterLimitations.current();
     }
 }

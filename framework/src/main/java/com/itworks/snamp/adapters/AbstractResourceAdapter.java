@@ -3,8 +3,8 @@ package com.itworks.snamp.adapters;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
+import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.ManagementEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
@@ -619,7 +619,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
 
         private synchronized void processResourceConnector(final ServiceReference<ManagedResourceConnector<?>> connectorRef, final int eventType){
-            if(Objects.equals(AbstractManagedResourceActivator.getResourceName(connectorRef), resourceName))
+            if(Objects.equals(ManagedResourceConnectorClient.getManagedResourceName(connectorRef), resourceName))
                 switch (eventType){
                     case ServiceEvent.REGISTERED:
                         if(resourceConnector == null)

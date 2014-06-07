@@ -5,7 +5,7 @@ import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
-import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
+import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
@@ -23,6 +23,9 @@ import javax.management.ObjectName;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -98,7 +101,7 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         events.put("19.1", event);
 
         event = eventFactory.create();
-        event.setCategory("com.itworks.snamp.connectors.tests.jmx.testnotif");
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
         events.put("20.1", event);
@@ -239,7 +242,7 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
 
     @Test
     public final void testForAttributeConfigDescription(){
-        final ConfigurationEntityDescription<AttributeConfiguration> description = AbstractManagedResourceActivator.getConfigurationEntityDescriptor(getTestBundleContext(),
+        final ConfigurationEntityDescription<AttributeConfiguration> description = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(),
                 CONNECTOR_NAME,
                 AttributeConfiguration.class);
         final ConfigurationEntityDescription.ParameterDescription param = description.getParameterDescriptor("objectName");
@@ -252,7 +255,7 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
 
     @Test
     public final void testForAttributesDiscovery(){
-        final Collection<AttributeConfiguration> discoveredAttributes = AbstractManagedResourceActivator.discoverEntities(getTestBundleContext(),
+        final Collection<AttributeConfiguration> discoveredAttributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
                 getJmxConnectionString(),
                 Collections.<String, String>emptyMap(),
@@ -266,7 +269,7 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
 
     @Test
     public final void testForNotificationsDiscovery(){
-        final Collection<EventConfiguration> discoveredEvents = AbstractManagedResourceActivator.discoverEntities(getTestBundleContext(),
+        final Collection<EventConfiguration> discoveredEvents = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
                 getJmxConnectionString(),
                 Collections.<String, String>emptyMap(),
@@ -276,5 +279,22 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
             assertTrue(config.getParameters().containsKey("objectName"));
             assertTrue(config.getCategory().length() > 0);
         }
+    }
+
+    @Test
+    public final void licenseLimitationsDiscoveryTest(){
+        final Map<String, String> lims = ManagedResourceConnectorClient.getLicenseLimitations(getTestBundleContext(), CONNECTOR_NAME, null);
+        assertFalse(lims.isEmpty());
+        assertEquals(3, lims.size());
+    }
+
+    @Test
+    public final void maintenanceActionTest() throws InterruptedException, ExecutionException, TimeoutException {
+        final Map<String, String> actions = ManagedResourceConnectorClient.getMaintenanceActions(getTestBundleContext(), CONNECTOR_NAME, null);
+        assertFalse(actions.isEmpty());
+        final String ACTION = "simulateConnectionAbort";
+        assertTrue(actions.containsKey(ACTION));
+        final Future<String> result = ManagedResourceConnectorClient.invokeMaintenanceAction(getTestBundleContext(), CONNECTOR_NAME, ACTION, null, null);
+        assertEquals("OK", result.get(3, TimeUnit.SECONDS));
     }
 }

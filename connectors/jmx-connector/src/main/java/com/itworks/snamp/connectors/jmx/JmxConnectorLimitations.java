@@ -38,7 +38,7 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
         this.maxVersion = ConnectorVersionAdapter.createLimitation(pluginVersion);
     }
 
-    private static final Factory<JmxConnectorLimitations> fallbackFactory = new Factory<JmxConnectorLimitations>() {
+    static final Factory<JmxConnectorLimitations> fallbackFactory = new Factory<JmxConnectorLimitations>() {
         @Override
         public JmxConnectorLimitations create() {
             return new JmxConnectorLimitations();
@@ -49,7 +49,7 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
      * Gets currently loaded description of JMX connector license limitations.
      * @return The currently loaded license limitations.
      */
-    public static JmxConnectorLimitations current(){
+    static JmxConnectorLimitations current(){
         return current(JmxConnectorLimitations.class, licenseReader, fallbackFactory);
     }
 
@@ -115,11 +115,11 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
     @XmlElement(type = String.class)
     private VersionLimitation maxVersion;
 
-    public final void verifyMaxAttributeCount(final long currentAttributeCount) throws LicensingException{
+    final void verifyMaxAttributeCount(final long currentAttributeCount) throws LicensingException{
         verify(maxAttributeCount, currentAttributeCount);
     }
 
-    public final void verifyMaxInstanceCount(final long currentInstanceCount) throws LicensingException{
+    final void verifyMaxInstanceCount(final long currentInstanceCount) throws LicensingException{
         verify(maxInstanceCount, currentInstanceCount);
     }
 

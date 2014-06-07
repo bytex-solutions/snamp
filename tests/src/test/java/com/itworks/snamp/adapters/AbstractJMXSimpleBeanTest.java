@@ -19,7 +19,7 @@ public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
 
     protected AbstractJMXSimpleBeanTest() {
         oidPrefix = "1.1";
-        objectName = this.getClass().getPackage().getName() + ":type=" + this.getClass().getName();//"com.snampy.jmx:type=com.itworks.snamp.adapters.TestManagementBean";
+        objectName = this.getClass().getPackage().getName() + ":type=" + this.getClass().getName();//"com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean";
         localHostPort = 161; //1161
         localJMXPort = 9010; //Integer.parseInt(System.getProperties().getProperty("com.sun.management.jmxremote.port"));
         attributes = new HashMap<>();
@@ -104,7 +104,7 @@ public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
 
                     @Override
                     public String getConnectionString() {
-                        return String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", localJMXPort);
+                        return String.format("service:impl:rmi:///jndi/rmi://localhost:%s/jmxrmi", localJMXPort);
                     }
 
                     @Override
@@ -114,7 +114,7 @@ public abstract class AbstractJMXSimpleBeanTest extends SnampTestSet
 
                     @Override
                     public String getConnectionType() {
-                        return "jmx";
+                        return "impl";
                     }
 
                     @Override

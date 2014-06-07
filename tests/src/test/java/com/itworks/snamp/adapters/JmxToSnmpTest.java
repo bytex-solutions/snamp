@@ -58,7 +58,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
      *
      * To check it via JMX Bean you can use jConsole:
      *
-     * service:jmx:rmi:///jndi/rmi://localhost:3334/jmxrmi
+     * service:impl:rmi:///jndi/rmi://localhost:3334/jmxrmi
 
      * @throws IOException
      */
@@ -310,7 +310,7 @@ public class JmxToSnmpTest extends JmxConnectorTest<TestManagementBean> {
         events.put("19.1", event);
 
         event = new EmbeddedAgentConfiguration.EmbeddedManagementTargetConfiguration.EmbeddedEventConfiguration();
-        event.setCategory("com.itworks.snamp.connectors.tests.jmx.testnotif");
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.testnotif");
         event.getAdditionalElements().put("severity", "panic");
         event.getAdditionalElements().put("objectName", BEAN_NAME);
         event.getAdditionalElements().put("receiverAddress", addressForSNMP+"/"+client.getClientPort());

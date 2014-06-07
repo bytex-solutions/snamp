@@ -58,7 +58,7 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
     /**
      * Returns full resource name constructed from the namespace of the derived class and the
      * specified resource name.
-     * @param baseName The name of the resource jmx.
+     * @param baseName The name of the resource impl.
      * @return The full resource name.
      */
     protected final String getResourceName(final String baseName){

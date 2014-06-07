@@ -22,7 +22,7 @@ public final class XmlAgentConfigurationTest extends SnampClassTestSet<XmlAgentC
         final AgentConfiguration.ManagementTargetConfiguration target = config.newManagementTargetConfiguration();
         config.getTargets().put("test-server", target);
         target.setConnectionString("http://connection-string");
-        target.setConnectionType("jmx");
+        target.setConnectionType("impl");
         final AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration attr = target.newAttributeConfiguration();
         attr.setAttributeName("attribute1");
         attr.setReadWriteTimeout(new TimeSpan(100));

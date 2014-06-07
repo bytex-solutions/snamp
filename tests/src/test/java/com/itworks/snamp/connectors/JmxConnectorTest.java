@@ -57,12 +57,12 @@ public abstract class JmxConnectorTest<ManagementBean> extends HostingTest {
         return new HashMap<String, ManagementTargetConfiguration>(1){{
             final ManagementTargetConfiguration targetConfig = new EmbeddedManagementTargetConfiguration();
             final String localJMXPort = System.getProperty("com.sun.management.jmxremote.port", "9010");
-            targetConfig.setConnectionString(String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", localJMXPort));
-            targetConfig.setConnectionType("jmx");
+            targetConfig.setConnectionString(String.format("service:impl:rmi:///jndi/rmi://localhost:%s/jmxrmi", localJMXPort));
+            targetConfig.setConnectionType("impl");
             targetConfig.setNamespace(getAttributesNamespace());
             fillAttributes(targetConfig.getAttributes());
             fillEvents(targetConfig.getEvents());
-            put("test-jmx", targetConfig);
+            put("test-impl", targetConfig);
         }};
     }
 }

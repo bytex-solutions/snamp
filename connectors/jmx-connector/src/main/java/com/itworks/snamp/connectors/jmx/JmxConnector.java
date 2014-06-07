@@ -7,9 +7,6 @@ import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.NotificationListener;
 import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.core.maintenance.AbstractMaintainable;
-import com.itworks.snamp.core.maintenance.Maintainable;
-import com.itworks.snamp.core.maintenance.MaintenanceActionInfo;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.semantics.MethodStub;
 import com.itworks.snamp.licensing.LicensingException;
@@ -24,7 +21,6 @@ import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,45 +32,13 @@ import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescript
  * Represents JMX connector.
  * @author Roman Sakno
  */
-final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionOptions> implements AttributeSupport, NotificationSupport, Maintainable {
+final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionOptions> implements AttributeSupport, NotificationSupport {
     /**
      * Represents JMX connector name.
      */
     public static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
     private static final Logger logger = JmxConnectorHelpers.getLogger();
     private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
-
-    private static enum JmxMaintenanceActions implements MaintenanceActionInfo {
-        @SuppressWarnings("UnusedDeclaration")
-        SIMULATE_CONNECTION_ABORT("simulateConnectionAbort");
-
-        private final String name;
-
-        private JmxMaintenanceActions(final String name){
-            this.name = name;
-        }
-
-        /**
-         * Gets system name of this action,
-         *
-         * @return The system name of this action.
-         */
-        @Override
-        public final String getName() {
-            return name;
-        }
-
-        /**
-         * Gets description of this action.
-         *
-         * @param loc The locale of the description.
-         * @return The description of this action.
-         */
-        @Override
-        public final String getDescription(final Locale loc) {
-            return "";
-        }
-    }
 
     private final static class JmxNotificationMetadata extends GenericNotificationMetadata{
         private final static String severityOption = "severity";
@@ -833,25 +797,8 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         }
     }
 
-    private static Maintainable createMaintainable(final JmxConnectionManager connectionManager){
-        return new AbstractMaintainable<JmxMaintenanceActions>(JmxMaintenanceActions.class) {
-            @Override
-            protected final Object[] parseArguments(final JmxMaintenanceActions action, final String arguments, final Locale loc) {
-                return new Object[0];
-            }
-
-            @SuppressWarnings("UnusedDeclaration")
-            @Action
-            public final String simulateConnectionAbort(){
-                connectionManager.simulateConnectionAbort();
-                return "OK";
-            }
-        };
-    }
-
 
     private final JmxNotificationSupport notifications;
-    private final Maintainable maintenance;
     private final JmxAttributeSupport attributes;
     private final JmxConnectionManager connectionManager;
 
@@ -860,8 +807,6 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         this.connectionManager = connectionOptions.createConnectionManager();
         this.notifications = new JmxNotificationSupport(connectionManager);
         this.attributes = new JmxAttributeSupport(connectionManager);
-        //create maintainer
-        this.maintenance = createMaintainable(connectionManager);
     }
 
     public JmxConnector(final String connectionString, final Map<String, String> connectionOptions) throws MalformedURLException {
@@ -941,7 +886,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     /**
      * Removes the notification listener.
      *
-     * @param listenerId An identifier previously passed to {@link #subscribe(String, com.itworks.snamp.connectors.notifications.NotificationListener)}.
+     * @param listenerId An identifier previously passed to {@link #subscribe(String, com.itworks.snamp.connectors.notifications.NotificationListener, boolean)}.
      * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
      */
     @Override
@@ -1056,6 +1001,19 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     }
 
     /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the aggregated object.
+     * @return An instance of the requested object; or {@literal null} if object is not available.
+     */
+    @Override
+    public <T> T queryObject(final Class<T> objectType) {
+        if(Objects.equals(JmxConnectionManager.class, objectType))
+            return objectType.cast(connectionManager);
+        else return super.queryObject(objectType);
+    }
+
+    /**
      * Releases all resources associated with this connector.
      * @throws java.lang.Exception Some I/O error occurs.
      */
@@ -1066,42 +1024,5 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         notifications.unsubscribeAll();
         notifications.clear();
         connectionManager.close();
-    }
-
-    /**
-     * Returns read-only map of maintenance actions.
-     *
-     * @return Read-only map of maintenance action,
-     */
-    @Override
-    public final Set<String> getActions() {
-        return maintenance.getActions();
-    }
-
-    /**
-     * Returns human-readable description of the specified maintenance action that
-     * includes description of the arguments string.
-     *
-     * @param actionName The name of the maintenance action.
-     * @param loc        Target locale of the action description.
-     * @return Localized description of the action.
-     */
-    @Override
-    public final String getActionDescription(final String actionName, final Locale loc) {
-        return maintenance.getActionDescription(actionName, loc);
-    }
-
-    /**
-     * Invokes maintenance action.
-     *
-     * @param actionName The name of the action to invoke.
-     * @param arguments  The action invocation command line. May be {@literal null} or empty for parameterless
-     *                   action.
-     * @param loc        Localization of the action arguments string and invocation result.
-     * @return The localized result of the action invocation.
-     */
-    @Override
-    public final Future<String> doAction(final String actionName, final String arguments, final Locale loc) {
-        return maintenance.doAction(actionName, arguments, loc);
     }
 }

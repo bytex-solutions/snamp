@@ -7,11 +7,9 @@
         <groupId>com.itworks.snamp</groupId>
         <version>1.0.0</version>
     </parent>
+    <name>SNAMP Manager</name>
+    <description>SNAMP self-management service provider</description>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>licensing-bundle</artifactId>
-    <packaging>bundle</packaging>
-    <name>SNAMP Licensing Engine</name>
-    <description>Provides access to commercial license information that helps to </description>
     <build>
         <plugins>
             <plugin>
@@ -20,25 +18,33 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.itworks.snamp.licensing</Bundle-SymbolicName>
-                        <Bundle-Activator>com.itworks.snamp.licensing.impl.LicenseBundleActivator</Bundle-Activator>
+                        <Bundle-Activator>com.itworks.snamp.monitoring.impl.MonitoringServiceLibrary</Bundle-Activator>
+                        <Bundle-SymbolicName>com.itworks.snamp.monitoring.impl</Bundle-SymbolicName>
                         <Export-Package/>
                     </instructions>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+    <artifactId>monitoring-bundle</artifactId>
+    <version>1.0.0</version>
     <dependencies>
         <dependency>
-            <scope>provided</scope>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>1.0.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
+            <version>4.3.1</version>
+        </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
             <version>4.3.1</version>
         </dependency>
     </dependencies>

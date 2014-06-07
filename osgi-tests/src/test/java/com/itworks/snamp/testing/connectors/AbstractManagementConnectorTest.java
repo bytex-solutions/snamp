@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.connectors;
 
 import com.itworks.snamp.connectors.ManagedResourceConnector;
+import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
@@ -42,13 +43,13 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
 
     protected final ManagedResourceConnector<?> getManagementConnector(final BundleContext context){
         final ServiceReference<ManagedResourceConnector<?>> connectorRef =
-                getConnectors(context).get(testManagementTarget);
+                ManagedResourceConnectorClient.getConnectors(context).get(testManagementTarget);
         return connectorRef != null ? getTestBundleContext().getService(connectorRef) : null;
     }
 
     protected final boolean releaseManagementConnector(final BundleContext context){
         final ServiceReference<ManagedResourceConnector<?>> connectorRef =
-                getConnectors(context).get(testManagementTarget);
+                ManagedResourceConnectorClient.getConnectors(context).get(testManagementTarget);
         return connectorRef != null && getTestBundleContext().ungetService(connectorRef);
     }
 

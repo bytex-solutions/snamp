@@ -8,14 +8,14 @@ import com.itworks.snamp.Descriptive;
  * @since 1.0
  * @version 1.0
  */
-public interface LicenseLimitations extends Iterable<String>, Descriptive {
+public interface LicenseLimitations extends Iterable<String> {
     /**
      * Represents a limitation for the specified licensed object.
      * @param <T>
      * @since 1.0
      * @version 1.0
      */
-    public static interface Limitation<T>{
+    public static interface Limitation<T> extends Descriptive{
         /**
          * Creates a new licensing exception.
          * @return A new instance of the licensing exception.

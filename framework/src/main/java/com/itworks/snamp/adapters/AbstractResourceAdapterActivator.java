@@ -1,12 +1,19 @@
 package com.itworks.snamp.adapters;
 
+import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.ConfigurationManager;
 import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
+import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.licensing.LicenseLimitations;
+import com.itworks.snamp.licensing.LicenseReader;
+import com.itworks.snamp.licensing.LicensingDescriptionService;
+import org.apache.commons.collections4.Factory;
+import org.apache.commons.collections4.IteratorUtils;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -35,8 +42,104 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     public static final String ADAPTER_NAME_MANIFEST_HEADER = "SNAMP-Resource-Adapter";
 
 
-    private static final String ADAPTER_NAME_IDENTITY_PROPERTY = "adapterName";
+    private static final String ADAPTER_NAME_IDENTITY_PROPERTY = ADAPTER_NAME_MANIFEST_HEADER;
     private static final ActivationProperty<String> ADAPTER_NAME_HOLDER = defineActivationProperty(String.class);
+
+    /**
+     * Represents superclass for all optional adapter-related service factories.
+     * You cannot derive from this class directly.
+     * @param <S> Type of the adapter-related service contract.
+     * @param <T> Type of the adapter-related service implementation.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     * @see com.itworks.snamp.adapters.AbstractResourceAdapterActivator.ConfigurationEntityDescriptionProviderHolder
+     * @see com.itworks.snamp.adapters.AbstractResourceAdapterActivator.LicensingDescriptionServiceProvider
+     */
+    protected abstract static class OptionalAdapterServiceProvider<S extends FrameworkService, T extends S> extends LoggableProvidedService<S, T>{
+
+        private OptionalAdapterServiceProvider(final Class<S> contract, final RequiredService<?>... dependencies) {
+            super(contract, dependencies);
+        }
+    }
+
+    private static final class AdapterLicensingDescriptorService<L extends LicenseLimitations> extends AbstractAggregator implements LicensingDescriptionService {
+        private final Logger logger;
+        private final LicenseReader licenseReader;
+        private final Class<L> descriptor;
+        private final Factory<L> fallbackFactory;
+
+        public AdapterLicensingDescriptorService(final LicenseReader reader,
+                                                 final Class<L> descriptor,
+                                                 final Factory<L> fallbackFactory,
+                                                 final Logger l){
+            this.licenseReader = reader;
+            this.descriptor = descriptor;
+            this.fallbackFactory = fallbackFactory;
+            this.logger = l;
+        }
+
+        @Override
+        public Logger getLogger() {
+            return logger;
+        }
+
+        /**
+         * Gets a read-only collection of license limitations.
+         *
+         * @return A read-only collection of license limitations.
+         */
+        @Override
+        public Collection<String> getLimitations() {
+            return IteratorUtils.toList(licenseReader.getLimitations(descriptor, fallbackFactory).iterator());
+        }
+
+        /**
+         * Gets human-readable description of the specified limitation.
+         *
+         * @param limitationName The system name of the limitation.
+         * @param loc            The locale of the description. May be {@literal null}.
+         * @return The description of the limitation.
+         */
+        @Override
+        public String getDescription(final String limitationName, final Locale loc) {
+            final LicenseLimitations.Limitation<?> lim =  licenseReader.getLimitations(descriptor, fallbackFactory).getLimitation(limitationName);
+            return lim != null ? lim.getDescription(loc) : "";
+        }
+    }
+
+    protected final static class LicensingDescriptionServiceProvider<L extends LicenseLimitations> extends OptionalAdapterServiceProvider<LicensingDescriptionService, AdapterLicensingDescriptorService>{
+        private final Factory<L> fallbackFactory;
+        private final Class<L> descriptor;
+
+        public LicensingDescriptionServiceProvider(final Class<L> limitationsDescriptor,
+                                                   final Factory<L> fallbackFactory) {
+            super(LicensingDescriptionService.class, new SimpleDependency<>(LicenseReader.class));
+            if(fallbackFactory == null) throw new IllegalArgumentException("fallbackFactory is null.");
+            else if(limitationsDescriptor == null) throw new IllegalArgumentException("limitationsDescriptor is null.");
+            else{
+                this.fallbackFactory = fallbackFactory;
+                this.descriptor = limitationsDescriptor;
+            }
+        }
+
+        /**
+         * Creates a new instance of the service.
+         *
+         * @param identity     A dictionary of properties that uniquely identifies service instance.
+         * @param dependencies A collection of dependencies.
+         * @return A new instance of the service.
+         */
+        @SuppressWarnings("unchecked")
+        @Override
+        protected final AdapterLicensingDescriptorService activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
+            identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getActivationPropertyValue(ADAPTER_NAME_HOLDER));
+            return new AdapterLicensingDescriptorService(getDependency(SimpleDependency.class, LicenseReader.class, dependencies),
+                    descriptor,
+                    fallbackFactory,
+                    getLogger());
+        }
+    }
 
     /**
      * Represents a holder for connector configuration descriptor.
@@ -44,7 +147,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @author Roman Sakno
      * @since 1.0
      */
-    protected abstract static class ConfigurationEntityDescriptionProviderHolder<T extends ConfigurationEntityDescriptionProvider> extends LoggableProvidedService<ConfigurationEntityDescriptionProvider, T>{
+    protected abstract static class ConfigurationEntityDescriptionProviderHolder<T extends ConfigurationEntityDescriptionProvider> extends OptionalAdapterServiceProvider<ConfigurationEntityDescriptionProvider, T>{
 
         /**
          * Initializes a new holder for the provided service.
@@ -95,39 +198,21 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     /**
      * Initializes a new instance of the resource adapter lifetime manager.
      * @param adapterName The name of the adapter.
+     * @param optionalServices Additional services exposed by adapter.
      */
-    protected AbstractResourceAdapterActivator(final String adapterName){
-        this(adapterName, AbstractResourceAdapter.getLogger(adapterName));
+    @SuppressWarnings("UnusedDeclaration")
+    protected AbstractResourceAdapterActivator(final String adapterName, final OptionalAdapterServiceProvider<?, ?>... optionalServices){
+        this(adapterName, AbstractResourceAdapter.getLogger(adapterName), optionalServices);
     }
 
     /**
      * Initializes a new instance of the resource adapter lifetime manager.
      * @param adapterName The name of the adapter.
      * @param loggerInstance The logger associated with the adapter.
+     * @param optionalServices Additional services exposed by adapter.
      */
-    protected AbstractResourceAdapterActivator(final String adapterName, final Logger loggerInstance){
-        super(loggerInstance != null ? loggerInstance : AbstractResourceAdapter.getLogger(adapterName));
-        this.adapterName = adapterName;
-        adapters = new HashMap<>(4);
-    }
-
-    /**
-     * Initializes a new instance of the resource adapter lifetime manager.
-     * @param adapterName The name of the adapter.
-     * @param descriptionProvider A service that exposes configuration schema of the adapter. Cannot be {@literal null}.
-     */
-    protected AbstractResourceAdapterActivator(final String adapterName, final ConfigurationEntityDescriptionProviderHolder<?> descriptionProvider){
-        this(adapterName, AbstractResourceAdapter.getLogger(adapterName), descriptionProvider);
-    }
-
-    /**
-     * Initializes a new instance of the resource adapter lifetime manager.
-     * @param adapterName The name of the adapter.
-     * @param loggerInstance The logger associated with the adapter.
-     * @param descriptionProvider A service that exposes configuration schema of the adapter. Cannot be {@literal null}.
-     */
-    protected AbstractResourceAdapterActivator(final String adapterName, final Logger loggerInstance, final ConfigurationEntityDescriptionProviderHolder<?> descriptionProvider){
-        super(loggerInstance != null ? loggerInstance : AbstractResourceAdapter.getLogger(adapterName), descriptionProvider);
+    protected AbstractResourceAdapterActivator(final String adapterName, final Logger loggerInstance, final OptionalAdapterServiceProvider<?, ?>... optionalServices){
+        super(loggerInstance != null ? loggerInstance : AbstractResourceAdapter.getLogger(adapterName), optionalServices);
         this.adapterName = adapterName;
         adapters = new HashMap<>(4);
     }
@@ -309,7 +394,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to start adapter.
      */
-    public static void startResourceConnector(final BundleContext context, final String adapterName) throws BundleException{
+    public static void startResourceAdapter(final BundleContext context, final String adapterName) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
         for(final Bundle bnd: getResourceAdapterBundles(context, adapterName))
             bnd.start();
@@ -344,5 +429,36 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
                 context.ungetService(providerRef);
             }
         return null;
+    }
+
+    /**
+     * Gets collection of license limitations associated with the specified adapter.
+     * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @param adapterName The name of the adapter.
+     * @param loc The locale of the description. May be {@literal null}.
+     * @return A map of license limitations with its human-readable description.
+     */
+    public static Map<String, String> getLicenseLimitations(final BundleContext context,
+                                                            final String adapterName,
+                                                            final Locale loc){
+        if(context == null) return null;
+        final Map<String, String> result = new HashMap<>(5);
+        ServiceReference<?>[] refs;
+        try {
+            refs = context.getAllServiceReferences(LicensingDescriptionService.class.getName(), String.format("(%s=%s)", ADAPTER_NAME_IDENTITY_PROPERTY, adapterName));
+        }
+        catch (final InvalidSyntaxException e) {
+            refs = null;
+        }
+        if(refs != null && refs.length > 0)
+            try{
+                final LicensingDescriptionService lims = (LicensingDescriptionService)context.getService(refs[0]);
+                for(final String limName: lims.getLimitations())
+                    result.put(limName, lims.getDescription(limName, loc));
+            }
+            finally {
+                context.ungetService(refs[0]);
+            }
+        return result;
     }
 }
