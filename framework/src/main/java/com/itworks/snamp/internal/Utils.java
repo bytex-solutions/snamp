@@ -1,12 +1,11 @@
 package com.itworks.snamp.internal;
 
 import com.itworks.snamp.internal.semantics.Internal;
+import org.apache.commons.collections4.Closure;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.FactoryUtils;
 import org.apache.commons.collections4.Transformer;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceReference;
+import org.osgi.framework.*;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -334,5 +333,25 @@ public final class Utils {
                         return transformer.transform(input);
                     }
                 } : null;
+    }
+
+    public static <S> void processExposedService(final Class<?> caller,
+                                                 final Class<S> serviceType,
+                                                 final String filter,
+                                                 final Closure<S> serviceInvoker) throws InvalidSyntaxException {
+        processExposedService(caller, serviceType, filter == null || filter.isEmpty() ? null : FrameworkUtil.createFilter(filter), serviceInvoker);
+    }
+
+    public static <S> void processExposedService(final Class<?> caller, final Class<S> serviceType, final Filter filter, final Closure<S> serviceInvoker) {
+        final Bundle owner = FrameworkUtil.getBundle(caller);
+        final ServiceReference<?>[] services = owner.getRegisteredServices();
+        for(final ServiceReference<?> ref: services)
+            if((filter == null || filter.match(ref)) && isInstanceOf(ref, serviceType))
+                try{
+                    serviceInvoker.execute(serviceType.cast(owner.getBundleContext().getService(ref)));
+                }
+                finally {
+                    owner.getBundleContext().ungetService(ref);
+                }
     }
 }

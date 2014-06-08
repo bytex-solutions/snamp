@@ -263,6 +263,19 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     }
 
     /**
+     * Gets an instance of the provided service.
+     * @param providerType The type of the service provider.
+     * @param <S> The contract of the provided service.
+     * @return Strongly typed reference to the provided service.
+     */
+    protected final <S extends FrameworkService> S getProvidedService(final Class<ProvidedService<S, ? extends S>> providerType){
+        for(final ProvidedService<?, ?> provider: providedServices)
+            if(providerType.isInstance(provider))
+                return providerType.cast(provider).serviceInstance;
+        return null;
+    }
+
+    /**
      * Determines whether the service of the specified contract is published by this bundle.
      * @param serviceType Service contract descriptor.
      * @return {@literal true}, if the specified service of the specified contract is published
