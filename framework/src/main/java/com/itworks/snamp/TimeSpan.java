@@ -30,6 +30,11 @@ public final class TimeSpan {
     public static final TimeSpan INFINITE = null;
 
     /**
+     * Represents empty time span.
+     */
+    public static final TimeSpan ZERO = new TimeSpan(0L);
+
+    /**
      * Represents the duration value.
      */
     public final long duration;
@@ -213,5 +218,23 @@ public final class TimeSpan {
     public static TimeSpan diff(final Date left, final Date right, final TimeUnit unit){
         final TimeSpan temp = new TimeSpan(left.getTime() - right.getTime(), TimeUnit.MILLISECONDS);
         return temp.convert(unit);
+    }
+
+    /**
+     * Computes subtraction between the current span and the specified time span.
+     * @param right The right operand of the subtraction.
+     * @param resultUnit The time unit of the result.
+     * @return The subtraction result.
+     */
+    public TimeSpan subtract(final TimeSpan right, final TimeUnit resultUnit) {
+        return right == null ?
+                convert(resultUnit):
+                new TimeSpan(convert(resultUnit).duration - right.convert(resultUnit).duration, resultUnit);
+    }
+
+    public TimeSpan add(final TimeSpan right, final TimeUnit resultUnit){
+        return right == null ?
+                convert(resultUnit):
+                new TimeSpan(convert(resultUnit).duration + right.convert(resultUnit).duration, resultUnit);
     }
 }

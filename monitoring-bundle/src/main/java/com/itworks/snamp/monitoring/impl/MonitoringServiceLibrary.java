@@ -2,8 +2,15 @@ package com.itworks.snamp.monitoring.impl;
 
 import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.management.SnampManager;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogListener;
+import org.osgi.service.log.LogReaderService;
 
+import javax.management.JMException;
+import javax.management.ObjectName;
+import java.lang.management.ManagementFactory;
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.Map;
 
 /**
@@ -31,8 +38,37 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
+    private static final class LogReaderServiceDependency extends RequiredServiceAccessor<LogReaderService>{
+        private final LogListener listener;
+
+        protected LogReaderServiceDependency(final LogListener listener) {
+            super(LogReaderService.class);
+            this.listener = listener;
+        }
+
+        @Override
+        protected boolean match(final ServiceReference<?> reference) {
+            return true;
+        }
+
+        @Override
+        protected void bind(final LogReaderService serviceInstance, final Dictionary<String, ?> properties) {
+            super.bind(serviceInstance, properties);
+            serviceInstance.addLogListener(listener);
+        }
+
+        @Override
+        protected void unbind() {
+            getService().removeLogListener(listener);
+            super.unbind();
+        }
+    }
+
+    private final SnampManagedBean bean;
+
     public MonitoringServiceLibrary(){
         super(new SnampManagerProvider());
+        bean = new SnampManagedBean();
     }
 
     /**
@@ -43,7 +79,7 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
      */
     @Override
     protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-
+        bundleLevelDependencies.add(new LogReaderServiceDependency(bean));
     }
 
     /**
@@ -51,10 +87,11 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
      *
      * @param activationProperties A collection of library activation properties to fill.
      * @param dependencies         A collection of resolved library-level dependencies.
-     * @throws Exception Unable to activate this library.
+     * @throws javax.management.JMException Unable to activate this library.
      */
     @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
+    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws JMException {
+        ManagementFactory.getPlatformMBeanServer().registerMBean(bean, new ObjectName(SnampCommonsMXBean.BEAN_NAME));
 
     }
 
@@ -62,10 +99,10 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
      * Deactivates this library.
      *
      * @param activationProperties A collection of library activation properties to read.
-     * @throws Exception Unable to deactivate this library.
+     * @throws JMException Unable to deactivate this library.
      */
     @Override
-    protected void deactivate(final ActivationPropertyReader activationProperties) throws Exception {
-
+    protected void deactivate(final ActivationPropertyReader activationProperties) throws JMException {
+        ManagementFactory.getPlatformMBeanServer().unregisterMBean(new ObjectName(SnampCommonsMXBean.BEAN_NAME));
     }
 }

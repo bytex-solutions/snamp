@@ -1,5 +1,7 @@
 package com.itworks.snamp.testing.management;
 
+import com.itworks.snamp.SynchronizationEvent;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
@@ -18,13 +20,19 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
+import org.osgi.service.log.LogService;
 
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
+import javax.management.*;
+import javax.management.openmbean.TabularData;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXServiceURL;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.testing.connectors.jmx.TestManagementBean.BEAN_NAME;
 
@@ -43,6 +51,58 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestManagem
                 SnampArtifact.MONITORING.getReference(),
                 SnampArtifact.SNMP4J.getReference(),
                 SnampArtifact.SNMP_ADAPTER.getReference());
+    }
+
+    @Test
+    public void jmxMonitoringTest() throws IOException, JMException, InterruptedException, TimeoutException {
+        final String jmxPort =
+                System.getProperty("com.sun.management.jmxremote.port", "9010");
+        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
+        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString))){
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.monitoring:type=Commons");
+            assertNotNull(connection.getMBeanInfo(commonsObj));
+            assertTrue(connection.getMBeanCount() > 0);
+            assertTrue(connection.getMBeanInfo(commonsObj).getAttributes().length > 0);
+            assertEquals(5000L, connection.getAttribute(commonsObj, "StatisticRenewalTime"));
+            connection.setAttribute(commonsObj, new Attribute("StatisticRenewalTime", 3000L));
+            assertEquals(3000L, connection.getAttribute(commonsObj, "StatisticRenewalTime"));
+            //emits some errors
+            final ServiceReference<LogService> loggerRef = getTestBundleContext().getServiceReference(LogService.class);
+            assertNotNull(loggerRef);
+            final LogService logger = getTestBundleContext().getService(loggerRef);
+            logger.log(LogService.LOG_ERROR, "Some error #1");
+            logger.log(LogService.LOG_ERROR, "Some error #2");
+            logger.log(LogService.LOG_WARNING, "Some warning #1");
+            //expected 2 errors and 1 warning
+            assertEquals(2L, connection.getAttribute(commonsObj, "FaultsCount"));
+            assertEquals(1L, connection.getAttribute(commonsObj, "WarningMessagesCount"));
+            //wait for refresh counters
+            Thread.sleep(3000);
+            assertEquals(0L, connection.getAttribute(commonsObj, "FaultsCount"));
+            assertEquals(0L, connection.getAttribute(commonsObj, "WarningMessagesCount"));
+            //test notifications
+            assertTrue(connection.getMBeanInfo(commonsObj).getNotifications().length > 0);
+            final SynchronizationEvent<Notification> syncEvent = new SynchronizationEvent<>(true);
+            connection.addNotificationListener(commonsObj, new NotificationListener() {
+                @Override
+                public void handleNotification(final Notification notification, final Object handback) {
+                    syncEvent.fire(notification);
+                }
+            }, null, null);
+            final String eventPayload = "Hello, world!";
+            logger.log(LogService.LOG_ERROR, eventPayload);
+            Notification notif = syncEvent.getAwaitor().await(TimeSpan.fromSeconds(3));
+            assertEquals(eventPayload, notif.getMessage());
+            assertEquals("itworks.snamp.monitoring.error", notif.getType());
+            logger.log(LogService.LOG_WARNING, eventPayload, new Exception("WAAGH!"));
+            notif = syncEvent.getAwaitor().await(TimeSpan.fromSeconds(3));
+            //assertEquals(String.format("%s. Reason: %s", eventPayload, new Exception("WAAGH!")), notif.getMessage());
+            assertEquals("itworks.snamp.monitoring.warning", notif.getType());
+            final TabularData connectors = (TabularData)connection.getAttribute(commonsObj, "InstalledConnectors");
+            assertNotNull(connectors);
+            assertFalse(connectors.isEmpty());
+        }
     }
 
     @Test

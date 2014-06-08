@@ -62,7 +62,7 @@ public class CountdownTimer {
      */
     @ThreadSafe
     public final TimeSpan getElapsedTime(){
-        return elapsed;
+        return elapsed.duration <= 0 ? TimeSpan.ZERO : elapsed;
     }
 
     /**
@@ -123,7 +123,7 @@ public class CountdownTimer {
     @ThreadSafe(false)
     public final boolean stop(){
         if(beginning == null) return false;
-        elapsed = TimeSpan.diff(new Date(), beginning, TimeUnit.MILLISECONDS);
+        elapsed = elapsed.subtract(TimeSpan.diff(new Date(), beginning, TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
         beginning = null;
         return true;
     }
