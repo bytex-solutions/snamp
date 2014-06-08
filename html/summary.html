@@ -54,17 +54,16 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery-1.10.2.js"></script>
+    <script src="js/bootstrap.js"></script>
     <script src="js/docs.min.js"></script>
 
-    <script type="text/javascript" src="js/snamp/stubs.js"></script>
-    <script type="text/javascript" src="js/snamp/summary.js"></script>
+    <script type="text/javascript" src="js/snamp.js"></script>
 
 
     <script type="text/javascript">
-      var options = { stub: true };   
-      $("#summaryTable").createSummaryTable(options);
+      var options = new options(true);
+      $("#summaryTable").createSummaryTable(options).find(".collapse").collapse();
       
     </script>
 

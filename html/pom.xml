@@ -21,9 +21,6 @@
             <groupId>pl.allegro</groupId>
             <artifactId>grunt-maven-plugin</artifactId>
             <version>1.0.2</version>
-            <configuration>
-                <gruntBuildDirectory>${project.build.directory}/grunt</gruntBuildDirectory>
-            </configuration>
             <executions>
                 <execution>
                     <phase>process-resources</phase>

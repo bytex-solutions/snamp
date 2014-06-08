@@ -1,4 +1,4 @@
-export module com.snamp.models
+module target
 {
     export class managmentTarget
     {
