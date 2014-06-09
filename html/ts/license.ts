@@ -1,13 +1,13 @@
-export module com.snamp.models
+module license
 {
 
-    export class license
+    export class licenseInfo
     {
         description: string;
 
-        constructor(public description:string = "There's no available description")
+        constructor(public descr:string = "There's no available description")
         {
-            this.description = description;
+            this.description = descr;
         }
     }
 }

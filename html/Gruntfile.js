@@ -10,7 +10,7 @@ module.exports = function(grunt) {
             // location where all build files shall be placed
             "target": "js",
             // location to place (compiled) javascript files
-            "target_js": "js/typescript",
+            "target_js": "js",
             // location to place documentation, etc.
             "target_report": "js/report"
         },
@@ -20,7 +20,7 @@ module.exports = function(grunt) {
             // Compiles the code into a single file. Also generates a typescript declaration file
             compile: {
                 base_path: 'ts',
-                src: ['<%= dir.source_ts %>/**/*.ts'],
+                src: ['<%= dir.source_ts %>/*.ts'],
                 dest: '<%= dir.target_js %>/<%= project.name %>.js',
                 options: {
                     base_path: 'ts',
