@@ -38,15 +38,13 @@
     <module>connectors</module>
     <module>adapters</module>
     <module>license-generator</module>
-      <!--<module>tests</module>
-      <module>rest-manager</module>
-      <module>examples</module>-->
      <module>infrastructure/config-bundle</module>
      <module>infrastructure/licensing-bundle</module>
      <module>osgi-tests</module>
-     <module>html</module>
+     <!--<module>html</module>-->
      <module>third-party-libs/bundlized/snmp4j</module>
      <module>infrastructure/monitoring-bundle</module>
+      <module>infrastructure/web-console</module>
   </modules>
     <repositories>
         <repository>
