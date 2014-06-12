@@ -630,7 +630,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
                 if(resolvedDependencies != bundleLevelDependencies.size())
                     try {
                         state = ActivationState.DEACTIVATING;
-                        deactivate(context, properties);
+                        deactivateInternal(context, properties);
                     }
                     catch (final Exception e) {
                         deactivationFailure(e, properties);
@@ -681,6 +681,16 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
         context.addServiceListener(this);
     }
 
+    private static void unregister(final BundleContext context, final Collection<RequiredService<?>> dependencies){
+        for(final RequiredService<?> dependency: dependencies)
+            dependency.unbind(context);
+    }
+
+    private void deactivateInternal(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
+        unregister(context, bundleLevelDependencies);
+        deactivate(context, activationProperties);
+    }
+
     /**
      * Stops the bundle.
      * @param context The execution context of the bundle being stopped.
@@ -688,11 +698,14 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      */
     @Override
     public final void stop(final BundleContext context) throws Exception {
+        context.removeServiceListener(this);
+        if(state == ActivationState.ACTIVATED)
+            deactivateInternal(context, getActivationProperties());
         try {
             shutdown(context);
         }
         finally {
-            context.removeServiceListener(this);
+            //unbind all dependencies
             bundleLevelDependencies.clear();
             properties.clear();
         }

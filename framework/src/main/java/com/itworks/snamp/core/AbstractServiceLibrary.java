@@ -268,6 +268,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @param <S> The contract of the provided service.
      * @return Strongly typed reference to the provided service.
      */
+    @SuppressWarnings("UnusedDeclaration")
     protected final <S extends FrameworkService> S getProvidedService(final Class<ProvidedService<S, ? extends S>> providerType){
         for(final ProvidedService<?, ?> provider: providedServices)
             if(providerType.isInstance(provider))
