@@ -61,6 +61,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
 
     /**
      * Creates a new configuration for running this test.
+     * @param config The configuration to set.
      */
     protected abstract void setupTestConfiguration(final AgentConfiguration config);
 

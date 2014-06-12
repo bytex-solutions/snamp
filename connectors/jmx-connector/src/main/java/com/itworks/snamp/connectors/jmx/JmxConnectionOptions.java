@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.*;
+
 /**
  * Represents JMX connector initialization options.
  * This class cannot be inherited.
@@ -16,12 +18,11 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-final class JmxConnectionOptions extends JMXServiceURL {
-    private static final String LOGIN_OPTION = "login";
-    private static final String PASSWORD_OPTION = "password";
+final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionFactory {
 
     private final String login;
     private final String password;
+    private final long retryCount;
 
     /**
      * Initializes a new JMX connection parameters.
@@ -35,11 +36,13 @@ final class JmxConnectionOptions extends JMXServiceURL {
 
     public JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException{
         super(connectionString);
-        if(options.containsKey(LOGIN_OPTION) && options.containsKey(PASSWORD_OPTION)){
-            login = options.get(LOGIN_OPTION);
-            password = options.get(PASSWORD_OPTION);
+        if(options.containsKey(JMX_LOGIN) && options.containsKey(JMX_PASSWORD)){
+            login = options.get(JMX_LOGIN);
+            password = options.get(JMX_PASSWORD);
         }
         else login = password = "";
+        this.retryCount = options.containsKey(CONNECTION_RETRY_COUNT) ?
+                Integer.valueOf(options.get(CONNECTION_RETRY_COUNT)) : 3L;
     }
 
     private Map<String, Object> getJmxOptions(){
@@ -57,7 +60,7 @@ final class JmxConnectionOptions extends JMXServiceURL {
      * @return A new instance of the connection manager.
      */
     public final JmxConnectionManager createConnectionManager(){
-        return new JmxConnectionManager(this, getJmxOptions());
+        return new JmxConnectionManager(this, retryCount);
     }
 
     /**
@@ -67,6 +70,9 @@ final class JmxConnectionOptions extends JMXServiceURL {
      * connection cannot be made because of a communication problem.
      */
     public final JMXConnector createConnection() throws IOException {
+        //this string should be used in OSGI environment. Otherwise, JMX connector
+        //will not resolve the JMX registry via JNDI
+        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
         return JMXConnectorFactory.connect(this, getJmxOptions());
     }
 }

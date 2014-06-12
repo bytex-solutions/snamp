@@ -335,6 +335,15 @@ public final class Utils {
                 } : null;
     }
 
+    /**
+     * Processes a service provided by the calling bundle.
+     * @param caller The caller class.
+     * @param serviceType The contract of the exposed service.
+     * @param filter Exposed service selector. May be {@literal null} or empty.
+     * @param serviceInvoker The object that implements procession logic.
+     * @param <S> The contract of the exposed service.
+     * @throws InvalidSyntaxException Invalid service selector.
+     */
     public static <S> void processExposedService(final Class<?> caller,
                                                  final Class<S> serviceType,
                                                  final String filter,
@@ -342,7 +351,18 @@ public final class Utils {
         processExposedService(caller, serviceType, filter == null || filter.isEmpty() ? null : FrameworkUtil.createFilter(filter), serviceInvoker);
     }
 
-    public static <S> void processExposedService(final Class<?> caller, final Class<S> serviceType, final Filter filter, final Closure<S> serviceInvoker) {
+    /**
+     * Processes a service provided by the calling bundle.
+     * @param caller The caller class.
+     * @param serviceType The contract of the exposed service.
+     * @param filter Exposed service selector. May be {@literal null} or empty.
+     * @param serviceInvoker The object that implements procession logic.
+     * @param <S> The contract of the exposed service.
+     */
+    public static <S> void processExposedService(final Class<?> caller,
+                                                 final Class<S> serviceType,
+                                                 final Filter filter,
+                                                 final Closure<S> serviceInvoker) {
         final Bundle owner = FrameworkUtil.getBundle(caller);
         final ServiceReference<?>[] services = owner.getRegisteredServices();
         for(final ServiceReference<?> ref: services)

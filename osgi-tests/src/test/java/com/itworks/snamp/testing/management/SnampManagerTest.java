@@ -48,7 +48,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestManagem
 
     public SnampManagerTest() throws MalformedObjectNameException {
         super(new TestManagementBean(), new ObjectName(TestManagementBean.BEAN_NAME),
-                SnampArtifact.MONITORING.getReference(),
+                SnampArtifact.MANAGEMENT.getReference(),
                 SnampArtifact.SNMP4J.getReference(),
                 SnampArtifact.SNMP_ADAPTER.getReference());
     }

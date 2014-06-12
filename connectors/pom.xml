@@ -9,7 +9,7 @@
   <artifactId>connectors</artifactId>
   <version>1.0.0</version>
   <packaging>pom</packaging>
-  <name>SNAMP Connector Plugin Framework</name>
+  <name>SNAMP Connectors</name>
   <description>A base classes for building SNAMP management connectors</description>
   <modules>
       <module>jmx-connector</module>

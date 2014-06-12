@@ -15,6 +15,9 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+    public static final String JMX_LOGIN = "login";
+    public static final String JMX_PASSWORD = "password";
+    public static final String CONNECTION_RETRY_COUNT = "retryCount";
     public static final String OBJECT_NAME_PROPERTY = "objectName";
 
     /**

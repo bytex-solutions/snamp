@@ -11,11 +11,7 @@ import org.snmp4j.smi.OctetString;
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
 import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
-import javax.naming.ldap.LdapContext;
+import javax.naming.directory.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -338,14 +334,21 @@ final class SecurityConfiguration {
     private final OctetString securityEngineID;
     private final Map<String, UserGroup> groups;
     private String ldapUri;
+    private final DirContextFactory contextFactory;
 
     /**
      * Initializes a new empty security configuration.
      * @param securityEngine Security engine ID (authoritative engine).
      */
-    public SecurityConfiguration(final byte[] securityEngine){
+    public SecurityConfiguration(final byte[] securityEngine, final DirContextFactory contextFactory){
         this.securityEngineID = new OctetString(securityEngine);
         this.groups = new HashMap<>(10);
+        this.contextFactory = contextFactory != null ? contextFactory : new DirContextFactory() {
+            @Override
+            public DirContext create(final Hashtable<?, ?> env) throws NamingException{
+                return new InitialDirContext(env);
+            }
+        };
     }
 
     /**
@@ -386,7 +389,7 @@ final class SecurityConfiguration {
         return groups.containsKey(groupName);
     }
 
-    private static final Collection<String> splitAndTrim(final String value, final String separator){
+    private static Collection<String> splitAndTrim(final String value, final String separator){
         final String[] result = value.split(separator);
         for(int i = 0; i < result.length; i++)
             result[i] = result[i].trim();
@@ -428,7 +431,7 @@ final class SecurityConfiguration {
     public final boolean read(final Map<String, String> adapterSettings){
         if(adapterSettings.containsKey(LDAP_URI_PARAM)){ //import groups and users from LDAP
             setLdapUri(adapterSettings.get(LDAP_URI_PARAM));
-            return fillGroupsFromLdap(adapterSettings, getLdapUri(), groups);
+            return fillGroupsFromLdap(contextFactory, adapterSettings, getLdapUri(), groups);
         }
         else if(adapterSettings.containsKey(SNMPv3_GROUPS_PARAM)){ //import groups and users from local configuration file
             fillGroups(adapterSettings, splitAndTrim(adapterSettings.get(SNMPv3_GROUPS_PARAM), ";"), groups);
@@ -437,7 +440,10 @@ final class SecurityConfiguration {
         else return false;
     }
 
-    private static boolean fillGroupsFromLdap(final Map<String, String> adapterSettings, final String ldapUri, final Map<String, UserGroup> groups) {
+    private static boolean fillGroupsFromLdap(final DirContextFactory contextFactory,
+                                              final Map<String, String> adapterSettings,
+                                              final String ldapUri,
+                                              final Map<String, UserGroup> groups) {
         final String ldapUserName = adapterSettings.get(LDAP_ADMINDN_PARAM);
         final String ldapUserPassword = adapterSettings.get(LDAP_ADMIN_PASSWORD_PARAM);
         final Logger logger = SnmpHelpers.getLogger();
@@ -455,11 +461,13 @@ final class SecurityConfiguration {
         //ensures that objectSID attribute values
         //will be returned as a byte[] instead of a String
         env.put("java.naming.ldap.attributes.binary", "objectSID");
+        //LDAP version
+        env.put("java.naming.ldap.version", "3");
 
         // the following is helpful in debugging errors
         //env.put("com.sun.jndi.ldap.trace.ber", System.err);
         try {
-            final LdapContext ctx = new InitialLdapContext(env, null);
+            final DirContext ctx = contextFactory.create(env);
             logger.fine(String.format("User %s is authenticated successfully on LDAP %s", ldapUserName, ldapUri));
             final String ldapGroups = adapterSettings.get(LDAP_GROUPS_PARAM);
             final String userSearchFilter = adapterSettings.get(LDAP_USER_SEARCH_FILTER_PARAM);
@@ -482,7 +490,7 @@ final class SecurityConfiguration {
         }
     }
 
-    private static void fillGroupsFromLdap(final LdapContext directory,
+    private static void fillGroupsFromLdap(final DirContext directory,
                                            final Collection<String> ldapGroups,
                                            final String baseDn,
                                            final String userSearchFilter,
@@ -493,7 +501,7 @@ final class SecurityConfiguration {
             importGroupFromLdap(directory, ldapGroupFilter, userSearchFilter, baseDn, groups, userPasswordHolder);
     }
 
-    private static void importGroupFromLdap(final LdapContext directory,
+    private static void importGroupFromLdap(final DirContext directory,
                                             final String ldapGroup,
                                             final String userSearchFilter,
                                             final String baseDn,
@@ -507,7 +515,7 @@ final class SecurityConfiguration {
             importGroupFromLdap(directory, searchResult.nextElement(), userSearchFilter, baseDn, groups, userPasswordHolder);
     }
 
-    private static void importGroupFromLdap(final LdapContext directory,
+    private static void importGroupFromLdap(final DirContext directory,
                                             final SearchResult ldapGroup,
                                             final String userSearchFilter,
                                             final String baseDn,
@@ -534,7 +542,7 @@ final class SecurityConfiguration {
         groups.put(ldapGroup.getNameInNamespace(), userGroup);
     }
 
-    private static void importUsersFromLdap(final LdapContext directory,
+    private static void importUsersFromLdap(final DirContext directory,
                                             final Map<String, User> userGroup,
                                             final String userSearchFilter,
                                             final String baseDn,

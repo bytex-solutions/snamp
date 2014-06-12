@@ -1,14 +1,21 @@
 package com.itworks.snamp.connectors.jmx;
 
-import com.itworks.snamp.internal.semantics.ThreadSafe;
 import com.itworks.snamp.internal.semantics.Internal;
+import com.itworks.snamp.internal.semantics.ThreadSafe;
 
-import javax.management.*;
-import javax.management.remote.*;
+import javax.management.JMException;
+import javax.management.ListenerNotFoundException;
+import javax.management.MBeanServerConnection;
+import javax.management.remote.JMXConnectionNotification;
+import javax.management.remote.JMXConnector;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
-import java.util.logging.*;
+import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.List;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents JMX connection manager that provides reliable access to
@@ -21,8 +28,7 @@ import java.util.logging.*;
 final class JmxConnectionManager implements Closeable {
     private static final Logger logger = JmxConnectorHelpers.getLogger();
     public static final String RETRY_COUNT_PROPERTY = "retryCount";
-    private final JMXServiceURL serviceURL;
-    private final Map<String, Object> connectionProperties;
+    private final JmxConnectionFactory serviceURL;
     private JMXConnector connection;
     private final Object coordinator;
     private final long connectionRetryCount;
@@ -74,14 +80,11 @@ final class JmxConnectionManager implements Closeable {
         }
     }
 
-    public JmxConnectionManager(final JMXServiceURL connectionString, final Map<String, Object> connectionProperties){
+    public JmxConnectionManager(final JmxConnectionFactory connectionString, final long retryCount){
         if(connectionString == null) throw new IllegalArgumentException("connectionString is null.");
         this.serviceURL = connectionString;
-        this.connectionProperties = connectionProperties != null ? Collections.unmodifiableMap(connectionProperties) : new HashMap<String, Object>();
         //default retry count = 3
-        this.connectionRetryCount = this.connectionProperties.containsKey(RETRY_COUNT_PROPERTY) ?
-            Long.valueOf(Objects.toString(this.connectionProperties.get(RETRY_COUNT_PROPERTY), "3")) :
-            3L;
+        this.connectionRetryCount = retryCount;
         this.reconnectionHandlers = new ArrayList<>(5);
         this.coordinator = new Object();
         this.connection = null;
@@ -96,7 +99,8 @@ final class JmxConnectionManager implements Closeable {
         }
         synchronized (coordinator){
             try {
-                connection = JMXConnectorFactory.connect(serviceURL, connectionProperties);
+                Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+                connection = serviceURL.createConnection();
                 //raises reconnection event
                 for(final MBeanServerConnectionHandler<Void> handler: reconnectionHandlers)
                     try{
@@ -118,7 +122,10 @@ final class JmxConnectionManager implements Closeable {
     public final <T> T handleConnection(final MBeanServerConnectionHandler<T> handler, final T defaultValue){
         synchronized (coordinator){
             try {
-                if(connection == null) connection = JMXConnectorFactory.connect(serviceURL, connectionProperties);
+                if(connection == null) {
+                    Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+                    connection = serviceURL.createConnection();
+                }
                 else listener.unsubscribe(); //removes the listener
                 return handler.handle(connection.getMBeanServerConnection());
             }

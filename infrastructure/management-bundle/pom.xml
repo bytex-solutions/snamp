@@ -19,15 +19,15 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-Activator>com.itworks.snamp.monitoring.impl.MonitoringServiceLibrary</Bundle-Activator>
-                        <Bundle-SymbolicName>com.itworks.snamp.monitoring.impl</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.management.impl.MonitoringServiceLibrary</Bundle-Activator>
+                        <Bundle-SymbolicName>com.itworks.snamp.management.impl</Bundle-SymbolicName>
                         <Export-Package/>
                     </instructions>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    <artifactId>monitoring-bundle</artifactId>
+    <artifactId>management-bundle</artifactId>
     <version>1.0.0</version>
     <dependencies>
         <dependency>

@@ -5,12 +5,11 @@ import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
+import org.ops4j.pax.exam.options.FrameworkPropertyOption;
 import org.osgi.framework.BundleContext;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.ops4j.pax.exam.CoreOptions.junitBundles;
 
@@ -35,6 +34,10 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         this(Arrays.asList(deps));
     }
 
+    protected Collection<FrameworkPropertyOption> getFrameworkProperties(){
+        return Collections.emptyList();
+    }
+
     /**
      * Returns configuration of Pax Exam testing runtime.
      * @return
@@ -44,7 +47,8 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         final List<Option> result = new ArrayList<>(dependencies.size() + 1);
         result.addAll(dependencies);
         result.add(junitBundles());
-        return result.toArray(new Option[0]);
+        result.addAll(getFrameworkProperties());
+        return result.toArray(new Option[result.size()]);
     }
 
     /**

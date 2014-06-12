@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <name>SNAMP Web Console</name>
     <description>Web Console for SNAMP administrators</description>
+    <packaging>bundle</packaging>
     <build>
         <plugins>
             <plugin>
@@ -18,12 +19,9 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.itworks.snamp.management</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>com.itworks.snamp.management.webconsole</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.management.webconsole.WebConsoleActivator</Bundle-Activator>
                         <Export-Package/>
-                        <Embed-Dependency>
-                            jersey-server;
-                            jersey-servlet
-                        </Embed-Dependency>
                     </instructions>
                 </configuration>
             </plugin>
@@ -68,6 +66,36 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-http</artifactId>
+            <version>9.1.1.v20140108</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-util</artifactId>
+            <version>9.1.1.v20140108</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-io</artifactId>
+            <version>9.1.1.v20140108</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-security</artifactId>
+            <version>9.1.1.v20140108</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-xml</artifactId>
+            <version>9.1.1.v20140108</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <scope>provided</scope>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
@@ -80,10 +108,22 @@
             <version>1.17.1</version>
         </dependency>
         <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+            <version>1.17.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <scope>provided</scope>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

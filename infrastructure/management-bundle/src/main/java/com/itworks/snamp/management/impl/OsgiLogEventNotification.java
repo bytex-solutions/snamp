@@ -1,4 +1,4 @@
-package com.itworks.snamp.monitoring.impl;
+package com.itworks.snamp.management.impl;
 
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogService;

@@ -8,7 +8,7 @@
   </parent>
   <artifactId>adapters</artifactId>
   <packaging>pom</packaging>
-  <name>SNAMP Adapter Plugin Framework</name>
+  <name>SNAMP Adapters</name>
   <description>A base classes for building SNAMP adapters</description>
   <dependencies>
     <dependency>

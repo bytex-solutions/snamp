@@ -58,5 +58,39 @@
           <artifactId>org.osgi.compendium</artifactId>
           <version>4.3.1</version>
       </dependency>
+      <dependency>
+          <groupId>org.apache.aries.jndi</groupId>
+          <artifactId>org.apache.aries.jndi</artifactId>
+          <version>1.0.0</version>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.aries.jndi</groupId>
+          <artifactId>org.apache.aries.jndi.core</artifactId>
+          <version>1.0.0</version>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.aries.jndi</groupId>
+          <artifactId>org.apache.aries.jndi.url</artifactId>
+          <version>1.0.0</version>
+          <scope>provided</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.aries.jndi</groupId>
+          <artifactId>org.apache.aries.jndi.api</artifactId>
+          <version>1.0.0</version>
+          <scope>provided</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.aries.jndi</groupId>
+          <artifactId>org.apache.aries.jndi.rmi</artifactId>
+          <version>1.0.0</version>
+          <scope>provided</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.aries</groupId>
+          <artifactId>org.apache.aries.util</artifactId>
+          <version>1.0.0</version>
+          <scope>provided</scope>
+      </dependency>
   </dependencies>
 </project>

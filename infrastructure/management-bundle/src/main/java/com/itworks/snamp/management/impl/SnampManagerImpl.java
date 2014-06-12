@@ -1,4 +1,4 @@
-package com.itworks.snamp.monitoring.impl;
+package com.itworks.snamp.management.impl;
 
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.management.AbstractSnampManager;

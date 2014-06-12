@@ -38,6 +38,7 @@ import java.util.concurrent.TimeoutException;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestManagementBean.BEAN_NAME;
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * Represents integration tests for JMX resource connector and SNMP resource adapter.
@@ -54,6 +55,11 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestManageme
 
     public JmxToSnmpV2Test() throws MalformedObjectNameException {
         super(new TestManagementBean(), new ObjectName(BEAN_NAME),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.core", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.url", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.api", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.rmi", "1.0.0"),
                 SnampArtifact.SNMP4J.getReference(),
                 SnampArtifact.SNMP_ADAPTER.getReference());
     }

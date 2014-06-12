@@ -43,7 +43,7 @@
      <module>osgi-tests</module>
      <!--<module>html</module>-->
      <module>third-party-libs/bundlized/snmp4j</module>
-     <module>infrastructure/monitoring-bundle</module>
+     <module>infrastructure/management-bundle</module>
       <module>infrastructure/web-console</module>
   </modules>
     <repositories>

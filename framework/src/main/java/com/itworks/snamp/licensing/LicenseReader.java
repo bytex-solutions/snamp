@@ -16,6 +16,11 @@ public interface LicenseReader extends FrameworkService {
     String LICENSE_FILE_PROPERTY = "com.snamp.itworks.licensing.file";
 
     /**
+     * Represents encoding of the license file.
+     */
+    String LICENSE_FILE_ENCODING = "UTF-8";
+
+    /**
      * Reload the license from the persistent storage.
      */
     void reload();

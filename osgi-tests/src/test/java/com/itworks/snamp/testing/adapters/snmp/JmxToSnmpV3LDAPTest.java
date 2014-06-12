@@ -38,6 +38,7 @@ import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.testing.connectors.jmx.TestManagementBean.BEAN_NAME;
 import static org.ops4j.pax.exam.CoreOptions.maven;
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.wrappedBundle;
 
 /**
@@ -62,6 +63,12 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestMana
         super(new TestManagementBean(), new ObjectName(BEAN_NAME),
                 SnampArtifact.SNMP4J.getReference(),
                 SnampArtifact.SNMP_ADAPTER.getReference(),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.core", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.url", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.api", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.rmi", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.util", "1.0.0"),
                 wrappedBundle(maven("org.apache.directory.server", "apacheds-all", "2.0.0-M16")).exports("org.apache.directory.*; version=2.0.0.16"));
     }
 
