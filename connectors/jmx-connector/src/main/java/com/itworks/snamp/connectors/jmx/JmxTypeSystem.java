@@ -8,6 +8,7 @@ import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeConverter;
 
+import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -72,6 +73,37 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             row.put(columnName, value.get(columnName));
         result.addRow(row);
         return result;
+    }
+
+    public static OpenType<?> getOpenType(final MBeanAttributeInfo targetAttr) {
+        if(targetAttr instanceof OpenMBeanAttributeInfo)
+            return ((OpenMBeanAttributeInfo)targetAttr).getOpenType();
+        switch (targetAttr.getType()){
+            case "string":
+            case "java.lang.String": return SimpleType.STRING;
+            case "boolean":
+            case "java.lang.Boolean": return SimpleType.BOOLEAN;
+            case "byte":
+            case "java.lang.Byte": return SimpleType.BYTE;
+            case "short":
+            case "java.lang.Short": return SimpleType.SHORT;
+            case "int":
+            case "java.lang.Integer": return SimpleType.INTEGER;
+            case "long":
+            case "java.lang.Long": return SimpleType.LONG;
+            case "float":
+            case "java.lang.Float": return SimpleType.FLOAT;
+            case "double":
+            case "java.lang.Double": return SimpleType.DOUBLE;
+            case "java.math.BigDecimal": return SimpleType.BIGDECIMAL;
+            case "java.math.BigInteger": return SimpleType.BIGINTEGER;
+            case "char":
+            case "java.lang.Character": return SimpleType.CHARACTER;
+            case "java.util.Date": return SimpleType.DATE;
+            case "void":
+            case "java.lang.Void": return SimpleType.VOID;
+            default: return SimpleType.STRING;
+        }
     }
 
     /**

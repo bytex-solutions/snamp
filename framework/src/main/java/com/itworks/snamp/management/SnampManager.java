@@ -11,6 +11,7 @@ import java.util.Collection;
  * @since 1.0
  */
 public interface SnampManager extends FrameworkService {
+
     /**
      * Returns a read-only collection of installed resource connectors.
      * @return A read-only collection of installed resource connectors.

@@ -81,14 +81,16 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @param serviceType    Requested service contract.
          * @param serviceInvoker User-defined action that is used to perform some management actions.
          * @throws org.apache.commons.collections4.FunctorException An exception occurred during processing.
+         * @return {@literal true}, if the specified service is invoked successfully.
          * @see org.apache.commons.collections4.FunctorException#getCause()
          * @see com.itworks.snamp.management.Maintainable
          * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public <S extends ManagementService> void invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
+        public <S extends ManagementService> boolean invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
             final BundleContext context = getItselfContext();
             final Bundle bnd = context.getBundle(bundleID);
+            boolean result = false;
             for(final ServiceReference<?> candidate: bnd.getRegisteredServices())
                 if(Utils.isInstanceOf(candidate, serviceType))
                     try{
@@ -96,7 +98,9 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
                     }
                     finally {
                         context.ungetService(candidate);
+                        result = true;
                     }
+            return result;
         }
 
         /**
@@ -197,10 +201,11 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public final  <S extends ManagementService> void invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
+        public final  <S extends ManagementService> boolean invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
             ServiceReference<S> ref = null;
             try {
                 ref = ResourceAdapterClient.getServiceReference(getItselfContext(), systemName, null, serviceType);
+                if(ref == null) return false;
                 serviceInvoker.execute(getItselfContext().getService(ref));
             }
             catch (final InvalidSyntaxException e) {
@@ -209,6 +214,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
             finally {
                 if(ref != null) getItselfContext().ungetService(ref);
             }
+            return true;
         }
 
         /**
@@ -319,10 +325,11 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public final  <S extends ManagementService> void invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
+        public final  <S extends ManagementService> boolean invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
             ServiceReference<S> ref = null;
             try {
                 ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), systemName, null, serviceType);
+                if(ref == null) return false;
                 serviceInvoker.execute(getItselfContext().getService(ref));
             }
             catch (final InvalidSyntaxException e) {
@@ -331,6 +338,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
             finally {
                 if(ref != null) getItselfContext().ungetService(ref);
             }
+            return true;
         }
 
         /**

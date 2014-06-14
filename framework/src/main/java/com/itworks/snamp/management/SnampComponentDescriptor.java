@@ -43,10 +43,11 @@ public interface SnampComponentDescriptor extends Descriptive {
      * @param serviceType Requested service contract.
      * @param serviceInvoker User-defined action that is used to perform some management actions.
      * @param <S> Type of the management service contract.
+     * @return {@literal true}, if the requested service is invoked; otherwise, {@literal false}.
      * @throws FunctorException An exception occurred during processing.
      * @see org.apache.commons.collections4.FunctorException#getCause()
      * @see com.itworks.snamp.management.Maintainable
      * @see com.itworks.snamp.licensing.LicensingDescriptionService
      */
-    <S extends ManagementService> void invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException;
+    <S extends ManagementService> boolean invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException;
 }

@@ -1,17 +1,27 @@
 package com.itworks.snamp.management.impl;
 
+import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
 import com.itworks.snamp.core.AbstractServiceLibrary;
+import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.internal.semantics.MethodStub;
 import com.itworks.snamp.management.SnampManager;
+import com.itworks.snamp.management.jmx.FrameworkMBean;
+import com.itworks.snamp.management.jmx.OpenMBeanProvider;
+import org.apache.commons.collections4.Closure;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
 import javax.management.JMException;
+import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * @author Roman Sakno
@@ -64,11 +74,98 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
-    private final SnampManagedBean bean;
+    private static final class SnampCoreMBeanProvider extends OpenMBeanProvider<SnampCoreMBean>{
+        private boolean platformMBeanServerUsed;
+
+        /**
+         * Initializes a new holder for the MBean.
+         * @throws IllegalArgumentException contract is {@literal null}.
+         */
+        public SnampCoreMBeanProvider() {
+            super(SnampCoreMBean.OBJECT_NAME);
+            platformMBeanServerUsed = false;
+        }
+
+        /**
+         * Creates a new instance of MBean.
+         *
+         * @return A new instance of MBean.
+         */
+        @Override
+        protected SnampCoreMBean createMBean() throws JMException{
+            final SnampCoreMBean mbean = new SnampCoreMBean();
+            //if bundle started in Apache Karaf environment then MBean server automatically registers SNAMP MBeans
+            //if not, then register MBean manually
+            try {
+                if(!Utils.isServiceRegistered(getClass(), MBeanServer.class, null)) {
+                    ManagementFactory.getPlatformMBeanServer().registerMBean(mbean, new ObjectName(SnampCoreMBean.OBJECT_NAME));
+                    platformMBeanServerUsed = true;
+                }
+            }
+            catch (final InvalidSyntaxException e) {
+                MonitoringUtils.getLogger().log(Level.WARNING, String.format("Unable to check whether the MBeanServer is registered in OSGI. Call for SNAMP developers. Details: %s", e.getMessage()));
+            }
+            return mbean;
+        }
+
+        /**
+         * Provides service cleanup operations.
+         * <p>
+         * In the default implementation this method does nothing.
+         * </p>
+         *
+         * @param serviceInstance An instance of the hosted service to cleanup.
+         * @param stopBundle      {@literal true}, if this method calls when the owner bundle is stopping;
+         *                        {@literal false}, if this method calls when loosing dependency.
+         */
+        @Override
+        protected void cleanupService(final SnampCoreMBean serviceInstance, final boolean stopBundle) throws JMException {
+            //if bundle started in Apache Karaf environment then MBean server automatically registers SNAMP MBeans
+            //if not, then register MBean manually
+            if(platformMBeanServerUsed)
+                ManagementFactory.getPlatformMBeanServer().unregisterMBean(new ObjectName(SnampCoreMBean.OBJECT_NAME));
+            platformMBeanServerUsed = false;
+        }
+    }
+
+    private static final class LogEntryRouter implements LogListener{
+
+        /**
+         * Listener method called for each LogEntry object created.
+         * <p/>
+         * <p/>
+         * As with all event listeners, this method should return to its caller as
+         * soon as possible.
+         *
+         * @param entry A {@code LogEntry} object containing log information.
+         * @see org.osgi.service.log.LogEntry
+         */
+        @Override
+        public void logged(final LogEntry entry) {
+            try {
+                Utils.processExposedService(getClass(),
+                        FrameworkMBean.class,
+                        String.format("(%s=%s)", SnampCoreMBean.OBJECT_NAME_IDENTITY_PROPERTY, SnampCoreMBean.OBJECT_NAME),
+                        new Closure<FrameworkMBean>() {
+                            @Override
+                            public void execute(final FrameworkMBean input) {
+                                input.queryObject(LogListener.class).logged(entry);
+                            }
+                        });
+            }
+            catch (final InvalidSyntaxException e) {
+                MonitoringUtils.getLogger().log(Level.SEVERE,
+                        "Invalid filter for selecting SnampCoreMBean. Call for SNAMP developers.",
+                        e);
+            }
+        }
+    }
+
+    private final LogListener listener;
 
     public MonitoringServiceLibrary(){
-        super(new SnampManagerProvider());
-        bean = new SnampManagedBean();
+        super(new SnampManagerProvider(), new SnampCoreMBeanProvider());
+        this.listener = new LogEntryRouter();
     }
 
     /**
@@ -79,7 +176,8 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
      */
     @Override
     protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-        bundleLevelDependencies.add(new LogReaderServiceDependency(bean));
+        bundleLevelDependencies.add(new LogReaderServiceDependency(listener));
+        bundleLevelDependencies.add(new AbstractLoggableServiceLibrary.LoggerServiceDependency(MonitoringUtils.getLogger()));
     }
 
     /**
@@ -87,22 +185,20 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
      *
      * @param activationProperties A collection of library activation properties to fill.
      * @param dependencies         A collection of resolved library-level dependencies.
-     * @throws javax.management.JMException Unable to activate this library.
      */
     @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws JMException {
-        ManagementFactory.getPlatformMBeanServer().registerMBean(bean, new ObjectName(SnampCommonsMXBean.BEAN_NAME));
-
+    @MethodStub
+    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) {
     }
 
     /**
      * Deactivates this library.
      *
      * @param activationProperties A collection of library activation properties to read.
-     * @throws JMException Unable to deactivate this library.
      */
     @Override
-    protected void deactivate(final ActivationPropertyReader activationProperties) throws JMException {
-        ManagementFactory.getPlatformMBeanServer().unregisterMBean(new ObjectName(SnampCommonsMXBean.BEAN_NAME));
+    @MethodStub
+    protected void deactivate(final ActivationPropertyReader activationProperties) {
+
     }
 }

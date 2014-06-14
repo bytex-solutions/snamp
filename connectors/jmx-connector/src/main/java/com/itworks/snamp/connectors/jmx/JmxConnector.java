@@ -235,7 +235,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                 }
             }, null);
             return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
-                private final OpenType<?> compositeType = targetAttr instanceof OpenMBeanAttributeInfoSupport ? ((OpenMBeanAttributeInfoSupport)targetAttr).getOpenType() : SimpleType.STRING;
+                private final OpenType<?> compositeType = JmxTypeSystem.getOpenType(targetAttr);
 
                 @Override
                 public final boolean canRead() {

@@ -23,6 +23,7 @@ import org.osgi.framework.Version;
 import org.osgi.service.log.LogService;
 
 import javax.management.*;
+import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
@@ -35,6 +36,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.testing.connectors.jmx.TestManagementBean.BEAN_NAME;
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * @author Roman Sakno
@@ -48,6 +50,19 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestManagem
 
     public SnampManagerTest() throws MalformedObjectNameException {
         super(new TestManagementBean(), new ObjectName(TestManagementBean.BEAN_NAME),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.core", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.url", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.api", "1.0.0"),
+                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.rmi", "1.0.0"),
+                mavenBundle("org.apache.aries", "org.apache.aries.util", "1.0.0"),
+                mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy.api", "1.0.0"),
+                mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy.impl", "1.0.1"),
+                mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy", "1.0.1"),
+                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx", "1.1.1"),
+                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.api", "1.1.0"),
+                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.core", "1.1.1"),
+                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.core.whiteboard", "1.1.1"),
                 SnampArtifact.MANAGEMENT.getReference(),
                 SnampArtifact.SNMP4J.getReference(),
                 SnampArtifact.SNMP_ADAPTER.getReference());
@@ -60,7 +75,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestManagem
         final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
         try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString))){
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.monitoring:type=Commons");
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
             assertNotNull(connection.getMBeanInfo(commonsObj));
             assertTrue(connection.getMBeanCount() > 0);
             assertTrue(connection.getMBeanInfo(commonsObj).getAttributes().length > 0);
@@ -99,9 +114,15 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestManagem
             notif = syncEvent.getAwaitor().await(TimeSpan.fromSeconds(3));
             //assertEquals(String.format("%s. Reason: %s", eventPayload, new Exception("WAAGH!")), notif.getMessage());
             assertEquals("itworks.snamp.monitoring.warning", notif.getType());
-            final TabularData connectors = (TabularData)connection.getAttribute(commonsObj, "InstalledConnectors");
-            assertNotNull(connectors);
-            assertFalse(connectors.isEmpty());
+            final TabularData table = (TabularData)connection.getAttribute(commonsObj, "InstalledComponents");
+            assertFalse(table.isEmpty());
+            final CompositeData jmxConnectorInfo = table.get(new String[]{"JMX Connector"});
+            assertEquals("JMX Connector", jmxConnectorInfo.get("Name"));
+            assertEquals(Bundle.ACTIVE, jmxConnectorInfo.get("State"));
+            assertEquals(true, jmxConnectorInfo.get("IsManageable"));
+            assertEquals(true, jmxConnectorInfo.get("IsCommerciallyLicensed"));
+            assertEquals(true, jmxConnectorInfo.get("IsConfigurationDescriptionAvailable"));
+            getTestBundleContext().ungetService(loggerRef);
         }
     }
 
@@ -213,6 +234,11 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestManagem
         super.afterStartTest(context);
         AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    }
+
+    @Override
+    protected void beforeCleanupTest(final BundleContext context) throws Exception {
+        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
     }
 
     @Override

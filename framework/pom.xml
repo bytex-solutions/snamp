@@ -30,7 +30,9 @@
                         javax.xml.bind.annotation.adapters,
                         org.osgi.framework,
                         org.osgi.service.log,
-                        org.osgi.service.event
+                        org.osgi.service.event,
+                        javax.management,
+                        javax.management.openmbean
                     </Import-Package>
                     <Export-Package>
                         com.itworks.snamp.*,

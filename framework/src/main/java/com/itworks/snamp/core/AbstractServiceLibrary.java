@@ -262,17 +262,20 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         this.providedServices = new ArrayList<>(10);
     }
 
+    private static <S extends FrameworkService> S getServiceInstance(final ProvidedService<S, ? extends S> providedService){
+        return providedService.serviceInstance;
+    }
+
     /**
      * Gets an instance of the provided service.
      * @param providerType The type of the service provider.
      * @param <S> The contract of the provided service.
      * @return Strongly typed reference to the provided service.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    protected final <S extends FrameworkService> S getProvidedService(final Class<ProvidedService<S, ? extends S>> providerType){
+    protected final <S extends FrameworkService> S getProvidedService(final Class<? extends ProvidedService<S, ? extends S>> providerType){
         for(final ProvidedService<?, ?> provider: providedServices)
             if(providerType.isInstance(provider))
-                return providerType.cast(provider).serviceInstance;
+                return getServiceInstance(providerType.cast(provider));
         return null;
     }
 

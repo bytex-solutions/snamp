@@ -374,4 +374,19 @@ public final class Utils {
                     owner.getBundleContext().ungetService(ref);
                 }
     }
+
+    /**
+     * Determines whether the specified service is registered in OSGI service registry.
+     * @param callerClass The caller class.
+     * @param serviceType The service contract.
+     * @param filter The service filter. May be {@literal null}.
+     * @return {@literal true}, if the specified service is registered in OSGI service registry.
+     * @throws org.osgi.framework.InvalidSyntaxException Incorrect filter.
+     */
+    public static boolean isServiceRegistered(final Class<?> callerClass,
+                                       final Class<?> serviceType,
+                                       final String filter) throws InvalidSyntaxException {
+        final Bundle bundle = FrameworkUtil.getBundle(callerClass);
+        return bundle.getBundleContext().getServiceReferences(serviceType, filter).size() > 0;
+    }
 }
