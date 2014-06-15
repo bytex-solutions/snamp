@@ -27,6 +27,10 @@ declare module license {
         constructor(descr?: string);
     }
 }
+interface JQuery {
+    createLoaderTable(opts: options): JQuery;
+    addOperations(UUID: any, status: any): void;
+}
 declare module target {
     class managmentTarget {
         public connectionString: string;
