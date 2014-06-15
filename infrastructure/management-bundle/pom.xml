@@ -6,6 +6,7 @@
         <artifactId>snamp</artifactId>
         <groupId>com.itworks.snamp</groupId>
         <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
     <name>SNAMP Manager</name>
     <description>SNAMP self-management service provider</description>

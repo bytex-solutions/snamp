@@ -6,6 +6,7 @@
         <artifactId>snamp</artifactId>
         <groupId>com.itworks.snamp</groupId>
         <version>1.0.0</version>
+        <relativePath>../../../pom.xml</relativePath>
     </parent>
     <packaging>bundle</packaging>
     <name>SNMP4J</name>
@@ -43,7 +44,7 @@
         </dependency>
         <dependency>
             <groupId>org.snmp4j</groupId>
-            <artifactId>snmp4j</artifactId>
+            <artifactId>snmp4j</artifactId> <!-- you need to pass -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true when first importing this -->
             <version>2.2.3</version>
         </dependency>
     </dependencies>
