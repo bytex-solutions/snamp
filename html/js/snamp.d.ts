@@ -28,6 +28,9 @@ declare module license {
     }
 }
 interface JQuery {
+    getLicenseInfo(opts: options): JQuery;
+}
+interface JQuery {
     createLoaderTable(opts: options): JQuery;
     addOperations(UUID: any, status: any): void;
 }

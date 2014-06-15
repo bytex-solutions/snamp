@@ -54,6 +54,29 @@ var license;
 /// <reference path="types/jquery.d.ts" />
 
 (function ($) {
+    $.fn.getLicenseInfo = function (opts) {
+        if (typeof opts === "undefined") { opts = null; }
+        var commonData;
+
+        if (opts != null && opts.useStub) {
+            commonData = stubs.getSummary();
+        } else {
+            // ajax-rest loader for bundleInfo
+        }
+        for (var i = commonData.length - 1; i >= 0; i--) {
+            var data = commonData[i].licenseInfo;
+
+            // Now make a table per bundle
+            if (data != null) {
+                this.append("<h3>" + commonData[i].name + "</h3>");
+                this.append("<div class=\"well\">" + data.description + "</div>");
+            }
+        }
+    };
+})(jQuery);
+/// <reference path="types/jquery.d.ts" />
+
+(function ($) {
     $.fn.createLoaderTable = function (opts) {
         if (typeof opts === "undefined") { opts = null; }
         // Making the header part of table

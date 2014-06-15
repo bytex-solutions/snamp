@@ -19,23 +19,22 @@
 
   <body>
 
+  <div class="masthead clearfix">
+      <div class="inner">
+          <h3 class="masthead-brand">Licensing details for each installed bundles</h3>
+
+          <ul class="nav masthead-nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="http://localhost:8080/system/console/bundles" target="_blank">Bundle web console</a></li>
+          </ul>
+      </div>
+  </div>
+
     <div class="site-wrapper">
 
       <div class="site-wrapper-inner">
 
         <div class="cover-container">
-
-          <div class="masthead clearfix">
-            <div class="inner">
-              <h3 class="masthead-brand">Licensing details for each installed bundles</h3>
-
-              <ul class="nav masthead-nav">
-                <li class="active"><a href="#">Home</a></li>
-                <li><a href="http://localhost:8080/system/console/bundles" target="_blank">Bundle web console</a></li>
-              </ul>
-            </div>
-          </div>
-
 
           <div class="row" id="snmpLicening"></div>
 
@@ -55,16 +54,15 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery-1.8.0.js"></script>
+    <script src="js/bootstrap.js"></script>
     <script src="js/docs.min.js"></script>
 
-    <script type="text/javascript" src="js/snamp/stubs.js"></script>
-    <script type="text/javascript" src="js/snamp/licensing.js"></script>
+    <script type="text/javascript" src="js/snamp.js"></script>
 
 
     <script type="text/javascript">
-      var options = { stub: true};   
+      var options = new options(true);
       $("#snmpLicening").getLicenseInfo(options);
     </script>
 
