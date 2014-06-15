@@ -7,6 +7,7 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import java.lang.management.ManagementFactory;
+import java.lang.management.PlatformManagedObject;
 
 /**
  * Represents a base class for JMX management connector tests.
@@ -33,6 +34,7 @@ public abstract class AbstractJmxConnectorTest<MBean> extends AbstractManagement
 
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
+        if(beanInstance instanceof PlatformManagedObject) return;
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         if(mbs.isRegistered(beanName))
             mbs.unregisterMBean(beanName);
@@ -41,6 +43,7 @@ public abstract class AbstractJmxConnectorTest<MBean> extends AbstractManagement
 
     @Override
     protected void afterCleanupTest(final BundleContext context) throws Exception {
+        if(beanInstance instanceof PlatformManagedObject) return;
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.unregisterMBean(beanName);
     }

@@ -110,7 +110,8 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
                                            final String attributeName,
                                            final Class<T> attributeType,
                                            final T attributeValue,
-                                           final Equator<T> comparator) throws TimeoutException, IOException {
+                                           final Equator<T> comparator,
+                                           final boolean readOnlyTest) throws TimeoutException, IOException {
         final Map<String, String> attributeOptions = readSnampConfiguration().
                 getManagedResources().
                 get(testManagementTarget).getElements(AttributeConfiguration.class).get(attributeID).getParameters();
@@ -122,7 +123,8 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
             assertEquals(attributeName, metadata.getName());
             final TypeConverter<T> projection = metadata.getType().getProjection(attributeType);
             assertNotNull(projection);
-            assertTrue(connector.setAttribute(attributeID, TimeSpan.INFINITE, attributeValue));
+            if(!readOnlyTest)
+                assertTrue(connector.setAttribute(attributeID, TimeSpan.INFINITE, attributeValue));
             final T newValue = projection.convertFrom(connector.getAttribute(attributeID, TimeSpan.INFINITE, new Object()));
             assertNotNull(newValue);
             assertTrue(comparator.equate(attributeValue, newValue));
@@ -134,9 +136,25 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
     }
 
     protected final <T> void testAttribute(final String attributeID,
+                                           final String attributeName,
+                                           final Class<T> attributeType,
+                                           final T attributeValue,
+                                           final Equator<T> comparator) throws TimeoutException, IOException {
+        testAttribute(attributeID, attributeName, attributeType, attributeValue, comparator, false);
+    }
+
+    protected final <T> void testAttribute(final String attributeID,
                                        final String attributeName,
                                        final Class<T> attributeType,
                                        final T attributeValue) throws TimeoutException, IOException {
+        testAttribute(attributeID, attributeName, attributeType, attributeValue, false);
+    }
+
+    protected final <T> void testAttribute(final String attributeID,
+                                           final String attributeName,
+                                           final Class<T> attributeType,
+                                           final T attributeValue,
+                                           final boolean readOnlyTest) throws TimeoutException, IOException{
         testAttribute(attributeID, attributeName, attributeType, attributeValue, new Equator<T>() {
             @Override
             public boolean equate(final T o1, final T o2) {
@@ -147,6 +165,6 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
             public int hash(final T o) {
                 return System.identityHashCode(o);
             }
-        });
+        }, readOnlyTest);
     }
 }

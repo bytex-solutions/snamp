@@ -1,12 +1,13 @@
 package com.itworks.snamp.connectors.jmx;
 
+import com.itworks.snamp.SimpleTable;
+import com.itworks.snamp.Table;
+import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.connectors.ManagementEntityTabularType;
 import com.itworks.snamp.connectors.ManagementEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import org.apache.commons.collections4.Factory;
-import com.itworks.snamp.SimpleTable;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TypeConverter;
+import org.apache.commons.lang3.ArrayUtils;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
@@ -14,7 +15,8 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.logging.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents JMX type system. This class cannot be inherited.
@@ -75,35 +77,63 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         return result;
     }
 
-    public static OpenType<?> getOpenType(final MBeanAttributeInfo targetAttr) {
-        if(targetAttr instanceof OpenMBeanAttributeInfo)
-            return ((OpenMBeanAttributeInfo)targetAttr).getOpenType();
-        switch (targetAttr.getType()){
-            case "string":
-            case "java.lang.String": return SimpleType.STRING;
-            case "boolean":
-            case "java.lang.Boolean": return SimpleType.BOOLEAN;
-            case "byte":
-            case "java.lang.Byte": return SimpleType.BYTE;
-            case "short":
-            case "java.lang.Short": return SimpleType.SHORT;
-            case "int":
-            case "java.lang.Integer": return SimpleType.INTEGER;
-            case "long":
-            case "java.lang.Long": return SimpleType.LONG;
-            case "float":
-            case "java.lang.Float": return SimpleType.FLOAT;
-            case "double":
-            case "java.lang.Double": return SimpleType.DOUBLE;
-            case "java.math.BigDecimal": return SimpleType.BIGDECIMAL;
-            case "java.math.BigInteger": return SimpleType.BIGINTEGER;
-            case "char":
-            case "java.lang.Character": return SimpleType.CHARACTER;
-            case "java.util.Date": return SimpleType.DATE;
-            case "void":
-            case "java.lang.Void": return SimpleType.VOID;
-            default: return SimpleType.STRING;
+    private static OpenType<?> getOpenType(final String typeName, final Factory<OpenType<?>> fallback){
+        try{
+            switch (typeName){
+                case "byte":
+                case "java.lang.Byte": return SimpleType.BYTE;
+                case "short":
+                case "java.lang.Short": return SimpleType.SHORT;
+                case "int":
+                case "java.lang.Integer": return SimpleType.INTEGER;
+                case "long":
+                case "java.lang.Long": return SimpleType.LONG;
+                case "java.lang.String": return SimpleType.STRING;
+                case "java.lang.Date": return (SimpleType.DATE);
+                case "float":
+                case "java.lang.Float": return (SimpleType.FLOAT);
+                case "double":
+                case "java.lang.Double": return (SimpleType.DOUBLE);
+                case "char":
+                case "java.lang.Character": return (SimpleType.CHARACTER);
+                case "boolean":
+                case "java.lang.Boolean": return (SimpleType.BOOLEAN);
+                case "java.math.BigInteger": return (SimpleType.BIGINTEGER);
+                case "java.math.BigDecimal": return (SimpleType.BIGDECIMAL);
+                case "byte[]":
+                case "java.lang.Byte[]": return (new ArrayType<Byte[]>(1, SimpleType.BYTE));
+                case "short[]":
+                case "java.lang.Short[]": return (new ArrayType<Short[]>(1, SimpleType.SHORT));
+                case "int[]":
+                case "java.lang.Integer[]": return (new ArrayType<Integer[]>(1, SimpleType.INTEGER));
+                case "long[]":
+                case "java.lang.Long[]": return (new ArrayType<Long[]>(1, SimpleType.SHORT));
+                case "java.lang.String[]": return (new ArrayType<String[]>(1, SimpleType.STRING));
+                case "java.lang.Date[]": return (new ArrayType<Date[]>(1, SimpleType.DATE));
+                case "float[]":
+                case "java.lang.Float[]": return (new ArrayType<Float[]>(1, SimpleType.FLOAT));
+                case "double[]":
+                case "java.lang.Double[]": return (new ArrayType<Double[]>(1, SimpleType.DOUBLE));
+                case "char[]":
+                case "java.lang.Character[]": return (new ArrayType<Character[]>(1, SimpleType.CHARACTER));
+                case "boolean[]":
+                case "java.lang.Boolean[]": return (new ArrayType<Boolean[]>(1, SimpleType.BOOLEAN));
+                case "java.math.BigInteger[]": return (new ArrayType<BigInteger[]>(1, SimpleType.BIGINTEGER));
+                case "java.math.BigDecimal[]": return (new ArrayType<BigDecimal[]>(1, SimpleType.BIGDECIMAL));
+                default: return fallback != null ? fallback.create() : SimpleType.STRING ;
+            }
         }
+        catch(final OpenDataException e){
+            return fallback != null ? fallback.create() : SimpleType.STRING;
+        }
+    }
+
+    public static OpenType<?> getOpenType(final MBeanAttributeInfo targetAttr, final Factory<OpenType<?>> fallback) {
+        if(targetAttr instanceof OpenMBeanAttributeInfo)
+             return ((OpenMBeanAttributeInfo)targetAttr).getOpenType();
+        else if(ArrayUtils.contains(targetAttr.getDescriptor().getFieldNames(), "openType"))
+            return (OpenType<?>)targetAttr.getDescriptor().getFieldValue("openType");
+        else return getOpenType(targetAttr.getType(), fallback);
     }
 
     /**
@@ -575,58 +605,25 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         else return createEntitySimpleType(SimpleType.STRING);
     }
 
-    public JmxManagementEntityType createEntityType(final Class<?> attributeType){
-        return createEntityType(attributeType.getCanonicalName());
+    public JmxManagementEntityType createEntityType(final Class<?> attributeType, final Factory<OpenType<?>> fallback){
+        return createEntityType(attributeType.getCanonicalName(), fallback);
     }
 
-    public JmxManagementEntityType createEntityType(final String attributeType){
-        try{
-            switch (attributeType){
-                case "byte":
-                case "java.lang.Byte": return createEntitySimpleType(SimpleType.BYTE);
-                case "short":
-                case "java.lang.Short": return createEntitySimpleType(SimpleType.SHORT);
-                case "int":
-                case "java.lang.Integer": return createEntitySimpleType(SimpleType.INTEGER);
-                case "long":
-                case "java.lang.Long": return createEntitySimpleType(SimpleType.LONG);
-                case "java.lang.String": return createEntitySimpleType(SimpleType.STRING);
-                case "java.lang.Date": return createEntitySimpleType(SimpleType.DATE);
-                case "float":
-                case "java.lang.Float": return createEntitySimpleType(SimpleType.FLOAT);
-                case "double":
-                case "java.lang.Double": return createEntitySimpleType(SimpleType.DOUBLE);
-                case "char":
-                case "java.lang.Character": return createEntitySimpleType(SimpleType.CHARACTER);
-                case "boolean":
-                case "java.lang.Boolean": return createEntitySimpleType(SimpleType.BOOLEAN);
-                case "java.math.BigInteger": return createEntitySimpleType(SimpleType.BIGINTEGER);
-                case "java.math.BigDecimal": return createEntitySimpleType(SimpleType.BIGDECIMAL);
-                case "byte[]":
-                case "java.lang.Byte[]": return createEntityArrayType(new ArrayType<Byte[]>(1, SimpleType.BYTE));
-                case "short[]":
-                case "java.lang.Short[]": return createEntityArrayType(new ArrayType<Short[]>(1, SimpleType.SHORT));
-                case "int[]":
-                case "java.lang.Integer[]": return createEntityArrayType(new ArrayType<Integer[]>(1, SimpleType.INTEGER));
-                case "long[]":
-                case "java.lang.Long[]": return createEntityArrayType(new ArrayType<Long[]>(1, SimpleType.SHORT));
-                case "java.lang.String[]": return createEntityArrayType(new ArrayType<String[]>(1, SimpleType.STRING));
-                case "java.lang.Date[]": return createEntityArrayType(new ArrayType<Date[]>(1, SimpleType.DATE));
-                case "float[]":
-                case "java.lang.Float[]": return createEntityArrayType(new ArrayType<Float[]>(1, SimpleType.FLOAT));
-                case "double[]":
-                case "java.lang.Double[]": return createEntityArrayType(new ArrayType<Double[]>(1, SimpleType.DOUBLE));
-                case "char[]":
-                case "java.lang.Character[]": return createEntityArrayType(new ArrayType<Character[]>(1, SimpleType.CHARACTER));
-                case "boolean[]":
-                case "java.lang.Boolean[]": return createEntityArrayType(new ArrayType<Boolean[]>(1, SimpleType.BOOLEAN));
-                case "java.math.BigInteger[]": return createEntityArrayType(new ArrayType<BigInteger[]>(1, SimpleType.BIGINTEGER));
-                case "java.math.BigDecimal[]": return createEntityArrayType(new ArrayType<BigDecimal[]>(1, SimpleType.BIGDECIMAL));
-                default: return createEntitySimpleType(SimpleType.STRING);
-            }
-        }
-        catch(final OpenDataException e){
-            return createEntitySimpleType(SimpleType.STRING);
-        }
+    public JmxManagementEntityType createEntityType(final String attributeType, final Factory<OpenType<?>> fallback){
+        return createEntityType(getOpenType(attributeType, fallback));
+    }
+
+    public static OpenType<?> getOpenTypeFromValue(final Object value){
+        if(value instanceof CompositeData)
+            return ((CompositeData)value).getCompositeType();
+        else if(value instanceof TabularData)
+            return ((TabularData)value).getTabularType();
+        else if(value != null)
+            return getOpenType(value.getClass().getCanonicalName(), null);
+        else return SimpleType.STRING;
+    }
+
+    public JmxManagementEntityType createAttributeType(final MBeanAttributeInfo attribute, final Factory<OpenType<?>> fallback){
+        return createEntityType(getOpenType(attribute, fallback));
     }
 }

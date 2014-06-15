@@ -11,6 +11,7 @@ import org.ops4j.pax.exam.options.FrameworkPropertyOption;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static com.itworks.snamp.configuration.AgentConfiguration.*;
 import static org.ops4j.pax.exam.CoreOptions.frameworkProperty;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
@@ -54,7 +55,12 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
      */
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
-
+        ManagedResourceConfiguration resource = config.newConfigurationEntity(ManagedResourceConfiguration.class);
+        config.getManagedResources().put("test-resource-1", resource);
+        resource.getParameters().put("$param$", "value");
+        resource.setConnectionString("connection-string");
+        resource.setConnectionType("JMX");
+        ResourceAdapterConfiguration adapter = config.newConfigurationEntity(ResourceAdapterConfiguration.class);
     }
 
     @Test
@@ -62,5 +68,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final Client webConsoleClient = new Client();
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/console/configuration");
         final String configJson = config.get(String.class);
+        assertNotNull(configJson);
+
     }
 }
