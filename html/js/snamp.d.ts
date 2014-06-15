@@ -43,3 +43,6 @@ declare class options {
 declare module stubs {
     function getSummary(): bundles.bundle[];
 }
+interface JQuery {
+    createSummaryTable(opts: options): JQuery;
+}

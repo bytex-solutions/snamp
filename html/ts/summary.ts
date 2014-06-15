@@ -1,8 +1,11 @@
 /// <reference path="types/jquery.d.ts" />
-/// <reference path="options.ts" />
+interface JQuery {
+    createSummaryTable(opts: options): JQuery;
+}
 
-(($) => {
-    $.fn.createSummaryTable = (opts:options=null) => {
+
+(function ($)  {
+    $.fn.createSummaryTable = function (opts:options=null) {
         var commonData:bundles.bundle[];
 
         if (opts != null && opts.useStub)

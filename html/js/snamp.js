@@ -106,8 +106,7 @@ var stubs;
     stubs.getSummary = getSummary;
 })(stubs || (stubs = {}));
 /// <reference path="types/jquery.d.ts" />
-/// <reference path="options.ts" />
-var _this = this;
+
 (function ($) {
     $.fn.createSummaryTable = function (opts) {
         if (typeof opts === "undefined") { opts = null; }
@@ -169,8 +168,9 @@ var _this = this;
             }
         }
         ;
-        $(_this).append(panelGroup);
+        console.log(this);
+        $(this).append(panelGroup);
 
-        return _this;
+        return panelGroup;
     };
 })(jQuery);
