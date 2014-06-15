@@ -265,6 +265,7 @@ final class JsonAgentConfiguration {
     }
 
     private static void write(final JsonObject source, final AgentConfiguration dest){
+        dest.clear();
         writeResourceAdapters(source.get(RESOURCE_ADAPTERS_SECTION), dest.getResourceAdapters(), new Factory<ResourceAdapterConfiguration>(){
             @Override
             public ResourceAdapterConfiguration create() {
