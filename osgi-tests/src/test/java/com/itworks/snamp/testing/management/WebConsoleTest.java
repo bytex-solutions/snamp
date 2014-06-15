@@ -85,6 +85,22 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
+    public void writeLicenseFile(){
+        final Client webConsoleClient = new Client();
+        final WebResource licenseProvider = webConsoleClient.resource("http://127.0.0.1:3344/snamp/console/license");
+        final String originalContent = licenseProvider.get(String.class);
+        final String LICENSE_CONTENT = "INCORRECT LICENSE";
+        try{
+            licenseProvider.getRequestBuilder().type(MediaType.APPLICATION_XML_TYPE).post(LICENSE_CONTENT);
+            final String newContent = licenseProvider.get(String.class);
+            assertEquals(LICENSE_CONTENT, newContent);
+        }
+        finally {
+            licenseProvider.getRequestBuilder().type(MediaType.APPLICATION_XML_TYPE).post(originalContent);
+        }
+    }
+
+    @Test
     public void readConfigurationTest() {
         final Client webConsoleClient = new Client();
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/console/configuration");

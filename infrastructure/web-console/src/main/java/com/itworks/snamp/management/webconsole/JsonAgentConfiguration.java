@@ -22,28 +22,28 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapter
  *         {
  *             resourceAdapters:{
  *                  "adapter-instance":{
- *                      name: "snmp",
- *                      host: "localhost",
- *                      port: 12897
+ *                      name: "snmp",   //REQUIRED
+ *                      host: "localhost",  //USER-DEFINED
+ *                      port: 12897     //USER-DEFINED
  *                  }
  *             },
- *             resourceConnectors:{
+ *             managedResources:{
  *                  "javaee-server-1":{
- *                      connectionType: "jmx",
- *                      connectionString: "service:jmx:rmi:///jndi/rmi://localhost:3331/jmxrmi",
- *                      "additional-option": 1276,
- *                      attributes:{
+ *                      connectionType: "jmx",        //REQUIRED
+ *                      connectionString: "service:jmx:rmi:///jndi/rmi://localhost:3331/jmxrmi", //REQUIRED
+ *                      "additional-option": 1276,  //USER-DEFINED
+ *                      attributes:{                              //REQUIRED
  *                          "fault-count":{
- *                              name: "faultCount",
+ *                              name: "faultCount",                         //REQUIRED
  *                              readWriteTimeout: 1000, //optional field!!!
- *                              objectName: "java.lang:type=Memory"
+ *                              objectName: "java.lang:type=Memory"             //USER-DEFINED
  *                              oid: "1.1.0.0"
  *                          }
  *                      },
  *                      events:{
  *                          "my-event":{
- *                              category: "javax.management.AttributeChange",
- *                              filter: "(severity=panic)"
+ *                              category: "javax.management.AttributeChange",    //REQUIRED
+ *                              filter: "(severity=panic)"                       //USER-DEFINED
  *                          }
  *                      }
  *                  }
