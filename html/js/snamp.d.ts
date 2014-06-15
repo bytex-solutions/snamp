@@ -27,6 +27,13 @@ declare module license {
         constructor(descr?: string);
     }
 }
+interface JQuery {
+    getLicenseInfo(opts: options): JQuery;
+}
+interface JQuery {
+    createLoaderTable(opts: options): JQuery;
+    addOperations(UUID: any, status: any): void;
+}
 declare module target {
     class managmentTarget {
         public connectionString: string;
@@ -42,4 +49,7 @@ declare class options {
 }
 declare module stubs {
     function getSummary(): bundles.bundle[];
+}
+interface JQuery {
+    createSummaryTable(opts: options): JQuery;
 }

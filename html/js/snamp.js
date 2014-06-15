@@ -51,6 +51,111 @@ var license;
     })();
     license.licenseInfo = licenseInfo;
 })(license || (license = {}));
+/// <reference path="types/jquery.d.ts" />
+
+(function ($) {
+    $.fn.getLicenseInfo = function (opts) {
+        if (typeof opts === "undefined") { opts = null; }
+        var commonData;
+
+        if (opts != null && opts.useStub) {
+            commonData = stubs.getSummary();
+        } else {
+            // ajax-rest loader for bundleInfo
+        }
+        for (var i = commonData.length - 1; i >= 0; i--) {
+            var data = commonData[i].licenseInfo;
+
+            // Now make a table per bundle
+            if (data != null) {
+                this.append("<h3>" + commonData[i].name + "</h3>");
+                this.append("<div class=\"well\">" + data.description + "</div>");
+            }
+        }
+    };
+})(jQuery);
+/// <reference path="types/jquery.d.ts" />
+
+(function ($) {
+    $.fn.createLoaderTable = function (opts) {
+        if (typeof opts === "undefined") { opts = null; }
+        // Making the header part of table
+        var table = $("<table>", { class: "table" });
+        table.append("<thead><tr><th>Status</th><th>Type</th><th>Bundle Name</th><th>Description</th><th width=\"15%\">Operations</th></tr></thead>");
+
+        var data;
+
+        if (opts != null && opts.useStub) {
+            data = stubs.getSummary();
+        } else {
+            // ajax-rest loader for bundleInfo
+        }
+
+        var tbody = $("<tbody></tbody>");
+
+        for (var i = data.length - 1; i >= 0; i--) {
+            var content;
+            var tr = $("<tr></tr>");
+            content = "<img src=\"img/" + data[i].active + ".png" + "\"/>";
+            tr.append("<td>" + content + "</td>");
+
+            content = data[i].type;
+            tr.append("<td>" + content + "</td>");
+
+            content = data[i].name;
+            tr.append("<td>" + content + "</td>");
+
+            content = data[i].description;
+            tr.append("<td>" + content + "</td>");
+
+            var td = $("<td></td>");
+            td.appendTo(tr);
+            td.addOperations(data[i].name, data[i].active);
+
+            tbody.append(tr);
+        }
+        ;
+
+        table.append(tbody);
+
+        // Appending the table to the element
+        table.appendTo(this);
+    };
+
+    $.fn.addOperations = function (UUID, status) {
+        var btnGrp = $("<div>", { class: "btn-group" });
+
+        // start button
+        var btnStart = $("<button>", { type: "button", class: "btn btn-default btn-xs" });
+        if (status == true)
+            btnStart.attr("disabled", "disabled");
+        var span = $("<span>", { class: "glyphicon glyphicon-play" });
+        span.appendTo(btnStart);
+        btnStart.appendTo(btnGrp);
+
+        // stop button
+        var btnStop = $("<button>", { type: "button", class: "btn btn-default btn-xs" });
+        if (status == false)
+            btnStop.attr("disabled", "disabled");
+        var span = $("<span>", { class: "glyphicon glyphicon-stop" });
+        span.appendTo(btnStop);
+        btnStop.appendTo(btnGrp);
+
+        // refresh button
+        var btnRefresh = $("<button>", { type: "button", class: "btn btn-default btn-xs" });
+        var span = $("<span>", { class: "glyphicon glyphicon-refresh" });
+        span.appendTo(btnRefresh);
+        btnRefresh.appendTo(btnGrp);
+
+        // remove button
+        var btnRemove = $("<button>", { type: "button", class: "btn btn-default btn-xs" });
+        var span = $("<span>", { class: "glyphicon glyphicon-remove" });
+        span.appendTo(btnRemove);
+        btnRemove.appendTo(btnGrp);
+
+        this.append(btnGrp);
+    };
+})(jQuery);
 var target;
 (function (target) {
     var managmentTarget = (function () {
@@ -106,8 +211,7 @@ var stubs;
     stubs.getSummary = getSummary;
 })(stubs || (stubs = {}));
 /// <reference path="types/jquery.d.ts" />
-/// <reference path="options.ts" />
-var _this = this;
+
 (function ($) {
     $.fn.createSummaryTable = function (opts) {
         if (typeof opts === "undefined") { opts = null; }
@@ -169,8 +273,8 @@ var _this = this;
             }
         }
         ;
-        $(_this).append(panelGroup);
+        $(this).append(panelGroup);
 
-        return _this;
+        return this;
     };
 })(jQuery);
