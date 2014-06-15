@@ -38,57 +38,57 @@ import static com.itworks.snamp.connectors.notifications.NotificationUtils.Synch
  * @since 1.0
  */
 @ExamReactorStrategy(PerMethod.class)
-public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagementBean> {
+public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
-    public JmxConnectorTest() throws MalformedObjectNameException {
-        super(new TestManagementBean(), new ObjectName(TestManagementBean.BEAN_NAME));
+    public JmxConnectorWIthOpenMBeanTest() throws MalformedObjectNameException {
+        super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
     @Override
     protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Factory<AttributeConfiguration> attributeFactory) {
         AttributeConfiguration attribute = attributeFactory.create();
         attribute.setAttributeName("string");
-        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("1.0", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("boolean");
-        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("2.0", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("int32");
-        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("3.0", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("bigint");
-        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("4.0", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("array");
-        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("5.1", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("dictionary");
-        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("6.1", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("table");
-        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("7.1", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("float");
-        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("8.0", attribute);
 
         attribute = attributeFactory.create();
         attribute.setAttributeName("date");
-        attribute.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
+        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("9.0", attribute);
     }
 
@@ -97,13 +97,13 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         EventConfiguration event = eventFactory.create();
         event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
-        event.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
+        event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         events.put("19.1", event);
 
         event = eventFactory.create();
         event.setCategory("com.itworks.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
-        event.getParameters().put("objectName", TestManagementBean.BEAN_NAME);
+        event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         events.put("20.1", event);
     }
 
@@ -114,15 +114,15 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         assertNotNull(notificationSupport);
         assertNotNull(attributeSupport);
         assertNotNull(attributeSupport.connectAttribute("1.0", "string", new HashMap<String, String>(2) {{
-            put("objectName", TestManagementBean.BEAN_NAME);
+            put("objectName", TestOpenMBean.BEAN_NAME);
         }}));
         assertNotNull(notificationSupport.enableNotifications("19.1", AttributeChangeNotification.ATTRIBUTE_CHANGE, new HashMap<String, String>(2) {{
             put("severity", "notice");
-            put("objectName", TestManagementBean.BEAN_NAME);
+            put("objectName", TestOpenMBean.BEAN_NAME);
         }}));
         assertNotNull(notificationSupport.enableNotifications("20.1", "com.itworks.snamp.connectors.tests.impl.testnotif", new HashMap<String, String>(2){{
             put("severity", "panic");
-            put("objectName", TestManagementBean.BEAN_NAME);
+            put("objectName", TestOpenMBean.BEAN_NAME);
         }}));
         assertEquals(2, notificationSupport.getEnabledNotifications().size());
         assertTrue(notificationSupport.getEnabledNotifications().contains("19.1"));
@@ -158,15 +158,15 @@ public final class JmxConnectorTest extends AbstractJmxConnectorTest<TestManagem
         assertNotNull(notificationSupport);
         assertNotNull(attributeSupport);
         assertNotNull(attributeSupport.connectAttribute("1.0", "string", new HashMap<String, String>(2) {{
-            put("objectName", TestManagementBean.BEAN_NAME);
+            put("objectName", TestOpenMBean.BEAN_NAME);
         }}));
         assertNotNull(notificationSupport.enableNotifications("19.1", AttributeChangeNotification.ATTRIBUTE_CHANGE, new HashMap<String, String>(2) {{
             put("severity", "notice");
-            put("objectName", TestManagementBean.BEAN_NAME);
+            put("objectName", TestOpenMBean.BEAN_NAME);
         }}));
         assertNotNull(notificationSupport.enableNotifications("20.1", "com.itworks.snamp.connectors.tests.impl.testnotif", new HashMap<String, String>(2){{
             put("severity", "panic");
-            put("objectName", TestManagementBean.BEAN_NAME);
+            put("objectName", TestOpenMBean.BEAN_NAME);
         }}));
         assertEquals(2, notificationSupport.getEnabledNotifications().size());
         assertTrue(notificationSupport.getEnabledNotifications().contains("19.1"));

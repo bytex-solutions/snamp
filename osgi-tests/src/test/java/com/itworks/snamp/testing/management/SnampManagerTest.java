@@ -12,7 +12,7 @@ import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
-import com.itworks.snamp.testing.connectors.jmx.TestManagementBean;
+import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.apache.commons.collections4.Closure;
 import org.apache.commons.collections4.Factory;
 import org.junit.Test;
@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.testing.connectors.jmx.TestManagementBean.BEAN_NAME;
+import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
@@ -43,13 +43,13 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  * @version 1.0
  * @since 1.0
  */
-public final class SnampManagerTest extends AbstractJmxConnectorTest<TestManagementBean> {
+public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
 
     public SnampManagerTest() throws MalformedObjectNameException {
-        super(new TestManagementBean(), new ObjectName(TestManagementBean.BEAN_NAME),
+        super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME),
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi", "1.0.0"),
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.core", "1.0.0"),
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.url", "1.0.0"),

@@ -10,6 +10,7 @@ import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.semantics.MethodStub;
 import com.itworks.snamp.licensing.LicensingException;
+import org.apache.commons.collections4.Factory;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -108,7 +109,9 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          */
         @Override
         public final ManagementEntityType getAttachmentType(final Object attachment) {
-            return attachment != null ? typeSystem.createEntityType(attachment.getClass()) : null;
+            return attachment != null ?
+                    typeSystem.createEntityType(JmxTypeSystem.getOpenTypeFromValue(attachment)) :
+                    null;
         }
 
         @Override
@@ -175,9 +178,12 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
                 @Override
                 protected final JmxManagementEntityType detectAttributeType() {
-                    if(targetAttr instanceof OpenMBeanAttributeInfoSupport)
-                        return typeSystem.createEntityType(((OpenMBeanAttributeInfoSupport) targetAttr).getOpenType());
-                    else return typeSystem.createEntityType(targetAttr.getType());
+                    return typeSystem.createAttributeType(targetAttr, new Factory<OpenType<?>>() {
+                        @Override
+                        public OpenType<?> create() {
+                            return getTypeFromAttributeValue();
+                        }
+                    });
                 }
 
                 /**
@@ -235,7 +241,6 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                 }
             }, null);
             return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
-                private final OpenType<?> compositeType = JmxTypeSystem.getOpenType(targetAttr);
 
                 @Override
                 public final boolean canRead() {
@@ -274,12 +279,13 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
 
                 @Override
                 protected final JmxManagementEntityType detectAttributeType() {
-                    final Object attributeType = navigator.getType(compositeType);
-                    if(attributeType instanceof OpenType<?>)
-                        return typeSystem.createEntityType((OpenType<?>)attributeType);
-                    else if(attributeType instanceof Class<?>)
-                        return typeSystem.createEntityType((Class<?>)attributeType);
-                    else return typeSystem.createEntityType(Objects.toString(attributeType, ""));
+                    final OpenType<?> compositeType = JmxTypeSystem.getOpenType(targetAttr, new Factory<OpenType<?>>() {
+                        @Override
+                        public OpenType<?> create() {
+                            return getTypeFromAttributeValue();
+                        }
+                    });
+                    return typeSystem.createEntityType(navigator.getType(compositeType));
                 }
             } : null;
         }
@@ -563,7 +569,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             return getValue(root, 0);
         }
 
-        private Object getType(final Object root, final int index)
+        private OpenType<?> getType(final OpenType<?> root, final int index)
         {
             if(root instanceof CompositeType && index < path.length){
                 final CompositeType cdata = (CompositeType)root;
@@ -573,7 +579,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             else return root;
         }
 
-        public Object getType(final OpenType<?> root)
+        public OpenType<?> getType(final OpenType<?> root)
         {
             return getType(root, 0);
         }
@@ -634,6 +640,15 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             this.connectionManager = manager;
             this.namespace = namespace;
             this.options = options != null ? Collections.unmodifiableMap(options) : Collections.<String, String>emptyMap();
+        }
+
+        protected final OpenType<?> getTypeFromAttributeValue(){
+            return connectionManager.handleConnection(new MBeanServerConnectionHandler<OpenType<?>>() {
+                @Override
+                public OpenType<?> handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    return JmxTypeSystem.getOpenTypeFromValue(connection.getAttribute(namespace, getName()));
+                }
+            }, SimpleType.STRING);
         }
 
         @Override

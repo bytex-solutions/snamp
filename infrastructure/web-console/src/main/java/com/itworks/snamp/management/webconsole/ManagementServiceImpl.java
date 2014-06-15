@@ -110,7 +110,7 @@ public final class ManagementServiceImpl {
     @Path("/license")
     @Consumes("application/xml")
     public void setLicense(final String licenseContent) throws IOException{
-        try(final OutputStream os = new FileOutputStream(getLicenseFile())){
+        try(final OutputStream os = new FileOutputStream(getLicenseFile(), false)){
             os.write(licenseContent.getBytes(LicenseReader.LICENSE_FILE_ENCODING));
         }
     }

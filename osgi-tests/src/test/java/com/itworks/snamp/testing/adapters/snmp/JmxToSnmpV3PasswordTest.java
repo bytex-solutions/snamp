@@ -9,7 +9,7 @@ import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfigu
 import com.itworks.snamp.connectors.notifications.Severity;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
-import com.itworks.snamp.testing.connectors.jmx.TestManagementBean;
+import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.apache.commons.collections4.Factory;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
@@ -36,7 +36,7 @@ import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.itworks.snamp.testing.connectors.jmx.TestManagementBean.BEAN_NAME;
+import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
@@ -45,7 +45,7 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  * @since 1.0
  */
 @ExamReactorStrategy(PerMethod.class)
-public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<TestManagementBean> {
+public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
@@ -54,7 +54,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + SNMP_HOST + "/" + SNMP_PORT, USER_NAME, SecurityLevel.authPriv);
 
     public JmxToSnmpV3PasswordTest() throws MalformedObjectNameException {
-        super(new TestManagementBean(), new ObjectName(BEAN_NAME),
+        super(new TestOpenMBean(), new ObjectName(BEAN_NAME),
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi", "1.0.0"),
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.core", "1.0.0"),
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.url", "1.0.0"),

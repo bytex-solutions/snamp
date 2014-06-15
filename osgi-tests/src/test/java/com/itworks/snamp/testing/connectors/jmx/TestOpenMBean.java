@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Represents simple management bean.
  */
-public final class TestManagementBean extends NotificationBroadcasterSupport implements DynamicMBean {
+public final class TestOpenMBean extends NotificationBroadcasterSupport implements DynamicMBean {
     public static final String BEAN_NAME = "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean";
 
     private static final MBeanAttributeInfo STRING_PROPERTY = new OpenMBeanAttributeInfoSupport("string",
@@ -105,7 +105,7 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
             "Occurs when timer is changed"
     );
 
-    private static final MBeanInfo BEAN_INFO = new MBeanInfo(TestManagementBean.class.getName(),
+    private static final MBeanInfo BEAN_INFO = new MBeanInfo(TestOpenMBean.class.getName(),
             "Test MBean",
             new MBeanAttributeInfo[]{STRING_PROPERTY,
                     BOOLEAN_PROPERTY,
@@ -132,7 +132,7 @@ public final class TestManagementBean extends NotificationBroadcasterSupport imp
     private  float aFloat;
     private Date aDate;
 
-    public TestManagementBean() {
+    public TestOpenMBean() {
         super(PROPERTY_CHANGED_EVENT, TIMER_EVENT);
         sequenceCounter = new AtomicLong(0);
         chosenString = "NO VALUE";
