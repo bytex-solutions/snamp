@@ -18,13 +18,12 @@
   </head>
 
   <body>
-
   <div class="masthead clearfix">
       <div class="inner">
-          <h3 class="masthead-brand">Licensing details for each installed bundles</h3>
+          <h3 class="masthead-brand">Available operations for installed bundles</h3>
 
           <ul class="nav masthead-nav">
-              <li class="active"><a href="#">Home</a></li>
+              <li class="active"><a href="index.html">Home</a></li>
               <li><a href="http://localhost:8080/system/console/bundles" target="_blank">Bundle web console</a></li>
           </ul>
       </div>
@@ -36,7 +35,7 @@
 
         <div class="cover-container">
 
-          <div class="row" id="snmpLicening"></div>
+          <div class="row" id="snampTable"></div>
 
 
           <div class="mastfoot">
@@ -54,16 +53,16 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="js/jquery-1.8.0.js"></script>
+  <script src="js/jquery-1.8.0.js"></script>
     <script src="js/bootstrap.js"></script>
-    <script src="js/docs.min.js"></script>
+    <script src="src/resources/js/docs.min.js"></script>
 
-    <script type="text/javascript" src="js/snamp.js"></script>
+  <script type="text/javascript" src="js/snamp.js"></script>
 
 
     <script type="text/javascript">
       var options = new options(true);
-      $("#snmpLicening").getLicenseInfo(options);
+      $("#snampTable").createLoaderTable(options);
     </script>
 
   </body>

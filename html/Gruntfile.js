@@ -8,9 +8,9 @@ module.exports = function(grunt) {
             // location where TypeScript source files are located
             "source_ts": "ts",
             // location where all build files shall be placed
-            "target": "js",
+            "target": "src/main/resources/js",
             // location to place (compiled) javascript files
-            "target_js": "js",
+            "target_js": "src/main/resources/js",
             // location to place documentation, etc.
             "target_report": "js/report"
         },
@@ -25,8 +25,8 @@ module.exports = function(grunt) {
                 options: {
                     base_path: 'ts',
                     target: 'es5',
-                    declaration: true,
-                    comments: true
+                    declaration: false,
+                    comments: false
                 }
             }
         }
