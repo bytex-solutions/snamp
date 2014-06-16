@@ -1,5 +1,7 @@
-package com.itworks.snamp.licensing;
+package com.itworks.snamp.adapters.rest;
 
+import com.itworks.snamp.licensing.AbstractLicenseLimitations;
+import com.itworks.snamp.licensing.LicensingException;
 import org.apache.commons.collections4.Factory;
 import com.itworks.snamp.adapters.AbstractAdapter;
 

@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.rest;
 
 /**
  * @author Roman Sakno

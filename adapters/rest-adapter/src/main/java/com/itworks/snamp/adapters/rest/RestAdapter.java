@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.rest;
 
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.connectors.AttributeSupport;
@@ -7,14 +7,12 @@ import com.itworks.snamp.connectors.util.AbstractAttributesRegistry;
 import com.itworks.snamp.connectors.util.AttributesRegistry;
 import com.itworks.snamp.connectors.util.ConnectedAttributes;
 import com.itworks.snamp.licensing.LicensedPlatformPlugin;
-import com.itworks.snamp.configuration.RestAdapterConfigurationDescriptor;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.itworks.snamp.configuration.RestAdapterConfigurationDescriptor.*;
+import static com.itworks.snamp.adapters.rest.RestAdapterConfigurationDescriptor.*;
 
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.licensing.*;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import net.xeoh.plugins.base.annotations.meta.Author;
 import org.eclipse.jetty.server.*;

@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.rest;
 
 import com.itworks.snamp.connectors.util.AttributesRegistryReader;
 import com.sun.jersey.api.core.DefaultResourceConfig;

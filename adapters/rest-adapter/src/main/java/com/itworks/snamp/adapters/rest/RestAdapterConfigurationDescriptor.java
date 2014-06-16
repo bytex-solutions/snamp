@@ -1,4 +1,7 @@
-package com.itworks.snamp.configuration;
+package com.itworks.snamp.adapters.rest;
+
+import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
 import java.util.Locale;
 import java.util.ResourceBundle;

@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.rest;
 
 import com.google.gson.*;
 import static com.itworks.snamp.connectors.NotificationSupport.Notification;
