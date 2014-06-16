@@ -1,6 +1,3 @@
-/*
-This class contains specification for describing Bundle model
-*/
 var bundles;
 (function (bundles) {
     var bundle = (function () {
@@ -51,7 +48,6 @@ var license;
     })();
     license.licenseInfo = licenseInfo;
 })(license || (license = {}));
-/// <reference path="types/jquery.d.ts" />
 
 (function ($) {
     $.fn.getLicenseInfo = function (opts) {
@@ -61,12 +57,10 @@ var license;
         if (opts != null && opts.useStub) {
             commonData = stubs.getSummary();
         } else {
-            // ajax-rest loader for bundleInfo
         }
         for (var i = commonData.length - 1; i >= 0; i--) {
             var data = commonData[i].licenseInfo;
 
-            // Now make a table per bundle
             if (data != null) {
                 this.append("<h3>" + commonData[i].name + "</h3>");
                 this.append("<div class=\"well\">" + data.description + "</div>");
@@ -74,12 +68,10 @@ var license;
         }
     };
 })(jQuery);
-/// <reference path="types/jquery.d.ts" />
 
 (function ($) {
     $.fn.createLoaderTable = function (opts) {
         if (typeof opts === "undefined") { opts = null; }
-        // Making the header part of table
         var table = $("<table>", { class: "table" });
         table.append("<thead><tr><th>Status</th><th>Type</th><th>Bundle Name</th><th>Description</th><th width=\"15%\">Operations</th></tr></thead>");
 
@@ -88,7 +80,6 @@ var license;
         if (opts != null && opts.useStub) {
             data = stubs.getSummary();
         } else {
-            // ajax-rest loader for bundleInfo
         }
 
         var tbody = $("<tbody></tbody>");
@@ -118,14 +109,12 @@ var license;
 
         table.append(tbody);
 
-        // Appending the table to the element
         table.appendTo(this);
     };
 
     $.fn.addOperations = function (UUID, status) {
         var btnGrp = $("<div>", { class: "btn-group" });
 
-        // start button
         var btnStart = $("<button>", { type: "button", class: "btn btn-default btn-xs" });
         if (status == true)
             btnStart.attr("disabled", "disabled");
@@ -133,7 +122,6 @@ var license;
         span.appendTo(btnStart);
         btnStart.appendTo(btnGrp);
 
-        // stop button
         var btnStop = $("<button>", { type: "button", class: "btn btn-default btn-xs" });
         if (status == false)
             btnStop.attr("disabled", "disabled");
@@ -141,13 +129,11 @@ var license;
         span.appendTo(btnStop);
         btnStop.appendTo(btnGrp);
 
-        // refresh button
         var btnRefresh = $("<button>", { type: "button", class: "btn btn-default btn-xs" });
         var span = $("<span>", { class: "glyphicon glyphicon-refresh" });
         span.appendTo(btnRefresh);
         btnRefresh.appendTo(btnGrp);
 
-        // remove button
         var btnRemove = $("<button>", { type: "button", class: "btn btn-default btn-xs" });
         var span = $("<span>", { class: "glyphicon glyphicon-remove" });
         span.appendTo(btnRemove);
@@ -210,7 +196,6 @@ var stubs;
     }
     stubs.getSummary = getSummary;
 })(stubs || (stubs = {}));
-/// <reference path="types/jquery.d.ts" />
 
 (function ($) {
     $.fn.createSummaryTable = function (opts) {
@@ -220,7 +205,6 @@ var stubs;
         if (opts != null && opts.useStub) {
             commonData = stubs.getSummary();
         } else {
-            // ajax-rest loader for bundleInfo
         }
 
         var panelGroup = $("<div class=\"panel-group\"> id=\"accordion\"");
@@ -228,7 +212,6 @@ var stubs;
         for (var j = commonData.length - 1; j >= 0; j--) {
             var data = commonData[j].status;
 
-            // Now make a table per bundle
             if (data != null) {
                 var headAccordeonTab = $("<div>", { class: "panel panel-default" });
                 headAccordeonTab.append("<div class=\"panel-heading\">" + "<h4 class=\"panel-title\">" + "<a data-toggle=\"collapse\" data-parent=\"#accordion\" href=\"#idd" + j + "\">" + commonData[j].name + ". Instances (current/max): " + data.currentInstanceCount + "\\" + data.maxInstanceCount + "</a></h4></div>");
@@ -239,7 +222,6 @@ var stubs;
                     if (data.managmentTargets.length > 0) {
                         var _class = "panel-collapse collapse in";
 
-                        //  if (j != commonData.length - 1) _class = _class + " in";
                         var divBodyAccordeonTab = $("<div>", { id: "idd" + j, class: _class });
                         var divPanelBody = $("<div>", { class: "panel-body" });
 
