@@ -365,7 +365,7 @@ public final class Utils {
                                                  final Closure<S> serviceInvoker) {
         final Bundle owner = FrameworkUtil.getBundle(caller);
         final ServiceReference<?>[] services = owner.getRegisteredServices();
-        for(final ServiceReference<?> ref: services)
+        for(final ServiceReference<?> ref: services != null ? services : new ServiceReference<?>[0])
             if((filter == null || filter.match(ref)) && isInstanceOf(ref, serviceType))
                 try{
                     serviceInvoker.execute(serviceType.cast(owner.getBundleContext().getService(ref)));

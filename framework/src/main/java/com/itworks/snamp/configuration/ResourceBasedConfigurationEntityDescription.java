@@ -88,7 +88,12 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
      * otherwise, {@literal false}.
      */
     protected boolean isRequiredParameter(final String parameterName){
-        return Boolean.getBoolean(getBundle(null).getString(parameterName + REQUIRED_POSTFIX));
+        try {
+            return Boolean.valueOf(getBundle(null).getString(parameterName + REQUIRED_POSTFIX));
+        }
+        catch (final MissingResourceException ignored){
+            return false;
+        }
     }
 
     /**
@@ -98,7 +103,12 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
      * @return The localized description of the configuration parameter.
      */
     protected String getParameterDescription(final String parameterName, final Locale loc){
-        return getBundle(loc).getString(parameterName + DESCRIPTION_POSTFIX);
+        try {
+            return getBundle(loc).getString(parameterName + DESCRIPTION_POSTFIX);
+        }
+        catch (final MissingResourceException ignored){
+            return "";
+        }
     }
 
     /**
@@ -108,11 +118,22 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
      * @return The localized input value pattern.
      */
     protected String getParameterValuePattern(final String parameterName, final Locale loc){
-        return getBundle(loc).getString(parameterName + PATTERN_POSTFIX);
+        try {
+            return getBundle(loc).getString(parameterName + PATTERN_POSTFIX);
+        }
+        catch (final MissingResourceException ignored){
+            return "";
+        }
     }
 
     private Collection<String> getRelatedParameters(final String parameterName, final String relationPostfix){
-        final String params = getBundle(null).getString(parameterName + relationPostfix);
+        String params;
+        try{
+            params = getBundle(null).getString(parameterName + relationPostfix);
+        }
+        catch (final MissingResourceException e){
+            params = "";
+        }
         if(params == null || params.isEmpty()) return Collections.emptyList();
         final String[] values =  params.split(",");
         final Collection<String> result = new ArrayList<>(values.length);
@@ -143,7 +164,12 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
      * @return The configuration parameter default value.
      */
     protected String getParameterDefaultValue(final String parameterName, final Locale loc){
-        return getBundle(loc).getString(parameterName + DEFVAL_POSTIFX);
+        try {
+            return getBundle(loc).getString(parameterName + DEFVAL_POSTIFX);
+        }
+        catch (final MissingResourceException e){
+            return "";
+        }
     }
 
     /**

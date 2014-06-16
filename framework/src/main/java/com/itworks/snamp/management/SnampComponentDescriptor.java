@@ -6,13 +6,28 @@ import org.apache.commons.collections4.FunctorException;
 import org.osgi.framework.Version;
 
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public interface SnampComponentDescriptor extends Descriptive {
+public interface SnampComponentDescriptor extends Descriptive, Map<String, String> {
+    /**
+     * Represents name of the property that contains connector name.
+     */
+    String CONNECTOR_SYSTEM_NAME_PROPERTY = "connectorName";
+    /**
+     * Represents name of the property that contains adapter name.
+     */
+    String ADAPTER_SYSTEM_NAME_PROPERTY = "adapterName";
+
+    /**
+     * Represents name of the property that contains bundle identifier.
+     */
+    String BUNDLE_ID_PROPERTY = "bundleID";
+
     /**
      * Gets state of the component.
      * @return The state of the component.

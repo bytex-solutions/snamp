@@ -138,8 +138,11 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
                     "A set of SNAMP components", rowType, new String[]{NAME_COLUMN});
         }
 
-        public InstalledComponents() throws OpenDataException{
+        private final SnampManager manager;
+
+        public InstalledComponents(final SnampManager manager) throws OpenDataException{
             super("InstalledComponents", createTabularType());
+            this.manager = manager;
         }
 
         private CompositeData createRow(final SnampComponentDescriptor component) throws OpenDataException{
@@ -175,7 +178,6 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
         @Override
         public TabularData getValue() throws OpenDataException{
             final TabularData result = new TabularDataSupport(openType);
-            final SnampManager manager = new SnampManagerImpl();
             for(final SnampComponentDescriptor component: manager.getInstalledResourceAdapters())
                 result.put(createRow(component));
             for(final SnampComponentDescriptor component: manager.getInstalledResourceConnectors())
@@ -227,7 +229,7 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
                 new CountAttribute("DebugMessagesCount", counter, LogService.LOG_DEBUG),
                 new CountAttribute("InformationMessagesCount", counter, LogService.LOG_INFO),
                 new LogEventNotification(),
-                new InstalledComponents());
+                new InstalledComponents(new SnampManagerImpl()));
         counter.start();
         this.counter = counter;
     }

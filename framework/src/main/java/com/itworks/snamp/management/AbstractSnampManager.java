@@ -13,6 +13,7 @@ import org.osgi.framework.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Locale;
 
 /**
@@ -22,11 +23,15 @@ import java.util.Locale;
  * @since 1.0
  */
 public abstract class AbstractSnampManager extends AbstractAggregator implements SnampManager {
-    private final class InternalSnampComponentDescriptor implements SnampComponentDescriptor{
-        private final long bundleID;
+    private final class InternalSnampComponentDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
 
         public InternalSnampComponentDescriptor(final long bid){
-            this.bundleID = bid;
+            super(1);
+            put(BUNDLE_ID_PROPERTY, Long.toString(bid));
+        }
+
+        private long getBundleID(){
+            return Long.valueOf(get(BUNDLE_ID_PROPERTY));
         }
 
         private BundleContext getItselfContext(){
@@ -46,7 +51,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public int getState() {
-            return getItselfContext().getBundle(bundleID).getState();
+            return getItselfContext().getBundle(getBundleID()).getState();
         }
 
         /**
@@ -58,7 +63,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         @Override
         public String getName(final Locale loc) {
             return getItselfContext().
-                    getBundle(bundleID).
+                    getBundle(getBundleID()).
                     getHeaders(loc != null ? loc.toString() : null).
                     get(Constants.BUNDLE_NAME);
         }
@@ -71,7 +76,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         @Override
         public Version getVersion() {
             return getItselfContext().
-                    getBundle(bundleID).
+                    getBundle(getBundleID()).
                     getVersion();
         }
 
@@ -89,9 +94,10 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         @Override
         public <S extends ManagementService> boolean invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
             final BundleContext context = getItselfContext();
-            final Bundle bnd = context.getBundle(bundleID);
+            final Bundle bnd = context.getBundle(getBundleID());
             boolean result = false;
-            for(final ServiceReference<?> candidate: bnd.getRegisteredServices())
+            final ServiceReference<?>[] refs = bnd.getRegisteredServices();
+            for(final ServiceReference<?> candidate: refs != null ? refs : new ServiceReference<?>[0])
                 if(Utils.isInstanceOf(candidate, serviceType))
                     try{
                         serviceInvoker.execute(serviceType.cast(context.getService(candidate)));
@@ -113,17 +119,17 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         @Override
         public String getDescription(final Locale locale) {
             return getItselfContext().
-                    getBundle(bundleID).
+                    getBundle(getBundleID()).
                     getHeaders(locale != null ? locale.toString() : null).
                     get(Constants.BUNDLE_DESCRIPTION);
         }
 
         @Override
         public String toString() {
-            final Bundle bnd = getItselfContext().getBundle(bundleID);
+            final Bundle bnd = getItselfContext().getBundle(getBundleID());
             return bnd != null ?
-                    String.format("Bundle id: %s. Symbolic name: %s", bundleID, bnd.getSymbolicName()):
-                    String.format("Bundle id: %s", bundleID);
+                    String.format("Bundle id: %s. Symbolic name: %s", getBundleID(), bnd.getSymbolicName()):
+                    String.format("Bundle id: %s", getBundleID());
         }
     }
 
@@ -133,14 +139,15 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class ResourceAdapterDescriptor implements SnampComponentDescriptor{
-        /**
-         * Represents system name of the adapter.
-         */
-        protected final String systemName;
+    protected static abstract class ResourceAdapterDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
 
         protected ResourceAdapterDescriptor(final String systemName){
-            this.systemName = systemName;
+            super(1);
+            put(ADAPTER_SYSTEM_NAME_PROPERTY, systemName);
+        }
+
+        protected final String getSystemName(){
+            return get(ADAPTER_SYSTEM_NAME_PROPERTY);
         }
 
         /**
@@ -166,7 +173,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public int getState() {
-            return ResourceAdapterClient.getState(getItselfContext(), systemName);
+            return ResourceAdapterClient.getState(getItselfContext(), getSystemName());
         }
 
         /**
@@ -177,7 +184,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String getName(final Locale loc) {
-            return ResourceAdapterClient.getDisplayName(getItselfContext(), systemName, loc);
+            return ResourceAdapterClient.getDisplayName(getItselfContext(), getSystemName(), loc);
         }
 
         /**
@@ -187,7 +194,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public Version getVersion() {
-            return ResourceAdapterClient.getVersion(getItselfContext(), systemName);
+            return ResourceAdapterClient.getVersion(getItselfContext(), getSystemName());
         }
 
         /**
@@ -204,7 +211,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         public final  <S extends ManagementService> boolean invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
             ServiceReference<S> ref = null;
             try {
-                ref = ResourceAdapterClient.getServiceReference(getItselfContext(), systemName, null, serviceType);
+                ref = ResourceAdapterClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
                 if(ref == null) return false;
                 serviceInvoker.execute(getItselfContext().getService(ref));
             }
@@ -226,7 +233,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String getDescription(final Locale locale) {
-            return ResourceAdapterClient.getDescription(getItselfContext(), systemName, locale);
+            return ResourceAdapterClient.getDescription(getItselfContext(), getSystemName(), locale);
         }
 
         /**
@@ -235,7 +242,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String toString() {
-            return systemName;
+            return getSystemName();
         }
     }
 
@@ -245,14 +252,15 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class ResourceConnectorDescriptor implements SnampComponentDescriptor {
-        /**
-         * Represents name of the managed resource connector.
-         */
-        protected final String systemName;
+    protected static abstract class ResourceConnectorDescriptor extends HashMap<String, String> implements SnampComponentDescriptor {
 
         protected ResourceConnectorDescriptor(final String connectorName){
-            this.systemName = connectorName;
+            super(1);
+            put(CONNECTOR_SYSTEM_NAME_PROPERTY, connectorName);
+        }
+
+        protected final String getSystemName(){
+            return get(CONNECTOR_SYSTEM_NAME_PROPERTY);
         }
 
         /**
@@ -278,7 +286,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public int getState() {
-            return ManagedResourceConnectorClient.getState(getItselfContext(), systemName);
+            return ManagedResourceConnectorClient.getState(getItselfContext(), getSystemName());
         }
 
         /**
@@ -289,7 +297,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String getName(final Locale loc) {
-            return ManagedResourceConnectorClient.getDisplayName(getItselfContext(), systemName, loc);
+            return ManagedResourceConnectorClient.getDisplayName(getItselfContext(), getSystemName(), loc);
         }
 
         /**
@@ -301,7 +309,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String getDescription(final Locale locale) {
-            return ManagedResourceConnectorClient.getDescription(getItselfContext(), systemName, locale);
+            return ManagedResourceConnectorClient.getDescription(getItselfContext(), getSystemName(), locale);
         }
 
         /**
@@ -311,7 +319,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public Version getVersion() {
-            return ManagedResourceConnectorClient.getVersion(getItselfContext(), systemName);
+            return ManagedResourceConnectorClient.getVersion(getItselfContext(), getSystemName());
         }
 
         /**
@@ -328,7 +336,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         public final  <S extends ManagementService> boolean invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
             ServiceReference<S> ref = null;
             try {
-                ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), systemName, null, serviceType);
+                ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
                 if(ref == null) return false;
                 serviceInvoker.execute(getItselfContext().getService(ref));
             }
@@ -347,7 +355,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String toString() {
-            return systemName;
+            return getSystemName();
         }
     }
 

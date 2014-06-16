@@ -1,5 +1,7 @@
 package com.itworks.snamp.configuration;
 
+import com.itworks.snamp.Descriptive;
+
 import java.util.Collection;
 import java.util.Locale;
 
@@ -47,19 +49,12 @@ public interface ConfigurationEntityDescription<T extends ConfigurationEntity> e
      * @since 1.0
      * @version 1.0
      */
-    public static interface ParameterDescription {
+    public static interface ParameterDescription extends Descriptive {
         /**
          * Gets the name of this parameter.
          * @return The name of this parameter.
          */
         public String getName();
-
-        /**
-         * Returns human-readable description of the specified configuration parameter.
-         * @param loc The expected localization of the parameter description,
-         * @return The localized human-readable description of the specified configuration parameter.
-         */
-        public String getDescription(final Locale loc);
 
         /**
          * Determines whether the configuration parameter must be presented in the configuration.

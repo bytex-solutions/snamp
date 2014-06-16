@@ -44,7 +44,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 mavenBundle("com.sun.jersey", "jersey-client", "1.17.1"),
                 mavenBundle("com.google.code.gson", "gson", "2.2.4"),
                 SnampArtifact.MANAGEMENT.getReference(),
-                SnampArtifact.WEB_CONSOLE.getReference());
+                SnampArtifact.WEB_CONSOLE.getReference(),
+                SnampArtifact.JMX_CONNECTOR.getReference());
     }
 
     @Override
@@ -78,7 +79,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void readLicenseFile(){
         final Client webConsoleClient = new Client();
-        final WebResource licenseProvider = webConsoleClient.resource("http://127.0.0.1:3344/snamp/console/license");
+        final WebResource licenseProvider = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/license");
         final String license = licenseProvider.get(String.class);
         assertNotNull(license);
         assertTrue(license.contains("jmxConnectorLimitations"));
@@ -87,7 +88,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void writeLicenseFile(){
         final Client webConsoleClient = new Client();
-        final WebResource licenseProvider = webConsoleClient.resource("http://127.0.0.1:3344/snamp/console/license");
+        final WebResource licenseProvider = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/license");
         final String originalContent = licenseProvider.get(String.class);
         final String LICENSE_CONTENT = "INCORRECT LICENSE";
         try{
@@ -103,7 +104,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void readConfigurationTest() {
         final Client webConsoleClient = new Client();
-        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/console/configuration");
+        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/configuration");
         final String configJson = config.get(String.class);
         assertNotNull(configJson);
         //parse response and check validity of JSON document
@@ -120,7 +121,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void writeConfigurationTest(){
         final Client webConsoleClient = new Client();
-        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/console/configuration");
+        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/configuration");
         final Gson serializer = new Gson();
         final JsonObject newConfig = new JsonObject();
         newConfig.add("resourceAdapters", new JsonObject());
@@ -137,5 +138,44 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         assertTrue(element.getAsJsonObject().has("managedResources"));
         assertEquals(0, element.getAsJsonObject().get("resourceAdapters").getAsJsonObject().entrySet().size());
         assertEquals(0, element.getAsJsonObject().get("managedResources").getAsJsonObject().entrySet().size());
+    }
+
+    @Test
+    public void jmxConnectorConfigurationSchema(){
+        final Client webConsoleClient = new Client();
+        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/connectors/jmx/configurationSchema");
+        final JsonParser parser = new JsonParser();
+        final JsonElement schema = parser.parse(config.get(String.class));
+        assertTrue(schema.isJsonObject());
+        assertEquals(4, schema.getAsJsonObject().entrySet().size());
+        assertTrue(schema.getAsJsonObject().get("attributeParameters").getAsJsonObject().has("objectName"));
+    }
+
+    @Test
+    public void listOfConnectorsTest(){
+        final Client webConsoleClient = new Client();
+        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/connectors");
+        final JsonParser parser = new JsonParser();
+        final JsonElement connectors = parser.parse(config.get(String.class));
+        assertTrue(connectors.isJsonArray());
+        assertEquals(1, connectors.getAsJsonArray().size());
+    }
+
+    @Test
+    public void listOfComponentsTest(){
+        final Client webConsoleClient = new Client();
+        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/components");
+        final JsonParser parser = new JsonParser();
+        final JsonElement connectors = parser.parse(config.get(String.class));
+        assertTrue(connectors.isJsonArray());
+        assertTrue(connectors.getAsJsonArray().size() > 4);
+    }
+
+    @Test
+    public void requestMainPageTest(){
+        final Client webConsoleClient = new Client();
+        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/console/");
+        final String pageContent = config.get(String.class);
+        assertTrue(pageContent.contains("<html>"));
     }
 }

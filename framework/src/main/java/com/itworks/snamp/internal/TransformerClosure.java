@@ -15,6 +15,13 @@ import org.apache.commons.lang3.mutable.MutableObject;
  * @param <O> The transformation value.
  */
 public abstract class TransformerClosure<I, O> extends MutableObject<O> implements Closure<I>, Transformer<I, O> {
+    protected TransformerClosure(){
+
+    }
+
+    protected TransformerClosure(final O defaultValue){
+        super(defaultValue);
+    }
 
     /**
      * Performs an action on the specified input object.

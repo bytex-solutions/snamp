@@ -7,6 +7,7 @@ import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.osgi.framework.BundleContext;
@@ -73,7 +74,12 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
                 new ManagementServlet(
                         getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies),
                         getDependency(RequiredServiceAccessor.class, SnampManager.class, dependencies))),
-                "/console/*");
+                "/management/api/*");
+        //Setup static pages
+        resourcesHandler.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "true");
+        resourcesHandler.setInitParameter("org.eclipse.jetty.servlet.Default.pathInfoOnly", "true");
+        final DefaultServlet staticPages = new StaticPagesServlet();
+        resourcesHandler.addServlet(new ServletHolder(staticPages), "/management/console/*");
         jettyServer.setHandler(resourcesHandler);
         jettyServer.start();
     }

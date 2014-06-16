@@ -29,7 +29,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
         private static final String RESOURCE_NAME = "JmxAttributeConfig";
 
         public AttributeConfigurationInfo(){
-            super(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class, RESOURCE_NAME, OBJECT_NAME_PROPERTY);
+            super(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class, OBJECT_NAME_PROPERTY);
         }
 
         /**

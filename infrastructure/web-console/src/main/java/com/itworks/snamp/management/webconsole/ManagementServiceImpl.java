@@ -1,19 +1,30 @@
 package com.itworks.snamp.management.webconsole;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
+import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.ConfigurationManager;
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
+import com.itworks.snamp.internal.TransformerClosure;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicenseReader;
+import com.itworks.snamp.licensing.LicensingDescriptionService;
+import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
 import com.sun.jersey.spi.resource.Singleton;
+import org.apache.commons.collections4.Closure;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.*;
+import java.util.Locale;
+import java.util.Objects;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
@@ -27,15 +38,15 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 public final class ManagementServiceImpl {
     private final ConfigurationManager configManager;
     private final SnampManager snampManager;
+    private final Gson jsonFormatter;
+    private final JsonParser jsonParser;
 
     public ManagementServiceImpl(final ConfigurationManager configManager,
                                  final SnampManager snampManager){
         this.configManager = configManager;
         this.snampManager = snampManager;
-    }
-
-    private static Gson createSerializer(){
-        return new Gson();
+        jsonFormatter = new Gson();
+        jsonParser = new JsonParser();
     }
 
     /**
@@ -44,10 +55,9 @@ public final class ManagementServiceImpl {
      */
     @GET
     @Path("/configuration")
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public String getConfiguration() {
-        final Gson jsonSerializer = new Gson();
-        return jsonSerializer.toJson(JsonAgentConfiguration.read(configManager.getCurrentConfiguration()));
+        return jsonFormatter.toJson(JsonAgentConfiguration.read(configManager.getCurrentConfiguration()));
     }
 
     /**
@@ -57,10 +67,9 @@ public final class ManagementServiceImpl {
      */
     @POST
     @Path("/configuration")
-    @Consumes("application/json")
+    @Consumes(MediaType.APPLICATION_JSON)
     public void setConfiguration(final String value) {
-        final JsonParser parser = new JsonParser();
-        JsonAgentConfiguration.write(parser.parse(value), configManager.getCurrentConfiguration());
+        JsonAgentConfiguration.write(jsonParser.parse(value), configManager.getCurrentConfiguration());
         configManager.sync();
     }
 
@@ -80,8 +89,13 @@ public final class ManagementServiceImpl {
      */
     @POST
     @Path("/restart")
-    public void restart() throws BundleException {
-        restart(getBundleContextByObject(this));
+    public void restart() throws WebApplicationException {
+        try {
+            restart(getBundleContextByObject(this));
+        }
+        catch (final BundleException e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -94,8 +108,8 @@ public final class ManagementServiceImpl {
 
     @GET
     @Path("/license")
-    @Produces("application/xml")
-    public String getLicense() throws IOException{
+    @Produces(MediaType.APPLICATION_XML)
+    public String getLicense() throws WebApplicationException{
         final StringBuilder result = new StringBuilder(14);
         try(final InputStreamReader is = new InputStreamReader(new FileInputStream(getLicenseFile()), LicenseReader.LICENSE_FILE_ENCODING)){
             final char[] buffer = new char[1024];
@@ -103,27 +117,176 @@ public final class ManagementServiceImpl {
             while ((count = is.read(buffer)) > 0)
                 result.append(buffer, 0, count);
         }
+        catch (final IOException e){
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
         return result.toString();
     }
 
     @POST
     @Path("/license")
-    @Consumes("application/xml")
-    public void setLicense(final String licenseContent) throws IOException{
+    @Consumes(MediaType.APPLICATION_XML)
+    public void setLicense(final String licenseContent) throws WebApplicationException{
         try(final OutputStream os = new FileOutputStream(getLicenseFile(), false)){
             os.write(licenseContent.getBytes(LicenseReader.LICENSE_FILE_ENCODING));
         }
+        catch (final IOException e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    @Path("/installed-components")
-    @GET
-    @Produces("application/xml")
-    public String getInstalledComponents(){
+    private static JsonObject getConfigurationSchema(final ConfigurationEntityDescription<?> description, final Locale loc){
         final JsonObject result = new JsonObject();
-        final String ADAPTERS_SECTION = "adapters";
-        final String CONNECTORS_SECTION = "connectors";
-        final String COMPONENTS_SECTION = "components";
+        if(description != null)
+            for(final String parameterName: description){
+                final JsonObject parameter = new JsonObject();
+                final ConfigurationEntityDescription.ParameterDescription descriptor = description.getParameterDescriptor(parameterName);
+                parameter.addProperty("defaultValue", descriptor.getDefaultValue(loc));
+                parameter.addProperty("description", descriptor.getDescription(loc));
+                parameter.addProperty("inputPattern", descriptor.getValuePattern(loc));
+                parameter.addProperty("required", descriptor.isRequired());
+                //related params
+                for(final ConfigurationEntityDescription.ParameterRelationship rel: ConfigurationEntityDescription.ParameterRelationship.values()){
+                    final JsonArray relationship = new JsonArray();
+                    for(final String relatedParameter: descriptor.getRelatedParameters(rel))
+                        relationship.add(new JsonPrimitive(relatedParameter));
+                    parameter.add(rel.name(), relationship);
+                }
+                result.add(parameterName, parameter);
+            }
+        return result;
+    }
 
-        return createSerializer().toJson(result);
+    private static JsonObject getConfigurationSchema(final ConfigurationEntityDescriptionProvider schemaProvider, final Locale loc){
+       final JsonObject result = new JsonObject();
+       result.add("managedResourceParameters", getConfigurationSchema(schemaProvider.getDescription(ManagedResourceConfiguration.class), loc));
+       result.add("resourceAdapterParameters", getConfigurationSchema(schemaProvider.getDescription(ResourceAdapterConfiguration.class), loc));
+       result.add("attributeParameters", getConfigurationSchema(schemaProvider.getDescription(ManagedResourceConfiguration.AttributeConfiguration.class), loc));
+       result.add("eventParameters", getConfigurationSchema(schemaProvider.getDescription(ManagedResourceConfiguration.EventConfiguration.class), loc));
+       return result;
+    }
+
+    private static String getConfigurationSchema(final SnampComponentDescriptor component,
+                                                 final Gson jsonFormatter,
+                                                 final String locale){
+        final TransformerClosure<ConfigurationEntityDescriptionProvider, String> closure = new TransformerClosure<ConfigurationEntityDescriptionProvider, String>("{}") {
+            @Override
+            public String transform(final ConfigurationEntityDescriptionProvider input) {
+                final JsonObject result = getConfigurationSchema(input, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale));
+                return jsonFormatter.toJson(result);
+            }
+        };
+        component.invokeManagementService(ConfigurationEntityDescriptionProvider.class, closure);
+        return closure.getValue();
+    }
+
+    //example of configuration schema:
+/*
+    {
+    "managedResourceParameters": {},
+    "resourceAdapterParameters": {},
+    "attributeParameters": {
+        "objectName": {
+            "defaultValue": "",
+            "description": "Represents MBean object name that exposes the management attribute",
+            "inputPattern": "",
+            "required": true,
+            "ASSOCIATION": [],
+            "EXTENSION": [],
+            "EXCLUSION": []
+        }
+    },
+    "eventParameters": {}
+
+     */
+    @GET
+    @Path("/connectors/{connectorName}/configurationSchema")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getConnectorConfigurationSchema(@PathParam("connectorName") final String connectorName, @QueryParam("locale")final String locale){
+        for(final SnampComponentDescriptor connector: snampManager.getInstalledResourceConnectors())
+            if (Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
+                return getConfigurationSchema(connector, jsonFormatter, locale);
+        return "{}";
+    }
+
+    private static JsonObject getComponentInfo(final SnampComponentDescriptor component, final Locale loc){
+        final JsonObject result = new JsonObject();
+        result.addProperty("Version", Objects.toString(component.getVersion(), "0.0"));
+        result.addProperty("State", component.getState());
+        result.addProperty("DisplayName", component.getName(loc));
+        result.addProperty("Description", component.getDescription(loc));
+        component.invokeManagementService(LicensingDescriptionService.class, new Closure<LicensingDescriptionService>() {
+            @Override
+            public void execute(final LicensingDescriptionService input) {
+                final JsonObject limitations = new JsonObject();
+                for(final String limitation: input.getLimitations())
+                    limitations.addProperty(limitation, input.getDescription(limitation, loc));
+                result.add("Licensing", limitations);
+            }
+        });
+        return result;
+    }
+
+    @GET
+    @Path("/connectors")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getInstalledConnectors(){
+        final JsonArray result = new JsonArray();
+        for(final String connector: AbstractManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this)))
+            result.add(new JsonPrimitive(connector));
+        return jsonFormatter.toJson(result);
+    }
+
+    @GET
+    @Path("/connectors/{connectorName}")
+    public String getConnectorInfo(@PathParam("connectorName")final String connectorName, @QueryParam("locale")final String locale) throws WebApplicationException{
+        for(final SnampComponentDescriptor connector: snampManager.getInstalledResourceConnectors())
+            if(Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
+                return jsonFormatter.toJson(getComponentInfo(connector, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
+        throw new WebApplicationException(new IllegalArgumentException(String.format("Connector %s doesn't exist", connectorName)), Response.Status.NOT_FOUND);
+    }
+
+    @GET
+    @Path("/adapters")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getInstalledAdapters(){
+        final JsonArray result = new JsonArray();
+        for(final String adapter: AbstractResourceAdapterActivator.getInstalledResourceAdapters(Utils.getBundleContextByObject(this)))
+            result.add(new JsonPrimitive(adapter));
+        return jsonFormatter.toJson(result);
+    }
+
+    @GET
+    @Path("/adapters/{adapterName}")
+    public String getAdapterInfo(@PathParam("adapterName")final String adapterName, @QueryParam("locale")final String locale){
+        for(final SnampComponentDescriptor adapter: snampManager.getInstalledResourceAdapters())
+            if(Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY)))
+                return jsonFormatter.toJson(getComponentInfo(adapter, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
+        throw new WebApplicationException(new IllegalArgumentException(String.format("Adapter %s doesn't exist", adapterName)), Response.Status.NOT_FOUND);
+    }
+
+    @GET
+    @Path("/adapters/{adapterName}/configurationSchema")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getAdapterConfigurationSchema(@PathParam("adapterName")final String adapterName, @QueryParam("locale")final String locale){
+        for(final SnampComponentDescriptor adapter: snampManager.getInstalledResourceAdapters())
+            if(Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY)))
+                return getConfigurationSchema(adapter, jsonFormatter, locale);
+        return "{}";
+    }
+
+    @GET
+    @Path("/components")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getInstalledComponents(@QueryParam("locale")final String locale) {
+        final JsonArray result = new JsonArray();
+        final Locale loc = locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale);
+        for (final SnampComponentDescriptor connector : snampManager.getInstalledResourceConnectors())
+            result.add(getComponentInfo(connector, loc));
+        for (final SnampComponentDescriptor adapter : snampManager.getInstalledResourceAdapters())
+            result.add(getComponentInfo(adapter, loc));
+        for (final SnampComponentDescriptor component : snampManager.getInstalledComponents())
+            result.add(getComponentInfo(component, loc));
+        return jsonFormatter.toJson(result);
     }
 }
