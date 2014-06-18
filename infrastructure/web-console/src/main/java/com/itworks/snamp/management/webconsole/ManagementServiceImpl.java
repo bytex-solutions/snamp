@@ -20,8 +20,10 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import java.io.*;
 import java.util.Locale;
 import java.util.Objects;
@@ -68,7 +70,8 @@ public final class ManagementServiceImpl {
     @POST
     @Path("/configuration")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void setConfiguration(final String value) {
+    public void setConfiguration(final String value, @Context final SecurityContext context) {
+        SecurityUtils.adminRequired(context);
         JsonAgentConfiguration.write(jsonParser.parse(value), configManager.getCurrentConfiguration());
         configManager.sync();
     }
@@ -89,7 +92,8 @@ public final class ManagementServiceImpl {
      */
     @POST
     @Path("/restart")
-    public void restart() throws WebApplicationException {
+    public void restart(@Context final SecurityContext context) throws WebApplicationException {
+        SecurityUtils.adminRequired(context);
         try {
             restart(getBundleContextByObject(this));
         }
@@ -109,7 +113,8 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/license")
     @Produces(MediaType.APPLICATION_XML)
-    public String getLicense() throws WebApplicationException{
+    public String getLicense(@Context SecurityContext context) throws WebApplicationException{
+        SecurityUtils.adminRequired(context);
         final StringBuilder result = new StringBuilder(14);
         try(final InputStreamReader is = new InputStreamReader(new FileInputStream(getLicenseFile()), LicenseReader.LICENSE_FILE_ENCODING)){
             final char[] buffer = new char[1024];
@@ -126,7 +131,8 @@ public final class ManagementServiceImpl {
     @POST
     @Path("/license")
     @Consumes(MediaType.APPLICATION_XML)
-    public void setLicense(final String licenseContent) throws WebApplicationException{
+    public void setLicense(final String licenseContent, @Context final SecurityContext context) throws WebApplicationException{
+        SecurityUtils.adminRequired(context);
         try(final OutputStream os = new FileOutputStream(getLicenseFile(), false)){
             os.write(licenseContent.getBytes(LicenseReader.LICENSE_FILE_ENCODING));
         }
@@ -202,7 +208,10 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors/{connectorName}/configurationSchema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getConnectorConfigurationSchema(@PathParam("connectorName") final String connectorName, @QueryParam("locale")final String locale){
+    public String getConnectorConfigurationSchema(@PathParam("connectorName") final String connectorName,
+                                                  @QueryParam("locale")final String locale,
+                                                  @Context final SecurityContext context){
+        SecurityUtils.adminRequired(context);
         for(final SnampComponentDescriptor connector: snampManager.getInstalledResourceConnectors())
             if (Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
                 return getConfigurationSchema(connector, jsonFormatter, locale);
@@ -268,7 +277,10 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/adapters/{adapterName}/configurationSchema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getAdapterConfigurationSchema(@PathParam("adapterName")final String adapterName, @QueryParam("locale")final String locale){
+    public String getAdapterConfigurationSchema(@PathParam("adapterName")final String adapterName,
+                                                @QueryParam("locale")final String locale,
+                                                @Context SecurityContext context){
+        SecurityUtils.adminRequired(context);
         for(final SnampComponentDescriptor adapter: snampManager.getInstalledResourceAdapters())
             if(Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY)))
                 return getConfigurationSchema(adapter, jsonFormatter, locale);
