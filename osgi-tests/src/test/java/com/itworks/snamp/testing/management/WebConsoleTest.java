@@ -9,6 +9,7 @@ import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.filter.HTTPDigestAuthFilter;
 import org.junit.Test;
 import org.ops4j.pax.exam.options.FrameworkPropertyOption;
 
@@ -43,6 +44,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 mavenBundle("com.sun.jersey", "jersey-servlet", "1.17.1"),
                 mavenBundle("com.sun.jersey", "jersey-client", "1.17.1"),
                 mavenBundle("com.google.code.gson", "gson", "2.2.4"),
+                mavenBundle("org.eclipse.jetty", "jetty-jaas", "9.1.1.v20140108"),
                 SnampArtifact.MANAGEMENT.getReference(),
                 SnampArtifact.WEB_CONSOLE.getReference(),
                 SnampArtifact.JMX_CONNECTOR.getReference());
@@ -79,6 +81,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void readLicenseFile(){
         final Client webConsoleClient = new Client();
+        webConsoleClient.addFilter(new HTTPDigestAuthFilter("evgeniy", "mypassword"));
         final WebResource licenseProvider = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/license");
         final String license = licenseProvider.get(String.class);
         assertNotNull(license);
@@ -88,6 +91,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void writeLicenseFile(){
         final Client webConsoleClient = new Client();
+        webConsoleClient.addFilter(new HTTPDigestAuthFilter("evgeniy", "mypassword"));
         final WebResource licenseProvider = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/license");
         final String originalContent = licenseProvider.get(String.class);
         final String LICENSE_CONTENT = "INCORRECT LICENSE";
@@ -104,6 +108,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void readConfigurationTest() {
         final Client webConsoleClient = new Client();
+        webConsoleClient.addFilter(new HTTPDigestAuthFilter("roman", "mypassword"));
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/configuration");
         final String configJson = config.get(String.class);
         assertNotNull(configJson);
@@ -121,6 +126,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void writeConfigurationTest(){
         final Client webConsoleClient = new Client();
+        webConsoleClient.addFilter(new HTTPDigestAuthFilter("evgeniy", "mypassword"));
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/configuration");
         final Gson serializer = new Gson();
         final JsonObject newConfig = new JsonObject();
@@ -143,6 +149,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void jmxConnectorConfigurationSchema(){
         final Client webConsoleClient = new Client();
+        webConsoleClient.addFilter(new HTTPDigestAuthFilter("evgeniy", "mypassword"));
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/connectors/jmx/configurationSchema");
         final JsonParser parser = new JsonParser();
         final JsonElement schema = parser.parse(config.get(String.class));
@@ -154,6 +161,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void listOfConnectorsTest(){
         final Client webConsoleClient = new Client();
+        webConsoleClient.addFilter(new HTTPDigestAuthFilter("evgeniy", "mypassword"));
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/connectors");
         final JsonParser parser = new JsonParser();
         final JsonElement connectors = parser.parse(config.get(String.class));
@@ -164,6 +172,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void listOfComponentsTest(){
         final Client webConsoleClient = new Client();
+        webConsoleClient.addFilter(new HTTPDigestAuthFilter("evgeniy", "mypassword"));
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/components");
         final JsonParser parser = new JsonParser();
         final JsonElement connectors = parser.parse(config.get(String.class));
@@ -174,6 +183,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void requestMainPageTest(){
         final Client webConsoleClient = new Client();
+        webConsoleClient.addFilter(new HTTPDigestAuthFilter("roman", "mypassword"));
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/console/");
         final String pageContent = config.get(String.class);
         assertTrue(pageContent.contains("<html>"));

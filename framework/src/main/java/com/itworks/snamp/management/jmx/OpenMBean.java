@@ -36,8 +36,33 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @see com.itworks.snamp.management.jmx.OpenMBean.OpenAttribute
      */
     protected static abstract class OpenMBeanElement {
-        private OpenMBeanElement(){
+        /**
+         * Represents name of this element.
+         */
+        public final String name;
+
+        private OpenMBeanElement(final String elementName){
+            this.name = elementName;
         }
+
+        /**
+         * Gets descriptor for this element.
+         * <p>
+         *     In the default implementation this method returns {@literal null}.
+         * </p>
+         * @return The descriptor of this element.
+         * @see javax.management.ImmutableDescriptor
+         */
+        @MethodStub
+        protected Descriptor getDescriptor(){
+            return null;
+        }
+
+        /**
+         * Gets description of this element.
+         * @return The description of this element.
+         */
+        protected abstract String getDescription();
     }
 
     /**
@@ -48,7 +73,6 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @version 1.0
      */
     protected static abstract class OpenNotification<N> extends OpenMBeanElement{
-        private final String name;
         private final String[] types;
         private final Class<N> eventObjectType;
         private final AtomicLong sequenceNumber;
@@ -62,7 +86,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         protected OpenNotification(final String name,
                                 final Class<N> eventObject,
                                 final String... types){
-            this.name = name;
+            super(name);
             this.types = types.clone();
             this.eventObjectType = eventObject;
             sequenceNumber = new AtomicLong(0L);
@@ -110,22 +134,10 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         }
 
         /**
-         * Gets descriptor for this notification.
-         * <p>
-         *     In the default implementation this method returns {@literal null}.
-         * </p>
-         * @return The notification descriptor.
-         * @see javax.management.ImmutableDescriptor
-         */
-        @MethodStub
-        protected Descriptor getDescriptor(){
-            return null;
-        }
-
-        /**
          * Gets human-readable description for this notification.
          * @return A human-readable description of this notification.
          */
+        @Override
         protected String getDescription(){
             return String.format("%s notification.", name);
         }
@@ -136,12 +148,11 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     }
 
     protected static abstract class OpenOperation<R, T extends OpenType<R>> extends OpenMBeanElement{
-        private final String name;
         private final T returnType;
         private final List<OpenMBeanParameterInfo> parameters;
 
         protected OpenOperation(final String operationName, final T returnType, final OpenMBeanParameterInfo... parameters){
-            this.name = operationName;
+            super(operationName);
             this.returnType = returnType;
             this.parameters = Arrays.asList(parameters);
         }
@@ -169,12 +180,9 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             }
         }
 
+        @Override
         protected String getDescription(){
             return String.format("%s operation.", name);
-        }
-
-        protected Descriptor getDescriptor(){
-            return null;
         }
 
         private OpenMBeanOperationInfoSupport createOperationInfo(){
@@ -203,7 +211,6 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          * Represents type of the attribute.
          */
         protected final T openType;
-        private String name;
 
         /**
          * Initializes a new attribute.
@@ -211,26 +218,15 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          * @param openType The type of the attribute.
          */
         protected OpenAttribute(final String attributeName, final T openType){
-            this.name = attributeName;
+            super(attributeName);
             this.openType = openType;
-        }
-
-        /**
-         * Gets descriptor of this attribute.
-         * <p>
-         *     In the default implementation this method returns {@literal null}.
-         * </p>
-         * @return The descriptor of this attribute.
-         */
-        @MethodStub
-        protected Descriptor getDescriptor(){
-            return null;
         }
 
         /**
          * Gets description of this attribute.
          * @return The description of this attribute.
          */
+        @Override
         protected String getDescription(){
             return String.format("%s description.", name);
         }
