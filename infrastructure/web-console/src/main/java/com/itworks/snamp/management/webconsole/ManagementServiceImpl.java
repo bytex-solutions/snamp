@@ -239,7 +239,8 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getInstalledConnectors(){
+    public String getInstalledConnectors(@Context final SecurityContext context){
+        SecurityUtils.wellKnownRoleRequired(context);
         final JsonArray result = new JsonArray();
         for(final String connector: AbstractManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this)))
             result.add(new JsonPrimitive(connector));
@@ -248,7 +249,10 @@ public final class ManagementServiceImpl {
 
     @GET
     @Path("/connectors/{connectorName}")
-    public String getConnectorInfo(@PathParam("connectorName")final String connectorName, @QueryParam("locale")final String locale) throws WebApplicationException{
+    public String getConnectorInfo(@PathParam("connectorName")final String connectorName,
+                                   @QueryParam("locale")final String locale,
+                                   @Context final SecurityContext context) throws WebApplicationException{
+        SecurityUtils.wellKnownRoleRequired(context);
         for(final SnampComponentDescriptor connector: snampManager.getInstalledResourceConnectors())
             if(Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
                 return jsonFormatter.toJson(getComponentInfo(connector, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
@@ -258,7 +262,8 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/adapters")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getInstalledAdapters(){
+    public String getInstalledAdapters(@Context SecurityContext context){
+        SecurityUtils.wellKnownRoleRequired(context);
         final JsonArray result = new JsonArray();
         for(final String adapter: AbstractResourceAdapterActivator.getInstalledResourceAdapters(Utils.getBundleContextByObject(this)))
             result.add(new JsonPrimitive(adapter));
@@ -267,7 +272,10 @@ public final class ManagementServiceImpl {
 
     @GET
     @Path("/adapters/{adapterName}")
-    public String getAdapterInfo(@PathParam("adapterName")final String adapterName, @QueryParam("locale")final String locale){
+    public String getAdapterInfo(@PathParam("adapterName")final String adapterName,
+                                 @QueryParam("locale")final String locale,
+                                 @Context SecurityContext context){
+        SecurityUtils.wellKnownRoleRequired(context);
         for(final SnampComponentDescriptor adapter: snampManager.getInstalledResourceAdapters())
             if(Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY)))
                 return jsonFormatter.toJson(getComponentInfo(adapter, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
@@ -290,7 +298,9 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/components")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getInstalledComponents(@QueryParam("locale")final String locale) {
+    public String getInstalledComponents(@QueryParam("locale")final String locale,
+                                         @Context final SecurityContext context) {
+        SecurityUtils.wellKnownRoleRequired(context);
         final JsonArray result = new JsonArray();
         final Locale loc = locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale);
         for (final SnampComponentDescriptor connector : snampManager.getInstalledResourceConnectors())

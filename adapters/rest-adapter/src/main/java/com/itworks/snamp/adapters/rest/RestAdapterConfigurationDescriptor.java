@@ -5,9 +5,8 @@ import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescripti
 
 import java.util.Locale;
 import java.util.ResourceBundle;
-import static com.itworks.snamp.adapters.Adapter.*;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.HostingConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 
 /**
  * Represents descriptor of REST adapter configuration scheme.
@@ -16,16 +15,24 @@ import static com.itworks.snamp.configuration.AgentConfiguration.HostingConfigur
  * @version 1.0
  * @since 1.0
  */
-public final class RestAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+final class RestAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
 
     public static final String DATE_FORMAT_PARAM_NAME = "dateFormat";
     public static final String WEB_SOCKET_TIMEOUT_PARAM_NAME = "webSocketIdleTimeout";
+    public static final String PORT_PARAM_NAME = "port";
+    public static final String HOST_PARAM_NAME = "host";
+    public static final String LOGIN_MODULE_NAME = "loginModule";
 
-    private static final class HostingConfigurationInfo extends ResourceBasedConfigurationEntityDescription<HostingConfiguration> {
+    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> {
         private static final String RESOURCE_NAME = "RestAdapterConfig";
 
-        public HostingConfigurationInfo(){
-            super(HostingConfiguration.class, ADDRESS_PARAM_NAME, PORT_PARAM_NAME);
+        public AdapterConfigurationInfo(){
+            super(ResourceAdapterConfiguration.class,
+                    HOST_PARAM_NAME,
+                    PORT_PARAM_NAME,
+                    DATE_FORMAT_PARAM_NAME,
+                    WEB_SOCKET_TIMEOUT_PARAM_NAME,
+                    LOGIN_MODULE_NAME);
         }
 
         @Override
@@ -36,6 +43,6 @@ public final class RestAdapterConfigurationDescriptor extends ConfigurationEntit
     }
 
     public RestAdapterConfigurationDescriptor(){
-        super(new HostingConfigurationInfo());
+        super(new AdapterConfigurationInfo());
     }
 }

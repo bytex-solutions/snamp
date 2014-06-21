@@ -1,194 +1,297 @@
 package com.itworks.snamp.adapters.rest;
 
-import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.itworks.snamp.connectors.AttributeSupport;
-import com.itworks.snamp.connectors.NotificationSupport;
-import com.itworks.snamp.connectors.util.AbstractAttributesRegistry;
-import com.itworks.snamp.connectors.util.AttributesRegistry;
-import com.itworks.snamp.connectors.util.ConnectedAttributes;
-import com.itworks.snamp.licensing.LicensedPlatformPlugin;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.connectors.notifications.NotificationMetadata;
+import com.itworks.snamp.internal.Utils;
+import net.engio.mbassy.bus.MBassador;
+import net.engio.mbassy.bus.common.PubSubSupport;
+import net.engio.mbassy.bus.config.BusConfiguration;
+import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.eclipse.jetty.jaas.JAASLoginService;
+import org.eclipse.jetty.jaas.JAASRole;
+import org.eclipse.jetty.security.ConstraintMapping;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.security.LoginService;
+import org.eclipse.jetty.security.authentication.DigestAuthenticator;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.NetworkConnector;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.security.Constraint;
+import org.osgi.service.event.EventHandler;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.EventConfiguration;
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration;
-import static com.itworks.snamp.adapters.rest.RestAdapterConfigurationDescriptor.*;
-
-import com.itworks.snamp.configuration.AgentConfiguration;
-import net.xeoh.plugins.base.annotations.PluginImplementation;
-import net.xeoh.plugins.base.annotations.meta.Author;
-import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.servlet.*;
-
-import javax.servlet.Servlet;
-import java.io.IOException;
-import java.util.*;
+import java.text.DateFormat;
+import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.apache.commons.lang3.ArrayUtils.toArray;
 
 /**
  * Represents HTTP adapter that exposes management information through HTTP and WebSocket to the outside world.
  * This class cannot be inherited.
  * @author Roman Sakno
  */
-@PluginImplementation
-@Author(name = "Roman Sakno")
-final class RestAdapter extends AbstractAdapter implements LicensedPlatformPlugin<RestAdapterLimitations>, NotificationPublisher {
-    public static final String NAME = "rest";
+final class RestAdapter extends AbstractResourceAdapter {
+    private static final String REALM_NAME = "SNAMP_REST_ADAPTER";
+
+    private static final class HttpNotifications extends AbstractNotificationsModel<HttpNotificationMapping> implements EventHandler, HttpNotificationsModel, AutoCloseable{
+        private final Gson jsonFormatter;
+        private final MBassador<JsonNotification> notificationBus;
+
+        public HttpNotifications(final Gson jsonFormatter){
+            this.jsonFormatter = jsonFormatter;
+            this.notificationBus = new MBassador<>(BusConfiguration.Default());
+        }
+
+        public PubSubSupport<JsonNotification> getNotificationEmitter(){
+            return notificationBus;
+        }
+
+        /**
+         * Creates a new notification metadata representation.
+         *
+         * @param resourceName User-defined name of the managed resource.
+         * @param eventName    The resource-local identifier of the event.
+         * @param notifMeta    The notification metadata to wrap.
+         * @return A new notification metadata representation.
+         */
+        @Override
+        protected HttpNotificationMapping createNotificationView(final String resourceName, final String eventName, final NotificationMetadata notifMeta) {
+            return new HttpNotificationMapping(notifMeta);
+        }
+
+        /**
+         * Processes SNMP notification.
+         *
+         * @param notif                The notification to process.
+         * @param notificationMetadata The metadata of the notification.
+         */
+        @Override
+        protected void handleNotification(final Notification notif, final HttpNotificationMapping notificationMetadata) {
+            notificationBus.publishAsync(new JsonNotification(notif, notificationMetadata.getCategory()));
+        }
+
+        @Override
+        public Gson getJsonFormatter() {
+            return jsonFormatter;
+        }
+
+        @Override
+        public HttpNotificationMapping get(final String resourceName, final String userDefineEventName) {
+            return get(makeSubscriptionListID(resourceName, userDefineEventName));
+        }
+
+        @Override
+        public void close() {
+            notificationBus.shutdown();
+        }
+    }
+
+    private static final class HttpAttributes extends AbstractAttributesModel<HttpAttributeMapping> implements HttpAttributesModel {
+        private final Gson jsonFormatter;
+
+        public HttpAttributes(final Gson formatter){
+            this.jsonFormatter = formatter;
+        }
+
+        /**
+         * Creates a new domain-specific representation of the management attribute.
+         *
+         * @param resourceName             User-defined name of the managed resource.
+         * @param userDefinedAttributeName User-defined name of the attribute.
+         * @param accessor                 An accessor for the individual management attribute.
+         * @return A new domain-specific representation of the management attribute.
+         */
+        @Override
+        protected HttpAttributeMapping createAttributeView(final String resourceName, final String userDefinedAttributeName, final AttributeAccessor accessor) {
+            return new HttpAttributeMapping(accessor, jsonFormatter);
+        }
+
+        /**
+         * Creates a new unique identifier of the management attribute.
+         * <p>
+         * The identifier must be unique through all instances of the resource adapter.
+         * </p>
+         *
+         * @param resourceName             User-defined name of the managed resource which supply the attribute.
+         * @param userDefinedAttributeName User-defined name of the attribute.
+         * @return A new unique identifier of the management attribute.
+         */
+        @Override
+        protected String makeAttributeID(final String resourceName, final String userDefinedAttributeName) {
+            return String.format("%s/%s", resourceName, userDefinedAttributeName);
+        }
+
+        @Override
+        public Gson getJsonFormatter() {
+            return jsonFormatter;
+        }
+
+        @Override
+        public HttpAttributeMapping get(final String resourceName, final String userDefinedAttributeName) {
+            return get(makeAttributeID(resourceName, userDefinedAttributeName));
+        }
+    }
+
     private final Server jettyServer;
-    private final AttributesRegistry exposedAttributes;
-    private final SubscriptionList notifications;
-    private boolean started = false;
-    private ConfigurationEntityDescriptionProvider configDescr;
+    private final String loginModuleName;
+    private final HttpAttributes attributes;
+    private final int webSocketTimeout;
+    private final HttpNotifications notifications;
 
-    public RestAdapter(){
-        super(NAME);
-        RestAdapterLimitations.current().verifyPluginVersion(getClass());
-        jettyServer = new Server();
-        exposedAttributes = new AbstractAttributesRegistry<AttributeConfiguration>() {
-            @Override
-            protected ConnectedAttributes<AttributeConfiguration> createBinding(final AttributeSupport connector) {
-                return new ConnectedAttributes<AttributeConfiguration>(connector) {
-                    @Override
-                    public final String makeAttributeId(final String prefix, final String postfix) {
-                        return RestAdapterHelpers.makeAttributeID(prefix, postfix);
-                    }
-
-                    @Override
-                    public final AttributeConfiguration createDescription(final String prefix, final String postfix, final AttributeConfiguration config) {
-                        return config;
-                    }
-                };
-            }
-        };
-        started = false;
-        notifications = new SubscriptionList();
-    }
-
-    private Servlet createRestServlet(final String dateFormat){
-        return new RestAdapterServlet(dateFormat, exposedAttributes, getLogger());
-    }
-
-    private final boolean initializeServer(final Server s, final Map<String, String> parameters){
-        final int port = parameters.containsKey(PORT_PARAM_NAME) ? Integer.valueOf(parameters.get(PORT_PARAM_NAME)) : 8080;
-        final String host = parameters.containsKey(ADDRESS_PARAM_NAME) ? parameters.get(ADDRESS_PARAM_NAME) : "0.0.0.0";
-        final String dateFormat = parameters.containsKey(DATE_FORMAT_PARAM_NAME) ? parameters.get(DATE_FORMAT_PARAM_NAME) : "";
-        final int webSocketIdleTimeout = Integer.valueOf(parameters.containsKey(WEB_SOCKET_TIMEOUT_PARAM_NAME) ? parameters.get(WEB_SOCKET_TIMEOUT_PARAM_NAME) : "10000");
+    public RestAdapter(final int port,
+                       final String host,
+                       final String loginModuleName,
+                       final String dateFormat,
+                       final int webSocketTimeout,
+                       final Map<String, ManagedResourceConfiguration> resources){
+        super(resources);
+        this.jettyServer = new Server();
+        this.loginModuleName = loginModuleName;
+        this.webSocketTimeout = webSocketTimeout;
         //remove all connectors.
-        for(final Connector c: s.getConnectors())
-            if(c instanceof NetworkConnector) ((NetworkConnector)c).close();
-        s.setConnectors(new Connector[0]);
+        removeConnectors(jettyServer);
         //initializes a new connector.
-        final ServerConnector connector = new ServerConnector(s);
+        final ServerConnector connector = new ServerConnector(jettyServer);
         connector.setPort(port);
         connector.setHost(host);
-        s.setConnectors(new Connector[]{connector});
-        final ServletContextHandler resourcesHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        resourcesHandler.setContextPath("/snamp");
-        //notification delivery
-        resourcesHandler.addServlet(new ServletHolder(new NotificationSenderServlet(notifications.createSubscriptionManager(), getLogger(), dateFormat, webSocketIdleTimeout)), "/notifications/*");
-        //attribute getters and setters
-        resourcesHandler.addServlet(new ServletHolder(createRestServlet(dateFormat)), "/management/*");
-        s.setHandler(resourcesHandler);
-        return true;
+        jettyServer.setConnectors(toArray(connector));
+        final Gson jsonFormatter = createJsonFormatter(dateFormat);
+        attributes = new HttpAttributes(jsonFormatter);
+        notifications = new HttpNotifications(jsonFormatter);
     }
 
-    @Aggregation
-    public final ConfigurationEntityDescriptionProvider getConfigurationDescriptor(){
-        if(configDescr == null)
-            configDescr = new RestAdapterConfigurationDescriptor();
-        return configDescr;
+    private static Gson createJsonFormatter(final String dateFormat){
+        final GsonBuilder builder = new GsonBuilder();
+        if(dateFormat == null || dateFormat.isEmpty())
+            builder.setDateFormat(DateFormat.FULL);
+        else builder.setDateFormat(dateFormat);
+        builder.serializeNulls();
+        return builder.create();
+    }
+
+    private static void removeConnectors(final Server jettyServer){
+        for(final Connector c: jettyServer.getConnectors())
+            if(c instanceof NetworkConnector) ((NetworkConnector)c).close();
+        jettyServer.setConnectors(new Connector[0]);
+    }
+
+    private static LoginService createLoginService(final String loginModuleName, final Class<?> callerClass){
+        final JAASLoginService loginService = RestAdapterHelpers.createJaasLoginServiceForOsgi(callerClass.getClassLoader());
+        loginService.setLoginModuleName(loginModuleName);
+        loginService.setName(REALM_NAME);
+        loginService.setRoleClassNames(toArray(JAASRole.class.getName()));
+        return loginService;
     }
 
     /**
-     * Exposes the connector to the world.
-     *
-     * @param parameters The adapter startup parameters.
+     * Starts the adapter.
      * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
      */
     @Override
-    public boolean start(final Map<String, String> parameters) throws IOException {
-        if(!started && initializeServer(jettyServer, parameters))
-            try {
-                jettyServer.start();
-                return started = true;
-            }
-            catch (final Exception e) {
-                getLogger().log(Level.WARNING, e.getLocalizedMessage(), e);
-                throw new IOException(e);
-            }
-        else return false;
-    }
-
-    /**
-     * Stops the connector hosting.
-     *
-     * @param saveState {@literal true} to save previously exposed attributes for reuse; otherwise,
-     *                       clear internal list of exposed attributes.
-     * @return {@literal true}, if adapter is previously started; otherwise, {@literal false}.
-     */
-    @Override
-    public boolean stop(final boolean saveState) {
-        if(started)
-            try {
-                jettyServer.stop();
-                started = false;
-                if(!saveState){
-                    exposedAttributes.disconnect();
-                    exposedAttributes.clear();
-                    notifications.disable();
+    protected boolean start() {
+        final ServletContextHandler resourcesHandler = new ServletContextHandler(ServletContextHandler.SECURITY);
+        resourcesHandler.setContextPath("/snamp/managedResource");
+        //security
+        final boolean securityEnabled;
+        if(securityEnabled = loginModuleName != null && loginModuleName.length() > 0) {
+            final ConstraintSecurityHandler security = new ConstraintSecurityHandler();
+            security.setCheckWelcomeFiles(true);
+            final Constraint constraint = new Constraint();
+            constraint.setAuthenticate(true);
+            constraint.setName("restadapterauth");
+            constraint.setRoles(toArray(RestAdapterHelpers.MAINTAINER_ROLE, RestAdapterHelpers.MONITOR_ROLE));
+            security.setRealmName(REALM_NAME);
+            security.addRole(RestAdapterHelpers.MAINTAINER_ROLE);
+            security.addRole(RestAdapterHelpers.MONITOR_ROLE);
+            final ConstraintMapping cmapping = new ConstraintMapping();
+            cmapping.setPathSpec("/attributes/*");
+            cmapping.setConstraint(constraint);
+            security.setConstraintMappings(toArray(cmapping));
+            security.setLoginService(createLoginService(loginModuleName, getClass()));
+            security.setAuthenticator(new DigestAuthenticator());
+            resourcesHandler.setSecurityHandler(security);
+            jettyServer.addBean(security.getLoginService());
+        }
+        //Setup REST service
+        resourcesHandler.addServlet(new ServletHolder(
+                        new RestAdapterServlet(attributes, securityEnabled)),
+                "/attributes/*");
+        //notification delivery
+        resourcesHandler.addServlet(new ServletHolder(new NotificationSenderServlet(notifications.getNotificationEmitter(),
+                notifications.getJsonFormatter(),
+                webSocketTimeout)), "/notifications/*");
+        jettyServer.setHandler(resourcesHandler);
+        populateModel(attributes);
+        populateModel(notifications);
+        final MutableBoolean result = new MutableBoolean(false);
+        Utils.withContextClassLoader(getClass().getClassLoader(),  new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    jettyServer.start();
+                    result.setValue(true);
                 }
-                return true;
+                catch (final Exception e) {
+                    getLogger().log(Level.SEVERE, "Unable to start embedded HTTP server", e);
+                }
             }
-            catch (final Exception e) {
-                getLogger().log(Level.WARNING, e.getLocalizedMessage(), e);
-                return false;
-            }
-        else return false;
+        });
+        return result.getValue();
     }
 
     /**
-     * Exposes management attributes.
+     * Gets logger associated with this service.
      *
-     * @param connector  Management connector that provides access to the specified attributes.
-     * @param namespace  The attributes namespace.
-     * @param attributes The dictionary of attributes.
+     * @return The logger associated with this service.
      */
     @Override
-    public final void exposeAttributes(final AttributeSupport connector, final String namespace, final Map<String, AgentConfiguration.ManagementTargetConfiguration.AttributeConfiguration> attributes) {
-        exposedAttributes.putAll(connector, namespace, attributes);
+    public Logger getLogger() {
+        return RestAdapterHelpers.getLogger();
+    }
+
+    /**
+     * Stops the adapter.
+     */
+    @Override
+    protected void stop() {
+        try {
+            jettyServer.stop();
+        }
+        catch (final Exception e) {
+            getLogger().log(Level.SEVERE, "Unable to stop embedded HTTP server.", e);
+        }
+        finally {
+            clearModel(attributes);
+            clearModel(notifications);
+            jettyServer.setHandler(null);
+        }
     }
 
     /**
      * Releases all resources associated with this adapter.
-     * @throws Exception Some error occurs during resource releasing.
-     */
-    @Override
-    public final void close() throws Exception {
-        jettyServer.stop();
-        exposedAttributes.disconnect();
-        exposedAttributes.clear();
-        notifications.disable();
-        notifications.clear();
-        started = false;
-    }
-
-    /**
-     * Returns license limitations associated with this plugin.
+     * <p>
+     * You should call base implementation of this method
+     * in the overridden method.
+     * </p>
      *
-     * @return The license limitations applied to this plugin.
+     * @throws Exception An exception occurred during adapter releasing.
      */
     @Override
-    public final RestAdapterLimitations getLimitations() {
-        return RestAdapterLimitations.current();
-    }
-
-    /**
-     * Exposes monitoring events.
-     *
-     * @param connector The management connector that provides notification listening and subscribing.
-     * @param namespace The events namespace.
-     * @param events    The collection of configured notifications.
-     */
-    @Override
-    public final void exposeEvents(final NotificationSupport connector, final String namespace, final Map<String, EventConfiguration> events) {
-        notifications.putAll(connector, namespace, events);
+    public void close() throws Exception {
+        try {
+            jettyServer.stop();
+        }
+        finally {
+            notifications.close();
+            super.close();
+        }
     }
 }

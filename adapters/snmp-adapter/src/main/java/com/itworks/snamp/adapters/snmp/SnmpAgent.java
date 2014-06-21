@@ -1,10 +1,11 @@
 package com.itworks.snamp.adapters.snmp;
 
+import net.engio.mbassy.listener.Handler;
+import net.engio.mbassy.listener.Listener;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
 import org.snmp4j.agent.DuplicateRegistrationException;
-import org.snmp4j.agent.NotificationOriginator;
 import org.snmp4j.agent.mo.MOTableRow;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
@@ -30,7 +31,8 @@ import java.util.logging.Logger;
  * @author Roman Sakno, Evgeniy Kirichenko
  * 
  */
-final class SnmpAgent extends BaseAgent implements NotificationOriginator {
+@Listener
+final class SnmpAgent extends BaseAgent {
     private static final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
     private static final Logger logger = SnmpHelpers.getLogger();
 
@@ -42,7 +44,10 @@ final class SnmpAgent extends BaseAgent implements NotificationOriginator {
     private final Collection<SnmpNotificationMapping> notifications;
     private SecurityConfiguration security;
 
-	public SnmpAgent(final int port, final String hostName, final SecurityConfiguration securityOptions, final int socketTimeout) throws IOException {
+	public SnmpAgent(final int port,
+                     final String hostName,
+                     final SecurityConfiguration securityOptions,
+                     final int socketTimeout) throws IOException {
 		// These files does not exist and are not used but has to be specified
 		// Read snmp4j docs for more info
 		super(new File("conf.agent"), null,
@@ -181,6 +186,8 @@ final class SnmpAgent extends BaseAgent implements NotificationOriginator {
                 StorageType.permanent);
     }
 
+
+
     /**
 	 * Initializes SNMP transport.
 	 */
@@ -235,6 +242,15 @@ final class SnmpAgent extends BaseAgent implements NotificationOriginator {
 		communityMIB.getSnmpCommunityEntry().addRow(row);
 	}
 
+    @Handler
+    @SuppressWarnings("UnusedDeclaration")
+    public void sendNotification(final SnmpNotification wrappedNotification){
+        if(notificationOriginator != null){
+            notificationOriginator.notify(new OctetString(), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv3 sending
+            notificationOriginator.notify(new OctetString("public"), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv2 sending
+        }
+    }
+
     /**
      * Stops the agent by closing the SNMP session and associated transport
      * mappings.
@@ -254,56 +270,5 @@ final class SnmpAgent extends BaseAgent implements NotificationOriginator {
                 attributes.clear();
                 notifications.clear();
         }
-    }
-
-    /**
-     * Sends notifications (traps) to all appropriate notification targets.
-     * The targets to notify are determined through the SNMP-TARGET-MIB and
-     * the SNMP-NOTIFICATION-MIB.
-     *
-     * @param context        the context name of the context on whose behalf this notification has
-     *                       been generated.
-     * @param notificationID the object ID that uniquely identifies this notification. For SNMPv1
-     *                       traps, the notification ID has to be build using the rules provided
-     *                       by RFC 2576.
-     * @param vbs            an array of <code>VariableBinding</code> instances representing the
-     *                       payload of the notification.
-     * @return an array of ResponseEvent instances. Since the
-     * <code>NotificationOriginator</code> determines on behalf of the
-     * SNMP-NOTIFICTON-MIB contents whether a notification is sent as
-     * trap/notification or as inform request, the returned array contains
-     * an element for each addressed target, but only a response PDU for
-     * inform targets.
-     */
-    @Override
-    public Object notify(final OctetString context, final OID notificationID, final VariableBinding[] vbs) {
-        return notificationOriginator != null ? notificationOriginator.notify(context, notificationID, vbs) : null;
-    }
-
-    /**
-     * Sends notifications (traps) to all appropriate notification targets.
-     * The targets to notify are determined through the SNMP-TARGET-MIB and
-     * the SNMP-NOTIFICATION-MIB.
-     *
-     * @param context        the context name of the context on whose behalf this notification has
-     *                       been generated.
-     * @param notificationID the object ID that uniquely identifies this notification. For SNMPv1
-     *                       traps, the notification ID has to be build using the rules provided
-     *                       by RFC 2576.
-     * @param sysUpTime      the value of the sysUpTime for the context <code>context</code>. This
-     *                       value will be included in the generated notification as
-     *                       <code>sysUpTime.0</code>.
-     * @param vbs            an array of <code>VariableBinding</code> instances representing the
-     *                       payload of the notification.
-     * @return an array of ResponseEvent instances. Since the
-     * <code>NotificationOriginator</code> determines on behalf of the
-     * SNMP-NOTIFICTON-MIB contents whether a notification is sent as
-     * trap/notification or as inform request, the returned array contains
-     * an element for each addressed target, but only a response PDU for
-     * inform targets.
-     */
-    @Override
-    public Object notify(final OctetString context, final OID notificationID, final TimeTicks sysUpTime, final VariableBinding[] vbs) {
-        return notificationOriginator != null ? notificationOriginator.notify(context, notificationID, sysUpTime, vbs) : null;
     }
 }

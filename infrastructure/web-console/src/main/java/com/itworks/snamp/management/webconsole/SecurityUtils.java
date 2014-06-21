@@ -8,7 +8,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * @author Roman Sakno
@@ -27,9 +26,14 @@ public final class SecurityUtils {
         return new JAASLoginService(){
             @Override
             public UserIdentity login(final String username, final Object credentials) {
-                if (!Objects.equals(osgiClassLoader, Thread.currentThread().getContextClassLoader()))
-                    Thread.currentThread().setContextClassLoader(osgiClassLoader);
-                return super.login(username, credentials);
+                final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+                Thread.currentThread().setContextClassLoader(osgiClassLoader);
+                try{
+                    return super.login(username, credentials);
+                }
+                finally {
+                    Thread.currentThread().setContextClassLoader(loader);
+                }
             }
         };
     }
@@ -51,5 +55,9 @@ public final class SecurityUtils {
 
     public static void adminRequired(final SecurityContext context) throws WebApplicationException{
         checkRoles(context, ADMIN_ROLE);
+    }
+
+    public static void wellKnownRoleRequired(final SecurityContext context){
+        checkRoles(context, ADMIN_ROLE, USER_ROLE);
     }
 }

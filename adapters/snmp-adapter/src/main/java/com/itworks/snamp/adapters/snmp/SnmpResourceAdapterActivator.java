@@ -37,7 +37,7 @@ public final class SnmpResourceAdapterActivator extends AbstractResourceAdapterA
          * @throws Exception An exception occurred during provider instantiation.
          */
         @Override
-        protected SnmpAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
+        public SnmpAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
             return new SnmpAdapterConfigurationDescriptor();
         }
     }

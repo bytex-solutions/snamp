@@ -1,20 +1,21 @@
 package com.itworks.snamp.adapters.rest;
 
-import com.google.gson.*;
-import static com.itworks.snamp.connectors.NotificationSupport.Notification;
-import static com.itworks.snamp.connectors.NotificationSupport.NotificationListener;
-import static com.itworks.snamp.connectors.util.AbstractSubscriptionList.Subscription;
-
-import com.itworks.snamp.internal.Internal;
-import org.eclipse.jetty.websocket.api.*;
+import com.google.gson.Gson;
+import com.itworks.snamp.internal.semantics.Internal;
+import net.engio.mbassy.bus.common.PubSubSupport;
+import net.engio.mbassy.listener.Invoke;
+import net.engio.mbassy.listener.Listener;
+import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.StatusCode;
+import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.eclipse.jetty.websocket.servlet.*;
 
 import javax.servlet.annotation.WebServlet;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-import java.text.DateFormat;
-import java.util.*;
-import java.util.logging.*;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents web socket factory that is used to deliver notifications to the client.
@@ -36,46 +37,15 @@ final class NotificationSenderServlet extends WebSocketServlet {
      * @version 1.0
      */
     @Internal
+    @Listener
     private static final class NotificationSender implements WebSocketListener{
-        private final SubscriptionManager subscriber;
-        private final Collection<Subscription<?>> subscriptions;
-        private final Logger log;
         private final Gson jsonFormatter;
+        private static final Logger log = RestAdapterHelpers.getLogger();
         private volatile Reference<Session> currentSession;
 
-        public NotificationSender(final SubscriptionManager subscriber, final Gson jsonFormatter, final Logger log){
-            this.subscriber = subscriber;
-            subscriptions = new ArrayList<>(10);
-            this.log = log;
+        public NotificationSender(final Gson jsonFormatter){
             this.jsonFormatter = jsonFormatter;
             currentSession = null;
-        }
-
-        private static NotificationListener createListener(final Session webSocket, final Gson jsonFormatter, final Logger log){
-            return new NotificationListener() {
-                @Override
-                public final boolean handle(final Notification n, final String category) {
-                    if(webSocket.isOpen()){
-                            final JsonNotification notification = new JsonNotification(n, category);
-                            //send message asynchronously
-                            webSocket.getRemote().sendStringByFuture(notification.toString(jsonFormatter));
-                            return true;
-                        }
-                    else return false;
-                }
-            };
-        }
-
-        /**
-         * Called when a new websocket connection is accepted.
-         *
-         * @param connection The Connection object to use to send messages.
-         */
-        public void subscribe(final Session connection) {
-            synchronized (subscriber){
-                subscriptions.addAll(subscriber.subscribeToAll(createListener(connection, jsonFormatter, log)).values());
-            }
-            currentSession = new WeakReference<>(connection);
         }
 
         /**
@@ -87,23 +57,7 @@ final class NotificationSenderServlet extends WebSocketServlet {
          */
         @Override
         public void onWebSocketConnect(final Session session) {
-            subscribe(session);
-        }
-
-        /**
-         * Called when an established websocket connection closes
-         *
-         * @param closeCode
-         * @param message
-         */
-        public void unsubscribe(final Session connection, final int closeCode, final String message) {
-            synchronized (subscriber){
-                for(final Subscription<?> sub: subscriptions)
-                    sub.unsubscribe();
-                subscriptions.clear();
-                connection.close(closeCode, message);
-                log.info(String.format("Web Socket is closed with code %s (%s)", closeCode, message));
-            }
+            this.currentSession = new WeakReference<>(session);
         }
 
         /**
@@ -116,11 +70,7 @@ final class NotificationSenderServlet extends WebSocketServlet {
          */
         @Override
         public void onWebSocketClose(final int statusCode, final String reason) {
-            if(currentSession != null)
-            try{
-                unsubscribe(currentSession.get(), statusCode, reason);
-            }
-            finally {
+            if(currentSession != null){
                 currentSession.clear();
                 currentSession = null;
             }
@@ -164,17 +114,30 @@ final class NotificationSenderServlet extends WebSocketServlet {
         public void onWebSocketBinary(final byte[] payload, final int offset, final int len) {
             log.info(String.format("Input binary message %s is ignored", Arrays.toString(payload)));
         }
+
+        private static void processNotification(final Session webSocket,
+                                                final JsonNotification notification,
+                                                final Gson jsonFormatter){
+            if(webSocket.isOpen()){
+                //send message asynchronously
+                webSocket.getRemote().sendStringByFuture(notification.toString(jsonFormatter));
+            }
+        }
+
+        @net.engio.mbassy.listener.Handler(delivery = Invoke.Asynchronously)
+        public void processNotification(final JsonNotification notification){
+            final Session session = currentSession != null ? currentSession.get() : null;
+            if(session != null) processNotification(session, notification, jsonFormatter);
+        }
     }
 
     private static final class NotificationSenderFactory implements WebSocketCreator {
-        private final SubscriptionManager subscriptionManager;
+        private final PubSubSupport<JsonNotification> subscriptionManager;
         private final Gson jsonFormatter;
-        private final Logger log;
 
-        public NotificationSenderFactory(final SubscriptionManager subscriber, final Gson jsonFormatter, final Logger log) {
+        public NotificationSenderFactory(final PubSubSupport<JsonNotification> subscriber, final Gson jsonFormatter) {
             this.subscriptionManager = subscriber;
             this.jsonFormatter = jsonFormatter;
-            this.log = log;
         }
 
         /**
@@ -186,37 +149,32 @@ final class NotificationSenderServlet extends WebSocketServlet {
          */
         @Override
         public NotificationSender createWebSocket(final ServletUpgradeRequest req, final ServletUpgradeResponse resp) {
-            for(final String subprot: req.getSubProtocols())
-                switch (subprot){
-                    case "text":
-                        resp.setAcceptedSubProtocol(subprot);
-                        return new NotificationSender(subscriptionManager, jsonFormatter, log);
-                    default: return null;
-                }
-            return null;
+            final String TEXT_SUBP = "text";
+            if(req.getSubProtocols().contains(TEXT_SUBP)){
+                resp.setAcceptedSubProtocol(TEXT_SUBP);
+                final NotificationSender sender = new NotificationSender(jsonFormatter);
+                subscriptionManager.subscribe(sender);
+                return sender;
+            }
+            else return null;
         }
     }
 
-    private final SubscriptionManager subscriber;
-    private final Logger log;
+    private final PubSubSupport<JsonNotification> subscriber;
     private final Gson jsonFormatter;
     private final int webSocketIdleTimeout;
 
-    public NotificationSenderServlet(final SubscriptionManager manager, final Logger log, final String dateFormat, final int idleTimeout){
-        this.subscriber = manager;
-        this.log = log;
-        final GsonBuilder builder = new GsonBuilder();
-        if(dateFormat == null || dateFormat.isEmpty())
-            builder.setDateFormat(DateFormat.FULL);
-        else builder.setDateFormat(dateFormat);
-        builder.serializeNulls();
-        jsonFormatter = builder.create();
+    public NotificationSenderServlet(final PubSubSupport<JsonNotification> subscriber,
+                                     final Gson jsonFormatter,
+                                     final int idleTimeout){
+        this.subscriber = subscriber;
         this.webSocketIdleTimeout = idleTimeout;
+        this.jsonFormatter = jsonFormatter;
     }
 
     @Override
     public final void configure(final WebSocketServletFactory factory) {
-        factory.setCreator(new NotificationSenderFactory(subscriber, jsonFormatter, log));
+        factory.setCreator(new NotificationSenderFactory(subscriber, jsonFormatter));
         factory.getPolicy().setIdleTimeout(webSocketIdleTimeout);
     }
 }

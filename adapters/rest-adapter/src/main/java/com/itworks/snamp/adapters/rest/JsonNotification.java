@@ -1,27 +1,29 @@
 package com.itworks.snamp.adapters.rest;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.connectors.notifications.Severity;
 
 import java.util.Date;
 
-import static com.itworks.snamp.connectors.NotificationSupport.Notification;
 
 /**
+ * Represents JSON-serializable notification.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public class JsonNotification {
+public final class JsonNotification {
     private String message;
     private Date timeStamp;
-    private Notification.Severity severity;
+    private Severity severity;
     private long sequenceNumber;
     private String category;
 
     public JsonNotification(){
         message = "";
         timeStamp = new Date();
-        severity = Notification.Severity.UNKNOWN;
+        severity = Severity.UNKNOWN;
         sequenceNumber = 0L;
         category = "";
     }
@@ -58,11 +60,11 @@ public class JsonNotification {
         this.timeStamp = value;
     }
 
-    public final Notification.Severity getSeverity() {
+    public final Severity getSeverity() {
         return severity;
     }
 
-    public final void setSeverity(final Notification.Severity value) {
+    public final void setSeverity(final Severity value) {
         this.severity = value;
     }
 

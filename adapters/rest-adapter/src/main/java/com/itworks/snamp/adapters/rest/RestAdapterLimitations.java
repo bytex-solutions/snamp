@@ -1,12 +1,18 @@
 package com.itworks.snamp.adapters.rest;
 
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
+import com.itworks.snamp.licensing.FrameworkServiceLimitations;
+import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingException;
 import org.apache.commons.collections4.Factory;
-import com.itworks.snamp.adapters.AbstractAdapter;
+import org.osgi.framework.Version;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import static com.itworks.snamp.core.AbstractBundleActivator.RequiredServiceAccessor;
+import static com.itworks.snamp.core.AbstractBundleActivator.SimpleDependency;
 
 /**
  * Represents license limitations for REST adapter. This class cannot be inherited.
@@ -15,17 +21,18 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * @since 1.0
  */
 @XmlRootElement(name = "restAdapterLimitations")
-public class RestAdapterLimitations extends AbstractLicenseLimitations implements PluginLicenseLimitations<AbstractAdapter> {
+public final class RestAdapterLimitations extends AbstractLicenseLimitations implements FrameworkServiceLimitations<RestAdapter> {
+    public static final RequiredServiceAccessor<LicenseReader> licenseReader = new SimpleDependency<>(LicenseReader.class);
 
-    private static final Factory<RestAdapterLimitations> fallbackFactory = new Factory<RestAdapterLimitations>() {
+    static final Factory<RestAdapterLimitations> fallbackFactory = new Factory<RestAdapterLimitations>() {
         @Override
         public RestAdapterLimitations create() {
-            return new RestAdapterLimitations("0.0");
+            return new RestAdapterLimitations();
         }
     };
 
     public RestAdapterLimitations(){
-
+        this("0.0");
     }
 
     private RestAdapterLimitations(final String version){
@@ -36,13 +43,13 @@ public class RestAdapterLimitations extends AbstractLicenseLimitations implement
      * Returns the currently loaded limitations.
      * @return The currently loaded limitations.
      */
-    public final static RestAdapterLimitations current(){
-        return current(RestAdapterLimitations.class, fallbackFactory);
+    public static RestAdapterLimitations current(){
+        return current(RestAdapterLimitations.class, licenseReader, fallbackFactory);
     }
 
-    private static final class PluginVersionLimitationAdapter extends RequirementParser<String, String, VersionLimitation> {
+    private static final class PluginVersionLimitationAdapter extends RequirementParser<Version, String, VersionLimitation> {
 
-        public static final VersionLimitation createLimitation(final String requiredVersion){
+        public static VersionLimitation createLimitation(final String requiredVersion){
             return new VersionLimitation(requiredVersion) {
                 @Override
                 public LicensingException createException() {
@@ -62,11 +69,13 @@ public class RestAdapterLimitations extends AbstractLicenseLimitations implement
     private VersionLimitation maxVersion;
 
     /**
-     * @param pluginImpl
-     * @throws LicensingException
+     * Verifies version of the SNAMP-specific version.
+     *
+     * @param serviceContract Type of the service contract to verify.
+     * @throws com.itworks.snamp.licensing.LicensingException Actual version of the service doesn't met to license requirements.
      */
     @Override
-    public final void verifyPluginVersion(final Class<? extends AbstractAdapter> pluginImpl) throws LicensingException {
-        verifyServiceVersion(maxVersion, pluginImpl);
+    public void verifyServiceVersion(final Class<? extends RestAdapter> serviceContract) throws LicensingException {
+        verifyServiceVersion(maxVersion, serviceContract);
     }
 }
