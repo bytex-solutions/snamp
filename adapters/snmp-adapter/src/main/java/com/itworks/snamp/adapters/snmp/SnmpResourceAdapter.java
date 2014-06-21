@@ -4,7 +4,9 @@ import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
-import org.snmp4j.agent.NotificationOriginator;
+import net.engio.mbassy.bus.MBassador;
+import net.engio.mbassy.bus.config.BusConfiguration;
+import org.osgi.service.event.EventHandler;
 import org.snmp4j.agent.mo.snmp.TransportDomains;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
@@ -12,8 +14,6 @@ import org.snmp4j.smi.TransportIpAddress;
 import org.snmp4j.smi.UdpAddress;
 
 import java.io.IOException;
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,6 +27,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
  * @since 1.0
  */
 final class SnmpResourceAdapter extends AbstractResourceAdapter {
+
     private static final class SnmpNotificationMappingImpl implements SnmpNotificationMapping{
         private final NotificationMetadata metadata;
 
@@ -88,8 +89,20 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class SnmpNotificationsModel extends AbstractNotificationsModel<SnmpNotificationMapping> implements ModelEventsSupport<SnmpAgent, SnmpAgent>{
-        private Reference<NotificationOriginator> snmpDeliveryChannel = null;
+    private static final class SnmpNotificationsModel extends AbstractNotificationsModel<SnmpNotificationMapping> implements EventHandler, AutoCloseable{
+        private final MBassador<SnmpNotification> notificationBus;
+
+        public SnmpNotificationsModel(){
+            notificationBus = new MBassador<>(BusConfiguration.Default());
+        }
+
+        public void subscribe(final Object listener){
+            notificationBus.subscribe(listener);
+        }
+
+        public void unsubscribe(final Object listener){
+            notificationBus.unsubscribe(listener);
+        }
 
         /**
          * Creates a new notification metadata representation.
@@ -118,46 +131,17 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
          */
         @Override
         protected void handleNotification(final Notification notif, final SnmpNotificationMapping notificationMetadata) {
-            final NotificationOriginator originator = snmpDeliveryChannel != null ? snmpDeliveryChannel.get() : null;
-            if(originator != null){
-                final SnmpNotification wrappedNotification = new SnmpNotification(notificationMetadata.getID(),
-                        notif,
-                        notificationMetadata.getMetadata().getCategory(),
-                        notificationMetadata.getTimestampFormatter());
-                originator.notify(new OctetString(), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv3 sending
-                originator.notify(new OctetString("public"), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv2 sending
-            }
+
+            final SnmpNotification wrappedNotification = new SnmpNotification(notificationMetadata.getID(),
+                    notif,
+                    notificationMetadata.getMetadata().getCategory(),
+                    notificationMetadata.getTimestampFormatter());
+            notificationBus.post(wrappedNotification).asynchronously();
         }
 
-        /**
-         * Called by SNAMP infrastructure after filling of this model.
-         *
-         * @param e Additional event arguments.
-         * @see com.itworks.snamp.adapters.AbstractResourceAdapter#populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel, Object)
-         */
         @Override
-        public void onPopulate(final SnmpAgent e) {
-            this.snmpDeliveryChannel = new WeakReference<NotificationOriginator>(e);
-        }
-
-        /**
-         * Called by SNAMP infrastructure after clearing of this model.
-         *
-         * @param e Additional event arguments.
-         */
-        @Override
-        public void onClear(final SnmpAgent e) {
-            this.snmpDeliveryChannel = null;
-        }
-
-        /**
-         * Removes all of the mappings from this map.
-         * The map will be empty after this call returns.
-         */
-        @Override
-        public void clear() {
-            super.clear();
-            this.snmpDeliveryChannel = null;
+        public void close() {
+            notificationBus.shutdown();
         }
     }
 
@@ -200,7 +184,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
      * @param resources A collection of managed resources to be exposed in protocol-specific manner
      *                  to the outside world.
      */
-    protected SnmpResourceAdapter(final int port,
+    public SnmpResourceAdapter(final int port,
                                   final String hostName,
                                   final SecurityConfiguration securityOptions,
                                   final int socketTimeout,
@@ -233,7 +217,8 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     protected boolean start() {
         try {
             populateModel(attributes);
-            populateModel(notifications, agent);
+            populateModel(notifications);
+            notifications.subscribe(agent);
             return agent.start(attributes.values(), notifications.values());
         }
         catch (final IOException e) {
@@ -250,8 +235,14 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
      */
     @Override
     protected void stop() {
-        agent.stop();
-        clearModel(attributes);
-        clearModel(notifications, agent);
+        try {
+            notifications.unsubscribe(agent);
+            agent.stop();
+            clearModel(attributes);
+            clearModel(notifications);
+        }
+        finally {
+            notifications.close();
+        }
     }
 }

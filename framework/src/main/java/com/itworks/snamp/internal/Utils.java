@@ -389,4 +389,15 @@ public final class Utils {
         final Bundle bundle = FrameworkUtil.getBundle(callerClass);
         return bundle.getBundleContext().getServiceReferences(serviceType, filter).size() > 0;
     }
+
+    public static void withContextClassLoader(final ClassLoader loader, final Runnable action){
+        final ClassLoader previous = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(loader);
+        try{
+            action.run();
+        }
+        finally {
+            Thread.currentThread().setContextClassLoader(previous);
+        }
+    }
 }

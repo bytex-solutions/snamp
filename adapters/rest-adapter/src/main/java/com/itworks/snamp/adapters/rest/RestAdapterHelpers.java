@@ -1,26 +1,41 @@
-package com.itworks.snamp.management.webconsole;
+package com.itworks.snamp.adapters.rest;
 
+import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import org.eclipse.jetty.jaas.JAASLoginService;
 import org.eclipse.jetty.jaas.spi.LdapLoginModule;
 import org.eclipse.jetty.server.UserIdentity;
+import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class SecurityUtils {
-    private SecurityUtils(){
+final class RestAdapterHelpers {
+    public static final String ADAPTER_NAME = "REST";
+    private RestAdapterHelpers(){
 
     }
 
-    public static final String ADMIN_ROLE = "admin";
-    public static final String USER_ROLE = "user";
+    public static Logger getLogger(){
+        return AbstractResourceAdapter.getLogger(ADAPTER_NAME);
+    }
+
+    /**
+     * Represents monitor role that can receive notifications and read attributes.
+     */
+    public static final String MONITOR_ROLE = "monitor";
+
+    /**
+     * Represents maintainer role that can overwrite attributes.
+     */
+    public static final String MAINTAINER_ROLE = "maintainer";
 
     public static JAASLoginService createJaasLoginServiceForOsgi(final ClassLoader osgiClassLoader){
         return new JAASLoginService(){
@@ -46,18 +61,25 @@ public final class SecurityUtils {
         return LdapLoginModule.convertCredentialLdapToJetty(encryptedPassword);
     }
 
-    public static void checkRoles(final SecurityContext context, final String... roles) throws WebApplicationException{
+    public static void checkRoles(final SecurityContext context, final String... roles) throws WebApplicationException {
         if(context == null) return;
         for(final String r: roles)
             if(context.isUserInRole(r)) return;
         throw new WebApplicationException(new SecurityException(String.format("User %s is not in %s roles", context.getUserPrincipal().getName(), Arrays.toString(roles))), Response.Status.FORBIDDEN);
     }
 
-    public static void adminRequired(final SecurityContext context) throws WebApplicationException{
-        checkRoles(context, ADMIN_ROLE);
+    public static void maintainerRequired(final SecurityContext context){
+        checkRoles(context, MAINTAINER_ROLE);
     }
 
     public static void wellKnownRoleRequired(final SecurityContext context){
-        checkRoles(context, ADMIN_ROLE, USER_ROLE);
+        checkRoles(context, MAINTAINER_ROLE, MONITOR_ROLE);
+    }
+
+    //org.eclipse.jetty.websocket.server package should be imported explicitly, therefore
+    //this stub method required for maven-bundle-plugin
+    @SuppressWarnings("UnusedDeclaration")
+    public static Object getActiveUpgradeContext(){
+        return WebSocketServerFactory.getActiveUpgradeContext();
     }
 }

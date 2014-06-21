@@ -100,7 +100,7 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         security.addRole(SecurityUtils.ADMIN_ROLE);
         security.addRole(SecurityUtils.USER_ROLE);
         final ConstraintMapping cmapping = new ConstraintMapping();
-        cmapping.setPathSpec("/*");
+        cmapping.setPathSpec("/management/*");
         cmapping.setConstraint(constraint);
         security.setConstraintMappings(toArray(cmapping));
         security.setLoginService(createLoginService(getClass()));

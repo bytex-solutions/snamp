@@ -1,11 +1,9 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.rest;
 
-import com.itworks.snamp.connectors.util.AttributesRegistryReader;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
-import java.util.logging.Logger;
 
 /**
  * Represents descriptor of the HTTP servlet container.
@@ -18,11 +16,7 @@ final class RestAdapterServlet extends ServletContainer {
         return result;
     }
 
-    /**
-     * Initializes a new instance of the rest service.
-     * @param attributes
-     */
-    public RestAdapterServlet(final String dateFormat, final AttributesRegistryReader attributes, final Logger serviceLogger){
-        super(createResourceConfig(new RestAdapterService(dateFormat, attributes, serviceLogger)));
+    public RestAdapterServlet(final HttpAttributesModel attributes, final boolean securityEnabled){
+        super(createResourceConfig(new RestAdapterService(attributes, securityEnabled)));
     }
 }
