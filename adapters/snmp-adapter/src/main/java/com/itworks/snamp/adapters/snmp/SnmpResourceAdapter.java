@@ -125,12 +125,12 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
 
         /**
          * Processes SNMP notification.
-         *
+         * @param sender The name of the managed resource which emits the notification.
          * @param notif                The notification to process.
          * @param notificationMetadata The metadata of the notification.
          */
         @Override
-        protected void handleNotification(final Notification notif, final SnmpNotificationMapping notificationMetadata) {
+        protected void handleNotification(final String sender, final Notification notif, final SnmpNotificationMapping notificationMetadata) {
 
             final SnmpNotification wrappedNotification = new SnmpNotification(notificationMetadata.getID(),
                     notif,

@@ -2,14 +2,15 @@ package com.itworks.snamp.adapters.jmx;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.management.jmx.OpenMBeanProvider;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
+import net.engio.mbassy.bus.MBassador;
+import net.engio.mbassy.bus.config.BusConfiguration;
 
-import javax.management.DynamicMBean;
 import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
+import javax.management.NotificationEmitter;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.util.*;
@@ -24,7 +25,66 @@ import java.util.logging.Logger;
  */
 final class JmxResourceAdapter extends AbstractResourceAdapter {
 
-    private static final class JmxAttributes extends AbstractAttributesModel<JmxAttribute>{
+    private static final class JmxNotifications extends AbstractNotificationsModel<JmxNotificationMapping>{
+        private final MBassador<JmxNotification> notificationBus;
+        private static final String ID_SEPARATOR = "::";
+
+        public JmxNotifications(){
+            notificationBus = new MBassador<>(BusConfiguration.Default());
+        }
+
+        /**
+         * Creates a new notification metadata representation.
+         *
+         * @param resourceName User-defined name of the managed resource.
+         * @param eventName    The resource-local identifier of the event.
+         * @param notifMeta    The notification metadata to wrap.
+         * @return A new notification metadata representation.
+         */
+        @Override
+        protected JmxNotificationMapping createNotificationView(final String resourceName, final String eventName, final NotificationMetadata notifMeta) {
+            return new JmxNotificationMapping(notifMeta);
+        }
+
+        /**
+         * Processes SNMP notification.
+         * @param sender The name of the managed resource which emits the notification.
+         * @param notif                The notification to process.
+         * @param notificationMetadata The metadata of the notification.
+         */
+        @Override
+        protected void handleNotification(final String sender, final Notification notif, final JmxNotificationMapping notificationMetadata) {
+            notificationBus.publishAsync(new JmxNotification(sender, notif, notificationMetadata.getCategory()));
+        }
+
+        /**
+         * Creates subscription list ID.
+         *
+         * @param resourceName User-defined name of the managed resource which can emit the notification.
+         * @param eventName    User-defined name of the event.
+         * @return A new unique subscription list ID.
+         */
+        @Override
+        protected String makeSubscriptionListID(final String resourceName, final String eventName) {
+            return hashCode() + ID_SEPARATOR + resourceName + ID_SEPARATOR + eventName;
+        }
+
+        public Map<String, JmxNotificationMapping> get(final String resourceName){
+            final Map<String, JmxNotificationMapping> attributes = new HashMap<>(10);
+            for(final String id: keySet()){
+                final String[] parts = id.split(ID_SEPARATOR);
+                if(parts.length != 3 || !Objects.equals(parts[0], resourceName)) continue;
+                attributes.put(parts[2], super.get(id));
+            }
+            return attributes;
+        }
+
+        public void addListener(final NotificationEmitter listener){
+            notificationBus.subscribe(listener);
+        }
+    }
+
+    private static final class JmxAttributes extends AbstractAttributesModel<JmxAttributeMapping>{
         private static final String ID_SEPARATOR = "::";
         private boolean pureSerialization = false;
 
@@ -37,8 +97,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
          * @return A new domain-specific representation of the management attribute.
          */
         @Override
-        protected JmxAttribute createAttributeView(final String resourceName, final String userDefinedAttributeName, final AttributeAccessor accessor) {
-            return new JmxAttribute(accessor, pureSerialization);
+        protected JmxAttributeMapping createAttributeView(final String resourceName, final String userDefinedAttributeName, final AttributeAccessor accessor) {
+            return new JmxAttributeMapping(accessor, pureSerialization);
         }
 
         /**
@@ -56,23 +116,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             return String.format("%s" + ID_SEPARATOR + "%s", resourceName, userDefinedAttributeName);
         }
 
-        private static String getResourceName(final String attributeId){
-            final String[] parts = attributeId.split(ID_SEPARATOR);
-            return parts.length == 2 ? parts[0] : null;
-        }
-
-        public Set<String> getResources(){
-            final Set<String> resources = new HashSet<>(5);
-            for(final String id: keySet()){
-                final String resourceName = getResourceName(id);
-                if(resourceName == null || resourceName.isEmpty()) continue;
-                resources.add(resourceName);
-            }
-            return resources;
-        }
-
-        public Map<String, JmxAttribute> get(final String resourceName){
-            final Map<String, JmxAttribute> attributes = new HashMap<>(10);
+        public Map<String, JmxAttributeMapping> get(final String resourceName){
+            final Map<String, JmxAttributeMapping> attributes = new HashMap<>(10);
             for(final String id: keySet()){
                 final String[] parts = id.split(ID_SEPARATOR);
                 if(parts.length != 2 || !Objects.equals(parts[0], resourceName)) continue;
@@ -89,7 +134,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     private final ObjectName rootObjectName;
     private final boolean usePlatformMBean;
     private final JmxAttributes attributes;
-    private final Collection<ServiceRegistration<DynamicMBean>> exposedBeans;
+    private final JmxNotifications notifications;
+    private final Map<ObjectName, ProxyMBean> exposedBeans;
 
     public JmxResourceAdapter(final ObjectName rootObjectName,
                               final boolean usePlatformMBean,
@@ -98,7 +144,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         this.rootObjectName = rootObjectName;
         this.usePlatformMBean = usePlatformMBean;
         this.attributes = new JmxAttributes();
-        this.exposedBeans = new ArrayList<>(10);
+        this.exposedBeans = new HashMap<>(10);
+        this.notifications = new JmxNotifications();
     }
 
     public void usePureSerialization(){
@@ -114,18 +161,16 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     private void registerMBean(final ObjectName name, final ProxyMBean mbean) throws JMException{
         if(usePlatformMBean)
             ManagementFactory.getPlatformMBeanServer().registerMBean(mbean, name);
-        else {
-            final BundleContext context = Utils.getBundleContextByObject(this);
-            exposedBeans.add(context.registerService(DynamicMBean.class, mbean, OpenMBeanProvider.createIdentity(name)));
-        }
+        else
+            mbean.registerAsService(Utils.getBundleContextByObject(this), name);
+        exposedBeans.put(name, mbean);
     }
 
-    private void unregisterMBean(final ObjectName name) throws JMException {
+    private void unregisterMBean(final ObjectName name, final ProxyMBean bean) throws JMException {
         if (usePlatformMBean)
             ManagementFactory.getPlatformMBeanServer().unregisterMBean(name);
         else
-            for (final ServiceRegistration<DynamicMBean> mbean : exposedBeans)
-                mbean.unregister();
+            bean.unregister();
     }
 
     /**
@@ -139,9 +184,12 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     @Override
     protected boolean start() {
         populateModel(attributes);
-        for (final String resourceName : attributes.getResources())
+        populateModel(notifications);
+        for (final String resourceName : getHostedResources())
             try {
-                registerMBean(createObjectName(rootObjectName, resourceName), new ProxyMBean(resourceName, attributes.get(resourceName)));
+                final ProxyMBean bean = new ProxyMBean(resourceName, attributes.get(resourceName), notifications.get(resourceName));
+                registerMBean(createObjectName(rootObjectName, resourceName), bean);
+                notifications.addListener(bean);
             }
             catch (final JMException e) {
                 getLogger().log(Level.SEVERE, String.format("Unable to register MBean for resource %s", resourceName), e);
@@ -157,13 +205,24 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
      */
     @Override
     protected void stop() {
-        for(final String resourceName: attributes.getResources())
+        clearModel(attributes);
+        clearModel(notifications);
+        for(final ObjectName name: exposedBeans.keySet())
             try {
-                unregisterMBean(createObjectName(rootObjectName, resourceName));
+                unregisterMBean(name, exposedBeans.get(name));
             }
             catch (final JMException e) {
-                getLogger().log(Level.SEVERE, String.format("Unable to unregister MBean for resource %s", resourceName), e);
+                getLogger().log(Level.SEVERE, String.format("Unable to unregister MBean %s", name), e);
             }
+        exposedBeans.clear();
+    }
+
+    /**
+     * Releases all resources associated with this adapter.
+     */
+    @Override
+    public void close() {
+        exposedBeans.clear();
     }
 
     /**

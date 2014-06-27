@@ -12,4 +12,6 @@ final class JmxAdapterConfigurationProvider {
     public static final String USE_PLATFORM_MBEAN_PARAM = "usePlatformMBean";
 
     public static final String DEBUG_USE_PURE_SERIALIZATION_PARAM = "dbgUsePureSerialization";
+
+    public static final String NOTIF_TYPE_PARAM = "jmxNotificationType";
 }

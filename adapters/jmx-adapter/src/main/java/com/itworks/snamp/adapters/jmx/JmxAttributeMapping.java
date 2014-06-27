@@ -26,12 +26,12 @@ import static com.itworks.snamp.connectors.WellKnownTypeSystem.*;
  * @version 1.0
  * @since 1.0
  */
-final class JmxAttribute implements JmxFeature<MBeanAttributeInfo> {
+final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
     private final AttributeAccessor accessor;
     private OpenType<?> attributeType;
     private final boolean pureSerialization;
 
-    public JmxAttribute(final AttributeAccessor accessor, final boolean pureSerialization){
+    public JmxAttributeMapping(final AttributeAccessor accessor, final boolean pureSerialization){
         this.accessor = accessor;
         attributeType = null;
         this.pureSerialization = pureSerialization;

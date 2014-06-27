@@ -1,11 +1,15 @@
 package com.itworks.snamp.adapters.jmx;
 
+import com.itworks.snamp.management.jmx.OpenMBeanProvider;
+import net.engio.mbassy.listener.Handler;
+import net.engio.mbassy.listener.Listener;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+
 import javax.management.*;
 import javax.management.openmbean.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 /**
@@ -15,14 +19,39 @@ import java.util.logging.Level;
  * @version 1.0
  * @since 1.0
  */
+@Listener
 final class ProxyMBean extends NotificationBroadcasterSupport implements DynamicMBean {
-    private final Map<String, JmxAttribute> attributes;
+    private final Map<String, JmxAttributeMapping> attributes;
+    private final Map<String, JmxNotificationMapping> notifications;
     private final String resourceName;
+    private final AtomicLong sequenceCounter;
+    private ServiceRegistration<DynamicMBean> registration;
 
-    public ProxyMBean(final String resourceName, final Map<String, JmxAttribute> attributes){
+    public ProxyMBean(final String resourceName,
+                      final Map<String, JmxAttributeMapping> attributes,
+                      final Map<String, JmxNotificationMapping> notifications){
         this.attributes = Collections.unmodifiableMap(attributes);
+        this.notifications = Collections.unmodifiableMap(notifications);
         this.resourceName = resourceName;
+        this.sequenceCounter = new AtomicLong(0L);
+        registration = null;
     }
+
+    public void registerAsService(final BundleContext context, final ObjectName beanName){
+        context.registerService(DynamicMBean.class, this, OpenMBeanProvider.createIdentity(beanName));
+    }
+
+    public void unregister(){
+        if(registration != null) registration.unregister();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    @Handler
+    public void sendNotification(final JmxNotification notification) {
+        if (Objects.equals(notification.getSource(), resourceName))
+            super.sendNotification(notification.toWellKnownNotification(this, sequenceCounter.getAndIncrement()));
+    }
+
 
     /**
      * Obtain the value of a specific attribute of the Dynamic MBean.
@@ -36,7 +65,7 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
     @Override
     public Object getAttribute(final String attributeName) throws AttributeNotFoundException, ReflectionException {
         if(attributes.containsKey(attributeName)){
-            final JmxAttribute attribute = attributes.get(attributeName);
+            final JmxAttributeMapping attribute = attributes.get(attributeName);
             try {
                 return attribute.getValue();
             }
@@ -59,7 +88,7 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
     @Override
     public void setAttribute(final Attribute attributeHolder) throws AttributeNotFoundException, ReflectionException {
         if(attributes.containsKey(attributeHolder.getName())){
-            final JmxAttribute attribute = attributes.get(attributeHolder.getName());
+            final JmxAttributeMapping attribute = attributes.get(attributeHolder.getName());
             try {
                 attribute.setValue(attributeHolder.getValue());
             }
@@ -144,7 +173,10 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
     }
 
     private MBeanNotificationInfo[] getNotifications(){
-        return new MBeanNotificationInfo[0];
+        final Collection<MBeanNotificationInfo> result = new ArrayList<>(notifications.size());
+        for(final String notificationName: notifications.keySet())
+            result.add(notifications.get(notificationName).createFeature(notificationName));
+        return result.toArray(new MBeanNotificationInfo[result.size()]);
     }
 
     /**
