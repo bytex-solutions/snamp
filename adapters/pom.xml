@@ -20,5 +20,6 @@
   <modules>
       <module>snmp-adapter</module>
       <module>rest-adapter</module>
+      <module>jmx-adapter</module>
   </modules>
 </project>

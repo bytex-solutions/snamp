@@ -19,4 +19,10 @@ public abstract class AbstractTest extends Assert {
         System.arraycopy(array2, 0, joinedArray, array1.length, array2.length);
         return joinedArray;
     }
+
+    protected static void assertArrayEquals(final Object expected, final Object actual){
+        assertEquals(Array.getLength(expected), Array.getLength(actual));
+        for(int i = 0; i < Array.getLength(expected); i++)
+            assertEquals(Array.get(expected, i), Array.get(actual, i));
+    }
 }

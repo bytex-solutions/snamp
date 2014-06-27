@@ -15,5 +15,5 @@ public interface ManagementEntityType {
      * @param <T> Type of the projection.
      * @return The type converter for the specified projection type; or {@literal null}, if projection is not supported.
      */
-    public <T> TypeConverter<T> getProjection(final Class<T> projectionType);
+    <T> TypeConverter<T> getProjection(final Class<T> projectionType);
 }

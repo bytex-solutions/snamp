@@ -681,6 +681,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
         context.addServiceListener(this);
     }
 
+
+
     private static void unregister(final BundleContext context, final Collection<RequiredService<?>> dependencies){
         for(final RequiredService<?> dependency: dependencies)
             dependency.unbind(context);
@@ -774,6 +776,23 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @throws Exception An exception occurred during bundle stopping.
      */
     protected abstract void shutdown(final BundleContext context) throws Exception;
+
+    /**
+     * Returns the value of the specified property. If the key is not found in
+     * the Framework properties, the system properties are then searched. The
+     * method returns {@code null} if the property is not found.
+     *
+     * <p>
+     * All bundles must have permission to read properties whose names start
+     * with &quot;org.osgi.&quot;.
+     *
+     * @param propertyName The name of the requested property.
+     * @return The value of the requested property, or {@code null} if the
+     *         property is undefined.
+     **/
+    protected final String getFrameworkProperty(final String propertyName){
+        return getBundleContextByObject(this).getProperty(propertyName);
+    }
 
     /**
      * Gets properties of the service that is represented by the specified reference.
