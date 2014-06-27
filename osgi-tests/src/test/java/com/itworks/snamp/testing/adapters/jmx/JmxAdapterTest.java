@@ -1,5 +1,7 @@
 package com.itworks.snamp.testing.adapters.jmx;
 
+import com.itworks.snamp.SynchronizationEvent;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
@@ -19,11 +21,13 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * @author Roman Sakno
@@ -36,7 +40,8 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     public JmxAdapterTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME),
-                SnampArtifact.JMX_ADAPTER.getReference());
+                SnampArtifact.JMX_ADAPTER.getReference(),
+                mavenBundle("net.engio", "mbassador", "1.1.10"));
     }
 
     private static ObjectName createObjectName() throws MalformedObjectNameException {
@@ -47,7 +52,6 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     private void testJmxAttribute(final Attribute attr) throws BundleException, JMException, IOException{
-        try{
             final String jmxPort =
                     System.getProperty("com.sun.management.jmxremote.port", "9010");
             final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
@@ -61,6 +65,21 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                     assertArrayEquals(attr.getValue(), connection.getAttribute(resourceObjectName, attr.getName()));
                 else assertEquals(attr.getValue(), connection.getAttribute(resourceObjectName, attr.getName()));
             }
+    }
+
+    @Test
+    public void testStringProperty() throws BundleException, JMException, IOException {
+        try {
+            testJmxAttribute(new Attribute("1.0", "Frank Underwood"));
+        } finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
+    }
+
+    @Test
+    public void testBooleanProperty() throws BundleException, JMException, IOException {
+        try {
+            testJmxAttribute(new Attribute("2.0", Boolean.TRUE));
         }
         finally {
             AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
@@ -68,58 +87,102 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Test
-    public void testStringProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(new Attribute("1.0", "Frank Underwood"));
-    }
-
-    @Test
-    public void testBooleanProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(new Attribute("2.0", Boolean.TRUE));
-    }
-
-    @Test
     public void testInt32Property() throws BundleException, JMException, IOException {
-        testJmxAttribute(new Attribute("3.0", 19081));
+        try {
+            testJmxAttribute(new Attribute("3.0", 19081));
+        }
+        finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
     }
 
     @Test
     public void testBigintProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(new Attribute("4.0", new BigInteger("100500")));
+        try {
+            testJmxAttribute(new Attribute("4.0", new BigInteger("100500")));
+        } finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
     }
 
     @Test
     public void testArrayProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(new Attribute("5.1", new short[]{8, 4, 2, 1}));
+        try {
+            testJmxAttribute(new Attribute("5.1", new short[]{8, 4, 2, 1}));
+        } finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
     }
 
     @Test
     public void testDictionaryProperty() throws BundleException, JMException, IOException {
-        final CompositeType ct = new CompositeType("dict", "dummy",
-                new String[]{"col1", "col2", "col3"},
-                new String[]{"col1", "col2", "col3"},
-                new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
-        final Map<String, Object> dict = new HashMap<>(3);
-        dict.put("col1", true);
-        dict.put("col2", 42);
-        dict.put("col3", "Frank Underwood");
-        testJmxAttribute(new Attribute("6.1", new CompositeDataSupport(ct, dict)));
+        try {
+            final CompositeType ct = new CompositeType("dict", "dummy",
+                    new String[]{"col1", "col2", "col3"},
+                    new String[]{"col1", "col2", "col3"},
+                    new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
+            final Map<String, Object> dict = new HashMap<>(3);
+            dict.put("col1", true);
+            dict.put("col2", 42);
+            dict.put("col3", "Frank Underwood");
+            testJmxAttribute(new Attribute("6.1", new CompositeDataSupport(ct, dict)));
+        } finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
     }
 
     @Test
     public void testTableProperty() throws BundleException, JMException, IOException {
-        final CompositeType rowType = new CompositeType("table", "dummy",
-                new String[]{"col1", "col2", "col3"},
-                new String[]{"col1", "col2", "col3"},
-                new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
-        final TabularData table = new TabularDataSupport(new TabularType("table", "table", rowType,
-                new String[]{"col3"}));
-        table.put(new CompositeDataSupport(rowType,
-                new String[]{"col1", "col2", "col3"},
-                new Object[]{true, 67, "Dostoevsky"}));
-        table.put(new CompositeDataSupport(rowType,
-                new String[]{"col1", "col2", "col3"},
-                new Object[]{false, 98, "Pushkin"}));
-        testJmxAttribute(new Attribute("7.1", table));
+        try {
+            final CompositeType rowType = new CompositeType("table", "dummy",
+                    new String[]{"col1", "col2", "col3"},
+                    new String[]{"col1", "col2", "col3"},
+                    new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
+            final TabularData table = new TabularDataSupport(new TabularType("table", "table", rowType,
+                    new String[]{"col3"}));
+            table.put(new CompositeDataSupport(rowType,
+                    new String[]{"col1", "col2", "col3"},
+                    new Object[]{true, 67, "Dostoevsky"}));
+            table.put(new CompositeDataSupport(rowType,
+                    new String[]{"col1", "col2", "col3"},
+                    new Object[]{false, 98, "Pushkin"}));
+            testJmxAttribute(new Attribute("7.1", table));
+        }
+        finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
+    }
+
+    @Test
+    public void notificationTest() throws BundleException, JMException, IOException, TimeoutException, InterruptedException {
+        final String jmxPort =
+                System.getProperty("com.sun.management.jmxremote.port", "9010");
+        final Attribute attr = new Attribute("1.0", "Garry Oldman");
+        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
+        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName resourceObjectName = createObjectName();
+            assertNotNull(connection.getMBeanInfo(resourceObjectName));
+            assertNotNull(connection.getMBeanInfo(resourceObjectName).getAttributes().length > 0);
+            final SynchronizationEvent<Notification> attributeChangedEvent = new SynchronizationEvent<>();
+            final SynchronizationEvent<Notification> testEvent = new SynchronizationEvent<>();
+            connection.addNotificationListener(resourceObjectName, new NotificationListener() {
+                @Override
+                public void handleNotification(final Notification notification, final Object handback) {
+                    switch (notification.getType()){
+                        case AttributeChangeNotification.ATTRIBUTE_CHANGE: attributeChangedEvent.fire(notification); return;
+                        case "com.itworks.snamp.connectors.tests.impl.testnotif": testEvent.fire(notification);
+                    }
+                }
+            }, null, null);
+            //force attribute change
+            connection.setAttribute(resourceObjectName, attr);
+            assertNotNull(attributeChangedEvent.getAwaitor().await(TimeSpan.fromSeconds(10)));
+            assertNotNull(testEvent.getAwaitor().await(TimeSpan.fromSeconds(10)));
+        }
+        finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
     }
 
     @Override

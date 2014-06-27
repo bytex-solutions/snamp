@@ -48,7 +48,7 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @return
      * @throws Exception
      */
-    private final List<Variable[]> getTable(final ReadMethod method, final OID oidTable, final int columnCount) throws Exception{
+    private List<Variable[]> getTable(final ReadMethod method, final OID oidTable, final int columnCount) throws Exception{
         final TableUtils utils = new TableUtils(snmp, method.createPduFactory());
         final List<TableEvent> events = utils.getTable(getTarget(), makeColumnIDs(oidTable, columnCount), null, null);
         final List<Variable[]> result = new ArrayList<>(events.size());
