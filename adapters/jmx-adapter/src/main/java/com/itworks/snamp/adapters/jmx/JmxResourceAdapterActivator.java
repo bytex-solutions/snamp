@@ -5,6 +5,7 @@ import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfigu
 
 import javax.management.ObjectName;
 import java.net.MalformedURLException;
+import java.util.Collection;
 import java.util.Map;
 
 import static com.itworks.snamp.adapters.jmx.JmxAdapterConfigurationProvider.*;
@@ -31,6 +32,19 @@ public final class JmxResourceAdapterActivator extends AbstractResourceAdapterAc
         super(JmxAdapterHelpers.ADAPTER_NAME,
                 JmxAdapterHelpers.getLogger(),
                 new JmxConfigurationDescriptor());
+    }
+
+    /**
+     * Exposes additional adapter dependencies.
+     * <p>
+     * In the default implementation this method does nothing.
+     * </p>
+     *
+     * @param dependencies A collection of dependencies to fill.
+     */
+    @Override
+    protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
+        dependencies.add(JmxAdapterLicenseLimitations.licenseReader);
     }
 
     /**

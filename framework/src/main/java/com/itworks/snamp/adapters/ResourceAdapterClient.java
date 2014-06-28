@@ -39,7 +39,7 @@ public final class ResourceAdapterClient {
     /**
      * Gets a reference to the service exposed by resource adapter.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param connectorType The system name of the adapter.
+     * @param adapterName The system name of the adapter.
      * @param filter Additional service selector. May be {@literal null}.
      * @param serviceType Requested service contract.
      * @param <S> Type of the requested service.
@@ -47,10 +47,10 @@ public final class ResourceAdapterClient {
      * @throws org.osgi.framework.InvalidSyntaxException Invalid filter.
      */
     public static <S extends FrameworkService> ServiceReference<S> getServiceReference(final BundleContext context,
-                                                                                       final String connectorType,
+                                                                                       final String adapterName,
                                                                                        String filter,
                                                                                        final Class<S> serviceType) throws InvalidSyntaxException {
-        filter = AbstractResourceAdapterActivator.createFilter(connectorType, filter);
+        filter = AbstractResourceAdapterActivator.createFilter(adapterName, filter);
         final Collection<ServiceReference<S>> refs = context.getServiceReferences(serviceType, filter);
         return refs.isEmpty() ? null : refs.iterator().next();
     }
