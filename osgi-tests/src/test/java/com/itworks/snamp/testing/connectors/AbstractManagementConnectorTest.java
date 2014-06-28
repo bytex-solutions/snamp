@@ -31,7 +31,7 @@ import static com.itworks.snamp.connectors.AbstractManagedResourceActivator.*;
 public abstract class AbstractManagementConnectorTest extends AbstractSnampIntegrationTest {
     private final String connectorType;
     private final String connectionString;
-    protected static final String testManagementTarget = "test-target";
+    protected static final String TEST_RESOURCE_NAME = "test-target";
 
     protected AbstractManagementConnectorTest(final String connectorType,
                                               final String connectionString,
@@ -43,13 +43,13 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
 
     protected final ManagedResourceConnector<?> getManagementConnector(final BundleContext context){
         final ServiceReference<ManagedResourceConnector<?>> connectorRef =
-                ManagedResourceConnectorClient.getConnectors(context).get(testManagementTarget);
+                ManagedResourceConnectorClient.getConnectors(context).get(TEST_RESOURCE_NAME);
         return connectorRef != null ? getTestBundleContext().getService(connectorRef) : null;
     }
 
     protected final boolean releaseManagementConnector(final BundleContext context){
         final ServiceReference<ManagedResourceConnector<?>> connectorRef =
-                ManagedResourceConnectorClient.getConnectors(context).get(testManagementTarget);
+                ManagedResourceConnectorClient.getConnectors(context).get(TEST_RESOURCE_NAME);
         return connectorRef != null && getTestBundleContext().ungetService(connectorRef);
     }
 
@@ -103,7 +103,7 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
                 return targetConfig.newElement(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
             }
         });
-        config.getManagedResources().put(testManagementTarget, targetConfig);
+        config.getManagedResources().put(TEST_RESOURCE_NAME, targetConfig);
     }
 
     protected final <T> void testAttribute(final String attributeID,
@@ -114,7 +114,7 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
                                            final boolean readOnlyTest) throws TimeoutException, IOException {
         final Map<String, String> attributeOptions = readSnampConfiguration().
                 getManagedResources().
-                get(testManagementTarget).getElements(AttributeConfiguration.class).get(attributeID).getParameters();
+                get(TEST_RESOURCE_NAME).getElements(AttributeConfiguration.class).get(attributeID).getParameters();
         assertNotNull(String.format("Attribute %s with postfix %s doesn't exist in configuration.", attributeName, attributeID), attributeOptions);
         try{
             final AttributeSupport connector = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);

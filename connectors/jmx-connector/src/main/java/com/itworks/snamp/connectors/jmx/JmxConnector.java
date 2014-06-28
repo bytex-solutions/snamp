@@ -40,6 +40,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     public static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
     private static final Logger logger = JmxConnectorHelpers.getLogger();
     private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
+    private static final String JMX_ENTITY_OPTION = "jmx-compliant";
 
     private final static class JmxNotificationMetadata extends GenericNotificationMetadata{
         private final static String severityOption = "severity";
@@ -56,6 +57,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                                        final ObjectName eventOwner,
                                        final Map<String, String> options){
             super(notifType);
+            options.put(JMX_ENTITY_OPTION, Boolean.toString(true));
             this.options = Collections.unmodifiableMap(options);
             this.eventOwner = eventOwner;
             this.executor = Executors.newSingleThreadExecutor();
@@ -639,6 +641,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             super(attributeName);
             this.connectionManager = manager;
             this.namespace = namespace;
+            options.put(JMX_ENTITY_OPTION, Boolean.toString(true));
             this.options = options != null ? Collections.unmodifiableMap(options) : Collections.<String, String>emptyMap();
         }
 
@@ -745,7 +748,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                     value = typeInfo.convertToJmxType(value);
                     return connectionManager.handleConnection(createAttributeValueWriter(value), false);
                 }
-                catch (final IllegalArgumentException e){
+                catch (final InvalidAttributeValueException e){
                     logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
                     return false;
                 }

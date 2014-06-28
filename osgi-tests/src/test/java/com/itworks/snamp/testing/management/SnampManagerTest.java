@@ -16,6 +16,7 @@ import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.apache.commons.collections4.Closure;
 import org.apache.commons.collections4.Factory;
 import org.junit.Test;
+import org.ops4j.pax.exam.options.FrameworkPropertyOption;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -29,10 +30,7 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
@@ -66,6 +64,11 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
                 SnampArtifact.MANAGEMENT.getReference(),
                 SnampArtifact.SNMP4J.getReference(),
                 SnampArtifact.SNMP_ADAPTER.getReference());
+    }
+
+    @Override
+    protected Collection<FrameworkPropertyOption> getFrameworkProperties() {
+        return Arrays.asList(new FrameworkPropertyOption("com.itworks.snamp.management.usePlatformMBean").value(true));
     }
 
     @Test

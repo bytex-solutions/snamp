@@ -15,12 +15,12 @@ import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
 import javax.management.JMException;
-import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 
 /**
@@ -29,6 +29,9 @@ import java.util.logging.Level;
  * @since 1.0
  */
 public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
+    private static final String USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY = "com.itworks.snamp.management.usePlatformMBean";
+    private static final ActivationProperty<Boolean> usePlatformMBeanProperty = defineActivationProperty(Boolean.class, false);
+
     private static final class SnampManagerProvider extends ProvidedService<SnampManager, SnampManagerImpl>{
 
         public SnampManagerProvider() {
@@ -75,7 +78,6 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
     }
 
     private static final class SnampCoreMBeanProvider extends OpenMBeanProvider<SnampCoreMBean>{
-        private boolean platformMBeanServerUsed;
 
         /**
          * Initializes a new holder for the MBean.
@@ -83,7 +85,10 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
          */
         public SnampCoreMBeanProvider() {
             super(SnampCoreMBean.OBJECT_NAME);
-            platformMBeanServerUsed = false;
+        }
+
+        private boolean usePlatformMBean(){
+            return getActivationPropertyValue(usePlatformMBeanProperty);
         }
 
         /**
@@ -94,17 +99,8 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
         @Override
         protected SnampCoreMBean createMBean() throws JMException{
             final SnampCoreMBean mbean = new SnampCoreMBean();
-            //if bundle started in Apache Karaf environment then MBean server automatically registers SNAMP MBeans
-            //if not, then register MBean manually
-            try {
-                if(!Utils.isServiceRegistered(getClass(), MBeanServer.class, null)) {
-                    ManagementFactory.getPlatformMBeanServer().registerMBean(mbean, new ObjectName(SnampCoreMBean.OBJECT_NAME));
-                    platformMBeanServerUsed = true;
-                }
-            }
-            catch (final InvalidSyntaxException e) {
-                MonitoringUtils.getLogger().log(Level.WARNING, String.format("Unable to check whether the MBeanServer is registered in OSGI. Call for SNAMP developers. Details: %s", e.getMessage()));
-            }
+            if(usePlatformMBean())
+                ManagementFactory.getPlatformMBeanServer().registerMBean(mbean, new ObjectName(SnampCoreMBean.OBJECT_NAME));
             return mbean;
         }
 
@@ -122,9 +118,8 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
         protected void cleanupService(final SnampCoreMBean serviceInstance, final boolean stopBundle) throws JMException {
             //if bundle started in Apache Karaf environment then MBean server automatically registers SNAMP MBeans
             //if not, then register MBean manually
-            if(platformMBeanServerUsed)
+            if(usePlatformMBean())
                 ManagementFactory.getPlatformMBeanServer().unregisterMBean(new ObjectName(SnampCoreMBean.OBJECT_NAME));
-            platformMBeanServerUsed = false;
         }
     }
 
@@ -189,6 +184,7 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
     @Override
     @MethodStub
     protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) {
+        activationProperties.publish(usePlatformMBeanProperty, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
     }
 
     /**

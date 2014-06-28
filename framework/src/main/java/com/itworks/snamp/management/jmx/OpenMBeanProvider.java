@@ -2,6 +2,8 @@ package com.itworks.snamp.management.jmx;
 
 import javax.management.JMException;
 import javax.management.ObjectName;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Map;
 
 import static com.itworks.snamp.core.AbstractServiceLibrary.ProvidedService;
@@ -44,7 +46,17 @@ public abstract class OpenMBeanProvider<T extends OpenMBean & FrameworkMBean> ex
      */
     @Override
     protected T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws JMException {
-        identity.put(FrameworkMBean.OBJECT_NAME_IDENTITY_PROPERTY, new ObjectName(objectName));
+        createIdentity(identity, new ObjectName(objectName));
         return createMBean();
+    }
+
+    private static void createIdentity(final Map<String, Object> identity, final ObjectName name){
+        identity.put(FrameworkMBean.OBJECT_NAME_IDENTITY_PROPERTY, name);
+    }
+
+    public static Dictionary<String, Object> createIdentity(final ObjectName name){
+        final Hashtable<String, Object> identity = new Hashtable<>(1);
+        createIdentity(identity, name);
+        return identity;
     }
 }

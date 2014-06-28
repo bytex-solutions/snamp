@@ -487,13 +487,16 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
         private final String connectorName;
         private final RequiredServiceAccessor<EventAdmin> eventAdmin;
         private final Reference<NotificationSupport> notifications;
+        private final String resourceName;
 
         public EventAdminTransport(final String connectorName,
+                                   final String resourceName,
                                    final RequiredServiceAccessor<EventAdmin> dependency,
                                    final NotificationSupport notifSupport){
             this.eventAdmin = dependency;
             this.notifications = new WeakReference<>(notifSupport);
             this.connectorName = connectorName;
+            this.resourceName = resourceName;
         }
 
         /**
@@ -509,7 +512,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
             if(eventAdmin.isResolved() && notifSupport != null){
                 final NotificationMetadata metadata = notifSupport.getNotificationInfo(listId);
                 if(metadata == null) return false;
-                final NotificationEvent event = new NotificationEvent(n, listId);
+                final NotificationEvent event = new NotificationEvent(n, resourceName, listId);
                 eventAdmin.getService().postEvent(event.toEvent(connectorName, metadata.getCategory()));
                 return true;
             }
@@ -582,7 +585,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
             final RequiredServiceAccessor<EventAdmin> eventAdmin = findDependency(RequiredServiceAccessor.class, EventAdmin.class, dependencies);
             final TConnectorImpl connector = newNotificationSupport(connectionString, connectionOptions, dependencies);
             if(!connector.subscribe(NOTIF_TRANSPORT_LISTENER_ID,
-                    new EventAdminTransport(getConnectorName(), eventAdmin, connector), true))
+                    new EventAdminTransport(getConnectorName(), managedResourceName, eventAdmin, connector), true))
                 getLogger().warning(String.format("Unable to attach notification transport for %s connector.", getConnectorName()));
             return connector;
         }

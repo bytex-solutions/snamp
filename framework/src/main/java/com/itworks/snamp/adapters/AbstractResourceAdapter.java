@@ -86,10 +86,11 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
         /**
          * Processes SNMP notification.
+         * @param sender The name of the managed resource which emits the notification.
          * @param notif The notification to process.
          * @param notificationMetadata The metadata of the notification.
          */
-        protected abstract void handleNotification(final Notification notif, final TNotificationView notificationMetadata);
+        protected abstract void handleNotification(final String sender, final Notification notif, final TNotificationView notificationMetadata);
 
         /**
          * Handles an event received through OSGi message pipe as SNAMP notification.
@@ -99,7 +100,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         public final void handleEvent(final Event event) {
             final NotificationEvent notif = new NotificationEvent(event);
             if(containsKey(notif.getSubscriptionListID()))
-                handleNotification(notif, get(notif.getSubscriptionListID()));
+                handleNotification(notif.getEmitter(), notif, get(notif.getSubscriptionListID()));
         }
 
         private void startListening(final BundleContext context, final Collection<String> topics) {
@@ -954,5 +955,13 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             connectors.clear();
             state = AdapterState.CLOSED;
         }
+    }
+
+    /**
+     * Gets set of hosted resources.
+     * @return A set of hosted resources.
+     */
+    protected final Set<String> getHostedResources(){
+        return connectors.keySet();
     }
 }

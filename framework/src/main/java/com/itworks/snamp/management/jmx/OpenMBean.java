@@ -1,6 +1,7 @@
 package com.itworks.snamp.management.jmx;
 
 import com.itworks.snamp.internal.semantics.MethodStub;
+import org.apache.commons.collections4.Factory;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -28,6 +29,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
 
     /**
      * Represents a superclass for all OpeMBean elements, such as attributes and operations.
+     * @param <T> Type of the provided MBean feature.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
@@ -35,7 +37,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @see com.itworks.snamp.management.jmx.OpenMBean.OpenOperation
      * @see com.itworks.snamp.management.jmx.OpenMBean.OpenAttribute
      */
-    protected static abstract class OpenMBeanElement {
+    protected static abstract class OpenMBeanElement<T extends MBeanFeatureInfo> implements Factory<T> {
         /**
          * Represents name of this element.
          */
@@ -72,7 +74,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class OpenNotification<N> extends OpenMBeanElement{
+    protected static abstract class OpenNotification<N> extends OpenMBeanElement<MBeanNotificationInfo>{
         private final String[] types;
         private final Class<N> eventObjectType;
         private final AtomicLong sequenceNumber;
@@ -142,12 +144,18 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             return String.format("%s notification.", name);
         }
 
-        private MBeanNotificationInfo createNotificationInfo(){
+        /**
+         * Creates a new MBean feature.
+         *
+         * @return A new MBean feature.
+         */
+        @Override
+        public final MBeanNotificationInfo create() {
             return new MBeanNotificationInfo(types, name, getDescription(), getDescriptor());
         }
     }
 
-    protected static abstract class OpenOperation<R, T extends OpenType<R>> extends OpenMBeanElement{
+    protected static abstract class OpenOperation<R, T extends OpenType<R>> extends OpenMBeanElement<MBeanOperationInfo>{
         private final T returnType;
         private final List<OpenMBeanParameterInfo> parameters;
 
@@ -185,7 +193,13 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             return String.format("%s operation.", name);
         }
 
-        private OpenMBeanOperationInfoSupport createOperationInfo(){
+        /**
+         * Creates a new MBean feature.
+         *
+         * @return A new MBean feature.
+         */
+        @Override
+        public final OpenMBeanOperationInfoSupport create() {
             return new OpenMBeanOperationInfoSupport(name,
                     getDescription(),
                     parameters.toArray(new OpenMBeanParameterInfo[parameters.size()]),
@@ -206,7 +220,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @author Roman Sakno
      * @since 1.0
      */
-    protected static abstract class OpenAttribute<V, T extends OpenType<V>> extends OpenMBeanElement {
+    protected static abstract class OpenAttribute<V, T extends OpenType<V>> extends OpenMBeanElement<MBeanAttributeInfo> {
         /**
          * Represents type of the attribute.
          */
@@ -322,7 +336,13 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             }
         }
 
-        private OpenMBeanAttributeInfoSupport createAttributeInfo(){
+        /**
+         * Creates a new MBean feature.
+         *
+         * @return A new MBean feature.
+         */
+        @Override
+        public final OpenMBeanAttributeInfoSupport create() {
             return new OpenMBeanAttributeInfoSupport(name,
                     getDescription(),
                     openType,
@@ -477,21 +497,21 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     private OpenMBeanAttributeInfo[] getAttributes(){
         final OpenMBeanAttributeInfo[] result = new OpenMBeanAttributeInfo[attributes.size()];
         for(int i = 0; i < attributes.size(); i++)
-            result[i] = attributes.get(i).createAttributeInfo();
+            result[i] = attributes.get(i).create();
         return result;
     }
 
     private MBeanNotificationInfo[] getNotifications(){
         final MBeanNotificationInfo[] result = new MBeanNotificationInfo[notifications.size()];
         for(int i = 0; i < notifications.size(); i++)
-            result[i] = notifications.get(i).createNotificationInfo();
+            result[i] = notifications.get(i).create();
         return result;
     }
 
     private OpenMBeanOperationInfo[] getOperations(){
         final OpenMBeanOperationInfoSupport[] result = new OpenMBeanOperationInfoSupport[operations.size()];
         for(int i = 0; i < operations.size(); i++)
-            result[i] = operations.get(i).createOperationInfo();
+            result[i] = operations.get(i).create();
         return result;
     }
 
