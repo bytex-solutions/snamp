@@ -6,7 +6,9 @@
         <artifactId>snamp</artifactId>
         <groupId>com.itworks.snamp</groupId>
         <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
     <name>SNAMP Web Console</name>
     <description>Web Console for SNAMP administrators</description>
