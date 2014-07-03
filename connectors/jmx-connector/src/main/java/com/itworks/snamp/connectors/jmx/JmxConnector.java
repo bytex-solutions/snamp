@@ -745,7 +745,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             final JmxManagementEntityType typeInfo = getType();
             if(canWrite() && value != null)
                 try{
-                    value = typeInfo.convertToJmxType(value);
+                    value = typeInfo.convertToJmx(value);
                     return connectionManager.handleConnection(createAttributeValueWriter(value), false);
                 }
                 catch (final InvalidAttributeValueException e){

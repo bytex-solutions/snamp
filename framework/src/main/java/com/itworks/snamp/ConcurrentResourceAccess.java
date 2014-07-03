@@ -67,6 +67,17 @@ public class ConcurrentResourceAccess<R> extends AbstractConcurrentResourceAcces
     }
 
     /**
+     * Reads the current resource and set a new resource.
+     * @param newResource A new instance of the resource.
+     * @return Existed resource.
+     */
+    protected final R getAndSetResource(final R newResource){
+        final R previous = resource;
+        this.resource = newResource;
+        return previous;
+    }
+
+    /**
      * Sets resource in thread unsafe manner.
      * @param resource The resource to set.
      */

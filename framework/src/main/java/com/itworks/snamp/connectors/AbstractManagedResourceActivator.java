@@ -304,7 +304,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * @author Roman Sakno
      * @since 1.0
      */
-    protected static abstract class ProvidedManagementConnectors<TConnectorImpl extends ManagedResourceConnector<?>> implements ProvidedServices{
+    protected static abstract class ManagedResourceConnectorProviderFactory<TConnectorImpl extends ManagedResourceConnector<?>> implements ProvidedServices{
 
         /**
          * Creates a new instance of the management connector factory.
@@ -603,7 +603,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * @throws IllegalArgumentException connectorName is {@literal null}.
      */
     @SuppressWarnings("UnusedDeclaration")
-    protected AbstractManagedResourceActivator(final String connectorName, final ProvidedManagementConnectors<TConnector> connectorFactory){
+    protected AbstractManagedResourceActivator(final String connectorName, final ManagedResourceConnectorProviderFactory<TConnector> connectorFactory){
         this(connectorName, connectorFactory, null);
     }
 
@@ -614,7 +614,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * @param explicitLogger An instance of the logger associated with the all management connector instances.
      * @throws IllegalArgumentException connectorName is {@literal null}.
      */
-    protected AbstractManagedResourceActivator(final String connectorName, final ProvidedManagementConnectors<TConnector> connectorFactory, final Logger explicitLogger){
+    protected AbstractManagedResourceActivator(final String connectorName, final ManagedResourceConnectorProviderFactory<TConnector> connectorFactory, final Logger explicitLogger){
         super(explicitLogger != null ? explicitLogger : AbstractManagedResourceConnector.getLogger(connectorName),
                 connectorFactory);
         this.connectorName = connectorName;

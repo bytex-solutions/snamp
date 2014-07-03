@@ -35,6 +35,11 @@ public final class TimeSpan {
     public static final TimeSpan ZERO = new TimeSpan(0L);
 
     /**
+     * Represents maximum value.
+     */
+    public static final TimeSpan MAX_VALUE = new TimeSpan(Long.MAX_VALUE);
+
+    /**
      * Represents the duration value.
      */
     public final long duration;
