@@ -38,7 +38,7 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
         return new Equator<V>() {
             @Override
             public boolean equate(final V value1, final V value2) {
-                return Objects.equals(value1, value1);
+                return Objects.equals(value1, value2);
             }
         };
     }

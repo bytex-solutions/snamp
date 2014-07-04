@@ -107,32 +107,32 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
     }
 
     @Converter
-    public static int convertToInt32(final Integer32 value){
+    public static Integer convertToInt32(final Integer32 value){
         return value.toInt();
     }
 
     @Converter
-    public static long convertToInt64(final Counter32 value){
+    public static Long convertToInt64(final Counter32 value){
         return value.toLong();
     }
 
     @Converter
-    public static long convertToInt64(final Counter64 value){
+    public static Long convertToInt64(final Counter64 value){
         return value.toLong();
     }
 
     @Converter
-    public static long convertToInt64(final Gauge32 value){
+    public static Long convertToInt64(final Gauge32 value){
         return value.toLong();
     }
 
     @Converter
-    public static long convertToInt64(final UnsignedInteger32 value){
+    public static Long convertToInt64(final UnsignedInteger32 value){
         return value.toLong();
     }
 
     @Converter
-    public static Byte[] convertToBytes(final Opaque value){
+    public static Object[] convertToBytes(final Opaque value){
         return ArrayUtils.toObject(value.toByteArray());
     }
 

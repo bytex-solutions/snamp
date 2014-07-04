@@ -3,6 +3,7 @@ package com.itworks.snamp.testing.connectors.snmp;
 import com.itworks.snamp.testing.connectors.AbstractManagementConnectorTest;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
+import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 
 import java.io.IOException;
@@ -34,7 +35,7 @@ public final class PublicSnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
 
 
     @Test
-    public void testForStringReadOnlyProperty() throws TimeoutException, IOException {
+    public void testForOctetStringPropertyParsing() throws TimeoutException, IOException {
         final String ATTRIBUTE_NAME = "1.3.6.1.2.1.1.4.0";
         //plain text
         testAttribute(ATTRIBUTE_NAME,
@@ -66,7 +67,7 @@ public final class PublicSnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForReadWriteStringProperty() throws TimeoutException, IOException {
+    public void testForOctetStringProperty() throws TimeoutException, IOException {
         final String ATTRIBUTE_NAME = "1.3.6.1.2.1.1.9.1.3.1";
         //plain text
         testAttribute(ATTRIBUTE_NAME,
@@ -74,6 +75,81 @@ public final class PublicSnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 "Frank Underwood",
                 AbstractManagementConnectorTest.<String>valueEquator(),
                 Collections.<String, String>emptyMap(),
+                false);
+    }
+
+    @Test
+    public void testForOidProperty() throws TimeoutException, IOException {
+        final String ATTRIBUTE_NAME = "1.3.6.1.2.1.1.2.0";
+        //default format (int array)
+        testAttribute(ATTRIBUTE_NAME,
+                Object[].class,
+                ArrayUtils.toObject(new OID("1.3.6.1.4.1.20408").getValue()),
+                arrayEquator(),
+                Collections.<String, String>emptyMap(),
+                false);
+        //text format
+        testAttribute(ATTRIBUTE_NAME,
+                String.class,
+                "1.3.6.1.4.1.20408",
+                AbstractManagementConnectorTest.<String>valueEquator(),
+                new HashMap<String, String>(1) {{
+                    put("snmpConversionFormat", "text");
+                }},
+                false);
+    }
+
+    @Test
+    public void testForInteger32Property() throws TimeoutException, IOException {
+        final String ATTRIBUTE_NAME = "1.3.6.1.2.1.1.7.0";
+        testAttribute(ATTRIBUTE_NAME,
+                Integer.class,
+                72,
+                AbstractManagementConnectorTest.<Integer>valueEquator(),
+                Collections.<String, String>emptyMap(),
+                false);
+    }
+
+    @Test
+    public void testForCount32Property() throws TimeoutException, IOException{
+        final String ATTRIBUTE_NAME = "1.3.6.1.2.1.11.32.0";
+        testAttribute(ATTRIBUTE_NAME,
+                Long.class,
+                0L,
+                AbstractManagementConnectorTest.<Long>valueEquator(),
+                Collections.<String, String>emptyMap(),
+                false);
+    }
+
+    @Test
+    public void testForGauge32Property() throws TimeoutException, IOException{
+        final String ATTRIBUTE_NAME = "1.3.6.1.2.1.2.2.1.5.1";
+        testAttribute(ATTRIBUTE_NAME,
+                Long.class,
+                100000000L,
+                AbstractManagementConnectorTest.<Long>valueEquator(),
+                Collections.<String, String>emptyMap(),
+                false);
+    }
+
+    @Test
+    public void testForTimeTicksProperty() throws TimeoutException, IOException{
+        final String ATTRIBUTE_NAME = "1.3.6.1.2.1.1.9.1.4.1";
+        //default - long time ticks
+        testAttribute(ATTRIBUTE_NAME,
+                Long.class,
+                641835941L,
+                AbstractManagementConnectorTest.<Long>valueEquator(),
+                Collections.<String, String>emptyMap(),
+                false);
+        //text
+        testAttribute(ATTRIBUTE_NAME,
+                String.class,
+                "74 days, 6:52:39.41",
+                AbstractManagementConnectorTest.<String>valueEquator(),
+                new HashMap<String, String>(1){{
+                    put("snmpConversionFormat", "text");
+                }},
                 false);
     }
 }
