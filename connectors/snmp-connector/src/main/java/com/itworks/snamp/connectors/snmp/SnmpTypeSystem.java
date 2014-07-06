@@ -154,7 +154,7 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
                         }
                     };
                 }
-            }, Integer.class);
+            }, Object[].class, Byte[].class, byte[].class);
         //Octet string
         else if(value instanceof OctetString)
             return new OctetStringType(OctetStringConversionFormat.getFormat((OctetString)value, options));
