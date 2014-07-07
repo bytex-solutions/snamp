@@ -208,7 +208,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          * @return The converted JMX-compliant value.
          */
         @Override
-        public final Object convertToJmxType(final Object value) {
+        public final Object convertToJmx(final Object value) {
             //BANANA: character is represented as string and should be converted into native Character from its string representation
             return getOpenType() == SimpleType.CHARACTER && value instanceof String ?
                     convertToJmxType(Objects.toString(value, "")):
@@ -273,7 +273,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
                     rows[rowIndex] = new CompositeDataSupport(columnSchema, new HashMap<String, Object>(){{
                         for(final String columnName: columnSchema.keySet()){
                             final JmxManagementEntityType columnType = createEntityType(columnSchema.getType(columnName));
-                            put(columnName, columnType.convertToJmxType(value.getCell(columnName, rowID)));
+                            put(columnName, columnType.convertToJmx(value.getCell(columnName, rowID)));
                         }
                     }});
                 }
@@ -317,7 +317,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          */
         @SuppressWarnings("unchecked")
         @Override
-        public final TabularData convertToJmxType(final Object value) throws InvalidAttributeValueException{
+        public final TabularData convertToJmx(final Object value) throws InvalidAttributeValueException{
             if(value instanceof Table)
                 return convertToJmxType((Table<String>)value);
             else if(value instanceof TabularData)
@@ -380,7 +380,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             final Map<String, Object> convertedValue = new HashMap<>(value.size());
             for(final String columnName: value.keySet()){
                 final JmxManagementEntityType columnType = createEntityType(getOpenType().getType(columnName));
-                convertedValue.put(columnName, columnType.convertToJmxType(value.get(columnName)));
+                convertedValue.put(columnName, columnType.convertToJmx(value.get(columnName)));
             }
             try {
                 return new CompositeDataSupport(getOpenType(), convertedValue);
@@ -395,7 +395,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             if(value.getRowCount() > 0)
                 for(final String columnName: getOpenType().keySet()){
                     final JmxManagementEntityType columnType = createEntityType(getOpenType().getType(columnName));
-                    result.put(columnName, columnType.convertToJmxType(value.getCell(columnName, 0)));
+                    result.put(columnName, columnType.convertToJmx(value.getCell(columnName, 0)));
                 }
             else throw new InvalidAttributeValueException(String.format("Cannot convert %s to composite data.", value));
             try{
@@ -420,7 +420,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          */
         @SuppressWarnings("unchecked")
         @Override
-        public final CompositeData convertToJmxType(final Object value) throws InvalidAttributeValueException{
+        public final CompositeData convertToJmx(final Object value) throws InvalidAttributeValueException{
             if(value instanceof Table<?>)
                 return convertToJmxType((Table<String>)value);
             else if(value instanceof Map)
@@ -525,7 +525,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          * @return JMX-compliant array.
          */
         @Override
-        public final Object convertToJmxType(final Object value) {
+        public final Object convertToJmx(final Object value) {
             if(value != null && value.getClass().isArray())
                 return convertToJmxArray(value);
             else return convertToJmxArray(new Object[]{value});

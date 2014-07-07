@@ -3,6 +3,8 @@ package com.itworks.snamp.testing.adapters.jmx;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterClient;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
@@ -179,6 +181,20 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
             connection.setAttribute(resourceObjectName, attr);
             assertNotNull(attributeChangedEvent.getAwaitor().await(TimeSpan.fromSeconds(10)));
             assertNotNull(testEvent.getAwaitor().await(TimeSpan.fromSeconds(10)));
+        }
+        finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
+    }
+
+    @Test
+    public void configurationDescriptorTest() throws BundleException {
+        try {
+            final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+            assertNotNull(desc);
+            final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("usePlatformMBean");
+            assertNotNull(param);
+            assertFalse(param.getDescription(null).isEmpty());
         }
         finally {
             AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);

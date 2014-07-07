@@ -1,7 +1,6 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import org.apache.commons.collections4.Equator;
 import org.apache.commons.collections4.Factory;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
@@ -46,11 +45,6 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
             @Override
             public boolean equate(final Map o1, final Map o2) {
                 return true;
-            }
-
-            @Override
-            public int hash(final Map o) {
-                return 0;
             }
         }, true);
     }

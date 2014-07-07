@@ -17,5 +17,5 @@ interface JmxManagementEntityType extends ManagementEntityType {
      * @return JMX-compliant representation of the input object.
      * @throws javax.management.InvalidAttributeValueException Unable to convert value.
      */
-    public Object convertToJmxType(final Object value) throws InvalidAttributeValueException;
+    public Object convertToJmx(final Object value) throws InvalidAttributeValueException;
 }

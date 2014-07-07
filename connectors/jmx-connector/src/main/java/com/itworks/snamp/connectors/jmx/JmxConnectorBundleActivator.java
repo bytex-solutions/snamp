@@ -141,7 +141,7 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
         }
     }
 
-    private static final class ProvidedJmxConnectors extends ProvidedManagementConnectors<JmxConnector> {
+    private static final class ProvidedJmxConnectors extends ManagedResourceConnectorProviderFactory<JmxConnector> {
 
         @Override
         protected ConfigurationEntityDescriptionProviderHolder<?> createDescriptionProvider(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {

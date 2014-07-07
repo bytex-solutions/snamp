@@ -2,7 +2,9 @@ package com.itworks.snamp.testing.adapters.rest;
 
 import com.google.gson.*;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
@@ -199,6 +201,20 @@ public final class RestAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     public void testTableAttribute() throws BundleException {
         try{
             testJsonAttribute(createTestTable1(), "7.1");
+        }
+        finally {
+            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        }
+    }
+
+    @Test
+    public void configurationDescriptorTest() throws BundleException {
+        try {
+            final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+            assertNotNull(desc);
+            final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("loginModule");
+            assertNotNull(param);
+            assertFalse(param.getDescription(null).isEmpty());
         }
         finally {
             AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);

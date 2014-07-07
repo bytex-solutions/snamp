@@ -19,7 +19,8 @@ public enum SnampArtifact {
     MANAGEMENT("management-bundle", "1.0.0"),
     WEB_CONSOLE("web-console", "1.0.0"),
     REST_ADAPTER("rest-adapter", "1.0.0"),
-    JMX_ADAPTER("jmx-adapter", "1.0.0")
+    JMX_ADAPTER("jmx-adapter", "1.0.0"),
+    SNMP_CONNECTOR("snmp-connector", "1.0.0")
     ;
 
     public static final String GROUP_ID = "com.itworks.snamp";

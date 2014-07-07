@@ -474,7 +474,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         /**
          * Removes all attributes.
          */
-        public final void clear(){
+        public void clear(){
             attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Void>() {
                 @Override
                 public final Void invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {

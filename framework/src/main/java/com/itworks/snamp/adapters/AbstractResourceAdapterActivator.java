@@ -448,9 +448,9 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
         return systemNames;
     }
 
-    static String createFilter(final String connectorType, final String filter){
+    static String createFilter(final String adapterName, final String filter){
         return filter == null || filter.isEmpty() ?
-                String.format("(%s=%s)", ADAPTER_NAME_IDENTITY_PROPERTY, connectorType):
-                String.format("(&(%s=%s)%s)", ADAPTER_NAME_IDENTITY_PROPERTY, connectorType, filter);
+                String.format("(%s=%s)", ADAPTER_NAME_IDENTITY_PROPERTY, adapterName):
+                String.format("(&(%s=%s)%s)", ADAPTER_NAME_IDENTITY_PROPERTY, adapterName, filter);
     }
 }
