@@ -6,15 +6,17 @@ import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
 import org.snmp4j.mp.MPv2c;
+import org.snmp4j.mp.MPv3;
 import org.snmp4j.mp.SnmpConstants;
+import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
-import org.snmp4j.util.DefaultPDUFactory;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Represents SNMP client.
@@ -23,6 +25,7 @@ import java.util.concurrent.TimeoutException;
  * @since 1.0
  */
 abstract class SnmpClient extends Snmp {
+    private static final AtomicInteger engineBoots = new AtomicInteger(0);
     private static final class SnmpResponseListener extends SynchronizationEvent<ResponseEvent> implements ResponseListener{
         public SnmpResponseListener(){
             super(false);
@@ -34,22 +37,70 @@ abstract class SnmpClient extends Snmp {
         }
     }
 
-    private SnmpClient(final MessageDispatcher dispatcher,
+    SnmpClient(final MessageDispatcher dispatcher,
                        final TransportMapping<?> transport){
         super(dispatcher, transport);
     }
 
-    public static SnmpClient createClient(final Address connectionAddress,
-                                          final OctetString community,
-                                          final Address localAddress) throws IOException{
+    public static SnmpClient create(final Address connectionAddress,
+                                    final OctetString engineID,
+                                    final OctetString userName,
+                                    final OID authenticationProtocol,
+                                    final OctetString password,
+                                    final OID encryptionProtocol,
+                                    final OctetString encryptionKey,
+                                    final OctetString contextName,
+                                    final Address localAddress) throws IOException {
+        if(userName == null ||
+                userName.length() == 0 ||
+                password == null ||
+                password.length() == 0)
+            return create(connectionAddress, new OctetString("public"), localAddress);
+        final SecurityLevel secLevel = encryptionProtocol != null && encryptionProtocol.size() > 0 &&
+                encryptionKey != null && encryptionKey.length() > 0 ?
+            SecurityLevel.authPriv : SecurityLevel.authNoPriv;
         final MessageDispatcher dispatcher = new MessageDispatcherImpl();
-        dispatcher.addMessageProcessingModel(new MPv2c(new DefaultPDUFactory()));
+        final USM userModel = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), engineBoots.getAndIncrement());
+        userModel.addUser(userName, engineID,
+                new UsmUser(userName, authenticationProtocol, password, encryptionProtocol, encryptionKey));
+        dispatcher.addMessageProcessingModel(new MPv3(userModel));
+        return new SnmpClient(dispatcher, localAddress instanceof UdpAddress ? new DefaultUdpTransportMapping((UdpAddress)localAddress) : new DefaultUdpTransportMapping()) {
+            @Override
+            protected Target createTarget(TimeSpan timeout) {
+                final UserTarget target = new UserTarget(connectionAddress,
+                        userName,
+                        engineID.getValue(),
+                        secLevel.getSnmpValue());
+                target.setSecurityModel(SecurityModel.SECURITY_MODEL_USM);
+                target.setRetries(1);
+                final long MAX_TIMEOUT = Long.MAX_VALUE / 100;
+                if(timeout == TimeSpan.INFINITE || timeout.convert(TimeUnit.MILLISECONDS).duration > MAX_TIMEOUT)
+                    timeout = new TimeSpan(MAX_TIMEOUT);
+                target.setTimeout(timeout.convert(TimeUnit.MILLISECONDS).duration);
+                target.setVersion(SnmpConstants.version3);
+                return target;
+            }
+
+            @Override
+            protected ScopedPDU createPDU(final int pduType) {
+                final ScopedPDU result = new ScopedPDU();
+                result.setType(pduType);
+                if(contextName != null && contextName.length() > 0)
+                    result.setContextName(contextName);
+                return result;
+            }
+        };
+    }
+
+    public static SnmpClient create(final Address connectionAddress,
+                                    final OctetString community,
+                                    final Address localAddress) throws IOException{
+        final MessageDispatcher dispatcher = new MessageDispatcherImpl();
+        dispatcher.addMessageProcessingModel(new MPv2c());
         return new SnmpClient(dispatcher, localAddress instanceof UdpAddress ? new DefaultUdpTransportMapping((UdpAddress)localAddress) : new DefaultUdpTransportMapping()){
             @Override
             protected Target createTarget(TimeSpan timeout) {
-                final CommunityTarget target = new CommunityTarget();
-                target.setCommunity(community);
-                target.setAddress(connectionAddress);
+                final CommunityTarget target = new CommunityTarget(connectionAddress, community);
                 target.setVersion(SnmpConstants.version2c);
                 target.setRetries(1);
                 final long MAX_TIMEOUT = Long.MAX_VALUE / 100;
@@ -58,8 +109,17 @@ abstract class SnmpClient extends Snmp {
                 target.setTimeout(timeout.convert(TimeUnit.MILLISECONDS).duration);
                 return target;
             }
+
+            @Override
+            protected PDU createPDU(final int pduType) {
+                final PDU result = new PDU();
+                result.setType(pduType);
+                return result;
+            }
         };
     }
+
+    protected abstract PDU createPDU(final int pduType);
 
     public final Address[] getClientAddresses(){
         final Collection<TransportMapping> mappings = getMessageDispatcher().getTransportMappings();
@@ -72,6 +132,7 @@ abstract class SnmpClient extends Snmp {
 
     protected abstract Target createTarget(final TimeSpan timeout);
 
+    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     private static ResponseEvent waitForResponseEvent(final SynchronizationEvent.Awaitor<ResponseEvent> awaitor, final TimeSpan timeout) throws TimeoutException, IOException, InterruptedException {
         final ResponseEvent response = awaitor.await(timeout);
         if(response == null || response.getResponse() == null) throw new TimeoutException(String.format("PDU sending timeout."));
@@ -101,15 +162,8 @@ abstract class SnmpClient extends Snmp {
         }
     }
 
-    private static PDU createPDU(final Target target, final int pduType){
-        final PDU request = DefaultPDUFactory.createPDU(target, pduType);
-        request.setMaxRepetitions(10);
-        request.setNonRepeaters(1);
-        return request;
-    }
-
     private Map<OID, Variable> get(final int pduType, final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
-        final PDU request = createPDU(createTarget(timeout), pduType);
+        final PDU request = createPDU(pduType);
         if (pduType == PDU.GETBULK)
             for (int i = 0; i < variables.length; i++)
                 variables[i] = prepareOidForGetBulk(variables[i]);
@@ -135,7 +189,7 @@ abstract class SnmpClient extends Snmp {
     }
 
     public void set(final VariableBinding[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
-        final PDU request = createPDU(createTarget(timeout), PDU.SET);
+        final PDU request = createPDU(PDU.SET);
         for(final VariableBinding v: variables)
             request.add(v);
         final ResponseEvent response = send(request, timeout);
