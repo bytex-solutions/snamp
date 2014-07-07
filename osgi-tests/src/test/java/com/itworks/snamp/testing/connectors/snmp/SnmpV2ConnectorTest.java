@@ -1,5 +1,13 @@
 package com.itworks.snamp.testing.connectors.snmp;
 
+import com.itworks.snamp.Repeater;
+import com.itworks.snamp.SynchronizationEvent;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.connectors.ManagedResourceConnector;
+import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.connectors.notifications.NotificationListener;
+import com.itworks.snamp.connectors.notifications.NotificationMetadata;
+import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.testing.connectors.AbstractManagementConnectorTest;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
@@ -14,6 +22,7 @@ import org.snmp4j.agent.mo.MOTableRow;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
 import org.snmp4j.mp.MPv3;
+import org.snmp4j.mp.MessageProcessingModel;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.security.SecurityModel;
 import org.snmp4j.security.USM;
@@ -36,23 +45,26 @@ import java.util.concurrent.TimeoutException;
  */
 public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     private static final String HOST_NAME = "127.0.0.1";
-    private static final int PORT = 1161;
+    private static final int REMOTE_PORT = 1161;
+    private static final int LOCAL_PORT = 44495;
 
     private static Map<String, String> getParameters(){
         final Map<String, String> params = new HashMap<>(1);
         params.put("community", "public");
+        params.put("localAddress", "udp://127.0.0.1/" + LOCAL_PORT);
         return params;
     }
 
     private final BaseAgent agent;
 
-    public SnmpV2ConnectorTest(){
-        super(HOST_NAME, PORT, getParameters());
+    public SnmpV2ConnectorTest() {
+        super(HOST_NAME, REMOTE_PORT, getParameters());
         agent = new BaseAgent(new File("conf.agent"), null,
                 new CommandProcessor(
                         new OctetString(MPv3.createLocalEngineID()))) {
 
             private boolean coldStart = true;
+            private Repeater notifSender;
 
             @Override
             protected void registerManagedObjects() {
@@ -96,13 +108,13 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
             protected void initTransportMappings() throws IOException {
                 final TransportMappings mappings = TransportMappings.getInstance();
                 try{
-                    TransportMapping<?> tm = mappings.createTransportMapping(GenericAddress.parse(String.format("%s/%s", HOST_NAME, PORT)));
+                    TransportMapping<?> tm = mappings.createTransportMapping(GenericAddress.parse(String.format("%s/%s", HOST_NAME, REMOTE_PORT)));
                     if(tm instanceof DefaultUdpTransportMapping)
                         ((DefaultUdpTransportMapping)tm).setSocketTimeout(5000);
                     transportMappings = new TransportMapping[]{tm};
                 }
                 catch (final RuntimeException e){
-                    throw new IOException(String.format("Unable to create SNMP transport for %s/%s address.", HOST_NAME, PORT), e);
+                    throw new IOException(String.format("Unable to create SNMP transport for %s/%s address.", HOST_NAME, REMOTE_PORT), e);
                 }
             }
 
@@ -117,7 +129,26 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
 
             @Override
             protected void addNotificationTargets(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB) {
-
+                final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
+                targetMIB.addDefaultTDomains();
+                targetMIB.addTargetAddress(new OctetString("test"),
+                        TransportDomains.transportDomainUdpIpv4,
+                        new OctetString(new UdpAddress(HOST_NAME + "/" + LOCAL_PORT).getValue()),
+                        3000,
+                        2,
+                        new OctetString("notify"),
+                        NOTIFICATION_SETTINGS_TAG,
+                        StorageType.nonVolatile);
+                targetMIB.addTargetParams(NOTIFICATION_SETTINGS_TAG,
+                        MessageProcessingModel.MPv2c,
+                        SecurityModel.SECURITY_MODEL_SNMPv2c,
+                        new OctetString("cpublic"),
+                        SecurityLevel.AUTH_PRIV,
+                        StorageType.permanent);
+                notificationMIB.addNotifyEntry(new OctetString("default"),
+                        new OctetString("notify"),
+                        SnmpNotificationMIB.SnmpNotifyTypeEnum.trap,
+                        StorageType.permanent);
             }
 
             @Override
@@ -136,6 +167,9 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                         new OctetString(), VacmMIB.vacmViewIncluded,
                         StorageType.nonVolatile);
                 vacm.addViewTreeFamily(new OctetString("fullWriteView"), new OID("1.6"),
+                        new OctetString(), VacmMIB.vacmViewIncluded,
+                        StorageType.nonVolatile);
+                vacm.addViewTreeFamily(new OctetString("fullNotifyView"), new OID("1.7"),
                         new OctetString(), VacmMIB.vacmViewIncluded,
                         StorageType.nonVolatile);
             }
@@ -157,6 +191,26 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 communityMIB.getSnmpCommunityEntry().addRow(row);
             }
 
+            /**
+             * Stops the agent by closing the SNMP session and associated transport
+             * mappings.
+             *
+             * @since 1.1
+             */
+            @Override
+            public void stop() {
+                if(notifSender != null)
+                    try {
+                        notifSender.stop(TimeSpan.fromSeconds(1));
+                    }
+                    catch (final Exception e) {
+                        fail(e.getMessage());
+                    }
+                notifSender = null;
+                super.stop();
+
+            }
+
             @Override
             public void init() throws IOException {
                 super.init();
@@ -165,6 +219,18 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 run();
                 if(coldStart) sendColdStartNotification();
                 coldStart = false;
+                notifSender = new Repeater(TimeSpan.fromSeconds(1)) {
+                    @Override
+                    protected void doAction() {
+                        final VariableBinding[] bindings = {
+                                new VariableBinding(new OID("1.7.1.1.0"), new OctetString("Hello, world!")),
+                                new VariableBinding(new OID("1.7.1.2.0"), new Integer32(42))
+                        };
+                        if(notificationOriginator != null)
+                            notificationOriginator.notify(new OctetString("public"), new OID("1.7.1"), bindings);
+                    }
+                };
+                notifSender.run();
             }
         };
     }
@@ -172,6 +238,46 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
         agent.init();
+    }
+
+    @Test
+    public void notificationTest() throws TimeoutException, InterruptedException {
+        try{
+            final ManagedResourceConnector<?> connector = getManagementConnector();
+            final NotificationSupport notifications = connector.queryObject(NotificationSupport.class);
+            assertNotNull(notifications);
+            final String LIST_ID = "snmp-notif";
+            final NotificationMetadata metadata = notifications.enableNotifications(LIST_ID, "1.7.1", new HashMap<String, String>(1){{
+                put("messageTemplate", "{1.0} - {2.0}");
+            }});
+            assertNotNull(metadata);
+            final SynchronizationEvent<Notification> trap = new SynchronizationEvent<>(false);
+            assertTrue(notifications.subscribe("123", new NotificationListener() {
+                @Override
+                public boolean handle(final String listId, final Notification n) {
+                    return trap.fire(n);
+                }
+            }, false));
+            //obtain client addresses
+            final Address[] addresses = connector.queryObject(Address[].class);
+            assertNotNull(addresses);
+            assertEquals(1, addresses.length);
+            assertTrue(addresses[0] instanceof UdpAddress);
+            try {
+                final Notification n = trap.getAwaitor().await(TimeSpan.fromSeconds(6));
+                assertNotNull(n);
+                assertEquals("Hello, world! - 42", n.getMessage());
+                assertEquals(0L, n.getSequenceNumber());
+                assertEquals(2, n.size());
+            }
+            finally {
+                assertTrue(notifications.unsubscribe("123"));
+            }
+            assertTrue(notifications.disableNotifications(LIST_ID));
+        }
+        finally {
+            releaseManagementConnector();
+        }
     }
 
     @Test

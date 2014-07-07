@@ -40,10 +40,11 @@ abstract class SnmpClient extends Snmp {
     }
 
     public static SnmpClient createClient(final Address connectionAddress,
-                                          final OctetString community) throws IOException{
+                                          final OctetString community,
+                                          final Address localAddress) throws IOException{
         final MessageDispatcher dispatcher = new MessageDispatcherImpl();
         dispatcher.addMessageProcessingModel(new MPv2c(new DefaultPDUFactory()));
-        return new SnmpClient(dispatcher, new DefaultUdpTransportMapping()){
+        return new SnmpClient(dispatcher, localAddress instanceof UdpAddress ? new DefaultUdpTransportMapping((UdpAddress)localAddress) : new DefaultUdpTransportMapping()){
             @Override
             protected Target createTarget(TimeSpan timeout) {
                 final CommunityTarget target = new CommunityTarget();
@@ -58,6 +59,15 @@ abstract class SnmpClient extends Snmp {
                 return target;
             }
         };
+    }
+
+    public final Address[] getClientAddresses(){
+        final Collection<TransportMapping> mappings = getMessageDispatcher().getTransportMappings();
+        final Address[] result = new Address[mappings.size()];
+        int i = 0;
+        for(final TransportMapping m: mappings)
+            result[i++] = m.getListenAddress();
+        return result;
     }
 
     protected abstract Target createTarget(final TimeSpan timeout);

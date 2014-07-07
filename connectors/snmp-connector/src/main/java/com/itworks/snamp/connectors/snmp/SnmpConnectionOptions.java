@@ -22,6 +22,7 @@ final class SnmpConnectionOptions {
     private final OctetString engineID;
     private final OctetString community;
     private final OctetString userName;
+    private final Address localAddress;
 
     public SnmpConnectionOptions(final String connectionString, final Map<String, String> parameters) {
         connectionAddress = GenericAddress.parse(connectionString);
@@ -33,6 +34,9 @@ final class SnmpConnectionOptions {
                 new OctetString("public");
         userName = parameters.containsKey(USER_NAME_PARAM) ?
                 new OctetString(parameters.get(USER_NAME_PARAM)) :
+                null;
+        localAddress = parameters.containsKey(LOCAL_ADDRESS_PARAM) ?
+                GenericAddress.parse(parameters.get(LOCAL_ADDRESS_PARAM)) :
                 null;
     }
 
@@ -50,7 +54,7 @@ final class SnmpConnectionOptions {
      */
     public SnmpClient createSnmpClient() throws IOException{
         return userName == null ?
-                SnmpClient.createClient(connectionAddress, community):
+                SnmpClient.createClient(connectionAddress, community, localAddress):
                 null;
     }
 }

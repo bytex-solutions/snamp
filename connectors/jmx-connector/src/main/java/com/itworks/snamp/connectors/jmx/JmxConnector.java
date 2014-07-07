@@ -25,6 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.SEVERITY_PARAM;
 
 import static com.itworks.snamp.connectors.jmx.JmxConnectionManager.MBeanServerConnectionHandler;
 import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.OBJECT_NAME_PROPERTY;
@@ -43,7 +44,6 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     private static final String JMX_ENTITY_OPTION = "jmx-compliant";
 
     private final static class JmxNotificationMetadata extends GenericNotificationMetadata{
-        private final static String severityOption = "severity";
         private final Map<String, String> options;
         private final ExecutorService executor;
 
@@ -64,8 +64,8 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         }
 
         public final Severity getSeverity(){
-            if(options.containsKey(severityOption))
-                switch (options.get(severityOption)){
+            if(options.containsKey(SEVERITY_PARAM))
+                switch (options.get(SEVERITY_PARAM)){
                     case "panic": return Severity.PANIC;
                     case "alert": return Severity.ALERT;
                     case "critical": return Severity.CRITICAL;

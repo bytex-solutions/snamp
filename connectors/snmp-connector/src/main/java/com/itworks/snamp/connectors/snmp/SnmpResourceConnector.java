@@ -3,21 +3,33 @@ package com.itworks.snamp.connectors.snmp;
 import com.itworks.snamp.ReferenceCountedObject;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
+import com.itworks.snamp.connectors.ManagementEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import org.snmp4j.smi.OID;
-import org.snmp4j.smi.Variable;
+import com.itworks.snamp.connectors.notifications.*;
+import org.apache.commons.lang3.StringUtils;
+import org.snmp4j.CommandResponder;
+import org.snmp4j.CommandResponderEvent;
+import org.snmp4j.PDU;
+import org.snmp4j.SNMP4JSettings;
+import org.snmp4j.smi.*;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.text.ParseException;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.*;
+import static com.itworks.snamp.AbstractConcurrentResourceAccess.Action;
+import static com.itworks.snamp.AbstractConcurrentResourceAccess.ConsistentAction;
+import static com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory.ExceptionHandler;
+import static com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker;
+import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.MESSAGE_TEMPLATE;
+import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SEVERITY_PARAM;
 
 /**
  * Represents SNMP-compliant managed resource.
@@ -26,10 +38,246 @@ import static com.itworks.snamp.AbstractConcurrentResourceAccess.*;
  * @version 1.0
  * @since 1.0
  */
-final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpConnectionOptions> implements AttributeSupport {
+final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpConnectionOptions> implements AttributeSupport, NotificationSupport {
     private static final SnmpTypeSystem typeSystem = new SnmpTypeSystem();
 
-    private static final class SnmpAttributeMetadata extends GenericAttributeMetadata<SnmpManagementEntityType>{
+    private static final class SnmpNotificationMetadata extends GenericNotificationMetadata implements CommandResponder{
+        private final Map<String, String> options;
+        private final AtomicLong sequenceNumber;
+        private final Logger logger;
+        private final ExecutorService executor;
+
+        public SnmpNotificationMetadata(final OID category,
+                                        final Map<String, String> options,
+                                        final Logger logger){
+            super(category.toDottedString());
+            this.options = Collections.unmodifiableMap(options);
+            this.sequenceNumber = new AtomicLong(0L);
+            this.logger = logger;
+            this.executor = Executors.newSingleThreadExecutor();
+        }
+
+        public OID getNotificationID(){
+            return new OID(getCategory());
+        }
+
+        public final Severity getSeverity(){
+            if(options.containsKey(SEVERITY_PARAM))
+                switch (options.get(SEVERITY_PARAM)){
+                    case "panic": return Severity.PANIC;
+                    case "alert": return Severity.ALERT;
+                    case "critical": return Severity.CRITICAL;
+                    case "error": return Severity.ERROR;
+                    case "warning": return Severity.WARNING;
+                    case "notice": return Severity.NOTICE;
+                    case "info": return Severity.INFO;
+                    case "debug": return Severity.DEBUG;
+                    default: return Severity.UNKNOWN;
+
+                }
+            else return Severity.UNKNOWN;
+        }
+
+        private static Map<String, Object> getAttachments(final Collection<VariableBinding> bindings){
+            final Map<String, Object> attachments = new HashMap<>(bindings.size());
+            for(final VariableBinding b: bindings)
+                attachments.put(b.getOid().toDottedString(), b.getVariable());
+            return attachments;
+        }
+
+        private void processPdu(final PDU event){
+            final Collection<VariableBinding> bindings = event.getBindingList(getNotificationID());
+            if(bindings.size() == 0) return;
+            String template = get(MESSAGE_TEMPLATE);
+            if(template == null) template = StringUtils.join(bindings, System.lineSeparator());
+            else for(final VariableBinding binding: bindings){
+                final OID postfix = SnmpConnectorHelpers.getPostfix(getNotificationID(), binding.getOid());
+                if(postfix.size() == 0) continue;
+                template = template.replaceAll(String.format("\\{%s\\}", postfix), binding.getVariable().toString());
+            }
+            fire(new NotificationImpl(getSeverity(), sequenceNumber.getAndIncrement(), new Date(), template, getAttachments(bindings)), createParallelExceptionResistantInvoker(executor, new ExceptionHandler() {
+                @Override
+                public final void handle(final Throwable e, final NotificationListener source) {
+                    logger.log(Level.SEVERE, "Unable to process JMX notification.", e);
+                }
+            }));
+        }
+
+        @Override
+        public void processPdu(final CommandResponderEvent event) {
+            processPdu(event.getPDU());
+        }
+
+        /**
+         * Gets listeners invocation model for this notification type.
+         *
+         * @return Listeners invocation model for this notification type.
+         */
+        @Override
+        public NotificationModel getNotificationModel() {
+            return NotificationModel.MULTICAST;
+        }
+
+        /**
+         * Returns the type descriptor for the specified attachment.
+         *
+         * @param attachment The notification attachment.
+         * @return The type descriptor for the specified attachment; or {@literal null} if the specified
+         * attachment is not supported.
+         */
+        @Override
+        public ManagementEntityType getAttachmentType(final Object attachment) {
+            return attachment instanceof Variable ?
+                    typeSystem.resolveSnmpScalarType((Variable)attachment, options) :
+                    null;
+        }
+
+        @Override
+        public int size() {
+            return options.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return options.isEmpty();
+        }
+
+        @Override
+        public boolean containsKey(final Object key) {
+            return options.containsKey(key);
+        }
+
+        @Override
+        public boolean containsValue(final Object value) {
+            return options.containsValue(value);
+        }
+
+        @Override
+        public String get(final Object key) {
+            return options.get(key);
+        }
+
+        @SuppressWarnings("NullableProblems")
+        @Override
+        public Set<String> keySet() {
+            return options.keySet();
+        }
+
+        @SuppressWarnings("NullableProblems")
+        @Override
+        public Collection<String> values() {
+            return options.values();
+        }
+
+        @SuppressWarnings("NullableProblems")
+        @Override
+        public Set<Entry<String, String>> entrySet() {
+            return options.entrySet();
+        }
+    }
+
+    private static final class SnmpNotificationSupport extends AbstractNotificationSupport implements AutoCloseable{
+        private final ReferenceCountedObject<SnmpClient> client;
+        private final Logger logger;
+
+        public SnmpNotificationSupport(final ReferenceCountedObject<SnmpClient> client,
+                                       final Logger logger){
+            this.client = client;
+            this.logger = logger;
+        }
+
+        /**
+         * Enables event listening for the specified category of events.
+         * <p>
+         * In the default implementation this method does nothing.
+         * </p>
+         *
+         * @param category The name of the category to listen.
+         * @param options  Event discovery options.
+         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+         */
+        @Override
+        protected SnmpNotificationMetadata enableNotifications(final String category, final Map<String, String> options) {
+            try {
+                return client.increfAndWrite(new Action<SnmpClient, SnmpNotificationMetadata, ParseException>() {
+                    @Override
+                    public SnmpNotificationMetadata invoke(final SnmpClient client) throws ParseException {
+                        final SnmpNotificationMetadata listener = new SnmpNotificationMetadata(new OID(SNMP4JSettings.getOIDTextFormat().parse(category)), options, logger);
+                        client.addCommandResponder(listener);
+                        return listener;
+                    }
+                });
+            }
+            catch (final Exception e) {
+                logger.log(Level.WARNING, String.format("Subscription to SNMP event %s failed.", category), e);
+                return null;
+            }
+        }
+
+        private void disableNotifications(final SnmpNotificationMetadata notifMeta){
+            try {
+                client.write(new ConsistentAction<SnmpClient, Void>() {
+                    @Override
+                    public Void invoke(final SnmpClient client) {
+                        client.removeCommandResponder(notifMeta);
+                        return null;
+                    }
+                });
+                client.decref();
+            }
+            catch (final Exception e){
+                logger.log(Level.WARNING, String.format("Problem occurs when unsubscribing event %s.", notifMeta.getCategory()), e);
+            }
+        }
+
+        /**
+         * Disable all notifications associated with the specified event.
+         * <p>
+         * In the default implementation this method does nothing.
+         * </p>
+         *
+         * @param notificationType The event descriptor.
+         */
+        @Override
+        protected void disableNotifications(final GenericNotificationMetadata notificationType) {
+            if(notificationType instanceof SnmpNotificationMetadata)
+                disableNotifications((SnmpNotificationMetadata)notificationType);
+        }
+
+        /**
+         * Adds a new listener for the specified notification.
+         *
+         * @param listener The event listener.
+         * @return Any custom data associated with the subscription.
+         */
+        @Override
+        protected Object subscribe(final NotificationListener listener) {
+            return null;
+        }
+
+        /**
+         * Cancels the notification listening.
+         *
+         * @param listener The notification listener to remove.
+         * @param data     The custom data associated with subscription that returned from {@link #subscribe(com.itworks.snamp.connectors.notifications.NotificationListener)}
+         */
+        @Override
+        protected void unsubscribe(final NotificationListener listener, final Object data) {
+
+        }
+
+        @Override
+        public void close() throws Exception {
+            try {
+                client.decref();
+            }
+            finally {
+                clear();
+            }
+        }
+    }
+
+    private static final class SnmpAttributeMetadata extends GenericAttributeMetadata<SnmpManagementEntityType> {
         private final SnmpManagementEntityType attributeType;
         private final Map<String, String> options;
 
@@ -104,6 +352,15 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         public SnmpAttributeSupport(final ReferenceCountedObject<SnmpClient> client, final Logger log){
             this.client = client;
             this.logger = log;
+        }
+
+        public Address[] getClientAddresses(){
+            return client.read(new ConsistentAction<SnmpClient, Address[]>() {
+                @Override
+                public Address[] invoke(final SnmpClient client) {
+                    return client.getClientAddresses();
+                }
+            });
         }
 
         private SnmpAttributeMetadata connectAttribute(final OID attributeID, final Map<String, String> options) throws Exception{
@@ -229,6 +486,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
     }
 
     private final SnmpAttributeSupport attributes;
+    private final SnmpNotificationSupport notifications;
 
     /**
      * Initializes a new management connector.
@@ -251,6 +509,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
             }
         };
         attributes = new SnmpAttributeSupport(client, getLogger());
+        notifications = new SnmpNotificationSupport(client, getLogger());
     }
 
     public SnmpResourceConnector(final String connectionString, final Map<String, String> parameters) throws IOException {
@@ -361,5 +620,112 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
     @Override
     public Collection<String> getConnectedAttributes() {
         return attributes.getConnectedAttributes();
+    }
+
+    /**
+     * Enables event listening for the specified category of events.
+     * <p>
+     * categoryId can be used for enabling notifications for the same category
+     * but with different options.
+     * </p>
+     *
+     * @param listId   An identifier of the subscription list.
+     * @param category The name of the category to listen.
+     * @param options  Event discovery options.
+     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+     */
+    @Override
+    public NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
+        verifyInitialization();
+        return notifications.enableNotifications(listId, category, options);
+    }
+
+    /**
+     * Disables event listening for the specified category of events.
+     * <p>
+     * This method removes all listeners associated with the specified subscription list.
+     * </p>
+     *
+     * @param listId The identifier of the subscription list.
+     * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+     */
+    @Override
+    public boolean disableNotifications(final String listId) {
+        verifyInitialization();
+        return notifications.disableNotifications(listId);
+    }
+
+    /**
+     * Gets the notification metadata by its category.
+     *
+     * @param listId The identifier of the subscription list.
+     * @return The metadata of the specified notification category; or {@literal null}, if notifications
+     * for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
+     */
+    @Override
+    public NotificationMetadata getNotificationInfo(final String listId) {
+        return notifications.getNotificationInfo(listId);
+    }
+
+    /**
+     * Returns a read-only collection of enabled notifications (subscription list identifiers).
+     *
+     * @return A read-only collection of enabled notifications (subscription list identifiers).
+     */
+    @Override
+    public Collection<String> getEnabledNotifications() {
+        return notifications.getEnabledNotifications();
+    }
+
+    /**
+     * Attaches the notification listener.
+     *
+     * @param listenerId Unique identifier of the listener.
+     * @param listener   The notification listener.
+     * @param delayed    {@literal true} to force delayed subscription. This flag indicates
+     *                   that you can attach a listener even if this object
+     *                   has no enabled notifications.
+     * @return {@literal true}, if listener is added successfully; otherwise, {@literal false}.
+     */
+    @Override
+    public boolean subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) {
+        verifyInitialization();
+        return notifications.subscribe(listenerId, listener, delayed);
+    }
+
+    /**
+     * Removes the notification listener.
+     *
+     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.itworks.snamp.connectors.notifications.NotificationListener, boolean)}.
+     * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
+     */
+    @Override
+    public boolean unsubscribe(final String listenerId) {
+        verifyInitialization();
+        return notifications.unsubscribe(listenerId);
+    }
+
+    /**
+     * Releases all resources associated with this connector.
+     *
+     * @throws Exception
+     */
+    @Override
+    public void close() throws Exception {
+        attributes.close();
+        notifications.close();
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the aggregated object.
+     * @return An instance of the requested object; or {@literal null} if object is not available.
+     */
+    @Override
+    public <T> T queryObject(final Class<T> objectType) {
+        if(Objects.equals(objectType, Address[].class))
+            return objectType.cast(attributes.getClientAddresses());
+        return super.queryObject(objectType);
     }
 }

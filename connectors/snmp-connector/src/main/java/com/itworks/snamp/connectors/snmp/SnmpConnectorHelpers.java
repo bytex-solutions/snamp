@@ -1,7 +1,9 @@
 package com.itworks.snamp.connectors.snmp;
 
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
+import org.snmp4j.smi.OID;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -19,5 +21,15 @@ final class SnmpConnectorHelpers {
 
     public static Logger getLogger(){
         return logger;
+    }
+
+    private static int[] getPostfix(final int[] prefix, final int[] full){
+        return full.length > prefix.length ?
+                Arrays.copyOfRange(full, prefix.length, full.length):
+                new int[0];
+    }
+
+    public static OID getPostfix(final OID prefix, final OID oid){
+        return oid.startsWith(prefix) ? new OID(getPostfix(prefix.getValue(), oid.getValue())) : new OID();
     }
 }

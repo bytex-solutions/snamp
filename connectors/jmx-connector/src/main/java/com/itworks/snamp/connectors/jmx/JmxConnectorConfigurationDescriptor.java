@@ -19,6 +19,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
     public static final String JMX_PASSWORD = "password";
     public static final String CONNECTION_RETRY_COUNT = "retryCount";
     public static final String OBJECT_NAME_PROPERTY = "objectName";
+    public static final String SEVERITY_PARAM = "severity";
 
     /**
      * @author Roman Sakno

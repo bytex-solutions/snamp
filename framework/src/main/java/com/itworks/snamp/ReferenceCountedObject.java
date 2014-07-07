@@ -112,6 +112,17 @@ public abstract class ReferenceCountedObject<R> extends ConcurrentResourceAccess
         }
     }
 
+    public final <V> V increfAndWrite(final Action<R, V, ? extends Exception> writer) throws Exception{
+        incref();
+        try{
+           return write(writer);
+        }
+        catch (final Exception e){
+            decref();
+            throw e;
+        }
+    }
+
     /**
      * Releases underlying resource.
      * <p>
