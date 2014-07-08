@@ -337,12 +337,11 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             }
             catch (final MalformedObjectNameException e) {
                 logger.log(Level.SEVERE, String.format("Unsupported JMX object name: %s", namespace), e);
-                return null;
             }
             catch (final LicensingException e){
-                logger.log(Level.SEVERE, String.format("Maximum count of attributes is reached: %s. Unable to connect %s attribute", attributesCount(), attributeName), e);
-                return null;
+                logger.log(Level.INFO, String.format("Maximum count of attributes is reached: %s. Unable to connect %s attribute", attributesCount(), attributeName), e);
             }
+            return null;
         }
 
         /**

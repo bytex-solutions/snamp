@@ -7,6 +7,7 @@ import com.itworks.snamp.connectors.ManagementEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.licensing.LicensingException;
 import org.apache.commons.lang3.StringUtils;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
@@ -386,7 +387,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         @Override
         protected SnmpAttributeMetadata connectAttribute(final String attributeName, final Map<String, String> options) {
             try {
+                SnmpConnectorLicenseLimitations.current().verifyMaxAttributeCount(attributesCount());
                 return connectAttribute(new OID(attributeName), options);
+            }
+            catch (final LicensingException e){
+                logger.log(Level.INFO, String.format("Maximum count of attributes is reached: %s. Unable to connect %s attribute", attributesCount(), attributeName), e);
             }
             catch (final Exception e) {
                 logger.log(Level.SEVERE, String.format("Unable to connect attribute %s", attributeName), e);

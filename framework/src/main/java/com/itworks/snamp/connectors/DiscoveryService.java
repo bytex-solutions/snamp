@@ -32,8 +32,8 @@ public interface DiscoveryService extends ManagementService {
      * @param connectionOptions Managed resource connection options.
      * @param entityType Type of the managed entity.
      * @param <T> Type of the managed entity.
-     * @return A collection of discovered entities; or empty collection if nothing entities
-     * was be detected.
+     * @return A collection of discovered entities; or empty collection if no entities
+     * was detected.
      * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
      * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
      */

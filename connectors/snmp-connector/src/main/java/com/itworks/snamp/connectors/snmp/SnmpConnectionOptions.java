@@ -100,4 +100,14 @@ final class SnmpConnectionOptions {
                 SnmpClient.create(connectionAddress, community, localAddress):
                 SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress);
     }
+
+    public static boolean authenticationRequred(final Map<String, String> connectionOptions) {
+        return connectionOptions.containsKey(ENGINE_ID_PARAM) ||
+                connectionOptions.containsKey(USER_NAME_PARAM) ||
+                connectionOptions.containsKey(PASSWORD_PARAM) ||
+                connectionOptions.containsKey(ENCRYPTION_KEY_PARAM) ||
+                connectionOptions.containsKey(ENCRYPTION_PROTOCOL_PARAM) ||
+                connectionOptions.containsKey(AUTH_PROTOCOL_PARAM) ||
+                connectionOptions.containsKey(SECURITY_CONTEXT_PARAM);
+    }
 }

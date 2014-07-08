@@ -16,8 +16,8 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
     private static final String DESCRIPTION_POSTFIX = ".description";
     private static final String REQUIRED_POSTFIX = ".required";
     private static final String PATTERN_POSTFIX = ".pattern";
-    private static final String ASSOCIATION_POSTFIX = "association";
-    private static final String EXTENSION_POSTFIX = ".postfix";
+    private static final String ASSOCIATION_POSTFIX = ".association";
+    private static final String EXTENSION_POSTFIX = ".extension";
     private static final String EXCLUSION_POSTFIX = ".exclusion";
     private static final String DEFVAL_POSTIFX = ".default";
     private final Class<T> entityType;

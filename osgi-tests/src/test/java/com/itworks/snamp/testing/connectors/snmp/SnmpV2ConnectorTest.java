@@ -3,7 +3,11 @@ package com.itworks.snamp.testing.connectors.snmp;
 import com.itworks.snamp.Repeater;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
+import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationListener;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
@@ -32,6 +36,7 @@ import org.snmp4j.transport.TransportMappings;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -430,6 +435,36 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                     put("snmpConversionFormat", "raw");
                 }},
                 false);
+    }
+
+    @Test
+    public void discoveryServiceTest(){
+        final Collection<AttributeConfiguration> attributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
+                CONNECTOR_NAME,
+                connectionString,
+                getParameters(),
+                AttributeConfiguration.class);
+        assertNotNull(attributes);
+        assertFalse(attributes.isEmpty());
+    }
+
+    @Test
+    public void licensingServiceTest(){
+        final Map<String, String> limitations = ManagedResourceConnectorClient.getLicenseLimitations(getTestBundleContext(), CONNECTOR_NAME, null);
+        assertNotNull(limitations);
+        assertFalse(limitations.isEmpty());
+    }
+
+    @Test
+    public void configurationDescriptionServiceTest(){
+        final ConfigurationEntityDescription<AttributeConfiguration> attributesConfig = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), CONNECTOR_NAME, AttributeConfiguration.class);
+        assertNotNull(attributesConfig);
+        final ConfigurationEntityDescription.ParameterDescription descr = attributesConfig.getParameterDescriptor("snmpConversionFormat");
+        assertNotNull(descr);
+        assertTrue(descr.getDescription(null).length() > 0);
+        assertNotNull(ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), CONNECTOR_NAME, EventConfiguration.class));
+        assertNotNull(ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), CONNECTOR_NAME, AgentConfiguration.ManagedResourceConfiguration.class));
+
     }
 
     @Override

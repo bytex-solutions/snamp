@@ -2,6 +2,8 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.internal.CountdownTimer;
+import org.apache.commons.collections4.collection.CompositeCollection;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
@@ -11,7 +13,12 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
+import org.snmp4j.util.DefaultPDUFactory;
+import org.snmp4j.util.TreeEvent;
+import org.snmp4j.util.TreeListener;
+import org.snmp4j.util.TreeUtils;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -24,8 +31,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @version 1.0
  * @since 1.0
  */
-abstract class SnmpClient extends Snmp {
+abstract class SnmpClient extends Snmp implements Closeable {
     private static final AtomicInteger engineBoots = new AtomicInteger(0);
+
     private static final class SnmpResponseListener extends SynchronizationEvent<ResponseEvent> implements ResponseListener{
         public SnmpResponseListener(){
             super(false);
@@ -34,6 +42,55 @@ abstract class SnmpClient extends Snmp {
         @Override
         public void onResponse(final ResponseEvent event) {
             fire(event);
+        }
+    }
+
+    private static final class SnmpTreeListener extends SynchronizationEvent<Collection<VariableBinding>> implements TreeListener{
+        private final Collection<VariableBinding> bindings;
+
+        public SnmpTreeListener(){
+            super(false);
+            bindings = new ArrayList<>(10);
+        }
+
+        /**
+         * Consumes the next table event, which is typically the next row in a
+         * table retrieval operation.
+         *
+         * @param event a <code>TableEvent</code> instance.
+         * @return <code>true</code> if this listener wants to receive more events,
+         * otherwise return <code>false</code>. For example, a
+         * <code>TreeListener</code> can return <code>false</code> to stop
+         * tree retrieval.
+         */
+        @Override
+        public boolean next(final TreeEvent event) {
+            Collections.addAll(bindings, event.getVariableBindings());
+            return true;
+        }
+
+        /**
+         * Indicates in a series of tree events that no more events will follow.
+         *
+         * @param event a <code>TreeEvent</code> instance that will either indicate an error
+         *              ({@link org.snmp4j.util.TreeEvent#isError()} returns <code>true</code>) or success
+         *              of the tree retrieval operation.
+         */
+        @Override
+        public void finished(final TreeEvent event) {
+            Collections.addAll(bindings, event.getVariableBindings());
+            fire(bindings);
+        }
+
+        /**
+         * Indicates whether the tree walk is complete or not.
+         *
+         * @return <code>true</code> if it is complete, <code>false</code> otherwise.
+         * @since 1.10
+         */
+        @Override
+        public boolean isFinished() {
+            return signalled();
         }
     }
 
@@ -144,7 +201,7 @@ abstract class SnmpClient extends Snmp {
     }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-    public ResponseEvent send(final PDU data, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
+    public final ResponseEvent send(final PDU data, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
         final SnmpResponseListener listener = new SnmpResponseListener();
         send(data, createTarget(timeout), null, listener);
         return waitForResponseEvent(listener.getAwaitor(), timeout);
@@ -176,19 +233,19 @@ abstract class SnmpClient extends Snmp {
         return result;
     }
 
-    public Variable get(final OID variable, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
+    public final Variable get(final OID variable, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
         return get(new OID[]{variable}, timeout).get(variable);
     }
 
-    public Map<OID, Variable> get(final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
+    public final Map<OID, Variable> get(final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
         return get(PDU.GET, variables, timeout);
     }
 
-    public Map<OID, Variable> getBulk(final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
+    public final Map<OID, Variable> getBulk(final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
         return get(PDU.GETBULK, variables, timeout);
     }
 
-    public void set(final VariableBinding[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
+    public final void set(final VariableBinding[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
         final PDU request = createPDU(PDU.SET);
         for(final VariableBinding v: variables)
             request.add(v);
@@ -198,7 +255,24 @@ abstract class SnmpClient extends Snmp {
             throw new IOException(String.format("Unable to set %s variables. Status is %s(%s).", Arrays.toString(variables), response.getResponse().getErrorStatusText(), response.getResponse().getErrorStatus()));
     }
 
-    public void set(final Map<OID, Variable> variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException{
+    public final Collection<VariableBinding> walk(final OID root, final TimeSpan timeout) throws TimeoutException, InterruptedException {
+        final TreeUtils tree = new TreeUtils(this, new DefaultPDUFactory());
+        final SnmpTreeListener listener = new SnmpTreeListener();
+        tree.walk(createTarget(timeout), new OID[]{root}, null, listener);
+        return listener.getAwaitor().await(timeout);
+    }
+
+    public final Iterable<VariableBinding> walk(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+        final CompositeCollection<VariableBinding> result = new CompositeCollection<>();
+        final CountdownTimer timer = CountdownTimer.start(timeout);
+        for(int i = 1; i <= 10; i++) {
+            result.addComposited(walk(new OID(new int[]{i}), timer.stopAndGetElapsedTime()));
+            if(!timer.start()) throw new TimeoutException(String.format("Not enough time to collect all variables. Loop stopped at %s iteration.", i));
+        }
+        return result;
+    }
+
+    public final void set(final Map<OID, Variable> variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException{
         final Collection<VariableBinding> bindings = new ArrayList<>(variables.size());
         for(final OID key: variables.keySet())
             bindings.add(new VariableBinding(key, variables.get(key)));
