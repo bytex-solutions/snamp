@@ -10,7 +10,6 @@ import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.connectors.notifications.Severity;
-import org.apache.commons.collections4.Equator;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.SetUtils;
 import org.junit.Test;
@@ -220,11 +219,6 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
                 return o1.getRowCount() == o2.getRowCount() &&
                         SetUtils.isEqualSet(o1.getColumns(), o2.getColumns());
             }
-
-            @Override
-            public int hash(final Table o) {
-                return System.identityHashCode(o);
-            }
         });
     }
 
@@ -234,38 +228,13 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         dict.put("col1", Boolean.TRUE);
         dict.put("col2", 42);
         dict.put("col3", "Frank Underwood");
-        testAttribute("6.1", "dictionary", Map.class, dict, new Equator<Map>() {
-            @Override
-            public boolean equate(final Map o1, final Map o2) {
-                if(o1.size() == o2.size()) {
-                    for (final Object key : o1.keySet())
-                        if (!o2.containsKey(key)) return false;
-                    return true;
-                }
-                else return false;
-            }
-
-            @Override
-            public int hash(final Map o) {
-                return System.identityHashCode(o);
-            }
-        });
+        testAttribute("6.1", "dictionary", Map.class, dict, mapEquator());
     }
 
     @Test
     public final void testForArrayProperty() throws TimeoutException, IOException {
         final Object[] array = new Short[]{10, 20, 30, 40, 50};
-        testAttribute("5.1", "array", Object[].class, array, new Equator<Object[]>() {
-            @Override
-            public boolean equate(final Object[] o1, final Object[] o2) {
-                return Arrays.equals(o1, o2);
-            }
-
-            @Override
-            public int hash(final Object[] o) {
-                return System.identityHashCode(o);
-            }
-        });
+        testAttribute("5.1", "array", Object[].class, array, arrayEquator());
     }
 
     @Test

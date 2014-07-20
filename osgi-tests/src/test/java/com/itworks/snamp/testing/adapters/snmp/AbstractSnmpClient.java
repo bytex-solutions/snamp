@@ -107,7 +107,6 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      */
     private void set(PDU pdu, ResponseListener listenerResp) throws IOException {
         snmp.send(pdu, getTarget(), null, listenerResp);
-        return;
     }
 
     /**

@@ -13,6 +13,7 @@
   <description>A base classes for building SNAMP management connectors</description>
   <modules>
       <module>jmx-connector</module>
+      <module>snmp-connector</module>
       <!--<module>ibmwmb-connector</module>
       <module>ibmwmq-connector</module>-->
   </modules>

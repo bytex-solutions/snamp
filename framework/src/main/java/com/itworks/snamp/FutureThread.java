@@ -44,10 +44,19 @@ public class FutureThread<V> extends Thread implements Future<V> {
 
     /**
      * Initializes a new standalone future.
-     * @param impl Implementation of the thread.
+     * @param impl Implementation of the thread. Cannot be {@literal null}.
      */
     public FutureThread(final Callable<V> impl){
-        if(impl == null) throw new IllegalArgumentException("impl is null.");
+        this(null, impl);
+    }
+
+    /**
+     * Initializes a new standalone future.
+     * @param group Thread group for this future.
+     * @param impl Implementation of the thread. Cannot be {@literal null}.
+     */
+    public FutureThread(final ThreadGroup group, final Callable<V> impl){
+        super(group, impl.toString());
         implementation = impl;
         result = null;
         error = null;

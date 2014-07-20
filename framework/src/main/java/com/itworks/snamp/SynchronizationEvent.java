@@ -145,6 +145,19 @@ public class SynchronizationEvent<T> {
     }
 
     /**
+     * Determines whether this event is in signalled state.
+     * @return {@literal true}, if this event is in signalled state; otherwise, {@literal false}.
+     */
+    protected final boolean signalled(){
+        return state.read(new ConsistentAction<EventState<T>, Boolean>() {
+            @Override
+            public Boolean invoke(final EventState<T> resource) {
+                return resource.raised;
+            }
+        });
+    }
+
+    /**
      * Creates a new awaitor for this event.
      * @return A new awaitor for this event.
      */

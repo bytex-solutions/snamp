@@ -12,7 +12,7 @@ import java.util.logging.Level;
 /**
  * Client for snmpV3
  */
-public final class SnmpV3Client extends AbstractSnmpClient {
+final class SnmpV3Client extends AbstractSnmpClient {
 
     private final String username;
     private final SecurityLevel level;
@@ -50,11 +50,7 @@ public final class SnmpV3Client extends AbstractSnmpClient {
      * SnmpV2 Target based on UserModelCommunity
      * @return
      */
-
-
-
     protected UserTarget getTarget() {
-
         final UserTarget target = new UserTarget();
         final Address targetAddress = GenericAddress.parse(address);
         target.setAuthoritativeEngineID(MPv3.createLocalEngineID());

@@ -5,6 +5,7 @@ import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfigu
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.licensing.LicensingException;
 import net.engio.mbassy.bus.MBassador;
 import net.engio.mbassy.bus.config.BusConfiguration;
 
@@ -184,7 +185,13 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     @Override
     protected boolean start() {
         populateModel(attributes);
-        populateModel(notifications);
+        try {
+            JmxAdapterLicenseLimitations.current().verifyJmxNotificationsFeature();
+            populateModel(notifications);
+        }
+        catch (final LicensingException e){
+            getLogger().log(Level.INFO, "JMX notifications are not allowed by your SNAMP license", e);
+        }
         for (final String resourceName : getHostedResources())
             try {
                 final ProxyMBean bean = new ProxyMBean(resourceName, attributes.get(resourceName), notifications.get(resourceName));

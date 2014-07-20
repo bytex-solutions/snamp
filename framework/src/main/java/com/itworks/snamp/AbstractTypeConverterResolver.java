@@ -1,12 +1,18 @@
 package com.itworks.snamp;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength;
 import org.apache.commons.collections4.map.ReferenceMap;
 
-import java.lang.annotation.*;
-import java.lang.reflect.*;
-import java.math.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
+
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength;
 
 /**
  * Represents the base class for building type converter factory.
@@ -46,7 +52,7 @@ public abstract class AbstractTypeConverterResolver implements TypeConverterReso
         return Objects.toString(o, "");
     }
 
-    private static final boolean isPublicStatic(final Method m){
+    private static boolean isPublicStatic(final Method m){
         return (m.getModifiers() & (Modifier.PUBLIC | Modifier.STATIC)) != 0;
     }
 
@@ -72,7 +78,7 @@ public abstract class AbstractTypeConverterResolver implements TypeConverterReso
             return type;
         }
 
-        private final Method getConverterFrom(final Class<?> source){
+        private Method getConverterFrom(final Class<?> source){
             if(containsKey(source)) return get(source);
             for(final Method m: methods){
                 final Class<?>[] params = m.getParameterTypes();
@@ -145,6 +151,7 @@ public abstract class AbstractTypeConverterResolver implements TypeConverterReso
      * @return The converter for the specified type; or {@literal null}, if the converter for the specified type
      *         is not supported.
      */
+    @SuppressWarnings("unchecked")
     @Override
     public synchronized final <T> TypeConverter<T> getTypeConverter(final Class<T> t) {
         if(t == null) return null;
@@ -162,7 +169,7 @@ public abstract class AbstractTypeConverterResolver implements TypeConverterReso
      * @param classInfo The Java type.
      * @return The normalized Java type (if it is primitive type or array of primitive types).
      */
-    protected static final boolean shouldNormalize(final Class<?> classInfo){
+    protected static boolean shouldNormalize(final Class<?> classInfo){
         return classInfo.isPrimitive() || classInfo.isArray() && classInfo.getComponentType().isPrimitive();
     }
 
@@ -200,6 +207,7 @@ public abstract class AbstractTypeConverterResolver implements TypeConverterReso
      * @param nativeType The class name for which converter is required.
      * @return A type converter for the specified class name.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public final TypeConverter<?> getTypeConverter(final String nativeType){
         switch (nativeType){
             case "byte":

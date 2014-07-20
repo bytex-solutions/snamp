@@ -1,6 +1,5 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.internal.KeyValueParser;
 import org.snmp4j.agent.mo.snmp.StorageType;
 import org.snmp4j.agent.mo.snmp.VacmMIB;
 import org.snmp4j.agent.security.MutableVACM;
@@ -56,7 +55,6 @@ final class SecurityConfiguration {
      * @version 1.0
      */
     public static final class User{
-        private static final KeyValueParser parser = new KeyValueParser("\\,", "\\=");
         private OID authenticationProtocol;
         private OID privacyProtocol;
         private String password;
@@ -81,22 +79,8 @@ final class SecurityConfiguration {
             authenticationProtocol = protocolID;
         }
 
-        /**
-         * Sets authentication protocol implementation for this user.
-         * @param protocol Authentication protocol implementation.
-         */
-        public final void setAuthenticationProtocolImpl(final SecurityProtocol protocol){
-            setAuthenticationProtocol(protocol != null ? protocol.getID() : null);
-        }
-
         public final OID getAuthenticationProtocol(){
             return authenticationProtocol;
-        }
-
-        public final AuthenticationProtocol getAuthenticationProtocolImpl(){
-            return authenticationProtocol != null ?
-                    SecurityProtocols.getInstance().getAuthenticationProtocol(authenticationProtocol) :
-                    null;
         }
 
         public final void setPrivacyProtocol(final OID protocolID){
@@ -105,14 +89,6 @@ final class SecurityConfiguration {
 
         public final OID getPrivacyProtocol(){
             return privacyProtocol;
-        }
-
-        public final void setPrivaceProtocolImpl(final SecurityProtocol protocol){
-            setPrivacyProtocol(protocol != null ? protocol.getID() : null);
-        }
-
-        public final PrivacyProtocol getPrivacyProtocolImpl(){
-            return SecurityProtocols.getInstance().getPrivacyProtocol(privacyProtocol);
         }
 
         public final void setPassword(final String password){
@@ -135,32 +111,19 @@ final class SecurityConfiguration {
             else return false;
         }
 
-        public final String getPassword(){
-            return password;
-        }
-
         public final void setPrivacyProtocol(final String protocol) {
             if(protocol == null || protocol.isEmpty()) privacyProtocol = null;
-            else switch (protocol){
-                case "AES-128":
+            else switch (protocol.toLowerCase()){
                 case "aes-128":
-                case "aes128":
-                case "AES128": setPrivacyProtocol(PrivAES128.ID); return;
-                case "AES-192":
+                case "aes128": setPrivacyProtocol(PrivAES128.ID); return;
                 case "aes-192":
-                case "aes192":
-                case "AES192": setPrivacyProtocol(PrivAES192.ID);return;
-                case "AES-256":
+                case "aes192": setPrivacyProtocol(PrivAES192.ID);return;
                 case "aes-256":
-                case "aes256":
-                case "AES256": setPrivacyProtocol(PrivAES256.ID); return;
-                case "DES":
+                case "aes256": setPrivacyProtocol(PrivAES256.ID); return;
                 case "des": setPrivacyProtocol(PrivDES.ID); return;
-                case "3DES":
                 case "3des":
-                case "3-DES":
                 case "3-des": setPrivacyProtocol(Priv3DES.ID); return;
-                default: setPrivacyProtocol(new OID(protocol)); return;
+                default: setPrivacyProtocol(new OID(protocol));
             }
         }
 
@@ -172,16 +135,8 @@ final class SecurityConfiguration {
                 case "sha": setAuthenticationProtocol(AuthSHA.ID); return;
                 default:
                     //attempts to parse key-value pair in format
-                    authenticationProtocol = new OID(protocol); return;
+                    authenticationProtocol = new OID(protocol);
             }
-        }
-
-        /**
-         * Gets passphrase that is used to encrypt SNMPv3 traffic.
-         * @return The passphrase that is used to encrypt SNMPv3 traffic.
-         */
-        public final String getPrivacyKey() {
-            return encryptionKey;
         }
 
         /**
@@ -216,7 +171,7 @@ final class SecurityConfiguration {
             return encryptionKey == null || encryptionKey.isEmpty() ? null : new OctetString(encryptionKey);
         }
 
-        public final void defineUser(final USM userHive, final OctetString userName, final OctetString engineID, final boolean useLdap) {
+        public final void defineUser(final USM userHive, final OctetString userName, final OctetString engineID) {
             userHive.addUser(userName, engineID,
                     new UsmUser(userName,
                             getAuthenticationProtocol(),
@@ -246,7 +201,7 @@ final class SecurityConfiguration {
         /**
          * SNMP manager can receive SNMP traps.
          */
-        NOTIFY;
+        NOTIFY
     }
 
     /**
@@ -287,37 +242,12 @@ final class SecurityConfiguration {
             setSecurityLevel((value == null || value.isEmpty()) ? SecurityLevel.noAuthNoPriv : SecurityLevel.valueOf(value));
         }
 
-        /**
-         * Sets MIB access rights to all users in this group.
-         * @param rights MIB access rights of all users in this group.
-         */
-        public final void setAccessRights(final Collection<AccessRights> rights){
-            this.rights.clear();
-            this.rights.addAll(rights);
-        }
-
         public final boolean hasAccessRights(final Collection<AccessRights> rights){
             return this.rights.containsAll(rights);
         }
 
         public final boolean hasAccessRights(final AccessRights... rights){
             return hasAccessRights(Arrays.asList(rights));
-        }
-
-        /**
-         * Sets MIB access rights to all users in this group.
-         * @param rights MIB access rights of all users in this group.
-         */
-        public final void setAccessRights(final AccessRights... rights){
-            setAccessRights(Arrays.asList(rights));
-        }
-
-        /**
-         * Gets MIB access rights available for all users in this group.
-         * @return MIB access rights.
-         */
-        public final Set<AccessRights> getAccessRights(){
-            return EnumSet.copyOf(rights);
         }
 
         public final void setAccessRights(final Iterable<String> rights){
@@ -333,7 +263,6 @@ final class SecurityConfiguration {
 
     private final OctetString securityEngineID;
     private final Map<String, UserGroup> groups;
-    private String ldapUri;
     private final DirContextFactory contextFactory;
 
     /**
@@ -349,44 +278,6 @@ final class SecurityConfiguration {
                 return new InitialDirContext(env);
             }
         };
-    }
-
-    /**
-     * Determines whether this security configuration uses LDAP.
-     * @return {@literal true}, if this security configuration uses LDAP; otherwise, {@literal false}.
-     */
-    public final boolean useLdap(){
-        return ldapUri != null && ldapUri.length() > 0;
-    }
-
-    /**
-     * Sets LDAP URI in the following format: ldap://address-or-host:port.
-     * @param uri LDAP server URI.
-     */
-    public final void setLdapUri(final String uri){
-        ldapUri = uri;
-    }
-
-    /**
-     * Gets LDAP URI.
-     * @return LDAP server URI.
-     */
-    public final String getLdapUri(){
-        return ldapUri;
-    }
-
-    public final boolean addGroup(final String groupName, final UserGroup group){
-        if(groups.containsKey(groupName)) return false;
-        groups.put(groupName, group);
-        return true;
-    }
-
-    public final boolean removeGroup(final String groupName){
-        return groups.remove(groupName) != null;
-    }
-
-    public final boolean containsGroup(final String groupName){
-        return groups.containsKey(groupName);
     }
 
     private static Collection<String> splitAndTrim(final String value, final String separator){
@@ -429,10 +320,8 @@ final class SecurityConfiguration {
     }
 
     public final boolean read(final Map<String, String> adapterSettings){
-        if(adapterSettings.containsKey(LDAP_URI_PARAM)){ //import groups and users from LDAP
-            setLdapUri(adapterSettings.get(LDAP_URI_PARAM));
-            return fillGroupsFromLdap(contextFactory, adapterSettings, getLdapUri(), groups);
-        }
+        if(adapterSettings.containsKey(LDAP_URI_PARAM)) //import groups and users from LDAP
+            return fillGroupsFromLdap(contextFactory, adapterSettings, adapterSettings.get(LDAP_URI_PARAM), groups);
         else if(adapterSettings.containsKey(SNMPv3_GROUPS_PARAM)){ //import groups and users from local configuration file
             fillGroups(adapterSettings, splitAndTrim(adapterSettings.get(SNMPv3_GROUPS_PARAM), ";"), groups);
             return true;
@@ -586,15 +475,6 @@ final class SecurityConfiguration {
         boolean match(final String userName, final User user, final UserGroup owner);
     }
 
-    public final Map<String, User> findUsers(final UserSelector selector){
-        final Map<String, User> result = new HashMap<>(10);
-        for(final UserGroup group: groups.values())
-            for(final Map.Entry<String, User> user: group.entrySet())
-                if(selector.match(user.getKey(), user.getValue(), group))
-                    result.put(user.getKey(), user.getValue());
-        return result;
-    }
-
     public static UserSelector createUserSelector(final AccessRights... rights){
         return new UserSelector() {
             @Override
@@ -619,34 +499,12 @@ final class SecurityConfiguration {
         return null;
     }
 
-    public final Set<AccessRights> getUserAccessRights(final String userName){
-        for(final UserGroup group: groups.values())
-            for(final String lookup: group.keySet())
-                if(Objects.equals(userName, lookup)) return group.getAccessRights();
-        return null;
-    }
-
-    public final User getUserByName(final String userName){
-        for(final UserGroup group: groups.values())
-            for(final String lookup: group.keySet())
-                if(Objects.equals(userName, lookup)) return group.get(userName);
-        return null;
-    }
-
-    public final Set<String> getAllUsers(){
-        final Set<String> result = new HashSet<>(15);
-        for(final UserGroup group: groups.values())
-            for(final String lookup: group.keySet())
-                result.add(lookup);
-        return result;
-    }
-
     public final void setupUserBasedSecurity(final USM security){
         for(final UserGroup group: groups.values())
             for(final Map.Entry<String, User> user: group.entrySet()){
                 final OctetString userName = new OctetString(user.getKey());
                 final User userDef = user.getValue();
-                userDef.defineUser(security, userName, securityEngineID, useLdap());
+                userDef.defineUser(security, userName, securityEngineID);
             }
     }
 

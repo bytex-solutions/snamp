@@ -12,7 +12,7 @@ import java.util.logging.Level;
  * Simple SNMPv2 client
  * @author Evgeniy Kirichenko
  */
-public final class SnmpV2Client extends AbstractSnmpClient {
+final class SnmpV2Client extends AbstractSnmpClient {
 
     /**
      * Snmp version 2 constructor

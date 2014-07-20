@@ -62,6 +62,7 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
          * @param <T>            Type of the projection.
          * @return The type converter for the specified projection type; or {@literal null}, if projection is not supported.
          */
+        @SuppressWarnings("unchecked")
         @Override
         public final <T> TypeConverter<T> getProjection(final Class<T> projectionType) {
             return shouldNormalize(projectionType) ?
