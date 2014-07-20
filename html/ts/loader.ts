@@ -9,7 +9,7 @@ interface JQuery {
     $.fn.createLoaderTable = function (opts:options=null) {
         // Making the header part of table
         var table = $("<table>", {class:"table"});
-        table.append("<thead><tr><th>State</th><th>Version</th><th>Bundle Name</th><th>Description</th><th>Licensing</th><th width=\"15%\">Operations</th></tr></thead>");
+        table.append("<thead><tr><th>State</th><th>Version</th><th>Bundle Name</th><th>Description</th><th>Licensing</th></tr></thead>");
 
 
         var data = [];
@@ -56,10 +56,6 @@ interface JQuery {
             content = data[i].getLicenseAsAString();
             tr.append("<td>" + content + "</td>");
 
-            var td = $("<td></td>");
-            td.appendTo(tr);
-            td.addOperations(data[i].name, data[i].state);
-
             tbody.append(tr);
         };
 
@@ -69,7 +65,7 @@ interface JQuery {
         table.appendTo(this);
     };
 
-    $.fn.addOperations = function( UUID, status )
+   /* $.fn.addOperations = function( UUID, status )
     {
         var btnGrp = $("<div>", { class: "btn-group" });
 
@@ -101,5 +97,5 @@ interface JQuery {
 
         this.append(btnGrp);
     };
-
+*/
 })( jQuery );

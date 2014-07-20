@@ -108,6 +108,11 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void readConfigurationTest() {
         final Client webConsoleClient = new Client();
+        try {
+            Thread.sleep(100000000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         webConsoleClient.addFilter(new HTTPDigestAuthFilter("roman", "mypassword"));
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/configuration");
         final String configJson = config.get(String.class);

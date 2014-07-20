@@ -107,6 +107,11 @@ body {
  * Cover
  */
 
+table {
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+
 .cover {
   padding: 0 20px;
 }
