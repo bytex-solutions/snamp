@@ -9,10 +9,10 @@ interface JQuery {
     $.fn.createLoaderTable = function (opts:options=null) {
         // Making the header part of table
         var table = $("<table>", {class:"table"});
-        table.append("<thead><tr><th>Status</th><th>Type</th><th>Bundle Name</th><th>Description</th><th width=\"15%\">Operations</th></tr></thead>");
+        table.append("<thead><tr><th>State</th><th>Version</th><th>Bundle Name</th><th>Description</th><th>Licensing</th><th width=\"15%\">Operations</th></tr></thead>");
 
 
-        var data:bundles.bundle[];
+        var data = [];
 
         if (opts != null && opts.useStub)
         {
@@ -20,18 +20,31 @@ interface JQuery {
         }
         else
         {
-            // ajax-rest loader for bundleInfo
+            $.ajax({
+                url: "/snamp/management/api/components",
+                dataType: "json",
+                cache: false,
+                type:  "GET",
+                async: false,
+                success: function(json)
+                {
+                    if (json instanceof Object && json.length>0)
+                        for (var obj in json)
+                        {
+                            data.push(new bundles.bundle(json[obj]));
+                        }
+                }
+            });
         }
-
         var tbody = $("<tbody></tbody>");
         // filling the body of table
         for (var i = data.length - 1; i >= 0; i--) {
             var content;
             var tr = $("<tr></tr>");
-            content = "<img src=\"img/" + data[i].active + ".png" +"\"/>";
+            content =  data[i].state;
             tr.append("<td>" + content + "</td>");
 
-            content = data[i].type;
+            content = data[i].version;
             tr.append("<td>" + content + "</td>");
 
             content = data[i].name;
@@ -40,9 +53,12 @@ interface JQuery {
             content = data[i].description;
             tr.append("<td>" + content + "</td>");
 
+            content = data[i].getLicenseAsAString();
+            tr.append("<td>" + content + "</td>");
+
             var td = $("<td></td>");
             td.appendTo(tr);
-            td.addOperations(data[i].name, data[i].active);
+            td.addOperations(data[i].name, data[i].state);
 
             tbody.append(tr);
         };
@@ -59,14 +75,14 @@ interface JQuery {
 
         // start button
         var btnStart = $("<button>", { type: "button", class: "btn btn-default btn-xs"} );
-        if (status == true) btnStart.attr("disabled", "disabled");
+        if (status == "ACTIVE") btnStart.attr("disabled", "disabled");
         var span = $("<span>", { class : "glyphicon glyphicon-play"});
         span.appendTo(btnStart);
         btnStart.appendTo(btnGrp);
 
         // stop button
         var btnStop = $("<button>", { type: "button", class: "btn btn-default btn-xs"} );
-        if (status == false) btnStop.attr("disabled", "disabled");
+        if (status != "ACTIVE") btnStop.attr("disabled", "disabled");
         var span = $("<span>", { class : "glyphicon glyphicon-stop"});
         span.appendTo(btnStop);
         btnStop.appendTo(btnGrp);

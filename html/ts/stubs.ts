@@ -3,7 +3,9 @@ module stubs
 
     export function getSummary() : bundles.bundle[]
     {
-       return [
+        return [];
+    }
+/*       return [
 
            // First bundle
            new bundles.bundle(true, "connector",
@@ -40,5 +42,5 @@ module stubs
                new license.licenseInfo("Trial license, expires 5 days, includes 1 instance of connector")
            ),
        ];
-    }
+    }*/
 }
