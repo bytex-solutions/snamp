@@ -2,6 +2,7 @@ package com.itworks.jcommands.channels;
 
 import com.itworks.jcommands.CommandExecutionChannel;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public final class CommandExecutionChannels {
         channels.put(LocalProcessExecutionChannel.CHANNEL_NAME, new ExecutionChannelProducer() {
             @Override
             public CommandExecutionChannel produce(final Map<String, String> params) {
-                return new LocalProcessExecutionChannel();
+                return new LocalProcessExecutionChannel(params);
             }
         });
     }
@@ -65,6 +66,10 @@ public final class CommandExecutionChannels {
     }
 
     public static CommandExecutionChannel createLocalProcessExecutionChannel() {
-        return new LocalProcessExecutionChannel();
+        return new LocalProcessExecutionChannel(Collections.<String, String>emptyMap());
+    }
+
+    public static CommandExecutionChannel createLocalProcessExecutionChannel(final Map<String, String> params){
+        return new LocalProcessExecutionChannel(params);
     }
 }

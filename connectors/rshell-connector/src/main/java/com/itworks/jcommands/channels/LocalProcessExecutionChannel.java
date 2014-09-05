@@ -3,6 +3,7 @@ package com.itworks.jcommands.channels;
 import com.itworks.jcommands.ChannelProcessingMode;
 import com.itworks.jcommands.ChannelProcessor;
 import com.itworks.jcommands.CommandExecutionChannel;
+import com.itworks.snamp.internal.MapBuilder;
 import com.itworks.snamp.internal.semantics.MethodStub;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.lang3.SystemUtils;
@@ -28,6 +29,10 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
     public LocalProcessExecutionChannel(final Map<String, String> params){
         super(params);
         rt = Runtime.getRuntime();
+    }
+
+    public LocalProcessExecutionChannel(final int normalExitCode) {
+        this(MapBuilder.create(NORMAL_EXIT_CODE_PARAM, Integer.toString(normalExitCode), 1).getMap());
     }
 
     public int getNormalExitCode() {
