@@ -55,7 +55,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      *     </tt></pre>
      * </p>
      */
-    public static String CONNECTOR_NAME_MANIFEST_HEADER = "SNAMP-Resource-Connector";
+    public static final String CONNECTOR_NAME_MANIFEST_HEADER = "SNAMP-Resource-Connector";
     private static final String MGMT_MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY = "managedResource";
     private static final String CONNECTOR_STRING_IDENTITY_PROPERTY = "connectionString";
     private static final String CONNECTOR_TYPE_IDENTITY_PROPERTY = CONNECTOR_NAME_MANIFEST_HEADER;

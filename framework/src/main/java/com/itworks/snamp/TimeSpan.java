@@ -213,6 +213,16 @@ public final class TimeSpan {
     }
 
     /**
+     * Computes hash code for this object.
+     * @return A hash code for this object.
+     */
+    @Override
+    public int hashCode() {
+        final long value = unit.convert(duration, TimeUnit.MILLISECONDS);
+        return (int)(value ^ (value >>> 32));
+    }
+
+    /**
      * Computes difference between two dates.
      * @param left The left operand of the diff operation.
      * @param right The right operand of the diff operation.
@@ -241,5 +251,9 @@ public final class TimeSpan {
         return right == null ?
                 convert(resultUnit):
                 new TimeSpan(convert(resultUnit).duration + right.convert(resultUnit).duration, resultUnit);
+    }
+
+    public long toNanos(){
+        return unit.toNanos(duration);
     }
 }

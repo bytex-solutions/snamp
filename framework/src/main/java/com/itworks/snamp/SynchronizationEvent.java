@@ -1,6 +1,8 @@
 package com.itworks.snamp;
 
 import java.util.concurrent.*;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+
 import static com.itworks.snamp.AbstractConcurrentResourceAccess.*;
 
 /**
@@ -44,13 +46,12 @@ public class SynchronizationEvent<T> {
      * This class cannot be inherited.
      * @param <T> Type of the event object.
      */
-    private static final class EventState<T> implements Awaitor<T>{
-        private final CountDownLatch barrier;
+    private static final class EventState<T> extends AbstractQueuedSynchronizer implements Awaitor<T>{
         private boolean raised;
         private T eventObj;
 
         public EventState(){
-            barrier = new CountDownLatch(1);
+            setState(0);
             raised = false;
             eventObj = null;
         }
@@ -59,9 +60,7 @@ public class SynchronizationEvent<T> {
             if(raised) return false;
             raised = true;
             this.eventObj = result;
-            //This statement should be a last functional statement in this method
-            barrier.countDown();
-            return true;
+            return releaseShared(1);
         }
 
         /**
@@ -75,7 +74,7 @@ public class SynchronizationEvent<T> {
         @Override
         public T await(final TimeSpan timeout) throws TimeoutException, InterruptedException {
             if(timeout == TimeSpan.INFINITE) return await();
-            else if(barrier.await(timeout.duration, timeout.unit)) return eventObj;
+            else if(tryAcquireSharedNanos(1, timeout.toNanos())) return eventObj;
             else throw new TimeoutException();
         }
 
@@ -87,7 +86,7 @@ public class SynchronizationEvent<T> {
          */
         @Override
         public T await() throws InterruptedException {
-            barrier.await();
+            acquireSharedInterruptibly(1);
             return eventObj;
         }
     }

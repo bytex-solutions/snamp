@@ -46,7 +46,7 @@ public class NotificationBuilder {
      * @return Time stamp used that will be used in generated notifications.
      */
     public final Date getTimeStamp(){
-        return timeStamp;
+        return new Date(timeStamp.getTime());
     }
 
     /**
@@ -54,7 +54,7 @@ public class NotificationBuilder {
      * @param value
      */
     public final void setTimeStamp(final Date value){
-        timeStamp = value;
+        timeStamp = new Date(value.getTime());
     }
 
     public final void setSequenceNumber(final long value){

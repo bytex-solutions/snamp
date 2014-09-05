@@ -195,5 +195,10 @@
             <artifactId>websocket-client</artifactId>
             <version>9.1.1.v20140108</version>
         </dependency>
+        <dependency>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>rshell-connector</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 </project>

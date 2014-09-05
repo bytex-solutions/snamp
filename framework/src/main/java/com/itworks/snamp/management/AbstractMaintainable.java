@@ -87,7 +87,6 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
     protected abstract Object[] parseArguments(final T action, final String arguments, final Locale loc);
 
     private static Future<String> doAction(final Reference<?> owner, final Method action, final Object[] arguments){
-        final Action actionInfo = action.getAnnotation(Action.class);
         final FutureThread<String> thread = new FutureThread<>(new Callable<String>() {
             @Override
             public final String call() throws Exception {
