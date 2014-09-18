@@ -1,7 +1,6 @@
 package com.itworks.snamp.internal;
 
 import com.itworks.snamp.internal.semantics.Internal;
-import org.apache.commons.collections4.KeyValue;
 
 import java.util.*;
 
@@ -41,8 +40,8 @@ public final class MapBuilder<K, V> {
         return this;
     }
 
-    public MapBuilder<K, V> add(final KeyValue<K, V>... values){
-        for(final KeyValue<K, V> pair: values)
+    public MapBuilder<K, V> add(final Map.Entry<K, V>... values){
+        for(final Map.Entry<K, V> pair: values)
             m.put(pair.getKey(), pair.getValue());
         return this;
     }

@@ -1,4 +1,4 @@
-package com.itworks.snamp.testing.jcommands;
+package com.itworks.jcommands.testing;
 
 import com.itworks.jcommands.ChannelProcessor;
 import com.itworks.jcommands.CommandExecutionChannel;
