@@ -1,5 +1,6 @@
 package com.itworks.snamp.management.webconsole;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.itworks.snamp.TimeSpan;
@@ -66,6 +67,7 @@ final class JsonAgentConfiguration {
     private static final String READ_WRITE_TIMEOUT_FIELD = "readWriteTimeout";
     private static final String ATTRIBUTE_NAME_FIELD = "name";
     private static final String EVENT_CATEGORY_FIELD = "category";
+    private static final String USER_DEFINED_PROPERTIES = "additionalProperties";
 
     private JsonAgentConfiguration(){
 
@@ -74,8 +76,14 @@ final class JsonAgentConfiguration {
     private static JsonObject readResourceAdapter(final ResourceAdapterConfiguration adapterConfig){
         final JsonObject result = new JsonObject();
         result.addProperty(ADAPTER_NAME_FIELD, adapterConfig.getAdapterName());
-        for(final String propertyName: adapterConfig.getHostingParams().keySet())
-            result.addProperty(propertyName, adapterConfig.getHostingParams().get(propertyName));
+        if (!adapterConfig.getHostingParams().keySet().isEmpty()) {
+            final JsonObject objectMap = new JsonObject();
+
+            for (final String propertyName : adapterConfig.getHostingParams().keySet())
+                objectMap.addProperty(propertyName, adapterConfig.getHostingParams().get(propertyName));
+
+            result.add(USER_DEFINED_PROPERTIES, objectMap);
+        }
         return result;
     }
 
@@ -92,8 +100,15 @@ final class JsonAgentConfiguration {
         if(attribute.getReadWriteTimeout() != TimeSpan.INFINITE)
         result.addProperty(READ_WRITE_TIMEOUT_FIELD,  attribute.getReadWriteTimeout().convert(TimeUnit.MILLISECONDS).duration);
         //read other properties
-        for(final String parameter: attribute.getParameters().keySet())
-            result.addProperty(parameter, attribute.getParameters().get(parameter));
+        if (!attribute.getParameters().keySet().isEmpty())
+        {
+            final JsonObject objectMap = new JsonObject();
+
+            for (final String parameter : attribute.getParameters().keySet())
+                objectMap.addProperty(parameter, attribute.getParameters().get(parameter));
+
+            result.add(USER_DEFINED_PROPERTIES, objectMap);
+        }
         return result;
     }
 
@@ -109,8 +124,15 @@ final class JsonAgentConfiguration {
         final JsonObject result = new JsonObject();
         result.addProperty(EVENT_CATEGORY_FIELD, event.getCategory());
         //add other parameters
-        for(final String parameter: event.getParameters().keySet())
-            result.addProperty(parameter, event.getParameters().get(parameter));
+        if (!event.getParameters().keySet().isEmpty())
+        {
+            final JsonObject objectMap = new JsonObject();
+
+            for (final String parameter : event.getParameters().keySet())
+                objectMap.addProperty(parameter, event.getParameters().get(parameter));
+
+             result.add(USER_DEFINED_PROPERTIES, objectMap);
+        }
         return result;
     }
 
@@ -127,8 +149,15 @@ final class JsonAgentConfiguration {
         result.addProperty(CONNECTION_TYPE_FIELD, resource.getConnectionType());
         result.addProperty(CONNECTION_STRING_FIELD, resource.getConnectionString());
         //add other properties
-        for(final String propertyName: resource.getParameters().keySet())
-            result.addProperty(propertyName, resource.getParameters().get(propertyName));
+        if (!resource.getParameters().keySet().isEmpty())
+        {
+            final JsonObject objectMap = new JsonObject();
+
+            for (final String propertyName : resource.getParameters().keySet())
+                objectMap.addProperty(propertyName, resource.getParameters().get(propertyName));
+
+            result.add(USER_DEFINED_PROPERTIES, objectMap);
+        }
         //add attributes
         result.add(ATTRIBUTES_SECTION, readAttributes(resource.getElements(AttributeConfiguration.class)));
         //add events

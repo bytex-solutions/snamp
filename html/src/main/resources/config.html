@@ -36,26 +36,18 @@
         <div class="cover-container">
 
           <div class="row" id="configuration">
-            <div id="container">
-              <ul>
-                <li>Root node
-                  <ul>
-                    <li id="child_node">Child node</li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
-          </div>
+            <div id="container"></div>
 
 
-          <div class="mastfoot">
-            <div class="inner">
-              <p>Software by IT Works! (c)</p>
+              <div class="mastfoot">
+                <div class="inner">
+                  <p>Software by IT Works! (c)</p>
+                </div>
+              </div>
+
             </div>
-          </div>
 
         </div>
-
       </div>
 
     </div>
@@ -74,7 +66,20 @@
     <script type="text/javascript">
       var options = new options(false);
       $(function() {
-  $('#container').jstree(/* optional config object here */);
+         $('#container').jstree({ 
+        // Подключаем плагины
+        "plugins" : [ 
+            "themes","json_data"
+        ],
+        "json_data" : { 
+            "ajax" : {
+                "url" : "http://127.0.0.1:3344/snamp/management/api/configuration", // получаем наш JSON
+                "data" : function (n) { 
+                    console.log(n);
+                }
+            }
+        }
+    });
 });
      // $("#configuration").createConfigurations(options);
     </script>

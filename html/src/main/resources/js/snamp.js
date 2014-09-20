@@ -74,6 +74,52 @@ var bunstatus;
     })();
     bunstatus.bundleStatus = bundleStatus;
 })(bunstatus || (bunstatus = {}));
+var config;
+(function (config) {
+    var manRes = (function () {
+        function manRes() {
+        }
+        return manRes;
+    })();
+
+    var resAdapters = (function () {
+        function resAdapters() {
+        }
+        return resAdapters;
+    })();
+
+    var configuration = (function () {
+        function configuration() {
+        }
+        return configuration;
+    })();
+    config.configuration = configuration;
+})(config || (config = {}));
+
+(function ($) {
+    $.fn.createConfigurations = function (opts) {
+        if (typeof opts === "undefined") { opts = null; }
+        var data = [];
+
+        if (opts != null && opts.useStub) {
+            data = stubs.getConfiguration();
+        } else {
+            $.ajax({
+                url: "/snamp/management/api/configuration",
+                dataType: "json",
+                cache: false,
+                type: "GET",
+                async: false,
+                success: function (json) {
+                    if (json instanceof Object && json.length > 0)
+                        for (var obj in json) {
+                            data.push(new bundles.bundle(json[obj]));
+                        }
+                }
+            });
+        }
+    };
+})(jQuery);
 var license;
 (function (license) {
     var licenseInfo = (function () {
@@ -183,6 +229,11 @@ var stubs;
         return [];
     }
     stubs.getSummary = getSummary;
+
+    function getConfiguration() {
+        return [];
+    }
+    stubs.getConfiguration = getConfiguration;
 })(stubs || (stubs = {}));
 
 (function ($) {

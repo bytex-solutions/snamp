@@ -9,22 +9,22 @@ module bundles
         switch (status)
         {
             case 1:
-                return "UNINSTALLED"
+                return "UNINSTALLED";
                 break;
             case 2:
-                return "INSTALLED"
+                return "INSTALLED";
                 break;
             case 4:
-                return "RESOLVED"
+                return "RESOLVED";
                 break;
             case 8:
-                return "STARTING"
+                return "STARTING";
                 break;
             case 16:
-                return "STOPPING"
+                return "STOPPING";
                 break;
             case 32:
-                return "ACTIVE"
+                return "ACTIVE";
                 break;
             default:
                 return "UNKNOWN STATUS";

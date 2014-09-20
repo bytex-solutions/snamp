@@ -20,7 +20,7 @@
   <body>
   <div class="masthead clearfix">
       <div class="inner">
-          <h3 class="masthead-brand">Snamp configuration</h3>
+          <h3 class="masthead-brand">SNAMP configuration <console></console></h3>
 
           <ul class="nav masthead-nav">
               <li class="active"><a href="index.html">Home</a></li>
@@ -35,17 +35,19 @@
 
         <div class="cover-container">
 
-          <div class="row" id="configuration"></div>
+          <div class="row" id="configuration">
+            <div id="container"></div>
 
 
-          <div class="mastfoot">
-            <div class="inner">
-              <p>Software by IT Works! (c)</p>
+              <div class="mastfoot">
+                <div class="inner">
+                  <p>Software by IT Works! (c)</p>
+                </div>
+              </div>
+
             </div>
-          </div>
 
         </div>
-
       </div>
 
     </div>
@@ -55,13 +57,31 @@
     <!-- Placed at the end of the document so the pages load faster -->
   <script src="js/jquery-1.8.0.js"></script>
     <script src="js/bootstrap.js"></script>
+    <link rel="stylesheet" href="js/themes/default/style.min.css" />
+<script src="js/jstree.min.js"></script>
 
   <script type="text/javascript" src="js/snamp.js"></script>
 
 
     <script type="text/javascript">
       var options = new options(false);
-      $("#configuration").createConfigurations(options);
+      $(function() {
+         $('#container').jstree({ 
+        // Подключаем плагины
+        "plugins" : [ 
+            "themes","json_data"
+        ],
+        "json_data" : { 
+            "ajax" : {
+                "url" : "http://127.0.0.1:3344/snamp/management/api/configuration", // получаем наш JSON
+                "data" : function (n) { 
+                    console.log(n);
+                }
+            }
+        }
+    });
+});
+     // $("#configuration").createConfigurations(options);
     </script>
 
   </body>

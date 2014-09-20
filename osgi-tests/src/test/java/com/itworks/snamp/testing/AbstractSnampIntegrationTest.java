@@ -51,7 +51,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
 
     private static AbstractProvisionOption<?>[] buildDependencies(AbstractProvisionOption<?>[] deps){
         deps = concat(deps, bundle("http://apache-mirror.rbc.ru/pub/apache//felix/org.apache.felix.log-1.0.1.jar"),
-                bundle("http://apache-mirror.rbc.ru/pub/apache//felix/org.apache.felix.eventadmin-1.3.2.jar"));
+                bundle("http://apache-mirror.rbc.ru/pub/apache//felix/org.apache.felix.eventadmin-1.4.2.jar"));
         return concat(SnampArtifact.makeBasicSet(), deps);
     }
 

@@ -5,6 +5,11 @@ module stubs
     {
         return [];
     }
+
+    export function getConfiguration() : bundles.bundle[]
+    {
+        return [];
+    }
 /*       return [
 
            // First bundle
