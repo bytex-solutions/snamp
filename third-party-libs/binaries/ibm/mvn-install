@@ -1,9 +1,9 @@
-mvn install:install-file -Dfile=./com.ibm.mq.pcf.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQPCF -Dversion=6.0.0.0 -Dpackaging=jar
-mvn install:install-file -Dfile=./connector.jar -DgroupId=javax.resource -DartifactId=jca -Dversion=6.0.0.0
-mvn install:install-file -Dfile=./ibmjsseprovider2.jar -DgroupId=com.ibm -DartifactId=JSSEProvider -Dversion=2.0.0 -Dpackaging=jar
-mvn install:install-file -Dfile=./com.ibm.mq.commonservices.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereCommonServices -Dversion=6.0.0.0 -Dpackaging=jar
-mvn install:install-file -Dfile=./com.ibm.mq.headers.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQHeaders -Dversion=6.0.0.0 -Dpackaging=jar
-mvn install:install-file -Dfile=./com.ibm.mq.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQ -Dversion=6.0.0.0 -Dpackaging=jar
-mvn install:install-file -Dfile=./com.ibm.mq.jmqi.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereJMQI -Dversion=6.0.0.0 -Dpackaging=jar
-mvn install:install-file -Dfile=./ConfigManagerProxy.jar -DgroupId=com.ibm.broker.config -DartifactId=WMBConfigManagerProxy -Dversion=1.5.0 -Dpackaging=jar
-mvn install:install-file -Dfile=./com.ibm.mqjms.jar -DgroupId=com.ibm.mq.jms -DartifactId=WebSphereJmsSupport -Dversion=6.0.0.0 -Dpackaging=jar
+mvn install:install-file -Dfile=./websphere-mq/com.ibm.mq.pcf.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQPCF -Dversion=6.0.0.0 -Dpackaging=jar
+mvn install:install-file -Dfile=./websphere/connector.jar -DgroupId=javax.resource -DartifactId=jca -Dversion=6.0.0.0 -Dpackaging=jar
+mvn install:install-file -Dfile=./websphere/ibmjsseprovider2.jar -DgroupId=com.ibm -DartifactId=JSSEProvider -Dversion=2.0.0 -Dpackaging=jar
+mvn install:install-file -Dfile=./websphere/com.ibm.mq.commonservices.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereCommonServices -Dversion=6.0.0.0 -Dpackaging=jar
+mvn install:install-file -Dfile=./websphere-mq/com.ibm.mq.headers.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQHeaders -Dversion=6.0.0.0 -Dpackaging=jar
+mvn install:install-file -Dfile=./websphere-mq/com.ibm.mq.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQ -Dversion=6.0.0.0 -Dpackaging=jar
+mvn install:install-file -Dfile=./websphere-mq/com.ibm.mq.jmqi.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereJMQI -Dversion=6.0.0.0 -Dpackaging=jar
+mvn install:install-file -Dfile=./websphere-mb/com.ibm.broker.config.jar -DgroupId=com.ibm.broker.config -DartifactId=WMBConfigManagerProxy -Dversion=1.5.0 -Dpackaging=jar
+mvn install:install-file -Dfile=./websphere-mq/com.ibm.mqjms.jar -DgroupId=com.ibm.mq.jms -DartifactId=WebSphereJmsSupport -Dversion=6.0.0.0 -Dpackaging=jar
