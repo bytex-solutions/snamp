@@ -6,10 +6,7 @@ import org.stringtemplate.v4.ST;
 
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.*;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Map;
 
 /**
@@ -130,5 +127,22 @@ public class XmlCommandLineToolProfile implements ChannelProcessor<Object, Excep
         } catch (final IOException e) {
             return e.toString();
         }
+    }
+
+    public static XmlCommandLineToolProfile loadFrom(final InputStream is){
+        return JAXB.unmarshal(is, XmlCommandLineToolProfile.class);
+    }
+
+    public static XmlCommandLineToolProfile loadFrom(final String xml){
+        try(final Reader r = new StringReader(xml)){
+            return JAXB.unmarshal(r, XmlCommandLineToolProfile.class);
+        }
+        catch (final IOException ignored) {
+            return null;
+        }
+    }
+
+    public static XmlCommandLineToolProfile loadFrom(final File f){
+        return JAXB.unmarshal(f, XmlCommandLineToolProfile.class);
     }
 }

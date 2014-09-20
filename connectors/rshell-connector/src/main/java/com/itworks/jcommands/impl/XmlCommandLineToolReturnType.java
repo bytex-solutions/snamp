@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -39,45 +40,22 @@ public enum XmlCommandLineToolReturnType {
      *     This type converts hex string into the array of bytes.
      */
     @XmlEnumValue("blob")
-    HEX_BLOB(false, Byte[].class),
-
-    /**
-     * Represents an array of bytes.
-     * <p>
-     *     This type converts base64 string into the array of bytes
-     */
-    @XmlEnumValue("base64")
-    BASE64_BLOB(false, Byte[].class),
+    BLOB(false, Byte[].class),
 
     @XmlEnumValue("8bit")
     BYTE(true, Byte.class),
 
-    @XmlEnumValue("8bit-hex")
-    HEX_BYTE(true, Byte.class),
-
     @XmlEnumValue("16bit")
     SHORT(true, Short.class),
-
-    @XmlEnumValue("16bit-hex")
-    HEX_SHORT(true, Short.class),
 
     @XmlEnumValue("32bit")
     INTEGER(true, Integer.class),
 
-    @XmlEnumValue("32bit-hex")
-    HEX_INT(true, Integer.class),
-
     @XmlEnumValue("64bit")
     LONG(true, Long.class),
 
-    @XmlEnumValue("64bit-hex")
-    HEX_LONG(true, Long.class),
-
     @XmlEnumValue("integer")
     BIG_INTEGER(true, BigInteger.class),
-
-    @XmlEnumValue("integer-hex")
-    HEX_BIGINT(true, BigInteger.class),
 
     @XmlEnumValue("decimal")
     BIG_DECIMAL(true, BigDecimal.class),
@@ -89,7 +67,16 @@ public enum XmlCommandLineToolReturnType {
     ARRAY(false, Object[].class),
 
     @XmlEnumValue("table")
-    TABLE(false, Table.class);
+    TABLE(false, Table.class),
+
+    @XmlEnumValue("date")
+    DATE_TIME(true, Date.class),
+
+    @XmlEnumValue("float")
+    FLOAT(true, Float.class),
+
+    @XmlEnumValue("double")
+    DOUBLE(true, Double.class);
 
     /**
      * Determines whether this type is scalar.

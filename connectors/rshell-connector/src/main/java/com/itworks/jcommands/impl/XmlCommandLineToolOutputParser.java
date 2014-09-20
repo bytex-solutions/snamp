@@ -2,17 +2,20 @@ package com.itworks.jcommands.impl;
 
 import com.itworks.snamp.internal.semantics.Internal;
 import org.apache.commons.collections4.Transformer;
-import org.apache.commons.lang3.ArrayUtils;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.annotation.*;
+import java.io.IOException;
+import java.io.Serializable;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -26,6 +29,177 @@ import java.util.*;
 public class XmlCommandLineToolOutputParser {
     private static interface Converter<T> extends Transformer<String, T>{
 
+    }
+
+    private static interface PatternBasedFormat extends Serializable, Cloneable{
+        String toPattern();
+    }
+
+    private static interface DateParser extends PatternBasedFormat{
+        Date parse(final String input) throws ParseException;
+    }
+
+    private static final class SimpleDateParser extends SimpleDateFormat implements DateParser {
+        public SimpleDateParser(final String pattern) {
+            super(pattern);
+        }
+    }
+
+    private static interface NumberParser extends PatternBasedFormat{
+        Number parse(final String input) throws ParseException;
+        byte parseAsByte(final String input) throws ParseException;
+        short parseAsShort(final String input) throws ParseException;
+        int parseAsInt(final String input) throws ParseException;
+        long parseAsLong(final String input) throws ParseException;
+        BigInteger parseAsBigInteger(final String input) throws ParseException;
+        BigDecimal parseAsBigDecimal(final String input) throws ParseException;
+        float parseAsFloat(final String input) throws ParseException;
+        double parseAsDouble(final String input) throws ParseException;
+    }
+
+    private static final class DecimalNumberParser extends DecimalFormat implements NumberParser{
+        public DecimalNumberParser(final String pattern){
+            super(pattern);
+        }
+
+        public DecimalNumberParser(){
+
+        }
+
+        @Override
+        public byte parseAsByte(final String input) throws ParseException {
+            return parse(input).byteValue();
+        }
+
+        @Override
+        public short parseAsShort(final String input) throws ParseException {
+            return parse(input).shortValue();
+        }
+
+        @Override
+        public int parseAsInt(final String input) throws ParseException {
+            return parse(input).intValue();
+        }
+
+        @Override
+        public long parseAsLong(final String input) throws ParseException {
+            return parse(input).longValue();
+        }
+
+        @Override
+        public BigInteger parseAsBigInteger(final String input) throws ParseException {
+            final Number n = parse(input);
+            return n instanceof BigInteger ? (BigInteger)n : BigInteger.valueOf(n.longValue());
+        }
+
+        @Override
+        public BigDecimal parseAsBigDecimal(final String input) throws ParseException {
+            final DecimalFormat format = (DecimalFormat)clone();
+            format.setParseBigDecimal(true);
+            return (BigDecimal)format.parse(input);
+        }
+
+        @Override
+        public float parseAsFloat(final String input) throws ParseException {
+            return parse(input).floatValue();
+        }
+
+        @Override
+        public double parseAsDouble(final String input) throws ParseException {
+            return parse(input).doubleValue();
+        }
+    }
+
+    private static final class HexadecimalParser implements NumberParser {
+        private static final String PATTERN_STUB = "hex";
+
+        @Override
+        public Number parse(final String input) throws ParseException {
+            try {
+                return Long.parseLong(input, 16);
+            } catch (final NumberFormatException e) {
+                throw new ParseException(e.getMessage(), 0);
+            }
+        }
+
+        @Override
+        public byte parseAsByte(final String input) throws ParseException {
+            try {
+                return Byte.parseByte(input, 16);
+            }
+            catch (final NumberFormatException e){
+                throw new ParseException(e.getMessage(), 0);
+            }
+        }
+
+        @Override
+        public short parseAsShort(final String input) throws ParseException {
+            return Short.parseShort(input, 16);
+        }
+
+        @Override
+        public int parseAsInt(final String input) throws ParseException {
+            try {
+                return Integer.parseInt(input, 16);
+            }
+            catch (final NumberFormatException e){
+                throw new ParseException(e.getMessage(), 0);
+            }
+        }
+
+        @Override
+        public long parseAsLong(final String input) throws ParseException {
+            try {
+                return Long.parseLong(input, 16);
+            }
+            catch (final NumberFormatException e){
+                throw new ParseException(e.getMessage(), 0);
+            }
+        }
+
+        @Override
+        public BigInteger parseAsBigInteger(final String input) throws ParseException {
+            try {
+                return new BigInteger(input, 16);
+            } catch (final NumberFormatException e) {
+                throw new ParseException(e.getMessage(), 0);
+            }
+        }
+
+        @Override
+        public BigDecimal parseAsBigDecimal(final String input) throws ParseException {
+            try {
+                return new BigDecimal(input);
+            }
+            catch (final NumberFormatException e){
+                throw new ParseException(e.getMessage(), 0);
+            }
+        }
+
+        @Override
+        public float parseAsFloat(final String input) throws ParseException {
+            try {
+                return Float.parseFloat(input);
+            }
+            catch (final NumberFormatException e){
+                throw new ParseException(e.getMessage(), 0);
+            }
+        }
+
+        @Override
+        public double parseAsDouble(final String input) throws ParseException {
+            try{
+                return Double.parseDouble(input);
+            }
+            catch (final NumberFormatException e){
+                throw new ParseException(e.getMessage(), 0);
+            }
+        }
+
+        @Override
+        public String toPattern() {
+            return PATTERN_STUB;
+        }
     }
 
     /**
@@ -97,7 +271,7 @@ public class XmlCommandLineToolOutputParser {
             columnType = XmlCommandLineToolReturnType.STRING;
         }
 
-        @XmlAttribute(name = "name", namespace = XmlConstants.NAMESPACE)
+        @XmlAttribute(name = "name", namespace = XmlConstants.NAMESPACE, required = true)
         public String getColumnName(){
             return columnName;
         }
@@ -115,7 +289,7 @@ public class XmlCommandLineToolOutputParser {
             columnValueParsingRule = value != null ? value : "";
         }
 
-        @XmlAttribute(name = "type", namespace = XmlConstants.NAMESPACE)
+        @XmlAttribute(name = "type", namespace = XmlConstants.NAMESPACE, required = true)
         public XmlCommandLineToolReturnType getColumnType(){
             return columnType;
         }
@@ -176,7 +350,7 @@ public class XmlCommandLineToolOutputParser {
          * Returns name of the dictionary key.
          * @return The name of the dictionary key.
          */
-        @XmlAttribute(name = "key", namespace = XmlConstants.NAMESPACE)
+        @XmlAttribute(name = "key", namespace = XmlConstants.NAMESPACE, required = true)
         public String getKeyName() {
             return key;
         }
@@ -206,7 +380,7 @@ public class XmlCommandLineToolOutputParser {
             this.value = value != null ? value : "";
         }
 
-        @XmlAttribute(name = "type", namespace = XmlConstants.NAMESPACE)
+        @XmlAttribute(name = "type", namespace = XmlConstants.NAMESPACE, required = true)
         public XmlCommandLineToolReturnType getValueType(){
             return valueType;
         }
@@ -230,27 +404,410 @@ public class XmlCommandLineToolOutputParser {
      * @version 1.0
      */
     @Internal
-    public static final class ParsingStream extends StreamTokenizer{
+    public static final class ParsingStream extends StreamTokenizer {
 
-        private ParsingStream(final StringReader reader){
+        private ParsingStream(final StringReader reader) {
             super(reader);
+            resetSyntax();
+        }
+
+        /**
+         * Setup the default syntax for this tokenizer.
+         */
+        public final void setupDefaultSyntax() {
+            wordChars('a', 'z');
+            wordChars('A', 'Z');
+            wordChars(128 + 32, 255);
+            whitespaceChars(0, ' ');
+            commentChar('/');
+            quoteChar('"');
+            quoteChar('\'');
+            parseNumbers();
+        }
+
+        private Object lookup(final int tokenType) {
+            switch (tokenType) {
+                case TT_WORD:
+                    return sval;
+                case TT_NUMBER:
+                    return nval;
+                default:
+                    return null;
+            }
+        }
+
+        public final Object lookup() {
+            return lookup(ttype);
+        }
+
+        /**
+         * Parses the next token in the stream.
+         *
+         * @return The next parsed token in the stream (may be {@link java.lang.String} or {@link java.lang.Double}).
+         * @throws IOException
+         */
+        public final Object parseNextToken() throws IOException {
+            return lookup(nextToken());
+        }
+
+        private Byte parseByte(final Byte defval, final NumberParser format) throws IOException {
+            switch (nextToken()) {
+                case TT_NUMBER:
+                    return (byte) nval;
+                case TT_WORD:
+                    try {
+                        return format.parseAsByte(sval);
+                    } catch (final ParseException ignored) {
+                        return defval;
+                    }
+                default:
+                    return null;
+            }
+        }
+
+        /**
+         * Parses the next token in the stream as {@link java.lang.Byte}.
+         *
+         * @return {@link java.lang.Byte} representation of the next token in the stream;
+         * or {@literal null}, if the next token is not a number.
+         * @throws IOException Some I/O problem occurs in the underlying stream.
+         */
+        public final Byte parseByte() throws IOException {
+            return parseByte(null, DEFAULT_NUMBER_FORMAT);
         }
 
 
+        /**
+         * Parses the next token in the stream as {@link java.lang.Byte}.
+         *
+         * @param defval The value returned by the method if the next token is not a number.
+         * @return {@link java.lang.Byte} representation of the next token in the stream;
+         * or {@literal null}, if the next token is not a number.
+         * @throws IOException Some I/O problem occurs in the underlying stream.
+         */
+        public final byte parseByte(final byte defval) throws IOException {
+            return parseByte(defval, DEFAULT_NUMBER_FORMAT);
+        }
+
+        public final byte parseByte(final byte defval, final String pattern) throws IOException {
+            return parseByte(defval, createNumberParser(pattern));
+        }
+
+        private Short parseShort(final Short defval, final NumberParser parser) throws IOException {
+            switch (nextToken()) {
+                case TT_NUMBER:
+                    return (short) nval;
+                case TT_WORD:
+                    try {
+                        return parser.parseAsShort(sval);
+                    } catch (final ParseException ignored) {
+                        return defval;
+                    }
+                default:
+                    return defval;
+            }
+        }
+
+        /**
+         * Parses the next token in the stream as {@link java.lang.Short}.
+         *
+         * @return {@link java.lang.Short} representation of the next token in the stream;
+         * or {@literal null}, if the next token is not a number.
+         * @throws IOException Some I/O problem occurs in the underlying stream.
+         */
+        public final Short parseShort() throws IOException {
+            return parseShort(null, DEFAULT_NUMBER_FORMAT);
+        }
+
+        /**
+         * Parses the next token in the stream as {@link java.lang.Short}.
+         *
+         * @param defval The value returned by the method if the next token is not a number.
+         * @return {@link java.lang.Short} representation of the next token in the stream;
+         * or {@literal null}, if the next token is not a number.
+         * @throws IOException Some I/O problem occurs in the underlying stream.
+         */
+        public final short parseShort(final short defval) throws IOException {
+            return parseShort(defval, DEFAULT_NUMBER_FORMAT);
+        }
+
+        public final short parseShort(final short defval, final String pattern) throws IOException {
+            return parseShort(defval, createNumberParser(pattern));
+        }
+
+        private Integer parseInt(final Integer defval, final NumberParser parser) throws IOException {
+            switch (nextToken()) {
+                case TT_NUMBER:
+                    return (int) nval;
+                case TT_WORD:
+                    try {
+                        return parser.parseAsInt(sval);
+                    } catch (final ParseException ignored) {
+                        return defval;
+                    }
+                default:
+                    return defval;
+            }
+        }
+
+        /**
+         * Parses the next token in the stream as {@link java.lang.Integer}.
+         *
+         * @return {@link java.lang.Integer} representation of the next token in the stream;
+         * or {@literal null}, if the next token is not a number.
+         * @throws IOException Some I/O problem occurs in the underlying stream.
+         */
+        public final Integer parseInt() throws IOException {
+            return parseInt(null, DEFAULT_NUMBER_FORMAT);
+        }
+
+        /**
+         * Parses the next token in the stream as {@link java.lang.Integer}.
+         *
+         * @param defval The value returned by the method if the next token is not a number.
+         * @return {@link java.lang.Integer} representation of the next token in the stream;
+         * or {@literal null}, if the next token is not a number.
+         * @throws IOException Some I/O problem occurs in the underlying stream.
+         */
+        public final int parseInt(final int defval) throws IOException {
+            return parseInt(defval, DEFAULT_NUMBER_FORMAT);
+        }
+
+        private Long parseLong(final Long defval, final NumberParser parser) throws IOException {
+            switch (nextToken()) {
+                case TT_NUMBER:
+                    return (long) nval;
+                case TT_WORD:
+                    try {
+                        return parser.parseAsLong(sval);
+                    } catch (final ParseException ignored) {
+                        return defval;
+                    }
+                default:
+                    return defval;
+            }
+        }
+
+        /**
+         * Parses the next token in the stream as {@link java.lang.Integer}.
+         *
+         * @return {@link java.lang.Integer} representation of the next token in the stream;
+         * or {@literal null}, if the next token is not a number.
+         * @throws IOException Some I/O problem occurs in the underlying stream.
+         */
+        public final Long parseLong() throws IOException {
+            return parseLong(null, DEFAULT_NUMBER_FORMAT);
+        }
+
+        /**
+         * Parses the next token in the stream as {@link java.lang.Long}.
+         *
+         * @param defval The value returned by the method if the next token is not a number.
+         * @return {@link java.lang.Long} representation of the next token in the stream;
+         * or {@literal null}, if the next token is not a number.
+         * @throws IOException Some I/O problem occurs in the underlying stream.
+         */
+        public final long parseLong(final long defval) throws IOException {
+            return parseLong(defval, DEFAULT_NUMBER_FORMAT);
+        }
+
+        public final long parseLong(final long defval, final String pattern) throws IOException {
+            return parseLong(defval, createNumberParser(pattern));
+        }
+
+        private BigInteger parseBigInt(final BigInteger defval, final NumberParser parser) throws IOException {
+            switch (nextToken()) {
+                case TT_NUMBER:
+                    return BigInteger.valueOf((long) nval);
+                case TT_WORD:
+                    try {
+                        return parser.parseAsBigInteger(sval);
+                    } catch (final ParseException ignored) {
+                        return defval;
+                    }
+                default:
+                    return defval;
+            }
+        }
+
+        public final BigInteger parseBigInt() throws IOException {
+            return parseBigInt(null, DEFAULT_NUMBER_FORMAT);
+        }
+
+        public final BigInteger parseBigInt(final BigInteger defval) throws IOException {
+            return parseBigInt(defval, DEFAULT_NUMBER_FORMAT);
+        }
+
+        public final BigInteger parseBigInt(final BigInteger defval, final String pattern) throws IOException {
+            return parseBigInt(defval, createNumberParser(pattern));
+        }
+
+        private BigDecimal parseDecimal(final BigDecimal defval, final NumberParser parser) throws IOException {
+            switch (nextToken()) {
+                case TT_NUMBER:
+                    return BigDecimal.valueOf(nval);
+                case TT_WORD:
+                    try {
+                        return parser.parseAsBigDecimal(sval);
+                    } catch (final ParseException ignored) {
+                        return defval;
+                    }
+                default:
+                    return defval;
+            }
+        }
+
+        public final BigDecimal parseDecimal() throws IOException {
+            return parseDecimal(null, DEFAULT_NUMBER_FORMAT);
+        }
+
+        public final BigDecimal parseDecimal(final BigDecimal defval) throws IOException {
+            return parseDecimal(defval, DEFAULT_NUMBER_FORMAT);
+        }
+
+        public final BigDecimal parseDecimal(final BigDecimal defval, final String format) throws IOException {
+            return parseDecimal(defval, createNumberParser(format));
+        }
+
+        public final String parseWord() throws IOException {
+            switch (nextToken()) {
+                case TT_NUMBER:
+                    return Double.toString(nval);
+                case TT_WORD:
+                    return sval;
+                default:
+                    return "";
+            }
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        public final boolean parseBoolean() throws IOException {
+            switch (nextToken()) {
+                case TT_NUMBER:
+                    return nval != 0.0;
+                case TT_WORD:
+                    switch (sval.toLowerCase()) {
+                        case "true":
+                        case "1":
+                        case "yes":
+                        case "ok":
+                            return true;
+                    }
+                default:
+                    return false;
+            }
+        }
+
+        private Date parseDate(final Date defval, final DateParser parser) throws IOException {
+            switch (nextToken()) {
+                case TT_NUMBER:
+                    return new Date((long) nval);
+                case TT_WORD:
+                    try {
+                        return parser.parse(sval);
+                    } catch (ParseException ignored) {
+                        return defval;
+                    }
+                default:
+                    return defval;
+            }
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        public final Date parseDate() throws IOException {
+            return parseDate(null, DEFAULT_DATE_TIME_FORMAT);
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        public final Date parseDate(final Date defval) throws IOException {
+            return parseDate(defval, DEFAULT_DATE_TIME_FORMAT);
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        public final Date parseDate(final Date defval, final String format) throws IOException {
+            return parseDate(defval, new SimpleDateParser(format));
+        }
+
+        private Float parseFloat(final Float defval, final NumberParser parser) throws IOException {
+            switch (nextToken()) {
+                case TT_NUMBER:
+                    return (float) nval;
+                case TT_WORD:
+                    try {
+                        return parser.parseAsFloat(sval);
+                    } catch (final ParseException ignored) {
+                        return defval;
+                    }
+                default:
+                    return defval;
+            }
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        public Float parseFloat() throws IOException {
+            return parseFloat(null, DEFAULT_NUMBER_FORMAT);
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        public float parseFloat(final float defval) throws IOException {
+            return parseFloat(defval, DEFAULT_NUMBER_FORMAT);
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        public float parseFloat(final float defval, final String format) throws IOException {
+            return parseFloat(defval, createNumberParser(format));
+        }
+
+        private Double parseDouble(final Double defval, final NumberParser parser) throws IOException {
+            switch (nextToken()) {
+                case TT_NUMBER:
+                    return nval;
+                case TT_WORD:
+                    try {
+                        return parser.parseAsDouble(sval);
+                    } catch (final ParseException ignored) {
+                        return defval;
+                    }
+                default:
+                    return defval;
+            }
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        public final Double parseDouble() throws IOException {
+            return parseDouble(null, DEFAULT_NUMBER_FORMAT);
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        public final double parseDouble(final double defval) throws IOException {
+            return parseDouble(defval, DEFAULT_NUMBER_FORMAT);
+        }
+
+        @SuppressWarnings("UnusedDeclaration")
+        public final double parseDouble(final double defval, final String format) throws IOException {
+            return parseDouble(defval, createNumberParser(format));
+        }
     }
 
     /**
      * Represents Regexp as parsing language for output stream.
      */
     public static final String REGEXP_LANG = "regexp";
+
     /**
      * Represents JavaScript as parsing language for output stream.
      */
     public static final String JAVASCRIPT_LANG = "JavaScript";
 
+    private static final DateParser DEFAULT_DATE_TIME_FORMAT = new SimpleDateParser("EEE MMM d HH:mm:ss zzz yyyy");
+
+    private static final NumberParser DEFAULT_NUMBER_FORMAT = new DecimalNumberParser();
+
     private String language;
     private XmlCommandLineToolReturnType returnType;
-    private final List parsingTemplate;
+    private List parsingTemplate;
+    private NumberParser numberFormatter;
+    private DateParser dateFormatter;
 
     /**
      * Initializes a new parser without settings.
@@ -258,10 +815,40 @@ public class XmlCommandLineToolOutputParser {
     public XmlCommandLineToolOutputParser(){
         language = REGEXP_LANG;
         returnType = XmlCommandLineToolReturnType.STRING;
-        parsingTemplate = new ArrayList(10);
+        parsingTemplate = null;
+        numberFormatter = DEFAULT_NUMBER_FORMAT;
+        dateFormatter = DEFAULT_DATE_TIME_FORMAT;
     }
 
-    @XmlAttribute(name = "language", namespace = XmlConstants.NAMESPACE)
+    @XmlAttribute(name = "dateTimeFormat", namespace = XmlConstants.NAMESPACE, required = false)
+    public final void setDateTimeParsingFormat(final String value){
+        if(value == null || value.isEmpty())
+            dateFormatter = DEFAULT_DATE_TIME_FORMAT;
+        else dateFormatter = new SimpleDateParser(value);
+    }
+
+    public final String getDateTimeParsingFormat(){
+        return dateFormatter.toPattern();
+    }
+
+    private static NumberParser createNumberParser(final String format){
+        if(format == null || format.isEmpty())
+            return DEFAULT_NUMBER_FORMAT;
+        else if(Objects.equals(HexadecimalParser.PATTERN_STUB, format))
+            return new HexadecimalParser();
+        else return new DecimalNumberParser(format);
+    }
+
+    @XmlAttribute(name = "numberFormat", namespace = XmlConstants.NAMESPACE, required = false)
+    public final void setNumberParsingFormat(final String value){
+        numberFormatter = createNumberParser(value);
+    }
+
+    public final String getNumberParsingFormat(){
+        return numberFormatter.toPattern();
+    }
+
+    @XmlAttribute(name = "language", namespace = XmlConstants.NAMESPACE, required = true)
     public final String getParsingLanguage(){
         return language;
     }
@@ -270,7 +857,7 @@ public class XmlCommandLineToolOutputParser {
         this.language = value != null ? value : "";
     }
 
-    @XmlAttribute(name = "type", namespace = XmlConstants.NAMESPACE)
+    @XmlAttribute(name = "type", namespace = XmlConstants.NAMESPACE, required = true)
     public final XmlCommandLineToolReturnType getReturnType(){
         return returnType;
     }
@@ -286,24 +873,27 @@ public class XmlCommandLineToolOutputParser {
             @XmlElementRef(type = TableColumnParsingRule.class),
             @XmlElementRef(type = ArrayItemParsingRule.class)
     })
+
     private List getParsingTemplate(){
+        if(parsingTemplate == null) parsingTemplate = new ArrayList(10);
         return parsingTemplate;
     }
 
-    public final void removeParsingRules(){
-        parsingTemplate.clear();
+    public final void removeParsingRules() {
+        if (parsingTemplate != null) parsingTemplate.clear();
+        parsingTemplate = null;
     }
 
     @SuppressWarnings("unchecked")
     public final void addParsingRule(final String placeholder){
-        parsingTemplate.add(Objects.requireNonNull(placeholder, "placeholder is null."));
+        getParsingTemplate().add(Objects.requireNonNull(placeholder, "placeholder is null."));
     }
 
     @SuppressWarnings("unchecked")
     public final void addParsingRule(final ParsingRule rule){
         if(rule == null) throw new NullPointerException("rule is null.");
         else if(!rule.compatibleWith(returnType)) throw new IllegalArgumentException(String.format("Incompatible rule with underlying type %s", returnType));
-        else parsingTemplate.add(rule);
+        else getParsingTemplate().add(rule);
     }
 
     public final void addDictionaryEntryRule(final String key, final String valueRule, final XmlCommandLineToolReturnType valueType){
@@ -328,6 +918,10 @@ public class XmlCommandLineToolOutputParser {
         addParsingRule(rule);
     }
 
+    /**
+     * Adds parsing rule for the array item.
+     * @param itemParsingRule The parsing rule for the array item.
+     */
     public final void addArrayItem(final String itemParsingRule){
         final ArrayItemParsingRule rule = new ArrayItemParsingRule();
         rule.setItemParsingRule(itemParsingRule);
@@ -384,83 +978,108 @@ public class XmlCommandLineToolOutputParser {
     }
 
     private static Short parseShort(final List parsingTemplate,
-                                    final ScriptEngine engine,
-                                    final boolean hexFormat) throws ScriptException {
+                                    final NumberParser format,
+                                    final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
                 new Converter<Short>() {
                     @Override
                     public Short transform(final String input) {
-                        return Short.parseShort(input, hexFormat ? 16 : 10);
+                        try {
+                            return format.parseAsShort(input);
+                        } catch (final ParseException e) {
+                            throw new NumberFormatException(e.getMessage());
+                        }
                     }
                 },
                 (short) 0);
     }
 
     private static Byte parseByte(final List parsingTemplate,
-                                    final ScriptEngine engine,
-                                    final boolean hexFormat) throws ScriptException {
+                                  final NumberParser format,
+                                    final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
                 new Converter<Byte>() {
                     @Override
                     public Byte transform(final String input) {
-                        return Byte.parseByte(input, hexFormat ? 16 : 10);
+                        try {
+                            return format.parseAsByte(input);
+                        } catch (final ParseException e) {
+                            throw new NumberFormatException(e.getMessage());
+                        }
                     }
                 },
                 (byte) 0);
     }
 
     private static Integer parseInteger(final List parsingTemplate,
-                                  final ScriptEngine engine,
-                                  final boolean hexFormat) throws ScriptException {
+                                        final NumberParser format,
+                                  final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
                 new Converter<Integer>() {
                     @Override
                     public Integer transform(final String input) {
-                        return Integer.parseInt(input, hexFormat ? 16 : 10);
+                        try {
+                            return format.parseAsInt(input);
+                        } catch (final ParseException e) {
+                            throw new NumberFormatException(e.getMessage());
+                        }
                     }
                 },
                 0);
     }
 
     private static Long parseLong(final List parsingTemplate,
-                                        final ScriptEngine engine,
-                                        final boolean hexFormat) throws ScriptException {
+                                  final NumberParser format,
+                                        final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
                 new Converter<Long>() {
                     @Override
                     public Long transform(final String input) {
-                        return Long.parseLong(input, hexFormat ? 16 : 10);
+                        try {
+                            return format.parseAsLong(input);
+                        } catch (final ParseException e) {
+                            throw new NumberFormatException(e.getMessage());
+                        }
                     }
                 },
                 0L);
     }
 
     private static BigInteger parseBigInt(final List parsingTemplate,
-                                  final ScriptEngine engine,
-                                  final boolean hexFormat) throws ScriptException {
+                                  final NumberParser format,
+                                  final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
                 new Converter<BigInteger>() {
                     @Override
                     public BigInteger transform(final String input) {
-                        return new BigInteger(input, hexFormat ? 16 : 10);
+                        try {
+                            return format.parseAsBigInteger(input);
+                        } catch (final ParseException e) {
+                            throw new NumberFormatException(e.getMessage());
+                        }
                     }
                 },
                 BigInteger.ZERO);
     }
 
     private static BigDecimal parseDecimal(final List parsingTemplate,
+                                           final NumberParser parser,
                                           final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
                 new Converter<BigDecimal>() {
                     @Override
                     public BigDecimal transform(final String input) {
-                        return new BigDecimal(input);
+                        try {
+                            return parser.parseAsBigDecimal(input);
+                        } catch (final ParseException e) {
+                            throw new NumberFormatException(e.getMessage());
+                        }
                     }
                 },
                 BigDecimal.ZERO);
@@ -500,51 +1119,72 @@ public class XmlCommandLineToolOutputParser {
                 Boolean.FALSE);
     }
 
-    private static Byte[] parseBlob(final List parsingTemplate,
-                                           final ScriptEngine engine) throws ScriptException {
-        return parseScalar(parsingTemplate,
-                engine,
-                new Converter<Byte[]>() {
-                    @Override
-                    public Byte[] transform(final String input) {
-                        return ArrayUtils.toObject(DatatypeConverter.parseHexBinary(input));
-                    }
-                },
-                new Byte[0]);
-    }
-
-    private static Byte[] parseBase64(final List parsingTemplate,
+    private static Float parseFloat(final List parsingTemplate,
+                                    final NumberParser parser,
                                     final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<Byte[]>() {
+                new Converter<Float>() {
                     @Override
-                    public Byte[] transform(final String input) {
-                        return ArrayUtils.toObject(DatatypeConverter.parseBase64Binary(input));
+                    public Float transform(final String input) {
+                        try {
+                            return parser.parseAsFloat(input);
+                        } catch (final ParseException e) {
+                            throw new NumberFormatException(e.getMessage());
+                        }
                     }
-                },
-                new Byte[0]);
+                }, 0F);
+    }
+
+    private static Double parseDouble(final List parsingTemplate,
+                                    final NumberParser parser,
+                                    final ScriptEngine engine) throws ScriptException {
+        return parseScalar(parsingTemplate,
+                engine,
+                new Converter<Double>() {
+                    @Override
+                    public Double transform(final String input) {
+                        try {
+                            return parser.parseAsDouble(input);
+                        } catch (final ParseException e) {
+                            throw new NumberFormatException(e.getMessage());
+                        }
+                    }
+                }, 0.0);
+    }
+
+    private static Date parseDate(final List parsingTemplate,
+                                  final DateParser dateTimeFormat,
+                                  final ScriptEngine engine) throws ScriptException{
+        return parseScalar(parsingTemplate,
+                engine,
+                new Converter<Date>() {
+                    @Override
+                    public Date transform(final String input) {
+                        try {
+                            return dateTimeFormat.parse(input);
+                        } catch (final ParseException ignored) {
+                            return new Date(0L);
+                        }
+                    }
+                }, new Date(0L));
     }
 
     private Object parse(final String input, final ScriptEngine engine) throws ScriptException{
         try(final StringReader reader = new StringReader(input)){
             engine.put("stream", new ParsingStream(reader));
             switch (getReturnType()){
-                case BYTE: return parseByte(parsingTemplate, engine, false);
-                case HEX_BYTE: return parseByte(parsingTemplate, engine, true);
-                case SHORT: return parseShort(parsingTemplate, engine, false);
-                case HEX_SHORT: return parseShort(parsingTemplate, engine, true);
-                case INTEGER: return parseInteger(parsingTemplate, engine, false);
-                case HEX_INT: return parseInteger(parsingTemplate, engine, true);
-                case LONG: return parseLong(parsingTemplate, engine, false);
-                case HEX_LONG: return parseLong(parsingTemplate, engine, true);
-                case BIG_INTEGER: return parseBigInt(parsingTemplate, engine, false);
-                case HEX_BIGINT: return parseBigInt(parsingTemplate, engine, true);
-                case BIG_DECIMAL: return parseDecimal(parsingTemplate, engine);
-                case STRING: return parseString(parsingTemplate, engine);
-                case BOOLEAN: return parseBoolean(parsingTemplate, engine);
-                case HEX_BLOB: return parseBlob(parsingTemplate, engine);
-                case BASE64_BLOB: return parseBase64(parsingTemplate, engine);
+                case BYTE: return parseByte(getParsingTemplate(), numberFormatter, engine);
+                case SHORT: return parseShort(getParsingTemplate(), numberFormatter, engine);
+                case INTEGER: return parseInteger(getParsingTemplate(), numberFormatter, engine);
+                case LONG: return parseLong(getParsingTemplate(), numberFormatter, engine);
+                case FLOAT: return parseFloat(getParsingTemplate(), numberFormatter, engine);
+                case DOUBLE: return parseDouble(getParsingTemplate(), numberFormatter, engine);
+                case BIG_INTEGER: return parseBigInt(getParsingTemplate(), numberFormatter, engine);
+                case BIG_DECIMAL: return parseDecimal(getParsingTemplate(), numberFormatter, engine);
+                case STRING: return parseString(getParsingTemplate(), engine);
+                case BOOLEAN: return parseBoolean(getParsingTemplate(), engine);
+                case DATE_TIME: return parseDate(getParsingTemplate(), dateFormatter, engine);
                 default: throw new IllegalStateException(String.format("Invalid return type %s", getReturnType()));
             }
         }
