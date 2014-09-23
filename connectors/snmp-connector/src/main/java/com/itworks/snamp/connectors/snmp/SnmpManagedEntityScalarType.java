@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.snmp;
 
-import com.itworks.snamp.connectors.ManagementEntityTypeBuilder.AbstractManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityTypeBuilder;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.Variable;
 
@@ -13,14 +13,14 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-abstract class SnmpManagementEntityScalarType<V extends Variable> extends AbstractManagementEntityType implements SnmpManagementEntityType {
+abstract class SnmpManagedEntityScalarType<V extends Variable> extends ManagedEntityTypeBuilder.AbstractManagedEntityType implements SnmpManagedEntityType {
     /**
      * Represents type of the wrapper for SNMP scalar type.
      */
     public final Class<V> snmpWrapperType;
     private final int syntax;
 
-    protected SnmpManagementEntityScalarType(final Class<V> wrapperType, final int syntax, final SMITypeProjection<V, ?>... converters){
+    protected SnmpManagedEntityScalarType(final Class<V> wrapperType, final int syntax, final SMITypeProjection<V, ?>... converters){
         super(converters);
         this.snmpWrapperType = wrapperType;
         this.syntax = syntax;

@@ -18,7 +18,7 @@ import java.util.Map;
 final class SnmpTypeSystem extends WellKnownTypeSystem {
 
 
-    private static final class TimeTicksType extends SnmpManagementEntityScalarType<TimeTicks>{
+    private static final class TimeTicksType extends SnmpManagedEntityScalarType<TimeTicks> {
         public TimeTicksType(final TimeTicksConversionFormat format){
             super(TimeTicks.class, SMIConstants.SYNTAX_TIMETICKS, format.createTypeProjection());
         }
@@ -36,7 +36,7 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    private static final class IpAddressType extends SnmpManagementEntityScalarType<IpAddress>{
+    private static final class IpAddressType extends SnmpManagedEntityScalarType<IpAddress> {
         public IpAddressType(final IpAddressConversionFormat format){
             super(IpAddress.class, SMIConstants.SYNTAX_IPADDRESS, format.createTypeProjection());
         }
@@ -55,7 +55,7 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    private static final class ObjectIdentifierType extends SnmpManagementEntityScalarType<OID>{
+    private static final class ObjectIdentifierType extends SnmpManagedEntityScalarType<OID> {
         public ObjectIdentifierType(final OidConversionFormat format){
             super(OID.class, SMIConstants.SYNTAX_OBJECT_IDENTIFIER, format.createTypeProjection());
         }
@@ -74,7 +74,7 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    private static final class OctetStringType extends SnmpManagementEntityScalarType<OctetString>{
+    private static final class OctetStringType extends SnmpManagedEntityScalarType<OctetString> {
         private final OctetStringConversionFormat format;
 
         public OctetStringType(final OctetStringConversionFormat conversionFormat){
@@ -136,12 +136,12 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
         return ArrayUtils.toObject(value.toByteArray());
     }
 
-    public SnmpManagementEntityType resolveSnmpScalarType(final Variable value, final Map<String, String> options){
+    public SnmpManagedEntityType resolveSnmpScalarType(final Variable value, final Map<String, String> options){
         //Opaque
         if(value instanceof Opaque)
-            return createEntityType(new Factory<SnmpManagementEntityScalarType<Opaque>>(){
-                public SnmpManagementEntityScalarType<Opaque> create() {
-                    return new SnmpManagementEntityScalarType<Opaque>(Opaque.class, SMIConstants.SYNTAX_OPAQUE){
+            return createEntityType(new Factory<SnmpManagedEntityScalarType<Opaque>>(){
+                public SnmpManagedEntityScalarType<Opaque> create() {
+                    return new SnmpManagedEntityScalarType<Opaque>(Opaque.class, SMIConstants.SYNTAX_OPAQUE){
                         @Override
                         protected Opaque convertToScalar(final Object value) throws InvalidSnmpValueException {
                             if(value instanceof byte[])
@@ -160,9 +160,9 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             return new OctetStringType(OctetStringConversionFormat.getFormat((OctetString)value, options));
         //Integer32
         else if(value instanceof Integer32)
-            return createEntityType(new Factory<SnmpManagementEntityScalarType<Integer32>>(){
-                public SnmpManagementEntityScalarType<Integer32> create() {
-                    return new SnmpManagementEntityScalarType<Integer32>(Integer32.class, SMIConstants.SYNTAX_INTEGER){
+            return createEntityType(new Factory<SnmpManagedEntityScalarType<Integer32>>(){
+                public SnmpManagedEntityScalarType<Integer32> create() {
+                    return new SnmpManagedEntityScalarType<Integer32>(Integer32.class, SMIConstants.SYNTAX_INTEGER){
                         @Override
                         protected Integer32 convertToScalar(final Object value) throws InvalidSnmpValueException {
                             if(value instanceof Integer)
@@ -180,9 +180,9 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             }, Integer.class);
         //Counter 32
         else if(value instanceof Counter32)
-            return createEntityType(new Factory<SnmpManagementEntityScalarType<Counter32>>(){
-                public SnmpManagementEntityScalarType<Counter32> create() {
-                    return new SnmpManagementEntityScalarType<Counter32>(Counter32.class, SMIConstants.SYNTAX_COUNTER32){
+            return createEntityType(new Factory<SnmpManagedEntityScalarType<Counter32>>(){
+                public SnmpManagedEntityScalarType<Counter32> create() {
+                    return new SnmpManagedEntityScalarType<Counter32>(Counter32.class, SMIConstants.SYNTAX_COUNTER32){
                         @Override
                         protected Counter32 convertToScalar(final Object value) throws InvalidSnmpValueException {
                             if(value instanceof Long)
@@ -202,9 +202,9 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             }, Long.class);
         //Counter 64
         else if(value instanceof Counter64)
-            return createEntityType(new Factory<SnmpManagementEntityScalarType<Counter64>>(){
-                public SnmpManagementEntityScalarType<Counter64> create() {
-                    return new SnmpManagementEntityScalarType<Counter64>(Counter64.class, SMIConstants.SYNTAX_COUNTER64){
+            return createEntityType(new Factory<SnmpManagedEntityScalarType<Counter64>>(){
+                public SnmpManagedEntityScalarType<Counter64> create() {
+                    return new SnmpManagedEntityScalarType<Counter64>(Counter64.class, SMIConstants.SYNTAX_COUNTER64){
                         @Override
                         protected Counter64 convertToScalar(final Object value) throws InvalidSnmpValueException {
                             if(value instanceof Long)
@@ -224,9 +224,9 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             }, Long.class);
         //Gauge32
         else if(value instanceof Gauge32)
-            return createEntityType(new Factory<SnmpManagementEntityScalarType<Gauge32>>(){
-                public SnmpManagementEntityScalarType<Gauge32> create() {
-                    return new SnmpManagementEntityScalarType<Gauge32>(Gauge32.class, SMIConstants.SYNTAX_GAUGE32){
+            return createEntityType(new Factory<SnmpManagedEntityScalarType<Gauge32>>(){
+                public SnmpManagedEntityScalarType<Gauge32> create() {
+                    return new SnmpManagedEntityScalarType<Gauge32>(Gauge32.class, SMIConstants.SYNTAX_GAUGE32){
                         @Override
                         protected Gauge32 convertToScalar(final Object value) throws InvalidSnmpValueException {
                             if(value instanceof Long)
@@ -249,9 +249,9 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             return new TimeTicksType(TimeTicksConversionFormat.getFormat(options));
         //UnsignedInteger32
         else if(value instanceof UnsignedInteger32)
-            return createEntityType(new Factory<SnmpManagementEntityScalarType<UnsignedInteger32>>(){
-                public SnmpManagementEntityScalarType<UnsignedInteger32> create() {
-                    return new SnmpManagementEntityScalarType<UnsignedInteger32>(UnsignedInteger32.class, SMIConstants.SYNTAX_UNSIGNED_INTEGER32){
+            return createEntityType(new Factory<SnmpManagedEntityScalarType<UnsignedInteger32>>(){
+                public SnmpManagedEntityScalarType<UnsignedInteger32> create() {
+                    return new SnmpManagedEntityScalarType<UnsignedInteger32>(UnsignedInteger32.class, SMIConstants.SYNTAX_UNSIGNED_INTEGER32){
                         @Override
                         protected UnsignedInteger32 convertToScalar(final Object value) throws InvalidSnmpValueException {
                             if(value instanceof Long)

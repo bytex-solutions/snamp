@@ -10,7 +10,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public interface ManagementEntityMetadata extends Map<String, String>, Descriptive {
+public interface ManagedEntityMetadata extends Map<String, String>, Descriptive {
 
 
 }

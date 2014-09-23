@@ -9,6 +9,8 @@ import org.junit.Test;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.math.BigInteger;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Roman Sakno
@@ -46,6 +48,53 @@ public final class XmlCommandLineToolProfileTest extends AbstractUnitTest<XmlCom
     }
 
     @Test
+    public void arrayParsingUsingJavaScriptTest() throws ScriptException{
+        final XmlCommandLineToolOutputParser parser = new XmlCommandLineToolOutputParser();
+        parser.setReturnType(XmlCommandLineToolReturnType.ARRAY);
+        parser.setParsingLanguage(XmlCommandLineToolOutputParser.JAVASCRIPT_LANG);
+        parser.addParsingRule("if(!this.initialized){ stream.setupDefaultSyntax(); this.initialized = true; }; stream.parseWord();");
+        parser.addArrayItem("stream.parseByte();", XmlCommandLineToolReturnType.BYTE);
+        parser.addLineTermination("stream.parseWord();");
+        final ScriptEngineManager manager = new ScriptEngineManager();
+        final Object result = parser.parse("ab 1 ba ab 2 cd ef 3 gh", manager);
+        assertTrue(result instanceof Byte[]);
+        assertArrayEquals(new Byte[]{1, 2, 3}, result);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void tableParsingUsingJavaScriptTest() throws ScriptException{
+        final XmlCommandLineToolOutputParser parser = new XmlCommandLineToolOutputParser();
+        parser.setReturnType(XmlCommandLineToolReturnType.TABLE);
+        parser.setParsingLanguage(XmlCommandLineToolOutputParser.JAVASCRIPT_LANG);
+        parser.addParsingRule("if(!this.initialized){stream.setupDefaultSyntax(); this.initialized = true; }; stream.parseWord();");
+        parser.addTableColumn("col1", "stream.parseInt();", XmlCommandLineToolReturnType.INTEGER);
+        parser.addTableColumn("col2", "stream.parseWord();", XmlCommandLineToolReturnType.BOOLEAN);
+        parser.addLineTermination("stream.parseWord();");
+        final List<Map<String, Object>> result = (List<Map<String, Object>>)parser.parse("prefix 42 true postfix prefix 43 false postfix", new ScriptEngineManager());
+        assertEquals(2, result.size());
+        assertEquals(42, result.get(0).get("col1"));
+        assertEquals(Boolean.TRUE, result.get(0).get("col2"));
+    }
+
+    @Test
+    public void dictionaryParsingUsingJavaScriptTest() throws ScriptException{
+        final XmlCommandLineToolOutputParser parser = new XmlCommandLineToolOutputParser();
+        parser.setReturnType(XmlCommandLineToolReturnType.DICTIONARY);
+        parser.setParsingLanguage(XmlCommandLineToolOutputParser.JAVASCRIPT_LANG);
+        parser.addParsingRule("stream.setupDefaultSyntax();stream.parseWord();");
+        parser.addDictionaryEntryRule("key1", "stream.parseLong();", XmlCommandLineToolReturnType.LONG);
+        parser.addDictionaryEntryRule("key2", "stream.parseWord();", XmlCommandLineToolReturnType.STRING);
+        parser.addDictionaryEntryRule("key3", "stream.parseBoolean();", XmlCommandLineToolReturnType.BOOLEAN);
+        final Object result = parser.parse("ab 42 hello true", new ScriptEngineManager());
+        assertTrue(result instanceof Map);
+        assertEquals(3, ((Map)result).size());
+        assertEquals(42L, ((Map)result).get("key1"));
+        assertEquals("hello", ((Map)result).get("key2"));
+        assertEquals(Boolean.TRUE, ((Map)result).get("key3"));
+    }
+
+    @Test
     public void scalarParsingUsingJavaScriptTest() throws ScriptException {
         final XmlCommandLineToolOutputParser parser = new XmlCommandLineToolOutputParser();
         parser.setParsingLanguage(XmlCommandLineToolOutputParser.JAVASCRIPT_LANG);
@@ -78,5 +127,12 @@ public final class XmlCommandLineToolProfileTest extends AbstractUnitTest<XmlCom
         result = parser.parse("aabbaa20.1aabaa", manager);
         assertTrue(result instanceof Float);
         assertEquals(20.1F, result);
+        //Test for parsing BLOB in HEX format
+        parser.setReturnType(XmlCommandLineToolReturnType.BLOB);
+        parser.removeParsingRules();
+        parser.addParsingRule("stream.wordChars(48, 57); stream.parseWord();");
+        result = parser.parse("20", manager);
+        assertTrue(result instanceof Byte[]);
+        assertArrayEquals(new Byte[]{0x20}, (Byte[])result);
     }
 }

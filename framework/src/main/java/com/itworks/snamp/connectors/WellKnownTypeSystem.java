@@ -29,9 +29,9 @@ import java.util.*;
  *     <ul>
  *         <li>Tabular data should be convertible to {@link com.itworks.snamp.Table} type. An implementation
  *         for this interface is provided by {@link com.itworks.snamp.SimpleTable} class. Entity data type
- *         should implements {@link ManagementEntityTabularType} interface.</li>
+ *         should implements {@link ManagedEntityTabularType} interface.</li>
  *         <li>Array data should be convertible to Java array and {@link com.itworks.snamp.Table} type. Attribute
- *         data type should inherits from {@link ManagementEntityTypeBuilder.ManagementEntityArrayType} class.</li>
+ *         data type should inherits from {@link ManagedEntityTypeBuilder.ManagedEntityArrayType} class.</li>
  *         <li>Map data should be convertible to {@link com.itworks.snamp.Table} type, and, optionally,
  *         to {@link Map} type. Map is a special case of tabular data when table has single row
  *         and multiple columns, where each column represents map key.</li>
@@ -70,7 +70,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
+public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
 
     /**
      * Converts {@link String} to {@link Byte}.
@@ -395,7 +395,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Byte}.
      */
-    public final static boolean supportsInt8(final ManagementEntityType entityType){
+    public final static boolean supportsInt8(final ManagedEntityType entityType){
         return supportsProjection(entityType, Byte.class);
     }
 
@@ -404,7 +404,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Byte}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createInt8Type(){
+    public final ManagedEntityType createInt8Type(){
         return createEntitySimpleType(Byte.class);
     }
 
@@ -415,7 +415,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Short}.
      */
-    public final static boolean supportsInt16(final ManagementEntityType entityType){
+    public final static boolean supportsInt16(final ManagedEntityType entityType){
         return supportsProjection(entityType, Short.class);
     }
 
@@ -424,7 +424,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Short}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createInt16Type(){
+    public final ManagedEntityType createInt16Type(){
         return createEntitySimpleType(Short.class);
     }
 
@@ -435,7 +435,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Integer}.
      */
-    public final static boolean supportsInt32(final ManagementEntityType entityType){
+    public final static boolean supportsInt32(final ManagedEntityType entityType){
         return supportsProjection(entityType, Integer.class);
     }
 
@@ -444,7 +444,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Integer}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createInt32Type(){
+    public final ManagedEntityType createInt32Type(){
         return createEntitySimpleType(Integer.class);
     }
 
@@ -455,7 +455,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Long}.
      */
-    public final static boolean supportsInt64(final ManagementEntityType entityType){
+    public final static boolean supportsInt64(final ManagedEntityType entityType){
         return supportsProjection(entityType, Long.class);
     }
 
@@ -464,7 +464,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Long}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createInt64Type(){
+    public final ManagedEntityType createInt64Type(){
         return createEntitySimpleType(Long.class);
     }
 
@@ -475,7 +475,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link BigInteger}.
      */
-    public final static boolean supportsInteger(final ManagementEntityType entityType){
+    public final static boolean supportsInteger(final ManagedEntityType entityType){
         return supportsProjection(entityType, BigInteger.class);
     }
 
@@ -484,7 +484,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link BigInteger}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createIntegerType(){
+    public final ManagedEntityType createIntegerType(){
         return createEntitySimpleType(BigInteger.class);
     }
 
@@ -495,7 +495,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link BigDecimal}.
      */
-    public final static boolean supportsDecimal(final ManagementEntityType entityType){
+    public final static boolean supportsDecimal(final ManagedEntityType entityType){
         return supportsProjection(entityType, BigDecimal.class);
     }
 
@@ -504,7 +504,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link BigDecimal}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createDecimalType(){
+    public final ManagedEntityType createDecimalType(){
         return createEntitySimpleType(BigDecimal.class);
     }
 
@@ -515,7 +515,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Date}.
      */
-    public final static boolean supportsUnixTime(final ManagementEntityType entityType){
+    public final static boolean supportsUnixTime(final ManagedEntityType entityType){
         return supportsProjection(entityType, Date.class);
     }
 
@@ -524,7 +524,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Date}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createUnixTimeType(){
+    public final ManagedEntityType createUnixTimeType(){
         return createEntitySimpleType(Date.class);
     }
 
@@ -535,7 +535,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Boolean}.
      */
-    public final static boolean supportsBoolean(final ManagementEntityType entityType){
+    public final static boolean supportsBoolean(final ManagedEntityType entityType){
         return supportsProjection(entityType, Boolean.class);
     }
 
@@ -544,7 +544,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Boolean}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createBooleanType(){
+    public final ManagedEntityType createBooleanType(){
         return createEntitySimpleType(Boolean.class);
     }
 
@@ -555,7 +555,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link String}.
      */
-    public final static boolean supportsString(final ManagementEntityType entityType){
+    public final static boolean supportsString(final ManagedEntityType entityType){
         return supportsProjection(entityType, String.class);
     }
 
@@ -564,7 +564,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link String}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createStringType(){
+    public final ManagedEntityType createStringType(){
         return createEntitySimpleType(String.class);
     }
 
@@ -575,7 +575,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Float}.
      */
-    public final static boolean supportsFloat(final ManagementEntityType entityType){
+    public final static boolean supportsFloat(final ManagedEntityType entityType){
         return supportsProjection(entityType, Float.class);
     }
 
@@ -584,7 +584,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Float}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createFloatType(){
+    public final ManagedEntityType createFloatType(){
         return createEntitySimpleType(Float.class);
     }
 
@@ -595,7 +595,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Double}.
      */
-    public final static boolean supportsDouble(final ManagementEntityType entityType){
+    public final static boolean supportsDouble(final ManagedEntityType entityType){
         return supportsProjection(entityType, Double.class);
     }
 
@@ -604,7 +604,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Double}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createDoubleType(){
+    public final ManagedEntityType createDoubleType(){
         return createEntitySimpleType(Double.class);
     }
 
@@ -613,8 +613,8 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @param elementType An element type of the array.
      * @return A new array type that can be converted into {@link Object[]}.
      */
-    public final AbstractManagementEntityType createEntityArrayType(final ManagementEntityType elementType){
-        return createEntityType(new Factory<ManagementEntityArrayType>(){
+    public final AbstractManagedEntityType createEntityArrayType(final ManagedEntityType elementType){
+        return createEntityType(new Factory<ManagedEntityArrayType>(){
 
             /**
              * Creates a new instance of the specified type.
@@ -622,8 +622,8 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public ManagementEntityArrayType create() {
-                return new ManagementEntityArrayType(elementType);
+            public ManagedEntityArrayType create() {
+                return new ManagedEntityArrayType(elementType);
             }
         }, Object[].class);
     }
@@ -631,17 +631,17 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
     /**
      * Creates a new tabular type that can be converted into {@link Table}.
      * <p>
-     *  The returned {@link ManagementEntityTabularType} instance throws {@link UnsupportedOperationException}
-     *  exception when {@link ManagementEntityTabularType#getRowCount()} is invoked.
+     *  The returned {@link ManagedEntityTabularType} instance throws {@link UnsupportedOperationException}
+     *  exception when {@link ManagedEntityTabularType#getRowCount()} is invoked.
      * </p>
      * @param columns A collection of columns.
      * @param index An array of indexed columns.
      * @return A new instance of the tabular type.
      */
-    public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns, final String... index){
-        final Map<String, ManagementEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
+    public final ManagedEntityType createEntityTabularType(final Map<String, ManagedEntityType> columns, final String... index){
+        final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
         final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
-        return createEntityType(new Factory<AbstractManagementEntityTabularType>(){
+        return createEntityType(new Factory<AbstractManagedEntityTabularType>(){
 
             /**
              * Creates a new instance of the specified type.
@@ -649,8 +649,8 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public AbstractManagementEntityTabularType create() {
-                return new AbstractManagementEntityTabularType() {
+            public AbstractManagedEntityTabularType create() {
+                return new AbstractManagedEntityTabularType() {
                     @Override
                     public final Collection<String> getColumns() {
                         return readonlyColumns.keySet();
@@ -668,7 +668,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
                     }
 
                     @Override
-                    public final ManagementEntityType getColumnType(final String column) {
+                    public final ManagedEntityType getColumnType(final String column) {
                         return readonlyColumns.get(column);
                     }
 
@@ -684,18 +684,18 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
     /**
      * Creates a new tabular type that can be converted into {@link Table}.
      * <p>
-     *  The returned {@link ManagementEntityTabularType} returns {@code rowCount} from
-     *  {@link ManagementEntityTabularType#getRowCount()} method.
+     *  The returned {@link ManagedEntityTabularType} returns {@code rowCount} from
+     *  {@link ManagedEntityTabularType#getRowCount()} method.
      * </p>
      * @param columns A collection of columns.
      * @param rowCount A row count in the table.
      * @param index An array of indexed columns.
      * @return A new instance of the tabular type.
      */
-    public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns, final int rowCount, final String... index){
-        final Map<String, ManagementEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
+    public final ManagedEntityType createEntityTabularType(final Map<String, ManagedEntityType> columns, final int rowCount, final String... index){
+        final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
         final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
-        return createEntityType(new Factory<AbstractManagementEntityTabularType>(){
+        return createEntityType(new Factory<AbstractManagedEntityTabularType>(){
 
             /**
              * Creates a new instance of the specified type.
@@ -703,8 +703,8 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public AbstractManagementEntityTabularType create() {
-                return new AbstractManagementEntityTabularType() {
+            public AbstractManagedEntityTabularType create() {
+                return new AbstractManagedEntityTabularType() {
                     @Override
                     public final Collection<String> getColumns() {
                         return readonlyColumns.keySet();
@@ -722,7 +722,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
                     }
 
                     @Override
-                    public final ManagementEntityType getColumnType(final String column) {
+                    public final ManagedEntityType getColumnType(final String column) {
                         return readonlyColumns.get(column);
                     }
 

@@ -1,9 +1,9 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.*;
-import static com.itworks.snamp.connectors.ManagementEntityTypeHelper.*;
+import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.*;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
 
@@ -15,12 +15,12 @@ final class SnmpFloatObject extends SnmpScalarObject<OctetString>{
         super(oid, connector, new OctetString(defaultValue.toString()));
     }
 
-    public static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo){
+    public static OctetString convert(final Object value, final ManagedEntityType attributeTypeInfo){
         final Number convertedValue = convertFrom(attributeTypeInfo, value, Number.class, Float.class, Double.class);
         return new OctetString(convertedValue.toString());
     }
 
-    public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
+    public static Object convert(final Variable value, final ManagedEntityType attributeTypeInfo){
         return convertFrom(attributeTypeInfo, value.toString(), Number.class, fallbackWithDefaultValue(defaultValue, value, attributeTypeInfo), Float.class, Double.class);
     }
 

@@ -43,4 +43,21 @@ public class SimpleTableTest extends AbstractUnitTest<SimpleTable> {
         table.removeRow(0);
         assertEquals(1, table.getRowCount());
     }
+
+    @Test
+    public final void fromArrayTest(){
+        final Map<String, Object>[] rows = new Map[2];
+        Map<String, Object> row = rows[0] = new HashMap<>(3);
+        row.put("key1", 1L);
+        row.put("key2", "2");
+        row.put("key3", true);
+        row = rows[1] = new HashMap<>(3);
+        row.put("key1", 42L);
+        row.put("key2", "hello");
+        row.put("key3", false);
+        final Table<String> t = SimpleTable.fromArray(rows);
+        assertEquals(2, t.getRowCount());
+        assertEquals(Boolean.TRUE, t.getCell("key3", 0));
+        assertEquals(Object.class, t.getColumnType("key2"));
+    }
 }

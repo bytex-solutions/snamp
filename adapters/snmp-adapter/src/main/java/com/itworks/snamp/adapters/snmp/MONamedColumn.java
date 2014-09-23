@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.connectors.ManagementEntityTabularType;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityTabularType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOMutableColumn;
 import org.snmp4j.smi.Variable;
@@ -37,11 +37,11 @@ class MONamedColumn<V extends Variable> extends MOMutableColumn<V> {
         this.columnType = columnType;
     }
 
-    protected MONamedColumn(final int columnID, final String columnName, final ManagementEntityType columnType, final MOAccess access, final boolean isIndexed){
+    protected MONamedColumn(final int columnID, final String columnName, final ManagedEntityType columnType, final MOAccess access, final boolean isIndexed){
         this(columnID, columnName, SnmpType.map(columnType), access, isIndexed);
     }
 
-    public MONamedColumn(final int columnID, final String columnName, final ManagementEntityTabularType type, final MOAccess access) {
+    public MONamedColumn(final int columnID, final String columnName, final ManagedEntityTabularType type, final MOAccess access) {
         this(columnID, columnName, type.getColumnType(columnName), access, type.isIndexed(columnName));
     }
 
@@ -53,12 +53,12 @@ class MONamedColumn<V extends Variable> extends MOMutableColumn<V> {
         return false;
     }
 
-    public Object parseCellValue(final V value, final ManagementEntityType ct, final Map<String, String> conversionOptions) {
+    public Object parseCellValue(final V value, final ManagedEntityType ct, final Map<String, String> conversionOptions) {
         return columnType.convert(value, ct, conversionOptions);
     }
 
     @SuppressWarnings("unchecked")
-    public V createCellValue(final Object cell, final ManagementEntityType ct, final Map<String, String> conversionOptions) {
+    public V createCellValue(final Object cell, final ManagedEntityType ct, final Map<String, String> conversionOptions) {
         return (V)columnType.convert(cell, ct, conversionOptions);
     }
 }

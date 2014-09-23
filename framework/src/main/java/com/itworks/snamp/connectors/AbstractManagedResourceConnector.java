@@ -48,7 +48,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class GenericAttributeMetadata<T extends ManagementEntityType> implements AttributeMetadata {
+    protected static abstract class GenericAttributeMetadata<T extends ManagedEntityType> implements AttributeMetadata {
         /**
          * Represents the name of the attribute configuration parameter that assigns the display
          * name for the attribute.

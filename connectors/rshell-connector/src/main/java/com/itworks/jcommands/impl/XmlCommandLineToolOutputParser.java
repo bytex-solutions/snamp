@@ -1,16 +1,21 @@
 package com.itworks.jcommands.impl;
 
 import com.itworks.snamp.internal.semantics.Internal;
+import org.apache.commons.collections4.ResettableListIterator;
 import org.apache.commons.collections4.Transformer;
+import org.apache.commons.collections4.iterators.ListIteratorWrapper;
+import org.apache.commons.lang3.ArrayUtils;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.annotation.*;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -202,6 +207,32 @@ public class XmlCommandLineToolOutputParser {
         }
     }
 
+    private static final class ArrayBuilder extends ArrayList<Object> {
+        private Class<?> elementType;
+
+        public ArrayBuilder() {
+            super(10);
+            elementType = String.class;
+        }
+
+        public void setElementType(final Class<?> value) {
+            this.elementType = value;
+        }
+
+        public void setElementType(final XmlCommandLineToolReturnType value) {
+            setElementType(value.underlyingType);
+        }
+
+        @SuppressWarnings("NullableProblems")
+        @Override
+        public Object[] toArray() {
+            final Object result = Array.newInstance(elementType, size());
+            for (int i = 0; i < size(); i++)
+                Array.set(result, i, get(i));
+            return (Object[]) result;
+        }
+    }
+
     /**
      * Represents parsing rule. This class cannot be inherited directly from your code.
      * @author Roman Sakno
@@ -226,6 +257,13 @@ public class XmlCommandLineToolOutputParser {
          */
         public final boolean compatibleWith(final XmlCommandLineToolReturnType type){
             return related.contains(type);
+        }
+
+        static <R extends ParsingRule> R findRule(final List parsingTemplate, final Class<R> ruleType){
+            for(final Object template: parsingTemplate)
+                if(ruleType.isInstance(template))
+                    return ruleType.cast(template);
+            return null;
         }
     }
 
@@ -306,10 +344,23 @@ public class XmlCommandLineToolOutputParser {
     @XmlAccessorType(XmlAccessType.PROPERTY)
     public static final class ArrayItemParsingRule extends ParsingRule{
         private String itemParsingRule;
+        private XmlCommandLineToolReturnType elementType;
 
         public ArrayItemParsingRule(){
             super(XmlCommandLineToolReturnType.ARRAY);
             itemParsingRule = "";
+            elementType = XmlCommandLineToolReturnType.STRING;
+        }
+
+        public XmlCommandLineToolReturnType getElementType(){
+            return elementType;
+        }
+
+        @XmlAttribute(name = "elementType", namespace = XmlConstants.NAMESPACE, required = true)
+        public void setElementType(final XmlCommandLineToolReturnType value){
+            if(value == null || !value.isScalar)
+                throw new IllegalArgumentException(String.format("Expected scalar type but found %s", value));
+            else elementType = value;
         }
 
         @XmlValue
@@ -320,10 +371,15 @@ public class XmlCommandLineToolOutputParser {
         public void setItemParsingRule(final String value){
             itemParsingRule = value != null ? value : "";
         }
+
+        private static Class<?> getNativeType(final List parsingTemplate) {
+            final ArrayItemParsingRule rule = findRule(parsingTemplate, ArrayItemParsingRule.class);
+            return rule != null ? Array.newInstance(rule.getElementType().underlyingType, 0).getClass() : null;
+        }
     }
 
     /**
-     * Describes parsing of the key/value pair for the dictionary.
+     * Describes parsing of the key/value pair for the diction1ary.
      * This class cannot be inherited.
      * @author Roman Sakno
      * @since 1.0
@@ -394,6 +450,7 @@ public class XmlCommandLineToolOutputParser {
                 throw new IllegalArgumentException(String.format("Expecting scalar type but %s found", value));
             else this.valueType = value;
         }
+
     }
 
     /**
@@ -405,15 +462,33 @@ public class XmlCommandLineToolOutputParser {
      */
     @Internal
     public static final class ParsingStream extends StreamTokenizer {
+        private static final String STREAM_BINDING = "stream";
 
         private ParsingStream(final StringReader reader) {
             super(reader);
             resetSyntax();
         }
 
+
+
+        private static ParsingStream getParsingStream(final ScriptEngine engine) {
+            return (ParsingStream) engine.get(STREAM_BINDING);
+        }
+
+        /**
+         * Determines whether the current token stream is not empty.
+         * @return {@literal true}, if this stream is not empty; otherwise, {@literal false}.
+         */
+        public boolean hasNextToken(){
+            return ttype != TT_EOF;
+        }
+
         /**
          * Setup the default syntax for this tokenizer.
+         * <p>
+         *     This method indirectly used by parsing script.
          */
+        @SuppressWarnings("UnusedDeclaration")
         public final void setupDefaultSyntax() {
             wordChars('a', 'z');
             wordChars('A', 'Z');
@@ -607,10 +682,12 @@ public class XmlCommandLineToolOutputParser {
          * or {@literal null}, if the next token is not a number.
          * @throws IOException Some I/O problem occurs in the underlying stream.
          */
+        @SuppressWarnings("UnusedDeclaration")
         public final long parseLong(final long defval) throws IOException {
             return parseLong(defval, DEFAULT_NUMBER_FORMAT);
         }
 
+        @SuppressWarnings("UnusedDeclaration")
         public final long parseLong(final long defval, final String pattern) throws IOException {
             return parseLong(defval, createNumberParser(pattern));
         }
@@ -790,6 +867,58 @@ public class XmlCommandLineToolOutputParser {
     }
 
     /**
+     * Represents format of the BLOB fragment.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    @XmlType(name = "BlobFormat", namespace = XmlConstants.NAMESPACE)
+    @XmlEnum
+    public static enum BLOBFormat implements Converter<Byte[]> {
+        /**
+         * Represents textual fragment with HEX numbers.
+         */
+        @XmlEnumValue("hex")
+        HEX {
+
+            @Override
+            public Byte[] parse(final String input) {
+                return ArrayUtils.toObject(DatatypeConverter.parseHexBinary(input));
+            }
+        },
+
+        /**
+         * Represents textual fragment encoding with BASE-64.
+         */
+        @XmlEnumValue("base64")
+        BASE64 {
+            @Override
+            public Byte[] parse(final String input) {
+                return ArrayUtils.toObject(DatatypeConverter.parseBase64Binary(input));
+            }
+        };
+
+
+
+        /**
+         * Parses textual fragment into the array of bytes.
+         * @param input The fragment to parse.
+         * @return An array of bytes that represents the BLOB.
+         */
+        public abstract Byte[] parse(final String input);
+
+        /**
+         * Parses textual fragment into the array of bytes.
+         * @param input The fragment to parse.
+         * @return An array of bytes that represents the BLOB.
+         */
+        @Override
+        public final Byte[] transform(final String input) {
+            return parse(input);
+        }
+    }
+
+    /**
      * Represents Regexp as parsing language for output stream.
      */
     public static final String REGEXP_LANG = "regexp";
@@ -808,6 +937,7 @@ public class XmlCommandLineToolOutputParser {
     private List parsingTemplate;
     private NumberParser numberFormatter;
     private DateParser dateFormatter;
+    private BLOBFormat blobFormatter;
 
     /**
      * Initializes a new parser without settings.
@@ -818,6 +948,16 @@ public class XmlCommandLineToolOutputParser {
         parsingTemplate = null;
         numberFormatter = DEFAULT_NUMBER_FORMAT;
         dateFormatter = DEFAULT_DATE_TIME_FORMAT;
+        blobFormatter = BLOBFormat.HEX;
+    }
+
+    @XmlAttribute(name = "blobFormat", namespace = XmlConstants.NAMESPACE, required = false)
+    public final void setBlobParsingFormat(final BLOBFormat value){
+        blobFormatter = value;
+    }
+
+    public final BLOBFormat getBlobParsingFormat(){
+        return blobFormatter;
     }
 
     @XmlAttribute(name = "dateTimeFormat", namespace = XmlConstants.NAMESPACE, required = false)
@@ -921,10 +1061,12 @@ public class XmlCommandLineToolOutputParser {
     /**
      * Adds parsing rule for the array item.
      * @param itemParsingRule The parsing rule for the array item.
+     * @param elementType Type of the array elements.
      */
-    public final void addArrayItem(final String itemParsingRule){
+    public final void addArrayItem(final String itemParsingRule, final XmlCommandLineToolReturnType elementType){
         final ArrayItemParsingRule rule = new ArrayItemParsingRule();
         rule.setItemParsingRule(itemParsingRule);
+        rule.setElementType(elementType);
         addParsingRule(rule);
     }
 
@@ -1170,23 +1312,128 @@ public class XmlCommandLineToolOutputParser {
                 }, new Date(0L));
     }
 
+    private static Byte[] parseBLOB(final List parsingTemplate,
+                                    final BLOBFormat format,
+                                    final ScriptEngine engine) throws ScriptException {
+        return parseScalar(parsingTemplate,
+                engine,
+                format, new Byte[0]);
+    }
+
+    private static void runPlaceholder(final String fragment, final ScriptEngine engine) throws ScriptException {
+        engine.eval(fragment);
+    }
+
+    private Object[] parseArray(final ResettableListIterator parsingTemplateIter,
+                                     final ScriptEngine engine) throws ScriptException {
+        final ArrayBuilder builder = new ArrayBuilder();
+        final ParsingStream stream = ParsingStream.getParsingStream(engine);
+        while (stream.hasNextToken() && parsingTemplateIter.hasNext()) {
+            final Object templateFragment = parsingTemplateIter.next();
+            if (templateFragment instanceof String)  //pass through placeholder
+                runPlaceholder((String) templateFragment, engine);
+            else if (templateFragment instanceof ArrayItemParsingRule) {
+                final ArrayItemParsingRule rule = (ArrayItemParsingRule) templateFragment;
+                final Object element = parse(rule.getElementType(), Arrays.asList(rule.getItemParsingRule()), engine);
+                builder.add(element);
+                builder.setElementType(rule.getElementType());
+                //...just continue parsing
+            } else if (templateFragment instanceof LineTerminationParsingRule) {
+                //pass through the line terminator
+                runPlaceholder(((LineTerminationParsingRule) templateFragment).getTerminationRule(), engine);
+                //...and set parsing template iterator to the initial state
+                parsingTemplateIter.reset();
+            }
+        }
+        return builder.toArray();
+    }
+
+    private Map<String, Object> parseDictionary(final ResettableListIterator parsingTemplateIter,
+                                                final ScriptEngine engine) throws ScriptException {
+        final Map<String, Object> result = new LinkedHashMap<>();
+        final ParsingStream stream = ParsingStream.getParsingStream(engine);
+        while (stream.hasNextToken() && parsingTemplateIter.hasNext()){
+            final Object templateFragment = parsingTemplateIter.next();
+            if(templateFragment instanceof String)
+                runPlaceholder((String)templateFragment, engine);
+            else if(templateFragment instanceof DictionaryEntryParsingRule){
+                final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule)templateFragment;
+                result.put(rule.getKeyName(), parse(rule.getValueType(), Arrays.asList(rule.getValueParsingRule()), engine));
+            }
+        }
+        return result;
+    }
+
+    private Collection<Map<String, Object>> parseTable(final ResettableListIterator parsingTemplateIter,
+                                                       final ScriptEngine engine) throws ScriptException{
+        final List<Map<String, Object>> table = new LinkedList<>();
+        Map<String, Object> row = new LinkedHashMap<>();
+        final ParsingStream stream = ParsingStream.getParsingStream(engine);
+        while (stream.hasNextToken() && parsingTemplateIter.hasNext()){
+            final Object templateFragment = parsingTemplateIter.next();
+            if(templateFragment instanceof String)
+                runPlaceholder((String)templateFragment, engine);
+            else if(templateFragment instanceof TableColumnParsingRule){
+                final TableColumnParsingRule rule = (TableColumnParsingRule)templateFragment;
+                row.put(rule.getColumnName(), parse(rule.getColumnType(), Arrays.asList(rule.getColumnValueParsingRule()), engine));
+            }
+            else if(templateFragment instanceof LineTerminationParsingRule){
+                table.add(row);
+                row = new LinkedHashMap<>();
+                runPlaceholder(((LineTerminationParsingRule)templateFragment).getTerminationRule(), engine);
+                parsingTemplateIter.reset();
+            }
+        }
+        return table;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object parse(final XmlCommandLineToolReturnType retType,
+                         final List parsingTemplate,
+                         final ScriptEngine engine) throws ScriptException {
+        switch (retType) {
+            case BYTE:
+                return parseByte(parsingTemplate, numberFormatter, engine);
+            case SHORT:
+                return parseShort(parsingTemplate, numberFormatter, engine);
+            case INTEGER:
+                return parseInteger(parsingTemplate, numberFormatter, engine);
+            case LONG:
+                return parseLong(parsingTemplate, numberFormatter, engine);
+            case FLOAT:
+                return parseFloat(parsingTemplate, numberFormatter, engine);
+            case DOUBLE:
+                return parseDouble(parsingTemplate, numberFormatter, engine);
+            case BIG_INTEGER:
+                return parseBigInt(parsingTemplate, numberFormatter, engine);
+            case BIG_DECIMAL:
+                return parseDecimal(parsingTemplate, numberFormatter, engine);
+            case STRING:
+                return parseString(parsingTemplate, engine);
+            case BOOLEAN:
+                return parseBoolean(parsingTemplate, engine);
+            case DATE_TIME:
+                return parseDate(parsingTemplate, dateFormatter, engine);
+            case BLOB:
+                return parseBLOB(parsingTemplate, blobFormatter, engine);
+            case ARRAY:
+                return parseArray(new ListIteratorWrapper(parsingTemplate.iterator()),
+                        engine);
+            case DICTIONARY:
+                return parseDictionary(new ListIteratorWrapper(parsingTemplate.iterator()),
+                        engine);
+            case TABLE:
+                return parseTable(new ListIteratorWrapper(parsingTemplate.iterator()),
+                        engine);
+            default:
+                throw new IllegalStateException(String.format("Invalid return type %s", getReturnType()));
+        }
+    }
+
     private Object parse(final String input, final ScriptEngine engine) throws ScriptException{
         try(final StringReader reader = new StringReader(input)){
-            engine.put("stream", new ParsingStream(reader));
-            switch (getReturnType()){
-                case BYTE: return parseByte(getParsingTemplate(), numberFormatter, engine);
-                case SHORT: return parseShort(getParsingTemplate(), numberFormatter, engine);
-                case INTEGER: return parseInteger(getParsingTemplate(), numberFormatter, engine);
-                case LONG: return parseLong(getParsingTemplate(), numberFormatter, engine);
-                case FLOAT: return parseFloat(getParsingTemplate(), numberFormatter, engine);
-                case DOUBLE: return parseDouble(getParsingTemplate(), numberFormatter, engine);
-                case BIG_INTEGER: return parseBigInt(getParsingTemplate(), numberFormatter, engine);
-                case BIG_DECIMAL: return parseDecimal(getParsingTemplate(), numberFormatter, engine);
-                case STRING: return parseString(getParsingTemplate(), engine);
-                case BOOLEAN: return parseBoolean(getParsingTemplate(), engine);
-                case DATE_TIME: return parseDate(getParsingTemplate(), dateFormatter, engine);
-                default: throw new IllegalStateException(String.format("Invalid return type %s", getReturnType()));
-            }
+            engine.put(ParsingStream.STREAM_BINDING, new ParsingStream(reader));
+            return parse(getReturnType(), getParsingTemplate(), engine);
         }
     }
 }

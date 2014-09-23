@@ -5,7 +5,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeValue;
@@ -270,7 +270,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * @throws java.lang.IllegalStateException The accessor is disconnected from the managed resource connector.
          */
         @Override
-        public ManagementEntityType getType() throws IllegalStateException{
+        public ManagedEntityType getType() throws IllegalStateException{
             return getMetadataAndCheckState().getType();
         }
 

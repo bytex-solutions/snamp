@@ -1,11 +1,11 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
 
-import static com.itworks.snamp.connectors.ManagementEntityTypeHelper.convertFrom;
+import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.convertFrom;
 import static org.snmp4j.smi.SMIConstants.SYNTAX_INTEGER32;
 
 @MOSyntax(SYNTAX_INTEGER32)
@@ -16,14 +16,14 @@ final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
         super(oid, connector, new Integer32(defaultValue));
     }
 
-    public static Integer32 convert(final Object value, final ManagementEntityType attributeTypeInfo){
+    public static Integer32 convert(final Object value, final ManagedEntityType attributeTypeInfo){
         return new Integer32(convertFrom(attributeTypeInfo, value, Boolean.class) ? 1 : 0);
     }
 
 
     //do not remove 'type' argument because it is used by reflection in SnmpType
     @SuppressWarnings("UnusedParameters")
-    public static Boolean convert(final Variable value, final ManagementEntityType type){
+    public static Boolean convert(final Variable value, final ManagedEntityType type){
         return value.toLong() != 0;
     }
 

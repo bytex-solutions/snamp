@@ -10,13 +10,13 @@ import java.util.concurrent.Callable;
 
 /**
  * Represents additional helpers methods that simplifies communication
- * with {@link com.itworks.snamp.connectors.ManagementEntityType} instances. This class cannot be inherited or instantiated.
+ * with {@link ManagedEntityType} instances. This class cannot be inherited or instantiated.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class ManagementEntityTypeHelper {
-    private ManagementEntityTypeHelper(){
+public final class ManagedEntityTypeHelper {
+    private ManagedEntityTypeHelper(){
 
     }
 
@@ -27,7 +27,7 @@ public final class ManagementEntityTypeHelper {
      * @return {@literal true}, if the specified management entity supports all of the specified projections; otherwise, {@literal false}.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public static boolean supportsAllProjections(final ManagementEntityType entityType, final Class<?>... projections){
+    public static boolean supportsAllProjections(final ManagedEntityType entityType, final Class<?>... projections){
         for(final Class<?> p: projections)
             if(!supportsProjection(entityType, p)) return false;
         return true;
@@ -40,7 +40,7 @@ public final class ManagementEntityTypeHelper {
      * @return {@literal true}, if the specified management entity supports one of the specified projections; otherwise, {@literal false}.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public static boolean supportsAnyProjection(final ManagementEntityType entityType, final Class<?>... projections){
+    public static boolean supportsAnyProjection(final ManagedEntityType entityType, final Class<?>... projections){
         for(final Class<?> p: projections)
             if(supportsProjection(entityType, p)) return true;
         return false;
@@ -52,7 +52,7 @@ public final class ManagementEntityTypeHelper {
      * @param projection A projection to check.
      * @return {@literal true}, if the specified projection is supported; otherwise, {@literal false}.
      */
-    public static boolean supportsProjection(final ManagementEntityType entityType, final Class<?> projection){
+    public static boolean supportsProjection(final ManagedEntityType entityType, final Class<?> projection){
         return entityType != null && projection != null && entityType.getProjection(projection) != null;
     }
 
@@ -65,7 +65,7 @@ public final class ManagementEntityTypeHelper {
      * @return Well-known representation of the management entity value.
      * @throws IllegalArgumentException {@code entityType} is {@literal null}; or the specified conversion is not supported.
      */
-    public static <T> T convertFrom(final ManagementEntityType entityType, final Object value, final Class<T> nativeType) throws IllegalArgumentException{
+    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final Class<T> nativeType) throws IllegalArgumentException{
         if(entityType == null) throw new IllegalArgumentException("entityType is null.");
         else if(nativeType.isInstance(value)) return nativeType.cast(value);
         final TypeConverter<T> converter = entityType.getProjection(nativeType);
@@ -99,7 +99,7 @@ public final class ManagementEntityTypeHelper {
      * @throws IllegalArgumentException {@code entityType} is {@literal null}.
      */
     @SafeVarargs
-    public static <T> T convertFrom(final ManagementEntityType entityType, final Object value, final Class<T> baseType, final ConversionFallback<T> fallback, final Class<? extends T>... projections){
+    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final Class<T> baseType, final ConversionFallback<T> fallback, final Class<? extends T>... projections){
         if(entityType == null) throw new IllegalArgumentException("entityType is null.");
         else if(projections == null || projections.length == 0) return convertFrom(entityType, value, baseType);
         else for(final Class<? extends T> proj: projections)
@@ -123,7 +123,7 @@ public final class ManagementEntityTypeHelper {
      */                                                      // assertEquals(response.getResponse().getErrorStatusText(),PDU.noError);
     @SuppressWarnings("UnusedDeclaration")
     @SafeVarargs
-    public static <T> T convertFrom(final ManagementEntityType entityType, final Object value, final Class<T> baseType, final Class<? extends T>... projections) throws IllegalArgumentException{
+    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final Class<T> baseType, final Class<? extends T>... projections) throws IllegalArgumentException{
         return convertFrom(entityType, value, baseType, new ConversionFallback<T>() {
             @Override
             public T call() {
@@ -144,7 +144,7 @@ public final class ManagementEntityTypeHelper {
      */
     @SuppressWarnings("UnusedDeclaration")
     @SafeVarargs
-    public static <T> T convertFrom(final ManagementEntityType entityType, final Object value, final T defaultValue, final Class<T> baseType, final Class<? extends T>... projections){
+    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final T defaultValue, final Class<T> baseType, final Class<? extends T>... projections){
         return convertFrom(entityType, value, baseType, new ConversionFallback<T>() {
             @Override
             public T call() {
@@ -159,7 +159,7 @@ public final class ManagementEntityTypeHelper {
      * @return A read-only collection of indexed columns.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public static Collection<String> getIndexedColumns(final ManagementEntityTabularType entityType){
+    public static Collection<String> getIndexedColumns(final ManagedEntityTabularType entityType){
         final Collection<String> index = new ArrayList<>(entityType.getColumns().size());
         for(final String indexedColumn: entityType.getColumns())
             if(entityType.isIndexed(indexedColumn))

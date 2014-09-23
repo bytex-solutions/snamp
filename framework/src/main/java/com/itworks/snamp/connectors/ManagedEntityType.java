@@ -8,7 +8,7 @@ import com.itworks.snamp.TypeConverter;
  * @version 1.0
  * @since 1.0
  */
-public interface ManagementEntityType {
+public interface ManagedEntityType {
     /**
      * Returns the type converter for the specified native Java type mapping.
      * @param projectionType The native Java type to which the entity value can be converted. Cannot be {@literal null}.

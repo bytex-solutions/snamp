@@ -9,13 +9,13 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @version 1.0
  * @since 1.0
  */
-public class ManagementConnectorConfigurationException extends ConfigurationException {
+public class ResourceConnectorConfigurationException extends ConfigurationException {
 
-    public ManagementConnectorConfigurationException(final String message, final ManagedResourceConfiguration config, final Throwable cause){
+    public ResourceConnectorConfigurationException(final String message, final ManagedResourceConfiguration config, final Throwable cause){
         super(message, config, cause);
     }
 
-    public ManagementConnectorConfigurationException(final String message, final ManagedResourceConfiguration config){
+    public ResourceConnectorConfigurationException(final String message, final ManagedResourceConfiguration config){
         this(message, config, null);
     }
 }

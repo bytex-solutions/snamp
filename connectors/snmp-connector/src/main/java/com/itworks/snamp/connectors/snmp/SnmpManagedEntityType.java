@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.snmp;
 
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.Variable;
 
@@ -12,6 +12,6 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-interface SnmpManagementEntityType extends ManagementEntityType {
+interface SnmpManagedEntityType extends ManagedEntityType {
     Map<OID, Variable> convertToSnmp(final Object value) throws InvalidSnmpValueException;
 }

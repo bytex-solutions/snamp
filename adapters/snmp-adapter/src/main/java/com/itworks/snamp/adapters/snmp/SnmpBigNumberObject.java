@@ -1,14 +1,14 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.*;
 
 import java.math.*;
 import java.util.Objects;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
-import static com.itworks.snamp.connectors.ManagementEntityTypeHelper.*;
+import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.*;
 
 @MOSyntax(SYNTAX_OCTET_STRING)
 final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
@@ -18,11 +18,11 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
         super(oid, attribute, new OctetString(defaultValue.toString()));
     }
 
-    public static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo){
+    public static OctetString convert(final Object value, final ManagedEntityType attributeTypeInfo){
         return new OctetString(Objects.toString(convertFrom(attributeTypeInfo, value, Number.class, BigInteger.class, BigDecimal.class), defaultValue.toString()));
     }
 
-    public static Number convert(final Variable value, final ManagementEntityType attributeTypeInfo){
+    public static Number convert(final Variable value, final ManagedEntityType attributeTypeInfo){
         return convertFrom(attributeTypeInfo, value.toString(), Number.class, fallbackWithDefaultValue(defaultValue, value, attributeTypeInfo), BigDecimal.class, BigInteger.class);
     }
 

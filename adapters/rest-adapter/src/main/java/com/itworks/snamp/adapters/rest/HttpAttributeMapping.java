@@ -3,8 +3,8 @@ package com.itworks.snamp.adapters.rest;
 import com.google.gson.*;
 import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;
-import com.itworks.snamp.connectors.ManagementEntityTabularType;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityTabularType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeValue;
 
 import java.math.BigDecimal;
@@ -16,9 +16,9 @@ import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import static com.itworks.snamp.connectors.ManagementEntityTypeBuilder.AbstractManagementEntityArrayType.VALUE_COLUMN_NAME;
-import static com.itworks.snamp.connectors.ManagementEntityTypeBuilder.isArray;
-import static com.itworks.snamp.connectors.ManagementEntityTypeBuilder.isMap;
+import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME;
+import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.isArray;
+import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.isMap;
 import static com.itworks.snamp.connectors.WellKnownTypeSystem.*;
 
 /**
@@ -38,7 +38,7 @@ final class HttpAttributeMapping {
         this.jsonFormatter = jsonFormatter;
     }
 
-    private static JsonArray toJsonArray(final AttributeValue<ManagementEntityTabularType> array, final Gson jsonFormatter){
+    private static JsonArray toJsonArray(final AttributeValue<ManagedEntityTabularType> array, final Gson jsonFormatter){
         final JsonArray result = new JsonArray();
         //invoke all elements and converts each of them to JSON
         for(final Object rawValue: array.convertTo(Object[].class)){
@@ -47,7 +47,7 @@ final class HttpAttributeMapping {
         return result;
     }
 
-    private static JsonObject toJsonMap(final AttributeValue<ManagementEntityTabularType> map, final Gson jsonFormatter){
+    private static JsonObject toJsonMap(final AttributeValue<ManagedEntityTabularType> map, final Gson jsonFormatter){
         final JsonObject result = new JsonObject();
         final Map value = map.convertTo(Map.class);
         for(final Object column: value.keySet())
@@ -56,7 +56,7 @@ final class HttpAttributeMapping {
     }
 
     @SuppressWarnings("unchecked")
-    private static JsonElement toJsonTable(final AttributeValue<ManagementEntityTabularType> table, final Gson jsonFormatter){
+    private static JsonElement toJsonTable(final AttributeValue<ManagedEntityTabularType> table, final Gson jsonFormatter){
         final JsonArray result = new JsonArray();
         final Table<String> tableReader = table.convertTo(Table.class);
         //table representation in JSON: [{column: value}, {column: value}]
@@ -71,7 +71,7 @@ final class HttpAttributeMapping {
         return result;
     }
 
-    private static JsonElement toJson(final AttributeValue<? extends ManagementEntityType> value, final Gson jsonFormatter){
+    private static JsonElement toJson(final AttributeValue<? extends ManagedEntityType> value, final Gson jsonFormatter){
         if(value == null || value.rawValue == null)
             return JsonNull.INSTANCE;
         else if(supportsString(value.type))
@@ -97,11 +97,11 @@ final class HttpAttributeMapping {
         else if(supportsDouble(value.type))
             return new JsonPrimitive(value.convertTo(Double.class));
         else if(isArray(value.type))
-            return toJsonArray(value.cast(ManagementEntityTabularType.class), jsonFormatter);
+            return toJsonArray(value.cast(ManagedEntityTabularType.class), jsonFormatter);
         else if(isMap(value.type))
-            return toJsonMap(value.cast(ManagementEntityTabularType.class), jsonFormatter);
-        else if(value.isTypeOf(ManagementEntityTabularType.class))
-            return toJsonTable(value.cast(ManagementEntityTabularType.class), jsonFormatter);
+            return toJsonMap(value.cast(ManagedEntityTabularType.class), jsonFormatter);
+        else if(value.isTypeOf(ManagedEntityTabularType.class))
+            return toJsonTable(value.cast(ManagedEntityTabularType.class), jsonFormatter);
         else return new JsonPrimitive(value.convertTo(String.class));
     }
 
@@ -114,7 +114,7 @@ final class HttpAttributeMapping {
     }
 
     private static Object fromArrayJson(final JsonArray attributeValue,
-                                 final ManagementEntityType elementType,
+                                 final ManagedEntityType elementType,
                                  final Gson jsonFormatter){
         final Object[] result = new Object[attributeValue.size()];
         for(int i = 0; i < attributeValue.size(); i++){
@@ -124,7 +124,7 @@ final class HttpAttributeMapping {
     }
 
     private static Object fromArrayJson(final JsonElement attributeValue,
-                                        final ManagementEntityType elementType,
+                                        final ManagedEntityType elementType,
                                         final Gson jsonFormatter){
         if(attributeValue instanceof JsonArray)
             return fromArrayJson((JsonArray) attributeValue, elementType, jsonFormatter);
@@ -132,13 +132,13 @@ final class HttpAttributeMapping {
     }
 
     private static Object fromArrayJson(final String attributeValue,
-                                        final ManagementEntityTabularType attributeType,
+                                        final ManagedEntityTabularType attributeType,
                                         final Gson jsonFormatter){
         return fromArrayJson(jsonParser.parse(attributeValue), attributeType.getColumnType(VALUE_COLUMN_NAME), jsonFormatter);
     }
 
     private static Map<String, Object> fromMapJson(final JsonObject attributeValue,
-                                                   final ManagementEntityTabularType attributeType,
+                                                   final ManagedEntityTabularType attributeType,
                                                    final Gson jsonFormatter){
         final Map<String, Object> result = new HashMap<>(10);
         for(final String column: attributeType.getColumns())
@@ -149,7 +149,7 @@ final class HttpAttributeMapping {
     }
 
     private static Map<String, Object> fromMapJson(final JsonElement attributeValue,
-                                                   final ManagementEntityTabularType attributeType,
+                                                   final ManagedEntityTabularType attributeType,
                                                    final Gson jsonFormatter){
         if(attributeValue instanceof JsonObject)
             return fromMapJson((JsonObject)attributeValue, attributeType, jsonFormatter);
@@ -159,14 +159,14 @@ final class HttpAttributeMapping {
     }
 
     private static Map<String, Object> fromMapJson(final String attributeValue,
-                                            final ManagementEntityTabularType attributeType,
+                                            final ManagedEntityTabularType attributeType,
                                             final Gson jsonFormatter){
         return fromMapJson(jsonParser.parse(attributeValue), attributeType, jsonFormatter);
     }
 
     private static void insertRow(final Table<String> table,
                                   final JsonObject row,
-                                  final ManagementEntityTabularType attributeType,
+                                  final ManagedEntityTabularType attributeType,
                                   final Gson jsonFormatter){
         final Map<String, Object> insertedRow = new HashMap<>(10);
         //iterates through each column
@@ -178,7 +178,7 @@ final class HttpAttributeMapping {
     }
 
     private static Table<String> fromTableJson(final JsonArray attributeValue,
-                                               final ManagementEntityTabularType attributeType,
+                                               final ManagedEntityTabularType attributeType,
                                                final Gson jsonFormatter){
         final Table<String> result = new SimpleTable<>(new HashMap<String, Class<?>>(){{
             for(final String columnName: attributeType.getColumns())
@@ -192,7 +192,7 @@ final class HttpAttributeMapping {
     }
 
     private static Table<String> fromTableJson(final JsonElement attributeValue,
-                                               final ManagementEntityTabularType attributeType,
+                                               final ManagedEntityTabularType attributeType,
                                                final Gson jsonFormatter){
         if(attributeValue instanceof JsonArray)
             return fromTableJson((JsonArray) attributeValue, attributeType, jsonFormatter);
@@ -207,12 +207,12 @@ final class HttpAttributeMapping {
     }
 
     private static Table<String> fromTableJson(final String attributeValue,
-                                               final ManagementEntityTabularType attributeType,
+                                               final ManagedEntityTabularType attributeType,
                                                final Gson jsonFormatter){
         return fromTableJson(jsonParser.parse(attributeValue), attributeType, jsonFormatter);
     }
 
-    private static Object fromJson(final String attributeValue, final ManagementEntityType attributeType, final Gson jsonFormatter) throws IllegalArgumentException{
+    private static Object fromJson(final String attributeValue, final ManagedEntityType attributeType, final Gson jsonFormatter) throws IllegalArgumentException{
         if(supportsBoolean(attributeType))
             return jsonFormatter.fromJson(attributeValue, Boolean.class);
         else if(supportsString(attributeType))
@@ -236,11 +236,11 @@ final class HttpAttributeMapping {
         else if(supportsUnixTime(attributeType))
             return jsonFormatter.fromJson(attributeValue, Date.class);
         else if(isArray(attributeType))
-            return fromArrayJson(attributeValue, (ManagementEntityTabularType) attributeType, jsonFormatter);
+            return fromArrayJson(attributeValue, (ManagedEntityTabularType) attributeType, jsonFormatter);
         else if(isMap(attributeType))
-            return fromMapJson(attributeValue, (ManagementEntityTabularType)attributeType, jsonFormatter);
+            return fromMapJson(attributeValue, (ManagedEntityTabularType)attributeType, jsonFormatter);
         else if(isTable(attributeType))
-            return fromTableJson(attributeValue, (ManagementEntityTabularType) attributeType, jsonFormatter);
+            return fromTableJson(attributeValue, (ManagedEntityTabularType) attributeType, jsonFormatter);
         else throw new IllegalArgumentException(String.format("Unable to convert %s value into resource-specific representation.", attributeValue));
     }
 

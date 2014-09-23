@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import org.snmp4j.agent.mo.MOScalar;
 import org.snmp4j.mp.SnmpConstants;
@@ -12,7 +12,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
-import static com.itworks.snamp.connectors.ManagementEntityTypeHelper.ConversionFallback;
+import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.ConversionFallback;
 
 /**
  * Represents a base class for scalar SNMP managed objects.
@@ -28,12 +28,12 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
         this.attribute = attribute;
     }
 
-    protected static <T> T logAndReturnDefaultValue(final T defaultValue, final Variable originalValue, final ManagementEntityType attributeType){
+    protected static <T> T logAndReturnDefaultValue(final T defaultValue, final Variable originalValue, final ManagedEntityType attributeType){
         log.log(Level.WARNING, String.format("Cannot convert '%s' value to '%s' attribute type.", originalValue, attributeType));
         return defaultValue;
     }
 
-    protected static  <T> ConversionFallback<T> fallbackWithDefaultValue(final T defaultValue, final Variable originalValue, final ManagementEntityType attributeType){
+    protected static  <T> ConversionFallback<T> fallbackWithDefaultValue(final T defaultValue, final Variable originalValue, final ManagedEntityType attributeType){
         return new ConversionFallback<T>() {
             @Override
             public T call() {

@@ -12,38 +12,38 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterResolver {
+public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterResolver {
 
     /**
      * Initializes a new empty entity type builder.
      */
-    protected ManagementEntityTypeBuilder(){
+    protected ManagedEntityTypeBuilder(){
     }
 
     /**
      * Represents a base class for building custom management entity types.
      * <p>
      *     You should derive from this class when you want to expose management entity type
-     *     descriptor as a custom interface that extends {@link ManagementEntityType}.
+     *     descriptor as a custom interface that extends {@link ManagedEntityType}.
      * </p>
      * @author Roman Sakno
      * @version 1.0
      * @since 1.0
      */
-    public static class AbstractManagementEntityType implements ManagementEntityType{
+    public static class AbstractManagedEntityType implements ManagedEntityType {
         private final Map<Class<?>, TypeConverter<?>> projections;
 
         /**
          * Initializes a new management entity type.
          * @param converters Additional converters associated with this management entity type. Can be empty.
          */
-        protected AbstractManagementEntityType(final TypeConverter<?>... converters){
+        protected AbstractManagedEntityType(final TypeConverter<?>... converters){
             projections = new HashMap<>(5);
             for(final TypeConverter<?> conv: converters)
                 projections.put(conv.getType(), conv);
         }
 
-        private static void registerConverter(final AbstractManagementEntityType entityType, final TypeConverter<?> converter){
+        private static void registerConverter(final AbstractManagedEntityType entityType, final TypeConverter<?> converter){
             entityType.projections.put(converter.getType(), converter);
         }
 
@@ -105,14 +105,14 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
      * @since 1.0
      * @version 1.0
      */
-    public static final class SimpleManagementEntityType extends AbstractManagementEntityType{
+    public static final class SimpleManagedEntityType extends AbstractManagedEntityType {
         /**
          * Represents a singleton activator for the simple management entity type.
          */
-        public static final Factory<SimpleManagementEntityType> ACTIVATOR = new Factory<SimpleManagementEntityType>() {
+        public static final Factory<SimpleManagedEntityType> ACTIVATOR = new Factory<SimpleManagedEntityType>() {
             @Override
-            public SimpleManagementEntityType create() {
-                return new SimpleManagementEntityType();
+            public SimpleManagedEntityType create() {
+                return new SimpleManagedEntityType();
             }
         };
     }
@@ -123,7 +123,7 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
      * @since 1.0
      * @version 1.0
      */
-    public static abstract class AbstractManagementEntityTabularType extends AbstractManagementEntityType implements ManagementEntityTabularType{
+    public static abstract class AbstractManagedEntityTabularType extends AbstractManagedEntityType implements ManagedEntityTabularType {
 
     }
 
@@ -133,7 +133,7 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
      * @since 1.0
      * @version 1.0
      */
-    public static abstract class AbstractManagementEntityArrayType extends AbstractManagementEntityTabularType{
+    public static abstract class AbstractManagedEntityArrayType extends AbstractManagedEntityTabularType {
         /**
          * Represents name of the first column.
          */
@@ -184,13 +184,13 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
          * Returns the type of the array {@link #INDEX_COLUMN_NAME} column.
          * @return The type of the array index column.
          */
-        public abstract ManagementEntityType getIndexColumnType();
+        public abstract ManagedEntityType getIndexColumnType();
 
         /**
          * Returns the type of the array {@link #VALUE_COLUMN_NAME} column.
          * @return The type of the array value column.
          */
-        public abstract ManagementEntityType getValueColumnType();
+        public abstract ManagedEntityType getValueColumnType();
 
         /**
          * Returns the type of the column.
@@ -205,7 +205,7 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
          * @return The column type.
          */
         @Override
-        public final ManagementEntityType getColumnType(final String columnName) {
+        public final ManagedEntityType getColumnType(final String columnName) {
             switch (columnName){
                 case INDEX_COLUMN_NAME: return getIndexColumnType();
                 case VALUE_COLUMN_NAME: return getValueColumnType();
@@ -234,18 +234,18 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
      * @since 1.0
      * @version 1.0
      */
-    public class ManagementEntityArrayType extends AbstractManagementEntityArrayType {
+    public class ManagedEntityArrayType extends AbstractManagedEntityArrayType {
         /**
          * Represents array element type.
          */
-        protected final ManagementEntityType elementType;
+        protected final ManagedEntityType elementType;
 
         /**
          * Initializes a new instance of the array type descriptor.
          * @param elementType The type of the array elements.
          * @throws IllegalArgumentException elementType is {@literal null}.
          */
-        public ManagementEntityArrayType(final ManagementEntityType elementType){
+        public ManagedEntityArrayType(final ManagedEntityType elementType){
             if(elementType == null) throw new IllegalArgumentException("elementType is null.");
             this.elementType = elementType;
         }
@@ -260,7 +260,7 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
          * @return The type of the array index column.
          */
         @Override
-        public ManagementEntityType getIndexColumnType(){
+        public ManagedEntityType getIndexColumnType(){
             return createEntitySimpleType(Integer.class);
         }
 
@@ -270,7 +270,7 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
          * @return The type of the array element.
          */
         @Override
-        public final ManagementEntityType getValueColumnType() {
+        public final ManagedEntityType getValueColumnType() {
             return elementType;
         }
     }
@@ -279,18 +279,18 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
     /**
      * Creates a new management entity type.
      * <p>
-     *     An implementation of {@link ManagementEntityType#getProjection(Class)} supplied by SNAMP infrastructure
+     *     An implementation of {@link ManagedEntityType#getProjection(Class)} supplied by SNAMP infrastructure
      *     and you cannot override behavior of this method.
      * </p>
-     * @param activator An activator that creates a new instance of {@link AbstractManagementEntityType} with custom methods.
+     * @param activator An activator that creates a new instance of {@link ManagedEntityTypeBuilder.AbstractManagedEntityType} with custom methods.
      * @param projections An array of supported projections of the specified management entity type.
      * @return An instance of the management entity type.
      */
-    public final <T extends AbstractManagementEntityType> T createEntityType(final Factory<T> activator, final Class<?>... projections) {
+    public final <T extends AbstractManagedEntityType> T createEntityType(final Factory<T> activator, final Class<?>... projections) {
         final T entityType = activator.create();
         for(final Class<?> t: projections){
             final TypeConverter<?> converter = getTypeConverter(t);
-            if(converter != null) AbstractManagementEntityType.registerConverter(entityType, converter);
+            if(converter != null) AbstractManagedEntityType.registerConverter(entityType, converter);
         }
         return entityType;
     }
@@ -300,8 +300,8 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
      * @param projections An array of supported projections of the specified management entity type.
      * @return A new instance of the simple management entity type.
      */
-    public final SimpleManagementEntityType createEntitySimpleType(final Class<?>... projections){
-        return createEntityType(SimpleManagementEntityType.ACTIVATOR, projections);
+    public final SimpleManagedEntityType createEntitySimpleType(final Class<?>... projections){
+        return createEntityType(SimpleManagedEntityType.ACTIVATOR, projections);
     }
 
     /**
@@ -310,7 +310,7 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
      * @param t Native Java representation of the management entity type.
      * @return {@literal true}, if the management entity supports the specified type projection; otherwise, {@literal false}.
      */
-    public static boolean supportsProjection(final ManagementEntityType entityType, final Class<?> t){
+    public static boolean supportsProjection(final ManagedEntityType entityType, final Class<?> t){
         return entityType != null && entityType.getProjection(t) != null;
     }
 
@@ -322,8 +322,8 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
      * @param entityType An entity type to check,
      * @return {@literal true}, if the specified management entity type is simple; otherwise, {@literal false}.
      */
-    public static boolean isSimpleType(final ManagementEntityType entityType){
-        return entityType instanceof SimpleManagementEntityType;
+    public static boolean isSimpleType(final ManagedEntityType entityType){
+        return entityType instanceof SimpleManagedEntityType;
     }
 
     /**
@@ -334,13 +334,13 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
      * @param entityType An entity type to check,
      * @return {@literal true}, if the specified management entity type is table; otherwise, {@literal false}.
      */
-    public static boolean isTable(final ManagementEntityType entityType){
-        return entityType instanceof ManagementEntityTabularType;
+    public static boolean isTable(final ManagedEntityType entityType){
+        return entityType instanceof ManagedEntityTabularType;
     }
 
-    private static boolean isArray(final ManagementEntityTabularType entityType){
+    private static boolean isArray(final ManagedEntityTabularType entityType){
         final Collection<String> columns = entityType.getColumns();
-        return columns.size() == 2 && columns.containsAll(AbstractManagementEntityArrayType.COLUMNS);
+        return columns.size() == 2 && columns.containsAll(AbstractManagedEntityArrayType.COLUMNS);
     }
 
     /**
@@ -357,8 +357,8 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
      * @param entityType An entity type to check,
      * @return {@literal true}, if the specified management entity type is array; otherwise, {@literal false}.
      */
-    public static boolean isArray(final ManagementEntityType entityType){
-        return entityType instanceof ManagementEntityTabularType && isArray((ManagementEntityTabularType)entityType);
+    public static boolean isArray(final ManagedEntityType entityType){
+        return entityType instanceof ManagedEntityTabularType && isArray((ManagedEntityTabularType)entityType);
 
     }
 
@@ -366,7 +366,7 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
      * Creates a new simple management entity type that can convert any value to {@link String}.
      * @return A new simple management entity type that can convert any value to {@link String}.
      */
-    public final ManagementEntityType createFallbackEntityType(){
+    public final ManagedEntityType createFallbackEntityType(){
         return createEntitySimpleType(String.class);
     }
 
@@ -382,8 +382,8 @@ public abstract class ManagementEntityTypeBuilder extends AbstractTypeConverterR
      * @param entityType An entity type to check.
      * @return {@literal true} if the specified entity can be converted into {@link Map}; {@literal false}.
      */
-    public static boolean isMap(final ManagementEntityType entityType){
-        return entityType instanceof ManagementEntityTabularType &&
+    public static boolean isMap(final ManagedEntityType entityType){
+        return entityType instanceof ManagedEntityTabularType &&
                 entityType.getProjection(Map.class) != null;
     }
 }

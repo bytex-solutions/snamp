@@ -3,8 +3,8 @@ package com.itworks.snamp.connectors.jmx;
 import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.connectors.ManagementEntityTabularType;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityTabularType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import com.itworks.snamp.internal.Utils;
 import org.apache.commons.collections4.Factory;
@@ -143,7 +143,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
      * @param <E> Type of the instance described by MBean Open Type.
      * @param <T> MBean Open Type.
      */
-    private static abstract class AbstractJmxEntityType<E, T extends OpenType<E>> extends AbstractManagementEntityType implements JmxManagementEntityOpenType<E>{
+    private static abstract class AbstractJmxEntityType<E, T extends OpenType<E>> extends AbstractManagedEntityType implements JmxManagedEntityOpenType<E> {
         /**
          * Represents MBean Open Type associated with this JMX entity.
          */
@@ -216,7 +216,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    private static abstract class AbstractJmxEntityTabularType extends AbstractJmxEntityType<TabularData, TabularType> implements JmxManagementEntityOpenType<TabularData>, ManagementEntityTabularType {
+    private static abstract class AbstractJmxEntityTabularType extends AbstractJmxEntityType<TabularData, TabularType> implements JmxManagedEntityOpenType<TabularData>, ManagedEntityTabularType {
         public static final Class<Table> WELL_KNOWN_TYPE = Table.class;
 
         protected AbstractJmxEntityTabularType(final TabularType ttype){
@@ -256,9 +256,9 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    private final class JmxManagementEntityTabularType extends AbstractJmxEntityTabularType{
+    private final class JmxManagedEntityTabularType extends AbstractJmxEntityTabularType{
 
-        public JmxManagementEntityTabularType(final TabularType ttype){
+        public JmxManagedEntityTabularType(final TabularType ttype){
             super(ttype);
         }
 
@@ -272,7 +272,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
                     //create each cell in the row
                     rows[rowIndex] = new CompositeDataSupport(columnSchema, new HashMap<String, Object>(){{
                         for(final String columnName: columnSchema.keySet()){
-                            final JmxManagementEntityType columnType = createEntityType(columnSchema.getType(columnName));
+                            final JmxManagedEntityType columnType = createEntityType(columnSchema.getType(columnName));
                             put(columnName, columnType.convertToJmx(value.getCell(columnName, rowID)));
                         }
                     }});
@@ -293,7 +293,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          * @return The type of the column; or {@literal null} if the specified column doesn't exist.
          */
         @Override
-        public final ManagementEntityType getColumnType(final String column) {
+        public final ManagedEntityType getColumnType(final String column) {
             return createEntityType(getOpenType().getRowType().getType(column));
         }
 
@@ -331,7 +331,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    private static abstract class AbstractJmxEntityCompositeType extends AbstractJmxEntityType<CompositeData, CompositeType> implements JmxManagementEntityOpenType<CompositeData>, ManagementEntityTabularType{
+    private static abstract class AbstractJmxEntityCompositeType extends AbstractJmxEntityType<CompositeData, CompositeType> implements JmxManagedEntityOpenType<CompositeData>, ManagedEntityTabularType {
         public static final Class<?>[] WELL_KNOWN_TYPES = new Class<?>[]{Map.class, Table.class};
 
         protected AbstractJmxEntityCompositeType(final CompositeType ctype){
@@ -371,15 +371,15 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    private final class JmxManagementEntityCompositeType extends AbstractJmxEntityCompositeType{
-        public JmxManagementEntityCompositeType(final CompositeType ctype){
+    private final class JmxManagedEntityCompositeType extends AbstractJmxEntityCompositeType{
+        public JmxManagedEntityCompositeType(final CompositeType ctype){
             super(ctype);
         }
 
         private CompositeData convertToJmxType(final Map<String, Object> value) throws InvalidAttributeValueException{
             final Map<String, Object> convertedValue = new HashMap<>(value.size());
             for(final String columnName: value.keySet()){
-                final JmxManagementEntityType columnType = createEntityType(getOpenType().getType(columnName));
+                final JmxManagedEntityType columnType = createEntityType(getOpenType().getType(columnName));
                 convertedValue.put(columnName, columnType.convertToJmx(value.get(columnName)));
             }
             try {
@@ -394,7 +394,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             final Map<String, Object> result = new HashMap<>(10);
             if(value.getRowCount() > 0)
                 for(final String columnName: getOpenType().keySet()){
-                    final JmxManagementEntityType columnType = createEntityType(getOpenType().getType(columnName));
+                    final JmxManagedEntityType columnType = createEntityType(getOpenType().getType(columnName));
                     result.put(columnName, columnType.convertToJmx(value.getCell(columnName, 0)));
                 }
             else throw new InvalidAttributeValueException(String.format("Cannot convert %s to composite data.", value));
@@ -442,12 +442,12 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          * @return The type of the column; or {@literal null} if the specified column doesn't exist.
          */
         @Override
-        public final ManagementEntityType getColumnType(final String column) {
+        public final ManagedEntityType getColumnType(final String column) {
             return createEntityType(getOpenType().getType(column));
         }
     }
 
-    private abstract static class AbstractJmxEntityArrayType<T> extends AbstractJmxEntityType<T[], ArrayType<T[]>> implements JmxManagementEntityOpenType<T[]>, ManagementEntityTabularType{
+    private abstract static class AbstractJmxEntityArrayType<T> extends AbstractJmxEntityType<T[], ArrayType<T[]>> implements JmxManagedEntityOpenType<T[]>, ManagedEntityTabularType {
         public static final Class<Object[]> WELL_KNOWN_TYPE = Object[].class;
 
         private static final class ArrayConverter implements TypeConverter<Object[]>{
@@ -479,7 +479,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
 
         @SuppressWarnings("UnusedDeclaration")
-        public abstract JmxManagementEntityType getElementType();
+        public abstract JmxManagedEntityType getElementType();
 
         /**
          * Determines whether the specified column is indexed.
@@ -489,18 +489,18 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          */
         @Override
         public final boolean isIndexed(final String column) {
-            return ManagementEntityArrayType.isIndexedColumn(column);
+            return ManagedEntityArrayType.isIndexedColumn(column);
         }
     }
 
-    private final class JmxManagementEntityArrayType<T> extends AbstractJmxEntityArrayType<T>{
+    private final class JmxManagedEntityArrayType<T> extends AbstractJmxEntityArrayType<T>{
 
-        public JmxManagementEntityArrayType(final ArrayType<T[]> atype) throws OpenDataException {
+        public JmxManagedEntityArrayType(final ArrayType<T[]> atype) throws OpenDataException {
             super(atype);
         }
 
         @Override
-        public final JmxManagementEntityType getElementType(){
+        public final JmxManagedEntityType getElementType(){
             return createEntityType(getOpenType().getElementOpenType());
         }
 
@@ -538,8 +538,8 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          */
         @Override
         public final Collection<String> getColumns() {
-            return Arrays.asList(ManagementEntityArrayType.INDEX_COLUMN_NAME,
-                    ManagementEntityArrayType.VALUE_COLUMN_NAME);
+            return Arrays.asList(ManagedEntityArrayType.INDEX_COLUMN_NAME,
+                    ManagedEntityArrayType.VALUE_COLUMN_NAME);
         }
 
         /**
@@ -549,10 +549,10 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          * @return The type of the column; or {@literal null} if the specified column doesn't exist.
          */
         @Override
-        public final JmxManagementEntityType getColumnType(final String column) {
+        public final JmxManagedEntityType getColumnType(final String column) {
             switch (column){
-                case ManagementEntityArrayType.INDEX_COLUMN_NAME: return createEntityType(SimpleType.INTEGER);
-                case ManagementEntityArrayType.VALUE_COLUMN_NAME: return getElementType();
+                case ManagedEntityArrayType.INDEX_COLUMN_NAME: return createEntityType(SimpleType.INTEGER);
+                case ManagedEntityArrayType.VALUE_COLUMN_NAME: return getElementType();
                 default: return null;
             }
         }
@@ -569,11 +569,11 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    private  <T> JmxManagementEntityOpenType<T> createEntitySimpleType(final SimpleType<T> attributeType, final Class<T> classRef){
+    private  <T> JmxManagedEntityOpenType<T> createEntitySimpleType(final SimpleType<T> attributeType, final Class<T> classRef){
         return createEntityType(JmxSimpleEntityType.createActivator(attributeType), classRef);
     }
 
-    private JmxManagementEntityOpenType<?> createEntitySimpleType(final SimpleType<?> attributeType){
+    private JmxManagedEntityOpenType<?> createEntitySimpleType(final SimpleType<?> attributeType){
         if(attributeType == SimpleType.BOOLEAN)
             return createEntitySimpleType(SimpleType.BOOLEAN, Boolean.class);
         else if(attributeType == SimpleType.BIGDECIMAL)
@@ -606,7 +606,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             @Override
             public final AbstractJmxEntityArrayType<T> create() {
                 try {
-                    return new JmxManagementEntityArrayType<>(attributeType);
+                    return new JmxManagedEntityArrayType<>(attributeType);
                 }
                 catch (final OpenDataException e) {
                     log.log(Level.SEVERE, e.getLocalizedMessage(), e);
@@ -617,14 +617,14 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
     }
 
     @SuppressWarnings("unchecked")
-    public final JmxManagementEntityOpenType<?> createEntityType(final OpenType<?> attributeType){
+    public final JmxManagedEntityOpenType<?> createEntityType(final OpenType<?> attributeType){
         if(attributeType instanceof SimpleType)
             return createEntitySimpleType((SimpleType<?>) attributeType);
         else if(attributeType instanceof CompositeType)
             return createEntityType(new Factory<AbstractJmxEntityCompositeType>(){
                 @Override
                 public final AbstractJmxEntityCompositeType create() {
-                    return new JmxManagementEntityCompositeType((CompositeType)attributeType);
+                    return new JmxManagedEntityCompositeType((CompositeType)attributeType);
                 }
             }, AbstractJmxEntityCompositeType.WELL_KNOWN_TYPES);
         else if(attributeType instanceof ArrayType)
@@ -633,17 +633,17 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             return createEntityType(new Factory<AbstractJmxEntityTabularType>(){
                 @Override
                 public AbstractJmxEntityTabularType create() {
-                    return new JmxManagementEntityTabularType((TabularType)attributeType);
+                    return new JmxManagedEntityTabularType((TabularType)attributeType);
                 }
             }, AbstractJmxEntityTabularType.WELL_KNOWN_TYPE);
         else return createEntitySimpleType(SimpleType.STRING);
     }
 
-    public JmxManagementEntityType createEntityType(final Class<?> attributeType, final Factory<OpenType<?>> fallback){
+    public JmxManagedEntityType createEntityType(final Class<?> attributeType, final Factory<OpenType<?>> fallback){
         return createEntityType(attributeType.getCanonicalName(), fallback);
     }
 
-    public JmxManagementEntityType createEntityType(final String attributeType, final Factory<OpenType<?>> fallback){
+    public JmxManagedEntityType createEntityType(final String attributeType, final Factory<OpenType<?>> fallback){
         return createEntityType(getOpenType(attributeType, fallback));
     }
 
@@ -657,7 +657,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         else return SimpleType.STRING;
     }
 
-    public JmxManagementEntityType createAttributeType(final MBeanAttributeInfo attribute, final Factory<OpenType<?>> fallback){
+    public JmxManagedEntityType createAttributeType(final MBeanAttributeInfo attribute, final Factory<OpenType<?>> fallback){
         return createEntityType(getOpenType(attribute, fallback));
     }
 }

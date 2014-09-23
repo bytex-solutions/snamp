@@ -1,5 +1,7 @@
 package com.itworks.snamp;
 
+import org.apache.commons.collections4.Factory;
+
 import java.util.*;
 
 /**
@@ -13,13 +15,37 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     private final Map<COLUMN, Class<?>> _columns;
 
     /**
+     * Initializes a new table using the specified collection of columns and rows.
+     * <p>
+     *     This constructor saves passed map with columns as-is without copying the
+     *     key/value pairs.
+     * @param columns A map for columns.
+     * @param rows A map of rows.
+     */
+    public SimpleTable(final Map<COLUMN, Class<?>> columns,
+                       final Collection<Map<COLUMN, Object>> rows) {
+        this(new Factory<Map<COLUMN, Class<?>>>() {
+            @Override
+            public Map<COLUMN, Class<?>> create() {
+                return columns;
+            }
+        }, rows.size());
+        addAll(rows);
+    }
+
+    /**
      * Initializes a new simple table with the specified set of columns.
      * @param cols An array of unique columns.
      */
     @SafeVarargs
-    public SimpleTable(final Map.Entry<COLUMN, Class<?>>... cols){
-        _columns = new HashMap<>(cols.length);
-        for(final Map.Entry<COLUMN, Class<?>> c: cols)
+    public SimpleTable(final Map.Entry<COLUMN, Class<?>>... cols) {
+        this(new Factory<Map<COLUMN, Class<?>>>() {
+            @Override
+            public Map<COLUMN, Class<?>> create() {
+                return new LinkedHashMap<>(cols.length);
+            }
+        }, 5);
+        for (final Map.Entry<COLUMN, Class<?>> c : cols)
             _columns.put(c.getKey(), c.getValue());
     }
 
@@ -28,7 +54,31 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @param columns A collection of unique columns.
      */
     public SimpleTable(final Map<COLUMN, Class<?>> columns){
-        _columns = new HashMap<>(columns);
+        this(columns, 5);
+    }
+
+    /**
+     * Initializes a new table with the specified columns and initial row capacity.
+     * @param columns A collection of unique columns.
+     * @param rowCapacity Initial row capacity.
+     */
+    public SimpleTable(final Map<COLUMN, Class<?>> columns, final int rowCapacity) {
+        this(new Factory<Map<COLUMN, Class<?>>>() {
+            @Override
+            public Map<COLUMN, Class<?>> create() {
+                return new LinkedHashMap<>(columns);
+            }
+        }, rowCapacity);
+    }
+
+    /**
+     * Initializes a new table with the specified factory for the map with columns.
+     * @param columnsFactory The factory for the columns.
+     * @param rowCapacity Initial row capacity.
+     */
+    protected SimpleTable(final Factory<Map<COLUMN, Class<?>>> columnsFactory, final int rowCapacity){
+        super(rowCapacity);
+        _columns = columnsFactory.create();
     }
 
     /**
@@ -37,7 +87,6 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @param <COLUMN> Type of the column descriptor.
      * @return A new instance of the in-memory table.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public static <COLUMN> SimpleTable<COLUMN> fromArray(final Map<COLUMN, Object>[] rows){
         if(rows.length == 0) return new SimpleTable<>();
         SimpleTable<COLUMN> result = null;
@@ -46,7 +95,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
                 final Map<COLUMN, Class<?>> columns = new HashMap<>(10);
                 for(final COLUMN key: row.keySet())
                     columns.put(key, Object.class);
-                result = new SimpleTable<>(columns);
+                result = new SimpleTable<>(columns, rows.length);
             }
             result.addRow(row);
         }
