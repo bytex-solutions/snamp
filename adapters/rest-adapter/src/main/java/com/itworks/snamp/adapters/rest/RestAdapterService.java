@@ -2,7 +2,7 @@ package com.itworks.snamp.adapters.rest;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.sun.jersey.spi.resource.Singleton;
 
 import javax.ws.rs.*;

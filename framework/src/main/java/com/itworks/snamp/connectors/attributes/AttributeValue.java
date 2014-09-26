@@ -2,8 +2,8 @@ package com.itworks.snamp.connectors.attributes;
 
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.connectors.ManagedEntityType;
-import com.itworks.snamp.internal.semantics.ThreadSafe;
-import com.itworks.snamp.internal.semantics.Internal;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
+import com.itworks.snamp.internal.annotations.Internal;
 
 /**
  * Represents utility class that represents raw attribute value and its type.

@@ -3,12 +3,12 @@ package com.itworks.snamp;
 import java.io.*;
 
 /**
- * Represents an object that can store/restore its internal state from the stream.
+ * Represents an object that can store/restore its internal state to/from the stream.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
-public interface BinarySerializable {
+public interface PersistentObject {
     /**
      * Dumps the state of this object into the specified stream.
      * @param output An output stream for writing object's internal state.

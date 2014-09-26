@@ -18,7 +18,7 @@ import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.ServiceReferenceHolder;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 import org.osgi.framework.*;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;

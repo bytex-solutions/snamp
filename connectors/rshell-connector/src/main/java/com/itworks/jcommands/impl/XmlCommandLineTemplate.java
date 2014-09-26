@@ -1,7 +1,7 @@
 package com.itworks.jcommands.impl;
 
 import com.itworks.jcommands.ChannelProcessor;
-import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 import org.stringtemplate.v4.ST;
 
 import javax.script.ScriptEngineManager;
@@ -21,6 +21,7 @@ import java.util.Map;
 public class XmlCommandLineTemplate implements ChannelProcessor<Object, ScriptException> {
 
     private String template;
+    private transient ST precompiledTemplate;
     private XmlParserDefinition outputParser;
     private transient ScriptEngineManager scriptManager;
     private static final char TEMPLATE_DELIMITER_START_CHAR = '{';
@@ -33,6 +34,7 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Object, ScriptEx
         template = "";
         outputParser = new XmlParserDefinition();
         scriptManager = null;
+        precompiledTemplate = null;
     }
 
     /**
@@ -58,7 +60,10 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Object, ScriptEx
      */
     @XmlElement(name = "input", namespace = XmlConstants.NAMESPACE)
     public final void setCommandTemplate(final String value) {
-        this.template = value != null ? value : "";
+        if (value == null || value.isEmpty()) {
+            template = "";
+            precompiledTemplate = null;
+        } else precompiledTemplate = createCommandTemplate(template = value);
     }
 
     /**
@@ -71,10 +76,13 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Object, ScriptEx
 
     /**
      * Creates a new instance of the command template.
+     * @param template The template to compile.
      * @return A new instance of the command template.
      */
-    public ST createCommandTemplate(){
-        return new ST(this.template, TEMPLATE_DELIMITER_START_CHAR, TEMPLATE_DELIMITER_STOP_CHAR);
+    public static ST createCommandTemplate(final String template) {
+        final ST result = new ST(template, TEMPLATE_DELIMITER_START_CHAR, TEMPLATE_DELIMITER_STOP_CHAR);
+        StringTemplateExtender.register(result.groupThatCreatedThisInstance);
+        return result;
     }
 
     /**
@@ -86,14 +94,17 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Object, ScriptEx
      */
     @Override
     @ThreadSafe(false)
-    public final String renderCommand(final Map<String, ?> channelParameters) throws IllegalStateException {
-        final ST template = createCommandTemplate();
+    public synchronized final String renderCommand(final Map<String, ?> channelParameters) throws IllegalStateException {
+        final ST template = precompiledTemplate != null ?
+                new ST(precompiledTemplate) :
+                createCommandTemplate(this.template);
         //fill template attributes from channel parameters
         for (final Map.Entry<String, ?> pair : channelParameters.entrySet())
             template.add(pair.getKey(), pair.getValue());
         return template.render();
     }
 
+    @XmlTransient
     public void setScriptManager(final ScriptEngineManager value){
         scriptManager = value;
     }

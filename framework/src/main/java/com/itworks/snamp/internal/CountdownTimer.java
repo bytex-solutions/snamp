@@ -1,7 +1,7 @@
 package com.itworks.snamp.internal;
 
-import com.itworks.snamp.internal.semantics.Internal;
-import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.annotations.Internal;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 import org.apache.commons.collections4.Factory;
 import com.itworks.snamp.TimeSpan;
 

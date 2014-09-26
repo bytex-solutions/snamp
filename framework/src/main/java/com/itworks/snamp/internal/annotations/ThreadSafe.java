@@ -1,6 +1,4 @@
-package com.itworks.snamp.internal.semantics;
-
-import com.itworks.snamp.internal.semantics.Internal;
+package com.itworks.snamp.internal.annotations;
 
 import java.lang.annotation.*;
 

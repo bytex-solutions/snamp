@@ -1,6 +1,6 @@
 package com.itworks.snamp.core;
 
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.collections4.Predicate;
 import org.osgi.framework.*;
 
@@ -408,7 +408,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * Represents activation state of the bundle.
      * <p>
      *     Activation is additional lifecycle on top of the bundle's lifecycle
-     *     and reflects dependency resolving semantics.
+     *     and reflects dependency resolving annotations.
      * </p>
      * @author Roman Sakno
      * @since 1.0

@@ -7,7 +7,7 @@ import com.itworks.snamp.configuration.ConfigurationManager;
 import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingDescriptionService;

@@ -1,6 +1,6 @@
 package com.itworks.snamp;
 
-import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;

@@ -20,13 +20,13 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractTypeConverterResolver implements TypeConverterResolver {
+public abstract class AbstractTypeConverterProvider implements TypeConverterProvider {
     private final Map<Class<?>, TypeConverter<?>> converters;
 
     /**
      * Initializes a new type converter factory.
      */
-    protected AbstractTypeConverterResolver(){
+    protected AbstractTypeConverterProvider(){
         converters = new ReferenceMap<>(ReferenceStrength.HARD, ReferenceStrength.SOFT, true);
     }
 
@@ -128,14 +128,14 @@ public abstract class AbstractTypeConverterResolver implements TypeConverterReso
 
     /**
      * Returns the converter for the specified type constructed from the
-     * public static methods annotated with {@link AbstractTypeConverterResolver.Converter}
+     * public static methods annotated with {@link AbstractTypeConverterProvider.Converter}
      * and declared in the specified converter factory.
      * @param factory The class that contains declaration of converters. Cannot be {@literal null}.
      * @param t The type for which the converter should be constructed. Cannot be {@literal null}.
      * @param <T> Conversion result type.
      * @return An instance of the converter; or {@literal null}, if conversion is not supported.
      */
-    protected static <T> TypeConverter<T> getTypeConverter(final Class<? extends AbstractTypeConverterResolver> factory, final Class<T> t){
+    protected static <T> TypeConverter<T> getTypeConverter(final Class<? extends AbstractTypeConverterProvider> factory, final Class<T> t){
         final List<Method> methods = new ArrayList<>();
         for(final Method m: factory.getMethods())
             if(m.isAnnotationPresent(Converter.class) && isPublicStatic(m) && t.isAssignableFrom(m.getReturnType()))

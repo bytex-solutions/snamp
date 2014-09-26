@@ -1,7 +1,7 @@
 package com.itworks.snamp.core;
 
 import com.itworks.snamp.internal.OsgiLoggerBridge;
-import com.itworks.snamp.internal.semantics.Partial;
+import com.itworks.snamp.internal.annotations.Partial;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 

@@ -3,12 +3,15 @@ package com.itworks.jcommands.testing;
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
+import com.itworks.snamp.SimpleTable;
+import com.itworks.snamp.Table;
 import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +23,42 @@ import java.util.Map;
 public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlCommandLineTemplate> {
     public XmlCommandLineTemplateTest(){
         super(XmlCommandLineTemplate.class);
+    }
+
+    @Test
+    public void renderDictionaryTest(){
+        final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
+        template.setCommandTemplate("{a.key1}, {a.key2}");
+        final String result = template.renderCommand(new HashMap<String, Object>(1){{
+            put("a", new HashMap<String, String>(2){{
+                put("key1", "Hello");
+                put("key2", "world");
+            }});
+        }});
+        assertEquals("Hello, world", result);
+    }
+
+    @Test
+    public void renderTableTest(){
+        final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
+        template.setCommandTemplate("{table:{x | {x.column1} = {x.column2}}}");
+        final Table<String> table = new SimpleTable<>(new HashMap<String, Class<?>>(2){{
+            put("column1", String.class);
+            put("column2", Integer.class);
+        }},
+        3);
+        table.addRow(new HashMap<String, Object>(){{
+            put("column1", "A");
+            put("column2", 42);
+        }});
+        table.addRow(new HashMap<String, Object>(){{
+            put("column1", "B");
+            put("column2", 43);
+        }});
+        final String result = template.renderCommand(new HashMap<String, Object>(){{
+            put("table", table);
+        }});
+        assertEquals("A = 42B = 43", result);
     }
 
     @Test

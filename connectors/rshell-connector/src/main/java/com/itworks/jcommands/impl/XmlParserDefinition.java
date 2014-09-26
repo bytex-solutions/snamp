@@ -1,6 +1,6 @@
 package com.itworks.jcommands.impl;
 
-import com.itworks.snamp.internal.semantics.Internal;
+import com.itworks.snamp.internal.annotations.Internal;
 import org.apache.commons.collections4.ResettableListIterator;
 import org.apache.commons.collections4.iterators.ListIteratorWrapper;
 import org.apache.commons.collections4.map.LRUMap;

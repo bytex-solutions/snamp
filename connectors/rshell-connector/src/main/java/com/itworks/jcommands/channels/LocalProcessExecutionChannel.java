@@ -4,7 +4,7 @@ import com.itworks.jcommands.ChannelProcessingMode;
 import com.itworks.jcommands.ChannelProcessor;
 import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.snamp.internal.MapBuilder;
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.lang3.SystemUtils;
 

@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.ConcurrentResourceAccess;
-import com.itworks.snamp.IllegalStateFlag;
+import com.itworks.snamp.internal.IllegalStateFlag;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
@@ -14,7 +14,7 @@ import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.CountdownTimer;
 import com.itworks.snamp.internal.KeyedObjects;
-import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;

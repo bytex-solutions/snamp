@@ -5,8 +5,8 @@ import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.internal.semantics.Internal;
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.Internal;
+import com.itworks.snamp.internal.annotations.MethodStub;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;

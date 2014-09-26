@@ -9,7 +9,7 @@ import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityTypeBuilder;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.internal.CountdownTimer;
-import com.itworks.snamp.internal.semantics.Temporary;
+import com.itworks.snamp.internal.annotations.Temporary;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.MOQuery;
 import org.snmp4j.agent.MOScope;

@@ -8,7 +8,7 @@ import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.NotificationListener;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.LicensingException;
 import org.apache.commons.collections4.Factory;
 

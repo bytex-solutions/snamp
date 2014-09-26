@@ -3,7 +3,7 @@ package com.itworks.snamp.management.impl;
 import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
 import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.management.SnampManager;
 import com.itworks.snamp.management.jmx.FrameworkMBean;
 import com.itworks.snamp.management.jmx.OpenMBeanProvider;

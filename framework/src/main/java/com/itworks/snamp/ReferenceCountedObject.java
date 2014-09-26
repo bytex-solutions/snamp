@@ -1,6 +1,6 @@
 package com.itworks.snamp;
 
-import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 /**
  * Represents a container for an object with lifecycle management based on

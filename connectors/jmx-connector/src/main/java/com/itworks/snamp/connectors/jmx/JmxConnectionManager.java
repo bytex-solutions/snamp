@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors.jmx;
 
-import com.itworks.snamp.internal.semantics.Internal;
-import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.annotations.Internal;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import javax.management.JMException;
 import javax.management.ListenerNotFoundException;

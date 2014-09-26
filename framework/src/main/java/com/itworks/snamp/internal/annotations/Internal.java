@@ -1,4 +1,4 @@
-package com.itworks.snamp.internal.semantics;
+package com.itworks.snamp.internal.annotations;
 
 import java.lang.annotation.*;
 

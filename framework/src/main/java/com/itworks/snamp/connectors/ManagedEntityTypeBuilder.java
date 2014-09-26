@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors;
 
-import com.itworks.snamp.AbstractTypeConverterResolver;
+import com.itworks.snamp.AbstractTypeConverterProvider;
 import com.itworks.snamp.TypeConverter;
 import org.apache.commons.collections4.Factory;
 
@@ -12,7 +12,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterResolver {
+public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProvider {
 
     /**
      * Initializes a new empty entity type builder.
