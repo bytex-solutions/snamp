@@ -24,7 +24,7 @@ public class LocalProcessExecutionChannelTest extends AbstractUnitTest<CommandEx
             final String str = "Hello, world!";
             final String result = channel.exec(new ChannelProcessor<String, Exception>() {
                 @Override
-                public String renderCommand(final Map<String, String> channelParameters) {
+                public String renderCommand(final Map<String, ?> channelParameters) {
                     return String.format("echo %s", str);
                 }
 

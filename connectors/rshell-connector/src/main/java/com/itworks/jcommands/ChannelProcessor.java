@@ -16,7 +16,7 @@ public interface ChannelProcessor<T, E extends Exception> {
      * @param channelParameters The channel initialization parameters. Cannot be {@literal null}.
      * @return The command to execute.
      */
-    String renderCommand(final Map<String, String> channelParameters);
+    String renderCommand(final Map<String, ?> channelParameters);
 
     /**
      * Processes the command execution result.

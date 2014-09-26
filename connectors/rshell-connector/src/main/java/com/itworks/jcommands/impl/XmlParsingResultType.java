@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.Map;
 
 /**
@@ -18,7 +19,7 @@ import java.util.Map;
  */
 @XmlType(name = "CommandLineToolReturnType", namespace = XmlConstants.NAMESPACE)
 @XmlEnum
-public enum XmlCommandLineToolReturnType {
+public enum XmlParsingResultType {
 
     /**
      * Represents boolean value.
@@ -88,9 +89,27 @@ public enum XmlCommandLineToolReturnType {
      */
     public final Class<?> underlyingType;
 
-    private XmlCommandLineToolReturnType(final boolean scalar,
-                                         final Class<?> type){
+    private XmlParsingResultType(final boolean scalar,
+                                 final Class<?> type){
         this.isScalar = scalar;
         this.underlyingType = type;
+    }
+
+    /**
+     * Gets all scalar types.
+     * @return The all scalar types.
+     */
+    public static EnumSet<XmlParsingResultType> getScalarTypes(){
+        return EnumSet.of(BYTE,
+                SHORT,
+                INTEGER,
+                LONG,
+                BOOLEAN,
+                STRING,
+                BIG_INTEGER,
+                BIG_DECIMAL,
+                DATE_TIME,
+                FLOAT,
+                DOUBLE);
     }
 }

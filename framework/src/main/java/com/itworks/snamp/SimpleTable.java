@@ -1,7 +1,11 @@
 package com.itworks.snamp;
 
 import org.apache.commons.collections4.Factory;
+import org.apache.commons.collections4.FunctorException;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.util.*;
 
 /**
@@ -199,5 +203,126 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     @Override
     public final void removeRow(final int rowIndex) {
         remove(rowIndex);
+    }
+
+    private static Table<String> create(final List<PropertyDescriptor> columns,
+                                            final Collection<?> rows) throws ReflectiveOperationException{
+        final Table<String> result = new SimpleTable<>(new Factory<Map<String, Class<?>>>() {
+            @Override
+            public Map<String, Class<?>> create() {
+                final Map<String, Class<?>> cols = new HashMap<>(columns.size());
+                for(final PropertyDescriptor descr: columns)
+                    cols.put(descr.getName(), descr.getPropertyType());
+                return cols;
+            }
+        }, rows.size());
+        for(final Object source: rows){
+            final Map<String, Object> destination = new HashMap<>(columns.size());
+            for(final PropertyDescriptor descr: columns)
+                destination.put(descr.getName(), descr.getReadMethod().invoke(source));
+            result.addRow(destination);
+        }
+        return result;
+    }
+
+    /**
+     * Creates a new table from an array of JavaBeans.
+     * @param rowType The type of the JavaBean.
+     * @param rows A collection of objects.
+     * @param columns An set of JavaBean property names to be used as columns.
+     * @param <T> Type of the row.
+     * @return A new instance of the table that contains values from JavaBean properties.
+     * @throws IntrospectionException The specified type is not JavaBean.
+     * @throws ReflectiveOperationException Some exception occurs in property getter.
+     */
+    public static <T> Table<String> create(final Class<T> rowType,
+                                           final Collection<T> rows,
+                                           final Set<String> columns) throws IntrospectionException, ReflectiveOperationException {
+        if(rowType == null) return null;
+        else if(columns == null) return null;
+        else if(rows == null) return null;
+        else {
+            final List<PropertyDescriptor> cols = new ArrayList<>(columns.size());
+            for(final PropertyDescriptor descr: Introspector.getBeanInfo(rowType).getPropertyDescriptors())
+                if(columns.contains(descr.getName()))
+                    cols.add(descr);
+            return create(cols, rows);
+        }
+    }
+
+    /**
+     * Creates a new table from an array of JavaBeans.
+     * @param rowType The type of the JavaBean.
+     * @param rows An array of objects.
+     * @param columns An set of JavaBean property names to be used as columns.
+     * @param <T> Type of the row.
+     * @return A new instance of the table that contains values from JavaBean properties.
+     * @throws IntrospectionException The specified type is not JavaBean.
+     * @throws ReflectiveOperationException Some exception occurs in property getter.
+     */
+    public static <T> Table<String> create(final Class<T> rowType,
+                                           final T[] rows,
+                                           final Set<String> columns) throws IntrospectionException, ReflectiveOperationException {
+        return rows != null ? create(rowType, Arrays.asList(rows), columns) : null;
+    }
+
+    /**
+     * Creates a new table from an array of JavaBeans.
+     * @param rowType The type of the JavaBean.
+     * @param rows An array of objects.
+     * @param columns An array of JavaBean property names to be used as columns.
+     * @param <T> Type of the row.
+     * @return A new instance of the table that contains values from JavaBean properties.
+     * @throws IntrospectionException The specified type is not JavaBean.
+     * @throws ReflectiveOperationException Some exception occurs in property getter.
+     */
+    public static <T> Table<String> create(final Class<T> rowType,
+                                           final T[] rows,
+                                           final String... columns) throws IntrospectionException, ReflectiveOperationException {
+        return create(rowType, rows, new HashSet<>(Arrays.asList(columns)));
+    }
+
+    private static <T> List<T> fromTable(final Factory<T> beanFactory,
+                                               final Collection<PropertyDescriptor> columns,
+                                               final Table<String> table) throws IntrospectionException, ReflectiveOperationException{
+        final List<T> result = new ArrayList<>(table.getRowCount());
+        for (int i = 0; i < table.getRowCount(); i++) {
+            final T newRow = beanFactory.create();
+            for (final PropertyDescriptor col : columns)
+                col.getWriteMethod().invoke(newRow, table.getCell(col.getName(), i));
+            result.add(newRow);
+        }
+        return result;
+    }
+
+    public static <T> List<T> fromTable(final Class<T> rowType,
+                                              final Factory<T> beanFactory,
+                                              final Table<String> table) throws IntrospectionException, ReflectiveOperationException {
+        if (rowType == null || table == null) return Collections.emptyList();
+        else {
+            final Collection<PropertyDescriptor> columns = new ArrayList<>(table.getColumns().size());
+            for (final PropertyDescriptor descr : Introspector.getBeanInfo(rowType).getPropertyDescriptors())
+                if (table.getColumns().contains(descr.getName()))
+                    columns.add(descr);
+            return fromTable(beanFactory, columns, table);
+        }
+    }
+
+    public static <T> List<T> fromTable(final Class<T> rowType,
+                                              final Table<String> table) throws IntrospectionException, ReflectiveOperationException {
+        try {
+            return fromTable(rowType, new Factory<T>() {
+                @Override
+                public T create() {
+                    try {
+                        return rowType.newInstance();
+                    } catch (final ReflectiveOperationException e) {
+                        throw new FunctorException(e);
+                    }
+                }
+            }, table);
+        } catch (final FunctorException e) {
+            throw new ReflectiveOperationException(e);
+        }
     }
 }
