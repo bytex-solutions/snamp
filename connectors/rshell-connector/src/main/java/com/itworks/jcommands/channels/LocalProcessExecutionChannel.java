@@ -103,7 +103,7 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
      */
     @Override
     public <T, E extends Exception> T exec(final ChannelProcessor<T, E> command) throws IOException, E {
-        final Process proc = rt.exec(command.renderCommand(Collections.<String, String>emptyMap()));
+        final Process proc = rt.exec(command.renderCommand(this));
         try (final Reader input = new InputStreamReader(proc.getInputStream());
              final Reader error = new InputStreamReader(proc.getErrorStream())) {
             final String result = toString(input);

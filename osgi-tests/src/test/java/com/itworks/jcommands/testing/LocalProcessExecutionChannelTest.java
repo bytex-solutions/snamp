@@ -3,9 +3,17 @@ package com.itworks.jcommands.testing;
 import com.itworks.jcommands.ChannelProcessor;
 import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.jcommands.channels.CommandExecutionChannels;
+import com.itworks.jcommands.impl.XmlCommandLineTemplate;
+import com.itworks.jcommands.impl.XmlParserDefinition;
+import com.itworks.jcommands.impl.XmlParsingResultType;
 import com.itworks.snamp.testing.AbstractUnitTest;
+import org.apache.commons.lang3.SystemUtils;
+import org.junit.Assume;
 import org.junit.Test;
 
+import javax.script.ScriptException;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -36,5 +44,31 @@ public class LocalProcessExecutionChannelTest extends AbstractUnitTest<CommandEx
             });
             assertTrue(result.startsWith(str));
         }
+    }
+
+    @Test
+    public void freeMemTest() throws IOException, ScriptException {
+        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
+        final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
+        template.setCommandTemplate("free {format}");
+        template.getCommandOutputParser().setParsingLanguage(XmlParserDefinition.REGEXP_LANG);
+        template.getCommandOutputParser().setParsingResultType(XmlParsingResultType.DICTIONARY);
+        template.getCommandOutputParser().addParsingRule("[a-z]+");
+        template.getCommandOutputParser().addParsingRule("[a-z]+");
+        template.getCommandOutputParser().addParsingRule("[a-z]+");
+        template.getCommandOutputParser().addParsingRule("[a-z]+");
+        template.getCommandOutputParser().addParsingRule("[a-z]+");
+        template.getCommandOutputParser().addParsingRule("[a-z]+");
+        template.getCommandOutputParser().addParsingRule("[a-zA-Z]+\\:");
+        template.getCommandOutputParser().addDictionaryEntryRule("total", "[0-9]+", XmlParsingResultType.INTEGER);
+        template.getCommandOutputParser().addDictionaryEntryRule("used", "[0-9]+", XmlParsingResultType.INTEGER);
+        template.getCommandOutputParser().addDictionaryEntryRule("free", "[0-9]+", XmlParsingResultType.INTEGER);
+        final CommandExecutionChannel channel = CommandExecutionChannels.createLocalProcessExecutionChannel(new HashMap<String, String>(1){{
+            put("format", "-m");
+        }});
+        final Object memStatus = channel.exec(template);
+        assertTrue(memStatus instanceof Map);
+        assertEquals(3, ((Map)memStatus).size());
+        assertTrue(((Map)memStatus).get("total") instanceof Integer);
     }
 }
