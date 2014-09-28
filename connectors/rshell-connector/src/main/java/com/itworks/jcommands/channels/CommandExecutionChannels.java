@@ -46,6 +46,18 @@ public final class CommandExecutionChannels {
                 return new SSHExecutionChannel(params);
             }
         });
+        channels.put(RShellExecutionChannel.CHANNEL_NAME, new ExecutionChannelProducer() {
+            @Override
+            public CommandExecutionChannel produce(final Map<String, String> params) throws Exception {
+                return new RShellExecutionChannel(params);
+            }
+        });
+        channels.put(RExecExecutionChannel.CHANNEL_NAME, new ExecutionChannelProducer() {
+            @Override
+            public CommandExecutionChannel produce(final Map<String, String> params) throws Exception {
+                return new RShellExecutionChannel(params);
+            }
+        });
     }
 
     public static void registerChannelFactory(final String[] channelTypes,

@@ -7,6 +7,7 @@ import com.itworks.snamp.internal.MapBuilder;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.net.telnet.TelnetClient;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,6 +30,7 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
     public LocalProcessExecutionChannel(final Map<String, String> params){
         super(params);
         rt = Runtime.getRuntime();
+        org.apache.commons.net.telnet.TelnetClient cl = new TelnetClient();
     }
 
     public LocalProcessExecutionChannel(final int normalExitCode) {

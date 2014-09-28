@@ -36,5 +36,10 @@
             <version>1.2</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>20030805.205232</version>
+        </dependency>
     </dependencies>
 </project>
