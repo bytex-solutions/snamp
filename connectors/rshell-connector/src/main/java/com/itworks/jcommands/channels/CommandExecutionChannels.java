@@ -40,6 +40,12 @@ public final class CommandExecutionChannels {
                 return new LocalProcessExecutionChannel(params);
             }
         });
+        channels.put(SSHExecutionChannel.CHANNEL_NAME, new ExecutionChannelProducer() {
+            @Override
+            public CommandExecutionChannel produce(final Map<String, String> params) throws Exception {
+                return new SSHExecutionChannel(params);
+            }
+        });
     }
 
     public static void registerChannelFactory(final String[] channelTypes,

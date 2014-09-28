@@ -876,7 +876,7 @@ public class XmlParserDefinition {
 
     private Map<String, Object> parseDictionary(final ResettableListIterator parsingTemplateIter,
                                                 final ScriptEngine engine) throws ScriptException {
-        final Map<String, Object> result = new LinkedHashMap<>();
+        final Map<String, Object> result = new HashMap<>(20);
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){
             final Object templateFragment = parsingTemplateIter.next();
@@ -895,7 +895,7 @@ public class XmlParserDefinition {
     private Collection<Map<String, Object>> parseTable(final ResettableListIterator parsingTemplateIter,
                                                        final ScriptEngine engine) throws ScriptException{
         final List<Map<String, Object>> table = new LinkedList<>();
-        Map<String, Object> row = new LinkedHashMap<>();
+        Map<String, Object> row = new HashMap<>(20);
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){
             final Object templateFragment = parsingTemplateIter.next();
@@ -907,7 +907,7 @@ public class XmlParserDefinition {
             }
             else if(templateFragment instanceof LineTerminationParsingRule){
                 table.add(row);
-                row = new LinkedHashMap<>();
+                row = new HashMap<>(20);
                 runPlaceholder(((LineTerminationParsingRule)templateFragment).getTerminationRule(), engine);
                 parsingTemplateIter.reset();
             }
