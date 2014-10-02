@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns1:profile xmlns:ns1="http://itworks.com/snamp/command-line-tool-profile/v1.0">
+    <reader>
+        <ns1:output ns1:language="regexp" ns1:type="dictionary">
+            <ns1:skip>[a-z]+</ns1:skip>
+            <ns1:skip>[a-z]+</ns1:skip>
+            <ns1:skip>[a-z]+</ns1:skip>
+            <ns1:skip>[a-z]+</ns1:skip>
+            <ns1:skip>[a-z]+</ns1:skip>
+            <ns1:skip>[a-z]+</ns1:skip>
+            <ns1:skip>[a-zA-Z]+\:</ns1:skip>
+            <ns1:entry ns1:key="total">[0-9]+</ns1:entry>
+            <ns1:entry ns1:key="used">[0-9]+</ns1:entry>
+            <ns1:entry ns1:key="free">[0-9]+</ns1:entry>
+        </ns1:output>
+        <ns1:input>free {format}</ns1:input>
+    </reader>
+</ns1:profile>

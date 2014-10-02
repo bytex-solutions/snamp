@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import javax.script.ScriptException;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,9 +31,9 @@ public class LocalProcessExecutionChannelTest extends AbstractUnitTest<CommandEx
     public void echoTest() throws Exception {
         try(final CommandExecutionChannel channel = CommandExecutionChannels.createLocalProcessExecutionChannel()){
             final String str = "Hello, world!";
-            final String result = channel.exec(new ChannelProcessor<String, Exception>() {
+            final String result = channel.exec(new ChannelProcessor<String, String, Exception>() {
                 @Override
-                public String renderCommand(final Map<String, ?> channelParameters) {
+                public String renderCommand(final String str, final Map<String, ?> channelParameters) {
                     return String.format("echo %s", str);
                 }
 
@@ -41,7 +42,7 @@ public class LocalProcessExecutionChannelTest extends AbstractUnitTest<CommandEx
                     assertNull(error);
                     return result;
                 }
-            });
+            }, str);
             assertTrue(result.startsWith(str));
         }
     }
@@ -66,7 +67,7 @@ public class LocalProcessExecutionChannelTest extends AbstractUnitTest<CommandEx
         final CommandExecutionChannel channel = CommandExecutionChannels.createLocalProcessExecutionChannel(new HashMap<String, String>(1){{
             put("format", "-m");
         }});
-        final Object memStatus = channel.exec(template);
+        final Object memStatus = channel.exec(template, Collections.<String, Object>emptyMap());
         assertTrue(memStatus instanceof Map);
         assertEquals(3, ((Map)memStatus).size());
         assertTrue(((Map)memStatus).get("total") instanceof Integer);

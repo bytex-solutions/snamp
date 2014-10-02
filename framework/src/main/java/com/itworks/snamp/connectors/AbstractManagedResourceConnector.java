@@ -1058,7 +1058,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
     }
     /**
      * Releases all resources associated with this connector.
-     * @throws Exception
+     * @throws Exception Unable to release resources associated with this connector.
      */
     @Override
     @ThreadSafe(false)

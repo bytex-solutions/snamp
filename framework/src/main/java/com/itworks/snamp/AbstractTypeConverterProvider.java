@@ -1,18 +1,12 @@
 package com.itworks.snamp;
 
-import org.apache.commons.collections4.map.ReferenceMap;
+import org.apache.commons.collections4.Transformer;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
-
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents the base class for building type converter factory.
@@ -21,51 +15,49 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
  * @since 1.0
  */
 public abstract class AbstractTypeConverterProvider implements TypeConverterProvider {
-    private final Map<Class<?>, TypeConverter<?>> converters;
+    private final Map<Class<?>, TypeConverterImpl<?>> converters;
 
     /**
      * Initializes a new type converter factory.
      */
     protected AbstractTypeConverterProvider(){
-        converters = new ReferenceMap<>(ReferenceStrength.HARD, ReferenceStrength.SOFT, true);
+        converters = new HashMap<>(10);
+        registerConverter(Object.class, String.class,
+                new Transformer<Object, String>() {
+                    @Override
+                    public String transform(final Object input) {
+                        return Objects.toString(input, "");
+                    }
+                });
     }
 
     /**
-     * Marks the method with single argument and non-void return value as converter.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
+     * Registers a new converter.
+     * <p>
+     *     It is recommended to call this method inside of the constructor only.
+     * @param inputType Type of the input value to be converted. Cannot be {@literal null}.
+     * @param outputType Type of the conversion result. Cannot be {@literal null}.
+     * @param converter The converter to register.
+     * @param <I> Type definition of the input value to be converted.
+     * @param <O> Type definition of the conversion result.
      */
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.METHOD)
-    protected static @interface Converter{
-
+    @SuppressWarnings("unchecked")
+    protected final <I, O> void registerConverter(final Class<I> inputType,
+                                                  final Class<O> outputType,
+                                                  final Transformer<I, O> converter){
+        final TypeConverterImpl<O> impl;
+        if(converters.containsKey(outputType))
+            impl = (TypeConverterImpl<O>)converters.get(outputType);
+        else converters.put(outputType, impl = new TypeConverterImpl<>(outputType));
+        impl.registerConverter(inputType, converter);
     }
 
-    /**
-     * Converts {@link Object} to {@link String}.
-     * @param o An object to convert.
-     * @return Conversion result.
-     */
-    @Converter
-    public static String objectToString(final Object o){
-        return Objects.toString(o, "");
-    }
+    private static final class TypeConverterImpl<T> extends HashMap<Class<?>, Transformer> implements TypeConverter<T> {
+        private final Class<T> returnType;
 
-    private static boolean isPublicStatic(final Method m){
-        return (m.getModifiers() & (Modifier.PUBLIC | Modifier.STATIC)) != 0;
-    }
-
-    private static final class TypeConverterImpl<T> extends HashMap<Class<?>, Method> implements TypeConverter<T> {
-        private final Class<T> type;
-        private final Method[] methods;
-
-        public TypeConverterImpl(final Class<T> type, final List<Method> methods){
+        private TypeConverterImpl(final Class<T> type) {
             super(5);
-            this.type = type;
-            this.methods = new Method[methods.size()];
-            for(int i = 0; i < methods.size(); i++)
-                this.methods[i] = methods.get(i);
+            returnType = type;
         }
 
         /**
@@ -75,18 +67,19 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
          */
         @Override
         public final Class<T> getType() {
-            return type;
+            return returnType;
         }
 
-        private Method getConverterFrom(final Class<?> source){
-            if(containsKey(source)) return get(source);
-            for(final Method m: methods){
-                final Class<?>[] params = m.getParameterTypes();
-                if(params.length == 1 && params[0].isAssignableFrom(source)){
-                    put(source, m);
-                    return m;
+        private Transformer getConverterFrom(final Class<?> source) {
+            //cache hit
+            if (containsKey(source)) return get(source);
+            //long-time search
+            for (final Class<?> cls : keySet())
+                if (cls.isAssignableFrom(source)) {
+                    final Transformer converter = get(cls);
+                    put(source, converter);
+                    return converter;
                 }
-            }
             return null;
         }
 
@@ -98,7 +91,7 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
          */
         @Override
         public final boolean canConvertFrom(final Class<?> source) {
-            return type.isAssignableFrom(source) || getConverterFrom(source) != null;
+            return returnType.isAssignableFrom(source) || getConverterFrom(source) != null;
         }
 
         /**
@@ -108,39 +101,23 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
          * @return The value of the original type described by this converter.
          * @throws IllegalArgumentException Unsupported type of the source value. Check the type with {@link #canConvertFrom(Class)} method.
          */
+        @SuppressWarnings("unchecked")
         @Override
         public final T convertFrom(final Object value) throws IllegalArgumentException {
-            if(value == null) return null;
-            else if(type.isInstance(value)) return type.cast(value);
-            else{
-                final Method converter = getConverterFrom(value.getClass());
-                if(converter == null) throw new IllegalArgumentException(String.format("Cannot convert %s to %s.", value, type));
-                else if(!converter.isAccessible()) converter.setAccessible(true);
-                try {
-                    return type.cast(converter.invoke(null, value));
-                }
-                catch (final ReflectiveOperationException e) {
-                    throw new IllegalArgumentException(e);
-                }
+            if (value == null) return null;
+            else if (returnType.isInstance(value)) return returnType.cast(value);
+            else {
+                final Transformer converter = getConverterFrom(value.getClass());
+                if (converter == null)
+                    throw new IllegalArgumentException(String.format("Cannot convert %s to %s.", value, returnType));
+                return returnType.cast(converter.transform(value));
             }
         }
-    }
 
-    /**
-     * Returns the converter for the specified type constructed from the
-     * public static methods annotated with {@link AbstractTypeConverterProvider.Converter}
-     * and declared in the specified converter factory.
-     * @param factory The class that contains declaration of converters. Cannot be {@literal null}.
-     * @param t The type for which the converter should be constructed. Cannot be {@literal null}.
-     * @param <T> Conversion result type.
-     * @return An instance of the converter; or {@literal null}, if conversion is not supported.
-     */
-    protected static <T> TypeConverter<T> getTypeConverter(final Class<? extends AbstractTypeConverterProvider> factory, final Class<T> t){
-        final List<Method> methods = new ArrayList<>();
-        for(final Method m: factory.getMethods())
-            if(m.isAnnotationPresent(Converter.class) && isPublicStatic(m) && t.isAssignableFrom(m.getReturnType()))
-                methods.add(m);
-        return methods.size() > 0 ? new TypeConverterImpl<>(t, methods) : null;
+        private <I> void registerConverter(final Class<I> inputType,
+                                           final Transformer<I, T> converter) {
+            put(inputType, converter);
+        }
     }
 
     /**
@@ -153,15 +130,40 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
      */
     @SuppressWarnings("unchecked")
     @Override
-    public synchronized final <T> TypeConverter<T> getTypeConverter(final Class<T> t) {
-        if(t == null) return null;
-        else if(shouldNormalize(t)) return (TypeConverter<T>)getTypeConverter(normalizeClass(t));
-        TypeConverter<T> converter = (TypeConverter<T>)converters.get(t);
-        if(converter != null) return converter;
-        converter = getTypeConverter(getClass(), t);
-        if(converter != null)
-            converters.put(t, converter);
-        return converter;
+    public final <T> TypeConverterImpl<T> getTypeConverter(final Class<T> t) {
+        if (t == null) return null;
+        else if (shouldNormalize(t)) return (TypeConverterImpl<T>) getTypeConverter(normalizeClass(t));
+        else return (TypeConverterImpl<T>) converters.get(t);
+    }
+
+    /**
+     * Converts the input value into the specified type.
+     * @param outputType  The type of the conversion result.
+     * @param input The value to be converted.
+     * @param <O> Type definition of the conversion result.
+     * @return The conversion result.
+     * @throws java.lang.IllegalArgumentException Conversion is not supported.
+     */
+    public final <O> O convert(final Class<O> outputType,
+                                final Object input) throws IllegalArgumentException {
+        final TypeConverterImpl<O> converter = getTypeConverter(outputType);
+        if (converter == null)
+            throw new IllegalArgumentException(String.format("Converter for type %s not found.", outputType));
+        else return converter.convertFrom(input);
+    }
+
+    /**
+     * Gets converter for the specified input/output types.
+     * @param inputType Type of the value to be converted.
+     * @param outputType Type of the conversion result.
+     * @return The conversion result.
+     */
+    @SuppressWarnings("unchecked")
+    public final <I, O> Transformer<I, O> getPlainConverter(final Class<I> inputType, final Class<O> outputType) {
+        final TypeConverterImpl<O> converter = getTypeConverter(outputType);
+        return converter != null && converter.canConvertFrom(inputType) ?
+                converter.getConverterFrom(inputType) :
+                null;
     }
 
     /**

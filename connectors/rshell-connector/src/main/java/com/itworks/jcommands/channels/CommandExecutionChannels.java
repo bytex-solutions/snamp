@@ -2,6 +2,8 @@ package com.itworks.jcommands.channels;
 
 import com.itworks.jcommands.CommandExecutionChannel;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +32,25 @@ public final class CommandExecutionChannels {
         CommandExecutionChannel produce(final Map<String, String> params) throws Exception;
     }
 
+    /**
+     * Represents producer for the execution channel that
+     * supports {@link java.net.URI} as one of the initialization parameters.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static interface URIExecutionChannelProducer extends ExecutionChannelProducer{
+        /**
+         * Creates a new instance of the execution channel.
+         * @param connectionString The connection string used to initialize the channel. Cannot be {@literal null}.
+         * @param params Additional channel parameters.
+         * @return A new instance of the channel.
+         * @throws Exception Unable to instantiate the channel.
+         */
+        CommandExecutionChannel produce(final URI connectionString,
+                                        final Map<String, String> params) throws Exception;
+    }
+
     private static final Map<String, ExecutionChannelProducer> channels;
 
     static {
@@ -40,22 +61,37 @@ public final class CommandExecutionChannels {
                 return new LocalProcessExecutionChannel(params);
             }
         });
-        channels.put(SSHExecutionChannel.CHANNEL_NAME, new ExecutionChannelProducer() {
+        channels.put(SSHExecutionChannel.CHANNEL_NAME, new URIExecutionChannelProducer() {
             @Override
-            public CommandExecutionChannel produce(final Map<String, String> params) throws Exception {
+            public CommandExecutionChannel produce(final Map<String, String> params) throws IOException {
                 return new SSHExecutionChannel(params);
             }
-        });
-        channels.put(RShellExecutionChannel.CHANNEL_NAME, new ExecutionChannelProducer() {
+
             @Override
-            public CommandExecutionChannel produce(final Map<String, String> params) throws Exception {
-                return new RShellExecutionChannel(params);
+            public CommandExecutionChannel produce(final URI connectionString, final Map<String, String> params) throws IOException {
+                return new SSHExecutionChannel(connectionString, params);
             }
         });
-        channels.put(RExecExecutionChannel.CHANNEL_NAME, new ExecutionChannelProducer() {
+        channels.put(RShellExecutionChannel.CHANNEL_NAME, new URIExecutionChannelProducer() {
             @Override
-            public CommandExecutionChannel produce(final Map<String, String> params) throws Exception {
+            public RShellExecutionChannel produce(final Map<String, String> params) {
                 return new RShellExecutionChannel(params);
+            }
+
+            @Override
+            public RShellExecutionChannel produce(final URI connectionString, final Map<String, String> params) {
+                return new RShellExecutionChannel(connectionString, params);
+            }
+        });
+        channels.put(RExecExecutionChannel.CHANNEL_NAME, new URIExecutionChannelProducer() {
+            @Override
+            public RExecExecutionChannel produce(final Map<String, String> params) throws Exception {
+                return new RExecExecutionChannel(params);
+            }
+
+            @Override
+            public RExecExecutionChannel produce(final URI connectionString, final Map<String, String> params) throws Exception {
+                return new RExecExecutionChannel(connectionString, params);
             }
         });
     }
@@ -80,6 +116,22 @@ public final class CommandExecutionChannels {
         if (channels.containsKey(channelType)) {
             final ExecutionChannelProducer producer = channels.get(channelType);
             return producer != null ? producer.produce(params) : null;
+        } else return null;
+    }
+
+    /**
+     * Creates a new execution channel that supports initialization from {@link java.net.URI} object.
+     * @param connectionString The connection string used to initialize the channel. Cannot be {@literal null}.
+     * @param params Additional channel parameters.
+     * @return A new instance of the execution channel; or {@literal null}, if channel doesn't support initialization from {@link java.net.URI}.
+     * @throws Exception Unable to instantiate the channel.
+     */
+    public static CommandExecutionChannel createChannel(final URI connectionString,
+                                                        final Map<String, String> params) throws Exception {
+        if (channels.containsKey(connectionString.getScheme())) {
+            final ExecutionChannelProducer producer = channels.get(connectionString.getScheme());
+            return producer instanceof URIExecutionChannelProducer ?
+                    ((URIExecutionChannelProducer) producer).produce(connectionString, params) : null;
         } else return null;
     }
 

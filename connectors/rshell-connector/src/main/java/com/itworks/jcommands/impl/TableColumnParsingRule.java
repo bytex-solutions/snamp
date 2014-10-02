@@ -14,11 +14,22 @@ public final class TableColumnParsingRule extends ParsingRule{
     private String columnName;
     private String columnValueParsingRule;
     private XmlParsingResultType columnType;
+    private boolean indexed;
 
     public TableColumnParsingRule(){
         super(XmlParsingResultType.TABLE);
         columnName = columnValueParsingRule = "";
         columnType = XmlParsingResultType.STRING;
+        indexed = false;
+    }
+
+    @XmlAttribute(name = "indexed", namespace = XmlConstants.NAMESPACE, required = false)
+    public void setIndexed(final boolean value){
+        indexed = value;
+    }
+
+    public boolean isIndexed(){
+        return indexed;
     }
 
     @XmlAttribute(name = "name", namespace = XmlConstants.NAMESPACE, required = true)

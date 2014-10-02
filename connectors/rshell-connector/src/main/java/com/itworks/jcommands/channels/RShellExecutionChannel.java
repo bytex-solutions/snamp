@@ -7,6 +7,7 @@ import net.schmizz.sshj.common.IOUtils;
 import org.apache.commons.net.bsd.RCommandClient;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +29,12 @@ final class RShellExecutionChannel extends HashMap<String, String> implements Co
 
     public RShellExecutionChannel(final Map<String, String> params){
         super(params);
+    }
+
+    public RShellExecutionChannel(final URI connectionString, final Map<String, String> params) {
+        this(params);
+        put(REMOTE_HOST_PROPERTY, connectionString.getHost());
+        put(REMOTE_PORT_PROPERTY, Integer.toString(connectionString.getPort()));
     }
 
     /**
@@ -67,17 +74,19 @@ final class RShellExecutionChannel extends HashMap<String, String> implements Co
      * Executes the specified action in the channel context.
      *
      * @param command The command to execute in channel context.
+     * @param input Additional input for the command renderer.
      * @return The execution result.
      * @throws java.io.IOException Some I/O error occurs in the channel.
      * @throws E           Non-I/O exception raised by the command.
      */
     @Override
-    public <T, E extends Exception> T exec(final ChannelProcessor<T, E> command) throws IOException, E {
+    public <I, O, E extends Exception> O exec(final ChannelProcessor<I, O, E> command,
+                                              final I input) throws IOException, E {
         final RCommandClient client = new RCommandClient();
         client.connect(get(REMOTE_HOST_PROPERTY),
                 containsKey(REMOTE_PORT_PROPERTY) ? Integer.parseInt(get(REMOTE_HOST_PROPERTY)) : DEFAULT_PORT);
         try {
-            client.rcommand(get(LOCAL_USER_PROPERTY), get(REMOTE_USER_PROPERTY), command.renderCommand(this), true);
+            client.rcommand(get(LOCAL_USER_PROPERTY), get(REMOTE_USER_PROPERTY), command.renderCommand(input, this), true);
             final String result = IOUtils.readFully(client.getInputStream()).toString();
             final String err = IOUtils.readFully(client.getErrorStream()).toString();
             return command.process(result, err == null || err.isEmpty() ? null : new IOException(err));

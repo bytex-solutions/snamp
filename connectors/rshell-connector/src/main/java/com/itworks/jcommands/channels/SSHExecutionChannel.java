@@ -13,6 +13,7 @@ import net.schmizz.sshj.userauth.UserAuthException;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -57,43 +58,60 @@ final class SSHExecutionChannel extends SSHClient implements CommandExecutionCha
     private Session session;
     private final Authenticator auth;
 
-    public SSHExecutionChannel(final Map<String, String> channelParams) throws IOException {
+    private static Map<String, String> join(final URI connectionString, final Map<String, String> params){
+        final Map<String, String> result = new HashMap<>(params);
+        result.put(HOST_NAME_PROPERTY, connectionString.getHost());
+        result.put(PORT_NAME_PROPERTY, Integer.toString(connectionString.getPort()));
+        return result;
+    }
+
+    public SSHExecutionChannel(final Map<String, String> params) throws IOException {
+        this(params, true);
+    }
+
+
+    public SSHExecutionChannel(final URI connectionString, final Map<String, String> params) throws IOException{
+        this(join(connectionString, params), false);
+    }
+
+    private SSHExecutionChannel(final Map<String, String> params,
+                                final boolean copyParams) throws IOException {
         mode = ChannelProcessingMode.SINGLETON_CONNECTION;
         session = null;
-        if (channelParams.containsKey(KNOWN_HOSTS_PROPERTY))
-            loadKnownHosts(this, channelParams.get(KNOWN_HOSTS_PROPERTY));
-        remoteHost = Objects.toString(channelParams.get(HOST_NAME_PROPERTY), DEFAULT_HOST_NAME);
-        remotePort = Integer.parseInt(Objects.toString(channelParams.get(PORT_NAME_PROPERTY), Integer.toString(DEFAULT_PORT)));
-        if (channelParams.containsKey(LOCAL_HOST_NAME_PROPERTY)) {
-            localHost = InetAddress.getByName(Objects.toString(channelParams.get(LOCAL_HOST_NAME_PROPERTY)));
-            localPort = Integer.parseInt(Objects.toString(channelParams.get(LOCAL_PORT_NAME_PROPERTY), "30000"));
+        if (params.containsKey(KNOWN_HOSTS_PROPERTY))
+            loadKnownHosts(this, params.get(KNOWN_HOSTS_PROPERTY));
+        remoteHost = Objects.toString(params.get(HOST_NAME_PROPERTY), DEFAULT_HOST_NAME);
+        remotePort = Integer.parseInt(Objects.toString(params.get(PORT_NAME_PROPERTY), Integer.toString(DEFAULT_PORT)));
+        if (params.containsKey(LOCAL_HOST_NAME_PROPERTY)) {
+            localHost = InetAddress.getByName(Objects.toString(params.get(LOCAL_HOST_NAME_PROPERTY)));
+            localPort = Integer.parseInt(Objects.toString(params.get(LOCAL_PORT_NAME_PROPERTY), "30000"));
         } else {
             localHost = null;
             localPort = -1;
         }
-        if (channelParams.containsKey(SOCKET_TIMEOUT_PROPERTY)) {
-            final int timeoutMillis = Integer.parseInt(Objects.toString(channelParams.get(SOCKET_TIMEOUT_PROPERTY)));
+        if (params.containsKey(SOCKET_TIMEOUT_PROPERTY)) {
+            final int timeoutMillis = Integer.parseInt(Objects.toString(params.get(SOCKET_TIMEOUT_PROPERTY)));
             setTimeout(timeoutMillis);
             setConnectTimeout(timeoutMillis);
         }
-        if(channelParams.containsKey(FINGERPRINT_PROPERTY))
-            addHostKeyVerifier(channelParams.get(FINGERPRINT_PROPERTY));
-        encoding = Objects.toString(channelParams.get(ENCODING_PROPERTY), Charset.defaultCharset().name());
-        if (channelParams.containsKey(USER_NAME_PROPERTY))
-            if (channelParams.containsKey(PASSWORD_PROPERTY))
+        if(params.containsKey(FINGERPRINT_PROPERTY))
+            addHostKeyVerifier(params.get(FINGERPRINT_PROPERTY));
+        encoding = Objects.toString(params.get(ENCODING_PROPERTY), Charset.defaultCharset().name());
+        if (params.containsKey(USER_NAME_PROPERTY))
+            if (params.containsKey(PASSWORD_PROPERTY))
                 auth = new Authenticator() {
-                    private final String userName = channelParams.get(USER_NAME_PROPERTY);
-                    private final String password = channelParams.get(PASSWORD_PROPERTY);
+                    private final String userName = params.get(USER_NAME_PROPERTY);
+                    private final String password = params.get(PASSWORD_PROPERTY);
 
                     @Override
                     public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
                         client.authPassword(userName, password);
                     }
                 };
-            else if (channelParams.containsKey(SSH_KEY_FILE_PROPERTY))
+            else if (params.containsKey(SSH_KEY_FILE_PROPERTY))
                 auth = new Authenticator() {
-                    private final String userName = channelParams.get(USER_NAME_PROPERTY);
-                    private final String keyFile = channelParams.get(SSH_KEY_FILE_PROPERTY);
+                    private final String userName = params.get(USER_NAME_PROPERTY);
+                    private final String keyFile = params.get(SSH_KEY_FILE_PROPERTY);
 
                     @Override
                     public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
@@ -101,7 +119,7 @@ final class SSHExecutionChannel extends SSHClient implements CommandExecutionCha
                     }
                 };
             else auth = new Authenticator() {
-                    private final String userName = channelParams.get(USER_NAME_PROPERTY);
+                    private final String userName = params.get(USER_NAME_PROPERTY);
 
                     @Override
                     public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
@@ -109,14 +127,9 @@ final class SSHExecutionChannel extends SSHClient implements CommandExecutionCha
                     }
                 };
         else auth = null;
-        this.channelParams = safeChannelParams(channelParams);
-    }
-
-    private static Map<String, String> safeChannelParams(final Map<String, String> params){
-        final Map<String, String> result = new HashMap<>(params);
-        result.remove(PASSWORD_PROPERTY);
-        result.remove(SSH_KEY_FILE_PROPERTY);
-        return result;
+        this.channelParams = copyParams ? new HashMap<>(params) : params;
+        this.channelParams.remove(PASSWORD_PROPERTY);
+        this.channelParams.remove(SSH_KEY_FILE_PROPERTY);
     }
 
     private static void loadKnownHosts(final SSHClient client, final Object hostsFile) throws IOException {
@@ -164,11 +177,12 @@ final class SSHExecutionChannel extends SSHClient implements CommandExecutionCha
         } else throw new IllegalArgumentException(String.format("Channel mode %s is not supported", value));
     }
 
-    private static <T, E extends Exception> T exec(final Session s,
+    private static <I, T, E extends Exception> T exec(final Session s,
                                                    final String encoding,
                                                    final Map<String, ?> channelParams,
-                                                   final ChannelProcessor<T, E> command) throws IOException, E{
-        final Session.Command result = s.exec(command.renderCommand(channelParams));
+                                                   final ChannelProcessor<I, T, E> command,
+                                                   final I input) throws IOException, E{
+        final Session.Command result = s.exec(command.renderCommand(input, channelParams));
         final String out = IOUtils.readFully(result.getInputStream()).toString(encoding);
         String err = IOUtils.readFully(result.getErrorStream()).toString(encoding);
         if(err == null || err.isEmpty()) err = result.getExitErrorMessage();
@@ -184,23 +198,24 @@ final class SSHExecutionChannel extends SSHClient implements CommandExecutionCha
      * @throws E                   Non-I/O exception raised by the command.
      */
     @Override
-    public synchronized <T, E extends Exception> T exec(final ChannelProcessor<T, E> command) throws IOException, E {
+    public synchronized <I, O, E extends Exception> O exec(final ChannelProcessor<I, O, E> command,
+                                                           final I input) throws IOException, E {
         if (isConnected())
             switch (mode) {
                 case CONNECTION_PER_EXECUTION:
                     try (final Session s = startSession()) {
-                        return exec(s, encoding, channelParams, command);
+                        return exec(s, encoding, channelParams, command, input);
                     }
                 case SINGLETON_CONNECTION:
                     if (session == null) { //starts a new session
                         session = startSession();
-                        return exec(command);
+                        return exec(command, input);
                     } else if (session.isOpen()) {
-                        return exec(session, encoding, channelParams, command);
+                        return exec(session, encoding, channelParams, command, input);
                     } else {//close dead session and initialize a new session
                         session.close();
                         session = null;
-                        return exec(command);
+                        return exec(command, input);
                     }
                 default:
                     throw new IOException(String.format("Unsupported channel mode %s.", mode));
@@ -209,12 +224,12 @@ final class SSHExecutionChannel extends SSHClient implements CommandExecutionCha
             connect(remoteHost, remotePort);
             if (auth != null)
                 auth.authenticate(this);
-            return exec(command);
+            return exec(command, input);
         } else {
             connect(remoteHost, remotePort, localHost, localPort);
             if (auth != null)
                 auth.authenticate(this);
-            return exec(command);
+            return exec(command, input);
         }
     }
 }

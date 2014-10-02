@@ -71,6 +71,14 @@ public interface Table<COLUMN> {
     void addRow(final Map<COLUMN, Object> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
 
     /**
+     * Gets row by its index.
+     * @param index Zero-based index of the row.
+     * @return The map that represents the row.
+     * @throws IndexOutOfBoundsException The specified row doesn't exist.
+     */
+    Map<COLUMN, Object> getRow(final int index) throws IndexOutOfBoundsException;
+
+    /**
      * Removes the row from this table.
      * @param rowIndex An index of the row to remove.
      * @throws UnsupportedOperationException Operation is not supported because this table is read-only.

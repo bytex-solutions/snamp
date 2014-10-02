@@ -200,6 +200,7 @@
             <groupId>com.itworks.snamp</groupId>
             <artifactId>rshell-connector</artifactId>
             <version>1.0.0</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.sshd</groupId>
@@ -211,7 +212,13 @@
             <groupId>net.schmizz</groupId>
             <artifactId>sshj</artifactId>
             <version>0.10.0</version>
-            <scope>provided</scope>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.5.11</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

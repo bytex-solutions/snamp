@@ -3,7 +3,7 @@ package com.itworks.snamp.testing.connectors.snmp;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.adapters.snmp.SnmpClient;
 import com.itworks.snamp.testing.adapters.snmp.SnmpClientFactory;
-import com.itworks.snamp.testing.connectors.AbstractManagementConnectorTest;
+import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
 
 import java.util.Map;
@@ -14,7 +14,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractSnmpConnectorTest extends AbstractManagementConnectorTest {
+public abstract class AbstractSnmpConnectorTest extends AbstractResourceConnectorTest {
     protected static final String CONNECTOR_NAME = "snmp";
 
     protected AbstractSnmpConnectorTest(final String host,

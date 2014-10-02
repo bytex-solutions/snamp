@@ -7,6 +7,7 @@ import org.stringtemplate.v4.ST;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.xml.bind.annotation.*;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -18,7 +19,7 @@ import java.util.Map;
 @XmlRootElement(name = "template", namespace = XmlConstants.NAMESPACE)
 @XmlType(namespace = XmlConstants.NAMESPACE, name = "XmlCommandLineTemplate")
 @XmlAccessorType(XmlAccessType.PROPERTY)
-public class XmlCommandLineTemplate implements ChannelProcessor<Object, ScriptException> {
+public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, Object, ScriptException> {
 
     private String template;
     private transient ST precompiledTemplate;
@@ -89,19 +90,36 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Object, ScriptEx
      * Creates a textual command to be executed through the channel.
      *
      * @param channelParameters The channel initialization parameters. Cannot be {@literal null}.
+     * @param input Additional template formatting parameters.
      * @return The command to execute.
-     * @throws java.lang.IllegalStateException The command template is not specified.
      */
     @Override
-    @ThreadSafe(false)
-    public synchronized final String renderCommand(final Map<String, ?> channelParameters) throws IllegalStateException {
+    @ThreadSafe(true)
+    public final String renderCommand(final Map<String, ?> channelParameters,
+                                                   final Map<String, ?> input) {
         final ST template = precompiledTemplate != null ?
                 new ST(precompiledTemplate) :
                 createCommandTemplate(this.template);
         //fill template attributes from channel parameters
         for (final Map.Entry<String, ?> pair : channelParameters.entrySet())
             template.add(pair.getKey(), pair.getValue());
+        //fill template attributes from custom input
+        if (input != null)
+            for (final Map.Entry<String, ?> pair : input.entrySet())
+                template.add(pair.getKey(), pair.getValue());
         return template.render();
+    }
+
+    /**
+     * Creates a textual command to be executed through the channel.
+     *
+     * @param channelParameters The channel initialization parameters. Cannot be {@literal null}.
+     * @return The command to execute.
+     * @throws java.lang.IllegalStateException The command template is not specified.
+     */
+    @ThreadSafe(true)
+    public final String renderCommand(final Map<String, ?> channelParameters) throws IllegalStateException {
+        return renderCommand(channelParameters, Collections.<String, Object>emptyMap());
     }
 
     @XmlTransient

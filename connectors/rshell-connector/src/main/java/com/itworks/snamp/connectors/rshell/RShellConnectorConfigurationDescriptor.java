@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.jmx;
+package com.itworks.snamp.connectors.rshell;
 
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
@@ -10,44 +10,35 @@ import java.util.logging.Logger;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
- * Represents JMX connector configuration descriptor.
+ * Represents configuration descriptor for the RShell connector.
+ * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
-    public static final String JMX_LOGIN = "login";
-    public static final String JMX_PASSWORD = "password";
-    public static final String CONNECTION_RETRY_COUNT = "retryCount";
-    public static final String OBJECT_NAME_PROPERTY = "objectName";
-    public static final String SEVERITY_PARAM = "severity";
+final class RShellConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+    static final String COMMAND_PROFILE_PATH_PARAM = "commandProfileLocation";
 
-    /**
-     * @author Roman Sakno
-     * @version 1.0
-     * @since 1.0
-     */
-    private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration> {
-        private static final String RESOURCE_NAME = "JmxAttributeConfig";
+    private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
+        private static final String RESOURCE_NAME = "RShellAttributeConfig";
 
         private AttributeConfigurationInfo(){
-            super(AttributeConfiguration.class, OBJECT_NAME_PROPERTY);
+            super(AttributeConfiguration.class, COMMAND_PROFILE_PATH_PARAM);
         }
 
         /**
          * Retrieves resource accessor for the specified locale.
-         *
          * @param loc The requested localization of the resource. May be {@literal null}.
          * @return The resource accessor.
          */
         @Override
-        protected final ResourceBundle getBundle(Locale loc) {
+        protected ResourceBundle getBundle(Locale loc) {
             if(loc == null) loc = Locale.getDefault();
             return ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc);
         }
     }
 
-    JmxConnectorConfigurationDescriptor(){
+    RShellConnectorConfigurationDescriptor() {
         super(new AttributeConfigurationInfo());
     }
 
@@ -58,6 +49,6 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
      */
     @Override
     public Logger getLogger() {
-        return JmxConnectorHelpers.getLogger();
+        return RShellConnectorHelpers.getLogger();
     }
 }

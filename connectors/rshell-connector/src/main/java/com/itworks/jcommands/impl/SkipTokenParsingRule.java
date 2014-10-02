@@ -9,15 +9,15 @@ import javax.xml.bind.annotation.*;
  * @version 1.0
  * @since 1.0
  */
-@XmlType(name = "PlaceholderParsingRule", namespace = XmlConstants.NAMESPACE)
+@XmlType(name = "SkipTokenParsingRule", namespace = XmlConstants.NAMESPACE)
 @XmlRootElement(name = "skip", namespace = XmlConstants.NAMESPACE)
 @XmlAccessorType(XmlAccessType.PROPERTY)
-public final class PlaceholderParsingRule extends ParsingRule {
+public final class SkipTokenParsingRule extends ParsingRule {
     private String rule;
     /**
      * Initializes a new parsing rule.
      */
-    public PlaceholderParsingRule(){
+    public SkipTokenParsingRule(){
         rule = "";
     }
 

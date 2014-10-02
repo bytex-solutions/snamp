@@ -2,6 +2,7 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import org.apache.commons.collections4.Factory;
+import org.apache.commons.collections4.Transformer;
 import org.apache.commons.lang3.ArrayUtils;
 import org.snmp4j.smi.*;
 
@@ -106,34 +107,49 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    @Converter
-    public static Integer convertToInt32(final Integer32 value){
-        return value.toInt();
-    }
-
-    @Converter
-    public static Long convertToInt64(final Counter32 value){
-        return value.toLong();
-    }
-
-    @Converter
-    public static Long convertToInt64(final Counter64 value){
-        return value.toLong();
-    }
-
-    @Converter
-    public static Long convertToInt64(final Gauge32 value){
-        return value.toLong();
-    }
-
-    @Converter
-    public static Long convertToInt64(final UnsignedInteger32 value){
-        return value.toLong();
-    }
-
-    @Converter
-    public static Object[] convertToBytes(final Opaque value){
-        return ArrayUtils.toObject(value.toByteArray());
+    SnmpTypeSystem(){
+        registerConverter(Integer32.class, Integer.class,
+                new Transformer<Integer32, Integer>() {
+                    @Override
+                    public Integer transform(final Integer32 input) {
+                        return input.toInt();
+                    }
+                });
+        registerConverter(Integer32.class, Long.class,
+                new Transformer<Integer32, Long>() {
+                    @Override
+                    public Long transform(final Integer32 input) {
+                        return input.toLong();
+                    }
+                });
+        registerConverter(Counter64.class, Long.class,
+                new Transformer<Counter64, Long>() {
+                    @Override
+                    public Long transform(final Counter64 input) {
+                        return input.toLong();
+                    }
+                });
+        registerConverter(Gauge32.class, Long.class,
+                new Transformer<Gauge32, Long>() {
+                    @Override
+                    public Long transform(final Gauge32 input) {
+                        return input.toLong();
+                    }
+                });
+        registerConverter(UnsignedInteger32.class, Long.class,
+                new Transformer<UnsignedInteger32, Long>() {
+                    @Override
+                    public Long transform(final UnsignedInteger32 input) {
+                        return input.toLong();
+                    }
+                });
+        registerConverter(Opaque.class, Object[].class,
+                new Transformer<Opaque, Object[]>() {
+                    @Override
+                    public Byte[] transform(final Opaque input) {
+                        return ArrayUtils.toObject(input.toByteArray());
+                    }
+                });
     }
 
     public SnmpManagedEntityType resolveSnmpScalarType(final Variable value, final Map<String, String> options){

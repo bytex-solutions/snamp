@@ -10,6 +10,8 @@ import com.itworks.snamp.connectors.ManagedEntityTypeBuilder;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.internal.CountdownTimer;
 import com.itworks.snamp.internal.annotations.Temporary;
+import org.apache.commons.collections4.Closure;
+import org.apache.commons.collections4.Put;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.MOQuery;
 import org.snmp4j.agent.MOScope;
@@ -282,15 +284,15 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
 
     private static void fill(final Object[] values, final MOTable<MOMutableTableRow, MONamedColumn<Variable>, MOTableModel<MOMutableTableRow>> table, final ManagedEntityTabularType type, final Map<String, String> conversionOptions){
         @Temporary
-        final Table<String> tempTable = new SimpleTable<>(new HashMap<String, Class<?>>(1){{
-            put(ManagedEntityTypeBuilder.ManagedEntityArrayType.VALUE_COLUMN_NAME, Object.class);
-        }});
+        final SimpleTable<String> tempTable = new SimpleTable<>(ManagedEntityTypeBuilder.ManagedEntityArrayType.VALUE_COLUMN_NAME,
+                Object.class,
+                values.length);
         for(int arrayIndex = 0; arrayIndex < values.length; arrayIndex++){
             @Temporary
             final int firstColumnValue = arrayIndex;
-            tempTable.addRow(new HashMap<String, Object>(1){{
-                put(ManagedEntityTypeBuilder.ManagedEntityArrayType.VALUE_COLUMN_NAME, values[firstColumnValue]);
-            }});
+            final Map<String, Object> newRow = tempTable.newRow();
+            newRow.put(ManagedEntityTypeBuilder.ManagedEntityArrayType.VALUE_COLUMN_NAME, values[firstColumnValue]);
+            tempTable.addRow(newRow);
         }
         fill(tempTable, table, type, conversionOptions);
     }
@@ -417,12 +419,17 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             rowsToDelete = dumpArray(getTableType().getColumnType(ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME));
         else {
             rowsToDelete = new ArrayList<>(model.getRowCount());
-            final Table<String> table = new SimpleTable<>(new HashMap<String, Class<?>>(model.getColumnCount()){{
-                for(int i = 0; i < getColumnCount(); i++){
-                    final MONamedColumn<Variable> column = getColumn(i);
-                    if(!column.isSynthetic()) put(column.name, Object.class);
+            final Table<String> table = new SimpleTable<>(new Closure<Put<String, Class<?>>>() {
+                @Override
+                public void execute(final Put<String, Class<?>> output) {
+                    for(int i = 0; i < getColumnCount(); i++){
+                        final MONamedColumn<Variable> column = getColumn(i);
+                        if(!column.isSynthetic()) output.put(column.name, Object.class);
+                    }
                 }
-            }});
+            },
+                    model.getColumnCount(),
+                    model.getRowCount());
             for(int r = 0; r < model.getRowCount(); r++){
                 final MOMutableTableRow row = model.getRow(makeRowID(r));
                 if(row == null){ //cancels row sending

@@ -1,6 +1,7 @@
 package com.itworks.jcommands.testing;
 
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
+import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
 import com.itworks.snamp.SimpleTable;
@@ -10,6 +11,10 @@ import org.junit.Test;
 
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +28,15 @@ import java.util.Map;
 public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlCommandLineTemplate> {
     public XmlCommandLineTemplateTest(){
         super(XmlCommandLineTemplate.class);
+    }
+
+    @Test
+    public void serializationTest() throws IOException {
+        final XmlCommandLineToolProfile profile = new XmlCommandLineToolProfile();
+        profile.saveTo(new File("/home/roman/free-tool.xml"));
+        try(final OutputStream s = new ByteArrayOutputStream(4096)){
+            profile.saveTo(s);
+        }
     }
 
     @Test
@@ -168,7 +182,7 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
         parser.setParsingLanguage(XmlParserDefinition.REGEXP_LANG);
         //INT test
         parser.setParsingResultType(XmlParsingResultType.INTEGER);
-        parser.addPlaceholder("[a-z]+");
+        parser.skipToken("[a-z]+");
         parser.addParsingRule("[0-9]+");
         Object result = parser.parse("abbba 90", new ScriptEngineManager());
         assertTrue(result instanceof Integer);
@@ -176,7 +190,7 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
         //BOOLEAN test
         parser.setParsingResultType(XmlParsingResultType.BOOLEAN);
         parser.removeParsingRules();
-        parser.addPlaceholder("[a-z]+");
+        parser.skipToken("[a-z]+");
         parser.addParsingRule("[a-z]+");
         result = parser.parse("prefix true", new ScriptEngineManager());
         assertTrue(result instanceof Boolean);
@@ -188,9 +202,9 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
         final XmlParserDefinition parser = new XmlParserDefinition();
         parser.setParsingLanguage(XmlParserDefinition.REGEXP_LANG);
         parser.setParsingResultType(XmlParsingResultType.DICTIONARY);
-        parser.addPlaceholder("[a-z]+");
+        parser.skipToken("[a-z]+");
         parser.addDictionaryEntryRule("key1", "[0-9]+", XmlParsingResultType.LONG);
-        parser.addPlaceholder("[a-z]+");
+        parser.skipToken("[a-z]+");
         parser.addDictionaryEntryRule("key2", "true", XmlParsingResultType.BOOLEAN);
         final Object dict = parser.parse("abba 90 middle true", new ScriptEngineManager());
         assertTrue(dict instanceof Map);
@@ -203,7 +217,7 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
         final XmlParserDefinition parser = new XmlParserDefinition();
         parser.setParsingLanguage(XmlParserDefinition.REGEXP_LANG);
         parser.setParsingResultType(XmlParsingResultType.ARRAY);
-        parser.addPlaceholder("[a-z]+");
+        parser.skipToken("[a-z]+");
         parser.addArrayItem("[0-9]+", XmlParsingResultType.FLOAT);
         parser.addLineTermination("[a-z]*");
         final Object array = parser.parse("ab 1 ba ac 2 da ad 3", new ScriptEngineManager());

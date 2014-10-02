@@ -29,7 +29,7 @@ import static com.itworks.snamp.connectors.AbstractManagedResourceActivator.*;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractManagementConnectorTest extends AbstractSnampIntegrationTest {
+public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegrationTest {
     protected static interface Equator<V>{
         boolean equate(final V value1, final V value2);
     }
@@ -73,16 +73,16 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
     protected static final String TEST_RESOURCE_NAME = "test-target";
     private final Map<String, String> connectorParameters;
 
-    protected AbstractManagementConnectorTest(final String connectorType,
-                                              final String connectionString,
-                                              final AbstractProvisionOption<?>... deps){
+    protected AbstractResourceConnectorTest(final String connectorType,
+                                            final String connectionString,
+                                            final AbstractProvisionOption<?>... deps){
         this(connectorType, connectionString, Collections.<String, String>emptyMap(), deps);
     }
 
-    protected AbstractManagementConnectorTest(final String connectorType,
-                                              final String connectionString,
-                                              final Map<String, String> parameters,
-                                              final AbstractProvisionOption<?>... deps){
+    protected AbstractResourceConnectorTest(final String connectorType,
+                                            final String connectionString,
+                                            final Map<String, String> parameters,
+                                            final AbstractProvisionOption<?>... deps){
         super(deps);
         this.connectorType = connectorType;
         this.connectionString = connectionString;
@@ -231,6 +231,6 @@ public abstract class AbstractManagementConnectorTest extends AbstractSnampInteg
                                            final Class<T> attributeType,
                                            final T attributeValue,
                                            final boolean readOnlyTest) throws TimeoutException, IOException{
-        testAttribute(attributeID, attributeName, attributeType, attributeValue, AbstractManagementConnectorTest.<T>valueEquator(), readOnlyTest);
+        testAttribute(attributeID, attributeName, attributeType, attributeValue, AbstractResourceConnectorTest.<T>valueEquator(), readOnlyTest);
     }
 }

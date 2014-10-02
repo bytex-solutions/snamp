@@ -1,7 +1,8 @@
 package com.itworks.snamp;
 
-import org.apache.commons.collections4.Factory;
-import org.apache.commons.collections4.FunctorException;
+import org.apache.commons.collections4.*;
+import org.apache.commons.collections4.map.Flat3Map;
+import org.apache.commons.collections4.map.HashedMap;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -16,7 +17,62 @@ import java.util.*;
  * @version 1.0
  */
 public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implements Table<COLUMN> {
+    private static final class ColumnBuilder<COLUMN> implements Put<COLUMN, Class<?>>{
+        private IterableMap<COLUMN, Class<?>> columns;
+
+        private ColumnBuilder(final int columnsCount){
+            columns = new HashedMap<>(columnsCount);
+        }
+
+        private Map<COLUMN, Class<?>> build(final Closure<Put<COLUMN, Class<?>>> filler) {
+            filler.execute(this);
+            final Map<COLUMN, Class<?>> result = columns;
+            columns = null;
+            return result;
+        }
+
+        private void checkInternalBuffer(){
+            if(columns == null)
+                throw new IllegalStateException("The column builder is closed.");
+        }
+
+        @Override
+        public void clear() {
+            checkInternalBuffer();
+            columns.clear();
+        }
+
+        @Override
+        public Object put(final COLUMN key, final Class<?> value) {
+            checkInternalBuffer();
+            return columns.put(key, value);
+        }
+
+        @Override
+        public void putAll(final Map<? extends COLUMN, ? extends Class<?>> t) {
+            checkInternalBuffer();
+            columns.putAll(t);
+        }
+    }
+
     private final Map<COLUMN, Class<?>> _columns;
+
+
+    /**
+     * Initializes a new table using the column builder.
+     * <p>
+     *     Note that the builder will be cleaned inside of the constructor.
+     * @param builder The column builder with constructed columns.
+     * @param columnsCount Expected count of columns.
+     * @param rowCapacity The initial capacity of the table.
+     */
+    public SimpleTable(final Closure<Put<COLUMN, Class<?>>> builder,
+                       final int columnsCount,
+                       final int rowCapacity) {
+        super(rowCapacity);
+        final ColumnBuilder<COLUMN> factory = new ColumnBuilder<>(columnsCount);
+        _columns = factory.build(builder);
+    }
 
     /**
      * Initializes a new table using the specified collection of columns and rows.
@@ -46,7 +102,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
         this(new Factory<Map<COLUMN, Class<?>>>() {
             @Override
             public Map<COLUMN, Class<?>> create() {
-                return new LinkedHashMap<>(cols.length);
+                return new HashMap<>(cols.length);
             }
         }, 5);
         for (final Map.Entry<COLUMN, Class<?>> c : cols)
@@ -70,7 +126,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
         this(new Factory<Map<COLUMN, Class<?>>>() {
             @Override
             public Map<COLUMN, Class<?>> create() {
-                return new LinkedHashMap<>(columns);
+                return new HashMap<>(columns);
             }
         }, rowCapacity);
     }
@@ -83,6 +139,64 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     protected SimpleTable(final Factory<Map<COLUMN, Class<?>>> columnsFactory, final int rowCapacity){
         super(rowCapacity);
         _columns = columnsFactory.create();
+    }
+
+    /**
+     * Initializes a new table with single column.
+     * @param columnId The identifier of the column.
+     * @param columnType The column type.
+     * @param rowCapacity The initial capacity of the table.
+     */
+    public SimpleTable(final COLUMN columnId, final Class<?> columnType, final int rowCapacity) {
+        super(rowCapacity);
+        _columns = Collections.<COLUMN, Class<?>>singletonMap(columnId, columnType);
+    }
+
+    /**
+     * Initializes a new table with two columns.
+     * @param columnId1 The identifier of the first column.
+     * @param columnType1 The type of the first column.
+     * @param columnId2 The identifier of the second column.
+     * @param columnType2 The type of the second column.
+     * @param rowCapacity The initial capacity of the table.
+     */
+    public SimpleTable(final COLUMN columnId1, final Class<?> columnType1,
+                       final COLUMN columnId2, final Class<?> columnType2,
+                       final int rowCapacity){
+        this(new Factory<Map<COLUMN, Class<?>>>() {
+            @Override
+            public Flat3Map<COLUMN, Class<?>> create() {
+                return new Flat3Map<>();
+            }
+        }, rowCapacity);
+        _columns.put(columnId1, columnType1);
+        _columns.put(columnId2, columnType2);
+    }
+
+    /**
+     * Initializes a new table with three columns.
+     * @param columnId1 The identifier of the first column.
+     * @param columnType1 The type of the first column.
+     * @param columnId2 The identifier of the second column.
+     * @param columnType2 The type of the second column.
+     * @param columnId3 The identifier of the third column.
+     * @param columnType3 The type of the third column.
+     * @param rowCapacity The initial capacity of the table.
+     */
+    public SimpleTable(final COLUMN columnId1, final Class<?> columnType1,
+                       final COLUMN columnId2, final Class<?> columnType2,
+                       final COLUMN columnId3, final Class<?> columnType3,
+                       final int rowCapacity){
+        this(new Factory<Map<COLUMN, Class<?>>>() {
+            @Override
+            public Flat3Map<COLUMN, Class<?>> create() {
+                return new Flat3Map<COLUMN, Class<?>>();
+            }
+        },
+        rowCapacity);
+        _columns.put(columnId1, columnType1);
+        _columns.put(columnId2, columnType2);
+        _columns.put(columnId3, columnType3);
     }
 
     /**
@@ -196,6 +310,18 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     }
 
     /**
+     * Gets row by its index.
+     *
+     * @param index Zero-based index of the row.
+     * @return The map that represents the row.
+     * @throws IndexOutOfBoundsException The specified row doesn't exist.
+     */
+    @Override
+    public Map<COLUMN, Object> getRow(final int index) {
+        return get(index);
+    }
+
+    /**
      * Removes the row from this table.
      *
      * @param rowIndex An index of the row to remove.
@@ -203,6 +329,14 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     @Override
     public final void removeRow(final int rowIndex) {
         remove(rowIndex);
+    }
+
+    /**
+     * Creates (but not add) a new row.
+     * @return A new instance of the row.
+     */
+    public final Map<COLUMN, Object> newRow(){
+        return new HashMap<>(_columns.size());
     }
 
     private static Table<String> create(final List<PropertyDescriptor> columns,

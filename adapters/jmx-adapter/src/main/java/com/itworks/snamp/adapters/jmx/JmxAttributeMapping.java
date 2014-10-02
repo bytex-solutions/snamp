@@ -8,6 +8,8 @@ import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeValue;
 import com.itworks.snamp.internal.Utils;
+import org.apache.commons.collections4.Closure;
+import org.apache.commons.collections4.Put;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
@@ -227,10 +229,15 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
 
     private static Object parseTabularData(final TabularData data,
                                            final ManagedEntityTabularType tabularType) throws OpenDataException, InvalidAttributeValueException{
-        final Map<String, Class<?>> columns = new HashMap<>(tabularType.getColumns().size());
-        for(final String columnName: tabularType.getColumns())
-            columns.put(columnName, Object.class);
-        final Table<String> result = new SimpleTable<>(columns);
+        final Table<String> result = new SimpleTable<>(new Closure<Put<String, Class<?>>>() {
+            @Override
+            public void execute(final Put<String, Class<?>> input) {
+                for(final String columnName: tabularType.getColumns())
+                    input.put(columnName, Object.class);
+            }
+        },
+        data.keySet().size(),
+        data.size());
         for(final Object row: data.values())
             if(row instanceof CompositeData) {
                 final CompositeData sourceRow = (CompositeData)row;

@@ -1,9 +1,11 @@
 package com.itworks.snamp.connectors;
 
-import org.apache.commons.collections4.Factory;
 import com.itworks.snamp.Table;
+import org.apache.commons.collections4.Factory;
+import org.apache.commons.collections4.Transformer;
 
-import java.math.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -46,14 +48,13 @@ import java.util.*;
  * <pre><code>
  * public final class CustomTypeInfoBuilder extends WellKnownTypeSystem{
  *
- *     {@literal @}Converter
- *     public static byte[] stringToByteArray(final String str){
- *         return str.getBytes("UTF-8");
- *     }
- *
- *     {@literal @}Converter
- *     public static String byteArrayToString(final byte[] b){
- *         return new String(b, "UTF-8");
+ *     public CustomTypeInfoBuilder(){
+ *         registerConverter(String.class, Byte[].class,
+ *                  new Transformer&lt;String, Byte[]&gt;(){
+ *                      public void Byte[] transform(String input){
+ *                          return ArrayUtils.toObject(input.getBytes("UTF-8"));
+ *                      }
+ *                  });
  *     }
  *
  *     public final ManagementEntityType createByteArrayType(){
@@ -63,7 +64,7 @@ import java.util.*;
  *
  * final CustomTypeInfoBuilder builder = new CustomTypeInfoBuilder();
  * final AttributeTypeInfo arrayType = builder.createByteArrayType();
- * final String result = arrayType.convertTo(new byte[]{1, 2, 3}, String.class);
+ * final String result = builder.convert(Byte[].class, "Hello, world!");
  * </code></pre>
  * </p>
  * @author Roman Sakno
@@ -71,321 +72,242 @@ import java.util.*;
  * @since 1.0
  */
 public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
-
     /**
-     * Converts {@link String} to {@link Byte}.
-     * @param str The value to convert.
-     * @return The conversion result.
+     * Initializes a new type system.
      */
-    @Converter
-    public static Byte stringToInt8(final String str){
-        return Byte.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Short}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Short stringToInt16(final String str){
-        return Short.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Integer}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Integer stringToInt32(final String str){
-        return Integer.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Long}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Long stringToInt64(final String str){
-        return Long.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link java.math.BigInteger}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigInteger stringToInteger(final String str){
-        return new BigInteger(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Boolean}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Boolean stringToBoolean(final String str){
-        return Boolean.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Float}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Float stringToFloat(final String str){
-        return Float.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Double}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Double stringToDouble(final String str){
-        return Double.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link java.math.BigDecimal}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigDecimal stringToDecimal(final String str){
-        return new BigDecimal(str);
-    }
-
-    /**
-     * Converts {@link Number} to {@link Byte}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Byte numberToInt8(final Number n){
-        return n.byteValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link Short}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Short numberToInt16(final Number n){
-        return n.shortValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link Integer}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Integer numberToInt32(final Number n){
-        return n.intValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link Long}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Long numberToInt64(final Number n){
-        return n.longValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link Float}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Float numberToFloat(final Number n){
-        return n.floatValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link Double}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Double numberToDouble(final Number n){
-        return n.doubleValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link BigInteger}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigInteger numberToInteger(final Number n){
-        return n instanceof BigInteger ? (BigInteger)n : BigInteger.valueOf(n.longValue());
-    }
-
-    /**
-     * Converts {@link Number} to {@link BigDecimal}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigDecimal numberToDecimal(final Number n){
-        return n instanceof BigDecimal ? (BigDecimal)n : BigDecimal.valueOf(n.doubleValue());
-    }
-
-    /**
-     * Converts {@link Number} to {@link java.util.Date}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Date numberToDate(final Number n){
-        return new Date(n.longValue());
-    }
-
-    /**
-     * Converts {@link Number} to {@link java.util.Calendar}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Calendar numberToCalendar(final Number n){
-        final Calendar now = Calendar.getInstance();
-        now.setTime(new Date(n.longValue()));
-        return now;
-    }
-
-    /**
-     * Converts {@link Number} to {@link Boolean}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Boolean numberToBoolean(final Number n){
-        if(n instanceof BigInteger) return !BigInteger.ZERO.equals(n);
-        else if(n instanceof BigDecimal) return !BigDecimal.ZERO.equals(n);
-        else return n.longValue() != 0;
-    }
-
-    /**
-     * Converts {@link Calendar} to {@link Long}.
-     * @param c The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Long calendarToLong(final Calendar c){
-        return c.getTime().getTime();
-    }
-
-    /**
-     * Converts {@link Calendar} to {@link Date}.
-     * @param c The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Date calendarToDate(final Calendar c){
-        return c.getTime();
-    }
-
-    /**
-     * Converts {@link Date} to {@link Calendar}.
-     * @param d The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Calendar dateToCalendar(final Date d){
-        final Calendar now = Calendar.getInstance();
-        now.setTime(d);
-        return now;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link Byte}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Byte booleanToInt8(final Boolean b){
-        return b ? (byte)1 : 0;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link Short}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Short booleanToInt16(final Boolean b){
-        return b ? (short)1 : 0;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link Integer}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Integer booleanToInt32(final Boolean b){
-        return b ? 1 : 0;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link Long}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Long booleanToInt64(final Boolean b){
-        return b ? 1L : 0L;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link BigInteger}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigInteger booleanToInteger(final Boolean b){
-        return b ? BigInteger.ONE : BigInteger.ZERO;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link BigDecimal}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigDecimal booleanToDecimal(final Boolean b){
-        return b ? BigDecimal.ONE : BigDecimal.ZERO;
-    }
-
-    /**
-     * Converts {@link String} to {@link Character}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Character stringToCharacter(final String str){
-        return str.length() > 0 ? str.charAt(0) : '\0';
-    }
-
-    /**
-     * Converts {@link Date} to {@link Long}.
-     * @param d The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Long dateToLong(final Date d){
-        return d.getTime();
+    public WellKnownTypeSystem(){
+        registerConverter(String.class, Byte.class,
+                new Transformer<String, Byte>() {
+                    @Override
+                    public Byte transform(final String input) {
+                        return Byte.valueOf(input);
+                    }
+                });
+        registerConverter(String.class, Short.class,
+                new Transformer<String, Short>() {
+                    @Override
+                    public Short transform(final String input) {
+                        return Short.valueOf(input);
+                    }
+                });
+        registerConverter(String.class, Integer.class,
+                new Transformer<String, Integer>() {
+                    @Override
+                    public Integer transform(final String input) {
+                        return Integer.valueOf(input);
+                    }
+                });
+        registerConverter(String.class, Long.class,
+                new Transformer<String, Long>() {
+                    @Override
+                    public Long transform(final String input) {
+                        return Long.parseLong(input);
+                    }
+                });
+        registerConverter(String.class, BigInteger.class,
+                new Transformer<String, BigInteger>() {
+                    @Override
+                    public BigInteger transform(final String input) {
+                        return new BigInteger(input);
+                    }
+                });
+        registerConverter(String.class, Boolean.class,
+                new Transformer<String, Boolean>() {
+                    @Override
+                    public Boolean transform(final String input) {
+                        return null;
+                    }
+                });
+        registerConverter(String.class, Float.class,
+                new Transformer<String, Float>() {
+                    @Override
+                    public Float transform(final String input) {
+                        return Float.parseFloat(input);
+                    }
+                });
+        registerConverter(String.class, Double.class,
+                new Transformer<String, Double>() {
+                    @Override
+                    public Double transform(final String input) {
+                        return Double.parseDouble(input);
+                    }
+                });
+        registerConverter(String.class, BigDecimal.class,
+                new Transformer<String, BigDecimal>() {
+                    @Override
+                    public BigDecimal transform(final String input) {
+                        return new BigDecimal(input);
+                    }
+                });
+        registerConverter(Number.class, Byte.class,
+                new Transformer<Number, Byte>() {
+                    @Override
+                    public Byte transform(final Number input) {
+                        return input.byteValue();
+                    }
+                });
+        registerConverter(Number.class, Short.class,
+                new Transformer<Number, Short>() {
+                    @Override
+                    public Short transform(final Number input) {
+                        return input.shortValue();
+                    }
+                });
+        registerConverter(Number.class, Integer.class,
+                new Transformer<Number, Integer>() {
+                    @Override
+                    public Integer transform(final Number input) {
+                        return input.intValue();
+                    }
+                });
+        registerConverter(Number.class, Long.class,
+                new Transformer<Number, Long>() {
+                    @Override
+                    public Long transform(final Number input) {
+                        return input.longValue();
+                    }
+                });
+        registerConverter(Number.class, Float.class,
+                new Transformer<Number, Float>() {
+                    @Override
+                    public Float transform(final Number input) {
+                        return input.floatValue();
+                    }
+                });
+        registerConverter(Number.class, Double.class,
+                new Transformer<Number, Double>() {
+                    @Override
+                    public Double transform(final Number input) {
+                        return input.doubleValue();
+                    }
+                });
+        registerConverter(Number.class, BigInteger.class,
+                new Transformer<Number, BigInteger>() {
+                    @Override
+                    public BigInteger transform(final Number input) {
+                        return input instanceof BigInteger ?
+                                (BigInteger)input : BigInteger.valueOf(input.longValue());
+                    }
+                });
+        registerConverter(Number.class, BigDecimal.class,
+                new Transformer<Number, BigDecimal>() {
+                    @Override
+                    public BigDecimal transform(final Number input) {
+                        if(input instanceof BigDecimal)
+                            return (BigDecimal)input;
+                        else if(input instanceof BigInteger)
+                            return new BigDecimal((BigInteger)input);
+                        else if(input instanceof Double)
+                            return BigDecimal.valueOf(input.doubleValue());
+                        else if(input instanceof Float)
+                            return BigDecimal.valueOf(input.floatValue());
+                        else return BigDecimal.valueOf(input.longValue());
+                    }
+                });
+        registerConverter(Number.class, Date.class,
+                new Transformer<Number, Date>() {
+                    @Override
+                    public Date transform(final Number input) {
+                        return new Date(input.longValue());
+                    }
+                });
+        registerConverter(Number.class, Calendar.class,
+                new Transformer<Number, Calendar>() {
+                    @Override
+                    public Calendar transform(final Number input) {
+                        final Calendar now = Calendar.getInstance();
+                        now.setTime(new Date(input.longValue()));
+                        return now;
+                    }
+                });
+        registerConverter(Number.class, Boolean.class,
+                new Transformer<Number, Boolean>() {
+                    @Override
+                    public Boolean transform(final Number input) {
+                        if(input instanceof BigInteger) return !BigInteger.ZERO.equals(input);
+                        else if(input instanceof BigDecimal) return !BigDecimal.ZERO.equals(input);
+                        else return input.longValue() != 0;
+                    }
+                });
+        registerConverter(Calendar.class, Long.class,
+                new Transformer<Calendar, Long>() {
+                    @Override
+                    public Long transform(final Calendar input) {
+                        return input.getTime().getTime();
+                    }
+                });
+        registerConverter(Calendar.class, Date.class,
+                new Transformer<Calendar, Date>() {
+                    @Override
+                    public Date transform(final Calendar input) {
+                        return input.getTime();
+                    }
+                });
+        registerConverter(Date.class, Calendar.class,
+                new Transformer<Date, Calendar>() {
+                    @Override
+                    public Calendar transform(final Date input) {
+                        final Calendar now = Calendar.getInstance();
+                        now.setTime(input);
+                        return now;
+                    }
+                });
+        registerConverter(Boolean.class, Byte.class,
+                new Transformer<Boolean, Byte>() {
+                    @Override
+                    public Byte transform(final Boolean input) {
+                        return input ? (byte)1 : 0;
+                    }
+                });
+        registerConverter(Boolean.class, Short.class,
+                new Transformer<Boolean, Short>() {
+                    @Override
+                    public Short transform(final Boolean input) {
+                        return input ? (short)1 : 0;
+                    }
+                });
+        registerConverter(Boolean.class, Integer.class,
+                new Transformer<Boolean, Integer>() {
+                    @Override
+                    public Integer transform(final Boolean input) {
+                        return input ? 1 : 0;
+                    }
+                });
+        registerConverter(Boolean.class, Long.class,
+                new Transformer<Boolean, Long>() {
+                    @Override
+                    public Long transform(final Boolean input) {
+                        return input ? 1L : 0L;
+                    }
+                });
+        registerConverter(Boolean.class, BigInteger.class,
+                new Transformer<Boolean, BigInteger>() {
+                    @Override
+                    public BigInteger transform(final Boolean input) {
+                        return input ? BigInteger.ONE : BigInteger.ZERO;
+                    }
+                });
+        registerConverter(Boolean.class, BigDecimal.class,
+                new Transformer<Boolean, BigDecimal>() {
+                    @Override
+                    public BigDecimal transform(final Boolean input) {
+                        return input ? BigDecimal.ONE : BigDecimal.ZERO;
+                    }
+                });
+        registerConverter(String.class, Character.class,
+                new Transformer<String, Character>() {
+                    @Override
+                    public Character transform(final String input) {
+                        return input.isEmpty() ? '\0' : input.charAt(0);
+                    }
+                });
+        registerConverter(Date.class, Long.class,
+                new Transformer<Date, Long>() {
+                    @Override
+                    public Long transform(final Date input) {
+                        return input.getTime();
+                    }
+                });
     }
 
     /**

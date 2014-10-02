@@ -1,6 +1,7 @@
 package com.itworks.jcommands.impl;
 
 import com.itworks.snamp.internal.annotations.Internal;
+import org.apache.commons.collections4.Put;
 import org.apache.commons.collections4.ResettableListIterator;
 import org.apache.commons.collections4.iterators.ListIteratorWrapper;
 import org.apache.commons.collections4.map.LRUMap;
@@ -18,6 +19,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Represents parser for command-line output result.
@@ -34,6 +36,8 @@ import java.util.*;
 @XmlType(name = "CommandLineToolOutputParser", namespace = XmlConstants.NAMESPACE)
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class XmlParserDefinition {
+    private static final Pattern whitespaceMatcher = Pattern.compile("\\p{javaWhitespace}+");
+
     private static final class RegexScriptEngine extends AbstractScriptEngine{
         private final ScriptEngine javaScriptEngine;
 
@@ -512,10 +516,10 @@ public class XmlParserDefinition {
             @XmlElementRef(type = LineTerminationParsingRule.class),
             @XmlElementRef(type = TableColumnParsingRule.class),
             @XmlElementRef(type = ArrayItemParsingRule.class),
-            @XmlElementRef(type = PlaceholderParsingRule.class),
+            @XmlElementRef(type = SkipTokenParsingRule.class),
             @XmlElementRef(type = ConstantParsingRule.class)
     })
-    private List getParsingTemplate(){
+    List getParsingTemplate(){
         if(parsingTemplate == null) parsingTemplate = new ArrayList(10);
         return parsingTemplate;
     }
@@ -530,8 +534,8 @@ public class XmlParserDefinition {
         getParsingTemplate().add(Objects.requireNonNull(expression, "expression is null."));
     }
 
-    public final void addPlaceholder(final String placeholder) {
-        final PlaceholderParsingRule rule = new PlaceholderParsingRule();
+    public final void skipToken(final String placeholder) {
+        final SkipTokenParsingRule rule = new SkipTokenParsingRule();
         rule.setRule(placeholder);
         addParsingRule(rule);
     }
@@ -626,6 +630,7 @@ public class XmlParserDefinition {
         }
     }
 
+
     private static <T> T parseScalar(final List parsingTemplate,
                                      final ScriptEngine engine,
                                      final Converter<T> converter,
@@ -637,8 +642,8 @@ public class XmlParserDefinition {
                 final Object result = engine.eval(templateFragment.toString());
                 return result != null ? converter.transform(result.toString()) : defaultValue;
             }
-            else if (templateFragment instanceof PlaceholderParsingRule)
-                runPlaceholder(((PlaceholderParsingRule) templateFragment).getRule(), engine);
+            else if (templateFragment instanceof SkipTokenParsingRule)
+                runPlaceholder(((SkipTokenParsingRule) templateFragment).getRule(), engine);
             else if(templateFragment instanceof ConstantParsingRule)
                 return converter.transform(((ConstantParsingRule)templateFragment).getValue());
         throw new ScriptException("Parsing rule doesn't contain parser for scalar value.");
@@ -846,7 +851,8 @@ public class XmlParserDefinition {
     }
 
     private static void runPlaceholder(final String fragment, final ScriptEngine engine) throws ScriptException {
-        engine.eval(fragment);
+        if (!whitespaceMatcher.matcher(fragment).matches())
+            engine.eval(fragment);
     }
 
     private Object[] parseArray(final ResettableListIterator parsingTemplateIter,
@@ -868,8 +874,8 @@ public class XmlParserDefinition {
                 runPlaceholder(((LineTerminationParsingRule) templateFragment).getTerminationRule(), engine);
                 //...and set parsing template iterator to the initial state
                 parsingTemplateIter.reset();
-            } else if (templateFragment instanceof PlaceholderParsingRule)
-                runPlaceholder(((PlaceholderParsingRule) templateFragment).getRule(), engine);
+            } else if (templateFragment instanceof SkipTokenParsingRule)
+                runPlaceholder(((SkipTokenParsingRule) templateFragment).getRule(), engine);
         }
         return builder.toArray();
     }
@@ -886,8 +892,8 @@ public class XmlParserDefinition {
                 final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule)templateFragment;
                 result.put(rule.getKeyName(), parse(rule.getValueType(), Arrays.asList(rule.getValueParsingRule()), engine));
             }
-            else if(templateFragment instanceof PlaceholderParsingRule)
-                runPlaceholder(((PlaceholderParsingRule)templateFragment).getRule(), engine);
+            else if(templateFragment instanceof SkipTokenParsingRule)
+                runPlaceholder(((SkipTokenParsingRule)templateFragment).getRule(), engine);
         }
         return result;
     }
@@ -911,8 +917,8 @@ public class XmlParserDefinition {
                 runPlaceholder(((LineTerminationParsingRule)templateFragment).getTerminationRule(), engine);
                 parsingTemplateIter.reset();
             }
-            else if(templateFragment instanceof PlaceholderParsingRule)
-                runPlaceholder(((PlaceholderParsingRule)templateFragment).getRule(), engine);
+            else if(templateFragment instanceof SkipTokenParsingRule)
+                runPlaceholder(((SkipTokenParsingRule)templateFragment).getRule(), engine);
         }
         return table;
     }
@@ -966,5 +972,45 @@ public class XmlParserDefinition {
             engine.put(PARSER_BINDING, new DataParser());
             return parse(getParsingResultType(), getParsingTemplate(), engine);
         }
+    }
+
+    public final void exportTableOrDictionaryType(final Put<String, Class<?>> output) {
+        for (final Object templateFragment : getParsingTemplate())
+            if (templateFragment instanceof TableColumnParsingRule) {
+                final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;
+                output.put(rule.getColumnName(), rule.getColumnType().underlyingType);
+            } else if (templateFragment instanceof DictionaryEntryParsingRule) {
+                final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule) templateFragment;
+                output.put(rule.getKeyName(), rule.getValueType().underlyingType);
+            }
+    }
+
+    /**
+     * Exports description of the table type.
+     * @param columnDef The map that accepts the columns.
+     * @param indexedColumns The set that accepts the indexed columns.
+     */
+    public final void exportTableType(final Map<String, XmlParsingResultType> columnDef, final Set<String> indexedColumns) {
+        for (final Object templateFragment : getParsingTemplate())
+            if (templateFragment instanceof TableColumnParsingRule) {
+                final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;
+                if (rule.isIndexed()) indexedColumns.add(rule.getColumnName());
+                columnDef.put(rule.getColumnName(), rule.getColumnType());
+            }
+    }
+
+    /**
+     * Exports the detailed description of the dictionary type.
+     * <p>
+     *     This method can be called if this definition has {@link com.itworks.jcommands.impl.XmlParsingResultType#DICTIONARY}
+     *     type.
+     * @param dictionaryType The detailed description of the dictionary to fill.
+     */
+    public final void exportDictionaryType(final Map<String, XmlParsingResultType> dictionaryType) {
+        for (final Object templateFragment : getParsingTemplate())
+            if (templateFragment instanceof DictionaryEntryParsingRule) {
+                final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule) templateFragment;
+                dictionaryType.put(rule.getKeyName(), rule.getValueType());
+            }
     }
 }

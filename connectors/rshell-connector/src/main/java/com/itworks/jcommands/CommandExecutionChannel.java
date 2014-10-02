@@ -35,11 +35,13 @@ public interface CommandExecutionChannel extends Closeable {
     /**
      * Executes the specified action in the channel context.
      * @param command The command to execute in channel context.
-     * @param <T> Type of the execution result.
+     * @param input The additional input for command renderer.
+     * @param <I> Type of the user-defined input for the command renderer.
+     * @param <O> Type of the execution result.
      * @param <E> Type of the non-I/O exception occurred in the command.
      * @return The execution result.
      * @throws IOException Some I/O error occurs in the channel.
      * @throws E Non-I/O exception raised by the command.
      */
-    <T, E extends Exception> T exec(final ChannelProcessor<T, E> command) throws IOException, E;
+    <I, O, E extends Exception> O exec(final ChannelProcessor<I, O, E> command, final I input) throws IOException, E;
 }

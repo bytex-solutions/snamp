@@ -9,7 +9,43 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>RShell Connector</name>
-    <description>RShell Connector that uses</description>
+    <packaging>bundle</packaging>
+    <description>RShell Connector that uses remote shells (ssh, rsh, rexec and etc) to obtain management information</description>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>com.itworks.snamp.connectors.rshell</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.connectors.rshell.RShellResourceConnectorActivator</Bundle-Activator>
+                        <Embed-Dependency>
+                            *;scope=compile
+                        </Embed-Dependency>
+                        <Embed-Transitive>true</Embed-Transitive>
+                        <Import-Package>
+                            !org.antlr.stringtemplate,
+                            !javax.swing.*,
+                            !groovy.*,
+                            !org.codehaus.*,
+                            !javax.jms.*,
+                            !javax.mail.*,
+                            !javax.servlet.*,
+                            !sun.*,
+                            !com.sun.*,
+                            *,
+                            org.antlr.stringtemplate;resolution:=optional
+                        </Import-Package>
+                        <Export-Package/>
+                        <!--SNAMP specific header-->
+                        <SNAMP-Resource-Connector>rshell</SNAMP-Resource-Connector>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <artifactId>rshell-connector</artifactId>
     <dependencies>
         <dependency>
@@ -22,12 +58,6 @@
             <groupId>net.schmizz</groupId>
             <artifactId>sshj</artifactId>
             <version>0.10.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>ST4</artifactId>
-            <version>4.0.8</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -40,6 +70,77 @@
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
             <version>20030805.205232</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>4.3.1</version>
+        </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <version>4.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jzlib</artifactId>
+            <version>1.1.3</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.50</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>1.50</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.7</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.7</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.1.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr-runtime</artifactId>
+            <version>3.5.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>ST4</artifactId>
+            <version>4.0.8</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>oro</groupId>
+            <artifactId>oro</artifactId>
+            <version>2.0.8</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

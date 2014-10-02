@@ -6,6 +6,8 @@ import javax.script.ScriptException;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.*;
 import java.io.*;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Represents profile for the command-line tool.
@@ -41,13 +43,16 @@ public class XmlCommandLineToolProfile {
         return readerTemplate;
     }
 
-    public final Object readFromChannel(final CommandExecutionChannel channel) throws IOException, ScriptException {
-        return channel.exec(getReaderTemplate());
+    public final Object readFromChannel(final CommandExecutionChannel channel,
+                                        final Map<String, ?> commandFormattingParams) throws IOException, ScriptException {
+        return channel.exec(getReaderTemplate(), commandFormattingParams);
     }
 
-    public final boolean writeToChannel(final CommandExecutionChannel channel) throws IOException, ScriptException {
-        final Object result = channel.exec(getModifierTemplate());
-        return result instanceof Boolean ? (Boolean)result : false;
+    public final boolean writeToChannel(final CommandExecutionChannel channel,
+                                        final Object value) throws ScriptException, IOException {
+        if (modifierTemplate == null) return false;
+        final Object success = channel.exec(modifierTemplate, Collections.singletonMap("value", value));
+        return success instanceof Boolean && (Boolean) success;
     }
 
     public final void setReaderTemplate(final XmlCommandLineTemplate value) {

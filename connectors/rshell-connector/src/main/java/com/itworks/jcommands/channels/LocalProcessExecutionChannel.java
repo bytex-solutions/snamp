@@ -3,7 +3,7 @@ package com.itworks.jcommands.channels;
 import com.itworks.jcommands.ChannelProcessingMode;
 import com.itworks.jcommands.ChannelProcessor;
 import com.itworks.jcommands.CommandExecutionChannel;
-import com.itworks.snamp.internal.MapBuilder;
+import com.itworks.snamp.MapBuilder;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.lang3.SystemUtils;
@@ -34,7 +34,9 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
     }
 
     public LocalProcessExecutionChannel(final int normalExitCode) {
-        this(MapBuilder.create(NORMAL_EXIT_CODE_PARAM, Integer.toString(normalExitCode), 1).getMap());
+        this(MapBuilder
+                .create(NORMAL_EXIT_CODE_PARAM, Integer.toString(normalExitCode))
+                .buildHashMap());
     }
 
     public int getNormalExitCode() {
@@ -99,13 +101,15 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
      * Executes the specified action in the channel context.
      *
      * @param command The command to execute in channel context.
+     * @param obj Additional input for the command renderer.
      * @return The execution result.
      * @throws java.io.IOException Some I/O error occurs in the channel.
      * @throws E           Non-I/O exception raised by the command.
      */
     @Override
-    public <T, E extends Exception> T exec(final ChannelProcessor<T, E> command) throws IOException, E {
-        final Process proc = rt.exec(command.renderCommand(this));
+    public <I, O, E extends Exception> O exec(final ChannelProcessor<I, O, E> command,
+                                           final I obj) throws IOException, E {
+        final Process proc = rt.exec(command.renderCommand(obj, this));
         try (final Reader input = new InputStreamReader(proc.getInputStream());
              final Reader error = new InputStreamReader(proc.getErrorStream())) {
             final String result = toString(input);

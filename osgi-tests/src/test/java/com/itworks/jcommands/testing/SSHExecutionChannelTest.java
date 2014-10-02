@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -91,7 +92,7 @@ public final class SSHExecutionChannelTest extends AbstractUnitTest<CommandExecu
         template.getCommandOutputParser().addDictionaryEntryRule("total", "[0-9]+", XmlParsingResultType.INTEGER);
         template.getCommandOutputParser().addDictionaryEntryRule("used", "[0-9]+", XmlParsingResultType.INTEGER);
         template.getCommandOutputParser().addDictionaryEntryRule("free", "[0-9]+", XmlParsingResultType.INTEGER);
-        final Object memStatus = channel.exec(template);
+        final Object memStatus = channel.exec(template, Collections.<String, Object>emptyMap());
         assertTrue(memStatus instanceof Map);
         assertEquals(3, ((Map)memStatus).size());
         assertTrue(((Map)memStatus).get("total") instanceof Integer);
@@ -106,9 +107,10 @@ public final class SSHExecutionChannelTest extends AbstractUnitTest<CommandExecu
             put("port", Integer.toString(PORT));
             put("fingerprint", "e8:0d:af:84:bb:ec:05:03:b9:7c:f3:75:19:5a:2a:63");
         }});
-        final String result = channel.exec(new ChannelProcessor<String, Exception>() {
+        final String result = channel.exec(new ChannelProcessor<Void, String, Exception>() {
             @Override
-            public String renderCommand(final Map<String, ?> channelParameters) {
+            public String renderCommand(final Void stub,
+                                        final Map<String, ?> channelParameters) {
                 return "free -m";
             }
 
@@ -117,7 +119,7 @@ public final class SSHExecutionChannelTest extends AbstractUnitTest<CommandExecu
                 assertNull(error);
                 return result;
             }
-        });
+        }, null);
         assertNotNull(result);
     }
 }

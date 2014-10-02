@@ -8,7 +8,7 @@ import java.lang.annotation.*;
  * @since 1.0
  * @version 1.0
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.SOURCE)
 @Internal
 public @interface ThreadSafe {

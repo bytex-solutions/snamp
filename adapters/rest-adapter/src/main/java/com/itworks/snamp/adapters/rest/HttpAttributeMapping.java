@@ -6,6 +6,8 @@ import com.itworks.snamp.Table;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeValue;
+import org.apache.commons.collections4.Closure;
+import org.apache.commons.collections4.Put;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -180,10 +182,15 @@ final class HttpAttributeMapping {
     private static Table<String> fromTableJson(final JsonArray attributeValue,
                                                final ManagedEntityTabularType attributeType,
                                                final Gson jsonFormatter){
-        final Table<String> result = new SimpleTable<>(new HashMap<String, Class<?>>(){{
-            for(final String columnName: attributeType.getColumns())
-                put(columnName, Object.class);
-        }});
+        final Table<String> result = new SimpleTable<>(new Closure<Put<String, Class<?>>>() {
+            @Override
+            public void execute(final Put<String, Class<?>> input) {
+                for(final String columnName: attributeType.getColumns())
+                    input.put(columnName, Object.class);
+            }
+        },
+        attributeType.getColumns().size(),
+        attributeValue.size());
         for(final JsonElement element: attributeValue)
             if(element instanceof JsonObject)
                 insertRow(result, (JsonObject)element, attributeType, jsonFormatter);

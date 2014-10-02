@@ -7,7 +7,10 @@ import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import com.itworks.snamp.internal.Utils;
+import org.apache.commons.collections4.Closure;
 import org.apache.commons.collections4.Factory;
+import org.apache.commons.collections4.Put;
+import org.apache.commons.collections4.Transformer;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.management.InvalidAttributeValueException;
@@ -31,6 +34,27 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
      * Initializes a new builder of JMX managementAttributes.
      */
     public JmxTypeSystem(){
+        registerConverter(TabularData.class, Table.class,
+                new Transformer<TabularData, Table>() {
+                    @Override
+                    public Table<String> transform(final TabularData input) {
+                        return convertToTable(input);
+                    }
+                });
+        registerConverter(CompositeData.class, Map.class,
+                new Transformer<CompositeData, Map>() {
+                    @Override
+                    public Map<String, Object> transform(final CompositeData input) {
+                        return convertToMap(input);
+                    }
+                });
+        registerConverter(CompositeData.class, Table.class,
+                new Transformer<CompositeData, Table>() {
+                    @Override
+                    public Table<String> transform(final CompositeData input) {
+                        return convertToTable(input);
+                    }
+                });
     }
 
     /**
@@ -38,17 +62,20 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
      * @param value JMX table to convert.
      * @return Well-known representation of the JMX table.
      */
-    @Converter
-    public static Table<String> convertToTable(final TabularData value){
+    private static Table<String> convertToTable(final TabularData value){
         final TabularType tt = value.getTabularType();
-        final SimpleTable<String> result = new SimpleTable<>(new HashMap<String, Class<?>>(){{
-            final CompositeType rowType = tt.getRowType();
-            for(final String columnName: rowType.keySet())
-                put(columnName, Object.class);
-        }});
+        final SimpleTable<String> result = new SimpleTable<>(new Closure<Put<String, Class<?>>>() {
+            @Override
+            public void execute(final Put<String, Class<?>> input) {
+                for(final String columnName: tt.getRowType().keySet())
+                    input.put(columnName, Object.class);
+            }
+        },
+        value.keySet().size(),
+        value.size());
         for(final Object rowIndex: value.values()){
             final CompositeData nativeRow = (CompositeData)rowIndex;
-            final Map<String, Object> tableRow = new HashMap<>(10);
+            final Map<String, Object> tableRow = result.newRow();
             for(final String columnName: tt.getRowType().keySet())
                 tableRow.put(columnName, nativeRow.get(columnName));
             result.addRow(tableRow);
@@ -56,8 +83,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         return result;
     }
 
-    @Converter
-    public static Map<String, Object> convertToMap(final CompositeData value){
+    private static Map<String, Object> convertToMap(final CompositeData value){
         final CompositeType ct = value.getCompositeType();
         final Map<String, Object> result = new HashMap<>(ct.keySet().size());
         for(final String key: ct.keySet())
@@ -65,14 +91,18 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         return result;
     }
 
-    @Converter
-    public static Table<String> convertToTable(final CompositeData value){
+    private static Table<String> convertToTable(final CompositeData value){
         final CompositeType ct = value.getCompositeType();
-        final Table<String> result = new SimpleTable<>(new HashMap<String, Class<?>>(){{
-            for(final String columnName: ct.keySet())
-                put(columnName, Object.class);
-        }});
-        final Map<String, Object> row = new HashMap<>(ct.keySet().size());
+        final SimpleTable<String> result = new SimpleTable<>(new Closure<Put<String, Class<?>>>() {
+            @Override
+            public void execute(final Put<String, Class<?>> input) {
+                for(final String columnName: ct.keySet())
+                    input.put(columnName, Object.class);
+            }
+        },
+                ct.keySet().size(),
+                1);
+        final Map<String, Object> row = result.newRow();
         for(final String columnName: ct.keySet())
             row.put(columnName, value.get(columnName));
         result.addRow(row);
