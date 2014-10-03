@@ -65,6 +65,18 @@ public class FutureThread<V> extends Thread implements Future<V> {
     }
 
     /**
+     * Executes a new task in the separated thread.
+     * @param task The task to execute in the separated thread.
+     * @param <V> Type of the asynchronous computation result.
+     * @return An object that represents the state of asynchronous computation.
+     */
+    public static <V> FutureThread<V> start(final Callable<V> task) {
+        final FutureThread<V> future = new FutureThread<>(task);
+        future.start();
+        return future;
+    }
+
+    /**
      * Executes this thread.
      */
     @Override

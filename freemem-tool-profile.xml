@@ -9,9 +9,9 @@
             <ns1:skip>[a-z]+</ns1:skip>
             <ns1:skip>[a-z]+</ns1:skip>
             <ns1:skip>[a-zA-Z]+\:</ns1:skip>
-            <ns1:entry ns1:key="total">[0-9]+</ns1:entry>
-            <ns1:entry ns1:key="used">[0-9]+</ns1:entry>
-            <ns1:entry ns1:key="free">[0-9]+</ns1:entry>
+            <ns1:entry ns1:key="total" ns1:type="64bit">[0-9]+</ns1:entry>
+            <ns1:entry ns1:key="used" ns1:type="64bit">[0-9]+</ns1:entry>
+            <ns1:entry ns1:key="free" ns1:type="64bit">[0-9]+</ns1:entry>
         </ns1:output>
         <ns1:input>free {format}</ns1:input>
     </reader>

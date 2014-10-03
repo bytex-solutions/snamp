@@ -588,18 +588,6 @@ public class XmlParserDefinition {
     }
 
     /**
-     * Gets a line termination parsing rule if it is defined in this parser.
-     * @return The line termination parsing rule; or {@literal null}, if this rule
-     * is not defined.
-     */
-    public LineTerminationParsingRule getLineTerminationParsingRule(){
-        for(final Object rule: getParsingTemplate())
-            if(rule instanceof LineTerminationParsingRule)
-                return (LineTerminationParsingRule)rule;
-        return null;
-    }
-
-    /**
      * Parses the input string using this parser.
      * @param input The input string to parse.
      * @param scriptManager The script manager used to execute parsing script.
