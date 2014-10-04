@@ -22,11 +22,8 @@ interface JQuery {
                 async: false,
                 success: function(json)
                 {
-                    if (json instanceof Object && json.length>0)
-                        for (var obj in json)
-                        {
-                            data.push(new bundles.bundle(json[obj]));
-                        }
+                    if (json instanceof Object)
+                        console.log(new config.configuration(json));
                 }
             });
         }

@@ -77,20 +77,92 @@ var bunstatus;
 var config;
 (function (config) {
     var manRes = (function () {
-        function manRes() {
+        function manRes(name, connectionString, connectionType, additionalProperties, attributes, events) {
+            if (typeof name === "undefined") { name = ""; }
+            if (typeof connectionString === "undefined") { connectionString = ""; }
+            if (typeof connectionType === "undefined") { connectionType = ""; }
+            if (typeof additionalProperties === "undefined") { additionalProperties = null; }
+            if (typeof attributes === "undefined") { attributes = null; }
+            if (typeof events === "undefined") { events = null; }
+            this.additionalProperties = {};
+            this.name = name;
+            this.connectionString = connectionString;
+            this.connectionType = connectionType;
+            this.additionalProperties = additionalProperties;
+            this.attributes = attributes;
+            this.events = events;
         }
         return manRes;
     })();
 
+    var attribute = (function () {
+        function attribute(json) {
+            if (typeof json === "undefined") { json = null; }
+            this.additionalElements = {};
+            if (json != null) {
+                json;
+            } else
+                constructor();
+        }
+        return attribute;
+    })();
+
+    var event = (function () {
+        function event(category, parameters) {
+            if (typeof category === "undefined") { category = ""; }
+            if (typeof parameters === "undefined") { parameters = null; }
+            this.parameters = {};
+            this.category = category;
+            this.parameters = parameters;
+        }
+        return event;
+    })();
+
     var resAdapters = (function () {
-        function resAdapters() {
+        function resAdapters(adapterName, hostingParams) {
+            if (typeof adapterName === "undefined") { adapterName = ""; }
+            if (typeof hostingParams === "undefined") { hostingParams = null; }
+            this.hostingParams = {};
+            this.adapterName = adapterName;
+            this.hostingParams = hostingParams;
         }
         return resAdapters;
     })();
 
     var configuration = (function () {
-        function configuration() {
+        function configuration(data) {
+            if (typeof data === "undefined") { data = null; }
+            if (data == null || (!data.hasOwnProperty("managedResources") && !data.hasOwnProperty("resourceAdapters")))
+                this.constructor(null, null);
+            else {
+                this.managedResources = data.hasOwnProperty("managedResources") ? this.parseJsonToManagedResources(data['managedResources']) : [];
+                this.resourceAdapters = data.hasOwnProperty("resourceAdapters") ? this.parseJsonToResourceAdapters(data['resourceAdapters']) : [];
+            }
         }
+        configuration.prototype.parseJsonToManagedResources = function (data) {
+            if (typeof data === "undefined") { data = null; }
+            var result = [];
+            for (propertyName in data) {
+                var local = data[propertyName];
+                if (!local.hasOwnProperty("connectionType"))
+                    continue;
+
+                var currentConnector = new manRes(propertyName, local['connectionString'], local['connectionType'], local['additionalProperties'], local['attributes'], local['events']);
+
+                var obj = null;
+
+                $.getJSON("/snamp/management/api/connectors/" + local['connectionType'].toLowerCase() + "/configurationSchema", function (scheme) {
+                    obj = scheme;
+                    console.log(obj);
+                });
+                result.push(currentConnector);
+            }
+            return result;
+        };
+
+        configuration.prototype.parseJsonToResourceAdapters = function (data) {
+            if (typeof data === "undefined") { data = null; }
+        };
         return configuration;
     })();
     config.configuration = configuration;
@@ -111,10 +183,8 @@ var config;
                 type: "GET",
                 async: false,
                 success: function (json) {
-                    if (json instanceof Object && json.length > 0)
-                        for (var obj in json) {
-                            data.push(new bundles.bundle(json[obj]));
-                        }
+                    if (json instanceof Object)
+                        console.log(new config.configuration(json));
                 }
             });
         }
