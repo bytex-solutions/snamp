@@ -25,30 +25,67 @@ module config
         }
     }
 
+
+    /**
+     * Connector attribute restrictions
+     */
+    class attributeAdditionalParamsRestriction
+    {
+        association: string[] = [];
+        exclusion: string[] = [];
+        extension: string[] = [];
+        defaultValue: string = "";
+        description: string = "";
+        inputPattern: string = "";
+        required: boolean = false;
+
+        constructor(association:any = null, exclusion:any = null, extension:any = null,
+                    defaultValue:string = "", description:string = "", inputPattern:string = "", required:boolean = false)
+        {
+            this.association = association;
+            this.exclusion = exclusion;
+            this.extension = extension;
+            this.defaultValue = defaultValue;
+            this.description = description;
+            this.inputPattern = inputPattern;
+            this.required = required;
+        }
+    }
+
+    /**
+     * Connector Attribute Additional Elements
+     */
+    class attributeAdditionalParam
+    {
+        paramName:string = "";
+        paramRestriction:attributeAdditionalParamsRestriction = null;
+        paramValue:string = "";
+
+        constructor(paramName:string = "", paramRestriction:any = null, paramValue:string = "")
+        {
+            this.paramName = paramName;
+            this.paramRestriction = paramRestriction;
+            this.paramValue = paramValue;
+        }
+    }
+
     /**
      * Managed Resource attribute
      */
     class attribute
     {
-        attributeName:string;
-        readWriteTimeout: number;
-        additionalElements: { [s: string]: string; } = {};
+        attributeId:string = "";
+        attributeName:string = "";
+        readWriteTimeout: number = -1;
+        additionalElements: attributeAdditionalParam[] = [];
 
-        constructor ( attributeName:string="",readWriteTimeout: number=-1, additionalElements:any=null )
+        constructor (attributeId:string="", attributeName:string="",readWriteTimeout: number=-1,
+                     additionalElements:any=null)
         {
             this.additionalElements = additionalElements;
             this.attributeName = attributeName;
+            this.attributeId = attributeId;
             this.readWriteTimeout = readWriteTimeout;
-        }
-
-        constructor(json:Object = null)
-        {
-            if (json != null)
-            {
-                json
-            }
-            else
-                constructor();
         }
     }
 
@@ -105,19 +142,64 @@ module config
                 var local = data[propertyName];
                 if (!local.hasOwnProperty("connectionType")) continue; // if it does not contain con.type -
                                                                        // it's not an instance of connector SNAMP
+
+               // preparing attribute restrictions
+               var restrictions: { [s: string]: attributeAdditionalParamsRestriction; } = {};
+               $.ajax({
+                       url: "/snamp/management/api/connectors/" + local['connectionType'].toLowerCase() + "/configurationSchema",
+                       dataType: "json",
+                       cache: false,
+                       type: "GET",
+                       async: false,
+                       success: function (scheme) {
+                           if (scheme.hasOwnProperty("attributeParameters"))
+                               for (restrictionName in scheme['attributeParameters']) {
+                                   var atrRes:attributeAdditionalParamsRestriction = new attributeAdditionalParamsRestriction(
+                                       scheme['attributeParameters'][restrictionName]['ASSOCIATION'],
+                                       scheme['attributeParameters'][restrictionName]['EXCLUSION'],
+                                       scheme['attributeParameters'][restrictionName]['EXTENSION'],
+                                       scheme['attributeParameters'][restrictionName]['defaultValue'],
+                                       scheme['attributeParameters'][restrictionName]['description'],
+                                       scheme['attributeParameters'][restrictionName]['inputPattern'],
+                                       scheme['attributeParameters'][restrictionName]['required']
+                                   );
+                                   restrictions[restrictionName] = atrRes;
+                               }
+                       }
+               });
+
+               // preparing attribute parsing
+               var attributes:attribute[] = [];
+               for  (attributeId in local['attributes']) {
+
+                   // attribute params preparation
+                   var attrParam:attributeAdditionalParam[] = [];
+                   for (paramName in local['attributes'][attributeId]['additionalProperties'])
+                   {
+                        var locAttrParam:attributeAdditionalParam = new attributeAdditionalParam(
+                            paramName,
+                            restrictions[paramName],
+                            local['attributes'][attributeId]['additionalProperties'][paramName]
+                        );
+                       attrParam.push(locAttrParam);
+                   }
+
+                   // create new attribute
+                   var locAtr:attribute = new attribute(
+                       attributeId,
+                       local['attributes'][attributeId]['name'],
+                       local['attributes'][attributeId]['readWriteTimeout'],
+                       attrParam
+                   )
+
+                   attributes.push(locAtr);
+               }
+
+
                 var currentConnector:manRes = new manRes(propertyName, local['connectionString'], local['connectionType'],
-                                                            local['additionalProperties'],local['attributes'], local['events']);
+                                                            local['additionalProperties'], attributes, local['events']);
 
-
-                var obj:Object = null;
-
-                $.getJSON("/snamp/management/api/connectors/" + local['connectionType'].toLowerCase() + "/configurationSchema",
-                    function (scheme) {
-                        obj = scheme;
-                        console.log(obj);
-
-                    }
-                );
+               // append connector whole information to the resulting object
                result.push(currentConnector);
             }
             return result;

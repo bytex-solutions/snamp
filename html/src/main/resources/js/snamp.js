@@ -95,14 +95,62 @@ var config;
         return manRes;
     })();
 
+    var attributeAdditionalParamsRestriction = (function () {
+        function attributeAdditionalParamsRestriction(association, exclusion, extension, defaultValue, description, inputPattern, required) {
+            if (typeof association === "undefined") { association = null; }
+            if (typeof exclusion === "undefined") { exclusion = null; }
+            if (typeof extension === "undefined") { extension = null; }
+            if (typeof defaultValue === "undefined") { defaultValue = ""; }
+            if (typeof description === "undefined") { description = ""; }
+            if (typeof inputPattern === "undefined") { inputPattern = ""; }
+            if (typeof required === "undefined") { required = false; }
+            this.association = [];
+            this.exclusion = [];
+            this.extension = [];
+            this.defaultValue = "";
+            this.description = "";
+            this.inputPattern = "";
+            this.required = false;
+            this.association = association;
+            this.exclusion = exclusion;
+            this.extension = extension;
+            this.defaultValue = defaultValue;
+            this.description = description;
+            this.inputPattern = inputPattern;
+            this.required = required;
+        }
+        return attributeAdditionalParamsRestriction;
+    })();
+
+    var attributeAdditionalParam = (function () {
+        function attributeAdditionalParam(paramName, paramRestriction, paramValue) {
+            if (typeof paramName === "undefined") { paramName = ""; }
+            if (typeof paramRestriction === "undefined") { paramRestriction = null; }
+            if (typeof paramValue === "undefined") { paramValue = ""; }
+            this.paramName = "";
+            this.paramRestriction = null;
+            this.paramValue = "";
+            this.paramName = paramName;
+            this.paramRestriction = paramRestriction;
+            this.paramValue = paramValue;
+        }
+        return attributeAdditionalParam;
+    })();
+
     var attribute = (function () {
-        function attribute(json) {
-            if (typeof json === "undefined") { json = null; }
-            this.additionalElements = {};
-            if (json != null) {
-                json;
-            } else
-                constructor();
+        function attribute(attributeId, attributeName, readWriteTimeout, additionalElements) {
+            if (typeof attributeId === "undefined") { attributeId = ""; }
+            if (typeof attributeName === "undefined") { attributeName = ""; }
+            if (typeof readWriteTimeout === "undefined") { readWriteTimeout = -1; }
+            if (typeof additionalElements === "undefined") { additionalElements = null; }
+            this.attributeId = "";
+            this.attributeName = "";
+            this.readWriteTimeout = -1;
+            this.additionalElements = [];
+            this.additionalElements = additionalElements;
+            this.attributeName = attributeName;
+            this.attributeId = attributeId;
+            this.readWriteTimeout = readWriteTimeout;
         }
         return attribute;
     })();
@@ -147,14 +195,37 @@ var config;
                 if (!local.hasOwnProperty("connectionType"))
                     continue;
 
-                var currentConnector = new manRes(propertyName, local['connectionString'], local['connectionType'], local['additionalProperties'], local['attributes'], local['events']);
-
-                var obj = null;
-
-                $.getJSON("/snamp/management/api/connectors/" + local['connectionType'].toLowerCase() + "/configurationSchema", function (scheme) {
-                    obj = scheme;
-                    console.log(obj);
+                var restrictions = {};
+                $.ajax({
+                    url: "/snamp/management/api/connectors/" + local['connectionType'].toLowerCase() + "/configurationSchema",
+                    dataType: "json",
+                    cache: false,
+                    type: "GET",
+                    async: false,
+                    success: function (scheme) {
+                        if (scheme.hasOwnProperty("attributeParameters"))
+                            for (restrictionName in scheme['attributeParameters']) {
+                                var atrRes = new attributeAdditionalParamsRestriction(scheme['attributeParameters'][restrictionName]['ASSOCIATION'], scheme['attributeParameters'][restrictionName]['EXCLUSION'], scheme['attributeParameters'][restrictionName]['EXTENSION'], scheme['attributeParameters'][restrictionName]['defaultValue'], scheme['attributeParameters'][restrictionName]['description'], scheme['attributeParameters'][restrictionName]['inputPattern'], scheme['attributeParameters'][restrictionName]['required']);
+                                restrictions[restrictionName] = atrRes;
+                            }
+                    }
                 });
+
+                var attributes = [];
+                for (attributeId in local['attributes']) {
+                    var attrParam = [];
+                    for (paramName in local['attributes'][attributeId]['additionalProperties']) {
+                        var locAttrParam = new attributeAdditionalParam(paramName, restrictions[paramName], local['attributes'][attributeId]['additionalProperties'][paramName]);
+                        attrParam.push(locAttrParam);
+                    }
+
+                    var locAtr = new attribute(attributeId, local['attributes'][attributeId]['name'], local['attributes'][attributeId]['readWriteTimeout'], attrParam);
+
+                    attributes.push(locAtr);
+                }
+
+                var currentConnector = new manRes(propertyName, local['connectionString'], local['connectionType'], local['additionalProperties'], attributes, local['events']);
+
                 result.push(currentConnector);
             }
             return result;
