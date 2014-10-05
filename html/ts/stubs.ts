@@ -6,9 +6,9 @@ module stubs
         return [];
     }
 
-    export function getConfiguration() : bundles.bundle[]
+    export function getConfiguration():any
     {
-        return [];
+        return null;
     }
 /*       return [
 
