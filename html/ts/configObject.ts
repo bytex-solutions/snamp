@@ -1,10 +1,13 @@
+/**
+ * Configuration Model with business logic (ajax request-response-parse)
+ */
 module config
 {
 
     /**
      * Managed Resources typescript representation
      */
-    class manRes
+    export class manRes
     {
         name:string;
         connectionString:string;
@@ -29,7 +32,7 @@ module config
     /**
      * Connector attribute restrictions
      */
-    class attributeAdditionalParamsRestriction
+    export class attributeAdditionalParamsRestriction
     {
         association: string[] = [];
         exclusion: string[] = [];
@@ -55,7 +58,7 @@ module config
     /**
      * Connector Attribute Additional Elements
      */
-    class attributeAdditionalParam
+    export class attributeAdditionalParam
     {
         paramName:string = "";
         paramRestriction:attributeAdditionalParamsRestriction = null;
@@ -72,7 +75,7 @@ module config
     /**
      * Managed Resource attribute
      */
-    class attribute
+    export class attribute
     {
         attributeId:string = "";
         attributeName:string = "";
@@ -92,7 +95,7 @@ module config
     /**
      * Managed Resources event
      */
-    class event
+    export class event
     {
         category: string;
         parameters: { [s: string]: string; } = {};
@@ -108,7 +111,7 @@ module config
     /**
      * Resource Adapter typescript representation
      */
-    class resAdapters
+    export class resAdapters
     {
         adapterName:string;
         hostingParams : { [s: string]: string; } = {};
@@ -128,16 +131,10 @@ module config
         managedResources: manRes[];
         resourceAdapters: resAdapters[];
 
-        constructor(managedResources:any=null, resourceAdapters:any=null)
-        {
-            this.managedResources = managedResources;
-            this.resourceAdapters = resourceAdapters;
-        }
-
-        public parseJsonToManagedResources(data:Object=null)
+        parseJsonToManagedResources(data:any=null):manRes[]
         {
            var result:manRes[] = [];
-           for (propertyName in data) {
+           for (var propertyName in data) {
 
                 var local = data[propertyName];
                 if (!local.hasOwnProperty("connectionType")) continue; // if it does not contain con.type -
@@ -146,35 +143,36 @@ module config
                // preparing attribute restrictions
                var restrictions: { [s: string]: attributeAdditionalParamsRestriction; } = {};
                $.ajax({
-                       url: "/snamp/management/api/connectors/" + local['connectionType'].toLowerCase() + "/configurationSchema",
-                       dataType: "json",
-                       cache: false,
-                       type: "GET",
-                       async: false,
-                       success: function (scheme) {
-                           if (scheme.hasOwnProperty("attributeParameters"))
-                               for (restrictionName in scheme['attributeParameters']) {
-                                   var atrRes:attributeAdditionalParamsRestriction = new attributeAdditionalParamsRestriction(
-                                       scheme['attributeParameters'][restrictionName]['ASSOCIATION'],
-                                       scheme['attributeParameters'][restrictionName]['EXCLUSION'],
-                                       scheme['attributeParameters'][restrictionName]['EXTENSION'],
-                                       scheme['attributeParameters'][restrictionName]['defaultValue'],
-                                       scheme['attributeParameters'][restrictionName]['description'],
-                                       scheme['attributeParameters'][restrictionName]['inputPattern'],
-                                       scheme['attributeParameters'][restrictionName]['required']
-                                   );
-                                   restrictions[restrictionName] = atrRes;
-                               }
+                   url: "/snamp/management/api/connectors/" + local['connectionType'].toLowerCase() + "/configurationSchema",
+                   dataType: "json",
+                   cache: false,
+                   type: "GET",
+                   async: false,
+                   success: function (scheme) {
+                       if (scheme.hasOwnProperty("attributeParameters")) {
+                           for (var restrictionName in scheme['attributeParameters']) {
+                               var atrRes:attributeAdditionalParamsRestriction = new attributeAdditionalParamsRestriction(
+                                   scheme['attributeParameters'][restrictionName]['ASSOCIATION'],
+                                   scheme['attributeParameters'][restrictionName]['EXCLUSION'],
+                                   scheme['attributeParameters'][restrictionName]['EXTENSION'],
+                                   scheme['attributeParameters'][restrictionName]['defaultValue'],
+                                   scheme['attributeParameters'][restrictionName]['description'],
+                                   scheme['attributeParameters'][restrictionName]['inputPattern'],
+                                   scheme['attributeParameters'][restrictionName]['required']
+                               );
+                               restrictions[restrictionName] = atrRes;
+                           }
                        }
+                   }
                });
 
                // preparing attribute parsing
                var attributes:attribute[] = [];
-               for  (attributeId in local['attributes']) {
+               for  (var attributeId in local['attributes']) {
 
                    // attribute params preparation
                    var attrParam:attributeAdditionalParam[] = [];
-                   for (paramName in local['attributes'][attributeId]['additionalProperties'])
+                   for (var paramName in local['attributes'][attributeId]['additionalProperties'])
                    {
                         var locAttrParam:attributeAdditionalParam = new attributeAdditionalParam(
                             paramName,
@@ -206,12 +204,12 @@ module config
 
         }
 
-        public parseJsonToResourceAdapters(data:Object=null)
+        parseJsonToResourceAdapters(data:any=null):resAdapters[]
         {
-
+            return [];
         }
 
-        constructor(data:Object=null)
+        public constructor(data:any=null)
         {
             if (data == null || (!data.hasOwnProperty("managedResources") && !data.hasOwnProperty("resourceAdapters")))
                 this.constructor(null,null);

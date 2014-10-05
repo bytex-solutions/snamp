@@ -38,6 +38,7 @@ module bundles
         description: string; // short bundle description
         licensing:  { [s: string]: string; } = {};
 
+/*
         constructor(version:string="", state:string="", name:string="",
                     description:string="", licensing:any=null)
         {
@@ -51,6 +52,7 @@ module bundles
                 this.licensing = null;
 
         }
+*/
 
         constructor(data: Object=null)
         {

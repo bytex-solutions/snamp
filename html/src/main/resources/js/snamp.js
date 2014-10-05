@@ -94,6 +94,7 @@ var config;
         }
         return manRes;
     })();
+    config.manRes = manRes;
 
     var attributeAdditionalParamsRestriction = (function () {
         function attributeAdditionalParamsRestriction(association, exclusion, extension, defaultValue, description, inputPattern, required) {
@@ -121,6 +122,7 @@ var config;
         }
         return attributeAdditionalParamsRestriction;
     })();
+    config.attributeAdditionalParamsRestriction = attributeAdditionalParamsRestriction;
 
     var attributeAdditionalParam = (function () {
         function attributeAdditionalParam(paramName, paramRestriction, paramValue) {
@@ -136,6 +138,7 @@ var config;
         }
         return attributeAdditionalParam;
     })();
+    config.attributeAdditionalParam = attributeAdditionalParam;
 
     var attribute = (function () {
         function attribute(attributeId, attributeName, readWriteTimeout, additionalElements) {
@@ -154,6 +157,7 @@ var config;
         }
         return attribute;
     })();
+    config.attribute = attribute;
 
     var event = (function () {
         function event(category, parameters) {
@@ -165,6 +169,7 @@ var config;
         }
         return event;
     })();
+    config.event = event;
 
     var resAdapters = (function () {
         function resAdapters(adapterName, hostingParams) {
@@ -176,6 +181,7 @@ var config;
         }
         return resAdapters;
     })();
+    config.resAdapters = resAdapters;
 
     var configuration = (function () {
         function configuration(data) {
@@ -190,7 +196,7 @@ var config;
         configuration.prototype.parseJsonToManagedResources = function (data) {
             if (typeof data === "undefined") { data = null; }
             var result = [];
-            for (propertyName in data) {
+            for (var propertyName in data) {
                 var local = data[propertyName];
                 if (!local.hasOwnProperty("connectionType"))
                     continue;
@@ -203,18 +209,19 @@ var config;
                     type: "GET",
                     async: false,
                     success: function (scheme) {
-                        if (scheme.hasOwnProperty("attributeParameters"))
-                            for (restrictionName in scheme['attributeParameters']) {
+                        if (scheme.hasOwnProperty("attributeParameters")) {
+                            for (var restrictionName in scheme['attributeParameters']) {
                                 var atrRes = new attributeAdditionalParamsRestriction(scheme['attributeParameters'][restrictionName]['ASSOCIATION'], scheme['attributeParameters'][restrictionName]['EXCLUSION'], scheme['attributeParameters'][restrictionName]['EXTENSION'], scheme['attributeParameters'][restrictionName]['defaultValue'], scheme['attributeParameters'][restrictionName]['description'], scheme['attributeParameters'][restrictionName]['inputPattern'], scheme['attributeParameters'][restrictionName]['required']);
                                 restrictions[restrictionName] = atrRes;
                             }
+                        }
                     }
                 });
 
                 var attributes = [];
-                for (attributeId in local['attributes']) {
+                for (var attributeId in local['attributes']) {
                     var attrParam = [];
-                    for (paramName in local['attributes'][attributeId]['additionalProperties']) {
+                    for (var paramName in local['attributes'][attributeId]['additionalProperties']) {
                         var locAttrParam = new attributeAdditionalParam(paramName, restrictions[paramName], local['attributes'][attributeId]['additionalProperties'][paramName]);
                         attrParam.push(locAttrParam);
                     }
@@ -233,34 +240,12 @@ var config;
 
         configuration.prototype.parseJsonToResourceAdapters = function (data) {
             if (typeof data === "undefined") { data = null; }
+            return [];
         };
         return configuration;
     })();
     config.configuration = configuration;
 })(config || (config = {}));
-
-(function ($) {
-    $.fn.createConfigurations = function (opts) {
-        if (typeof opts === "undefined") { opts = null; }
-        var data = [];
-
-        if (opts != null && opts.useStub) {
-            data = stubs.getConfiguration();
-        } else {
-            $.ajax({
-                url: "/snamp/management/api/configuration",
-                dataType: "json",
-                cache: false,
-                type: "GET",
-                async: false,
-                success: function (json) {
-                    if (json instanceof Object)
-                        console.log(new config.configuration(json));
-                }
-            });
-        }
-    };
-})(jQuery);
 var license;
 (function (license) {
     var licenseInfo = (function () {
@@ -372,7 +357,7 @@ var stubs;
     stubs.getSummary = getSummary;
 
     function getConfiguration() {
-        return [];
+        return null;
     }
     stubs.getConfiguration = getConfiguration;
 })(stubs || (stubs = {}));
