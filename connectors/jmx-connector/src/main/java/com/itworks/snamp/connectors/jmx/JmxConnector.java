@@ -2,13 +2,13 @@ package com.itworks.snamp.connectors.jmx;
 
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.NotificationListener;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.LicensingException;
 import org.apache.commons.collections4.Factory;
 
@@ -29,6 +29,7 @@ import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescript
 
 import static com.itworks.snamp.connectors.jmx.JmxConnectionManager.MBeanServerConnectionHandler;
 import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.OBJECT_NAME_PROPERTY;
+import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.USE_REGEXP_PARAM;
 
 /**
  * Represents JMX connector.
@@ -110,7 +111,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * attachment is not supported.
          */
         @Override
-        public final ManagementEntityType getAttachmentType(final Object attachment) {
+        public final ManagedEntityType getAttachmentType(final Object attachment) {
             return attachment != null ?
                     typeSystem.createEntityType(JmxTypeSystem.getOpenTypeFromValue(attachment)) :
                     null;
@@ -179,7 +180,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             }, null);
             return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
                 @Override
-                protected final JmxManagementEntityType detectAttributeType() {
+                protected final JmxManagedEntityType detectAttributeType() {
                     return typeSystem.createAttributeType(targetAttr, new Factory<OpenType<?>>() {
                         @Override
                         public OpenType<?> create() {
@@ -280,7 +281,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                 }
 
                 @Override
-                protected final JmxManagementEntityType detectAttributeType() {
+                protected final JmxManagedEntityType detectAttributeType() {
                     final OpenType<?> compositeType = JmxTypeSystem.getOpenType(targetAttr, new Factory<OpenType<?>>() {
                         @Override
                         public OpenType<?> create() {
@@ -304,7 +305,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         }
 
         private static boolean useRegexpOption(final Map<String, String> options){
-            return options.containsKey("useRegexp") && Boolean.TRUE.toString().equals(options.get("useRegexp"));
+            return options.containsKey(USE_REGEXP_PARAM) && Boolean.TRUE.toString().equals(options.get(USE_REGEXP_PARAM));
         }
 
         private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options, final boolean useRegexp){
@@ -621,13 +622,13 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * @return The type of the attribute value.
          */
         @Override
-        public JmxManagementEntityType getType();
+        public JmxManagedEntityType getType();
     }
 
     /**
      * Represents an abstract class for building JMX attribute providers.
      */
-    private abstract static class JmxAttributeProvider extends GenericAttributeMetadata<JmxManagementEntityType> implements JmxAttributeMetadata {
+    private abstract static class JmxAttributeProvider extends GenericAttributeMetadata<JmxManagedEntityType> implements JmxAttributeMetadata {
         private final ObjectName namespace;
         private MBeanServerConnectionHandler<Object> attributeValueReader;
         private final JmxConnectionManager connectionManager;
@@ -741,7 +742,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * @return {@literal true}, if value is written successfully; otherwise, {@literal false}.
          */
         public final boolean setValue(Object value){
-            final JmxManagementEntityType typeInfo = getType();
+            final JmxManagedEntityType typeInfo = getType();
             if(canWrite() && value != null)
                 try{
                     value = typeInfo.convertToJmx(value);

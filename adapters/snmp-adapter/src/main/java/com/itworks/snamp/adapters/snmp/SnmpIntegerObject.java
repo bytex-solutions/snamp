@@ -1,12 +1,12 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
 
-import static com.itworks.snamp.connectors.ManagementEntityTypeHelper.convertFrom;
-import static com.itworks.snamp.connectors.ManagementEntityTypeHelper.supportsProjection;
+import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.convertFrom;
+import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.supportsProjection;
 import static org.snmp4j.smi.SMIConstants.SYNTAX_INTEGER32;
 
 /**
@@ -20,12 +20,12 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
         super(oid, connector, new Integer32(defaultValue));
     }
 
-    public static Integer32 convert(final Object value, final ManagementEntityType attributeTypeInfo){
+    public static Integer32 convert(final Object value, final ManagedEntityType attributeTypeInfo){
         final Number convertedValue = convertFrom(attributeTypeInfo, value, Number.class, Byte.class, Short.class, Integer.class);
         return new Integer32(convertedValue.intValue());
     }
 
-    public static Object convert(final Variable value, final ManagementEntityType attributeTypeInfo){
+    public static Object convert(final Variable value, final ManagedEntityType attributeTypeInfo){
         if(supportsProjection(attributeTypeInfo, Long.class)) return value.toLong();
         else if(supportsProjection(attributeTypeInfo, Short.class)) return (short) value.toLong();
         else if(supportsProjection(attributeTypeInfo, Integer.class)) return value.toInt();

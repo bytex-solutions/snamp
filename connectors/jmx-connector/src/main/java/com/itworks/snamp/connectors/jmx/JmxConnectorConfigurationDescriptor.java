@@ -1,12 +1,13 @@
 package com.itworks.snamp.connectors.jmx;
 
-import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents JMX connector configuration descriptor.
@@ -15,22 +16,25 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
-    public static final String JMX_LOGIN = "login";
-    public static final String JMX_PASSWORD = "password";
-    public static final String CONNECTION_RETRY_COUNT = "retryCount";
-    public static final String OBJECT_NAME_PROPERTY = "objectName";
-    public static final String SEVERITY_PARAM = "severity";
+    static final String JMX_LOGIN = "login";
+    static final String JMX_PASSWORD = "password";
+    static final String CONNECTION_RETRY_COUNT = "retryCount";
+    static final String OBJECT_NAME_PROPERTY = "objectName";
+    static final String SEVERITY_PARAM = "severity";
+    static final String USE_REGEXP_PARAM = "useRegexp";
 
     /**
      * @author Roman Sakno
      * @version 1.0
      * @since 1.0
      */
-    private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> {
+    private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration> {
         private static final String RESOURCE_NAME = "JmxAttributeConfig";
 
-        public AttributeConfigurationInfo(){
-            super(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class, OBJECT_NAME_PROPERTY);
+        private AttributeConfigurationInfo() {
+            super(AttributeConfiguration.class,
+                    OBJECT_NAME_PROPERTY,
+                    USE_REGEXP_PARAM);
         }
 
         /**
@@ -46,7 +50,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
         }
     }
 
-    public JmxConnectorConfigurationDescriptor(){
+    JmxConnectorConfigurationDescriptor(){
         super(new AttributeConfigurationInfo());
     }
 

@@ -194,6 +194,31 @@
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-client</artifactId>
             <version>9.1.1.v20140108</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>rshell-connector</artifactId>
+            <version>1.0.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.sshd</groupId>
+            <artifactId>sshd-core</artifactId>
+            <version>0.12.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.schmizz</groupId>
+            <artifactId>sshj</artifactId>
+            <version>0.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.5.11</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

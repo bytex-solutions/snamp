@@ -60,7 +60,7 @@ public class NotificationImpl extends HashMap<String, Object> implements Notific
      */
     @Override
     public Date getTimeStamp() {
-        return timeStamp;
+        return new Date(timeStamp.getTime());
     }
 
     /**

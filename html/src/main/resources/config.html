@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Managment web console for SNAMP</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/cover.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+  <div class="masthead clearfix">
+      <div class="inner">
+          <h3 class="masthead-brand">SNAMP configuration <console></console></h3>
+
+          <ul class="nav masthead-nav">
+              <li class="active"><a href="index.html">Home</a></li>
+              <li><a href="http://localhost:8080/system/console/bundles" target="_blank">Bundle web console</a></li>
+          </ul>
+      </div>
+  </div>
+
+    <div class="site-wrapper">
+
+      <div class="site-wrapper-inner">
+
+        <div class="cover-container">
+
+          <div class="row" id="configuration">
+            <div id="container"></div>
+
+
+              <div class="mastfoot">
+                <div class="inner">
+                  <p>Software by IT Works! (c)</p>
+                </div>
+              </div>
+
+            </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery-1.8.0.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <link rel="stylesheet" href="js/themes/default/style.min.css" />
+    <script src="js/jstree.min.js"></script>
+
+    <script type="text/javascript" src="js/snamp.js"></script>
+
+
+    <script type="text/javascript">
+      var options = new options(false);
+      $(function() {
+         $('#container').jstree({ 
+        // Подключаем плагины
+        "plugins" : [ 
+            "themes","json_data"
+        ]
+    });
+});
+      $("#configuration").createConfigurations(options);
+    </script>
+
+  </body>
+</html>

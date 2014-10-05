@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.rest;
 
 import com.google.gson.Gson;
-import com.itworks.snamp.internal.semantics.Internal;
+import com.itworks.snamp.internal.annotations.Internal;
 import net.engio.mbassy.bus.common.PubSubSupport;
 import net.engio.mbassy.listener.Invoke;
 import net.engio.mbassy.listener.Listener;

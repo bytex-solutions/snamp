@@ -43,7 +43,8 @@
                         <goal>copy-resources</goal>
                     </goals>
                     <configuration>
-                        <outputDirectory>${basedir}/../infrastructure/web-console/src/main/resources/</outputDirectory>
+                        <overwrite>true</overwrite>
+                        <outputDirectory>${basedir}/../infrastructure/web-console/src/main/resources/pages/</outputDirectory>
                         <resources>
                             <resource>
                                 <directory>src/main/resources</directory>

@@ -1,6 +1,6 @@
 package com.itworks.snamp;
 
-import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import java.util.*;
 
@@ -68,7 +68,15 @@ public interface Table<COLUMN> {
      * @throws IllegalArgumentException The count of values doesn't match to column count.
      */
     @ThreadSafe(false)
-    void addRow(final Map<COLUMN, Object> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
+    void addRow(final Map<COLUMN, ?> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
+
+    /**
+     * Gets row by its index.
+     * @param index Zero-based index of the row.
+     * @return The map that represents the row.
+     * @throws IndexOutOfBoundsException The specified row doesn't exist.
+     */
+    Map<COLUMN, Object> getRow(final int index) throws IndexOutOfBoundsException;
 
     /**
      * Removes the row from this table.

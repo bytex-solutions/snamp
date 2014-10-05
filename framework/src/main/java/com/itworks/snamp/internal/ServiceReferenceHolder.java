@@ -2,6 +2,8 @@ package com.itworks.snamp.internal;
 
 import org.osgi.framework.*;
 
+import java.util.Objects;
+
 /**
  * Represents a pair of OSGi service reference and strong service reference.
  * @author Roman Sakno
@@ -186,5 +188,15 @@ public class ServiceReferenceHolder<S> implements ServiceReference<S> {
     @Override
     public final int compareTo(final Object reference) {
         return serviceRef.compareTo(reference);
+    }
+
+    public final boolean equals(final ServiceReferenceHolder<?> refHolder){
+        return refHolder != null && Objects.equals(serviceRef, refHolder.serviceRef);
+    }
+
+    @Override
+    public final boolean equals(final Object obj) {
+        return obj instanceof ServiceReferenceHolder<?> &&
+                equals((ServiceReferenceHolder<?>)obj);
     }
 }

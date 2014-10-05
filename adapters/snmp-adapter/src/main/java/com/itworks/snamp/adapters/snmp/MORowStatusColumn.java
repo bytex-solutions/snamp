@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOMutableColumn;
 import org.snmp4j.smi.Integer32;
@@ -40,12 +40,12 @@ final class MORowStatusColumn extends MONamedColumn<Integer32> {
     }
 
     @Override
-    public final Object parseCellValue(final Integer32 value, final ManagementEntityType ct, final Map<String, String> conversionOptions) {
+    public final Object parseCellValue(final Integer32 value, final ManagedEntityType ct, final Map<String, String> conversionOptions) {
         return TableRowStatus.parse(value.toInt());
     }
 
     @Override
-    public final Integer32 createCellValue(final Object cell, final ManagementEntityType ct, final Map<String, String> conversionOptions) {
+    public final Integer32 createCellValue(final Object cell, final ManagedEntityType ct, final Map<String, String> conversionOptions) {
         return TableRowStatus.ACTIVE.toManagedScalarValue();
     }
 

@@ -1,6 +1,6 @@
 package com.itworks.snamp.core;
 
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.MethodStub;
 import org.osgi.framework.*;
 
 import java.util.*;

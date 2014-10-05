@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors.notifications;
 
-import com.itworks.snamp.connectors.ManagementEntityMetadata;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityMetadata;
+import com.itworks.snamp.connectors.ManagedEntityType;
 
 /**
  * Represents metadata of the notification.
@@ -9,7 +9,7 @@ import com.itworks.snamp.connectors.ManagementEntityType;
  * @version 1.0
  * @since 1.0
  */
-public interface NotificationMetadata extends ManagementEntityMetadata {
+public interface NotificationMetadata extends ManagedEntityMetadata {
 
     /**
      * Gets the category of the notification.
@@ -29,5 +29,5 @@ public interface NotificationMetadata extends ManagementEntityMetadata {
      * @return The type descriptor for the specified attachment; or {@literal null} if the specified
      * attachment is not supported.
      */
-    ManagementEntityType getAttachmentType(final Object attachment);
+    ManagedEntityType getAttachmentType(final Object attachment);
 }

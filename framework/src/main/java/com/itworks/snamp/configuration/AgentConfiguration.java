@@ -1,7 +1,7 @@
 package com.itworks.snamp.configuration;
 
+import com.itworks.snamp.PersistentObject;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.BinarySerializable;
 
 import java.util.*;
 
@@ -30,7 +30,7 @@ import java.util.*;
  * @since 1.0
  * @version 1.0
  */
-public interface AgentConfiguration extends BinarySerializable, Cloneable {
+public interface AgentConfiguration extends PersistentObject, Cloneable {
     /**
      * Represents a root interface for all agent configuration entities.
      * @author Roman Sakno

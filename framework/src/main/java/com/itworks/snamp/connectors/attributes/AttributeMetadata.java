@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors.attributes;
 
-import com.itworks.snamp.connectors.ManagementEntityMetadata;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityMetadata;
+import com.itworks.snamp.connectors.ManagedEntityType;
 
 import java.util.Locale;
 
@@ -11,7 +11,7 @@ import java.util.Locale;
  * @since 1.0
  * @version 1.0
  */
-public interface AttributeMetadata extends ManagementEntityMetadata {
+public interface AttributeMetadata extends ManagedEntityMetadata {
     /**
      * The name of the optional metadata property that provides a name of the attribute type.
      */
@@ -64,5 +64,5 @@ public interface AttributeMetadata extends ManagementEntityMetadata {
      * Returns the type of the attribute value.
      * @return The type of the attribute value.
      */
-    ManagementEntityType getType();
+    ManagedEntityType getType();
 }

@@ -12,7 +12,7 @@ import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationListener;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
-import com.itworks.snamp.testing.connectors.AbstractManagementConnectorTest;
+import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -291,7 +291,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 Object[].class,
                 new Byte[]{10, 20, 30, 40, 50},
-                AbstractManagementConnectorTest.arrayEquator(),
+                AbstractResourceConnectorTest.arrayEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
     }
@@ -302,13 +302,13 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 Object[].class,
                 ArrayUtils.toObject(new IpAddress("192.168.0.1").toByteArray()),
-                AbstractManagementConnectorTest.arrayEquator(),
+                AbstractResourceConnectorTest.arrayEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
         testAttribute(ATTRIBUTE_ID,
                 String.class,
                 "192.168.0.1",
-                AbstractManagementConnectorTest.<String>valueEquator(),
+                AbstractResourceConnectorTest.<String>valueEquator(),
                 new HashMap<String, String>(1){{
                     put("snmpConversionFormat", "text");
                 }},
@@ -321,13 +321,13 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 Object[].class,
                 ArrayUtils.toObject(new OID("1.4.5.3.1").getValue()),
-                AbstractManagementConnectorTest.arrayEquator(),
+                AbstractResourceConnectorTest.arrayEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
         testAttribute(ATTRIBUTE_ID,
                 String.class,
                 "1.4.5.3.1",
-                AbstractManagementConnectorTest.<String>valueEquator(),
+                AbstractResourceConnectorTest.<String>valueEquator(),
                 new HashMap<String, String>(1){{
                     put("snmpConversionFormat", "text");
                 }},
@@ -340,7 +340,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 Long.class,
                 42L,
-                AbstractManagementConnectorTest.<Long>valueEquator(),
+                AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
     }
@@ -351,7 +351,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 Long.class,
                 42L,
-                AbstractManagementConnectorTest.<Long>valueEquator(),
+                AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
     }
@@ -362,7 +362,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 Long.class,
                 42L,
-                AbstractManagementConnectorTest.<Long>valueEquator(),
+                AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
     }
@@ -373,13 +373,13 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 Long.class,
                 642584970L,
-                AbstractManagementConnectorTest.<Long>valueEquator(),
+                AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
         testAttribute(ATTRIBUTE_ID,
                 String.class,
                 new TimeTicks(642584974L).toString(),
-                AbstractManagementConnectorTest.<String>valueEquator(),
+                AbstractResourceConnectorTest.<String>valueEquator(),
                 new HashMap<String, String>(1){{
                     put("snmpConversionFormat", "text");
                 }},
@@ -392,7 +392,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 Long.class,
                 42L,
-                AbstractManagementConnectorTest.<Long>valueEquator(),
+                AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
     }
@@ -403,7 +403,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 Integer.class,
                 42,
-                AbstractManagementConnectorTest.<Integer>valueEquator(),
+                AbstractResourceConnectorTest.<Integer>valueEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
     }
@@ -414,7 +414,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 String.class,
                 "Jack Ryan",
-                AbstractManagementConnectorTest.<String>valueEquator(),
+                AbstractResourceConnectorTest.<String>valueEquator(),
                 new HashMap<String, String>(1){{
                     put("snmpConversionFormat", "text");
                 }},
@@ -422,7 +422,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 String.class,
                 new OctetString("Java Enterprise Edition").toHexString(),
-                AbstractManagementConnectorTest.<String>valueEquator(),
+                AbstractResourceConnectorTest.<String>valueEquator(),
                 new HashMap<String, String>(1){{
                     put("snmpConversionFormat", "hex");
                 }},
@@ -430,7 +430,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute(ATTRIBUTE_ID,
                 Object[].class,
                 new Byte[]{10, 20, 1, 4},
-                AbstractManagementConnectorTest.arrayEquator(),
+                AbstractResourceConnectorTest.arrayEquator(),
                 new HashMap<String, String>(1){{
                     put("snmpConversionFormat", "raw");
                 }},

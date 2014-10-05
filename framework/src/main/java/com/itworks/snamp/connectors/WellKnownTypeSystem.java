@@ -1,9 +1,11 @@
 package com.itworks.snamp.connectors;
 
-import org.apache.commons.collections4.Factory;
 import com.itworks.snamp.Table;
+import org.apache.commons.collections4.Factory;
+import org.apache.commons.collections4.Transformer;
 
-import java.math.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -29,9 +31,9 @@ import java.util.*;
  *     <ul>
  *         <li>Tabular data should be convertible to {@link com.itworks.snamp.Table} type. An implementation
  *         for this interface is provided by {@link com.itworks.snamp.SimpleTable} class. Entity data type
- *         should implements {@link ManagementEntityTabularType} interface.</li>
+ *         should implements {@link ManagedEntityTabularType} interface.</li>
  *         <li>Array data should be convertible to Java array and {@link com.itworks.snamp.Table} type. Attribute
- *         data type should inherits from {@link ManagementEntityTypeBuilder.ManagementEntityArrayType} class.</li>
+ *         data type should inherits from {@link ManagedEntityTypeBuilder.ManagedEntityArrayType} class.</li>
  *         <li>Map data should be convertible to {@link com.itworks.snamp.Table} type, and, optionally,
  *         to {@link Map} type. Map is a special case of tabular data when table has single row
  *         and multiple columns, where each column represents map key.</li>
@@ -40,20 +42,19 @@ import java.util.*;
  * <p>
  * Management entity type system is a set of converters that provides conversion between MIB-specific
  * data types and universal data types. This class provides set of converters between these data types
- * in the form of static public unary methods annotated with {@link com.itworks.snamp.AbstractTypeConverterResolver.Converter} interface. Typically,
+ * in the form of static public unary methods annotated with {@link com.itworks.snamp.AbstractTypeConverterProvider.Converter} interface. Typically,
  * each custom SNAMP connector contains its own type system converter, inherited from this class.
  * The following example demonstrates your own type system converter:
  * <pre><code>
  * public final class CustomTypeInfoBuilder extends WellKnownTypeSystem{
  *
- *     {@literal @}Converter
- *     public static byte[] stringToByteArray(final String str){
- *         return str.getBytes("UTF-8");
- *     }
- *
- *     {@literal @}Converter
- *     public static String byteArrayToString(final byte[] b){
- *         return new String(b, "UTF-8");
+ *     public CustomTypeInfoBuilder(){
+ *         registerConverter(String.class, Byte[].class,
+ *                  new Transformer&lt;String, Byte[]&gt;(){
+ *                      public void Byte[] transform(String input){
+ *                          return ArrayUtils.toObject(input.getBytes("UTF-8"));
+ *                      }
+ *                  });
  *     }
  *
  *     public final ManagementEntityType createByteArrayType(){
@@ -63,329 +64,250 @@ import java.util.*;
  *
  * final CustomTypeInfoBuilder builder = new CustomTypeInfoBuilder();
  * final AttributeTypeInfo arrayType = builder.createByteArrayType();
- * final String result = arrayType.convertTo(new byte[]{1, 2, 3}, String.class);
+ * final String result = builder.convert(Byte[].class, "Hello, world!");
  * </code></pre>
  * </p>
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
-
+public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
     /**
-     * Converts {@link String} to {@link Byte}.
-     * @param str The value to convert.
-     * @return The conversion result.
+     * Initializes a new type system.
      */
-    @Converter
-    public static Byte stringToInt8(final String str){
-        return Byte.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Short}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Short stringToInt16(final String str){
-        return Short.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Integer}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Integer stringToInt32(final String str){
-        return Integer.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Long}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Long stringToInt64(final String str){
-        return Long.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link java.math.BigInteger}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigInteger stringToInteger(final String str){
-        return new BigInteger(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Boolean}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Boolean stringToBoolean(final String str){
-        return Boolean.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Float}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Float stringToFloat(final String str){
-        return Float.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link Double}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Double stringToDouble(final String str){
-        return Double.valueOf(str);
-    }
-
-    /**
-     * Converts {@link String} to {@link java.math.BigDecimal}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigDecimal stringToDecimal(final String str){
-        return new BigDecimal(str);
-    }
-
-    /**
-     * Converts {@link Number} to {@link Byte}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Byte numberToInt8(final Number n){
-        return n.byteValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link Short}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Short numberToInt16(final Number n){
-        return n.shortValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link Integer}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Integer numberToInt32(final Number n){
-        return n.intValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link Long}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Long numberToInt64(final Number n){
-        return n.longValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link Float}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Float numberToFloat(final Number n){
-        return n.floatValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link Double}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Double numberToDouble(final Number n){
-        return n.doubleValue();
-    }
-
-    /**
-     * Converts {@link Number} to {@link BigInteger}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigInteger numberToInteger(final Number n){
-        return n instanceof BigInteger ? (BigInteger)n : BigInteger.valueOf(n.longValue());
-    }
-
-    /**
-     * Converts {@link Number} to {@link BigDecimal}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigDecimal numberToDecimal(final Number n){
-        return n instanceof BigDecimal ? (BigDecimal)n : BigDecimal.valueOf(n.doubleValue());
-    }
-
-    /**
-     * Converts {@link Number} to {@link java.util.Date}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Date numberToDate(final Number n){
-        return new Date(n.longValue());
-    }
-
-    /**
-     * Converts {@link Number} to {@link java.util.Calendar}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Calendar numberToCalendar(final Number n){
-        final Calendar now = Calendar.getInstance();
-        now.setTime(new Date(n.longValue()));
-        return now;
-    }
-
-    /**
-     * Converts {@link Number} to {@link Boolean}.
-     * @param n The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Boolean numberToBoolean(final Number n){
-        if(n instanceof BigInteger) return !BigInteger.ZERO.equals(n);
-        else if(n instanceof BigDecimal) return !BigDecimal.ZERO.equals(n);
-        else return n.longValue() != 0;
-    }
-
-    /**
-     * Converts {@link Calendar} to {@link Long}.
-     * @param c The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Long calendarToLong(final Calendar c){
-        return c.getTime().getTime();
-    }
-
-    /**
-     * Converts {@link Calendar} to {@link Date}.
-     * @param c The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Date calendarToDate(final Calendar c){
-        return c.getTime();
-    }
-
-    /**
-     * Converts {@link Date} to {@link Calendar}.
-     * @param d The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Calendar dateToCalendar(final Date d){
-        final Calendar now = Calendar.getInstance();
-        now.setTime(d);
-        return now;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link Byte}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Byte booleanToInt8(final Boolean b){
-        return b ? (byte)1 : 0;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link Short}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Short booleanToInt16(final Boolean b){
-        return b ? (short)1 : 0;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link Integer}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Integer booleanToInt32(final Boolean b){
-        return b ? 1 : 0;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link Long}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Long booleanToInt64(final Boolean b){
-        return b ? 1L : 0L;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link BigInteger}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigInteger booleanToInteger(final Boolean b){
-        return b ? BigInteger.ONE : BigInteger.ZERO;
-    }
-
-    /**
-     * Converts {@link Boolean} to {@link BigDecimal}.
-     * @param b The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static BigDecimal booleanToDecimal(final Boolean b){
-        return b ? BigDecimal.ONE : BigDecimal.ZERO;
-    }
-
-    /**
-     * Converts {@link String} to {@link Character}.
-     * @param str The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Character stringToCharacter(final String str){
-        return str.length() > 0 ? str.charAt(0) : '\0';
-    }
-
-    /**
-     * Converts {@link Date} to {@link Long}.
-     * @param d The value to convert.
-     * @return The conversion result.
-     */
-    @Converter
-    public static Long dateToLong(final Date d){
-        return d.getTime();
+    public WellKnownTypeSystem(){
+        registerConverter(String.class, Byte.class,
+                new Transformer<String, Byte>() {
+                    @Override
+                    public Byte transform(final String input) {
+                        return Byte.valueOf(input);
+                    }
+                });
+        registerConverter(String.class, Short.class,
+                new Transformer<String, Short>() {
+                    @Override
+                    public Short transform(final String input) {
+                        return Short.valueOf(input);
+                    }
+                });
+        registerConverter(String.class, Integer.class,
+                new Transformer<String, Integer>() {
+                    @Override
+                    public Integer transform(final String input) {
+                        return Integer.valueOf(input);
+                    }
+                });
+        registerConverter(String.class, Long.class,
+                new Transformer<String, Long>() {
+                    @Override
+                    public Long transform(final String input) {
+                        return Long.parseLong(input);
+                    }
+                });
+        registerConverter(String.class, BigInteger.class,
+                new Transformer<String, BigInteger>() {
+                    @Override
+                    public BigInteger transform(final String input) {
+                        return new BigInteger(input);
+                    }
+                });
+        registerConverter(String.class, Boolean.class,
+                new Transformer<String, Boolean>() {
+                    @Override
+                    public Boolean transform(final String input) {
+                        return null;
+                    }
+                });
+        registerConverter(String.class, Float.class,
+                new Transformer<String, Float>() {
+                    @Override
+                    public Float transform(final String input) {
+                        return Float.parseFloat(input);
+                    }
+                });
+        registerConverter(String.class, Double.class,
+                new Transformer<String, Double>() {
+                    @Override
+                    public Double transform(final String input) {
+                        return Double.parseDouble(input);
+                    }
+                });
+        registerConverter(String.class, BigDecimal.class,
+                new Transformer<String, BigDecimal>() {
+                    @Override
+                    public BigDecimal transform(final String input) {
+                        return new BigDecimal(input);
+                    }
+                });
+        registerConverter(Number.class, Byte.class,
+                new Transformer<Number, Byte>() {
+                    @Override
+                    public Byte transform(final Number input) {
+                        return input.byteValue();
+                    }
+                });
+        registerConverter(Number.class, Short.class,
+                new Transformer<Number, Short>() {
+                    @Override
+                    public Short transform(final Number input) {
+                        return input.shortValue();
+                    }
+                });
+        registerConverter(Number.class, Integer.class,
+                new Transformer<Number, Integer>() {
+                    @Override
+                    public Integer transform(final Number input) {
+                        return input.intValue();
+                    }
+                });
+        registerConverter(Number.class, Long.class,
+                new Transformer<Number, Long>() {
+                    @Override
+                    public Long transform(final Number input) {
+                        return input.longValue();
+                    }
+                });
+        registerConverter(Number.class, Float.class,
+                new Transformer<Number, Float>() {
+                    @Override
+                    public Float transform(final Number input) {
+                        return input.floatValue();
+                    }
+                });
+        registerConverter(Number.class, Double.class,
+                new Transformer<Number, Double>() {
+                    @Override
+                    public Double transform(final Number input) {
+                        return input.doubleValue();
+                    }
+                });
+        registerConverter(Number.class, BigInteger.class,
+                new Transformer<Number, BigInteger>() {
+                    @Override
+                    public BigInteger transform(final Number input) {
+                        return input instanceof BigInteger ?
+                                (BigInteger)input : BigInteger.valueOf(input.longValue());
+                    }
+                });
+        registerConverter(Number.class, BigDecimal.class,
+                new Transformer<Number, BigDecimal>() {
+                    @Override
+                    public BigDecimal transform(final Number input) {
+                        if(input instanceof BigDecimal)
+                            return (BigDecimal)input;
+                        else if(input instanceof BigInteger)
+                            return new BigDecimal((BigInteger)input);
+                        else if(input instanceof Double)
+                            return BigDecimal.valueOf(input.doubleValue());
+                        else if(input instanceof Float)
+                            return BigDecimal.valueOf(input.floatValue());
+                        else return BigDecimal.valueOf(input.longValue());
+                    }
+                });
+        registerConverter(Number.class, Date.class,
+                new Transformer<Number, Date>() {
+                    @Override
+                    public Date transform(final Number input) {
+                        return new Date(input.longValue());
+                    }
+                });
+        registerConverter(Number.class, Calendar.class,
+                new Transformer<Number, Calendar>() {
+                    @Override
+                    public Calendar transform(final Number input) {
+                        final Calendar now = Calendar.getInstance();
+                        now.setTime(new Date(input.longValue()));
+                        return now;
+                    }
+                });
+        registerConverter(Number.class, Boolean.class,
+                new Transformer<Number, Boolean>() {
+                    @Override
+                    public Boolean transform(final Number input) {
+                        if(input instanceof BigInteger) return !BigInteger.ZERO.equals(input);
+                        else if(input instanceof BigDecimal) return !BigDecimal.ZERO.equals(input);
+                        else return input.longValue() != 0;
+                    }
+                });
+        registerConverter(Calendar.class, Long.class,
+                new Transformer<Calendar, Long>() {
+                    @Override
+                    public Long transform(final Calendar input) {
+                        return input.getTime().getTime();
+                    }
+                });
+        registerConverter(Calendar.class, Date.class,
+                new Transformer<Calendar, Date>() {
+                    @Override
+                    public Date transform(final Calendar input) {
+                        return input.getTime();
+                    }
+                });
+        registerConverter(Date.class, Calendar.class,
+                new Transformer<Date, Calendar>() {
+                    @Override
+                    public Calendar transform(final Date input) {
+                        final Calendar now = Calendar.getInstance();
+                        now.setTime(input);
+                        return now;
+                    }
+                });
+        registerConverter(Boolean.class, Byte.class,
+                new Transformer<Boolean, Byte>() {
+                    @Override
+                    public Byte transform(final Boolean input) {
+                        return input ? (byte)1 : 0;
+                    }
+                });
+        registerConverter(Boolean.class, Short.class,
+                new Transformer<Boolean, Short>() {
+                    @Override
+                    public Short transform(final Boolean input) {
+                        return input ? (short)1 : 0;
+                    }
+                });
+        registerConverter(Boolean.class, Integer.class,
+                new Transformer<Boolean, Integer>() {
+                    @Override
+                    public Integer transform(final Boolean input) {
+                        return input ? 1 : 0;
+                    }
+                });
+        registerConverter(Boolean.class, Long.class,
+                new Transformer<Boolean, Long>() {
+                    @Override
+                    public Long transform(final Boolean input) {
+                        return input ? 1L : 0L;
+                    }
+                });
+        registerConverter(Boolean.class, BigInteger.class,
+                new Transformer<Boolean, BigInteger>() {
+                    @Override
+                    public BigInteger transform(final Boolean input) {
+                        return input ? BigInteger.ONE : BigInteger.ZERO;
+                    }
+                });
+        registerConverter(Boolean.class, BigDecimal.class,
+                new Transformer<Boolean, BigDecimal>() {
+                    @Override
+                    public BigDecimal transform(final Boolean input) {
+                        return input ? BigDecimal.ONE : BigDecimal.ZERO;
+                    }
+                });
+        registerConverter(String.class, Character.class,
+                new Transformer<String, Character>() {
+                    @Override
+                    public Character transform(final String input) {
+                        return input.isEmpty() ? '\0' : input.charAt(0);
+                    }
+                });
+        registerConverter(Date.class, Long.class,
+                new Transformer<Date, Long>() {
+                    @Override
+                    public Long transform(final Date input) {
+                        return input.getTime();
+                    }
+                });
     }
 
     /**
@@ -395,7 +317,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Byte}.
      */
-    public final static boolean supportsInt8(final ManagementEntityType entityType){
+    public final static boolean supportsInt8(final ManagedEntityType entityType){
         return supportsProjection(entityType, Byte.class);
     }
 
@@ -404,7 +326,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Byte}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createInt8Type(){
+    public final ManagedEntityType createInt8Type(){
         return createEntitySimpleType(Byte.class);
     }
 
@@ -415,7 +337,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Short}.
      */
-    public final static boolean supportsInt16(final ManagementEntityType entityType){
+    public final static boolean supportsInt16(final ManagedEntityType entityType){
         return supportsProjection(entityType, Short.class);
     }
 
@@ -424,7 +346,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Short}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createInt16Type(){
+    public final ManagedEntityType createInt16Type(){
         return createEntitySimpleType(Short.class);
     }
 
@@ -435,7 +357,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Integer}.
      */
-    public final static boolean supportsInt32(final ManagementEntityType entityType){
+    public final static boolean supportsInt32(final ManagedEntityType entityType){
         return supportsProjection(entityType, Integer.class);
     }
 
@@ -444,7 +366,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Integer}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createInt32Type(){
+    public final ManagedEntityType createInt32Type(){
         return createEntitySimpleType(Integer.class);
     }
 
@@ -455,7 +377,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Long}.
      */
-    public final static boolean supportsInt64(final ManagementEntityType entityType){
+    public final static boolean supportsInt64(final ManagedEntityType entityType){
         return supportsProjection(entityType, Long.class);
     }
 
@@ -464,7 +386,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Long}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createInt64Type(){
+    public final ManagedEntityType createInt64Type(){
         return createEntitySimpleType(Long.class);
     }
 
@@ -475,7 +397,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link BigInteger}.
      */
-    public final static boolean supportsInteger(final ManagementEntityType entityType){
+    public final static boolean supportsInteger(final ManagedEntityType entityType){
         return supportsProjection(entityType, BigInteger.class);
     }
 
@@ -484,7 +406,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link BigInteger}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createIntegerType(){
+    public final ManagedEntityType createIntegerType(){
         return createEntitySimpleType(BigInteger.class);
     }
 
@@ -495,7 +417,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link BigDecimal}.
      */
-    public final static boolean supportsDecimal(final ManagementEntityType entityType){
+    public final static boolean supportsDecimal(final ManagedEntityType entityType){
         return supportsProjection(entityType, BigDecimal.class);
     }
 
@@ -504,7 +426,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link BigDecimal}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createDecimalType(){
+    public final ManagedEntityType createDecimalType(){
         return createEntitySimpleType(BigDecimal.class);
     }
 
@@ -515,7 +437,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Date}.
      */
-    public final static boolean supportsUnixTime(final ManagementEntityType entityType){
+    public final static boolean supportsUnixTime(final ManagedEntityType entityType){
         return supportsProjection(entityType, Date.class);
     }
 
@@ -524,7 +446,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Date}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createUnixTimeType(){
+    public final ManagedEntityType createUnixTimeType(){
         return createEntitySimpleType(Date.class);
     }
 
@@ -535,7 +457,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Boolean}.
      */
-    public final static boolean supportsBoolean(final ManagementEntityType entityType){
+    public final static boolean supportsBoolean(final ManagedEntityType entityType){
         return supportsProjection(entityType, Boolean.class);
     }
 
@@ -544,7 +466,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Boolean}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createBooleanType(){
+    public final ManagedEntityType createBooleanType(){
         return createEntitySimpleType(Boolean.class);
     }
 
@@ -555,7 +477,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link String}.
      */
-    public final static boolean supportsString(final ManagementEntityType entityType){
+    public final static boolean supportsString(final ManagedEntityType entityType){
         return supportsProjection(entityType, String.class);
     }
 
@@ -564,7 +486,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link String}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createStringType(){
+    public final ManagedEntityType createStringType(){
         return createEntitySimpleType(String.class);
     }
 
@@ -575,7 +497,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Float}.
      */
-    public final static boolean supportsFloat(final ManagementEntityType entityType){
+    public final static boolean supportsFloat(final ManagedEntityType entityType){
         return supportsProjection(entityType, Float.class);
     }
 
@@ -584,7 +506,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Float}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createFloatType(){
+    public final ManagedEntityType createFloatType(){
         return createEntitySimpleType(Float.class);
     }
 
@@ -595,7 +517,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Double}.
      */
-    public final static boolean supportsDouble(final ManagementEntityType entityType){
+    public final static boolean supportsDouble(final ManagedEntityType entityType){
         return supportsProjection(entityType, Double.class);
     }
 
@@ -604,7 +526,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * by {@link Double}.
      * @return A new type converter.
      */
-    public final ManagementEntityType createDoubleType(){
+    public final ManagedEntityType createDoubleType(){
         return createEntitySimpleType(Double.class);
     }
 
@@ -613,8 +535,8 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
      * @param elementType An element type of the array.
      * @return A new array type that can be converted into {@link Object[]}.
      */
-    public final AbstractManagementEntityType createEntityArrayType(final ManagementEntityType elementType){
-        return createEntityType(new Factory<ManagementEntityArrayType>(){
+    public final AbstractManagedEntityType createEntityArrayType(final ManagedEntityType elementType){
+        return createEntityType(new Factory<ManagedEntityArrayType>(){
 
             /**
              * Creates a new instance of the specified type.
@@ -622,8 +544,8 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public ManagementEntityArrayType create() {
-                return new ManagementEntityArrayType(elementType);
+            public ManagedEntityArrayType create() {
+                return new ManagedEntityArrayType(elementType);
             }
         }, Object[].class);
     }
@@ -631,17 +553,17 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
     /**
      * Creates a new tabular type that can be converted into {@link Table}.
      * <p>
-     *  The returned {@link ManagementEntityTabularType} instance throws {@link UnsupportedOperationException}
-     *  exception when {@link ManagementEntityTabularType#getRowCount()} is invoked.
+     *  The returned {@link ManagedEntityTabularType} instance throws {@link UnsupportedOperationException}
+     *  exception when {@link ManagedEntityTabularType#getRowCount()} is invoked.
      * </p>
      * @param columns A collection of columns.
      * @param index An array of indexed columns.
      * @return A new instance of the tabular type.
      */
-    public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns, final String... index){
-        final Map<String, ManagementEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
+    public final ManagedEntityType createEntityTabularType(final Map<String, ManagedEntityType> columns, final String... index){
+        final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
         final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
-        return createEntityType(new Factory<AbstractManagementEntityTabularType>(){
+        return createEntityType(new Factory<AbstractManagedEntityTabularType>(){
 
             /**
              * Creates a new instance of the specified type.
@@ -649,8 +571,8 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public AbstractManagementEntityTabularType create() {
-                return new AbstractManagementEntityTabularType() {
+            public AbstractManagedEntityTabularType create() {
+                return new AbstractManagedEntityTabularType() {
                     @Override
                     public final Collection<String> getColumns() {
                         return readonlyColumns.keySet();
@@ -668,7 +590,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
                     }
 
                     @Override
-                    public final ManagementEntityType getColumnType(final String column) {
+                    public final ManagedEntityType getColumnType(final String column) {
                         return readonlyColumns.get(column);
                     }
 
@@ -681,21 +603,75 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
         }, Table.class);
     }
 
+    public final ManagedEntityType createEntityDictionaryType(final Map<String, ManagedEntityType> keys) {
+        return createEntityType(new Factory<AbstractManagedEntityType>() {
+            private final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(keys);
+
+            @Override
+            public AbstractManagedEntityTabularType create() {
+                return new AbstractManagedEntityTabularType() {
+
+                    /**
+                     * Returns a set of column names.
+                     *
+                     * @return The set of column names.
+                     */
+                    @Override
+                    public Collection<String> getColumns() {
+                        return readonlyColumns.keySet();
+                    }
+
+                    /**
+                     * Determines whether the specified column is indexed.
+                     *
+                     * @param column The name of the column.
+                     * @return {@literal true}, if the specified column is indexed; otherwise, {@literal false}.
+                     */
+                    @Override
+                    public boolean isIndexed(final String column) {
+                        return false;
+                    }
+
+                    /**
+                     * Returns the column type.
+                     *
+                     * @param column The name of the column.
+                     * @return The type of the column; or {@literal null} if the specified column doesn't exist.
+                     */
+                    @Override
+                    public ManagedEntityType getColumnType(final String column) {
+                        return readonlyColumns.get(column);
+                    }
+
+                    /**
+                     * Returns the number of rows if this information is available.
+                     *
+                     * @return The count of rows.
+                     */
+                    @Override
+                    public long getRowCount() {
+                        return 1;
+                    }
+                };
+            }
+        }, Table.class, Map.class);
+    }
+
     /**
      * Creates a new tabular type that can be converted into {@link Table}.
      * <p>
-     *  The returned {@link ManagementEntityTabularType} returns {@code rowCount} from
-     *  {@link ManagementEntityTabularType#getRowCount()} method.
+     *  The returned {@link ManagedEntityTabularType} returns {@code rowCount} from
+     *  {@link ManagedEntityTabularType#getRowCount()} method.
      * </p>
      * @param columns A collection of columns.
      * @param rowCount A row count in the table.
      * @param index An array of indexed columns.
      * @return A new instance of the tabular type.
      */
-    public final ManagementEntityType createEntityTabularType(final Map<String, ManagementEntityType> columns, final int rowCount, final String... index){
-        final Map<String, ManagementEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
-        final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
-        return createEntityType(new Factory<AbstractManagementEntityTabularType>(){
+    public final ManagedEntityType createEntityTabularType(final Map<String, ManagedEntityType> columns, final int rowCount, final String... index){
+        return createEntityType(new Factory<AbstractManagedEntityTabularType>(){
+            private final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
+            private final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
 
             /**
              * Creates a new instance of the specified type.
@@ -703,8 +679,8 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public AbstractManagementEntityTabularType create() {
-                return new AbstractManagementEntityTabularType() {
+            public AbstractManagedEntityTabularType create() {
+                return new AbstractManagedEntityTabularType() {
                     @Override
                     public final Collection<String> getColumns() {
                         return readonlyColumns.keySet();
@@ -722,7 +698,7 @@ public class WellKnownTypeSystem extends ManagementEntityTypeBuilder {
                     }
 
                     @Override
-                    public final ManagementEntityType getColumnType(final String column) {
+                    public final ManagedEntityType getColumnType(final String column) {
                         return readonlyColumns.get(column);
                     }
 

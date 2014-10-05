@@ -1,9 +1,9 @@
 package com.itworks.snamp.connectors.attributes;
 
 import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.connectors.ManagementEntityType;
-import com.itworks.snamp.internal.semantics.ThreadSafe;
-import com.itworks.snamp.internal.semantics.Internal;
+import com.itworks.snamp.connectors.ManagedEntityType;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
+import com.itworks.snamp.internal.annotations.Internal;
 
 /**
  * Represents utility class that represents raw attribute value and its type.
@@ -12,7 +12,7 @@ import com.itworks.snamp.internal.semantics.Internal;
  * @version 1.0
  */
 @Internal
-public final class AttributeValue<T extends ManagementEntityType> {
+public final class AttributeValue<T extends ManagedEntityType> {
     /**
      * Represents attribute value.
      */
@@ -73,7 +73,7 @@ public final class AttributeValue<T extends ManagementEntityType> {
      * @return {@literal true}, if the current attribute type is compliant with the specified attribute type; otherwise, {@literal false}.
      */
     @ThreadSafe
-    public final boolean isTypeOf(final Class<? extends ManagementEntityType> attributeType){
+    public final boolean isTypeOf(final Class<? extends ManagedEntityType> attributeType){
         return attributeType.isInstance(type);
     }
 
@@ -84,7 +84,7 @@ public final class AttributeValue<T extends ManagementEntityType> {
      * @return A new instance of attribute value. Field {@link #rawValue} will not be changed.
      */
     @ThreadSafe
-    public final <G extends ManagementEntityType> AttributeValue<G> cast(final Class<G> attributeType){
+    public final <G extends ManagedEntityType> AttributeValue<G> cast(final Class<G> attributeType){
         return new AttributeValue<>(rawValue, attributeType.cast(type));
     }
 }

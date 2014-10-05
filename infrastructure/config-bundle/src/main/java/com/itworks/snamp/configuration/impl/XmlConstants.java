@@ -11,8 +11,10 @@ final class XmlConstants {
 
     }
 
+    static final String V1_NAMESPACE = "http://itworks.com/snamp/config/v1.0";
+
     /**
-     * Represents namespace of the SNAMP configuration.
+     * Represents NAMESPACE of the SNAMP configuration.
      */
-    public static final String namespace = "http://itworks.com/snamp/config";
+    static final String NAMESPACE = V1_NAMESPACE;
 }

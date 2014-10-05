@@ -1,7 +1,7 @@
 package com.itworks.snamp.configuration.impl;
 
 import com.itworks.snamp.configuration.AbstractConfigurationBundleActivator;
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.MethodStub;
 
 import java.util.Map;
 

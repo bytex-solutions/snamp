@@ -3,11 +3,13 @@ package com.itworks.snamp.adapters.jmx;
 import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagementEntityTabularType;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityTabularType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeValue;
 import com.itworks.snamp.internal.Utils;
+import org.apache.commons.collections4.Closure;
+import org.apache.commons.collections4.Put;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
@@ -18,7 +20,7 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.connectors.ManagementEntityTypeBuilder.AbstractManagementEntityArrayType.VALUE_COLUMN_NAME;
+import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME;
 import static com.itworks.snamp.connectors.WellKnownTypeSystem.*;
 
 /**
@@ -37,7 +39,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         this.pureSerialization = pureSerialization;
     }
 
-    private static TabularType getAttributeTabularType(final ManagementEntityTabularType tabularType, final Map<String, String> options) throws OpenDataException{
+    private static TabularType getAttributeTabularType(final ManagedEntityTabularType tabularType, final Map<String, String> options) throws OpenDataException{
         final List<String> columns = new ArrayList<>(tabularType.getColumns());
         final String[] itemNames = new String[columns.size()];
         final String[] itemDescriptions = new String[columns.size()];
@@ -62,7 +64,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         return new TabularType(typeName, typeDescription, rowType, indicies.toArray(new String[indicies.size()]));
     }
 
-    private static ArrayType<?> getAttributeArrayType(final ManagementEntityTabularType arrayType) throws OpenDataException{
+    private static ArrayType<?> getAttributeArrayType(final ManagedEntityTabularType arrayType) throws OpenDataException{
         return ArrayType.getArrayType(getAttributeType(arrayType.getColumnType(VALUE_COLUMN_NAME), Collections.<String, String>emptyMap()));
     }
 
@@ -70,7 +72,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         return String.format(AttributeMetadata.COLUMN_DESCRIPTION, columnName);
     }
 
-    private static CompositeType getAttributeMapType(final ManagementEntityTabularType mapType, final Map<String, String> options) throws OpenDataException{
+    private static CompositeType getAttributeMapType(final ManagedEntityTabularType mapType, final Map<String, String> options) throws OpenDataException{
         final List<String> columns = new ArrayList<>(mapType.getColumns());
         final String[] itemNames = new String[columns.size()];
         final String[] itemDescriptions = new String[columns.size()];
@@ -91,7 +93,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         return new CompositeType(typeName, typeDescription, itemNames, itemDescriptions, itemTypes);
     }
 
-    private static OpenType<?> getAttributeType(final ManagementEntityType entityType, final Map<String, String> options) throws OpenDataException{
+    private static OpenType<?> getAttributeType(final ManagedEntityType entityType, final Map<String, String> options) throws OpenDataException{
         if(supportsBoolean(entityType))
             return SimpleType.BOOLEAN;
         else if(supportsInt8(entityType))
@@ -115,16 +117,16 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         else if(supportsString(entityType))
             return SimpleType.STRING;
         else if(isArray(entityType))
-            return getAttributeArrayType((ManagementEntityTabularType)entityType);
+            return getAttributeArrayType((ManagedEntityTabularType)entityType);
         else if(isMap(entityType))
-            return getAttributeMapType((ManagementEntityTabularType)entityType, options);
-        else if(entityType instanceof ManagementEntityTabularType)
-            return getAttributeTabularType((ManagementEntityTabularType)entityType, options);
+            return getAttributeMapType((ManagedEntityTabularType)entityType, options);
+        else if(entityType instanceof ManagedEntityTabularType)
+            return getAttributeTabularType((ManagedEntityTabularType)entityType, options);
         else throw new OpenDataException(String.format("Unable to resolve %s entity type to JMX OpenType", entityType));
     }
 
     @SuppressWarnings("unchecked")
-    private static CompositeData toCompositeData(final AttributeValue<ManagementEntityTabularType> source,
+    private static CompositeData toCompositeData(final AttributeValue<ManagedEntityTabularType> source,
                                                  final Map<String, String> options) throws OpenDataException{
         if(source.canConvertTo(CompositeData.class)){
             final CompositeData dict = source.convertTo(CompositeData.class);
@@ -140,7 +142,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
     }
 
     @SuppressWarnings("unchecked")
-    private static TabularData toTabularData(final AttributeValue<ManagementEntityTabularType> source,
+    private static TabularData toTabularData(final AttributeValue<ManagedEntityTabularType> source,
                                              final Map<String, String> options) throws OpenDataException{
         final TabularData result;
         if(source.canConvertTo(TabularData.class)){
@@ -195,9 +197,9 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         else if(isArray(source.type))
             return source.rawValue;
         else if(isMap(source.type))
-            return toCompositeData(source.cast(ManagementEntityTabularType.class), options);
-        else if(source.isTypeOf(ManagementEntityTabularType.class))
-            return toTabularData(source.cast(ManagementEntityTabularType.class), options);
+            return toCompositeData(source.cast(ManagedEntityTabularType.class), options);
+        else if(source.isTypeOf(ManagedEntityTabularType.class))
+            return toTabularData(source.cast(ManagedEntityTabularType.class), options);
         else throw new OpenDataException(String.format("Unable to resolve %s entity type to JMX OpenType", source.type));
     }
 
@@ -206,7 +208,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
     }
 
     private static Object parseArrayValue(final Object array,
-                                          final ManagementEntityTabularType arrayType) throws OpenDataException, InvalidAttributeValueException{
+                                          final ManagedEntityTabularType arrayType) throws OpenDataException, InvalidAttributeValueException{
         final Object result = Array.newInstance(array.getClass().getComponentType(), Array.getLength(array));
         for(int i = 0; i < Array.getLength(array); i++)
             Array.set(result, i, parseValue(Array.get(array, i), arrayType.getColumnType(VALUE_COLUMN_NAME)));
@@ -218,7 +220,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
     }
 
     private static Object parseCompositeData(final CompositeData data,
-                                             final ManagementEntityTabularType mapType) throws OpenDataException, InvalidAttributeValueException{
+                                             final ManagedEntityTabularType mapType) throws OpenDataException, InvalidAttributeValueException{
         final Map<String, Object> map = new HashMap<>(data.getCompositeType().keySet().size());
         for(final String key: data.getCompositeType().keySet())
             map.put(key, parseValue(data.get(key), mapType.getColumnType(key)));
@@ -226,11 +228,16 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
     }
 
     private static Object parseTabularData(final TabularData data,
-                                           final ManagementEntityTabularType tabularType) throws OpenDataException, InvalidAttributeValueException{
-        final Map<String, Class<?>> columns = new HashMap<>(tabularType.getColumns().size());
-        for(final String columnName: tabularType.getColumns())
-            columns.put(columnName, Object.class);
-        final Table<String> result = new SimpleTable<>(columns);
+                                           final ManagedEntityTabularType tabularType) throws OpenDataException, InvalidAttributeValueException{
+        final Table<String> result = new SimpleTable<>(new Closure<Put<String, Class<?>>>() {
+            @Override
+            public void execute(final Put<String, Class<?>> input) {
+                for(final String columnName: tabularType.getColumns())
+                    input.put(columnName, Object.class);
+            }
+        },
+        data.keySet().size(),
+        data.size());
         for(final Object row: data.values())
             if(row instanceof CompositeData) {
                 final CompositeData sourceRow = (CompositeData)row;
@@ -262,26 +269,26 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
     }
 
     private static Object parseValue(final Object value,
-                                     final ManagementEntityType type,
+                                     final ManagedEntityType type,
                                      final OpenType<?> openType) throws OpenDataException, InvalidAttributeValueException{
 
         if(value == null) throw new InvalidAttributeValueException("Attempts to set null.");
         else if(openType instanceof ArrayType<?> && !(value instanceof Object[]))
             return parseValue(normalizeArray(value, (ArrayType<?>)openType), type, openType);
         if(openType.isValue(value))
-            if(openType.isArray() && type instanceof ManagementEntityTabularType)
-                return parseArrayValue(value, (ManagementEntityTabularType) type);
-            else if(value instanceof CompositeData && type instanceof ManagementEntityTabularType)
-                return parseCompositeData((CompositeData) value, (ManagementEntityTabularType) type);
-            else if(value instanceof TabularData && type instanceof ManagementEntityTabularType)
-                return parseTabularData((TabularData) value, (ManagementEntityTabularType) type);
+            if(openType.isArray() && type instanceof ManagedEntityTabularType)
+                return parseArrayValue(value, (ManagedEntityTabularType) type);
+            else if(value instanceof CompositeData && type instanceof ManagedEntityTabularType)
+                return parseCompositeData((CompositeData) value, (ManagedEntityTabularType) type);
+            else if(value instanceof TabularData && type instanceof ManagedEntityTabularType)
+                return parseTabularData((TabularData) value, (ManagedEntityTabularType) type);
             else if(openType instanceof SimpleType<?>)
                 return value;
         throw createInvalidAttributeValueException(openType, value);
     }
 
     private static Object parseValue(final Object value,
-                                     final ManagementEntityType type) throws OpenDataException, InvalidAttributeValueException{
+                                     final ManagedEntityType type) throws OpenDataException, InvalidAttributeValueException{
         return parseValue(value, type, getAttributeType(type, Collections.<String, String>emptyMap()));
     }
 

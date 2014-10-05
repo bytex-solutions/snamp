@@ -1,6 +1,6 @@
 package com.itworks.snamp.management.jmx;
 
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.collections4.Factory;
 
 import javax.management.*;

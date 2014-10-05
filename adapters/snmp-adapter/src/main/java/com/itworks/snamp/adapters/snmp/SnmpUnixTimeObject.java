@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
@@ -12,7 +12,7 @@ import java.util.logging.Level;
 
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.DATE_TIME_DISPLAY_FORMAT_PARAM;
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
-import static com.itworks.snamp.connectors.ManagementEntityTypeHelper.convertFrom;
+import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.convertFrom;
 
 final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
     public static final String defaultValue = "1970-1-1,00:00:00.0,+0:0";
@@ -24,12 +24,12 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
         formatter = createFormatter(getMetadata());
     }
 
-    private static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo, final DateTimeFormatter formatter){
+    private static OctetString convert(final Object value, final ManagedEntityType attributeTypeInfo, final DateTimeFormatter formatter){
         final Date convertedValue = convertFrom(attributeTypeInfo, value, Date.class);
         return new OctetString(formatter.convert(convertedValue));
     }
 
-    public static OctetString convert(final Object value, final ManagementEntityType attributeTypeInfo, final Map<String, String> options){
+    public static OctetString convert(final Object value, final ManagedEntityType attributeTypeInfo, final Map<String, String> options){
         return convert(value, attributeTypeInfo, createFormatter(options));
     }
 

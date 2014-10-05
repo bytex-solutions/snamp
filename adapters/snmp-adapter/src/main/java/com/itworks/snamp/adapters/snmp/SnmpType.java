@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.Null;
 import org.snmp4j.smi.Variable;
 
@@ -96,14 +96,14 @@ enum SnmpType {
         return syntax != null ? syntax.value() : EXCEPTION_NO_SUCH_OBJECT;
     }
 
-    public Variable convert(final Object value, final ManagementEntityType valueType, final Map<String, String> options){
+    public Variable convert(final Object value, final ManagedEntityType valueType, final Map<String, String> options){
         if(toVariableConverter == null)
             try {
-                toVariableConverter = mapping.getMethod("convert", Object.class, ManagementEntityType.class);
+                toVariableConverter = mapping.getMethod("convert", Object.class, ManagedEntityType.class);
             }
             catch (final NoSuchMethodException e) {
                 try {
-                    toVariableConverter = mapping.getMethod("convert", Object.class, ManagementEntityType.class, Map.class);
+                    toVariableConverter = mapping.getMethod("convert", Object.class, ManagedEntityType.class, Map.class);
                 } catch (NoSuchMethodException e1) {
                     SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
                     return new Null();
@@ -129,18 +129,18 @@ enum SnmpType {
      * @param valueType The value type.
      * @return SNMP-compliant value.
      */
-    public Variable convert(final Object value, final ManagementEntityType valueType){
+    public Variable convert(final Object value, final ManagedEntityType valueType){
         return convert(value, valueType, Collections.<String, String>emptyMap());
     }
 
-    public Object convert(final Variable value, final ManagementEntityType valueType, final Map<String, String> options){
+    public Object convert(final Variable value, final ManagedEntityType valueType, final Map<String, String> options){
         if(fromVariableConverter == null)
             try {
-                fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagementEntityType.class);
+                fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagedEntityType.class);
             }
             catch (final NoSuchMethodException e) {
                 try {
-                    fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagementEntityType.class);
+                    fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagedEntityType.class);
                 } catch (final NoSuchMethodException e1) {
                     SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
                     return null;
@@ -161,10 +161,10 @@ enum SnmpType {
         }
     }
 
-    public Object convert(final Variable value, final ManagementEntityType valueType){
+    public Object convert(final Variable value, final ManagedEntityType valueType){
         if(fromVariableConverter == null)
             try {
-                fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagementEntityType.class);
+                fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagedEntityType.class);
             }
             catch (final NoSuchMethodException e) {
                 SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
@@ -185,7 +185,7 @@ enum SnmpType {
      * @param attributeType Resource-specific type of the attribute.
      * @return SNMP-compliant projection of the attribute type.
      */
-    public static SnmpType map(final ManagementEntityType attributeType){
+    public static SnmpType map(final ManagedEntityType attributeType){
         if(supportsBoolean(attributeType))
             return BOOLEAN;
         else if(supportsInt8(attributeType) || supportsInt16(attributeType) || supportsInt32(attributeType))

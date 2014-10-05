@@ -1,6 +1,6 @@
 package com.itworks.snamp;
 
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.MethodStub;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;

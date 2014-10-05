@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors.operations;
 
-import com.itworks.snamp.connectors.ManagementEntityMetadata;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityMetadata;
+import com.itworks.snamp.connectors.ManagedEntityType;
 
 import java.util.*;
 
@@ -11,7 +11,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public interface OperationMetadata extends ManagementEntityMetadata {
+public interface OperationMetadata extends ManagedEntityMetadata {
 
     /**
      * Represents consistency contract for the operation.
@@ -64,22 +64,22 @@ public interface OperationMetadata extends ManagementEntityMetadata {
      * Returns description of the message that is passed as input argument of the operation invocation.
      * <p>
      *     If you need to pass more that one argument in the input message, you should
-     *     describe input message type via {@link com.itworks.snamp.connectors.ManagementEntityTabularType}.
+     *     describe input message type via {@link com.itworks.snamp.connectors.ManagedEntityTabularType}.
      * </p>
      * @return A description of the input message; or {@literal null} if operation has no input message.
      */
-    public ManagementEntityType getInputMessageType();
+    public ManagedEntityType getInputMessageType();
 
     /**
      * Returns description of the operation invocation result.
      * <p>
      *     If you need to return more that one argument in the output message, you should
-     *     describe output message type via {@link com.itworks.snamp.connectors.ManagementEntityTabularType}.
+     *     describe output message type via {@link com.itworks.snamp.connectors.ManagedEntityTabularType}.
      * </p>
      * @return A description of the operation invocation result; or {@literal null}, if operation has
      * no return value.
      */
-    public ManagementEntityType getOutputMessageType();
+    public ManagedEntityType getOutputMessageType();
 
     /**
      * Returns the system name of the operation.

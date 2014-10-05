@@ -5,8 +5,8 @@ import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.internal.semantics.Internal;
-import com.itworks.snamp.internal.semantics.MethodStub;
+import com.itworks.snamp.internal.annotations.Internal;
+import com.itworks.snamp.internal.annotations.MethodStub;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -73,7 +73,7 @@ import static com.itworks.snamp.internal.Utils.safeCast;
  *     To support custom type (such as {@link com.itworks.snamp.Table}, {@link Map} or array) you apply do the following steps:
  *     <ul>
  *      <li>Creates your own type system provider that derives from {@link WellKnownTypeSystem}.</li>
- *      <li>Declares public instance parameterless method that have {@link ManagementEntityType} return type in custom type system provider.</li>
+ *      <li>Declares public instance parameterless method that have {@link ManagedEntityType} return type in custom type system provider.</li>
  *      <li>Annotates property getter or setter with {@link ManagedResourceConnectorBean.ManagementAttribute} annotation and specify method name(declared
  *      and implemented in custom type system  provider) in {@link ManagedResourceConnectorBean.ManagementAttribute#typeProvider()} parameter.</li>
  *     </ul>
@@ -185,14 +185,14 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
 
         /**
          * Gets the name of the public instance parameterless method in {@link WellKnownTypeSystem} class that returns
-         * {@link ManagementEntityType} for the specified bean property.
+         * {@link ManagedEntityType} for the specified bean property.
          * @return The name of the public instance method that produces {@link WellKnownTypeSystem} instance
          * for the annotated bean property.
          */
         public String typeProvider() default "";
     }
 
-    private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<WellKnownTypeSystem.AbstractManagementEntityType>{
+    private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<ManagedEntityTypeBuilder.AbstractManagedEntityType>{
         private final Map<String, String> properties;
         private final Class<?> propertyType;
         private final Method getter;
@@ -285,14 +285,14 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          * @return Detected attribute type.
          */
         @Override
-        protected final WellKnownTypeSystem.AbstractManagementEntityType detectAttributeType() {
-            WellKnownTypeSystem.AbstractManagementEntityType typeInfo = null;
+        protected final ManagedEntityTypeBuilder.AbstractManagedEntityType detectAttributeType() {
+            ManagedEntityTypeBuilder.AbstractManagedEntityType typeInfo = null;
             final String typeProviderMethodName = getAttributeInfo().typeProvider();
             final WellKnownTypeSystem typeBuilder = this.typeBuilder.get();
             if(typeBuilder != null)
                 try {
                     final Method typeProviderImpl = typeBuilder.getClass().getMethod(typeProviderMethodName);
-                    typeInfo = (WellKnownTypeSystem.AbstractManagementEntityType)typeProviderImpl.invoke(typeBuilder);
+                    typeInfo = (ManagedEntityTypeBuilder.AbstractManagedEntityType)typeProviderImpl.invoke(typeBuilder);
                 }
                 catch (final ReflectiveOperationException e) {
                     if(propertyType.isArray())
@@ -449,9 +449,9 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          *         attachment is not supported.
          */
         @Override
-        public final ManagementEntityType getAttachmentType(final Object attachment) {
+        public final ManagedEntityType getAttachmentType(final Object attachment) {
             if(attachment == null) return typeSystem.createFallbackEntityType();
-            final ManagementEntityType typeInfo = typeSystem.createEntitySimpleType(attachment.getClass());
+            final ManagedEntityType typeInfo = typeSystem.createEntitySimpleType(attachment.getClass());
             return typeInfo != null ? typeInfo: typeSystem.createFallbackEntityType();
         }
 

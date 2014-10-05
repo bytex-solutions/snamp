@@ -1,6 +1,5 @@
 package com.itworks.snamp;
 
-import com.itworks.snamp.internal.semantics.ThreadSafe;
 
 /**
  * Represents an object that aggregates another objects.<br/>
@@ -15,7 +14,7 @@ import com.itworks.snamp.internal.semantics.ThreadSafe;
  *           }
  *
  *           public <T> T queryObject(final Class<T> ot){
- *             if(File.class.equals(ot)) return someFile;
+ *             if(File.class.equals(ot)) return ot.cast(someFile);
  *             else return null;
  *           }
  *         }
@@ -33,6 +32,5 @@ public interface Aggregator {
      * @param <T> Type of the aggregated object.
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
-    @ThreadSafe(false)
     <T> T queryObject(final Class<T> objectType);
 }

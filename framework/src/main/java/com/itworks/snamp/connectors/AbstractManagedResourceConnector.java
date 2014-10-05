@@ -1,20 +1,16 @@
 package com.itworks.snamp.connectors;
 
-import com.itworks.snamp.ConcurrentResourceAccess;
-import com.itworks.snamp.IllegalStateFlag;
+import com.itworks.snamp.ThreadSafeObject;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.notifications.Notification;
-import com.itworks.snamp.connectors.notifications.NotificationListener;
-import com.itworks.snamp.connectors.notifications.NotificationMetadata;
-import com.itworks.snamp.connectors.notifications.NotificationSupport;
-import com.itworks.snamp.connectors.notifications.NotificationListenerInvoker;
+import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.CountdownTimer;
+import com.itworks.snamp.internal.IllegalStateFlag;
 import com.itworks.snamp.internal.KeyedObjects;
-import com.itworks.snamp.internal.semantics.ThreadSafe;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -22,9 +18,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
-
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.Action;
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.ConsistentAction;
 
 /**
  * Represents an abstract class for building custom management connectors.
@@ -48,7 +41,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class GenericAttributeMetadata<T extends ManagementEntityType> implements AttributeMetadata {
+    protected static abstract class GenericAttributeMetadata<T extends ManagedEntityType> implements AttributeMetadata {
         /**
          * Represents the name of the attribute configuration parameter that assigns the display
          * name for the attribute.
@@ -236,34 +229,36 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class AbstractAttributeSupport implements AttributeSupport{
-        private final ConcurrentResourceAccess<Map<String, GenericAttributeMetadata<?>>> attributes;
+    protected static abstract class AbstractAttributeSupport extends ThreadSafeObject implements AttributeSupport {
+        private final Map<String, GenericAttributeMetadata<?>> attributes;
 
         /**
          * Initializes a new support of management attributes.
          */
-        protected AbstractAttributeSupport(){
-            attributes = new ConcurrentResourceAccess<Map<String, GenericAttributeMetadata<?>>>(new HashMap<String, GenericAttributeMetadata<?>>(10));
+        protected AbstractAttributeSupport() {
+            attributes = new HashMap<>(10);
         }
 
         /**
          * Returns a count of connected managementAttributes.
+         *
          * @return The count of connected managementAttributes.
          */
         @ThreadSafe
-        protected final int attributesCount(){
-            return attributes.read(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Integer>() {
-                @Override
-                public final Integer invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
-                    return attributes.size();
-                }
-            });
+        protected final int attributesCount() {
+            beginRead();
+            try {
+                return attributes.size();
+            } finally {
+                endRead();
+            }
         }
 
         /**
          * Connects to the specified attribute.
+         *
          * @param attributeName The name of the attribute.
-         * @param options Attribute discovery options.
+         * @param options       Attribute discovery options.
          * @return The description of the attribute.
          */
         protected abstract GenericAttributeMetadata<?> connectAttribute(final String attributeName, final Map<String, String> options);
@@ -271,31 +266,33 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         /**
          * Connects to the specified attribute.
          * Connects to the specified attribute.
-         * @param id A key string that is used to invoke attribute from this connector.
+         *
+         * @param id            A key string that is used to invoke attribute from this connector.
          * @param attributeName The name of the attribute.
-         * @param options Attribute discovery options.
+         * @param options       Attribute discovery options.
          * @return The description of the attribute.
          */
         @Override
         @ThreadSafe
         public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) {
-            return attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, AttributeMetadata>() {
-                @Override
-                public final AttributeMetadata invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
-                    //return existed attribute without exception to increase flexibility of the API
-                    if(attributes.containsKey(id)) return attributes.get(id);
-                    final GenericAttributeMetadata<?> attr;
-                    if((attr = connectAttribute(attributeName, options)) != null)
-                        attributes.put(id, attr);
-                    return attr;
-                }
-            });
+            beginWrite();
+            try {
+                //return existed attribute without exception to increase flexibility of the API
+                if (attributes.containsKey(id)) return attributes.get(id);
+                final GenericAttributeMetadata<?> attr;
+                if ((attr = connectAttribute(attributeName, options)) != null)
+                    attributes.put(id, attr);
+                return attr;
+            } finally {
+                endWrite();
+            }
         }
 
         /**
          * Returns the value of the attribute.
-         * @param attribute The metadata of the attribute to get.
-         * @param readTimeout The attribute value invoke operation timeout.
+         *
+         * @param attribute    The metadata of the attribute to get.
+         * @param readTimeout  The attribute value invoke operation timeout.
          * @param defaultValue The default value of the attribute if reading fails.
          * @return The value of the attribute.
          * @throws TimeoutException
@@ -304,27 +301,29 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
 
         /**
          * Returns the attribute value.
-         * @param id  A key string that is used to invoke attribute from this connector.
-         * @param readTimeout The attribute value invoke operation timeout.
+         *
+         * @param id           A key string that is used to invoke attribute from this connector.
+         * @param readTimeout  The attribute value invoke operation timeout.
          * @param defaultValue The default value of the attribute if it is real value is not available.
          * @return The value of the attribute, or default value.
          * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
          */
         @Override
         @ThreadSafe
-        public final Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException{
+        public final Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
             final CountdownTimer timer = CountdownTimer.start(readTimeout);
-            return attributes.read(new Action<Map<String, GenericAttributeMetadata<?>>, Object, TimeoutException>() {
-                @Override
-                public final Object invoke(final Map<String, GenericAttributeMetadata<?>> attributes) throws TimeoutException {
-                    return getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), defaultValue);
-                }
-            });
+            beginRead();
+            try {
+                return getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), defaultValue);
+            } finally {
+                endRead();
+            }
         }
 
         /**
          * Reads a set of managementAttributes.
-         * @param output The dictionary with set of attribute keys to invoke and associated default values.
+         *
+         * @param output      The dictionary with set of attribute keys to invoke and associated default values.
          * @param readTimeout The attribute value invoke operation timeout.
          * @return The set of managementAttributes ids really written to the dictionary.
          * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
@@ -333,41 +332,43 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         @ThreadSafe
         public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException {
             final CountdownTimer timer = CountdownTimer.start(readTimeout);
-            return attributes.read(new Action<Map<String, GenericAttributeMetadata<?>>, Set<String>, TimeoutException>() {
-                @Override
-                public final Set<String> invoke(final Map<String, GenericAttributeMetadata<?>> attributes) throws TimeoutException {
-                    //accumulator for really existed attribute IDs
-                    final Set<String> result = new HashSet<>(attributes.size());
-                    final Object missing = new Object(); //this object represents default value for understanding
-                    //whether the attribute value is unavailable
-                    timer.stop();
-                    for(final String id: output.keySet()){
-                        timer.start();
-                        final Object value = getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), missing);
-                        if(value != missing) { //attribute value is available
-                            result.add(id);
-                            output.put(id, value);
-                        }
+            beginRead();
+            try {
+                //accumulator for really existed attribute IDs
+                final Set<String> result = new HashSet<>(attributes.size());
+                final Object missing = new Object(); //this object represents default value for understanding
+                //whether the attribute value is unavailable
+                timer.stop();
+                for (final String id : output.keySet()) {
+                    timer.start();
+                    final Object value = getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), missing);
+                    if (value != missing) { //attribute value is available
+                        result.add(id);
+                        output.put(id, value);
                     }
-                    return result;
                 }
-            });
+                return result;
+            } finally {
+                endRead();
+            }
         }
 
         /**
          * Sends the attribute value to the remote agent.
-         * @param attribute The metadata of the attribute to set.
+         *
+         * @param attribute    The metadata of the attribute to set.
          * @param writeTimeout The attribute value write operation timeout.
-         * @param value The value to write.
+         * @param value        The value to write.
          * @return {@literal true} if attribute value is overridden successfully; otherwise, {@literal false}.
          */
         protected abstract boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value);
 
         /**
          * Writes the value of the specified attribute.
-         * @param id An identifier of the attribute,
+         *
+         * @param id           An identifier of the attribute,
          * @param writeTimeout The attribute value write operation timeout.
-         * @param value The value to write.
+         * @param value        The value to write.
          * @return {@literal true} if attribute set operation is supported by remote provider; otherwise, {@literal false}.
          * @throws TimeoutException The attribute value cannot be write in the specified duration.
          */
@@ -375,17 +376,18 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         @ThreadSafe
         public final boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException {
             final CountdownTimer timer = CountdownTimer.start(writeTimeout);
-            return attributes.write(new Action<Map<String, GenericAttributeMetadata<?>>, Boolean, TimeoutException>() {
-                @Override
-                public final Boolean invoke(final Map<String, GenericAttributeMetadata<?>> attributes) throws TimeoutException {
-                    return attributes.containsKey(id) && setAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), value);
-                }
-            });
+            beginWrite();
+            try {
+                return attributes.containsKey(id) && setAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), value);
+            } finally {
+                endWrite();
+            }
         }
 
         /**
          * Writes a set of managementAttributes inside of the transaction.
-         * @param values The dictionary of managementAttributes keys and its values.
+         *
+         * @param values       The dictionary of managementAttributes keys and its values.
          * @param writeTimeout Batch write timeout.
          * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
          * @throws TimeoutException
@@ -394,65 +396,68 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         @ThreadSafe
         public boolean setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException {
             final CountdownTimer timer = CountdownTimer.start(writeTimeout);
-            return attributes.write(new Action<Map<String, GenericAttributeMetadata<?>>, Boolean, TimeoutException>() {
-                @Override
-                public final Boolean invoke(final Map<String, GenericAttributeMetadata<?>> attributes) throws TimeoutException {
-                    boolean result = true;
-                    //whether the attribute value is unavailable
-                    timer.stop();
-                    for(final Map.Entry<String, Object> entry: values.entrySet()){
-                        timer.start();
-                        result &= setAttributeValue(attributes.get(entry.getKey()), timer.stopAndGetElapsedTime(), entry.getValue());
-                    }
-                    return result;
+            beginWrite();
+            try {
+                boolean result = true;
+                //whether the attribute value is unavailable
+                timer.stop();
+                for (final Map.Entry<String, Object> entry : values.entrySet()) {
+                    timer.start();
+                    result &= setAttributeValue(attributes.get(entry.getKey()), timer.stopAndGetElapsedTime(), entry.getValue());
                 }
-            });
+                return result;
+            } finally {
+                endWrite();
+            }
         }
 
         /**
          * Removes the attribute from the connector.
-         * @param id The unique identifier of the attribute.
+         *
+         * @param id            The unique identifier of the attribute.
          * @param attributeInfo An attribute metadata.
          * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
          */
         @SuppressWarnings("UnusedParameters")
-        protected boolean disconnectAttribute(final String id, final GenericAttributeMetadata<?> attributeInfo){
+        protected boolean disconnectAttribute(final String id, final GenericAttributeMetadata<?> attributeInfo) {
             return true;
         }
 
         /**
          * Removes the attribute from the connector.
+         *
          * @param id The unique identifier of the attribute.
          * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
          */
         @Override
         @ThreadSafe
         public final boolean disconnectAttribute(final String id) {
-            return attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Boolean>() {
-                @Override
-                public final Boolean invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
-                    if (attributes.containsKey(id) && disconnectAttribute(id, attributes.get(id))) {
-                        attributes.remove(id);
-                        return true;
-                    } else return false;
-                }
-            });
+            beginWrite();
+            try {
+                if (attributes.containsKey(id) && disconnectAttribute(id, attributes.get(id))) {
+                    attributes.remove(id);
+                    return true;
+                } else return false;
+            } finally {
+                endWrite();
+            }
         }
 
         /**
          * Returns the information about the connected attribute.
+         *
          * @param id An identifier of the attribute.
          * @return The attribute descriptor; or {@literal null} if attribute is not connected.
          */
         @Override
         @ThreadSafe
         public final AttributeMetadata getAttributeInfo(final String id) {
-            return attributes.read(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, AttributeMetadata>() {
-                @Override
-                public final AttributeMetadata invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
-                    return attributes.get(id);
-                }
-            });
+            beginRead();
+            try {
+                return attributes.get(id);
+            } finally {
+                endRead();
+            }
         }
 
         /**
@@ -463,25 +468,24 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         @Override
         @ThreadSafe
         public final Collection<String> getConnectedAttributes() {
-            return attributes.read(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Collection<String>>() {
-                @Override
-                public final Collection<String> invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
-                    return Collections.unmodifiableCollection(attributes.keySet());
-                }
-            });
+            beginRead();
+            try {
+                return Collections.unmodifiableCollection(attributes.keySet());
+            } finally {
+                endRead();
+            }
         }
 
         /**
          * Removes all attributes.
          */
-        public void clear(){
-            attributes.write(new ConsistentAction<Map<String, GenericAttributeMetadata<?>>, Void>() {
-                @Override
-                public final Void invoke(final Map<String, GenericAttributeMetadata<?>> attributes) {
-                    attributes.clear();
-                    return null;
-                }
-            });
+        public void clear() {
+            beginWrite();
+            try {
+                attributes.clear();
+            } finally {
+                endWrite();
+            }
         }
     }
 
@@ -755,21 +759,27 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class AbstractNotificationSupport implements NotificationSupport{
-        private final ConcurrentResourceAccess<KeyedObjects<String, GenericNotificationMetadata>> notifications;
-        private final ConcurrentResourceAccess<Map<String, NotificationListener>> delayedNotifications;
+    protected static abstract class AbstractNotificationSupport extends ThreadSafeObject implements NotificationSupport{
+        private static enum ANSResource{
+            DELAYED_NOTIFS,
+            CONNECTED_NOTIFS
+        }
+
+        private final KeyedObjects<String, GenericNotificationMetadata> notifications;
+        private final Map<String, NotificationListener> delayedNotifications;
 
         /**
          * Initializes a new notification manager.
          */
-        protected AbstractNotificationSupport(){
-            this.notifications = new ConcurrentResourceAccess<KeyedObjects<String, GenericNotificationMetadata>>(new AbstractKeyedObjects<String, GenericNotificationMetadata>(10) {
+        protected AbstractNotificationSupport() {
+            super(ANSResource.class);
+            this.notifications = new AbstractKeyedObjects<String, GenericNotificationMetadata>(10) {
                 @Override
                 public final String getKey(final GenericNotificationMetadata item) {
                     return item.getSubscriptionList();
                 }
-            });
-            this.delayedNotifications = new ConcurrentResourceAccess<Map<String, NotificationListener>>(new HashMap<String, NotificationListener>(3));
+            };
+            this.delayedNotifications = new HashMap<>(3);
         }
 
         /**
@@ -779,12 +789,12 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          */
         @Override
         public final Collection<String> getEnabledNotifications() {
-            return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Collection<String>>() {
-                @Override
-                public Collection<String> invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
-                    return notifications.keySet();
-                }
-            });
+            beginRead(ANSResource.CONNECTED_NOTIFS);
+            try {
+                return Collections.unmodifiableSet(notifications.keySet());
+            } finally {
+                endRead(ANSResource.CONNECTED_NOTIFS);
+            }
         }
 
         /**
@@ -795,17 +805,17 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @return A map of registered notifications (values) and subscription lists (keys).
          */
         @ThreadSafe
-        protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType){
-            return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Map<String, T>>() {
-                @Override
-                public final Map<String, T> invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
-                    final Map<String, T> result = new HashMap<>(notifications.size());
-                    for(final Map.Entry<String, GenericNotificationMetadata> metadata: notifications.entrySet())
-                        if(Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
-                            result.put(metadata.getKey(), metadataType.cast(metadata.getValue()));
-                    return result;
-                }
-            });
+        protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType) {
+            beginRead(ANSResource.CONNECTED_NOTIFS);
+            try {
+                final Map<String, T> result = new HashMap<>(notifications.size());
+                for (final Map.Entry<String, GenericNotificationMetadata> metadata : notifications.entrySet())
+                    if (Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
+                        result.put(metadata.getKey(), metadataType.cast(metadata.getValue()));
+                return result;
+            } finally {
+                endRead(ANSResource.CONNECTED_NOTIFS);
+            }
         }
 
         /**
@@ -813,16 +823,16 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @return A collection of active categories.
          */
         @ThreadSafe
-        protected final Set<String> getCategories(){
-            return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Set<String>>() {
-                @Override
-                public Set<String> invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
-                    final Set<String> categories = new HashSet<>(10);
-                    for(final GenericNotificationMetadata eventData: notifications.values())
-                        categories.add(eventData.getCategory());
-                    return categories;
-                }
-            });
+        protected final Set<String> getCategories() {
+            beginRead(ANSResource.CONNECTED_NOTIFS);
+            try {
+                final Set<String> categories = new HashSet<>(notifications.size());
+                for (final GenericNotificationMetadata eventData : notifications.values())
+                    categories.add(eventData.getCategory());
+                return categories;
+            } finally {
+                endRead(ANSResource.CONNECTED_NOTIFS);
+            }
         }
 
         /**
@@ -845,27 +855,26 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          */
         @Override
         public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
-            return notifications.write(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, NotificationMetadata>() {
-                @Override
-                public final NotificationMetadata invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
-                    if(notifications.containsKey(category)) return notifications.get(category);
-                    final GenericNotificationMetadata metadata = enableNotifications(category, options);
-                    if(metadata != null) {
-                        metadata.setSubscriptionList(listId);
-                        notifications.put(metadata);
-                        //add delayed listeners
-                        delayedNotifications.read(new ConsistentAction<Map<String, NotificationListener>, Void>() {
-                            @Override
-                            public Void invoke(final Map<String, NotificationListener> delayedNotifications) {
-                                for(final String listenerId: delayedNotifications.keySet())
-                                    subscribe(listenerId, delayedNotifications.get(listenerId), false);
-                                return null;
-                            }
-                        });
+            beginWrite(ANSResource.CONNECTED_NOTIFS);
+            try {
+                if (notifications.containsKey(category)) return notifications.get(category);
+                final GenericNotificationMetadata metadata = enableNotifications(category, options);
+                if (metadata != null) {
+                    metadata.setSubscriptionList(listId);
+                    notifications.put(metadata);
+                    //add delayed listeners
+                    beginWrite(ANSResource.DELAYED_NOTIFS);
+                    try {
+                        for (final String listenerId : delayedNotifications.keySet())
+                            subscribe(listenerId, delayedNotifications.get(listenerId), false);
+                    } finally {
+                        endWrite(ANSResource.DELAYED_NOTIFS);
                     }
-                    return metadata;
                 }
-            });
+                return metadata;
+            } finally {
+                endWrite(ANSResource.CONNECTED_NOTIFS);
+            }
         }
 
         /**
@@ -887,15 +896,15 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          */
         @Override
         public final boolean disableNotifications(final String listId) {
-            return notifications.write(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Boolean>() {
-                @Override
-                public final Boolean invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
-                    if (notifications.containsKey(listId)) {
-                        disableNotifications(notifications.remove(listId));
-                        return true;
-                    } else return false;
-                }
-            });
+            beginWrite(ANSResource.CONNECTED_NOTIFS);
+            try {
+                if (notifications.containsKey(listId)) {
+                    disableNotifications(notifications.remove(listId));
+                    return true;
+                } else return false;
+            } finally {
+                endWrite(ANSResource.CONNECTED_NOTIFS);
+            }
         }
 
         /**
@@ -907,12 +916,12 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          */
         @Override
         public final NotificationMetadata getNotificationInfo(final String listId) {
-            return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, NotificationMetadata>() {
-                @Override
-                public final NotificationMetadata invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
-                    return notifications.get(listId);
-                }
-            });
+            beginRead(ANSResource.CONNECTED_NOTIFS);
+            try {
+                return notifications.get(listId);
+            } finally {
+                endRead(ANSResource.CONNECTED_NOTIFS);
+            }
         }
 
         /**
@@ -933,25 +942,28 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          */
         @Override
         public final boolean subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) {
-            if(listenerId == null || listenerId.isEmpty() || listener == null) return false;
-            boolean result = delayed && delayedNotifications.write(new ConsistentAction<Map<String, NotificationListener>, Boolean>() {
-                @Override
-                public Boolean invoke(final Map<String, NotificationListener> delayedNotifications) {
-                    if(delayedNotifications.containsKey(listenerId)) return false;
+            if (listenerId == null || listenerId.isEmpty() || listener == null) return false;
+            else if (delayed) {
+                beginWrite(ANSResource.DELAYED_NOTIFS);
+                try {
+                    if (delayedNotifications.containsKey(listenerId))
+                        return false;
                     delayedNotifications.put(listenerId, listener);
                     return true;
+                } finally {
+                    endWrite(ANSResource.DELAYED_NOTIFS);
                 }
-            });
-            final Object userData = subscribe(listener);
-            result |= notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Boolean>() {
-                @Override
-                public final Boolean invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
+            } else {
+                final Object userData = subscribe(listener);
+                beginRead(ANSResource.CONNECTED_NOTIFS);
+                try {
                     for (final GenericNotificationMetadata metadata : notifications.values())
                         metadata.addListener(listenerId, listener, userData);
                     return notifications.size() > 0;
+                } finally {
+                    endRead(ANSResource.CONNECTED_NOTIFS);
                 }
-            });
-            return result;
+            }
         }
 
         /**
@@ -968,26 +980,26 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          *                   to {@link #subscribe(String, com.itworks.snamp.connectors.notifications.NotificationListener, boolean)} method.
          * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
          */
-        public final boolean unsubscribe(final String listenerId){
-            return notifications.read(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Boolean>() {
-                @Override
-                public final Boolean invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
-                    for(final GenericNotificationMetadata metadata: notifications.values()){
-                        if(metadata.hasListener(listenerId)){
-                            final GenericNotificationMetadata.SubscribedNotificationListener pair = metadata.getListener(listenerId);
-                            if(pair == null) return false;
-                            unsubscribe(pair.listener, pair.userData);
-                            return metadata.removeListener(listenerId);
-                        }
+        public final boolean unsubscribe(final String listenerId) {
+            beginRead(ANSResource.CONNECTED_NOTIFS);
+            try {
+                for (final GenericNotificationMetadata metadata : notifications.values()) {
+                    if (metadata.hasListener(listenerId)) {
+                        final GenericNotificationMetadata.SubscribedNotificationListener pair = metadata.getListener(listenerId);
+                        if (pair == null) continue;
+                        unsubscribe(pair.listener, pair.userData);
+                        if (metadata.removeListener(listenerId)) return true;
                     }
-                    return false;
                 }
-            }) || delayedNotifications.write(new ConsistentAction<Map<String, NotificationListener>, Boolean>() {
-                @Override
-                public Boolean invoke(final Map<String, NotificationListener> delayedNotifications) {
-                    return delayedNotifications.remove(listenerId) != null;
-                }
-            });
+            } finally {
+                endRead(ANSResource.CONNECTED_NOTIFS);
+            }
+            beginWrite(ANSResource.DELAYED_NOTIFS);
+            try {
+                return delayedNotifications.remove(listenerId) != null;
+            } finally {
+                endWrite(ANSResource.DELAYED_NOTIFS);
+            }
         }
 
         /**
@@ -997,21 +1009,16 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          *     method in your management connector.
          * </p>
          */
-        public final void clear(){
-            notifications.write(new ConsistentAction<KeyedObjects<String, GenericNotificationMetadata>, Void>() {
-                @Override
-                public final Void invoke(final KeyedObjects<String, GenericNotificationMetadata> notifications) {
-                    notifications.clear();
-                    return null;
-                }
-            });
-            delayedNotifications.write(new ConsistentAction<Map<String, NotificationListener>, Void>() {
-                @Override
-                public Void invoke(final Map<String, NotificationListener> delayedNotifications) {
-                    delayedNotifications.clear();
-                    return null;
-                }
-            });
+        public final void clear() {
+            beginWrite(ANSResource.CONNECTED_NOTIFS);
+            beginWrite(ANSResource.DELAYED_NOTIFS);
+            try {
+                notifications.clear();
+                delayedNotifications.clear();
+            } finally {
+                endWrite(ANSResource.DELAYED_NOTIFS);
+                endWrite(ANSResource.CONNECTED_NOTIFS);
+            }
         }
     }
 
@@ -1058,7 +1065,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
     }
     /**
      * Releases all resources associated with this connector.
-     * @throws Exception
+     * @throws Exception Unable to release resources associated with this connector.
      */
     @Override
     @ThreadSafe(false)

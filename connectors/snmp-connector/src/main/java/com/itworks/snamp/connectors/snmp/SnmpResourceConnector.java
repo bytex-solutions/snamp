@@ -3,7 +3,7 @@ package com.itworks.snamp.connectors.snmp;
 import com.itworks.snamp.ReferenceCountedObject;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
-import com.itworks.snamp.connectors.ManagementEntityType;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
@@ -127,7 +127,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
          * attachment is not supported.
          */
         @Override
-        public ManagementEntityType getAttachmentType(final Object attachment) {
+        public ManagedEntityType getAttachmentType(final Object attachment) {
             return attachment instanceof Variable ?
                     typeSystem.resolveSnmpScalarType((Variable)attachment, options) :
                     null;
@@ -278,11 +278,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         }
     }
 
-    private static final class SnmpAttributeMetadata extends GenericAttributeMetadata<SnmpManagementEntityType> {
-        private final SnmpManagementEntityType attributeType;
+    private static final class SnmpAttributeMetadata extends GenericAttributeMetadata<SnmpManagedEntityType> {
+        private final SnmpManagedEntityType attributeType;
         private final Map<String, String> options;
 
-        public SnmpAttributeMetadata(final OID attributeID, final SnmpManagementEntityType entityType, final Map<String, String> options){
+        public SnmpAttributeMetadata(final OID attributeID, final SnmpManagedEntityType entityType, final Map<String, String> options){
             super(attributeID.toDottedString());
             this.attributeType = entityType;
             this.options = Collections.unmodifiableMap(options);
@@ -298,7 +298,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
          * @return Detected attribute type.
          */
         @Override
-        protected SnmpManagementEntityType detectAttributeType() {
+        protected SnmpManagedEntityType detectAttributeType() {
             return attributeType;
         }
 
@@ -372,7 +372,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
                 }
             });
             if(value == null) throw new IOException(String.format("Attribute %s doesn't exist on SNMP agent", attributeID));
-            final SnmpManagementEntityType attributeType = typeSystem.resolveSnmpScalarType(value, options);
+            final SnmpManagedEntityType attributeType = typeSystem.resolveSnmpScalarType(value, options);
             if(attributeType == null) throw new Exception(String.format("Type of the attribute %s cannot be determined. SMI syntax is %s. Wrapped is %s.", attributeID, value.getSyntax(), value.getClass()));
             return new SnmpAttributeMetadata(attributeID, attributeType, options);
         }

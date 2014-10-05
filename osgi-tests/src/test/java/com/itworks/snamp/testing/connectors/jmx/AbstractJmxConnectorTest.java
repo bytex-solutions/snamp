@@ -1,7 +1,7 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 import com.itworks.snamp.testing.SnampArtifact;
-import com.itworks.snamp.testing.connectors.AbstractManagementConnectorTest;
+import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 
@@ -15,7 +15,7 @@ import java.lang.management.PlatformManagedObject;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractJmxConnectorTest<MBean> extends AbstractManagementConnectorTest {
+public abstract class AbstractJmxConnectorTest<MBean> extends AbstractResourceConnectorTest {
     private final ObjectName beanName;
     protected final MBean beanInstance;
     protected static final String CONNECTOR_NAME = "jmx";

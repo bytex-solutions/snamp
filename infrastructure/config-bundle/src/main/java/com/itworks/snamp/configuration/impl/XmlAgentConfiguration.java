@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * @since 1.0
  */
-@XmlRootElement(namespace = XmlConstants.namespace, name = "snamp")
-@XmlType(namespace = XmlConstants.namespace, name = "SnampConfig")
+@XmlRootElement(namespace = XmlConstants.NAMESPACE, name = "snamp")
+@XmlType(namespace = XmlConstants.NAMESPACE, name = "SnampConfig")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
     /**
@@ -30,7 +30,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
      * @since 1.0
      * @version 1.0
      */
-    @XmlType(name = "ConfigurationParameter", namespace = XmlConstants.namespace)
+    @XmlType(name = "ConfigurationParameter", namespace = XmlConstants.NAMESPACE)
     @XmlAccessorType(XmlAccessType.PROPERTY)
     public final static class XmlMapEntry {
         @XmlTransient
@@ -77,7 +77,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * @param value A new key.
          */
         @SuppressWarnings("UnusedDeclaration")
-        @XmlAttribute(name = "id", required = true, namespace = XmlConstants.namespace)
+        @XmlAttribute(name = "id", required = true, namespace = XmlConstants.NAMESPACE)
         public void setKey(final String value){
             this.key = value != null ? value : "";
         }
@@ -128,7 +128,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
         }
 
         @SuppressWarnings("UnusedDeclaration")
-        @XmlElement(name = "param", namespace = XmlConstants.namespace, type = XmlMapEntry.class)
+        @XmlElement(name = "param", namespace = XmlConstants.NAMESPACE, type = XmlMapEntry.class)
         private List<XmlMapEntry> getItems() {
             final List<XmlMapEntry> entries = new ArrayList<>(params.size());
             for(final Map.Entry<String, String> e: params.entrySet())
@@ -152,7 +152,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
      * @version 1.0
      */
     @XmlAccessorType(XmlAccessType.PROPERTY)
-    @XmlType(name = "ResourceAdapterConfiguration", namespace = XmlConstants.namespace)
+    @XmlType(name = "ResourceAdapterConfiguration", namespace = XmlConstants.NAMESPACE)
     public final static class XmlResourceAdapterConfiguration extends ConfigurationEntityWithCustomParameters implements ResourceAdapterConfiguration {
         @XmlTransient
         private String adapterName = "";
@@ -163,7 +163,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * Gets unique id of this managed resource.
          * @return The unique id of this managed resource.
          */
-        @XmlAttribute(name = "id", namespace = XmlConstants.namespace)
+        @XmlAttribute(name = "id", namespace = XmlConstants.NAMESPACE)
         public String getID(){
             return id;
         }
@@ -192,7 +192,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * @param value The adapter id.
          */
         @Override
-        @XmlElement(nillable = false, required = true, namespace = XmlConstants.namespace, name = "adapterName")
+        @XmlElement(nillable = false, required = true, namespace = XmlConstants.NAMESPACE, name = "adapterName")
         public void setAdapterName(final String value) {
             this.adapterName = value != null ? value : "";
         }
@@ -215,7 +215,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
      * @since 1.0
      * @version 1.0
      */
-    @XmlType(name = "ManagedResource", namespace = XmlConstants.namespace)
+    @XmlType(name = "ManagedResource", namespace = XmlConstants.NAMESPACE)
     @XmlAccessorType(XmlAccessType.PROPERTY)
     public static final class XmlManagedResourceConfiguration extends ConfigurationEntityWithCustomParameters implements ManagedResourceConfiguration {
         /**
@@ -224,7 +224,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * @since 1.0
          * @version 1.0
          */
-        @XmlType(name = "EventConfig", namespace = XmlConstants.namespace)
+        @XmlType(name = "EventConfig", namespace = XmlConstants.NAMESPACE)
         @XmlAccessorType(XmlAccessType.PROPERTY)
         public static final class XmlEventConfiguration extends ConfigurationEntityWithCustomParameters implements EventConfiguration{
             @XmlTransient
@@ -236,7 +236,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
              * Gets unique postfix of this event.
              * @return Unique postfix of this event.
              */
-            @XmlAttribute(name = "id", namespace = XmlConstants.namespace, required = true)
+            @XmlAttribute(name = "id", namespace = XmlConstants.NAMESPACE, required = true)
             public String getPostfix(){
                 return postfix;
             }
@@ -255,7 +255,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
              * @return The event category.
              */
             @Override
-            @XmlAttribute(name = "category", namespace = XmlConstants.namespace, required = true)
+            @XmlAttribute(name = "category", namespace = XmlConstants.NAMESPACE, required = true)
             public String getCategory() {
                 return category;
             }
@@ -288,7 +288,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * @since 1.0
          * @version 1.0
          */
-        @XmlType(name = "AttributeConfig", namespace = XmlConstants.namespace)
+        @XmlType(name = "AttributeConfig", namespace = XmlConstants.NAMESPACE)
         @XmlAccessorType(XmlAccessType.PROPERTY)
         public static final class XmlAttributeConfiguration extends ConfigurationEntityWithCustomParameters implements AttributeConfiguration{
             /**
@@ -320,12 +320,12 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
             /**
              * Gets unique postfix of this attribute.
              * <p>
-             *     The full unique id of the attribute consists of the management target namespace
+             *     The full unique id of the attribute consists of the management target NAMESPACE
              *     and attribute postfix.
              * </p>
              * @return Unique postfix of this attribute.
              */
-            @XmlAttribute(name = "id", namespace = XmlConstants.namespace, required = true)
+            @XmlAttribute(name = "id", namespace = XmlConstants.NAMESPACE, required = true)
             public String getPostfix(){
                 return postfix;
             }
@@ -344,7 +344,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
              * @return Gets attribute value invoke/write operation timeout.
              */
             @Override
-            @XmlElement(required = false, name = "readWriteTimeout", namespace = XmlConstants.namespace)
+            @XmlElement(required = false, name = "readWriteTimeout", namespace = XmlConstants.NAMESPACE)
             @XmlJavaTypeAdapter(TimeSpanAdapter.class)
             public TimeSpan getReadWriteTimeout() {
                 return timeout;
@@ -364,7 +364,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
              * @return The attribute id,
              */
             @Override
-            @XmlAttribute(name = "id", namespace = XmlConstants.namespace, required = true)
+            @XmlAttribute(name = "id", namespace = XmlConstants.NAMESPACE, required = true)
             public String getAttributeName() {
                 return name;
             }
@@ -404,7 +404,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * Gets unique id of this managed resource.
          * @return The unique id of this managed resource.
          */
-        @XmlAttribute(name = "id", namespace = XmlConstants.namespace)
+        @XmlAttribute(name = "id", namespace = XmlConstants.NAMESPACE)
         public String getID(){
             return id;
         }
@@ -423,7 +423,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * @return The connection string that is used to connect to the management server.
          */
         @Override
-        @XmlElement(name = "connectionString", namespace = XmlConstants.namespace, required = true, nillable = false)
+        @XmlElement(name = "connectionString", namespace = XmlConstants.NAMESPACE, required = true, nillable = false)
         public String getConnectionString() {
             return connectionString;
         }
@@ -456,7 +456,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          * @param value The management connector type.
          */
         @Override
-        @XmlElement(name = "connectionType", namespace = XmlConstants.namespace, required = true, nillable = false)
+        @XmlElement(name = "connectionType", namespace = XmlConstants.NAMESPACE, required = true, nillable = false)
         public void setConnectionType(final String value) {
             this.connectionType = value != null ? value : "";
         }
@@ -498,7 +498,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
         }
 
         @SuppressWarnings("UnusedDeclaration")
-        @XmlElement(name = "attribute", namespace = XmlConstants.namespace, type = XmlAttributeConfiguration.class)
+        @XmlElement(name = "attribute", namespace = XmlConstants.NAMESPACE, type = XmlAttributeConfiguration.class)
         private List<XmlAttributeConfiguration> getAttributesInternal() {
             final List<XmlAttributeConfiguration> result = new ArrayList<>(attributes.size());
             for(final String postfix: attributes.keySet()){
@@ -530,7 +530,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
         }
 
         @SuppressWarnings("UnusedDeclaration")
-        @XmlElement(name = "event", namespace = XmlConstants.namespace, type = XmlEventConfiguration.class)
+        @XmlElement(name = "event", namespace = XmlConstants.NAMESPACE, type = XmlEventConfiguration.class)
         private List<XmlEventConfiguration> getEventsInternal() {
             final List<XmlEventConfiguration> result = new ArrayList<>(events.size());
             for(final String postfix: events.keySet()){
@@ -631,7 +631,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @XmlElement(name = "managedResource", namespace = XmlConstants.namespace, type = XmlManagedResourceConfiguration.class)
+    @XmlElement(name = "managedResource", namespace = XmlConstants.NAMESPACE, type = XmlManagedResourceConfiguration.class)
     private List<XmlManagedResourceConfiguration> getManagedResourcesInternal() {
         final List<XmlManagedResourceConfiguration> result = new ArrayList<>(resources.size());
         for(final String name: resources.keySet()){
@@ -664,7 +664,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @XmlElement(name = "resourceAdapter", namespace = XmlConstants.namespace, type = XmlResourceAdapterConfiguration.class)
+    @XmlElement(name = "resourceAdapter", namespace = XmlConstants.NAMESPACE, type = XmlResourceAdapterConfiguration.class)
     private List<XmlResourceAdapterConfiguration> getAdaptersInternal(){
         final List<XmlResourceAdapterConfiguration> result = new ArrayList<>(resources.size());
         for(final String name: adapters.keySet()){

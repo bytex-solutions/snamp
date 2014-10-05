@@ -1,7 +1,7 @@
 package com.itworks.snamp.licensing;
 
 import com.itworks.snamp.core.FrameworkService;
-import com.itworks.snamp.internal.semantics.*;
+import com.itworks.snamp.internal.annotations.*;
 
 /**
  * Represents an interface that describes license limitations of the SNAMP service.

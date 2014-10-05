@@ -125,6 +125,15 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
             public final boolean equals(final Object obj) {
                 return obj instanceof EventConfiguration && Objects.equals(((EventConfiguration) obj).getCategory(), getCategory());
             }
+
+            /**
+             * Computes hash code for this object.
+             * @return The hash code of this object.
+             */
+            @Override
+            public int hashCode() {
+                return eventCategory.hashCode() ^ additionalElements.hashCode();
+            }
         }
 
         /**
