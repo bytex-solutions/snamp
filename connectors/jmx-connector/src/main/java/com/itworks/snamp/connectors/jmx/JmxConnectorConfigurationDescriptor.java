@@ -20,6 +20,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
     public static final String CONNECTION_RETRY_COUNT = "retryCount";
     public static final String OBJECT_NAME_PROPERTY = "objectName";
     public static final String SEVERITY_PARAM = "severity";
+    public static final String USE_REGEXP_PARAM = "useRegexp";
 
     /**
      * @author Roman Sakno
@@ -30,7 +31,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
         private static final String RESOURCE_NAME = "JmxAttributeConfig";
 
         public AttributeConfigurationInfo(){
-            super(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class, OBJECT_NAME_PROPERTY);
+            super(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class, OBJECT_NAME_PROPERTY, USE_REGEXP_PARAM);
         }
 
         /**
