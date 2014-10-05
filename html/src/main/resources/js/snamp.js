@@ -246,6 +246,78 @@ var config;
     })();
     config.configuration = configuration;
 })(config || (config = {}));
+
+(function ($) {
+    $.fn.representConfigAsJsTreeJson = function (configuration) {
+        var result = [];
+        result.push(new jsTreeHelper.jsonFormat("managedResources", "#", "connectors", "glyphicon glyphicon-resize-small"));
+        result.push(new jsTreeHelper.jsonFormat("resourceAdapters", "#", "connectors", "glyphicon glyphicon-resize-full"));
+        console.log(result);
+        return result;
+    };
+
+    $.fn.createConfigurations = function (opts) {
+        if (typeof opts === "undefined") { opts = null; }
+        var data = null;
+
+        if (opts != null && opts.useStub) {
+            data = stubs.getConfiguration();
+        } else {
+            $.ajax({
+                url: "/snamp/management/api/configuration",
+                dataType: "json",
+                cache: false,
+                type: "GET",
+                async: false,
+                success: function (json) {
+                    if (json instanceof Object)
+                        data = new config.configuration(json);
+                }
+            });
+        }
+        $(this).jstree({ 'core': {
+                'data': $(this).representConfigAsJsTreeJson(data)
+            } });
+    };
+})(jQuery);
+var jsTreeHelper;
+(function (jsTreeHelper) {
+    var jsonFormat = (function () {
+        function jsonFormat(id, parent, text, icon, state, li_attr, a_attr) {
+            if (typeof id === "undefined") { id = "#"; }
+            if (typeof parent === "undefined") { parent = "#"; }
+            if (typeof text === "undefined") { text = ""; }
+            if (typeof icon === "undefined") { icon = ""; }
+            if (typeof state === "undefined") { state = new stateJson; }
+            if (typeof li_attr === "undefined") { li_attr = {}; }
+            if (typeof a_attr === "undefined") { a_attr = {}; }
+            this.id = "#";
+            this.parent = "#";
+            this.text = "";
+            this.icon = "";
+            this.state = new stateJson;
+            this.id = id;
+            this.parent = parent;
+            this.text = text;
+            this.icon = icon;
+            this.state = state;
+            this.li_attr = li_attr;
+            this.a_attr = a_attr;
+        }
+        return jsonFormat;
+    })();
+    jsTreeHelper.jsonFormat = jsonFormat;
+
+    var stateJson = (function () {
+        function stateJson() {
+            this.opened = true;
+            this.disabled = false;
+            this.selected = false;
+        }
+        return stateJson;
+    })();
+    jsTreeHelper.stateJson = stateJson;
+})(jsTreeHelper || (jsTreeHelper = {}));
 var license;
 (function (license) {
     var licenseInfo = (function () {

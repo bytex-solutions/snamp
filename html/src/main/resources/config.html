@@ -66,16 +66,7 @@
 
 
     <script type="text/javascript">
-      var options = new options(false);
-      $(function() {
-         $('#container').jstree({ 
-        // Подключаем плагины
-        "plugins" : [ 
-            "themes","json_data"
-        ]
-    });
-});
-      $("#container").createConfigurations(options);
+      $("#container").createConfigurations(new options(false));
     </script>
 
   </body>
