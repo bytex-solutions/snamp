@@ -199,6 +199,20 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
         _columns.put(columnId3, columnType3);
     }
 
+    public static <COLUMN> SimpleTable<COLUMN> fromRow(final Map<COLUMN, ?> row) {
+        final SimpleTable<COLUMN> result = new SimpleTable<COLUMN>(new Closure<Put<COLUMN, Class<?>>>() {
+            @Override
+            public void execute(final Put<COLUMN, Class<?>> input) {
+                for (final Map.Entry<COLUMN, ?> entry : row.entrySet())
+                    input.put(entry.getKey(), entry.getValue().getClass());
+            }
+        },
+                row.size(),
+                1);
+        result.addRow(row);
+        return result;
+    }
+
     /**
      * Creates a simple table from an array of rows.
      * @param rows An array of rows.
@@ -304,7 +318,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @throws IllegalArgumentException      The count of values doesn't match to column count.
      */
     @Override
-    public final void addRow(final Map<COLUMN, Object> values) throws IllegalArgumentException {
+    public final void addRow(final Map<COLUMN, ?> values) throws IllegalArgumentException {
         if(values.size() < _columns.size()) throw new IllegalArgumentException(String.format("Expected %s values", _columns.size()));
         add(new HashMap<>(values));
     }

@@ -2,10 +2,8 @@ package com.itworks.snamp.testing.connectors.rshell;
 
 import com.itworks.snamp.FutureThread;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import org.apache.commons.collections4.Factory;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Assume;
 import org.junit.Test;
@@ -93,13 +91,5 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         finally {
             releaseManagementConnector();
         }
-    }
-
-    @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Factory<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attr = attributeFactory.create();
-        attr.setAttributeName("memStatus");
-        attr.getParameters().put("commandProfileLocation", "freemem-tool-profile.xml");
-        attributes.put("ms", attr);
     }
 }

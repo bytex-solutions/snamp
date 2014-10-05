@@ -603,6 +603,60 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
         }, Table.class);
     }
 
+    public final ManagedEntityType createEntityDictionaryType(final Map<String, ManagedEntityType> keys) {
+        return createEntityType(new Factory<AbstractManagedEntityType>() {
+            private final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(keys);
+
+            @Override
+            public AbstractManagedEntityTabularType create() {
+                return new AbstractManagedEntityTabularType() {
+
+                    /**
+                     * Returns a set of column names.
+                     *
+                     * @return The set of column names.
+                     */
+                    @Override
+                    public Collection<String> getColumns() {
+                        return readonlyColumns.keySet();
+                    }
+
+                    /**
+                     * Determines whether the specified column is indexed.
+                     *
+                     * @param column The name of the column.
+                     * @return {@literal true}, if the specified column is indexed; otherwise, {@literal false}.
+                     */
+                    @Override
+                    public boolean isIndexed(final String column) {
+                        return false;
+                    }
+
+                    /**
+                     * Returns the column type.
+                     *
+                     * @param column The name of the column.
+                     * @return The type of the column; or {@literal null} if the specified column doesn't exist.
+                     */
+                    @Override
+                    public ManagedEntityType getColumnType(final String column) {
+                        return readonlyColumns.get(column);
+                    }
+
+                    /**
+                     * Returns the number of rows if this information is available.
+                     *
+                     * @return The count of rows.
+                     */
+                    @Override
+                    public long getRowCount() {
+                        return 1;
+                    }
+                };
+            }
+        }, Table.class, Map.class);
+    }
+
     /**
      * Creates a new tabular type that can be converted into {@link Table}.
      * <p>
@@ -615,9 +669,9 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new instance of the tabular type.
      */
     public final ManagedEntityType createEntityTabularType(final Map<String, ManagedEntityType> columns, final int rowCount, final String... index){
-        final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
-        final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
         return createEntityType(new Factory<AbstractManagedEntityTabularType>(){
+            private final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
+            private final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
 
             /**
              * Creates a new instance of the specified type.

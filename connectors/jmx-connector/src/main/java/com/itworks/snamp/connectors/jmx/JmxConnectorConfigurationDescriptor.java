@@ -16,11 +16,12 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @since 1.0
  */
 final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
-    public static final String JMX_LOGIN = "login";
-    public static final String JMX_PASSWORD = "password";
-    public static final String CONNECTION_RETRY_COUNT = "retryCount";
-    public static final String OBJECT_NAME_PROPERTY = "objectName";
-    public static final String SEVERITY_PARAM = "severity";
+    static final String JMX_LOGIN = "login";
+    static final String JMX_PASSWORD = "password";
+    static final String CONNECTION_RETRY_COUNT = "retryCount";
+    static final String OBJECT_NAME_PROPERTY = "objectName";
+    static final String SEVERITY_PARAM = "severity";
+    static final String USE_REGEXP_PARAM = "useRegexp";
 
     /**
      * @author Roman Sakno
@@ -30,8 +31,10 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
     private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration> {
         private static final String RESOURCE_NAME = "JmxAttributeConfig";
 
-        private AttributeConfigurationInfo(){
-            super(AttributeConfiguration.class, OBJECT_NAME_PROPERTY);
+        private AttributeConfigurationInfo() {
+            super(AttributeConfiguration.class,
+                    OBJECT_NAME_PROPERTY,
+                    USE_REGEXP_PARAM);
         }
 
         /**

@@ -31,6 +31,15 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
                 });
     }
 
+    protected static <I extends O, O> Transformer<I, O> identityConverter() {
+        return new Transformer<I, O>() {
+            @Override
+            public O transform(final I input) {
+                return input;
+            }
+        };
+    }
+
     /**
      * Registers a new converter.
      * <p>
@@ -52,7 +61,17 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
         impl.registerConverter(inputType, converter);
     }
 
-    private static final class TypeConverterImpl<T> extends HashMap<Class<?>, Transformer> implements TypeConverter<T> {
+    protected final <I extends O, O> void registerIdentityConverter(final Class<I> inputType,
+                                                  final Class<O> outputType){
+        registerConverter(inputType, outputType, AbstractTypeConverterProvider.<I, O>identityConverter());
+    }
+
+    private static interface InternalTypeConverter<T> extends TypeConverter<T>{
+        T convertFrom(final Object value);
+        Transformer getConverterFrom(final Class<?> source);
+    }
+
+    private static final class TypeConverterImpl<T> extends HashMap<Class<?>, Transformer> implements InternalTypeConverter<T> {
         private final Class<T> returnType;
 
         private TypeConverterImpl(final Class<T> type) {
@@ -70,7 +89,8 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
             return returnType;
         }
 
-        private Transformer getConverterFrom(final Class<?> source) {
+        @Override
+        public Transformer getConverterFrom(final Class<?> source) {
             //cache hit
             if (containsKey(source)) return get(source);
             //long-time search
@@ -130,10 +150,10 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
      */
     @SuppressWarnings("unchecked")
     @Override
-    public final <T> TypeConverterImpl<T> getTypeConverter(final Class<T> t) {
+    public final <T> InternalTypeConverter<T> getTypeConverter(final Class<T> t) {
         if (t == null) return null;
-        else if (shouldNormalize(t)) return (TypeConverterImpl<T>) getTypeConverter(normalizeClass(t));
-        else return (TypeConverterImpl<T>) converters.get(t);
+        else if (shouldNormalize(t)) return (InternalTypeConverter<T>) getTypeConverter(normalizeClass(t));
+        else return (InternalTypeConverter<T>) converters.get(t);
     }
 
     /**
@@ -146,7 +166,7 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
      */
     public final <O> O convert(final Class<O> outputType,
                                 final Object input) throws IllegalArgumentException {
-        final TypeConverterImpl<O> converter = getTypeConverter(outputType);
+        final InternalTypeConverter<O> converter = getTypeConverter(outputType);
         if (converter == null)
             throw new IllegalArgumentException(String.format("Converter for type %s not found.", outputType));
         else return converter.convertFrom(input);
@@ -160,7 +180,7 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
      */
     @SuppressWarnings("unchecked")
     public final <I, O> Transformer<I, O> getPlainConverter(final Class<I> inputType, final Class<O> outputType) {
-        final TypeConverterImpl<O> converter = getTypeConverter(outputType);
+        final InternalTypeConverter<O> converter = getTypeConverter(outputType);
         return converter != null && converter.canConvertFrom(inputType) ?
                 converter.getConverterFrom(inputType) :
                 null;

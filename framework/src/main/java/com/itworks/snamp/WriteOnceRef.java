@@ -104,7 +104,7 @@ public class WriteOnceRef<T> implements Wrapper<T> {
      * @return The wrapped object handling result.
      */
     @Override
-    public final  <R> R handle(final WrappedObjectHandler<T, R> handler) {
+    public final <R> R handle(final WrappedObjectHandler<T, R> handler) {
         return handler != null ? handler.invoke(value) : null;
     }
 }

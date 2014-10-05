@@ -29,6 +29,7 @@ import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescript
 
 import static com.itworks.snamp.connectors.jmx.JmxConnectionManager.MBeanServerConnectionHandler;
 import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.OBJECT_NAME_PROPERTY;
+import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.USE_REGEXP_PARAM;
 
 /**
  * Represents JMX connector.
@@ -304,7 +305,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         }
 
         private static boolean useRegexpOption(final Map<String, String> options){
-            return options.containsKey("useRegexp") && Boolean.TRUE.toString().equals(options.get("useRegexp"));
+            return options.containsKey(USE_REGEXP_PARAM) && Boolean.TRUE.toString().equals(options.get(USE_REGEXP_PARAM));
         }
 
         private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options, final boolean useRegexp){

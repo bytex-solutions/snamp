@@ -68,7 +68,7 @@ public interface Table<COLUMN> {
      * @throws IllegalArgumentException The count of values doesn't match to column count.
      */
     @ThreadSafe(false)
-    void addRow(final Map<COLUMN, Object> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
+    void addRow(final Map<COLUMN, ?> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
 
     /**
      * Gets row by its index.

@@ -8,6 +8,7 @@ import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import org.apache.commons.collections4.Closure;
 import org.apache.commons.collections4.Put;
+import org.apache.commons.collections4.Transformer;
 
 import java.util.*;
 
@@ -19,8 +20,16 @@ import java.util.*;
  * @since 1.0
  */
 final class RShellConnectorTypeSystem extends WellKnownTypeSystem {
-    RShellConnectorTypeSystem(){
-
+    RShellConnectorTypeSystem() {
+        registerIdentityConverter(Map.class, Map.class);
+        registerConverter(Map.class, Table.class, new Transformer<Map, Table>() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public Table<String> transform(final Map input) {
+                return SimpleTable.fromRow((Map<String, ?>) input);
+            }
+        });
+        registerIdentityConverter(Table.class, Table.class);
     }
 
     private ManagedEntityType createEntityType(final XmlParsingResultType type){
@@ -77,10 +86,10 @@ final class RShellConnectorTypeSystem extends WellKnownTypeSystem {
     private ManagedEntityType createEntityDictionaryType(final XmlParserDefinition definition) {
         final Map<String, XmlParsingResultType> keys = new HashMap<>();
         definition.exportDictionaryType(keys);
-        return createEntityTabularType(new HashMap<String, ManagedEntityType>(keys.size()) {{
+        return createEntityDictionaryType(new HashMap<String, ManagedEntityType>(keys.size()) {{
             for (final String k : keys.keySet())
                 put(k, createEntityType(keys.get(k)));
-        }}, 1);
+        }});
     }
 
     static Table<String> toTable(final Collection<Map<String, Object>> value, final XmlParserDefinition definition) {
