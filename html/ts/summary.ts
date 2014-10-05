@@ -5,7 +5,7 @@ interface JQuery {
 
 
 (function ($)  {
-    $.fn.createSummaryTable = function (opts:options=null) {
+   /* $.fn.createSummaryTable = function (opts:options=null) {
         var commonData:bundles.bundle[];
 
         if (opts != null && opts.useStub)
@@ -14,7 +14,7 @@ interface JQuery {
         }
         else
         {
-            // ajax-rest loader for bundleInfo
+
         }
 
         var panelGroup = $("<div class=\"panel-group\"> id=\"accordion\"");
@@ -80,6 +80,6 @@ interface JQuery {
         $(this).append(panelGroup);
 
         return this;
-    };
+    };*/
 
 })(jQuery);

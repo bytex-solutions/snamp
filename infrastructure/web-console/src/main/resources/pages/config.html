@@ -18,11 +18,9 @@
   </head>
 
   <body>
-
-
-  <div class="masthead">
+  <div class="masthead clearfix">
       <div class="inner">
-          <h3 class="masthead-brand">Summary</h3>
+          <h3 class="masthead-brand">SNAMP configuration <console></console></h3>
 
           <ul class="nav masthead-nav">
               <li class="active"><a href="index.html">Home</a></li>
@@ -31,26 +29,25 @@
       </div>
   </div>
 
-  <div class="site-wrapper">
+    <div class="site-wrapper">
 
       <div class="site-wrapper-inner">
 
         <div class="cover-container">
 
+          <div class="row" id="configuration">
+            <div id="container"></div>
 
 
+              <div class="mastfoot">
+                <div class="inner">
+                  <p>Software by IT Works! (c)</p>
+                </div>
+              </div>
 
-          <div class="row" id="summaryTable"></div>
-
-          <div class="mastfoot">
-              +
-            <div class="inner">
-              <p>Software by IT Works! (c)</p>
             </div>
-          </div>
 
         </div>
-
       </div>
 
     </div>
@@ -60,14 +57,23 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="js/jquery-1.8.0.js"></script>
     <script src="js/bootstrap.js"></script>
+    <link rel="stylesheet" href="js/themes/default/style.min.css" />
+    <script src="js/jstree.min.js"></script>
 
     <script type="text/javascript" src="js/snamp.js"></script>
 
 
     <script type="text/javascript">
-      var options = new options(true);
-      $("#summaryTable").createSummaryTable(options).find(".collapse").collapse();
-      
+      var options = new options(false);
+      $(function() {
+         $('#container').jstree({ 
+        // Подключаем плагины
+        "plugins" : [ 
+            "themes","json_data"
+        ]
+    });
+});
+      $("#configuration").createConfigurations(options);
     </script>
 
   </body>

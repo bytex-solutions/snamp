@@ -5,7 +5,7 @@ interface JQuery {
 
 
 (function ($)  {
-    $.fn.getLicenseInfo = function (opts:options=null) {
+/*    $.fn.getLicenseInfo = function (opts:options=null) {
         var commonData:bundles.bundle[];
 
         if (opts != null && opts.useStub) {
@@ -23,6 +23,6 @@ interface JQuery {
                 this.append("<div class=\"well\">" + data.description + "</div>");
             }
         }
-    }
+    }*/
 
 })( jQuery );

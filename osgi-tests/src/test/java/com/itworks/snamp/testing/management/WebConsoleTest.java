@@ -47,6 +47,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 mavenBundle("org.eclipse.jetty", "jetty-jaas", "9.1.1.v20140108"),
                 SnampArtifact.MANAGEMENT.getReference(),
                 SnampArtifact.WEB_CONSOLE.getReference(),
+                SnampArtifact.SNMP_CONNECTOR.getReference(),
                 SnampArtifact.JMX_CONNECTOR.getReference());
     }
 
@@ -71,6 +72,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.setConnectionType("JMX");
         ManagedResourceConfiguration.AttributeConfiguration attr = resource.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
         attr.setAttributeName("simpleAttribute");
+        attr.getParameters().put("objectName", "someObjectYea");
+        attr.getParameters().put("useRegexp", "false");
         resource.getElements(ManagedResourceConfiguration.AttributeConfiguration.class).put("sa", attr);
         ResourceAdapterConfiguration adapter = config.newConfigurationEntity(ResourceAdapterConfiguration.class);
         adapter.setAdapterName("SNMP");
@@ -106,9 +109,10 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void readConfigurationTest() {
+    public void readConfigurationTest() throws InterruptedException {
         final Client webConsoleClient = new Client();
         webConsoleClient.addFilter(new HTTPDigestAuthFilter("roman", "mypassword"));
+        Thread.sleep(100000000);
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/configuration");
         final String configJson = config.get(String.class);
         assertNotNull(configJson);
@@ -189,3 +193,5 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         assertTrue(pageContent.contains("<html>"));
     }
 }
+
+
