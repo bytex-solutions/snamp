@@ -27,7 +27,6 @@ public class WriteOnceRef<T> implements Wrapper<T> {
     /**
      * Initializes a new write-once container with default {@literal null} value.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public WriteOnceRef(){
         this(null);
     }
