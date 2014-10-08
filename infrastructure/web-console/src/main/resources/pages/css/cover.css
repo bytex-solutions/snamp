@@ -1,4 +1,4 @@
-/*
+    /*
  * Globals
  */
 
@@ -183,10 +183,10 @@ table {
     vertical-align: bottom;
     bottom: 0;
   }
-  /* Start the vertical centering */
+/*  *//* Start the vertical centering *//*
   .site-wrapper-inner {
     vertical-align: middle;
-  }
+  }*/
   /* Handle the widths */
   .masthead,
   .mastfoot,
