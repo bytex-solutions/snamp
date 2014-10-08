@@ -252,7 +252,11 @@ var config;
         var result = [];
         result.push(new jsTreeHelper.jsonFormat("managedResources", "#", "connectors", "glyphicon glyphicon-resize-small"));
         result.push(new jsTreeHelper.jsonFormat("resourceAdapters", "#", "adapters", "glyphicon glyphicon-resize-full"));
-        result.push();
+        configuration.managedResources.forEach(function (currentResource) {
+            result.push(new jsTreeHelper.jsonFormat(currentResource.name, "managedResources", currentResource.name, "glyphicon glyphicon-log-out"));
+            result.push(new jsTreeHelper.jsonFormat(currentResource.name + "_connectionString", currentResource.name, currentResource.connectionString));
+            result.push(new jsTreeHelper.jsonFormat(currentResource.name + "_type", currentResource.name, currentResource.connectionType));
+        });
         return result;
     };
 
@@ -287,7 +291,7 @@ var jsTreeHelper;
             if (typeof id === "undefined") { id = "#"; }
             if (typeof parent === "undefined") { parent = "#"; }
             if (typeof text === "undefined") { text = ""; }
-            if (typeof icon === "undefined") { icon = ""; }
+            if (typeof icon === "undefined") { icon = "glyphicon glyphicon-minus"; }
             if (typeof state === "undefined") { state = new stateJson; }
             if (typeof li_attr === "undefined") { li_attr = {}; }
             if (typeof a_attr === "undefined") { a_attr = {}; }

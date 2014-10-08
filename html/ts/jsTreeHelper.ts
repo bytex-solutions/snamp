@@ -11,7 +11,7 @@ module jsTreeHelper
         li_attr     : {};  // attributes for the generated LI node
         a_attr      : {};  // attributes for the generated A node
 
-        constructor(id:string = "#", parent:string="#", text:string="", icon:string="",state:stateJson = new stateJson,
+        constructor(id:string = "#", parent:string="#", text:string="", icon:string="glyphicon glyphicon-minus",state:stateJson = new stateJson,
                     li_attr:any={}, a_attr:any={})
         {
             this.id = id;
