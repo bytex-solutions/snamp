@@ -13,7 +13,7 @@ interface JQuery {
         var result = [];
         result.push(new jsTreeHelper.jsonFormat("managedResources","#", "connectors", "glyphicon glyphicon-resize-small"));
         result.push(new jsTreeHelper.jsonFormat("resourceAdapters","#", "adapters", "glyphicon glyphicon-resize-full"));
-        console.log(result);
+        result.push()
         return result;
     };
 

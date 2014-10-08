@@ -251,8 +251,8 @@ var config;
     $.fn.representConfigAsJsTreeJson = function (configuration) {
         var result = [];
         result.push(new jsTreeHelper.jsonFormat("managedResources", "#", "connectors", "glyphicon glyphicon-resize-small"));
-        result.push(new jsTreeHelper.jsonFormat("resourceAdapters", "#", "connectors", "glyphicon glyphicon-resize-full"));
-        console.log(result);
+        result.push(new jsTreeHelper.jsonFormat("resourceAdapters", "#", "adapters", "glyphicon glyphicon-resize-full"));
+        result.push();
         return result;
     };
 
