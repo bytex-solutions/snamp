@@ -2,8 +2,14 @@ package com.itworks.snamp.adapters.ssh;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration;
+import net.schmizz.sshj.userauth.keyprovider.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.security.PublicKey;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.itworks.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*;
 
@@ -41,10 +47,14 @@ public final class SshAdapterActivator extends AbstractResourceAdapterActivator<
         final String certificateFile = parameters.containsKey(CERTIFICATE_FILE_PARAM) ?
                 parameters.get(CERTIFICATE_FILE_PARAM) :
                 DEFAULT_CERTIFICATE;
-        return new SshAdapter(host, port, certificateFile, createSecuritySettings(parameters), resources);
+        return new SshAdapter(host,
+                port,
+                certificateFile,
+                createSecuritySettings(parameters, getLogger()),
+                resources);
     }
 
-    private static SshSecuritySettings createSecuritySettings(final Map<String, String> parameters){
+    private static SshSecuritySettings createSecuritySettings(final Map<String, String> parameters, final Logger logger){
         return new SshSecuritySettings() {
             @Override
             public String getUserName() {
@@ -69,6 +79,54 @@ public final class SshAdapterActivator extends AbstractResourceAdapterActivator<
             @Override
             public boolean hasJaasDomain() {
                 return parameters.containsKey(JAAS_DOMAIN_PARAM);
+            }
+
+            @Override
+            public boolean hasClientPublicKey() {
+                return parameters.containsKey(PUBLIC_KEY_FILE_PARAM);
+            }
+
+            @Override
+            public PublicKey getClientPublicKey() {
+                final File keyFile = new File(parameters.get(PUBLIC_KEY_FILE_PARAM));
+                KeyFormat format = getClientPublicKeyFormat();
+                try {
+                    if (format == KeyFormat.Unknown)
+                        format = KeyProviderUtil.detectKeyFileFormat(keyFile);
+                    final FileKeyProvider provider;
+                    switch (format) {
+                        case PKCS8:
+                            provider = new PKCS8KeyFile();
+                            break;
+                        case OpenSSH:
+                            provider = new OpenSSHKeyFile();
+                            break;
+                        case PuTTY:
+                            provider = new PuTTYKeyFile();
+                            break;
+                        default:
+                            throw new IOException("Unknown public key format.");
+                    }
+                    provider.init(keyFile);
+                    return provider.getPublic();
+                } catch (final IOException e) {
+                    logger.log(Level.WARNING, "Invalid SSH public key file.", e);
+                }
+                return null;
+            }
+
+            @Override
+            public KeyFormat getClientPublicKeyFormat() {
+                if (parameters.containsKey(PUBLIC_KEY_FILE_FORMAT_PARAM))
+                    switch (parameters.get(PUBLIC_KEY_FILE_FORMAT_PARAM).toLowerCase()) {
+                        case "pkcs8":
+                            return KeyFormat.PKCS8;
+                        case "openssh":
+                            return KeyFormat.OpenSSH;
+                        case "putty":
+                            return KeyFormat.PuTTY;
+                    }
+                return KeyFormat.Unknown;
             }
         };
     }

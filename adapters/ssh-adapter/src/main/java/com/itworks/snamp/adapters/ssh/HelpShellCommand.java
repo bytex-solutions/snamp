@@ -1,12 +1,12 @@
 package com.itworks.snamp.adapters.ssh;
 
+import jline.console.completer.Completer;
+import jline.console.completer.StringsCompleter;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
-import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.logging.Logger;
 
 /**
  * Represents documentation printer.
@@ -15,21 +15,21 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-final class HelpShellCommand extends ManagementShellCommand {
+final class HelpShellCommand extends AbstractManagementShellCommand {
     static final String COMMAND_NAME = "help";
     static final Options COMMAND_OPTIONS = new Options();
 
     private final HelpFormatter formatter;
 
-    HelpShellCommand(final AdapterController controller, final Logger logger){
-        super(controller, logger);
+    HelpShellCommand(final AdapterController controller){
+        super(controller);
         formatter = new HelpFormatter();
     }
 
     private static void printHelp(final HelpFormatter formatter,
                              final PrintWriter writer,
                              final String commandName,
-                             final Options opts){
+                             final Options opts) {
         formatter.printHelp(writer,
                 HelpFormatter.DEFAULT_WIDTH,
                 commandName,
@@ -57,10 +57,12 @@ final class HelpShellCommand extends ManagementShellCommand {
      * @param output Output stream for the command execution result.
      */
     @Override
-    protected void doCommand(final CommandLine input, final PrintStream output) {
-        try(final PrintWriter writer = new PrintWriter(output)){
-            printHelp(formatter, writer, COMMAND_NAME, COMMAND_OPTIONS);
-            printHelp(formatter, writer, ListOfResourcesCommand.COMMAND_NAME, ListOfResourcesCommand.COMMAND_OPTIONS);
-        }
+    protected void doCommand(final CommandLine input, final PrintWriter output) {
+            printHelp(formatter, output, COMMAND_NAME, COMMAND_OPTIONS);
+            printHelp(formatter, output, ListOfResourcesCommand.COMMAND_NAME, ListOfResourcesCommand.COMMAND_OPTIONS);
+    }
+
+    static Completer createCommandCompleter(){
+        return new StringsCompleter(COMMAND_NAME, ListOfResourcesCommand.COMMAND_NAME, ExitCommand.COMMAND_NAME);
     }
 }

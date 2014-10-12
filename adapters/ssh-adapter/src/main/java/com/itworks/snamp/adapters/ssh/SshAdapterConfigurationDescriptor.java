@@ -19,5 +19,6 @@ final class SshAdapterConfigurationDescriptor {
     static final String USER_NAME_PARAM = "userName";
     static final String PASSWORD_PARAM = "password";
 
-
+    static final String PUBLIC_KEY_FILE_PARAM = "publicKeyFile";
+    static final String PUBLIC_KEY_FILE_FORMAT_PARAM = "publicKeyFileFormat";
 }

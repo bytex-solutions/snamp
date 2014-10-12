@@ -5,5 +5,6 @@ package com.itworks.snamp.adapters.ssh;
  * @version 1.0
  * @since 1.0
  */
-public class ExitCommand {
+final class ExitCommand {
+    static final String COMMAND_NAME = "exit";
 }

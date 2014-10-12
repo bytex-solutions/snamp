@@ -4,10 +4,10 @@ import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.sshd.server.Command;
 
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 /**
  * Represents SSH adapter shell command.
@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-abstract class AbstractManagementShellCommand extends BasicParser {
+abstract class AbstractManagementShellCommand extends BasicParser implements ManagementShellCommand {
     static Options EMPTY_OPTIONS = new Options();
 
     static class CommandException extends Exception{
@@ -24,28 +24,30 @@ abstract class AbstractManagementShellCommand extends BasicParser {
         }
     }
 
-    private final AdapterController controller;
-    private final Logger logger;
+    protected final AdapterController controller;
 
-    protected AbstractManagementShellCommand(final AdapterController controller,
-                                             final Logger logger){
+    protected AbstractManagementShellCommand(final AdapterController controller){
         this.controller = Objects.requireNonNull(controller, "controller is null.");
-        this.logger = Objects.requireNonNull(logger, "logger is null.");
     }
 
     protected abstract Options getCommandOptions();
 
-    protected abstract void doCommand(final CommandLine input, final PrintStream output) throws CommandException;
+    protected abstract void doCommand(final CommandLine input, final PrintWriter output) throws CommandException;
 
+    @Override
     public final void doCommand(final String[] arguments,
-                          final PrintStream outStream,
-                          final PrintStream errStream) {
+                          final PrintWriter outStream,
+                          final PrintWriter errStream) {
         try {
             final CommandLine input = parse(getCommandOptions(), arguments);
             doCommand(input, outStream);
-        }
-        catch (final ParseException | CommandException e){
+        } catch (final ParseException | CommandException e) {
             errStream.println(e.getMessage());
         }
+    }
+
+    @Override
+    public final Command createSshCommand(final String[] arguments) {
+        return null;
     }
 }

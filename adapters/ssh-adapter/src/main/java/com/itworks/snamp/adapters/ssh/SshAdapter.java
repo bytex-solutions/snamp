@@ -2,12 +2,17 @@ package com.itworks.snamp.adapters.ssh;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import org.apache.sshd.SshServer;
+import org.apache.sshd.server.Command;
+import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.PasswordAuthenticator;
+import org.apache.sshd.server.PublickeyAuthenticator;
+import org.apache.sshd.server.auth.CachingPublicKeyAuthenticator;
 import org.apache.sshd.server.jaas.JaasPasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 
 import java.io.IOException;
+import java.security.PublicKey;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -41,7 +46,6 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(serverCertificateFile));
         setupSecurity(server, security);
         commandExecutors = Executors.newCachedThreadPool();
-
     }
 
     private static void setupSecurity(final SshServer server, final SshSecuritySettings security) {
@@ -59,6 +63,16 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                     return Objects.equals(username, this.userName) && Objects.equals(password, this.password);
                 }
             });
+        if (security.hasClientPublicKey()) {
+            server.setPublickeyAuthenticator(new CachingPublicKeyAuthenticator(new PublickeyAuthenticator() {
+                private final PublicKey pk = security.getClientPublicKey();
+
+                @Override
+                public boolean authenticate(final String username, final PublicKey key, final ServerSession session) {
+                    return Objects.equals(key, this.pk);
+                }
+            }));
+        }
     }
 
     /**
@@ -72,7 +86,18 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     @Override
     protected boolean start() {
         try {
-            server.setCommandFactory(new ManagementShell(this));
+            server.setShellFactory(ManagementShell.createFactory(this, getLogger()));
+            server.setCommandFactory(new CommandFactory() {
+                private final AdapterController controller = SshAdapter.this;
+                private final Logger logger = SshAdapter.this.getLogger();
+
+                @Override
+                public Command createCommand(final String commandLine) {
+                    return commandLine != null && commandLine.length() > 0 ?
+                            ManagementShell.createSshCommand(commandLine, controller, logger) :
+                            null;
+                }
+            });
             server.start();
             return true;
         } catch (final IOException e) {
@@ -91,8 +116,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     protected void stop() {
         try {
             server.stop();
-        }
-        catch (final InterruptedException e) {
+        } catch (final InterruptedException e) {
             getLogger().log(Level.SEVERE, String.format("Unable to stop SSH adapter"), e);
         }
     }
@@ -104,7 +128,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      */
     @Override
     public Logger getLogger() {
-        return null;
+        return SshHelpers.getLogger();
     }
 
     @Override
