@@ -23,7 +23,7 @@ module.exports = function(grunt) {
                 src: ['<%= dir.source_ts %>/*.ts'],
                 dest: '<%= dir.target_js %>/<%= project.name %>.js',
                 options: {
-                    base_path: 'ts',
+                    basePath: 'ts',
                     target: 'es5',
                     declaration: false,
                     comments: false
