@@ -80,7 +80,7 @@ public final class RShellResourceConnectorActivator extends AbstractManagedResou
     /**
      * Initializes a new instance of the connector activator.
      */
-    public RShellResourceConnectorActivator(){
+    public RShellResourceConnectorActivator() {
         super(RShellResourceConnector.NAME, new RShellResourceConnectorFactory(),
                 RShellConnectorHelpers.getLogger());
     }

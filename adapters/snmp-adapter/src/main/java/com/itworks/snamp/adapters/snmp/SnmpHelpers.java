@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
@@ -20,12 +21,14 @@ import java.util.regex.Pattern;
  * @author Roman Sakno
  */
 final class SnmpHelpers {
+    static final String ADAPTER_NAME = "snmp";
+
     private SnmpHelpers(){
 
     }
 
-    public static Logger getLogger(){
-        return Logger.getLogger("itworks.snamp.adapters.snmp");
+    public static Logger getLogger() {
+        return AbstractResourceAdapter.getLogger(ADAPTER_NAME);
     }
 
     /**

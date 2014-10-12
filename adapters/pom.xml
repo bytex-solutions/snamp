@@ -21,5 +21,6 @@
       <module>snmp-adapter</module>
       <module>rest-adapter</module>
       <module>jmx-adapter</module>
+      <module>ssh-adapter</module>
   </modules>
 </project>

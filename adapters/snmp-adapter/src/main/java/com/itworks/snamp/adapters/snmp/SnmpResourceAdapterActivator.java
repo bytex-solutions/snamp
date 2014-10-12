@@ -25,7 +25,7 @@ public final class SnmpResourceAdapterActivator extends AbstractResourceAdapterA
     /**
      * Represents name of this resource adapter.
      */
-    public static final String ADAPTER_NAME = "snmp";
+    static final String ADAPTER_NAME = SnmpHelpers.ADAPTER_NAME;
 
     private static final class SnmpAdapterConfigurationEntityDescriptionProviderHolder extends ConfigurationEntityDescriptionProviderHolder<SnmpAdapterConfigurationDescriptor>{
 
