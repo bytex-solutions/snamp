@@ -6,6 +6,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.logging.Logger;
 
 /**
  * Represents documentation printer.
@@ -14,14 +15,14 @@ import java.io.PrintWriter;
  * @version 1.0
  * @since 1.0
  */
-final class HelpCommand extends ManagementShellCommand {
+final class HelpShellCommand extends ManagementShellCommand {
     static final String COMMAND_NAME = "help";
     static final Options COMMAND_OPTIONS = new Options();
 
     private final HelpFormatter formatter;
 
-    HelpCommand(final AdapterController controller){
-        super(controller, EMPTY_ARGS);
+    HelpShellCommand(final AdapterController controller, final Logger logger){
+        super(controller, logger);
         formatter = new HelpFormatter();
     }
 
