@@ -38,7 +38,7 @@ final class ManagementShell implements Command {
                            final ExitCallback callback,
                            final Logger l) {
             this.controller = Objects.requireNonNull(controller, "controller is null.");
-            this.outStream = SystemUtils.IS_OS_LINUX ?
+            this.outStream = SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_MAC_OSX ?
                     new FilterOutputStream(os){
                         @Override
                         public void write(final int i) throws IOException {
