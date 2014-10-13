@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.OctetString;
@@ -25,7 +26,7 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
     }
 
     private static OctetString convert(final Object value, final ManagedEntityType attributeTypeInfo, final DateTimeFormatter formatter){
-        final Date convertedValue = convertFrom(attributeTypeInfo, value, Date.class);
+        final Date convertedValue = convertFrom(attributeTypeInfo, value, TypeLiterals.DATE);
         return new OctetString(formatter.convert(convertedValue));
     }
 

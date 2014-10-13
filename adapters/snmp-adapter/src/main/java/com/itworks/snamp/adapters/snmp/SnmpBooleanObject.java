@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.Integer32;
@@ -17,7 +18,7 @@ final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
     }
 
     public static Integer32 convert(final Object value, final ManagedEntityType attributeTypeInfo){
-        return new Integer32(convertFrom(attributeTypeInfo, value, Boolean.class) ? 1 : 0);
+        return new Integer32(convertFrom(attributeTypeInfo, value, TypeLiterals.BOOLEAN) ? 1 : 0);
     }
 
 

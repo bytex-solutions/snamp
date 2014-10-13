@@ -10,6 +10,7 @@ import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfigu
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import org.apache.commons.collections4.Factory;
+import org.apache.commons.lang3.reflect.Typed;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -52,10 +53,10 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         };
     }
 
-    protected static Equator<Map> mapEquator(){
-        return new Equator<Map>() {
+    protected static Equator<Map<String, Object>> mapEquator(){
+        return new Equator<Map<String, Object>>() {
             @Override
-            public boolean equate(final Map value1, final Map value2) {
+            public boolean equate(final Map<String, Object> value1, final Map<String, Object> value2) {
                 if(value1.size() == value2.size())
                     for(final Object key: value1.keySet())
                         if(!value2.containsKey(key)) return false;
@@ -165,7 +166,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected final <T> void testAttribute(final String attributeID,
                                            final String attributeName,
-                                           final Class<T> attributeType,
+                                           final Typed<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final Map<String, String> attributeOptions,
@@ -190,7 +191,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     }
 
     protected final <T> void testAttribute(final String attributeName,
-                                           final Class<T> attributeType,
+                                           final Typed<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final Map<String, String> attributeOptions,
@@ -200,7 +201,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected final <T> void testAttribute(final String attributeID,
                                            final String attributeName,
-                                           final Class<T> attributeType,
+                                           final Typed<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final boolean readOnlyTest) throws TimeoutException, IOException {
@@ -213,7 +214,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected final <T> void testAttribute(final String attributeID,
                                            final String attributeName,
-                                           final Class<T> attributeType,
+                                           final Typed<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator) throws TimeoutException, IOException {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, comparator, false);
@@ -221,14 +222,14 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected final <T> void testAttribute(final String attributeID,
                                        final String attributeName,
-                                       final Class<T> attributeType,
+                                       final Typed<T> attributeType,
                                        final T attributeValue) throws TimeoutException, IOException {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, false);
     }
 
     protected final <T> void testAttribute(final String attributeID,
                                            final String attributeName,
-                                           final Class<T> attributeType,
+                                           final Typed<T> attributeType,
                                            final T attributeValue,
                                            final boolean readOnlyTest) throws TimeoutException, IOException{
         testAttribute(attributeID, attributeName, attributeType, attributeValue, AbstractResourceConnectorTest.<T>valueEquator(), readOnlyTest);

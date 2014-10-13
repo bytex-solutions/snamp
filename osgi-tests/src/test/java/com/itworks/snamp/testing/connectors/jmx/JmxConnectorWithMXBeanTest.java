@@ -1,5 +1,6 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import org.apache.commons.collections4.Factory;
 import org.junit.Test;
@@ -40,8 +41,8 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
 
     @Test
     public void testForAttributes() throws TimeoutException, IOException {
-        testAttribute("1", "ObjectPendingFinalizationCount", Integer.class, 0, true);
-        testAttribute("2", "HeapMemoryUsage", Map.class, null, new Equator<Map>() {
+        testAttribute("1", "ObjectPendingFinalizationCount", TypeLiterals.INTEGER, 0, true);
+        testAttribute("2", "HeapMemoryUsage", TypeLiterals.STRING_MAP, null, new Equator<Map<String, Object>>() {
             @Override
             public boolean equate(final Map o1, final Map o2) {
                 return true;

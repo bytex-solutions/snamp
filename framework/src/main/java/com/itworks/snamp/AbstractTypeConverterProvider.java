@@ -1,7 +1,10 @@
 package com.itworks.snamp;
 
 import org.apache.commons.collections4.Transformer;
+import org.apache.commons.lang3.reflect.TypeUtils;
+import org.apache.commons.lang3.reflect.Typed;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -15,14 +18,14 @@ import java.util.Objects;
  * @since 1.0
  */
 public abstract class AbstractTypeConverterProvider implements TypeConverterProvider {
-    private final Map<Class<?>, TypeConverterImpl<?>> converters;
+    private final Map<Type, TypeConverterImpl<?>> converters;
 
     /**
      * Initializes a new type converter factory.
      */
-    protected AbstractTypeConverterProvider(){
+    protected AbstractTypeConverterProvider() {
         converters = new HashMap<>(10);
-        registerConverter(Object.class, String.class,
+        registerConverter(TypeLiterals.OBJECT, TypeLiterals.STRING,
                 new Transformer<Object, String>() {
                     @Override
                     public String transform(final Object input) {
@@ -51,30 +54,34 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
      * @param <O> Type definition of the conversion result.
      */
     @SuppressWarnings("unchecked")
-    protected final <I, O> void registerConverter(final Class<I> inputType,
-                                                  final Class<O> outputType,
-                                                  final Transformer<I, O> converter){
+    protected final <I, O> void registerConverter(final Typed<I> inputType,
+                                                  final Typed<O> outputType,
+                                                  final Transformer<I, O> converter) {
         final TypeConverterImpl<O> impl;
-        if(converters.containsKey(outputType))
-            impl = (TypeConverterImpl<O>)converters.get(outputType);
-        else converters.put(outputType, impl = new TypeConverterImpl<>(outputType));
+        if (converters.containsKey(outputType.getType()))
+            impl = (TypeConverterImpl<O>) converters.get(outputType.getType());
+        else converters.put(outputType.getType(), impl = new TypeConverterImpl<>(outputType));
         impl.registerConverter(inputType, converter);
     }
 
-    protected final <I extends O, O> void registerIdentityConverter(final Class<I> inputType,
-                                                  final Class<O> outputType){
+    protected final <I extends O, O> void registerIdentityConverter(final Typed<I> inputType,
+                                                  final Typed<O> outputType) {
         registerConverter(inputType, outputType, AbstractTypeConverterProvider.<I, O>identityConverter());
+    }
+
+    protected final <T> void registerIdentityConverter(final Typed<T> ioType){
+        registerIdentityConverter(ioType, ioType);
     }
 
     private static interface InternalTypeConverter<T> extends TypeConverter<T>{
         T convertFrom(final Object value);
-        Transformer getConverterFrom(final Class<?> source);
+        Transformer getConverterFrom(final Type source);
     }
 
-    private static final class TypeConverterImpl<T> extends HashMap<Class<?>, Transformer> implements InternalTypeConverter<T> {
-        private final Class<T> returnType;
+    private static final class TypeConverterImpl<T> extends HashMap<Type, Transformer> implements InternalTypeConverter<T> {
+        private final Typed<T> returnType;
 
-        private TypeConverterImpl(final Class<T> type) {
+        private TypeConverterImpl(final Typed<T> type) {
             super(5);
             returnType = type;
         }
@@ -85,17 +92,17 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
          * @return The type for which this converter is instantiated.
          */
         @Override
-        public final Class<T> getType() {
+        public final Typed<T> getType() {
             return returnType;
         }
 
         @Override
-        public Transformer getConverterFrom(final Class<?> source) {
+        public Transformer getConverterFrom(final Type source) {
             //cache hit
             if (containsKey(source)) return get(source);
             //long-time search
-            for (final Class<?> cls : keySet())
-                if (cls.isAssignableFrom(source)) {
+            for (final Type cls : keySet())
+                if (TypeUtils.isAssignable(source, cls)) {
                     final Transformer converter = get(cls);
                     put(source, converter);
                     return converter;
@@ -110,8 +117,9 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
          * @return {@literal true}, if the value of the specified type can be converted into {@link T}; otherwise, {@literal false}.
          */
         @Override
-        public final boolean canConvertFrom(final Class<?> source) {
-            return returnType.isAssignableFrom(source) || getConverterFrom(source) != null;
+        public final boolean canConvertFrom(final Typed<?> source) {
+            return TypeUtils.isAssignable(source.getType(), returnType.getType()) ||
+                    getConverterFrom(source.getType()) != null;
         }
 
         /**
@@ -119,25 +127,31 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
          *
          * @param value The value to convert.
          * @return The value of the original type described by this converter.
-         * @throws IllegalArgumentException Unsupported type of the source value. Check the type with {@link #canConvertFrom(Class)} method.
+         * @throws IllegalArgumentException Unsupported type of the source value. Check the type with {@link #canConvertFrom(Typed)} method.
          */
-        @SuppressWarnings("unchecked")
         @Override
         public final T convertFrom(final Object value) throws IllegalArgumentException {
             if (value == null) return null;
-            else if (returnType.isInstance(value)) return returnType.cast(value);
+            else if (TypeLiterals.isInstance(value, returnType))
+                return TypeLiterals.cast(value, returnType);
             else {
                 final Transformer converter = getConverterFrom(value.getClass());
                 if (converter == null)
                     throw new IllegalArgumentException(String.format("Cannot convert %s to %s.", value, returnType));
-                return returnType.cast(converter.transform(value));
+                return TypeLiterals.cast(converter.transform(value), returnType);
             }
         }
 
-        private <I> void registerConverter(final Class<I> inputType,
+        private <I> void registerConverter(final Typed<I> inputType,
                                            final Transformer<I, T> converter) {
-            put(inputType, converter);
+            put(inputType.getType(), converter);
         }
+    }
+
+    private InternalTypeConverter getTypeConverter(final Type conversionType){
+        if (conversionType == null) return null;
+        else if (shouldNormalize(conversionType)) return getTypeConverter(normalizeClass(conversionType));
+        else return converters.get(conversionType);
     }
 
     /**
@@ -150,10 +164,8 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
      */
     @SuppressWarnings("unchecked")
     @Override
-    public final <T> InternalTypeConverter<T> getTypeConverter(final Class<T> t) {
-        if (t == null) return null;
-        else if (shouldNormalize(t)) return (InternalTypeConverter<T>) getTypeConverter(normalizeClass(t));
-        else return (InternalTypeConverter<T>) converters.get(t);
+    public final <T> TypeConverter<T> getTypeConverter(final Typed<T> t) {
+        return getTypeConverter(t.getType());
     }
 
     /**
@@ -164,9 +176,10 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
      * @return The conversion result.
      * @throws java.lang.IllegalArgumentException Conversion is not supported.
      */
-    public final <O> O convert(final Class<O> outputType,
+    @SuppressWarnings("unchecked")
+    public final <O> O convert(final Typed<O> outputType,
                                 final Object input) throws IllegalArgumentException {
-        final InternalTypeConverter<O> converter = getTypeConverter(outputType);
+        final InternalTypeConverter<O> converter = getTypeConverter(outputType.getType());
         if (converter == null)
             throw new IllegalArgumentException(String.format("Converter for type %s not found.", outputType));
         else return converter.convertFrom(input);
@@ -179,10 +192,10 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
      * @return The conversion result.
      */
     @SuppressWarnings("unchecked")
-    public final <I, O> Transformer<I, O> getPlainConverter(final Class<I> inputType, final Class<O> outputType) {
-        final InternalTypeConverter<O> converter = getTypeConverter(outputType);
+    public final <I, O> Transformer<I, O> getPlainConverter(final Typed<I> inputType, final Typed<O> outputType) {
+        final InternalTypeConverter<O> converter = getTypeConverter(outputType.getType());
         return converter != null && converter.canConvertFrom(inputType) ?
-                converter.getConverterFrom(inputType) :
+                converter.getConverterFrom(inputType.getType()) :
                 null;
     }
 
@@ -193,6 +206,24 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
      */
     protected static boolean shouldNormalize(final Class<?> classInfo){
         return classInfo.isPrimitive() || classInfo.isArray() && classInfo.getComponentType().isPrimitive();
+    }
+
+    /**
+     * Determines whether the specified Java type should be normalized.
+     * @param classInfo The Java type.
+     * @return The normalized Java type (if it is primitive type or array of primitive types).
+     */
+    protected static boolean shouldNormalize(final Type classInfo){
+        return classInfo instanceof Class<?> && shouldNormalize((Class<?>)classInfo);
+    }
+
+    /**
+     * Returns the wrapper class for the primitive type.
+     * @param classInfo The class information about primitive type.
+     * @return The wrapper class for the primitive type.
+     */
+    public static Type normalizeClass(final Type classInfo){
+        return classInfo instanceof Class<?> ? normalizeClass((Class<?>)classInfo) : classInfo;
     }
 
     /**

@@ -4,6 +4,7 @@ import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
 import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import org.apache.commons.collections4.Closure;
@@ -21,15 +22,14 @@ import java.util.*;
  */
 final class RShellConnectorTypeSystem extends WellKnownTypeSystem {
     RShellConnectorTypeSystem() {
-        registerIdentityConverter(Map.class, Map.class);
-        registerConverter(Map.class, Table.class, new Transformer<Map, Table>() {
-            @SuppressWarnings("unchecked")
+        registerIdentityConverter(TypeLiterals.STRING_MAP);
+        registerConverter(TypeLiterals.STRING_MAP, TypeLiterals.STRING_COLUMN_TABLE, new Transformer<Map<String, Object>, Table<String>>() {
             @Override
-            public Table<String> transform(final Map input) {
-                return SimpleTable.fromRow((Map<String, ?>) input);
+            public Table<String> transform(final Map<String, Object> input) {
+                return SimpleTable.fromRow(input);
             }
         });
-        registerIdentityConverter(Table.class, Table.class);
+        registerIdentityConverter(TypeLiterals.STRING_COLUMN_TABLE);
     }
 
     private ManagedEntityType createEntityType(final XmlParsingResultType type){

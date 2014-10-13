@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.*;
@@ -16,7 +17,7 @@ final class SnmpStringObject extends SnmpScalarObject<OctetString>{
     }
 
     public static OctetString convert(final Object value, final ManagedEntityType attributeTypeInfo){
-        return new OctetString(convertFrom(attributeTypeInfo, value, String.class));
+        return new OctetString(convertFrom(attributeTypeInfo, value, TypeLiterals.STRING));
     }
 
     //do not remove 'type' argument because it is used by reflection in SnmpType

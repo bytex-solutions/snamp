@@ -3,6 +3,7 @@ package com.itworks.snamp.testing.connectors.snmp;
 import com.itworks.snamp.Repeater;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
@@ -289,7 +290,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void testForOpaqueProperty() throws TimeoutException, IOException {
         final String ATTRIBUTE_ID = "1.6.10.0";
         testAttribute(ATTRIBUTE_ID,
-                Object[].class,
+                TypeLiterals.OBJECT_ARRAY,
                 new Byte[]{10, 20, 30, 40, 50},
                 AbstractResourceConnectorTest.arrayEquator(),
                 Collections.<String, String>emptyMap(),
@@ -300,13 +301,13 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void testForIpAddressProperty() throws TimeoutException, IOException {
         final String ATTRIBUTE_ID = "1.6.9.0";
         testAttribute(ATTRIBUTE_ID,
-                Object[].class,
+                TypeLiterals.OBJECT_ARRAY,
                 ArrayUtils.toObject(new IpAddress("192.168.0.1").toByteArray()),
                 AbstractResourceConnectorTest.arrayEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
         testAttribute(ATTRIBUTE_ID,
-                String.class,
+                TypeLiterals.STRING,
                 "192.168.0.1",
                 AbstractResourceConnectorTest.<String>valueEquator(),
                 new HashMap<String, String>(1){{
@@ -319,13 +320,13 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void testForOidProperty() throws TimeoutException, IOException {
         final String ATTRIBUTE_ID = "1.6.8.0";
         testAttribute(ATTRIBUTE_ID,
-                Object[].class,
+                TypeLiterals.OBJECT_ARRAY,
                 ArrayUtils.toObject(new OID("1.4.5.3.1").getValue()),
                 AbstractResourceConnectorTest.arrayEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
         testAttribute(ATTRIBUTE_ID,
-                String.class,
+                TypeLiterals.STRING,
                 "1.4.5.3.1",
                 AbstractResourceConnectorTest.<String>valueEquator(),
                 new HashMap<String, String>(1){{
@@ -338,7 +339,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void testForGauge32Property() throws TimeoutException, IOException {
         final String ATTRIBUTE_ID = "1.6.7.0";
         testAttribute(ATTRIBUTE_ID,
-                Long.class,
+                TypeLiterals.LONG,
                 42L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
@@ -349,7 +350,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void testForCounter64Property() throws TimeoutException, IOException {
         final String ATTRIBUTE_ID = "1.6.6.0";
         testAttribute(ATTRIBUTE_ID,
-                Long.class,
+                TypeLiterals.LONG,
                 42L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
@@ -360,7 +361,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void testForCounter32Property() throws TimeoutException, IOException {
         final String ATTRIBUTE_ID = "1.6.5.0";
         testAttribute(ATTRIBUTE_ID,
-                Long.class,
+                TypeLiterals.LONG,
                 42L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
@@ -371,13 +372,13 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void testForTimeTicksProperty() throws TimeoutException, IOException{
         final String ATTRIBUTE_ID = "1.6.4.0";
         testAttribute(ATTRIBUTE_ID,
-                Long.class,
+                TypeLiterals.LONG,
                 642584970L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
         testAttribute(ATTRIBUTE_ID,
-                String.class,
+                TypeLiterals.STRING,
                 new TimeTicks(642584974L).toString(),
                 AbstractResourceConnectorTest.<String>valueEquator(),
                 new HashMap<String, String>(1){{
@@ -390,7 +391,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void testForUnsignedInteger32Property() throws TimeoutException, IOException {
         final String ATTRIBUTE_ID = "1.6.3.0";
         testAttribute(ATTRIBUTE_ID,
-                Long.class,
+                TypeLiterals.LONG,
                 42L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
@@ -401,7 +402,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void testForInteger32Property() throws TimeoutException, IOException{
         final String ATTRIBUTE_ID = "1.6.2.0";
         testAttribute(ATTRIBUTE_ID,
-                Integer.class,
+                TypeLiterals.INTEGER,
                 42,
                 AbstractResourceConnectorTest.<Integer>valueEquator(),
                 Collections.<String, String>emptyMap(),
@@ -412,7 +413,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void testForOctetStringProperty() throws TimeoutException, IOException {
         final String ATTRIBUTE_ID = "1.6.1.0";
         testAttribute(ATTRIBUTE_ID,
-                String.class,
+                TypeLiterals.STRING,
                 "Jack Ryan",
                 AbstractResourceConnectorTest.<String>valueEquator(),
                 new HashMap<String, String>(1){{
@@ -420,7 +421,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 }},
                 false);
         testAttribute(ATTRIBUTE_ID,
-                String.class,
+                TypeLiterals.STRING,
                 new OctetString("Java Enterprise Edition").toHexString(),
                 AbstractResourceConnectorTest.<String>valueEquator(),
                 new HashMap<String, String>(1){{
@@ -428,7 +429,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 }},
                 false);
         testAttribute(ATTRIBUTE_ID,
-                Object[].class,
+                TypeLiterals.OBJECT_ARRAY,
                 new Byte[]{10, 20, 1, 4},
                 AbstractResourceConnectorTest.arrayEquator(),
                 new HashMap<String, String>(1){{

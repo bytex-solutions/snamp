@@ -3,6 +3,7 @@ package com.itworks.snamp.adapters.rest;
 import com.google.gson.*;
 import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeValue;
@@ -14,7 +15,6 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
@@ -43,7 +43,7 @@ final class HttpAttributeMapping {
     private static JsonArray toJsonArray(final AttributeValue<ManagedEntityTabularType> array, final Gson jsonFormatter){
         final JsonArray result = new JsonArray();
         //invoke all elements and converts each of them to JSON
-        for(final Object rawValue: array.convertTo(Object[].class)){
+        for(final Object rawValue: array.convertTo(TypeLiterals.OBJECT_ARRAY)){
             result.add(toJson(new AttributeValue<>(rawValue, array.type.getColumnType(VALUE_COLUMN_NAME)), jsonFormatter));
         }
         return result;
@@ -51,16 +51,15 @@ final class HttpAttributeMapping {
 
     private static JsonObject toJsonMap(final AttributeValue<ManagedEntityTabularType> map, final Gson jsonFormatter){
         final JsonObject result = new JsonObject();
-        final Map value = map.convertTo(Map.class);
-        for(final Object column: value.keySet())
-            result.add(Objects.toString(column), toJson(new AttributeValue<>(value.get(column), map.type.getColumnType(Objects.toString(column))), jsonFormatter));
+        final Map<String, Object> value = map.convertTo(TypeLiterals.STRING_MAP);
+        for(final String column: value.keySet())
+            result.add(column, toJson(new AttributeValue<>(value.get(column), map.type.getColumnType(column)), jsonFormatter));
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     private static JsonElement toJsonTable(final AttributeValue<ManagedEntityTabularType> table, final Gson jsonFormatter){
         final JsonArray result = new JsonArray();
-        final Table<String> tableReader = table.convertTo(Table.class);
+        final Table<String> tableReader = table.convertTo(TypeLiterals.STRING_COLUMN_TABLE);
         //table representation in JSON: [{column: value}, {column: value}]
         //therefore, iterates through rows
         for(int rowIndex = 0; rowIndex < tableReader.getRowCount(); rowIndex++){
@@ -77,34 +76,34 @@ final class HttpAttributeMapping {
         if(value == null || value.rawValue == null)
             return JsonNull.INSTANCE;
         else if(supportsString(value.type))
-            return new JsonPrimitive(value.convertTo(String.class));
+            return new JsonPrimitive(value.convertTo(TypeLiterals.STRING));
         else if(supportsBoolean(value.type))
-            return new JsonPrimitive(value.convertTo(Boolean.class));
+            return new JsonPrimitive(value.convertTo(TypeLiterals.BOOLEAN));
         else if(supportsUnixTime(value.type))
-            return jsonFormatter.toJsonTree(value.convertTo(Date.class));
+            return jsonFormatter.toJsonTree(value.convertTo(TypeLiterals.DATE));
         else if(supportsInt8(value.type))
-            return new JsonPrimitive(value.convertTo(Byte.class));
+            return new JsonPrimitive(value.convertTo(TypeLiterals.BYTE));
         else if(supportsInt16(value.type))
-            return new JsonPrimitive(value.convertTo(Short.class));
+            return new JsonPrimitive(value.convertTo(TypeLiterals.SHORT));
         else if(supportsInt32(value.type))
-            return new JsonPrimitive(value.convertTo(Integer.class));
+            return new JsonPrimitive(value.convertTo(TypeLiterals.INTEGER));
         else if(supportsInt64(value.type))
-            return new JsonPrimitive(value.convertTo(Long.class));
+            return new JsonPrimitive(value.convertTo(TypeLiterals.LONG));
         else if(supportsInteger(value.type))
-            return new JsonPrimitive(value.convertTo(BigInteger.class));
+            return new JsonPrimitive(value.convertTo(TypeLiterals.BIG_INTEGER));
         else if(supportsDecimal(value.type))
-            return new JsonPrimitive(value.convertTo(BigDecimal.class));
+            return new JsonPrimitive(value.convertTo(TypeLiterals.BIG_DECIMAL));
         else if(supportsFloat(value.type))
-            return new JsonPrimitive(value.convertTo(Float.class));
+            return new JsonPrimitive(value.convertTo(TypeLiterals.FLOAT));
         else if(supportsDouble(value.type))
-            return new JsonPrimitive(value.convertTo(Double.class));
+            return new JsonPrimitive(value.convertTo(TypeLiterals.DOUBLE));
         else if(isArray(value.type))
             return toJsonArray(value.cast(ManagedEntityTabularType.class), jsonFormatter);
         else if(isMap(value.type))
             return toJsonMap(value.cast(ManagedEntityTabularType.class), jsonFormatter);
         else if(value.isTypeOf(ManagedEntityTabularType.class))
             return toJsonTable(value.cast(ManagedEntityTabularType.class), jsonFormatter);
-        else return new JsonPrimitive(value.convertTo(String.class));
+        else return new JsonPrimitive(value.convertTo(TypeLiterals.STRING));
     }
 
     public JsonElement getValueAsJson() throws TimeoutException{

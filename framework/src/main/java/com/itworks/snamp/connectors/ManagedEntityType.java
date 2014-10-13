@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.TypeConverter;
+import org.apache.commons.lang3.reflect.Typed;
 
 /**
  * Describes type of the management entity, such as attribute or notification attachment.
@@ -15,5 +16,5 @@ public interface ManagedEntityType {
      * @param <T> Type of the projection.
      * @return The type converter for the specified projection type; or {@literal null}, if projection is not supported.
      */
-    <T> TypeConverter<T> getProjection(final Class<T> projectionType);
+    <T> TypeConverter<T> getProjection(final Typed<T> projectionType);
 }

@@ -1,6 +1,9 @@
 package com.itworks.snamp.connectors.snmp;
 
 import com.itworks.snamp.TypeConverter;
+import com.itworks.snamp.TypeLiterals;
+import org.apache.commons.lang3.reflect.TypeUtils;
+import org.apache.commons.lang3.reflect.Typed;
 import org.snmp4j.smi.Variable;
 
 /**
@@ -12,10 +15,10 @@ import org.snmp4j.smi.Variable;
  * @since 1.0
  */
 abstract class SMITypeProjection<V extends Variable, J> implements TypeConverter<J> {
-    private final Class<J> javaType;
-    private final Class<V> smiType;
+    private final Typed<J> javaType;
+    private final Typed<V> smiType;
 
-    protected SMITypeProjection(final Class<V> smiType, final Class<J> javaType){
+    protected SMITypeProjection(final Typed<V> smiType, final Typed<J> javaType){
         this.javaType = javaType;
         this.smiType = smiType;
     }
@@ -26,7 +29,7 @@ abstract class SMITypeProjection<V extends Variable, J> implements TypeConverter
      * @return The type for which this converter is instantiated.
      */
     @Override
-    public final Class<J> getType() {
+    public final Typed<J> getType() {
         return javaType;
     }
 
@@ -37,8 +40,8 @@ abstract class SMITypeProjection<V extends Variable, J> implements TypeConverter
      * @return {@literal true}, if the value of the specified type can be converted into {@code T}; otherwise, {@literal false}.
      */
     @Override
-    public final boolean canConvertFrom(final Class<?> source) {
-        return smiType.isAssignableFrom(source);
+    public final boolean canConvertFrom(final Typed<?> source) {
+        return TypeUtils.isAssignable(source.getType(), smiType.getType());
     }
 
     protected abstract J convertFrom(final V value) throws IllegalArgumentException;
@@ -48,11 +51,11 @@ abstract class SMITypeProjection<V extends Variable, J> implements TypeConverter
      *
      * @param value The value to convert.
      * @return The value of the original type described by this converter.
-     * @throws IllegalArgumentException Unsupported type of the source value. Check the type with {@link #canConvertFrom(Class)} method.
+     * @throws IllegalArgumentException Unsupported type of the source value. Check the type with {@link #canConvertFrom(Typed)} method.
      */
     @Override
     public final J convertFrom(final Object value) throws IllegalArgumentException {
-        if(smiType.isInstance(value)) return convertFrom(smiType.cast(value));
+        if(TypeLiterals.isInstance(value, smiType)) return convertFrom(TypeLiterals.cast(value, smiType));
         else throw new IllegalArgumentException(String.format("%s is not an instance of %s", value, smiType));
     }
 }

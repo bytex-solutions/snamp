@@ -1,6 +1,8 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.itworks.snamp.TypeLiterals;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.reflect.Typed;
 import org.snmp4j.smi.OctetString;
 
 import java.util.Map;
@@ -29,6 +31,8 @@ enum OctetStringConversionFormat {
      */
     BYTE_ARRAY;
 
+    static final Typed<OctetString> OCTET_STRING = TypeLiterals.of(OctetString.class);
+
     public static OctetStringConversionFormat adviceFormat(final OctetString value){
         return value.isPrintable() ? TEXT : HEX;
     }
@@ -50,19 +54,19 @@ enum OctetStringConversionFormat {
 
     public SMITypeProjection<OctetString, ?> createTypeProjection(){
         switch (this){
-            case HEX: return new SMITypeProjection<OctetString, String>(OctetString.class, String.class) {
+            case HEX: return new SMITypeProjection<OctetString, String>(OCTET_STRING, TypeLiterals.STRING) {
                 @Override
                 protected String convertFrom(final OctetString value) throws IllegalArgumentException {
                     return value.toHexString();
                 }
             };
-            case TEXT: return new SMITypeProjection<OctetString, String>(OctetString.class, String.class) {
+            case TEXT: return new SMITypeProjection<OctetString, String>(OCTET_STRING, TypeLiterals.STRING) {
                 @Override
                 protected String convertFrom(final OctetString value) throws IllegalArgumentException {
                     return new String(value.getValue());
                 }
             };
-            default: return new SMITypeProjection<OctetString, Object[]>(OctetString.class, Object[].class) {
+            default: return new SMITypeProjection<OctetString, Object[]>(OCTET_STRING, TypeLiterals.OBJECT_ARRAY) {
                 @Override
                 protected Byte[] convertFrom(final OctetString value) throws IllegalArgumentException {
                     return ArrayUtils.toObject(value.getValue());

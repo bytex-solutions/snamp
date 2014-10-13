@@ -3,6 +3,7 @@ package com.itworks.snamp.connectors.jmx;
 import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeConverter;
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
@@ -12,6 +13,8 @@ import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.Put;
 import org.apache.commons.collections4.Transformer;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.reflect.TypeUtils;
+import org.apache.commons.lang3.reflect.Typed;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
@@ -28,28 +31,31 @@ import java.util.logging.Logger;
  * @author Roman Sakno
  */
 final class JmxTypeSystem extends WellKnownTypeSystem {
+    static final Typed<TabularData> TABULAR_DATA = TypeLiterals.of(TabularData.class);
+    static final Typed<CompositeData> COMPOSITE_DATA = TypeLiterals.of(CompositeData.class);
+
     private static final Logger log = JmxConnectorHelpers.getLogger();
 
     /**
      * Initializes a new builder of JMX managementAttributes.
      */
     public JmxTypeSystem(){
-        registerConverter(TabularData.class, Table.class,
-                new Transformer<TabularData, Table>() {
+        registerConverter(TABULAR_DATA, TypeLiterals.STRING_COLUMN_TABLE,
+                new Transformer<TabularData, Table<String>>() {
                     @Override
                     public Table<String> transform(final TabularData input) {
                         return convertToTable(input);
                     }
                 });
-        registerConverter(CompositeData.class, Map.class,
-                new Transformer<CompositeData, Map>() {
+        registerConverter(COMPOSITE_DATA, TypeLiterals.STRING_MAP,
+                new Transformer<CompositeData, Map<String, Object>>() {
                     @Override
                     public Map<String, Object> transform(final CompositeData input) {
                         return convertToMap(input);
                     }
                 });
-        registerConverter(CompositeData.class, Table.class,
-                new Transformer<CompositeData, Table>() {
+        registerConverter(COMPOSITE_DATA, TypeLiterals.STRING_COLUMN_TABLE,
+                new Transformer<CompositeData, Table<String>>() {
                     @Override
                     public Table<String> transform(final CompositeData input) {
                         return convertToTable(input);
@@ -247,7 +253,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
     }
 
     private static abstract class AbstractJmxEntityTabularType extends AbstractJmxEntityType<TabularData, TabularType> implements JmxManagedEntityOpenType<TabularData>, ManagedEntityTabularType {
-        public static final Class<Table> WELL_KNOWN_TYPE = Table.class;
+        public static final Typed<Table<String>> WELL_KNOWN_TYPE = TypeLiterals.STRING_COLUMN_TABLE;
 
         protected AbstractJmxEntityTabularType(final TabularType ttype){
             super(ttype);
@@ -345,11 +351,10 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          * @param value The value to convert into JMX tabular data.
          * @return JMX-compliant tabular representation of the specified object.
          */
-        @SuppressWarnings("unchecked")
         @Override
         public final TabularData convertToJmx(final Object value) throws InvalidAttributeValueException{
-            if(value instanceof Table)
-                return convertToJmxType((Table<String>)value);
+            if(TypeLiterals.isInstance(value, WELL_KNOWN_TYPE))
+                return convertToJmxType(TypeLiterals.cast(value, WELL_KNOWN_TYPE));
             else if(value instanceof TabularData)
                 try {
                     return convertToJmxType((TabularData)value);
@@ -362,7 +367,10 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
     }
 
     private static abstract class AbstractJmxEntityCompositeType extends AbstractJmxEntityType<CompositeData, CompositeType> implements JmxManagedEntityOpenType<CompositeData>, ManagedEntityTabularType {
-        public static final Class<?>[] WELL_KNOWN_TYPES = new Class<?>[]{Map.class, Table.class};
+        public static final Typed<?>[] WELL_KNOWN_TYPES = new Typed<?>[]{
+                TypeLiterals.STRING_MAP,
+                TypeLiterals.STRING_COLUMN_TABLE
+        };
 
         protected AbstractJmxEntityCompositeType(final CompositeType ctype){
             super(ctype);
@@ -451,10 +459,10 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         @SuppressWarnings("unchecked")
         @Override
         public final CompositeData convertToJmx(final Object value) throws InvalidAttributeValueException{
-            if(value instanceof Table<?>)
-                return convertToJmxType((Table<String>)value);
-            else if(value instanceof Map)
-                return convertToJmxType((Map<String, Object>)value);
+            if(TypeLiterals.isInstance(value, TypeLiterals.STRING_COLUMN_TABLE))
+                return convertToJmxType(TypeLiterals.cast(value, TypeLiterals.STRING_COLUMN_TABLE));
+            else if(TypeLiterals.isInstance(value, TypeLiterals.STRING_MAP))
+                return convertToJmxType(TypeLiterals.cast(value, TypeLiterals.STRING_MAP));
             else if(value instanceof CompositeData)
                 try {
                     return convertToJmxType((CompositeData)value);
@@ -478,18 +486,18 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
     }
 
     private abstract static class AbstractJmxEntityArrayType<T> extends AbstractJmxEntityType<T[], ArrayType<T[]>> implements JmxManagedEntityOpenType<T[]>, ManagedEntityTabularType {
-        public static final Class<Object[]> WELL_KNOWN_TYPE = Object[].class;
+        public static final Typed<Object[]> WELL_KNOWN_TYPE = TypeLiterals.OBJECT_ARRAY;
 
         private static final class ArrayConverter implements TypeConverter<Object[]>{
 
             @Override
-            public final Class<Object[]> getType() {
-                return Object[].class;
+            public final Typed<Object[]> getType() {
+                return TypeLiterals.OBJECT_ARRAY;
             }
 
             @Override
-            public final boolean canConvertFrom(final Class<?> source) {
-                return source != null && source.isArray();
+            public final boolean canConvertFrom(final Typed<?> source) {
+                return source != null && TypeUtils.isArrayType(source.getType());
             }
 
             @Override
@@ -599,36 +607,36 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    private  <T> JmxManagedEntityOpenType<T> createEntitySimpleType(final SimpleType<T> attributeType, final Class<T> classRef){
+    private  <T> JmxManagedEntityOpenType<T> createEntitySimpleType(final SimpleType<T> attributeType, final Typed<T> classRef){
         return createEntityType(JmxSimpleEntityType.createActivator(attributeType), classRef);
     }
 
     private JmxManagedEntityOpenType<?> createEntitySimpleType(final SimpleType<?> attributeType){
         if(attributeType == SimpleType.BOOLEAN)
-            return createEntitySimpleType(SimpleType.BOOLEAN, Boolean.class);
+            return createEntitySimpleType(SimpleType.BOOLEAN, TypeLiterals.BOOLEAN);
         else if(attributeType == SimpleType.BIGDECIMAL)
-            return createEntitySimpleType(SimpleType.BIGDECIMAL, BigDecimal.class);
+            return createEntitySimpleType(SimpleType.BIGDECIMAL, TypeLiterals.BIG_DECIMAL);
         else if(attributeType == SimpleType.BIGINTEGER)
-            return createEntitySimpleType(SimpleType.BIGINTEGER, BigInteger.class);
+            return createEntitySimpleType(SimpleType.BIGINTEGER, TypeLiterals.BIG_INTEGER);
         else if(attributeType == SimpleType.BYTE)
-            return createEntitySimpleType(SimpleType.BYTE, Byte.class);
+            return createEntitySimpleType(SimpleType.BYTE, TypeLiterals.BYTE);
         else if(attributeType == SimpleType.INTEGER)
-            return createEntitySimpleType(SimpleType.INTEGER, Integer.class);
+            return createEntitySimpleType(SimpleType.INTEGER, TypeLiterals.INTEGER);
         else if(attributeType == SimpleType.CHARACTER)
-            return createEntityType(JmxSimpleEntityType.createActivator(SimpleType.CHARACTER), String.class);
+            return createEntityType(JmxSimpleEntityType.createActivator(SimpleType.CHARACTER), TypeLiterals.STRING);
         else if(attributeType == SimpleType.STRING)
-            return createEntitySimpleType(SimpleType.STRING, String.class);
+            return createEntitySimpleType(SimpleType.STRING, TypeLiterals.STRING);
         else if(attributeType == SimpleType.DATE)
-            return createEntitySimpleType(SimpleType.DATE, Date.class);
+            return createEntitySimpleType(SimpleType.DATE, TypeLiterals.DATE);
         else if(attributeType == SimpleType.DOUBLE)
-            return createEntitySimpleType(SimpleType.DOUBLE, Double.class);
+            return createEntitySimpleType(SimpleType.DOUBLE, TypeLiterals.DOUBLE);
         else if(attributeType == SimpleType.FLOAT)
-            return createEntitySimpleType(SimpleType.FLOAT, Float.class);
+            return createEntitySimpleType(SimpleType.FLOAT, TypeLiterals.FLOAT);
         else if(attributeType == SimpleType.SHORT)
-            return createEntitySimpleType(SimpleType.SHORT, Short.class);
+            return createEntitySimpleType(SimpleType.SHORT, TypeLiterals.SHORT);
         else if(attributeType == SimpleType.LONG)
-            return createEntitySimpleType(SimpleType.LONG, Long.class);
-        else return createEntitySimpleType(SimpleType.STRING, String.class);
+            return createEntitySimpleType(SimpleType.LONG, TypeLiterals.LONG);
+        else return createEntitySimpleType(SimpleType.STRING, TypeLiterals.STRING);
     }
 
     private <T> AbstractJmxEntityArrayType<T> createEntityArrayType(final ArrayType<T[]> attributeType){

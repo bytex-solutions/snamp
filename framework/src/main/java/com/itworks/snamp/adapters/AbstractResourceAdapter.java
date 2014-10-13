@@ -3,6 +3,7 @@ package com.itworks.snamp.adapters;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.ManagedEntityType;
@@ -19,6 +20,8 @@ import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.ServiceReferenceHolder;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
+import org.apache.commons.lang3.reflect.TypeUtils;
+import org.apache.commons.lang3.reflect.Typed;
 import org.osgi.framework.*;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
@@ -164,15 +167,16 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * @throws TimeoutException Attribute value cannot be obtained during the configured duration.
          * @throws java.lang.IllegalStateException The accessor is disconnected from the managed resource connector.
          */
-        public <T> T getValue(final Class<T> attributeType, final T defaultValue) throws TimeoutException, IllegalArgumentException, IllegalStateException{
-            if(attributeType == null) throw new IllegalArgumentException("attributeType is null.");
+        public <T> T getValue(final Typed<T> attributeType, final T defaultValue) throws TimeoutException, IllegalArgumentException, IllegalStateException {
+            if (attributeType == null) throw new IllegalArgumentException("attributeType is null.");
             final TypeConverter<T> converter = getType().getProjection(attributeType);
-            if(converter == null)
+            if (converter == null)
                 throw new IllegalArgumentException(String.format("Invalid type %s of attribute %s",
-                    attributeType,
+                        attributeType,
                         getName()));
             final Object result = attributeSupport.getAttribute(attributeID, readWriteTimeout, defaultValue);
-            return attributeType.isInstance(result) ? attributeType.cast(result) : converter.convertFrom(result);
+            return TypeUtils.isInstance(result, attributeType.getType()) ?
+                    TypeLiterals.cast(result, attributeType) : converter.convertFrom(result);
         }
 
         /**

@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.Counter64;
@@ -18,12 +19,12 @@ final class SnmpLongObject extends SnmpScalarObject<Counter64>{
     }
 
     public static Counter64 convert(final Object value, final ManagedEntityType attributeTypeInfo){
-        final Number convertedValue = convertFrom(attributeTypeInfo, value, Number.class, Byte.class, Short.class, Integer.class, Long.class);
+        final Number convertedValue = convertFrom(attributeTypeInfo, value, TypeLiterals.NUMBER, TypeLiterals.BYTE, TypeLiterals.SHORT, TypeLiterals.INTEGER, TypeLiterals.LONG);
         return new Counter64(convertedValue.longValue());
     }
 
     public static Long convert(final Variable value, final ManagedEntityType attributeTypeInfo){
-        if(supportsProjection(attributeTypeInfo, Long.class)) return value.toLong();
+        if(supportsProjection(attributeTypeInfo, TypeLiterals.LONG)) return value.toLong();
         else return logAndReturnDefaultValue(defaultValue, value, attributeTypeInfo);
     }
 

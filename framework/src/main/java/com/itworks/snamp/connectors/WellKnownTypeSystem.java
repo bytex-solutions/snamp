@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.Table;
+import com.itworks.snamp.TypeLiterals;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.Transformer;
 
@@ -42,16 +43,16 @@ import java.util.*;
  * <p>
  * Management entity type system is a set of converters that provides conversion between MIB-specific
  * data types and universal data types. This class provides set of converters between these data types
- * in the form of static public unary methods annotated with {@link com.itworks.snamp.AbstractTypeConverterProvider.Converter} interface. Typically,
+ * in the form {@link org.apache.commons.collections4.Transformer} interface implementation. Typically,
  * each custom SNAMP connector contains its own type system converter, inherited from this class.
  * The following example demonstrates your own type system converter:
  * <pre><code>
  * public final class CustomTypeInfoBuilder extends WellKnownTypeSystem{
  *
  *     public CustomTypeInfoBuilder(){
- *         registerConverter(String.class, Byte[].class,
+ *         registerConverter(TypeLiterals.STRING, TypeLiterals.BYTE_ARRAY,
  *                  new Transformer&lt;String, Byte[]&gt;(){
- *                      public void Byte[] transform(String input){
+ *                      public void Byte[] transform(final String input){
  *                          return ArrayUtils.toObject(input.getBytes("UTF-8"));
  *                      }
  *                  });
@@ -76,112 +77,112 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * Initializes a new type system.
      */
     public WellKnownTypeSystem(){
-        registerConverter(String.class, Byte.class,
+        registerConverter(TypeLiterals.STRING, TypeLiterals.BYTE,
                 new Transformer<String, Byte>() {
                     @Override
                     public Byte transform(final String input) {
                         return Byte.valueOf(input);
                     }
                 });
-        registerConverter(String.class, Short.class,
+        registerConverter(TypeLiterals.STRING, TypeLiterals.SHORT,
                 new Transformer<String, Short>() {
                     @Override
                     public Short transform(final String input) {
                         return Short.valueOf(input);
                     }
                 });
-        registerConverter(String.class, Integer.class,
+        registerConverter(TypeLiterals.STRING, TypeLiterals.INTEGER,
                 new Transformer<String, Integer>() {
                     @Override
                     public Integer transform(final String input) {
                         return Integer.valueOf(input);
                     }
                 });
-        registerConverter(String.class, Long.class,
+        registerConverter(TypeLiterals.STRING, TypeLiterals.LONG,
                 new Transformer<String, Long>() {
                     @Override
                     public Long transform(final String input) {
                         return Long.parseLong(input);
                     }
                 });
-        registerConverter(String.class, BigInteger.class,
+        registerConverter(TypeLiterals.STRING, TypeLiterals.BIG_INTEGER,
                 new Transformer<String, BigInteger>() {
                     @Override
                     public BigInteger transform(final String input) {
                         return new BigInteger(input);
                     }
                 });
-        registerConverter(String.class, Boolean.class,
+        registerConverter(TypeLiterals.STRING, TypeLiterals.BOOLEAN,
                 new Transformer<String, Boolean>() {
                     @Override
                     public Boolean transform(final String input) {
-                        return null;
+                        return Boolean.parseBoolean(input);
                     }
                 });
-        registerConverter(String.class, Float.class,
+        registerConverter(TypeLiterals.STRING, TypeLiterals.FLOAT,
                 new Transformer<String, Float>() {
                     @Override
                     public Float transform(final String input) {
                         return Float.parseFloat(input);
                     }
                 });
-        registerConverter(String.class, Double.class,
+        registerConverter(TypeLiterals.STRING, TypeLiterals.DOUBLE,
                 new Transformer<String, Double>() {
                     @Override
                     public Double transform(final String input) {
                         return Double.parseDouble(input);
                     }
                 });
-        registerConverter(String.class, BigDecimal.class,
+        registerConverter(TypeLiterals.STRING, TypeLiterals.BIG_DECIMAL,
                 new Transformer<String, BigDecimal>() {
                     @Override
                     public BigDecimal transform(final String input) {
                         return new BigDecimal(input);
                     }
                 });
-        registerConverter(Number.class, Byte.class,
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.BYTE,
                 new Transformer<Number, Byte>() {
                     @Override
                     public Byte transform(final Number input) {
                         return input.byteValue();
                     }
                 });
-        registerConverter(Number.class, Short.class,
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.SHORT,
                 new Transformer<Number, Short>() {
                     @Override
                     public Short transform(final Number input) {
                         return input.shortValue();
                     }
                 });
-        registerConverter(Number.class, Integer.class,
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.INTEGER,
                 new Transformer<Number, Integer>() {
                     @Override
                     public Integer transform(final Number input) {
                         return input.intValue();
                     }
                 });
-        registerConverter(Number.class, Long.class,
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.LONG,
                 new Transformer<Number, Long>() {
                     @Override
                     public Long transform(final Number input) {
                         return input.longValue();
                     }
                 });
-        registerConverter(Number.class, Float.class,
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.FLOAT,
                 new Transformer<Number, Float>() {
                     @Override
                     public Float transform(final Number input) {
                         return input.floatValue();
                     }
                 });
-        registerConverter(Number.class, Double.class,
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.DOUBLE,
                 new Transformer<Number, Double>() {
                     @Override
                     public Double transform(final Number input) {
                         return input.doubleValue();
                     }
                 });
-        registerConverter(Number.class, BigInteger.class,
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.BIG_INTEGER,
                 new Transformer<Number, BigInteger>() {
                     @Override
                     public BigInteger transform(final Number input) {
@@ -189,7 +190,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                                 (BigInteger)input : BigInteger.valueOf(input.longValue());
                     }
                 });
-        registerConverter(Number.class, BigDecimal.class,
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.BIG_DECIMAL,
                 new Transformer<Number, BigDecimal>() {
                     @Override
                     public BigDecimal transform(final Number input) {
@@ -204,14 +205,14 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                         else return BigDecimal.valueOf(input.longValue());
                     }
                 });
-        registerConverter(Number.class, Date.class,
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.DATE,
                 new Transformer<Number, Date>() {
                     @Override
                     public Date transform(final Number input) {
                         return new Date(input.longValue());
                     }
                 });
-        registerConverter(Number.class, Calendar.class,
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.CALENDAR,
                 new Transformer<Number, Calendar>() {
                     @Override
                     public Calendar transform(final Number input) {
@@ -220,7 +221,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                         return now;
                     }
                 });
-        registerConverter(Number.class, Boolean.class,
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.BOOLEAN,
                 new Transformer<Number, Boolean>() {
                     @Override
                     public Boolean transform(final Number input) {
@@ -229,21 +230,21 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                         else return input.longValue() != 0;
                     }
                 });
-        registerConverter(Calendar.class, Long.class,
+        registerConverter(TypeLiterals.CALENDAR, TypeLiterals.LONG,
                 new Transformer<Calendar, Long>() {
                     @Override
                     public Long transform(final Calendar input) {
                         return input.getTime().getTime();
                     }
                 });
-        registerConverter(Calendar.class, Date.class,
+        registerConverter(TypeLiterals.CALENDAR, TypeLiterals.DATE,
                 new Transformer<Calendar, Date>() {
                     @Override
                     public Date transform(final Calendar input) {
                         return input.getTime();
                     }
                 });
-        registerConverter(Date.class, Calendar.class,
+        registerConverter(TypeLiterals.DATE, TypeLiterals.CALENDAR,
                 new Transformer<Date, Calendar>() {
                     @Override
                     public Calendar transform(final Date input) {
@@ -252,56 +253,56 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                         return now;
                     }
                 });
-        registerConverter(Boolean.class, Byte.class,
+        registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.BYTE,
                 new Transformer<Boolean, Byte>() {
                     @Override
                     public Byte transform(final Boolean input) {
                         return input ? (byte)1 : 0;
                     }
                 });
-        registerConverter(Boolean.class, Short.class,
+        registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.SHORT,
                 new Transformer<Boolean, Short>() {
                     @Override
                     public Short transform(final Boolean input) {
                         return input ? (short)1 : 0;
                     }
                 });
-        registerConverter(Boolean.class, Integer.class,
+        registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.INTEGER,
                 new Transformer<Boolean, Integer>() {
                     @Override
                     public Integer transform(final Boolean input) {
                         return input ? 1 : 0;
                     }
                 });
-        registerConverter(Boolean.class, Long.class,
+        registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.LONG,
                 new Transformer<Boolean, Long>() {
                     @Override
                     public Long transform(final Boolean input) {
                         return input ? 1L : 0L;
                     }
                 });
-        registerConverter(Boolean.class, BigInteger.class,
+        registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.BIG_INTEGER,
                 new Transformer<Boolean, BigInteger>() {
                     @Override
                     public BigInteger transform(final Boolean input) {
                         return input ? BigInteger.ONE : BigInteger.ZERO;
                     }
                 });
-        registerConverter(Boolean.class, BigDecimal.class,
+        registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.BIG_DECIMAL,
                 new Transformer<Boolean, BigDecimal>() {
                     @Override
                     public BigDecimal transform(final Boolean input) {
                         return input ? BigDecimal.ONE : BigDecimal.ZERO;
                     }
                 });
-        registerConverter(String.class, Character.class,
+        registerConverter(TypeLiterals.STRING, TypeLiterals.CHAR,
                 new Transformer<String, Character>() {
                     @Override
                     public Character transform(final String input) {
                         return input.isEmpty() ? '\0' : input.charAt(0);
                     }
                 });
-        registerConverter(Date.class, Long.class,
+        registerConverter(TypeLiterals.DATE, TypeLiterals.LONG,
                 new Transformer<Date, Long>() {
                     @Override
                     public Long transform(final Date input) {
@@ -317,8 +318,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Byte}.
      */
-    public final static boolean supportsInt8(final ManagedEntityType entityType){
-        return supportsProjection(entityType, Byte.class);
+    public static boolean supportsInt8(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.BYTE);
     }
 
     /**
@@ -327,7 +328,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new type converter.
      */
     public final ManagedEntityType createInt8Type(){
-        return createEntitySimpleType(Byte.class);
+        return createEntitySimpleType(TypeLiterals.BYTE);
     }
 
     /**
@@ -337,8 +338,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Short}.
      */
-    public final static boolean supportsInt16(final ManagedEntityType entityType){
-        return supportsProjection(entityType, Short.class);
+    public static boolean supportsInt16(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.SHORT);
     }
 
     /**
@@ -347,7 +348,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new type converter.
      */
     public final ManagedEntityType createInt16Type(){
-        return createEntitySimpleType(Short.class);
+        return createEntitySimpleType(TypeLiterals.SHORT);
     }
 
     /**
@@ -357,8 +358,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Integer}.
      */
-    public final static boolean supportsInt32(final ManagedEntityType entityType){
-        return supportsProjection(entityType, Integer.class);
+    public static boolean supportsInt32(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.INTEGER);
     }
 
     /**
@@ -367,7 +368,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new type converter.
      */
     public final ManagedEntityType createInt32Type(){
-        return createEntitySimpleType(Integer.class);
+        return createEntitySimpleType(TypeLiterals.INTEGER);
     }
 
     /**
@@ -377,8 +378,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Long}.
      */
-    public final static boolean supportsInt64(final ManagedEntityType entityType){
-        return supportsProjection(entityType, Long.class);
+    public static boolean supportsInt64(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.LONG);
     }
 
     /**
@@ -387,7 +388,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new type converter.
      */
     public final ManagedEntityType createInt64Type(){
-        return createEntitySimpleType(Long.class);
+        return createEntitySimpleType(TypeLiterals.LONG);
     }
 
     /**
@@ -397,8 +398,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link BigInteger}.
      */
-    public final static boolean supportsInteger(final ManagedEntityType entityType){
-        return supportsProjection(entityType, BigInteger.class);
+    public static boolean supportsInteger(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.BIG_INTEGER);
     }
 
     /**
@@ -407,7 +408,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new type converter.
      */
     public final ManagedEntityType createIntegerType(){
-        return createEntitySimpleType(BigInteger.class);
+        return createEntitySimpleType(TypeLiterals.BIG_INTEGER);
     }
 
     /**
@@ -417,8 +418,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link BigDecimal}.
      */
-    public final static boolean supportsDecimal(final ManagedEntityType entityType){
-        return supportsProjection(entityType, BigDecimal.class);
+    public static boolean supportsDecimal(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.BIG_DECIMAL);
     }
 
     /**
@@ -427,7 +428,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new type converter.
      */
     public final ManagedEntityType createDecimalType(){
-        return createEntitySimpleType(BigDecimal.class);
+        return createEntitySimpleType(TypeLiterals.BIG_DECIMAL);
     }
 
     /**
@@ -437,8 +438,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Date}.
      */
-    public final static boolean supportsUnixTime(final ManagedEntityType entityType){
-        return supportsProjection(entityType, Date.class);
+    public static boolean supportsUnixTime(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.DATE);
     }
 
     /**
@@ -447,7 +448,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new type converter.
      */
     public final ManagedEntityType createUnixTimeType(){
-        return createEntitySimpleType(Date.class);
+        return createEntitySimpleType(TypeLiterals.DATE);
     }
 
     /**
@@ -457,8 +458,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Boolean}.
      */
-    public final static boolean supportsBoolean(final ManagedEntityType entityType){
-        return supportsProjection(entityType, Boolean.class);
+    public static boolean supportsBoolean(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.BOOLEAN);
     }
 
     /**
@@ -467,7 +468,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new type converter.
      */
     public final ManagedEntityType createBooleanType(){
-        return createEntitySimpleType(Boolean.class);
+        return createEntitySimpleType(TypeLiterals.BOOLEAN);
     }
 
     /**
@@ -477,8 +478,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link String}.
      */
-    public final static boolean supportsString(final ManagedEntityType entityType){
-        return supportsProjection(entityType, String.class);
+    public static boolean supportsString(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.STRING);
     }
 
     /**
@@ -487,7 +488,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new type converter.
      */
     public final ManagedEntityType createStringType(){
-        return createEntitySimpleType(String.class);
+        return createEntitySimpleType(TypeLiterals.STRING);
     }
 
     /**
@@ -497,8 +498,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Float}.
      */
-    public final static boolean supportsFloat(final ManagedEntityType entityType){
-        return supportsProjection(entityType, Float.class);
+    public static boolean supportsFloat(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.FLOAT);
     }
 
     /**
@@ -507,7 +508,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new type converter.
      */
     public final ManagedEntityType createFloatType(){
-        return createEntitySimpleType(Float.class);
+        return createEntitySimpleType(TypeLiterals.FLOAT);
     }
 
     /**
@@ -517,8 +518,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return {@literal true}, if the specified management entity can be converted
      * into {@link Double}.
      */
-    public final static boolean supportsDouble(final ManagedEntityType entityType){
-        return supportsProjection(entityType, Double.class);
+    public static boolean supportsDouble(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.DOUBLE);
     }
 
     /**
@@ -527,7 +528,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new type converter.
      */
     public final ManagedEntityType createDoubleType(){
-        return createEntitySimpleType(Double.class);
+        return createEntitySimpleType(TypeLiterals.DOUBLE);
     }
 
     /**
@@ -547,7 +548,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
             public ManagedEntityArrayType create() {
                 return new ManagedEntityArrayType(elementType);
             }
-        }, Object[].class);
+        }, TypeLiterals.OBJECT_ARRAY);
     }
 
     /**
@@ -600,7 +601,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                     }
                 };
             }
-        }, Table.class);
+        }, TypeLiterals.STRING_COLUMN_TABLE);
     }
 
     public final ManagedEntityType createEntityDictionaryType(final Map<String, ManagedEntityType> keys) {
@@ -650,11 +651,11 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                      */
                     @Override
                     public long getRowCount() {
-                        return 1;
+                        return 1L;
                     }
                 };
             }
-        }, Table.class, Map.class);
+        }, TypeLiterals.STRING_COLUMN_TABLE, TypeLiterals.STRING_MAP);
     }
 
     /**
@@ -708,6 +709,6 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                     }
                 };
             }
-        }, Table.class);
+        }, TypeLiterals.STRING_COLUMN_TABLE);
     }
 }

@@ -1,5 +1,7 @@
 package com.itworks.snamp;
 
+import org.apache.commons.lang3.reflect.Typed;
+
 /**
  * Represents type converter.
  * @author Roman Sakno
@@ -12,14 +14,14 @@ public interface TypeConverter<T> {
      * Returns the type for which this converter is instantiated.
      * @return The type for which this converter is instantiated.
      */
-    Class<T> getType();
+    Typed<T> getType();
 
     /**
      * Determines whether the value of the specified type can be converted into {@code T}.
      * @param source The type of the source value.
      * @return {@literal true}, if the value of the specified type can be converted into {@code T}; otherwise, {@literal false}.
      */
-    boolean canConvertFrom(final Class<?> source);
+    boolean canConvertFrom(final Typed<?> source);
 
     /**
      * Converts the value into an instance of {@code T} class.

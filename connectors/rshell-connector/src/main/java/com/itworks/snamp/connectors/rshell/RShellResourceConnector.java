@@ -2,8 +2,8 @@ package com.itworks.snamp.connectors.rshell;
 
 import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
-import com.itworks.snamp.Table;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
@@ -56,10 +56,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
             }
         }
 
-        @SuppressWarnings("unchecked")
         boolean setValue(final CommandExecutionChannel channel, final Object value) throws ScriptException, IOException {
-            if (value instanceof Table)
-                return commandProfile.writeToChannel(channel, RShellConnectorTypeSystem.fromTable((Table<String>) value));
+            if (TypeLiterals.isInstance(value, TypeLiterals.STRING_COLUMN_TABLE))
+                return commandProfile.writeToChannel(channel, RShellConnectorTypeSystem.fromTable(TypeLiterals.cast(value, TypeLiterals.STRING_COLUMN_TABLE)));
             else return commandProfile.writeToChannel(channel, value);
         }
 
@@ -396,7 +395,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
      * Writes a set of managementAttributes inside of the transaction.
      *
      * @param values       The dictionary of managementAttributes keys and its values.
-     * @param writeTimeout
+     * @param writeTimeout The attribute value write operation timeout.
      * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
      * @throws java.util.concurrent.TimeoutException
      */

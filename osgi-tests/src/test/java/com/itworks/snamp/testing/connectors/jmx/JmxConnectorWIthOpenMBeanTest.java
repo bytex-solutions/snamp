@@ -1,9 +1,6 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
-import com.itworks.snamp.SimpleTable;
-import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.*;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
@@ -213,9 +210,9 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
             put("col2", 43);
             put("col3", "Peter Russo");
         }});
-        testAttribute("7.1", "table", Table.class, table, new Equator<Table>() {
+        testAttribute("7.1", "table", TypeLiterals.STRING_COLUMN_TABLE, table, new Equator<Table<String>>() {
             @Override
-            public boolean equate(final Table o1, final Table o2) {
+            public boolean equate(final Table<String> o1, final Table<String> o2) {
                 return o1.getRowCount() == o2.getRowCount() &&
                         SetUtils.isEqualSet(o1.getColumns(), o2.getColumns());
             }
@@ -228,43 +225,43 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         dict.put("col1", Boolean.TRUE);
         dict.put("col2", 42);
         dict.put("col3", "Frank Underwood");
-        testAttribute("6.1", "dictionary", Map.class, dict, mapEquator());
+        testAttribute("6.1", "dictionary", TypeLiterals.STRING_MAP, dict, mapEquator());
     }
 
     @Test
     public final void testForArrayProperty() throws TimeoutException, IOException {
         final Object[] array = new Short[]{10, 20, 30, 40, 50};
-        testAttribute("5.1", "array", Object[].class, array, arrayEquator());
+        testAttribute("5.1", "array", TypeLiterals.OBJECT_ARRAY, array, arrayEquator());
     }
 
     @Test
     public final void testForDateProperty() throws TimeoutException, IOException {
-        testAttribute("9.0", "date", Date.class, new Date());
+        testAttribute("9.0", "date", TypeLiterals.DATE, new Date());
     }
 
     @Test
     public final void testForFloatProperty() throws TimeoutException, IOException {
-        testAttribute("8.0", "float", Float.class, 3.14F);
+        testAttribute("8.0", "float", TypeLiterals.FLOAT, 3.14F);
     }
 
     @Test
     public final void testForBigIntProperty() throws TimeoutException, IOException {
-        testAttribute("4.0", "bigint", BigInteger.class, BigInteger.valueOf(100500));
+        testAttribute("4.0", "bigint", TypeLiterals.BIG_INTEGER, BigInteger.valueOf(100500));
     }
 
     @Test
     public final void testForInt32Property() throws TimeoutException, IOException {
-        testAttribute("3.0", "int32", Integer.class, 42);
+        testAttribute("3.0", "int32", TypeLiterals.INTEGER, 42);
     }
 
     @Test
     public final void testForBooleanProperty() throws TimeoutException, IOException {
-        testAttribute("2.0", "boolean", Boolean.class, Boolean.TRUE);
+        testAttribute("2.0", "boolean", TypeLiterals.BOOLEAN, Boolean.TRUE);
     }
 
     @Test
     public final void testForStringProperty() throws TimeoutException, IOException {
-        testAttribute("1.0", "string", String.class, "Frank Underwood");
+        testAttribute("1.0", "string", TypeLiterals.STRING, "Frank Underwood");
     }
 
     @Test

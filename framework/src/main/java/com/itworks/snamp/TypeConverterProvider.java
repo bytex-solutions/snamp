@@ -1,5 +1,7 @@
 package com.itworks.snamp;
 
+import org.apache.commons.lang3.reflect.Typed;
+
 /**
  * Represents a base class for building type converters.
  * @author Roman Sakno
@@ -15,5 +17,5 @@ public interface TypeConverterProvider {
      * is not supported.
      */
     @SuppressWarnings("UnusedDeclaration")
-    <T> TypeConverter<T> getTypeConverter(final Class<T> t);
+    <T> TypeConverter<T> getTypeConverter(final Typed<T> t);
 }

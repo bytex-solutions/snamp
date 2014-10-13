@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.connectors;
 
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedResourceConnectorBean;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
@@ -88,7 +89,7 @@ public final class ManagedResourceConnectorBeanTest extends AbstractUnitTest<Man
         assertTrue(md.canRead());
         assertTrue(md.canWrite());
         assertEquals("property1", md.getName());
-        assertNotNull(md.getType().getProjection(String.class));
+        assertNotNull(md.getType().getProjection(TypeLiterals.STRING));
     }
 
     @Test

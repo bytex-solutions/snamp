@@ -3,6 +3,7 @@ package com.itworks.snamp.adapters.snmp;
 import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
@@ -300,10 +301,10 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
     @SuppressWarnings("unchecked")
     private static Object fill(final AttributeAccessor connector, final MOTable<MOMutableTableRow, MONamedColumn<Variable>, MOTableModel<MOMutableTableRow>> table) throws TimeoutException {
         final Object lastUpdateSource;
-        if(supportsProjection(connector.getType(), Table.class))
-            fill(convertFrom(connector.getType(), lastUpdateSource = connector.getValue(new SimpleTable<String>()), Table.class), table, (ManagedEntityTabularType)connector.getType(), connector);
-        else if(supportsProjection(connector.getType(), Object[].class) && ManagedEntityTypeBuilder.isArray(connector.getType()))
-            fill(convertFrom(connector.getType(), lastUpdateSource = connector.getValue(new Object[0]), Object[].class), table, (ManagedEntityTabularType)connector.getType(), connector);
+        if(supportsProjection(connector.getType(), TypeLiterals.STRING_COLUMN_TABLE))
+            fill(convertFrom(connector.getType(), lastUpdateSource = connector.getValue(new SimpleTable<String>()), TypeLiterals.STRING_COLUMN_TABLE), table, (ManagedEntityTabularType)connector.getType(), connector);
+        else if(supportsProjection(connector.getType(), TypeLiterals.OBJECT_ARRAY) && ManagedEntityTypeBuilder.isArray(connector.getType()))
+            fill(convertFrom(connector.getType(), lastUpdateSource = connector.getValue(new Object[0]), TypeLiterals.OBJECT_ARRAY), table, (ManagedEntityTabularType)connector.getType(), connector);
         else {
             log.warning(String.format("Source attribute table %s is not supported", table.getOID()));
             lastUpdateSource = null;

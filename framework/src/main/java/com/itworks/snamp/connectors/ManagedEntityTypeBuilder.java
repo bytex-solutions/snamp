@@ -2,8 +2,11 @@ package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.AbstractTypeConverterProvider;
 import com.itworks.snamp.TypeConverter;
+import com.itworks.snamp.TypeLiterals;
 import org.apache.commons.collections4.Factory;
+import org.apache.commons.lang3.reflect.Typed;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -31,28 +34,34 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
      * @since 1.0
      */
     public static class AbstractManagedEntityType implements ManagedEntityType {
-        private final Map<Class<?>, TypeConverter<?>> projections;
+        private final Map<Type, TypeConverter<?>> projections;
 
         /**
          * Initializes a new management entity type.
          * @param converters Additional converters associated with this management entity type. Can be empty.
          */
         protected AbstractManagedEntityType(final TypeConverter<?>... converters){
-            projections = new HashMap<>(5);
+            projections = new HashMap<>(converters.length);
             for(final TypeConverter<?> conv: converters)
-                projections.put(conv.getType(), conv);
+                projections.put(conv.getType().getType(), conv);
         }
 
         private static void registerConverter(final AbstractManagedEntityType entityType, final TypeConverter<?> converter){
-            entityType.projections.put(converter.getType(), converter);
+            entityType.projections.put(converter.getType().getType(), converter);
         }
 
         /**
          * Returns an array of supported projections.
          * @return An array of supported projections.
          */
-        public final Collection<Class<?>> getProjections(){
+        public final Collection<Type> getProjections(){
             return projections.keySet();
+        }
+
+        private TypeConverter getProjection(final Type projectionType) {
+            return shouldNormalize(projectionType) ?
+                    getProjection(normalizeClass(projectionType)) :
+                    projections.get(projectionType);
         }
 
         /**
@@ -64,10 +73,8 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
          */
         @SuppressWarnings("unchecked")
         @Override
-        public final <T> TypeConverter<T> getProjection(final Class<T> projectionType) {
-            return shouldNormalize(projectionType) ?
-                    (TypeConverter<T>)getProjection(normalizeClass(projectionType)):
-                    (TypeConverter<T>)projections.get(projectionType);
+        public final <T> TypeConverter<T> getProjection(final Typed<T> projectionType) {
+            return getProjection(projectionType.getType());
         }
 
         /**
@@ -76,9 +83,9 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
          * @param to The type of the conversion result.
          * @return {@literal true}, if the MIB-specific type can be converted into another Java type; otherwise, {@literal false}.
          */
-        public final boolean canConvert(final Class<?> from, final Class<?> to){
-            if(from == null || to == null) return false;
-            final TypeConverter<?> converter = projections.get(to);
+        public final boolean canConvert(final Typed<?> from, final Typed<?> to) {
+            if (from == null || to == null) return false;
+            final TypeConverter<?> converter = projections.get(to.getType());
             return converter != null && converter.canConvertFrom(from);
         }
 
@@ -254,14 +261,14 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
          * Returns the type of the array index column.
          * <p>
          *     In the default implementation, this method always returns value
-         *     produced by invocation of {@link #createEntitySimpleType(Class[])} with {@code Integer.class}
+         *     produced by invocation of {@link #createEntitySimpleType(Typed[])} with {@code Integer.class}
          *     argument.
          * </p>
          * @return The type of the array index column.
          */
         @Override
         public ManagedEntityType getIndexColumnType(){
-            return createEntitySimpleType(Integer.class);
+            return createEntitySimpleType(TypeLiterals.INTEGER);
         }
 
         /**
@@ -279,16 +286,16 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
     /**
      * Creates a new management entity type.
      * <p>
-     *     An implementation of {@link ManagedEntityType#getProjection(Class)} supplied by SNAMP infrastructure
+     *     An implementation of {@link ManagedEntityType#getProjection(Typed)} supplied by SNAMP infrastructure
      *     and you cannot override behavior of this method.
      * </p>
      * @param activator An activator that creates a new instance of {@link ManagedEntityTypeBuilder.AbstractManagedEntityType} with custom methods.
      * @param projections An array of supported projections of the specified management entity type.
      * @return An instance of the management entity type.
      */
-    public final <T extends AbstractManagedEntityType> T createEntityType(final Factory<T> activator, final Class<?>... projections) {
+    public final <T extends AbstractManagedEntityType> T createEntityType(final Factory<T> activator, final Typed<?>... projections) {
         final T entityType = activator.create();
-        for(final Class<?> t: projections){
+        for(final Typed<?> t: projections){
             final TypeConverter<?> converter = getTypeConverter(t);
             if(converter != null) AbstractManagedEntityType.registerConverter(entityType, converter);
         }
@@ -300,7 +307,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
      * @param projections An array of supported projections of the specified management entity type.
      * @return A new instance of the simple management entity type.
      */
-    public final SimpleManagedEntityType createEntitySimpleType(final Class<?>... projections){
+    public final SimpleManagedEntityType createEntitySimpleType(final Typed<?>... projections){
         return createEntityType(SimpleManagedEntityType.ACTIVATOR, projections);
     }
 
@@ -310,7 +317,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
      * @param t Native Java representation of the management entity type.
      * @return {@literal true}, if the management entity supports the specified type projection; otherwise, {@literal false}.
      */
-    public static boolean supportsProjection(final ManagedEntityType entityType, final Class<?> t){
+    public static boolean supportsProjection(final ManagedEntityType entityType, final Typed<?> t){
         return entityType != null && entityType.getProjection(t) != null;
     }
 
@@ -367,7 +374,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
      * @return A new simple management entity type that can convert any value to {@link String}.
      */
     public final ManagedEntityType createFallbackEntityType(){
-        return createEntitySimpleType(String.class);
+        return createEntitySimpleType(TypeLiterals.STRING);
     }
 
     /**
@@ -376,7 +383,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
      *     Implementation of this method is equal to:
      *     <pre><code>
      *     return entityType instanceof ManagementEntityTabularType &&
-     *          entityType.getProjection(Map.class) != null;
+     *          entityType.getProjection(TypeLiterals.STRING_MAP) != null;
      *     </code></pre>
      * </p>
      * @param entityType An entity type to check.
@@ -384,6 +391,6 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
      */
     public static boolean isMap(final ManagedEntityType entityType){
         return entityType instanceof ManagedEntityTabularType &&
-                entityType.getProjection(Map.class) != null;
+                entityType.getProjection(TypeLiterals.STRING_MAP) != null;
     }
 }

@@ -2,6 +2,7 @@ package com.itworks.snamp.adapters.jmx;
 
 import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
@@ -15,8 +16,6 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
 import java.lang.reflect.Array;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
@@ -125,28 +124,26 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         else throw new OpenDataException(String.format("Unable to resolve %s entity type to JMX OpenType", entityType));
     }
 
-    @SuppressWarnings("unchecked")
     private static CompositeData toCompositeData(final AttributeValue<ManagedEntityTabularType> source,
                                                  final Map<String, String> options) throws OpenDataException{
-        if(source.canConvertTo(CompositeData.class)){
-            final CompositeData dict = source.convertTo(CompositeData.class);
+        if(source.canConvertTo(JmxTypeLiterals.COMPOSITE_DATA)){
+            final CompositeData dict = source.convertTo(JmxTypeLiterals.COMPOSITE_DATA);
             return new CompositeDataSupport(getAttributeMapType(source.type, options),
                     Utils.toArray(dict.getCompositeType().keySet(), String.class),
                     dict.values().toArray());
         }
         final Map<String, Object> m = new HashMap<>(10);
-        for(final Map.Entry<String, ?> entry: ((Map<String, ?>)source.convertTo(Map.class)).entrySet()){
+        for(final Map.Entry<String, ?> entry: source.convertTo(TypeLiterals.STRING_MAP).entrySet()){
             m.put(entry.getKey(), getValue(new AttributeValue<>(entry.getValue(), source.type.getColumnType(entry.getKey())), Collections.<String, String>emptyMap()));
         }
         return new CompositeDataSupport(getAttributeMapType(source.type, options), m);
     }
 
-    @SuppressWarnings("unchecked")
     private static TabularData toTabularData(final AttributeValue<ManagedEntityTabularType> source,
                                              final Map<String, String> options) throws OpenDataException{
         final TabularData result;
-        if(source.canConvertTo(TabularData.class)){
-            final TabularData data = source.convertTo(TabularData.class);
+        if(source.canConvertTo(JmxTypeLiterals.TABULAR_DATA)){
+            final TabularData data = source.convertTo(JmxTypeLiterals.TABULAR_DATA);
             result = new TabularDataSupport(getAttributeTabularType(source.type, options));
             for(final Object row: data.values())
                 if(row instanceof CompositeData){
@@ -157,8 +154,8 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
                 }
             return result;
         }
-        else if(source.canConvertTo(Table.class)) {
-            final Table<String> table = source.convertTo(Table.class);
+        else if(source.canConvertTo(TypeLiterals.STRING_COLUMN_TABLE)) {
+            final Table<String> table = source.convertTo(TypeLiterals.STRING_COLUMN_TABLE);
             result = new TabularDataSupport(getAttributeTabularType(source.type, options));
             for (int i = 0; i < table.getRowCount(); i++) {
                 final Map<String, Object> row = new HashMap<>(table.getColumns().size());
@@ -173,27 +170,27 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
 
     private static Object getValue(final AttributeValue<?> source, final Map<String, String> options) throws OpenDataException{
         if(supportsBoolean(source.type))
-            return source.convertTo(Boolean.class);
+            return source.convertTo(TypeLiterals.BOOLEAN);
         else if(supportsInt8(source.type))
-            return source.convertTo(Byte.class);
+            return source.convertTo(TypeLiterals.BYTE);
         else if(supportsInt16(source.type))
-            return source.convertTo(Short.class);
+            return source.convertTo(TypeLiterals.SHORT);
         else if(supportsInt32(source.type))
-            return source.convertTo(Integer.class);
+            return source.convertTo(TypeLiterals.INTEGER);
         else if(supportsInt64(source.type))
-            return source.convertTo(Long.class);
+            return source.convertTo(TypeLiterals.LONG);
         else if(supportsFloat(source.type))
-            return source.convertTo(Float.class);
+            return source.convertTo(TypeLiterals.FLOAT);
         else if(supportsDouble(source.type))
-            return source.convertTo(Double.class);
+            return source.convertTo(TypeLiterals.DOUBLE);
         else if(supportsUnixTime(source.type))
-            return source.convertTo(Date.class);
+            return source.convertTo(TypeLiterals.DATE);
         else if(supportsDecimal(source.type))
-            return source.convertTo(BigDecimal.class);
+            return source.convertTo(TypeLiterals.BIG_DECIMAL);
         else if(supportsInteger(source.type))
-            return source.convertTo(BigInteger.class);
+            return source.convertTo(TypeLiterals.BIG_INTEGER);
         else if(supportsString(source.type))
-            return source.convertTo(String.class);
+            return source.convertTo(TypeLiterals.STRING);
         else if(isArray(source.type))
             return source.rawValue;
         else if(isMap(source.type))
