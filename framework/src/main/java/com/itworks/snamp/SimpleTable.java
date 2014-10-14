@@ -473,4 +473,33 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
             throw new ReflectiveOperationException(e);
         }
     }
+
+    /**
+     * Returns a list of columns that saves the order.
+     * @param table The table value.
+     * @param <C> Type of the table columns.
+     * @return A list of ordered columns.
+     */
+    public static <C> List<C> getOrderedColumns(final Table<C> table){
+        return table != null ? new ArrayList<>(table.getColumns()) : null;
+    }
+
+    /**
+     * Returns an ordered list of column values at the specific row.
+     * @param table The table value.
+     * @param columns The ordered collection of columns.
+     * @param rowIndex The row number (zero-based).
+     * @param <C> Type of the table columns.
+     * @return A new ordered collection of column values at the specific row.
+     */
+    public static <C> List<?> getRow(final Table<C> table,
+                                     final List<C> columns,
+                                     final int rowIndex) {
+        if(table == null || columns == null || columns.isEmpty())
+            return Collections.emptyList();
+        final List<Object> result = new ArrayList<>(columns.size());
+        for (int i = 0; i < columns.size(); i++)
+            result.add(i, table.getCell(columns.get(i), rowIndex));
+        return result;
+    }
 }

@@ -7,6 +7,7 @@ import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.ManagedEntityType;
+import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeValue;
@@ -276,6 +277,17 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         @Override
         public ManagedEntityType getType() throws IllegalStateException{
             return getMetadataAndCheckState().getType();
+        }
+
+        /**
+         * Returns the resolved well-known type of the attribute.
+         * @return The resolved well-known type; or {@literal null}, if the managed entity type
+         * is not a part of well-known type system.
+         * @throws java.lang.IllegalStateException The accessor is disconnected from the managed resource connector.
+         * @see com.itworks.snamp.connectors.WellKnownTypeSystem
+         */
+        public Typed<?> getWellKnownType() throws IllegalStateException{
+            return WellKnownTypeSystem.getWellKnownType(getType());
         }
 
         /**

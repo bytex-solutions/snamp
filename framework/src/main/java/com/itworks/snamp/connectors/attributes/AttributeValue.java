@@ -3,8 +3,8 @@ package com.itworks.snamp.connectors.attributes;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityType;
-import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.itworks.snamp.internal.annotations.Internal;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.reflect.Typed;
 

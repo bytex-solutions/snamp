@@ -61,9 +61,8 @@ final class ManagementShell implements Command {
             try (final PrintWriter error = new PrintWriter(errStream)) {
                 final ConsoleReader reader = new ConsoleReader(inStream, outStream);
                 final PrintWriter output = new PrintWriter(reader.getOutput());
-
                 reader.setPrompt("ssh-adapter> ");
-                reader.addCompleter(HelpShellCommand.createCommandCompleter());
+                reader.addCompleter(HelpCommand.createCommandCompleter());
                 output.println("Welcome! You are connected to SNAMP SSH adapter.");
                 output.println("Print 'help' to see all available commands.");
                 output.println();
@@ -72,7 +71,7 @@ final class ManagementShell implements Command {
                 String command;
                 while (!Objects.equals(command = reader.readLine(), ExitCommand.COMMAND_NAME))
                     if (command != null && command.length() > 0) {
-                        doCommand(command, controller, output, error, logger);
+                        doCommand(command, controller, output, error);
                         output.flush();
                     }
                 if (callback != null) callback.onExit(0);
@@ -188,33 +187,37 @@ final class ManagementShell implements Command {
     }
 
     static Command createSshCommand(final String commandLine,
-                                 final AdapterController controller,
-                                 final Logger logger) {
+                                 final AdapterController controller) {
         final String[] parts = commandLine.split(COMMAND_DELIMITIER);
-        final ManagementShellCommand factory = createCommand(parts[0], controller, logger);
+        final ManagementShellCommand factory = createCommand(parts[0], controller);
         return factory.createSshCommand(ArrayUtils.remove(parts, 0));
     }
 
     static void doCommand(final String commandLine,
                                   final AdapterController controller,
                                   final PrintWriter outStream,
-                                  final PrintWriter errStream,
-                                  final Logger logger){
+                                  final PrintWriter errStream){
         final String[] parts = commandLine.split(COMMAND_DELIMITIER);
         doCommand(parts[0],
                 ArrayUtils.remove(parts, 0),
                 controller,
                 outStream,
-                errStream,
-                logger);
+                errStream);
     }
 
     private static ManagementShellCommand createCommand(final String command,
-                                                        final AdapterController controller,
-                                                        final Logger logger){
+                                                        final AdapterController controller){
         switch (command) {
-            case HelpShellCommand.COMMAND_NAME:
-                return new HelpShellCommand(controller);
+            case HelpCommand.COMMAND_NAME:
+                return new HelpCommand(controller);
+            case ExitCommand.COMMAND_NAME:
+                return new ExitCommand(controller);
+            case ListOfResourcesCommand.COMMAND_NAME:
+                return new ListOfResourcesCommand(controller);
+            case ListOfAttributesCommand.COMMAND_NAME:
+                return new ListOfAttributesCommand(controller);
+            case GetAttributeCommand.COMMAND_NAME:
+                return new GetAttributeCommand(controller);
             default:
                 return new UnknownShellCommand(command);
         }
@@ -224,9 +227,8 @@ final class ManagementShell implements Command {
                           final String[] arguments,
                           final AdapterController controller,
                           final PrintWriter outStream,
-                          final PrintWriter errStream,
-                          final Logger logger){
-        final ManagementShellCommand executor = createCommand(command, controller, logger);
+                          final PrintWriter errStream){
+        final ManagementShellCommand executor = createCommand(command, controller);
         executor.doCommand(arguments, outStream, errStream);
     }
 }

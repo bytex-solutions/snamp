@@ -94,6 +94,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         attribute = attributeFactory.create();
         attribute.setAttributeName("table");
         attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("columnBasedPrint", "true");
         attributes.put("7.1", attribute);
 
         attribute = attributeFactory.create();

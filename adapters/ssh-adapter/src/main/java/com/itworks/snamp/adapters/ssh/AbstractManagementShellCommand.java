@@ -22,6 +22,9 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
         public CommandException(final String message, final Object... args){
             super(String.format(message, args));
         }
+        public CommandException(final Throwable cause){
+            super(cause);
+        }
     }
 
     protected final AdapterController controller;

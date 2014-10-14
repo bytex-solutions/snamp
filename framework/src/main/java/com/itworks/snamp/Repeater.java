@@ -40,8 +40,8 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         FAILED
     }
 
-    private State state;
-    private Throwable exception;
+    private volatile State state;
+    private volatile Throwable exception;
     private final TimeSpan period;
     private RepeaterThread repeatThread;
 

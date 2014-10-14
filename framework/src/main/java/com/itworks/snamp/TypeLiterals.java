@@ -4,6 +4,7 @@ import org.apache.commons.lang3.reflect.TypeLiteral;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.reflect.Typed;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Calendar;
@@ -116,7 +117,30 @@ public final class TypeLiterals {
     public static final Typed<Calendar> CALENDAR = of(Calendar.class);
 
     public static <T> Typed<T> of(final Class<T> t) {
-        return TypeUtils.wrap(t);
+        return t != null ? new Typed<T>() {
+            @Override
+            public Type getType() {
+                return t;
+            }
+
+            @Override
+            public String toString() {
+                return t.toString();
+            }
+
+            @SuppressWarnings("EqualsBetweenInconvertibleTypes")
+            @Override
+            public boolean equals(final Object obj) {
+                return obj instanceof Typed<?> ?
+                        equals(((Typed<?>) obj).getType()) :
+                        t.equals(obj);
+            }
+
+            @Override
+            public int hashCode() {
+                return t.hashCode();
+            }
+        } : null;
     }
 
     @SuppressWarnings("unchecked")

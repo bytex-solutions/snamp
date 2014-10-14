@@ -21,4 +21,9 @@ final class SshAdapterConfigurationDescriptor {
 
     static final String PUBLIC_KEY_FILE_PARAM = "publicKeyFile";
     static final String PUBLIC_KEY_FILE_FORMAT_PARAM = "publicKeyFileFormat";
+
+    /**
+     * Represents attribute boolean option applied to tabular attribute.
+     */
+    static final String COLUMN_BASED_OUTPUT_PARAM = "columnBasedPrint";
 }

@@ -15,13 +15,13 @@ import java.io.PrintWriter;
  * @version 1.0
  * @since 1.0
  */
-final class HelpShellCommand extends AbstractManagementShellCommand {
+final class HelpCommand extends AbstractManagementShellCommand {
     static final String COMMAND_NAME = "help";
-    static final Options COMMAND_OPTIONS = new Options();
+    static final Options COMMAND_OPTIONS = EMPTY_OPTIONS;
 
     private final HelpFormatter formatter;
 
-    HelpShellCommand(final AdapterController controller){
+    HelpCommand(final AdapterController controller){
         super(controller);
         formatter = new HelpFormatter();
     }
@@ -58,11 +58,17 @@ final class HelpShellCommand extends AbstractManagementShellCommand {
      */
     @Override
     protected void doCommand(final CommandLine input, final PrintWriter output) {
-            printHelp(formatter, output, COMMAND_NAME, COMMAND_OPTIONS);
-            printHelp(formatter, output, ListOfResourcesCommand.COMMAND_NAME, ListOfResourcesCommand.COMMAND_OPTIONS);
+        printHelp(formatter, output, COMMAND_NAME, COMMAND_OPTIONS);
+        printHelp(formatter, output, ListOfResourcesCommand.COMMAND_NAME, ListOfResourcesCommand.COMMAND_OPTIONS);
+        printHelp(formatter, output, ListOfAttributesCommand.COMMAND_NAME, ListOfAttributesCommand.COMMAND_OPTIONS);
+        printHelp(formatter, output, GetAttributeCommand.COMMAND_NAME, GetAttributeCommand.COMMAND_OPTIONS);
     }
 
     static Completer createCommandCompleter(){
-        return new StringsCompleter(COMMAND_NAME, ListOfResourcesCommand.COMMAND_NAME, ExitCommand.COMMAND_NAME);
+        return new StringsCompleter(COMMAND_NAME,
+                ListOfResourcesCommand.COMMAND_NAME,
+                ExitCommand.COMMAND_NAME,
+                ListOfAttributesCommand.COMMAND_NAME,
+                GetAttributeCommand.COMMAND_NAME);
     }
 }

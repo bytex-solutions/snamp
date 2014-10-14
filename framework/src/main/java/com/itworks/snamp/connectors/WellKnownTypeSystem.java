@@ -4,6 +4,7 @@ import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeLiterals;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.Transformer;
+import org.apache.commons.lang3.reflect.Typed;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -710,5 +711,43 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                 };
             }
         }, TypeLiterals.STRING_COLUMN_TABLE);
+    }
+
+    /**
+     * Gets system type associated with the specified managed entity type descriptor.
+     * @param type Type of the managed entity.
+     * @return System type; or {@literal null}, if the specified managed entity is not a part
+     * of well-known type system.
+     */
+    public static Typed<?> getWellKnownType(final ManagedEntityType type){
+        if(supportsBoolean(type))
+            return TypeLiterals.BOOLEAN;
+        else if(supportsInt8(type))
+            return TypeLiterals.BYTE;
+        else if(supportsInt16(type))
+            return TypeLiterals.SHORT;
+        else if(supportsInt32(type))
+            return TypeLiterals.INTEGER;
+        else if(supportsInt64(type))
+            return TypeLiterals.LONG;
+        else if(supportsFloat(type))
+            return TypeLiterals.FLOAT;
+        else if(supportsDouble(type))
+            return TypeLiterals.DOUBLE;
+        else if(supportsInteger(type))
+            return TypeLiterals.BIG_INTEGER;
+        else if(supportsDecimal(type))
+            return TypeLiterals.BIG_DECIMAL;
+        else if(supportsUnixTime(type))
+            return TypeLiterals.DATE;
+        else if(supportsString(type))
+            return TypeLiterals.STRING;
+        else if(isArray(type))
+            return TypeLiterals.OBJECT_ARRAY;
+        else if(isMap(type))
+            return TypeLiterals.STRING_MAP;
+        else if(isTable(type))
+            return TypeLiterals.STRING_COLUMN_TABLE;
+        else return null;
     }
 }
