@@ -10,9 +10,13 @@ import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
 
 import java.io.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Represents management shell.
@@ -21,7 +25,21 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class ManagementShell implements Command {
-    private static final String COMMAND_DELIMITIER = "\\p{javaWhitespace}+";
+    private static final Pattern COMMAND_DELIMITIER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+
+    private static final class TtyOutputStream extends FilterOutputStream {
+        private TtyOutputStream(final OutputStream underlyingStream) {
+            super(underlyingStream);
+        }
+
+        @Override
+        public void write(final int i) throws IOException {
+            super.write(i);
+            // workaround for MacOSX and Linux reset line after CR..
+            if (i == ConsoleReader.CR.charAt(0))
+                super.write(ConsoleReader.RESET_LINE);
+        }
+    }
 
     private static final class Interpreter extends Thread {
         private final AdapterController controller;
@@ -38,17 +56,13 @@ final class ManagementShell implements Command {
                            final ExitCallback callback,
                            final Logger l) {
             this.controller = Objects.requireNonNull(controller, "controller is null.");
-            this.outStream = SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_MAC_OSX ?
-                    new FilterOutputStream(os){
-                        @Override
-                        public void write(final int i) throws IOException {
-                            super.write(i);
-                            // workaround for MacOSX!! reset line after CR..
-                            if(i == ConsoleReader.CR.charAt(0))
-                                super.write(ConsoleReader.RESET_LINE);
-                        }
-                    }: os;
-            this.errStream = Objects.requireNonNull(es, "es is null.");
+            if (SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_MAC_OSX) {
+                this.outStream = new TtyOutputStream(os);
+                this.errStream = new TtyOutputStream(es);
+            } else {
+                this.outStream = os;
+                this.errStream = es;
+            }
             this.inStream = Objects.requireNonNull(is, "is is null.");
             this.logger = Objects.requireNonNull(l, "l is null.");
             this.callback = callback;
@@ -60,6 +74,7 @@ final class ManagementShell implements Command {
         public void run() {
             try (final PrintWriter error = new PrintWriter(errStream)) {
                 final ConsoleReader reader = new ConsoleReader(inStream, outStream);
+                reader.setExpandEvents(false);
                 final PrintWriter output = new PrintWriter(reader.getOutput());
                 reader.setPrompt("ssh-adapter> ");
                 reader.addCompleter(HelpCommand.createCommandCompleter());
@@ -186,9 +201,27 @@ final class ManagementShell implements Command {
         interpreter.get().interrupt();
     }
 
+    private static String[] splitArguments(final String value){
+        final List<String> matchList = new LinkedList<>();
+        final Matcher regexMatcher = COMMAND_DELIMITIER.matcher(value);
+        while (regexMatcher.find()) {
+            if (regexMatcher.group(1) != null) {
+                // Add double-quoted string without the quotes
+                matchList.add(regexMatcher.group(1));
+            } else if (regexMatcher.group(2) != null) {
+                // Add single-quoted string without the quotes
+                matchList.add(regexMatcher.group(2));
+            } else {
+                // Add unquoted word
+                matchList.add(regexMatcher.group());
+            }
+        }
+        return matchList.toArray(new String[matchList.size()]);
+    }
+
     static Command createSshCommand(final String commandLine,
                                  final AdapterController controller) {
-        final String[] parts = commandLine.split(COMMAND_DELIMITIER);
+        final String[] parts = splitArguments(commandLine);
         final ManagementShellCommand factory = createCommand(parts[0], controller);
         return factory.createSshCommand(ArrayUtils.remove(parts, 0));
     }
@@ -197,7 +230,7 @@ final class ManagementShell implements Command {
                                   final AdapterController controller,
                                   final PrintWriter outStream,
                                   final PrintWriter errStream){
-        final String[] parts = commandLine.split(COMMAND_DELIMITIER);
+        final String[] parts = splitArguments(commandLine);
         doCommand(parts[0],
                 ArrayUtils.remove(parts, 0),
                 controller,
@@ -218,6 +251,8 @@ final class ManagementShell implements Command {
                 return new ListOfAttributesCommand(controller);
             case GetAttributeCommand.COMMAND_NAME:
                 return new GetAttributeCommand(controller);
+            case SetAttributeCommand.COMMAND_NAME:
+                return new SetAttributeCommand(controller);
             default:
                 return new UnknownShellCommand(command);
         }

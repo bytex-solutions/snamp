@@ -13,6 +13,7 @@ import java.io.PrintWriter;
  */
 final class ExitCommand extends AbstractManagementShellCommand {
     static final String COMMAND_NAME = "exit";
+    static final String COMMAND_DESC = "Close the current terminal session";
 
     public ExitCommand(final AdapterController controller) {
         super(controller);

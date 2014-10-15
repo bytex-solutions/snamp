@@ -12,8 +12,10 @@ import java.util.concurrent.TimeoutException;
  * @since 1.0
  */
 final class GetAttributeCommand extends AbstractManagementShellCommand {
+    static final String COMMAND_USAGE = "get <attribute-id>[, attribute-ids]";
     static final String COMMAND_NAME = "get";
-    static final Options COMMAND_OPTIONS = new Options();
+    static final Options COMMAND_OPTIONS = EMPTY_OPTIONS;
+    static final String COMMAND_DESC = "Display attribute value";
 
     public GetAttributeCommand(final AdapterController controller){
         super(controller);

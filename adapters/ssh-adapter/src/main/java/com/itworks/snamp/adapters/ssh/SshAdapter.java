@@ -124,6 +124,21 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                     for(final Map.Entry<String, String> option: accessor.entrySet())
                         output.println(String.format("%s = %s", option.getKey(), option.getValue()));
                 }
+
+                @Override
+                public boolean canRead() {
+                    return accessor.canRead();
+                }
+
+                @Override
+                public boolean canWrite() {
+                    return accessor.canWrite();
+                }
+
+                @Override
+                public boolean setValue(final Object value) throws TimeoutException{
+                    return accessor.setValue(value);
+                }
             };
         }
 

@@ -3,7 +3,6 @@ package com.itworks.snamp.adapters.ssh;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
@@ -20,6 +19,8 @@ final class ListOfResourcesCommand extends AbstractManagementShellCommand {
     static {
         COMMAND_OPTIONS = new Options();
     }
+
+    static final String COMMAND_DESC = "Display list of connected managed resources";
 
     ListOfResourcesCommand(final AdapterController controller) {
         super(controller);

@@ -17,6 +17,8 @@ import java.util.concurrent.TimeoutException;
 final class ListOfAttributesCommand extends AbstractManagementShellCommand {
     static final String COMMAND_NAME = "attr-list";
     static final Options COMMAND_OPTIONS = new Options();
+    static final String COMMAND_DESC = "Display attributes of connected managed resources";
+
     private static final String RESOURCE_NAME_OPT = "r";
     private static final String SHOW_NAMES_OPT = "n";
     private static final String SHOW_DETAILS_OPT = "d";
@@ -43,7 +45,7 @@ final class ListOfAttributesCommand extends AbstractManagementShellCommand {
                                  final PrintWriter output) throws TimeoutException {
         for (final String attributeID : controller.getAttributes(resourceName)){
             final SshAttributeView attr = controller.getAttribute(attributeID);
-            output.println(withNames ? String.format("ID: %s NAME: %s", attributeID, attr.getName()) : attributeID);
+            output.println(withNames ? String.format("ID: %s NAME: %s CAN_READ: %s CAN_WRITE %s", attributeID, attr.getName(), attr.canRead(), attr.canWrite()) : attributeID);
             if(details) {
                 attr.printOptions(output);
                 output.println();

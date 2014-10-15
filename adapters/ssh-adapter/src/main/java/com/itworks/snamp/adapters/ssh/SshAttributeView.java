@@ -12,7 +12,13 @@ import java.util.concurrent.TimeoutException;
  */
 interface SshAttributeView {
     void printValue(final PrintWriter output) throws TimeoutException;
+
     void printOptions(final PrintWriter output);
 
     String getName();
+
+    boolean canRead();
+    boolean canWrite();
+
+    boolean setValue(final Object value) throws TimeoutException;
 }

@@ -46,6 +46,7 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
             doCommand(input, outStream);
         } catch (final ParseException | CommandException e) {
             errStream.println(e.getMessage());
+            errStream.flush();
         }
     }
 

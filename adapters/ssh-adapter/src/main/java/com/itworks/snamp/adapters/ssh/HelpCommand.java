@@ -17,6 +17,7 @@ import java.io.PrintWriter;
  */
 final class HelpCommand extends AbstractManagementShellCommand {
     static final String COMMAND_NAME = "help";
+    private static final String COMMAND_DESC = "Display a set of available commands";
     static final Options COMMAND_OPTIONS = EMPTY_OPTIONS;
 
     private final HelpFormatter formatter;
@@ -24,16 +25,18 @@ final class HelpCommand extends AbstractManagementShellCommand {
     HelpCommand(final AdapterController controller){
         super(controller);
         formatter = new HelpFormatter();
+        formatter.setSyntaxPrefix("");
     }
 
     private static void printHelp(final HelpFormatter formatter,
                              final PrintWriter writer,
                              final String commandName,
+                             final String commandDescr,
                              final Options opts) {
         formatter.printHelp(writer,
                 HelpFormatter.DEFAULT_WIDTH,
                 commandName,
-                null,
+                commandDescr,
                 opts,
                 HelpFormatter.DEFAULT_LEFT_PAD,
                 HelpFormatter.DEFAULT_DESC_PAD,
@@ -58,10 +61,12 @@ final class HelpCommand extends AbstractManagementShellCommand {
      */
     @Override
     protected void doCommand(final CommandLine input, final PrintWriter output) {
-        printHelp(formatter, output, COMMAND_NAME, COMMAND_OPTIONS);
-        printHelp(formatter, output, ListOfResourcesCommand.COMMAND_NAME, ListOfResourcesCommand.COMMAND_OPTIONS);
-        printHelp(formatter, output, ListOfAttributesCommand.COMMAND_NAME, ListOfAttributesCommand.COMMAND_OPTIONS);
-        printHelp(formatter, output, GetAttributeCommand.COMMAND_NAME, GetAttributeCommand.COMMAND_OPTIONS);
+        printHelp(formatter, output, COMMAND_NAME, COMMAND_DESC, COMMAND_OPTIONS);
+        printHelp(formatter, output, ListOfResourcesCommand.COMMAND_NAME, ListOfResourcesCommand.COMMAND_DESC, ListOfResourcesCommand.COMMAND_OPTIONS);
+        printHelp(formatter, output, ListOfAttributesCommand.COMMAND_NAME, ListOfAttributesCommand.COMMAND_DESC, ListOfAttributesCommand.COMMAND_OPTIONS);
+        printHelp(formatter, output, GetAttributeCommand.COMMAND_USAGE, GetAttributeCommand.COMMAND_DESC, GetAttributeCommand.COMMAND_OPTIONS);
+        printHelp(formatter, output, SetAttributeCommand.COMMAND_USAGE, SetAttributeCommand.COMMAND_DESC, SetAttributeCommand.COMMAND_OPTIONS);
+        printHelp(formatter, output, ExitCommand.COMMAND_NAME, ExitCommand.COMMAND_DESC, COMMAND_OPTIONS);
     }
 
     static Completer createCommandCompleter(){
@@ -69,6 +74,7 @@ final class HelpCommand extends AbstractManagementShellCommand {
                 ListOfResourcesCommand.COMMAND_NAME,
                 ExitCommand.COMMAND_NAME,
                 ListOfAttributesCommand.COMMAND_NAME,
-                GetAttributeCommand.COMMAND_NAME);
+                GetAttributeCommand.COMMAND_NAME,
+                SetAttributeCommand.COMMAND_NAME);
     }
 }
