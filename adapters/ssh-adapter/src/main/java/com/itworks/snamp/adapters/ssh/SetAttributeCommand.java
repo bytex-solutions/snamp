@@ -74,6 +74,6 @@ final class SetAttributeCommand extends AbstractManagementShellCommand {
             else fmt = null;
             setScalarValue(arguments[0], arguments[1], fmt, output);
         }
-        else throw new CommandException("Attribute value is not specified");
+        else throw invalidArgFormat();
     }
 }

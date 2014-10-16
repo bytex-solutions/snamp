@@ -112,6 +112,6 @@ final class SetArrayCommand extends AbstractManagementShellCommand {
                 return;
             }
         }
-        throw new CommandException("Invalid command format");
+        throw invalidArgFormat();
     }
 }

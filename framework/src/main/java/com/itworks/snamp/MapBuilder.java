@@ -188,4 +188,12 @@ public final class MapBuilder<K, V> implements Iterable<Entry<K, V>> {
             }
         };
     }
+
+    public static Map<String, Object> toMap(final Properties props){
+        if(props == null) return null;
+        final Map<String, Object> result = new HashMap<>(props.size());
+        for(final String key: props.stringPropertyNames())
+            result.put(key, props.getProperty(key));
+        return result;
+    }
 }

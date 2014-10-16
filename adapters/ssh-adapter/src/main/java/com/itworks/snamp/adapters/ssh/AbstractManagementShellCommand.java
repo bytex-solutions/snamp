@@ -54,4 +54,8 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
     public final Command createSshCommand(final String[] arguments) {
         return null;
     }
+
+    protected static CommandException invalidArgFormat(){
+        return new CommandException("Invalid command format");
+    }
 }

@@ -142,6 +142,33 @@ interface SshAttributeView {
         }
     }
 
+    static final class UpdateMapTransformation implements ValueTransformation<Map<String, Object>, Boolean>{
+
+        private static boolean updateMap(final Map<String, Object> from,
+                                         final Map<String, Object> to,
+                                         final ManagedEntityTabularType type,
+                                         final AttributeAccessor output) throws TimeoutException{
+            for(final Map.Entry<String, Object> entry: from.entrySet()) {
+                final ManagedEntityType keyType = type.getColumnType(entry.getKey());
+                final Typed<?> keyJavaType = WellKnownTypeSystem.getWellKnownType(keyType);
+                if(keyJavaType == null) return false;
+                to.put(entry.getKey(), keyType.getProjection(keyJavaType).convertFrom(entry.getValue()));
+            }
+            return output.setValue(to);
+        }
+
+        @Override
+        public Boolean transform(final Map<String, Object> arg, final AttributeAccessor input) throws TimeoutException {
+            final Typed<?> elementJavaType = input.getWellKnownType();
+            if(elementJavaType == null) return false;
+            final Object map = input.getValue(elementJavaType, null);
+            if(TypeLiterals.isInstance(map, TypeLiterals.STRING_MAP)){
+                return updateMap(arg, TypeLiterals.cast(map, TypeLiterals.STRING_MAP), (ManagedEntityTabularType)input.getType(), input);
+            }
+            else return false;
+        }
+    }
+
     void printValue(final PrintWriter output) throws TimeoutException;
 
     <I, O> O applyTransformation(final Class<? extends ValueTransformation<I, O>> transformation, final I arg) throws ReflectiveOperationException, TimeoutException;

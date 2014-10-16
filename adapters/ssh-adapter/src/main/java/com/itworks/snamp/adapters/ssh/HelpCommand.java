@@ -67,6 +67,7 @@ final class HelpCommand extends AbstractManagementShellCommand {
         printHelp(formatter, output, GetAttributeCommand.COMMAND_USAGE, GetAttributeCommand.COMMAND_DESC, GetAttributeCommand.COMMAND_OPTIONS);
         printHelp(formatter, output, SetAttributeCommand.COMMAND_USAGE, SetAttributeCommand.COMMAND_DESC, SetAttributeCommand.COMMAND_OPTIONS);
         printHelp(formatter, output, SetArrayCommand.COMMAND_USAGE, SetArrayCommand.COMMAND_DESC, SetArrayCommand.COMMAND_OPTIONS);
+        printHelp(formatter, output, SetMapCommand.COMMAND_USAGE, SetMapCommand.COMMAND_DESC, SetMapCommand.COMMAND_OPTIONS);
         printHelp(formatter, output, ExitCommand.COMMAND_NAME, ExitCommand.COMMAND_DESC, COMMAND_OPTIONS);
     }
 
@@ -77,6 +78,7 @@ final class HelpCommand extends AbstractManagementShellCommand {
                 ListOfAttributesCommand.COMMAND_NAME,
                 GetAttributeCommand.COMMAND_NAME,
                 SetAttributeCommand.COMMAND_NAME,
-                SetArrayCommand.COMMAND_NAME);
+                SetArrayCommand.COMMAND_NAME,
+                SetMapCommand.COMMAND_NAME);
     }
 }
