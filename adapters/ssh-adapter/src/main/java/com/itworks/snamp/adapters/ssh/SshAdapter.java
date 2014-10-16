@@ -139,6 +139,12 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                 public boolean setValue(final Object value) throws TimeoutException{
                     return accessor.setValue(value);
                 }
+
+                @Override
+                public <I, O> O applyTransformation(final Class<? extends ValueTransformation<I, O>> transformation, final I arg) throws ReflectiveOperationException, TimeoutException{
+                    final ValueTransformation<I, O> t = transformation.newInstance();
+                    return t.transform(arg, accessor);
+                }
             };
         }
 

@@ -253,6 +253,8 @@ final class ManagementShell implements Command {
                 return new GetAttributeCommand(controller);
             case SetAttributeCommand.COMMAND_NAME:
                 return new SetAttributeCommand(controller);
+            case SetArrayCommand.COMMAND_NAME:
+                return new SetArrayCommand(controller);
             default:
                 return new UnknownShellCommand(command);
         }

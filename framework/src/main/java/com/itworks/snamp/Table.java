@@ -62,13 +62,24 @@ public interface Table<COLUMN> {
 
     /**
      * Adds a new row to the end of the table.
-     * @param values The values of the row.
+     * @param values The row to add.
      * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
      * @throws ClassCastException The value type is not compliant with column type.
      * @throws IllegalArgumentException The count of values doesn't match to column count.
      */
     @ThreadSafe(false)
     void addRow(final Map<COLUMN, ?> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
+
+    /**
+     * Inserts the row into this table.
+     * @param index Insertion position.
+     * @param values The row to insert.
+     * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
+     * @throws ClassCastException The value type is not compliant with column type.
+     * @throws IllegalArgumentException The count of values doesn't match to column count.
+     */
+    @ThreadSafe(false)
+    void insertRow(final int index, final Map<COLUMN, ?> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
 
     /**
      * Gets row by its index.
@@ -86,4 +97,15 @@ public interface Table<COLUMN> {
     @SuppressWarnings("UnusedDeclaration")
     @ThreadSafe(false)
     void removeRow(final int rowIndex) throws UnsupportedOperationException;
+
+    /**
+     * Updates the whole row.
+     * @param index Zero-based index of the row.
+     * @param row A new row.
+     * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
+     * @throws ClassCastException The value type is not compliant with column type.
+     * @throws IllegalArgumentException The count of values doesn't match to column count.
+     */
+    @ThreadSafe(false)
+    void setRow(final int index, final Map<COLUMN, Object> row) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
 }

@@ -102,7 +102,12 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
         this(new Factory<Map<COLUMN, Class<?>>>() {
             @Override
             public Map<COLUMN, Class<?>> create() {
-                return new HashMap<>(cols.length);
+                switch (cols.length){
+                    case 1:
+                    case 2:
+                    case 3: return new Flat3Map<>();
+                    default: return new HashMap<>(cols.length);
+                }
             }
         }, 5);
         for (final Map.Entry<COLUMN, Class<?>> c : cols)
@@ -126,7 +131,14 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
         this(new Factory<Map<COLUMN, Class<?>>>() {
             @Override
             public Map<COLUMN, Class<?>> create() {
-                return new HashMap<>(columns);
+                switch (columns.size()) {
+                    case 1:
+                    case 2:
+                    case 3:
+                        return new Flat3Map<>(columns);
+                    default:
+                        return new HashMap<>(columns);
+                }
             }
         }, rowCapacity);
     }
@@ -190,7 +202,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
         this(new Factory<Map<COLUMN, Class<?>>>() {
             @Override
             public Flat3Map<COLUMN, Class<?>> create() {
-                return new Flat3Map<COLUMN, Class<?>>();
+                return new Flat3Map<>();
             }
         },
         rowCapacity);
@@ -200,7 +212,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     }
 
     public static <COLUMN> SimpleTable<COLUMN> fromRow(final Map<COLUMN, ?> row) {
-        final SimpleTable<COLUMN> result = new SimpleTable<COLUMN>(new Closure<Put<COLUMN, Class<?>>>() {
+        final SimpleTable<COLUMN> result = new SimpleTable<>(new Closure<Put<COLUMN, Class<?>>>() {
             @Override
             public void execute(final Put<COLUMN, Class<?>> input) {
                 for (final Map.Entry<COLUMN, ?> entry : row.entrySet())
@@ -320,7 +332,23 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     @Override
     public final void addRow(final Map<COLUMN, ?> values) throws IllegalArgumentException {
         if(values.size() < _columns.size()) throw new IllegalArgumentException(String.format("Expected %s values", _columns.size()));
-        add(new HashMap<>(values));
+        super.add(new HashMap<>(values));
+    }
+
+    /**
+     * Inserts the row into this table.
+     *
+     * @param index  Insertion position.
+     * @param values The row to insert.
+     * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
+     * @throws ClassCastException            The value type is not compliant with column type.
+     * @throws IllegalArgumentException      The count of values doesn't match to column count.
+     */
+    @Override
+    public void insertRow(final int index, final Map<COLUMN, ?> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException {
+        if (values.size() < _columns.size())
+            throw new IllegalArgumentException(String.format("Expected %s values", _columns.size()));
+        else super.add(index, new HashMap<COLUMN, Object>(values));
     }
 
     /**
@@ -501,5 +529,21 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
         for (int i = 0; i < columns.size(); i++)
             result.add(i, table.getCell(columns.get(i), rowIndex));
         return result;
+    }
+
+    /**
+     * Updates the whole row.
+     *
+     * @param index Zero-based index of the row.
+     * @param row   A new row.
+     * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
+     * @throws ClassCastException            The value type is not compliant with column type.
+     * @throws IllegalArgumentException      The count of values doesn't match to column count.
+     */
+    @Override
+    public void setRow(final int index, final Map<COLUMN, Object> row) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException {
+        if(row == null) throw new IllegalArgumentException("row is null.");
+        else if(row.size() < _columns.size()) throw new IllegalArgumentException("Row is not well formed");
+        else super.set(index, row);
     }
 }

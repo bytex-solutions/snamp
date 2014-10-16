@@ -720,7 +720,9 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * of well-known type system.
      */
     public static Typed<?> getWellKnownType(final ManagedEntityType type){
-        if(supportsBoolean(type))
+        if(type == null)
+            return null;
+        else if(supportsBoolean(type))
             return TypeLiterals.BOOLEAN;
         else if(supportsInt8(type))
             return TypeLiterals.BYTE;

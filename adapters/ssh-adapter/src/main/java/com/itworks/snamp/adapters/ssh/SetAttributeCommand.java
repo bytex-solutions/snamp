@@ -50,12 +50,13 @@ final class SetAttributeCommand extends AbstractManagementShellCommand {
                                 final Format fmt,
                                 final PrintWriter output) throws CommandException {
         final SshAttributeView attr = controller.getAttribute(attributeID);
-        if (attr == null) throw new CommandException("Command %s doesn't exist.", attributeID);
+        if (attr == null) throw new CommandException("Attribute %s doesn't exist.", attributeID);
         try {
             output.println(attr.setValue(fmt != null ? fmt.parseObject(value) : value) ?
                     "OK" :
                     "Unable to set value");
         } catch (final ParseException | TimeoutException e) {
+
             throw new CommandException(e);
         }
     }

@@ -23,7 +23,7 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
             super(String.format(message, args));
         }
         public CommandException(final Throwable cause){
-            super(cause);
+            super(cause.getMessage(), cause);
         }
     }
 

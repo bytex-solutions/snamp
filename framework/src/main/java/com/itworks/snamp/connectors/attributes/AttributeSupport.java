@@ -53,7 +53,7 @@ public interface AttributeSupport {
     /**
      * Writes a set of managementAttributes inside of the transaction.
      * @param values The dictionary of managementAttributes keys and its values.
-     * @param writeTimeout
+     * @param writeTimeout The attribute value write operation timeout.
      * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
      * @throws TimeoutException
      */
