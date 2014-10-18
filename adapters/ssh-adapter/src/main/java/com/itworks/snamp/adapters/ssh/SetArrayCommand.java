@@ -89,22 +89,22 @@ final class SetArrayCommand extends AbstractManagementShellCommand {
     @Override
     protected void doCommand(final CommandLine input, final PrintWriter output) throws CommandException {
         final String[] arguments = input.getArgs();
-        if(arguments.length == 1) {
+        if (arguments.length == 1 && input.hasOption(IDX_OPT)) {
             final SshAttributeView attr = controller.getAttribute(arguments[0]);
-            if(attr == null) throw new CommandException("Attribute %s doesn't exist", arguments[0]);
+            if (attr == null) throw new CommandException("Attribute %s doesn't exist", arguments[0]);
             final Format fmt;
-            if(input.hasOption(DT_FMT_OPT))
+            if (input.hasOption(DT_FMT_OPT))
                 fmt = new SimpleDateFormat(input.getOptionValue(DT_FMT_OPT));
-            else if(input.hasOption(NUM_FMT_OPT))
+            else if (input.hasOption(NUM_FMT_OPT))
                 fmt = new DecimalFormat(input.getOptionValue(NUM_FMT_OPT));
             else fmt = null;
             //delete element
-            if (input.hasOption(IDX_OPT) && input.hasOption(DEL_OPT)) {
+            if (input.hasOption(DEL_OPT)) {
                 deleteArrayElement(attr, input.getOptionValue(IDX_OPT), output);
                 return;
             }
             //update or insert element
-            else if(input.hasOption(IDX_OPT) && input.hasOption(VAL_OPT)) {
+            else if (input.hasOption(VAL_OPT)) {
                 if (input.hasOption(INS_OPT))
                     insertArrayElement(attr, input.getOptionValue(IDX_OPT), input.getOptionValue(VAL_OPT), fmt, output);
                 else

@@ -64,10 +64,16 @@ final class HelpCommand extends AbstractManagementShellCommand {
         printHelp(formatter, output, COMMAND_NAME, COMMAND_DESC, COMMAND_OPTIONS);
         printHelp(formatter, output, ListOfResourcesCommand.COMMAND_NAME, ListOfResourcesCommand.COMMAND_DESC, ListOfResourcesCommand.COMMAND_OPTIONS);
         printHelp(formatter, output, ListOfAttributesCommand.COMMAND_NAME, ListOfAttributesCommand.COMMAND_DESC, ListOfAttributesCommand.COMMAND_OPTIONS);
+        output.println();
         printHelp(formatter, output, GetAttributeCommand.COMMAND_USAGE, GetAttributeCommand.COMMAND_DESC, GetAttributeCommand.COMMAND_OPTIONS);
         printHelp(formatter, output, SetAttributeCommand.COMMAND_USAGE, SetAttributeCommand.COMMAND_DESC, SetAttributeCommand.COMMAND_OPTIONS);
+        output.println();
         printHelp(formatter, output, SetArrayCommand.COMMAND_USAGE, SetArrayCommand.COMMAND_DESC, SetArrayCommand.COMMAND_OPTIONS);
+        output.println();
         printHelp(formatter, output, SetMapCommand.COMMAND_USAGE, SetMapCommand.COMMAND_DESC, SetMapCommand.COMMAND_OPTIONS);
+        output.println();
+        printHelp(formatter, output, SetTableCommand.COMMAND_USAGE, SetTableCommand.COMMAND_DESC, SetTableCommand.COMMAND_OPTIONS);
+        output.println();
         printHelp(formatter, output, ExitCommand.COMMAND_NAME, ExitCommand.COMMAND_DESC, COMMAND_OPTIONS);
     }
 
@@ -79,6 +85,7 @@ final class HelpCommand extends AbstractManagementShellCommand {
                 GetAttributeCommand.COMMAND_NAME,
                 SetAttributeCommand.COMMAND_NAME,
                 SetArrayCommand.COMMAND_NAME,
-                SetMapCommand.COMMAND_NAME);
+                SetMapCommand.COMMAND_NAME,
+                SetTableCommand.COMMAND_NAME);
     }
 }

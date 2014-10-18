@@ -1,19 +1,23 @@
 package com.itworks.snamp.testing;
 
-import com.itworks.snamp.configuration.*;
-import com.itworks.snamp.licensing.*;
+import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.configuration.ConfigurationManager;
+import com.itworks.snamp.licensing.AbstractLicenseLimitations;
+import com.itworks.snamp.licensing.LicenseReader;
+import com.itworks.snamp.licensing.LicensingException;
 import org.apache.commons.collections4.Factory;
 import org.junit.After;
 import org.junit.Before;
-import org.ops4j.pax.exam.options.*;
+import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 
 import javax.inject.Inject;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
 import static com.itworks.snamp.configuration.ConfigurationManager.CONFIGURATION_FILE_PROPERTY;
 import static com.itworks.snamp.licensing.LicenseReader.LICENSE_FILE_PROPERTY;
-import static org.ops4j.pax.exam.CoreOptions.bundle;
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * Represents an abstract class for all SNAMP-based integration tests.
@@ -50,8 +54,8 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     }
 
     private static AbstractProvisionOption<?>[] buildDependencies(AbstractProvisionOption<?>[] deps){
-        deps = concat(deps, bundle("http://apache-mirror.rbc.ru/pub/apache//felix/org.apache.felix.log-1.0.1.jar"),
-                bundle("http://apache-mirror.rbc.ru/pub/apache//felix/org.apache.felix.eventadmin-1.4.2.jar"));
+        deps = concat(deps, mavenBundle("org.apache.felix", "org.apache.felix.log", "1.0.1"),
+                mavenBundle("org.apache.felix", "org.apache.felix.eventadmin", "1.4.2"));
         return concat(SnampArtifact.makeBasicSet(), deps);
     }
 

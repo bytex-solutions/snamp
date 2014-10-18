@@ -104,14 +104,20 @@ interface SshAttributeView {
                                               final ManagedEntityTabularType type,
                                               final boolean insert,
                                               final AttributeAccessor output) throws TimeoutException{
-            for(final String column: type.getColumns()) {
+            for(final String column: row.keySet()) {
                 final ManagedEntityType columnType = type.getColumnType(column);
                 final Typed<?> columnJavaType = WellKnownTypeSystem.getWellKnownType(columnType);
+                if(columnJavaType == null) continue;
                 row.put(column, columnType.getProjection(columnJavaType).convertFrom(row.get(column)));
             }
             if(insert)
                 table.insertRow(index, row);
-            else table.setRow(index, row);
+            else {
+                final Map<String, Object> source = table.getRow(index);
+                //merge and replace the row
+                source.putAll(row);
+                table.setRow(index, source);
+            }
             return output.setValue(table);
         }
 
