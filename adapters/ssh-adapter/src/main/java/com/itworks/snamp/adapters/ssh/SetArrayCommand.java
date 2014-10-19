@@ -35,8 +35,8 @@ final class SetArrayCommand extends AbstractManagementShellCommand {
         COMMAND_OPTIONS.addOption(new Option(DT_FMT_OPT, "dateFormat", true, "Date/time parsing format"));
     }
 
-    SetArrayCommand(final AdapterController controller){
-        super(controller);
+    SetArrayCommand(final CommandExecutionContext context){
+        super(context);
     }
 
     @Override
@@ -90,7 +90,7 @@ final class SetArrayCommand extends AbstractManagementShellCommand {
     protected void doCommand(final CommandLine input, final PrintWriter output) throws CommandException {
         final String[] arguments = input.getArgs();
         if (arguments.length == 1 && input.hasOption(IDX_OPT)) {
-            final SshAttributeView attr = controller.getAttribute(arguments[0]);
+            final SshAttributeView attr = getAdapterController().getAttribute(arguments[0]);
             if (attr == null) throw new CommandException("Attribute %s doesn't exist", arguments[0]);
             final Format fmt;
             if (input.hasOption(DT_FMT_OPT))
@@ -112,6 +112,6 @@ final class SetArrayCommand extends AbstractManagementShellCommand {
                 return;
             }
         }
-        throw invalidArgFormat();
+        throw invalidCommandFormat();
     }
 }

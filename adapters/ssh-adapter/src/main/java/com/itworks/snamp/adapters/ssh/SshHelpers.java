@@ -12,11 +12,12 @@ import java.util.logging.Logger;
 final class SshHelpers {
     static final String ADAPTER_NAME = "ssh";
 
+
     private SshHelpers(){
 
     }
 
-    public static Logger getLogger(){
+    static Logger getLogger(){
         return AbstractResourceAdapter.getLogger(ADAPTER_NAME);
     }
 

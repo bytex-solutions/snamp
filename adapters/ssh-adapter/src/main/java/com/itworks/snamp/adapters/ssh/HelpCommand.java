@@ -22,8 +22,8 @@ final class HelpCommand extends AbstractManagementShellCommand {
 
     private final HelpFormatter formatter;
 
-    HelpCommand(final AdapterController controller){
-        super(controller);
+    HelpCommand(final CommandExecutionContext context){
+        super(context);
         formatter = new HelpFormatter();
         formatter.setSyntaxPrefix("");
     }
@@ -73,6 +73,8 @@ final class HelpCommand extends AbstractManagementShellCommand {
         printHelp(formatter, output, SetMapCommand.COMMAND_USAGE, SetMapCommand.COMMAND_DESC, SetMapCommand.COMMAND_OPTIONS);
         output.println();
         printHelp(formatter, output, SetTableCommand.COMMAND_USAGE, SetTableCommand.COMMAND_DESC, SetTableCommand.COMMAND_OPTIONS);
+        output.println();
+        printHelp(formatter, output, NotificationsCommand.COMMAND_USAGE, NotificationsCommand.COMMAND_DESC, NotificationsCommand.COMMAND_OPTIONS);
         output.println();
         printHelp(formatter, output, ExitCommand.COMMAND_NAME, ExitCommand.COMMAND_DESC, COMMAND_OPTIONS);
     }

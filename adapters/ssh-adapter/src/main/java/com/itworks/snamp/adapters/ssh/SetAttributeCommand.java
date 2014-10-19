@@ -36,8 +36,8 @@ final class SetAttributeCommand extends AbstractManagementShellCommand {
         COMMAND_OPTIONS.addOption(opt);
     }
 
-    SetAttributeCommand(final AdapterController controller){
-        super(controller);
+    SetAttributeCommand(final CommandExecutionContext context){
+        super(context);
     }
 
     @Override
@@ -49,7 +49,7 @@ final class SetAttributeCommand extends AbstractManagementShellCommand {
                                 final String value,
                                 final Format fmt,
                                 final PrintWriter output) throws CommandException {
-        final SshAttributeView attr = controller.getAttribute(attributeID);
+        final SshAttributeView attr = getAdapterController().getAttribute(attributeID);
         if (attr == null) throw new CommandException("Attribute %s doesn't exist.", attributeID);
         try {
             output.println(attr.setValue(fmt != null ? fmt.parseObject(value) : value) ?
@@ -74,6 +74,6 @@ final class SetAttributeCommand extends AbstractManagementShellCommand {
             else fmt = null;
             setScalarValue(arguments[0], arguments[1], fmt, output);
         }
-        else throw invalidArgFormat();
+        else throw invalidCommandFormat();
     }
 }

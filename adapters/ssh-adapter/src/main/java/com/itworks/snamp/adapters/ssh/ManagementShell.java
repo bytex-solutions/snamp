@@ -1,18 +1,27 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.Switch;
 import com.itworks.snamp.WriteOnceRef;
+import com.itworks.snamp.connectors.notifications.Notification;
 import jline.console.ConsoleReader;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.sshd.common.Factory;
+import org.apache.sshd.common.Session;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
+import org.apache.sshd.server.SessionAware;
+import org.apache.sshd.server.session.ServerSession;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -24,56 +33,94 @@ import java.util.regex.Pattern;
  * @version 1.0
  * @since 1.0
  */
-final class ManagementShell implements Command {
+final class ManagementShell implements Command, SessionAware {
     private static final Pattern COMMAND_DELIMITIER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 
-    private static final class TtyOutputStream extends FilterOutputStream {
-        private TtyOutputStream(final OutputStream underlyingStream) {
-            super(underlyingStream);
+    private static final class CommandExecutionContextImpl extends AbstractAggregator implements CommandExecutionContext{
+        private final AdapterController controller;
+        private final ExecutorService executor;
+        private final Logger logger;
+        private final Session session;
+
+        private CommandExecutionContextImpl(final AdapterController controller,
+                                            final ExecutorService executor,
+                                            final Logger logger){
+            this(controller, executor, null, logger);
         }
 
+        private CommandExecutionContextImpl(final AdapterController controller,
+                                            final ExecutorService executor,
+                                            final Session session,
+                                            final Logger logger){
+            this.controller = Objects.requireNonNull(controller, "controller is null.");
+            this.executor = Objects.requireNonNull(executor, "executor is null.");
+            this.logger = Objects.requireNonNull(logger, "logger is null.");
+            this.session = session;
+        }
+
+        /**
+         * Retrieves the aggregated object.
+         *
+         * @param objectType Type of the aggregated object.
+         * @return An instance of the requested object; or {@literal null} if object is not available.
+         */
         @Override
-        public void write(final int i) throws IOException {
-            super.write(i);
-            // workaround for MacOSX and Linux reset line after CR..
-            if (i == ConsoleReader.CR.charAt(0))
-                super.write(ConsoleReader.RESET_LINE);
+        public <T> T queryObject(final Class<T> objectType) {
+            return Switch.<Class<?>, Object>init()
+                    .equals(EXECUTOR, this.executor)
+                    .equals(CONTROLLER, this.controller)
+                    .equals(LOGGER, this.logger)
+                    .equals(SESSION, this.session)
+                    .execute(objectType, objectType);
         }
     }
 
-    private static final class Interpreter extends Thread {
+    private static final class Interpreter extends Thread implements NotificationListener {
         private final AdapterController controller;
-        private final InputStream inStream;
-        private final OutputStream outStream;
+        private final ConsoleReader reader;
         private final OutputStream errStream;
         private final ExitCallback callback;
         private final Logger logger;
+        private final ExecutorService executor;
+        private final Session session;
 
         public Interpreter(final AdapterController controller,
                            final InputStream is,
-                           final OutputStream os,
+                           OutputStream os,
                            final OutputStream es,
                            final ExitCallback callback,
-                           final Logger l) {
+                           final ExecutorService executor,
+                           final Session session,
+                           final Logger l) throws IOException {
             this.controller = Objects.requireNonNull(controller, "controller is null.");
-            if (SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_MAC_OSX) {
-                this.outStream = new TtyOutputStream(os);
+            if (TtyOutputStream.needToApply()) {
+                os = new TtyOutputStream(os);
                 this.errStream = new TtyOutputStream(es);
             } else {
-                this.outStream = os;
                 this.errStream = es;
             }
-            this.inStream = Objects.requireNonNull(is, "is is null.");
+            this.reader = new ConsoleReader(Objects.requireNonNull(is, "is is null."), os);
             this.logger = Objects.requireNonNull(l, "l is null.");
+            this.session = Objects.requireNonNull(session, "session is null.");
             this.callback = callback;
+            this.executor = Objects.requireNonNull(executor, "executor is null.");
             setDaemon(true);
             setName("SSH Adapter Shell Interpreter");
+            NotificationManager.setNotificationListenerID(session, controller.addNotificationListener(this));
+            NotificationManager.createNotificationManagerWithDisabledNotifs(session, controller);
+        }
+
+        public long getListenerID(){
+            return NotificationManager.getNotificationListenerID(session);
+        }
+
+        private NotificationManager getNotificationManager(){
+            return NotificationManager.getNotificationManager(session);
         }
 
         @Override
         public void run() {
             try (final PrintWriter error = new PrintWriter(errStream)) {
-                final ConsoleReader reader = new ConsoleReader(inStream, outStream);
                 reader.setExpandEvents(false);
                 final PrintWriter output = new PrintWriter(reader.getOutput());
                 reader.setPrompt("ssh-adapter> ");
@@ -86,7 +133,9 @@ final class ManagementShell implements Command {
                 String command;
                 while (!Objects.equals(command = reader.readLine(), ExitCommand.COMMAND_NAME))
                     if (command != null && command.length() > 0) {
-                        doCommand(command, controller, output, error);
+                        doCommand(command,
+                                new CommandExecutionContextImpl(controller, executor, session, logger),
+                                output, error);
                         output.flush();
                     }
                 if (callback != null) callback.onExit(0);
@@ -94,6 +143,18 @@ final class ManagementShell implements Command {
                 logger.log(Level.SEVERE, "Network I/O problems detected.", e);
                 if (callback != null) callback.onExit(-1, e.getMessage());
             }
+        }
+
+        @Override
+        public synchronized void handle(final String resourceName, final String eventName, final Notification notif) {
+            if(getNotificationManager().isAllowed(resourceName, eventName))
+                try(final PrintWriter output = new PrintWriter(reader.getOutput())){
+                    output.println(String.format("Emitted by %s", resourceName));
+                    output.println(eventName);
+                    output.println(String.format("Timestamp: %s", notif.getTimeStamp()));
+                    output.println(String.format("Notification #%s", notif.getSequenceNumber()));
+                    output.println(notif.getMessage());
+                }
         }
     }
 
@@ -103,9 +164,12 @@ final class ManagementShell implements Command {
     private final AdapterController controller;
     private final WriteOnceRef<ExitCallback> exitCallback;
     private final WriteOnceRef<Interpreter> interpreter;
+    private final WriteOnceRef<Session> session;
     private final Logger logger;
+    private final ExecutorService executor;
 
     private ManagementShell(final AdapterController controller,
+                            final ExecutorService executor,
                             final Logger l) {
         this.controller = Objects.requireNonNull(controller, "controller is null.");
         this.logger = Objects.requireNonNull(l, "l is null.");
@@ -114,14 +178,17 @@ final class ManagementShell implements Command {
         errStream = new WriteOnceRef<>();
         exitCallback = new WriteOnceRef<>();
         interpreter = new WriteOnceRef<>();
+        session = new WriteOnceRef<>();
+        this.executor = executor;
     }
 
     public static Factory<Command> createFactory(final AdapterController controller,
+                                                 final ExecutorService executor,
                                                  final Logger l) {
         return new Factory<Command>() {
             @Override
             public Command create() {
-                return new ManagementShell(controller, l);
+                return new ManagementShell(controller, executor, l);
             }
         };
     }
@@ -181,14 +248,22 @@ final class ManagementShell implements Command {
      */
     @Override
     public void start(final Environment env) {
-        final Interpreter i = new Interpreter(controller,
-                inStream.get(),
-                outStream.get(),
-                errStream.get(),
-                exitCallback.get(),
-                logger);
-        i.start();
-        interpreter.set(i);
+        try {
+            final Session serverSession = session.get();
+            final Interpreter i = new Interpreter(controller,
+                    inStream.get(),
+                    outStream.get(),
+                    errStream.get(),
+                    exitCallback.get(),
+                    executor,
+                    serverSession,
+                    logger);
+            i.start();
+            interpreter.set(i);
+        }
+        catch (final IOException e){
+            logger.log(Level.SEVERE, "Unable to start SNAMP shell", e);
+        }
     }
 
     /**
@@ -198,7 +273,19 @@ final class ManagementShell implements Command {
      */
     @Override
     public void destroy() {
-        interpreter.get().interrupt();
+        final Interpreter i = interpreter.get();
+        i.interrupt();
+        controller.removeNotificationListener(i.getListenerID());
+    }
+
+    /**
+     * Set the server session in which this shell will be executed.
+     *
+     * @param session The server session to be associated with this shell.
+     */
+    @Override
+    public void setSession(final ServerSession session) {
+        this.session.set(session);
     }
 
     private static String[] splitArguments(final String value){
@@ -220,45 +307,55 @@ final class ManagementShell implements Command {
     }
 
     static Command createSshCommand(final String commandLine,
-                                 final AdapterController controller) {
+                                 final CommandExecutionContext controller) {
         final String[] parts = splitArguments(commandLine);
         final ManagementShellCommand factory = createCommand(parts[0], controller);
         return factory.createSshCommand(ArrayUtils.remove(parts, 0));
     }
 
+    static Command createSshCommand(final String commandLine,
+                                    final AdapterController controller,
+                                    final ExecutorService executor,
+                                    final Logger logger){
+        return createSshCommand(commandLine,
+                new CommandExecutionContextImpl(controller, executor, logger));
+    }
+
     static void doCommand(final String commandLine,
-                                  final AdapterController controller,
+                                  final CommandExecutionContext context,
                                   final PrintWriter outStream,
                                   final PrintWriter errStream){
         final String[] parts = splitArguments(commandLine);
         doCommand(parts[0],
                 ArrayUtils.remove(parts, 0),
-                controller,
+                context,
                 outStream,
                 errStream);
     }
 
     private static ManagementShellCommand createCommand(final String command,
-                                                        final AdapterController controller){
+                                                        final CommandExecutionContext context){
         switch (command) {
             case HelpCommand.COMMAND_NAME:
-                return new HelpCommand(controller);
+                return new HelpCommand(context);
             case ExitCommand.COMMAND_NAME:
-                return new ExitCommand(controller);
+                return new ExitCommand(context);
             case ListOfResourcesCommand.COMMAND_NAME:
-                return new ListOfResourcesCommand(controller);
+                return new ListOfResourcesCommand(context);
             case ListOfAttributesCommand.COMMAND_NAME:
-                return new ListOfAttributesCommand(controller);
+                return new ListOfAttributesCommand(context);
             case GetAttributeCommand.COMMAND_NAME:
-                return new GetAttributeCommand(controller);
+                return new GetAttributeCommand(context);
             case SetAttributeCommand.COMMAND_NAME:
-                return new SetAttributeCommand(controller);
+                return new SetAttributeCommand(context);
             case SetArrayCommand.COMMAND_NAME:
-                return new SetArrayCommand(controller);
+                return new SetArrayCommand(context);
             case SetMapCommand.COMMAND_NAME:
-                return new SetMapCommand(controller);
+                return new SetMapCommand(context);
             case SetTableCommand.COMMAND_NAME:
-                return new SetTableCommand(controller);
+                return new SetTableCommand(context);
+            case NotificationsCommand.COMMAND_NAME:
+                return new NotificationsCommand(context);
             default:
                 return new UnknownShellCommand(command);
         }
@@ -266,10 +363,10 @@ final class ManagementShell implements Command {
 
     private static void doCommand(final String command,
                           final String[] arguments,
-                          final AdapterController controller,
+                          final CommandExecutionContext context,
                           final PrintWriter outStream,
                           final PrintWriter errStream){
-        final ManagementShellCommand executor = createCommand(command, controller);
+        final ManagementShellCommand executor = createCommand(command, context);
         executor.doCommand(arguments, outStream, errStream);
     }
 }

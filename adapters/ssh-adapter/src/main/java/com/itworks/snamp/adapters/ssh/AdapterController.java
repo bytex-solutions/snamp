@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.ssh;
 
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 /**
@@ -32,14 +31,25 @@ interface AdapterController {
     SshAttributeView getAttribute(final String attributeID);
 
     /**
-     * Gets the execute service that can be used to schedule asynchronous operations.
-     * @return The asynchronous task scheduler.
-     */
-    ExecutorService getCommandExecutorService();
-
-    /**
      * Gets logger associated with adapter.
      * @return The logger.
      */
     Logger getLogger();
+
+
+    /**
+     * Adds a new notification listener.
+     * @param listener The listener.
+     * @return A new ID of the notification listener.
+     */
+    long addNotificationListener(final NotificationListener listener);
+
+    /**
+     * Gets a collection of available notifications.
+     * @param resourceName The name of the managed resource.
+     * @return A collection of available notifications.
+     */
+    Set<String> getNotifications(final String resourceName);
+
+    void removeNotificationListener(final long listenerID);
 }

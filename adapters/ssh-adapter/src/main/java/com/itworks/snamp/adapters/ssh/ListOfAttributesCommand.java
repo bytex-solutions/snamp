@@ -30,8 +30,8 @@ final class ListOfAttributesCommand extends AbstractManagementShellCommand {
         COMMAND_OPTIONS.addOption(new Option(SHOW_DETAILS_OPT, "details", false, "Display details on attribute"));
     }
 
-    public ListOfAttributesCommand(final AdapterController controller) {
-        super(controller);
+    ListOfAttributesCommand(final CommandExecutionContext context) {
+        super(context);
     }
 
     @Override
@@ -43,8 +43,8 @@ final class ListOfAttributesCommand extends AbstractManagementShellCommand {
                                  final boolean withNames,
                                  final boolean details,
                                  final PrintWriter output) throws TimeoutException {
-        for (final String attributeID : controller.getAttributes(resourceName)){
-            final SshAttributeView attr = controller.getAttribute(attributeID);
+        for (final String attributeID : getAdapterController().getAttributes(resourceName)){
+            final SshAttributeView attr = getAdapterController().getAttribute(attributeID);
             output.println(withNames ? String.format("ID: %s NAME: %s CAN_READ: %s CAN_WRITE %s", attributeID, attr.getName(), attr.canRead(), attr.canWrite()) : attributeID);
             if(details) {
                 attr.printOptions(output);
@@ -60,7 +60,7 @@ final class ListOfAttributesCommand extends AbstractManagementShellCommand {
         final String resourceName = input.getOptionValue(RESOURCE_NAME_OPT, "");
         try {
             if (resourceName.isEmpty())
-                for (final String r : controller.getConnectedResources())
+                for (final String r : getAdapterController().getConnectedResources())
                     printAttributes(r, withNames, details, output);
             else printAttributes(resourceName, withNames, details, output);
         }

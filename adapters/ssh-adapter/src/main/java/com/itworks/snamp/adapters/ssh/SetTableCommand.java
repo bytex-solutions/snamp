@@ -45,8 +45,8 @@ final class SetTableCommand extends AbstractManagementShellCommand{
         COMMAND_OPTIONS.addOption(opt);
     }
 
-    SetTableCommand(final AdapterController controller){
-        super(controller);
+    SetTableCommand(final CommandExecutionContext context){
+        super(context);
     }
 
     @Override
@@ -105,7 +105,7 @@ final class SetTableCommand extends AbstractManagementShellCommand{
     protected void doCommand(final CommandLine input, final PrintWriter output) throws CommandException {
         final String[] arguments = input.getArgs();
         if(arguments.length == 1 && input.hasOption(IDX_OPT)){
-            final SshAttributeView attr = controller.getAttribute(arguments[0]);
+            final SshAttributeView attr = getAdapterController().getAttribute(arguments[0]);
             if(attr == null) throw new CommandException("Attribute %s doesn't exist", arguments[0]);
             final String index = input.getOptionValue(IDX_OPT);
             final Format fmt;
@@ -127,6 +127,6 @@ final class SetTableCommand extends AbstractManagementShellCommand{
                 return;
             }
         }
-        throw invalidArgFormat();
+        throw invalidCommandFormat();
     }
 }

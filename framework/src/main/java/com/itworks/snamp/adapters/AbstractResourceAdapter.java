@@ -89,7 +89,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         protected abstract TNotificationView createNotificationView(final String resourceName, final String eventName, final NotificationMetadata notifMeta);
 
         /**
-         * Processes SNMP notification.
+         * Processes SNAMP notification.
          * @param sender The name of the managed resource which emits the notification.
          * @param notif The notification to process.
          * @param notificationMetadata The metadata of the notification.

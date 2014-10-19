@@ -4,8 +4,12 @@ import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Transformer;
+import org.apache.commons.collections4.map.AbstractReferenceMap;
+import org.apache.commons.collections4.map.ReferenceMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.SshServer;
@@ -25,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,6 +43,79 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  */
 final class SshAdapter extends AbstractResourceAdapter implements AdapterController {
     static final String NAME = SshHelpers.ADAPTER_NAME;
+
+    private static final class SshNotificationsModel extends AbstractNotificationsModel<SshNotificationView>{
+        private final AtomicLong idCounter = new AtomicLong(0L);
+        private final Map<Long, NotificationListener> listeners = new ReferenceMap<>(AbstractReferenceMap.ReferenceStrength.HARD,
+                AbstractReferenceMap.ReferenceStrength.WEAK);
+
+        /**
+         * Creates a new notification metadata representation.
+         *
+         * @param resourceName User-defined name of the managed resource.
+         * @param eventName    The resource-local identifier of the event.
+         * @param notifMeta    The notification metadata to wrap.
+         * @return A new notification metadata representation.
+         */
+        @Override
+        protected SshNotificationView createNotificationView(final String resourceName, final String eventName, final NotificationMetadata notifMeta) {
+            return new SshNotificationView() {
+                @Override
+                public String getEventName() {
+                    return eventName;
+                }
+
+                @Override
+                public String getResourceName() {
+                    return resourceName;
+                }
+            };
+        }
+
+        /**
+         * Processes SNAMP notification.
+         *
+         * @param sender               The name of the managed resource which emits the notification.
+         * @param notif                The notification to process.
+         * @param notificationMetadata The metadata of the notification.
+         */
+        @Override
+        protected void handleNotification(final String sender, final Notification notif, final SshNotificationView notificationMetadata) {
+            for(final NotificationListener listener: listeners.values())
+                listener.handle(sender, notificationMetadata.getEventName(), notif);
+        }
+
+        long addNotificationListener(final NotificationListener listener) {
+            final long listenerID;
+            listeners.put(listenerID = idCounter.incrementAndGet(),
+                    Objects.requireNonNull(listener));
+            return listenerID;
+        }
+
+        void removeNotificationListener(final long listenerID) {
+            listeners.remove(listenerID);
+        }
+
+        /**
+         * Creates subscription list ID.
+         *
+         * @param resourceName User-defined name of the managed resource which can emit the notification.
+         * @param eventName    User-defined name of the event.
+         * @return A new unique subscription list ID.
+         */
+        @Override
+        protected String makeSubscriptionListID(final String resourceName, final String eventName) {
+            return String.format("%s/%s", resourceName, eventName);
+        }
+
+        Set<String> getNotifications(final String resourceName) {
+            final Set<String> notifs = new HashSet<>(size());
+            for (final String notifID : keySet())
+                if (notifID.startsWith(resourceName))
+                    notifs.add(notifID);
+            return notifs;
+        }
+    }
 
     private static final class SshAttributesModel extends AbstractAttributesModel<SshAttributeView>{
 
@@ -175,6 +253,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     private final SshServer server;
     private final ExecutorService commandExecutors;
     private final SshAttributesModel attributes;
+    private final SshNotificationsModel notifications;
 
     SshAdapter(final String host,
                final int port,
@@ -189,6 +268,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         setupSecurity(server, security);
         commandExecutors = Executors.newCachedThreadPool();
         attributes = new SshAttributesModel();
+        notifications = new SshNotificationsModel();
     }
 
     private static void setupSecurity(final SshServer server, final SshSecuritySettings security) {
@@ -228,18 +308,19 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      */
     @Override
     protected boolean start() {
-        server.setShellFactory(ManagementShell.createFactory(this, getLogger()));
+        server.setShellFactory(ManagementShell.createFactory(this, commandExecutors, getLogger()));
         server.setCommandFactory(new CommandFactory() {
             private final AdapterController controller = SshAdapter.this;
 
             @Override
             public Command createCommand(final String commandLine) {
                 return commandLine != null && commandLine.length() > 0 ?
-                        ManagementShell.createSshCommand(commandLine, controller) :
+                        ManagementShell.createSshCommand(commandLine, controller, commandExecutors, getLogger()) :
                         null;
             }
         });
         populateModel(attributes);
+        populateModel(notifications);
         try {
             server.start();
             return true;
@@ -265,6 +346,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
         finally {
             clearModel(attributes);
+            clearModel(notifications);
         }
     }
 
@@ -281,11 +363,6 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     @Override
     public Set<String> getConnectedResources() {
         return getHostedResources();
-    }
-
-    @Override
-    public ExecutorService getCommandExecutorService() {
-        return commandExecutors;
     }
 
     /**
@@ -308,5 +385,26 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     @Override
     public SshAttributeView getAttribute(final String attributeID) {
         return attributes.get(attributeID);
+    }
+
+    @Override
+    public long addNotificationListener(final NotificationListener listener) {
+        return notifications.addNotificationListener(listener);
+    }
+
+    @Override
+    public void removeNotificationListener(final long listenerID) {
+        notifications.removeNotificationListener(listenerID);
+    }
+
+    /**
+     * Gets a collection of available notifications.
+     *
+     * @param resourceName The name of the managed resource.
+     * @return A collection of available notifications.
+     */
+    @Override
+    public Set<String> getNotifications(final String resourceName) {
+        return notifications.getNotifications(resourceName);
     }
 }

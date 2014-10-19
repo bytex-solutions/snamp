@@ -39,8 +39,8 @@ final class SetMapCommand extends AbstractManagementShellCommand {
         COMMAND_OPTIONS.addOption(new Option(DT_FMT_OPT, "dateFormat", true, "Date/time parsing format"));
     }
 
-    SetMapCommand(final AdapterController controller){
-        super(controller);
+    SetMapCommand(final CommandExecutionContext context){
+        super(context);
     }
 
     @Override
@@ -73,9 +73,9 @@ final class SetMapCommand extends AbstractManagementShellCommand {
             else if(input.hasOption(DT_FMT_OPT))
                 fmt = new SimpleDateFormat(input.getOptionValue(DT_FMT_OPT));
             else fmt = null;
-            final SshAttributeView attr = controller.getAttribute(arguments[0]);
+            final SshAttributeView attr = getAdapterController().getAttribute(arguments[0]);
             updateMapEntries(attr, input.getOptionProperties(PAIR_OPT), fmt, output);
         }
-        else throw invalidArgFormat();
+        else throw invalidCommandFormat();
     }
 }

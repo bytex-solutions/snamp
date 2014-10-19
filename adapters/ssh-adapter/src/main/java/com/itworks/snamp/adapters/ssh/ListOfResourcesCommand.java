@@ -22,8 +22,8 @@ final class ListOfResourcesCommand extends AbstractManagementShellCommand {
 
     static final String COMMAND_DESC = "Display list of connected managed resources";
 
-    ListOfResourcesCommand(final AdapterController controller) {
-        super(controller);
+    ListOfResourcesCommand(final CommandExecutionContext context) {
+        super(context);
     }
 
     /**
@@ -44,7 +44,7 @@ final class ListOfResourcesCommand extends AbstractManagementShellCommand {
      */
     @Override
     protected void doCommand(final CommandLine input, final PrintWriter output) {
-        for (final String managedResource : controller.getConnectedResources())
+        for (final String managedResource : getAdapterController().getConnectedResources())
             output.println(managedResource);
     }
 }

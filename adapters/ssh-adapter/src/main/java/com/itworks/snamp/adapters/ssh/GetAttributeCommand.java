@@ -17,8 +17,8 @@ final class GetAttributeCommand extends AbstractManagementShellCommand {
     static final Options COMMAND_OPTIONS = EMPTY_OPTIONS;
     static final String COMMAND_DESC = "Display attribute value";
 
-    public GetAttributeCommand(final AdapterController controller){
-        super(controller);
+    public GetAttributeCommand(final CommandExecutionContext context){
+        super(context);
     }
 
     @Override
@@ -30,7 +30,7 @@ final class GetAttributeCommand extends AbstractManagementShellCommand {
     protected void doCommand(final CommandLine input, final PrintWriter output) throws CommandException {
         //each argument is an attribute identifier
         for(final String attributeID: input.getArgs()){
-            final SshAttributeView attr = controller.getAttribute(attributeID);
+            final SshAttributeView attr = getAdapterController().getAttribute(attributeID);
             if(attr == null) throw new CommandException("Attribute %s doesn't exist", attributeID);
             try {
                 attr.printValue(output);

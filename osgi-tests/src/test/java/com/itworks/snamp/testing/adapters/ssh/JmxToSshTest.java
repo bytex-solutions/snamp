@@ -8,12 +8,14 @@ import org.apache.commons.collections4.Factory;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
+import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.util.Map;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
@@ -106,5 +108,20 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attributes.put("9.0", attribute);
+    }
+
+    @Override
+    protected void fillEvents(final Map<String, EventConfiguration> events, final Factory<EventConfiguration> eventFactory) {
+        EventConfiguration event = eventFactory.create();
+        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("objectName", BEAN_NAME);
+        events.put("19.1", event);
+
+        event = eventFactory.create();
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.testnotif");
+        event.getParameters().put("severity", "panic");
+        event.getParameters().put("objectName", BEAN_NAME);
+        events.put("20.1", event);
     }
 }

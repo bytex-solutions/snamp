@@ -17,7 +17,6 @@ import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccess
 
 /**
  * Represents form of the attribute suitable for printing via text-based streams.
- * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
