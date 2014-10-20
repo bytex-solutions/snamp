@@ -358,6 +358,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         private final Severity severity;
         private final long seqnum;
         private final String message;
+        private transient volatile Object userData;
 
         public JavaBeanNotification(final Severity severity,
                                     final long sequenceNumber,
@@ -368,9 +369,28 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
             this.seqnum = sequenceNumber;
             this.message = message != null ? message : "";
             putAll(attachments != null ? attachments : Collections.<String, Object>emptyMap());
+            userData = null;
         }
 
+        /**
+         * Gets user data associated with this object.
+         *
+         * @return The user data associated with this object.
+         */
+        @Override
+        public Object getUserData() {
+            return userData;
+        }
 
+        /**
+         * Sets the user data associated with this object.
+         *
+         * @param value The user data to be associated with this object.
+         */
+        @Override
+        public void setUserData(final Object value) {
+            userData = value;
+        }
 
         /**
          * Gets the date and time at which the notification is generated.

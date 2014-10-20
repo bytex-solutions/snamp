@@ -88,6 +88,7 @@ final class HelpCommand extends AbstractManagementShellCommand {
                 SetAttributeCommand.COMMAND_NAME,
                 SetArrayCommand.COMMAND_NAME,
                 SetMapCommand.COMMAND_NAME,
-                SetTableCommand.COMMAND_NAME);
+                SetTableCommand.COMMAND_NAME,
+                NotificationsCommand.COMMAND_NAME);
     }
 }

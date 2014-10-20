@@ -3,6 +3,7 @@ package com.itworks.snamp.adapters.ssh;
 import com.itworks.snamp.Aggregator;
 import org.apache.sshd.common.Session;
 
+import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
@@ -16,4 +17,5 @@ interface CommandExecutionContext extends Aggregator {
     static final Class<Session> SESSION = Session.class;
     static final Class<ExecutorService> EXECUTOR = ExecutorService.class;
     static final Class<Logger> LOGGER = Logger.class;
+    static final Class<InputStream> INPUT_STREAM = InputStream.class;
 }

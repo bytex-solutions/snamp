@@ -3,7 +3,6 @@ package com.itworks.snamp.adapters.ssh;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.Switch;
 import com.itworks.snamp.WriteOnceRef;
-import com.itworks.snamp.connectors.notifications.Notification;
 import jline.console.ConsoleReader;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sshd.common.Factory;
@@ -14,10 +13,7 @@ import org.apache.sshd.server.ExitCallback;
 import org.apache.sshd.server.SessionAware;
 import org.apache.sshd.server.session.ServerSession;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -41,21 +37,24 @@ final class ManagementShell implements Command, SessionAware {
         private final ExecutorService executor;
         private final Logger logger;
         private final Session session;
+        private final InputStream reader;
 
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor,
                                             final Logger logger){
-            this(controller, executor, null, logger);
+            this(controller, executor, null, null, logger);
         }
 
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor,
                                             final Session session,
+                                            final InputStream reader,
                                             final Logger logger){
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             this.executor = Objects.requireNonNull(executor, "executor is null.");
             this.logger = Objects.requireNonNull(logger, "logger is null.");
             this.session = session;
+            this.reader = reader;
         }
 
         /**
@@ -71,14 +70,16 @@ final class ManagementShell implements Command, SessionAware {
                     .equals(CONTROLLER, this.controller)
                     .equals(LOGGER, this.logger)
                     .equals(SESSION, this.session)
+                    .equals(INPUT_STREAM, this.reader)
                     .execute(objectType, objectType);
         }
     }
 
-    private static final class Interpreter extends Thread implements NotificationListener {
+    private static final class Interpreter extends Thread {
         private final AdapterController controller;
-        private final ConsoleReader reader;
         private final OutputStream errStream;
+        private final InputStream inStream;
+        private final OutputStream outStream;
         private final ExitCallback callback;
         private final Logger logger;
         private final ExecutorService executor;
@@ -94,19 +95,19 @@ final class ManagementShell implements Command, SessionAware {
                            final Logger l) throws IOException {
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             if (TtyOutputStream.needToApply()) {
-                os = new TtyOutputStream(os);
+                this.outStream = new TtyOutputStream(os);
                 this.errStream = new TtyOutputStream(es);
             } else {
                 this.errStream = es;
+                this.outStream = os;
             }
-            this.reader = new ConsoleReader(Objects.requireNonNull(is, "is is null."), os);
+            this.inStream = is;
             this.logger = Objects.requireNonNull(l, "l is null.");
             this.session = Objects.requireNonNull(session, "session is null.");
             this.callback = callback;
             this.executor = Objects.requireNonNull(executor, "executor is null.");
             setDaemon(true);
             setName("SSH Adapter Shell Interpreter");
-            NotificationManager.setNotificationListenerID(session, controller.addNotificationListener(this));
             NotificationManager.createNotificationManagerWithDisabledNotifs(session, controller);
         }
 
@@ -114,13 +115,10 @@ final class ManagementShell implements Command, SessionAware {
             return NotificationManager.getNotificationListenerID(session);
         }
 
-        private NotificationManager getNotificationManager(){
-            return NotificationManager.getNotificationManager(session);
-        }
-
         @Override
         public void run() {
             try (final PrintWriter error = new PrintWriter(errStream)) {
+                final ConsoleReader reader = new ConsoleReader(inStream, outStream);
                 reader.setExpandEvents(false);
                 final PrintWriter output = new PrintWriter(reader.getOutput());
                 reader.setPrompt("ssh-adapter> ");
@@ -134,7 +132,7 @@ final class ManagementShell implements Command, SessionAware {
                 while (!Objects.equals(command = reader.readLine(), ExitCommand.COMMAND_NAME))
                     if (command != null && command.length() > 0) {
                         doCommand(command,
-                                new CommandExecutionContextImpl(controller, executor, session, logger),
+                                new CommandExecutionContextImpl(controller, executor, session, inStream, logger),
                                 output, error);
                         output.flush();
                     }
@@ -143,18 +141,6 @@ final class ManagementShell implements Command, SessionAware {
                 logger.log(Level.SEVERE, "Network I/O problems detected.", e);
                 if (callback != null) callback.onExit(-1, e.getMessage());
             }
-        }
-
-        @Override
-        public synchronized void handle(final String resourceName, final String eventName, final Notification notif) {
-            if(getNotificationManager().isAllowed(resourceName, eventName))
-                try(final PrintWriter output = new PrintWriter(reader.getOutput())){
-                    output.println(String.format("Emitted by %s", resourceName));
-                    output.println(eventName);
-                    output.println(String.format("Timestamp: %s", notif.getTimeStamp()));
-                    output.println(String.format("Notification #%s", notif.getSequenceNumber()));
-                    output.println(notif.getMessage());
-                }
         }
     }
 

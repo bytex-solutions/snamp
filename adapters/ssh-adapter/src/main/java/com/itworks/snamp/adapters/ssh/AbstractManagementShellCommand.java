@@ -65,6 +65,10 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
         return getService(CommandExecutionContext.LOGGER);
     }
 
+    protected final InputStream getConsoleInputStream(){
+        return getService(InputStream.class);
+    }
+
     protected abstract Options getCommandOptions();
 
     protected abstract void doCommand(final CommandLine input, final PrintWriter output) throws CommandException;

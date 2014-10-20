@@ -13,6 +13,7 @@ public class NotificationImpl extends HashMap<String, Object> implements Notific
     private final Date timeStamp;
     private final Severity severity;
     private final String message;
+    private transient volatile Object userData;
 
     /**
      * Initializes a new notification.
@@ -28,6 +29,7 @@ public class NotificationImpl extends HashMap<String, Object> implements Notific
         this.timeStamp = timeStamp != null ? timeStamp : new Date();
         this.severity = sev != null ? sev : Severity.UNKNOWN;
         this.message = message != null ? message : "";
+        userData = null;
     }
 
     /**
@@ -91,5 +93,25 @@ public class NotificationImpl extends HashMap<String, Object> implements Notific
     @Override
     public String getMessage() {
         return message;
+    }
+
+    /**
+     * Gets user data associated with this object.
+     *
+     * @return The user data associated with this object.
+     */
+    @Override
+    public final Object getUserData() {
+        return userData;
+    }
+
+    /**
+     * Sets the user data associated with this object.
+     *
+     * @param value The user data to be associated with this object.
+     */
+    @Override
+    public final void setUserData(final Object value) {
+        userData = value;
     }
 }

@@ -1,5 +1,7 @@
 package com.itworks.snamp.connectors.notifications;
 
+import com.itworks.snamp.UserDataSupport;
+
 import java.util.Date;
 import java.util.Map;
 
@@ -13,7 +15,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-public interface Notification extends Map<String, Object> {
+public interface Notification extends Map<String, Object>, UserDataSupport<Object> {
 
     /**
      * Represents name of the notification property that may contains
@@ -22,7 +24,6 @@ public interface Notification extends Map<String, Object> {
      *     For more information, see SYSLOG facility levels.
      * </p>
      */
-    @SuppressWarnings("UnusedDeclaration")
     static final String FACILITY_LEVEL = "facilityLevel";
 
     /**

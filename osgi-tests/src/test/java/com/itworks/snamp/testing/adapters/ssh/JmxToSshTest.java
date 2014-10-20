@@ -5,7 +5,6 @@ import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.apache.commons.collections4.Factory;
-import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.AttributeChangeNotification;
@@ -14,8 +13,8 @@ import javax.management.ObjectName;
 import java.util.Map;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
@@ -32,15 +31,15 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     private static final String ADAPTER_NAME = "ssh";
 
     public JmxToSshTest() throws MalformedObjectNameException {
-        super(new TestOpenMBean(), new ObjectName(BEAN_NAME),
+        super(new TestOpenMBean(/*true*/), new ObjectName(BEAN_NAME),
                 mavenBundle("jline", "jline", "2.12"),
                 SnampArtifact.SSH_ADAPTER.getReference());
     }
 
-    @Test
+    /*@Test
     public void simpleHostTest() throws InterruptedException {
         Thread.sleep(10000000);
-    }
+    }*/
 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {

@@ -759,8 +759,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     private final static class JmxNotificationWrapper extends HashMap<String, Object> implements com.itworks.snamp.connectors.notifications.Notification {
         private final javax.management.Notification jmxNotification;
         private final Severity notificationSeverity;
+        private transient volatile Object userData;
 
         public JmxNotificationWrapper(final Severity severity, final javax.management.Notification jmxNotification){
+            userData = null;
             this.jmxNotification = jmxNotification;
             notificationSeverity = severity != null ? severity : Severity.UNKNOWN;
             //loads notification as Java Bean and explore each JB property as attachment
@@ -772,6 +774,26 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             catch (final java.beans.IntrospectionException | ReflectiveOperationException e) {
                 logger.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);
             }
+        }
+
+        /**
+         * Gets user data associated with this object.
+         *
+         * @return The user data associated with this object.
+         */
+        @Override
+        public Object getUserData() {
+            return userData;
+        }
+
+        /**
+         * Sets the user data associated with this object.
+         *
+         * @param value The user data to be associated with this object.
+         */
+        @Override
+        public void setUserData(final Object value) {
+            userData = value;
         }
 
         /**

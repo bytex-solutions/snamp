@@ -1,6 +1,9 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 
+import com.itworks.snamp.Repeater;
+import com.itworks.snamp.TimeSpan;
+
 import javax.management.*;
 import javax.management.openmbean.*;
 import javax.management.timer.TimerNotification;
@@ -132,7 +135,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
     private  float aFloat;
     private Date aDate;
 
-    public TestOpenMBean() {
+    public TestOpenMBean(final boolean generateNotifs) {
         super(PROPERTY_CHANGED_EVENT, TIMER_EVENT);
         sequenceCounter = new AtomicLong(0);
         chosenString = "NO VALUE";
@@ -166,6 +169,19 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
         catch (final OpenDataException e){
 
         }
+        if(generateNotifs){
+            final Repeater generator = new Repeater(TimeSpan.fromSeconds(2)) {
+                @Override
+                protected void doAction() {
+                    propertyChanged("ATTR", STRING_PROPERTY.getType(), "previous", "next");
+                }
+            };
+            generator.run();
+        }
+    }
+
+    public TestOpenMBean() {
+        this(false);
     }
 
     public final Short[] getArray(){
@@ -260,7 +276,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
         else throw new AttributeNotFoundException();
     }
 
-    private final void propertyChanged(final String attributeName, final String attributeType, final Object oldValue, final Object newValue){
+    private void propertyChanged(final String attributeName, final String attributeType, final Object oldValue, final Object newValue){
         sendNotification(new AttributeChangeNotification(this,
                 sequenceCounter.getAndIncrement(),
                 System.currentTimeMillis(),

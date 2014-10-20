@@ -1,6 +1,8 @@
 package com.itworks.snamp.adapters.ssh;
 
 import com.itworks.snamp.ThreadSafeObject;
+import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.connectors.notifications.NotificationFilter;
 import org.apache.sshd.common.Session;
 
 import java.util.HashSet;
@@ -12,7 +14,7 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-final class NotificationManager extends ThreadSafeObject {
+final class NotificationManager extends ThreadSafeObject implements NotificationFilter {
     private static final Session.AttributeKey<Long> LISTENER_ID  = new Session.AttributeKey<>();
     private static final Session.AttributeKey<NotificationManager> NOTIF_MANAGER = new Session.AttributeKey<>();
 
@@ -118,6 +120,19 @@ final class NotificationManager extends ThreadSafeObject {
         } finally {
             endWrite();
         }
+    }
+
+    /**
+     * Determines whether the specified notification is allowed for handling.
+     *
+     * @param resourceName The name of the emitting managed resource.
+     * @param eventName    The name of the notification.
+     * @param notif        The notification object.
+     * @return {@literal true}, if notification is allowed for handling; otherwise, {@literal false}.
+     */
+    @Override
+    public boolean isAllowed(final String resourceName, final String eventName, final Notification notif) {
+        return isAllowed(resourceName, eventName);
     }
 
     static boolean hasNotificationListenerID(final Session s){

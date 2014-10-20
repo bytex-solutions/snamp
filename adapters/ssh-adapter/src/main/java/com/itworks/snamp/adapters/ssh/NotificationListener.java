@@ -9,5 +9,5 @@ import com.itworks.snamp.connectors.notifications.Notification;
  * @since 1.0
  */
 interface NotificationListener {
-    void handle(final String resourceName, final String eventName, final Notification notif);
+    boolean handle(final String resourceName, final String eventName, final Notification notif);
 }

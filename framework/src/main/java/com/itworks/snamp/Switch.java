@@ -64,6 +64,15 @@ public final class Switch<I, O> {
         return this;
     }
 
+    private static <I, O> Transformer<I, O> valueProvider(final O value) {
+        return new Transformer<I, O>() {
+            @Override
+            public O transform(final I input) {
+                return value;
+            }
+        };
+    }
+
     public Switch<I, O> equals(final I value,
                                final Transformer<I, O> action) {
         return addCase(new Predicate<I>() {
@@ -76,12 +85,7 @@ public final class Switch<I, O> {
 
     public Switch<I, O> equals(final I value,
                                final O output) {
-        return equals(value, new Transformer<I, O>() {
-            @Override
-            public O transform(final I input) {
-                return output;
-            }
-        });
+        return equals(value, Switch.<I, O>valueProvider(output));
     }
 
     public Switch<I, O> theSame(final I value,
@@ -96,12 +100,7 @@ public final class Switch<I, O> {
 
     public Switch<I, O> theSame(final I value,
                                 final O output) {
-        return theSame(value, new Transformer<I, O>() {
-            @Override
-            public O transform(final I input) {
-                return output;
-            }
-        });
+        return theSame(value, Switch.<I, O>valueProvider(output));
     }
 
     /**
