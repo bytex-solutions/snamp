@@ -11,10 +11,7 @@ import org.apache.sshd.server.Command;
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -118,16 +115,28 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
             @Override
             public void start(final Environment env) throws IOException {
                 commandExecutor.set(getExecutionService().submit(new Runnable() {
-                    private final OutputStream out = TtyOutputStream.needToApply() ?
-                            new TtyOutputStream(outStream.get()) : outStream.get();
+                    private final OutputStream out = new FilterOutputStream(outStream.get()){
+                        @Override
+                        public void write(final int b) throws IOException {
+                            switch (b){
+                                case '\n':
+                                case '\r':return;
+                                default: super.write(b);
+                            }
+                        }
+                    };
                     private final OutputStream err = TtyOutputStream.needToApply() ?
                             new TtyOutputStream(errorStream.get()) : errorStream.get();
+                    private final ExitCallback exitCallback = callback.get();
 
                     @Override
                     public void run() {
                         try (final PrintWriter out = new PrintWriter(this.out);
                              final PrintWriter err = new PrintWriter(this.err)) {
                             AbstractManagementShellCommand.this.doCommand(arguments, out, err);
+                        }
+                        finally {
+                            exitCallback.onExit(0);
                         }
                     }
                 }));

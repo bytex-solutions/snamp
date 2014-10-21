@@ -43,6 +43,7 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
                 }},
                 concat(deps,
                         mavenBundle("org.apache.sshd", "sshd-core", "0.12.0"),
+                        SnampArtifact.SSHJ.getReference(),
                         SnampArtifact.RSHELL_CONNECTOR.getReference()));
         server = SshServer.setUpDefaultServer();
         server.setPort(this.port = port);

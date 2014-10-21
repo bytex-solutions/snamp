@@ -155,6 +155,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>sshj</artifactId>
+            <version>0.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.framework</artifactId>
             <version>4.4.0</version>
@@ -208,12 +214,7 @@
             <version>0.12.0</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>net.schmizz</groupId>
-            <artifactId>sshj</artifactId>
-            <version>0.10.0</version>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>

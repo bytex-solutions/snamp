@@ -15,6 +15,7 @@ public enum SnampArtifact {
     LICENSING_BUNDLE("licensing-bundle", "1.0.0"),
     JMX_CONNECTOR("jmx-connector", "1.0.0"),
     SNMP4J("snmp4j", "2.2.3"),
+    SSHJ("sshj", "0.10.0"),
     SNMP_ADAPTER("snmp-adapter", "1.0.0"),
     MANAGEMENT("management-bundle", "1.0.0"),
     WEB_CONSOLE("web-console", "1.0.0"),

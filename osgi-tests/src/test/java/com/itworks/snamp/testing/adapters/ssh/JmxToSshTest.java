@@ -4,12 +4,17 @@ import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
+import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.common.IOUtils;
+import net.schmizz.sshj.connection.channel.direct.Session;
 import org.apache.commons.collections4.Factory;
+import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import java.io.IOException;
 import java.util.Map;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -25,6 +30,7 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  * @since 1.0
  */
 public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final String FINGERPRINT = "24:aa:e0:cb:d9:89:1d:68:f3:1d:ed:53:0e:99:31:87";
     private static final String USER_NAME = "Dummy";
     private static final String PASSWORD = "Password";
     private static final int PORT = 22000;
@@ -33,7 +39,27 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     public JmxToSshTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(/*true*/), new ObjectName(BEAN_NAME),
                 mavenBundle("jline", "jline", "2.12"),
+                SnampArtifact.SSHJ.getReference(),
                 SnampArtifact.SSH_ADAPTER.getReference());
+    }
+
+    @Test
+    public void getIntegerTest() throws IOException {
+        try(final SSHClient client = new SSHClient()){
+            client.addHostKeyVerifier(FINGERPRINT);
+            client.connect("localhost", PORT);
+            client.authPassword(USER_NAME, PASSWORD);
+            final String INT_ATTR = String.format("%s/%s", TEST_RESOURCE_NAME, "3.0");
+            try(final Session s = client.startSession()) {
+                s.exec(String.format("set " + INT_ATTR + " 42"));
+            }
+            try(final Session s = client.startSession()){
+                final String value = IOUtils.readFully(s.exec("get " + INT_ATTR).getInputStream()).toString();
+                assertNotNull(value);
+                assertFalse(value.isEmpty());
+                assertEquals("42", value);
+            }
+        }
     }
 
     /*@Test
