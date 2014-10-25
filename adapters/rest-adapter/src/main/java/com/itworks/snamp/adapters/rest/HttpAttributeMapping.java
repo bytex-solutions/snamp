@@ -6,6 +6,7 @@ import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.AttributeValue;
 import org.apache.commons.collections4.Closure;
 import org.apache.commons.collections4.Put;
@@ -106,11 +107,11 @@ final class HttpAttributeMapping {
         else return new JsonPrimitive(value.convertTo(TypeLiterals.STRING));
     }
 
-    public JsonElement getValueAsJson() throws TimeoutException{
+    public JsonElement getValueAsJson() throws TimeoutException, AttributeSupportException{
         return toJson(accessor.getValue(), jsonFormatter);
     }
 
-    public String getValue() throws TimeoutException {
+    public String getValue() throws TimeoutException, AttributeSupportException {
         return jsonFormatter.toJson(getValueAsJson());
     }
 
@@ -250,7 +251,7 @@ final class HttpAttributeMapping {
         else throw new IllegalArgumentException(String.format("Unable to convert %s value into resource-specific representation.", attributeValue));
     }
 
-    public boolean setValue(final String value) throws TimeoutException, IllegalArgumentException, JsonSyntaxException {
-        return accessor.setValue(fromJson(value, accessor.getType(), jsonFormatter));
+    public void setValue(final String value) throws TimeoutException, IllegalArgumentException, JsonSyntaxException, AttributeSupportException {
+        accessor.setValue(fromJson(value, accessor.getType(), jsonFormatter));
     }
 }

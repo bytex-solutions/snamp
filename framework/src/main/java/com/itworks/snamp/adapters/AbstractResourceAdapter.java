@@ -4,17 +4,12 @@ import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
-import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
-import com.itworks.snamp.connectors.attributes.AttributeMetadata;
-import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.attributes.AttributeValue;
-import com.itworks.snamp.connectors.notifications.Notification;
-import com.itworks.snamp.connectors.notifications.NotificationMetadata;
-import com.itworks.snamp.connectors.notifications.NotificationSupport;
-import com.itworks.snamp.connectors.notifications.NotificationUtils;
+import com.itworks.snamp.connectors.attributes.*;
+import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
@@ -143,11 +138,11 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
         private AttributeAccessor(final String attributeID,
                                   final AttributeConfiguration attributeConfig,
-                                  final AttributeSupport attributeSupport) throws IllegalArgumentException{
-            if(attributeSupport.connectAttribute(attributeID,
+                                  final AttributeSupport attributeSupport) throws AttributeSupportException {
+            if (attributeSupport.connectAttribute(attributeID,
                     attributeConfig.getAttributeName(),
                     attributeConfig.getParameters()) == null)
-                throw new IllegalArgumentException(String.format("Unable to register attribute %s", attributeConfig.getAttributeName()));
+                throw new AttributeSupportException(new IllegalArgumentException(String.format("Unable to register attribute %s", attributeConfig.getAttributeName())));
             this.attributeSupport = attributeSupport;
             this.attributeID = attributeID;
             this.readWriteTimeout = attributeConfig.getReadWriteTimeout();
@@ -166,16 +161,36 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * @return The value of the attribute.
          * @throws java.lang.IllegalArgumentException Unsupported attribute type.
          * @throws TimeoutException Attribute value cannot be obtained during the configured duration.
-         * @throws java.lang.IllegalStateException The accessor is disconnected from the managed resource connector.
          */
-        public <T> T getValue(final Typed<T> attributeType, final T defaultValue) throws TimeoutException, IllegalArgumentException, IllegalStateException {
+        public <T> T getValue(final Typed<T> attributeType, final T defaultValue) throws TimeoutException, IllegalArgumentException {
+            try {
+                return getValue(attributeType);
+            } catch (final AttributeSupportException e) {
+                return defaultValue;
+            }
+        }
+
+        /**
+         * Gets value of the attribute.
+         * @param attributeType The type of the attribute value.
+         * @return The value of the attribute.
+         * @throws java.lang.IllegalArgumentException Unsupported attribute type.
+         * @throws TimeoutException Attribute value cannot be obtained during the configured duration.
+         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
+         */
+        public <T> T getValue(final Typed<T> attributeType) throws TimeoutException, AttributeSupportException {
             if (attributeType == null) throw new IllegalArgumentException("attributeType is null.");
             final TypeConverter<T> converter = getType().getProjection(attributeType);
             if (converter == null)
                 throw new IllegalArgumentException(String.format("Invalid type %s of attribute %s",
                         attributeType,
                         getName()));
-            final Object result = attributeSupport.getAttribute(attributeID, readWriteTimeout, defaultValue);
+            final Object result;
+            try {
+                result = attributeSupport.getAttribute(attributeID, readWriteTimeout);
+            } catch (final UnknownAttributeException e) {
+                throw new AttributeSupportException(e);
+            }
             return TypeUtils.isInstance(result, attributeType.getType()) ?
                     TypeLiterals.cast(result, attributeType) : converter.convertFrom(result);
         }
@@ -184,33 +199,43 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * Gets value of the attribute.
          * @return The value of the attribute.
          * @throws TimeoutException Attribute value cannot be obtained during the configured duration.
-         * @throws java.lang.IllegalStateException The accessor is disconnected from the managed resource connector.
+         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
          */
-        public AttributeValue<?> getValue() throws TimeoutException, IllegalStateException{
-            final Object result = attributeSupport.getAttribute(attributeID, readWriteTimeout, null);
-            return new AttributeValue<>(result, getType());
+        public AttributeValue<?> getValue() throws TimeoutException, AttributeSupportException {
+            try {
+                final Object result = attributeSupport.getAttribute(attributeID, readWriteTimeout);
+                return new AttributeValue<>(result, getType());
+            } catch (final UnknownAttributeException e) {
+                throw new AttributeSupportException(e);  //never happens
+            }
         }
 
         /**
-         * Gets value of the attribute.
-         * @param defaultValue Default value of the attribute if its original value is not accessible.
+         * Gets raw value of the attribute without converting to the well-known type.
          * @return The raw value of the attribute.
          * @throws TimeoutException Attribute value cannot be obtained during the configured duration.
-         * @throws IllegalStateException The accessor is disconnected from the managed resource connector.
+         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
          */
-        public Object getValue(final Object defaultValue) throws TimeoutException, IllegalStateException{
-            return attributeSupport.getAttribute(attributeID, readWriteTimeout, defaultValue);
+        public Object getRawValue() throws TimeoutException, AttributeSupportException {
+            try {
+                return attributeSupport.getAttribute(attributeID, readWriteTimeout);
+            } catch (final UnknownAttributeException e) {
+                throw new AttributeSupportException(e);
+            }
         }
 
         /**
          * Sets the value of the attribute.
          * @param value The value of the attribute.
-         * @return {@literal true}, if the attribute is changed successfully; otherwise, {@literal false}.
          * @throws java.util.concurrent.TimeoutException Attribute value cannot be changed during the configured duration.
-         * @throws java.lang.IllegalStateException The accessor is disconnected from the managed resource connector.
+         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
          */
-        public boolean setValue(final Object value) throws TimeoutException, IllegalStateException{
-            return attributeSupport.setAttribute(attributeID, readWriteTimeout, value);
+        public void setValue(final Object value) throws TimeoutException, AttributeSupportException {
+            try {
+                attributeSupport.setAttribute(attributeID, readWriteTimeout, value);
+            } catch (final UnknownAttributeException e) {
+                throw new AttributeSupportException(e);
+            }
         }
 
         /**
@@ -595,19 +620,23 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
 
         private <T> T queryWeakObject(final Class<T> queryObject){
-            if(resourceConnector != null){
+            //This code affecting the performance
+            /*if(resourceConnector != null){
                 final T obj = resourceConnector.getService().queryObject(queryObject);
                 if(obj == null) return null;
                 return Utils.weakReference(obj, queryObject);
             }
-            else return null;
+            else return null;*/
+            return resourceConnector != null ?
+                    resourceConnector.getService().queryObject(queryObject):
+                    null;
         }
 
-        public final AttributeSupport getWeakAttributeSupport(){
+        private AttributeSupport getWeakAttributeSupport(){
             return queryWeakObject(AttributeSupport.class);
         }
 
-        public final NotificationSupport getWeakNotificationSupport(){
+        private NotificationSupport getWeakNotificationSupport(){
             return queryWeakObject(NotificationSupport.class);
         }
 
@@ -615,7 +644,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * Determines whether the resource connector supports attributes.
          * @return {@literal true}, if the connector supports attributes; otherwise, {@literal false}.
          */
-        public final boolean isAttributesSupported(){
+        private boolean isAttributesSupported(){
             return resourceConnector != null && resourceConnector.getService().queryObject(AttributeSupport.class) != null;
         }
 
@@ -623,7 +652,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * Determines whether the resource connector supports notifications.
          * @return {@literal true}, if the connector supports notification; otherwise, {@literal false}.
          */
-        public final boolean isNotificationsSupported(){
+        private boolean isNotificationsSupported(){
             return resourceConnector != null && resourceConnector.getService().queryObject(NotificationSupport.class) != null;
         }
 
@@ -631,7 +660,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * Determines whether the resource connector is referenced.
          * @return {@literal true}, if the resource connector is referenced; otherwise, {@literal false}.
          */
-        public final boolean isReferenced(){
+        private final boolean isReferenced(){
             return resourceConnector != null;
         }
 
@@ -713,34 +742,34 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param attributesModel The model to be populated. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
      */
-    protected final <TAttributeView> void populateModel(final AbstractAttributesModel<TAttributeView> attributesModel){
-        if(attributesModel == null) throw new IllegalArgumentException("attributesModel is null.");
-        for(final ManagedResourceConnectorConsumer consumer: connectors.values())
-            if(consumer.isAttributesSupported()){
+    protected final <TAttributeView> void populateModel(final AbstractAttributesModel<TAttributeView> attributesModel) {
+        if (attributesModel == null) throw new IllegalArgumentException("attributesModel is null.");
+        for (final ManagedResourceConnectorConsumer consumer : connectors.values())
+            if (consumer.isAttributesSupported()) {
                 final AttributeSupport support = consumer.getWeakAttributeSupport();
                 final Map<String, AttributeConfiguration> attributes = consumer.resourceConfiguration.getElements(AttributeConfiguration.class);
-                if(attributes == null) continue;
-                for(final Map.Entry<String, AttributeConfiguration> entry: attributes.entrySet()){
+                if (attributes == null) continue;
+                for (final Map.Entry<String, AttributeConfiguration> entry : attributes.entrySet()) {
                     final String attributeID = attributesModel.makeAttributeID(consumer.resourceName,
                             entry.getKey());
                     AttributeAccessor accessor;
-                    try{
+                    try {
                         accessor = new AttributeAccessor(attributeID, entry.getValue(), support);
-                    }
-                    catch (final IllegalArgumentException e){
+                    } catch (final AttributeSupportException e) {
+                        getLogger().log(Level.WARNING, String.format("Failed to discover attribute %s", attributeID), e.getCause());
                         accessor = null;
                     }
                     final TAttributeView view = accessor != null ? attributesModel.createAttributeView(consumer.resourceName,
                             entry.getKey(),
                             accessor) : null;
-                    if(view != null)
+                    if (view != null)
                         attributesModel.put(attributeID, view);
                     else support.disconnectAttribute(attributeID);
                 }
-            }
-            else getLogger().log(Level.INFO, String.format("Managed resource connector %s (connection string %s) doesn't support attributes.",
-                    consumer.resourceConfiguration.getConnectionType(),
-                    consumer.resourceConfiguration.getConnectionString()));
+            } else
+                getLogger().log(Level.INFO, String.format("Managed resource connector %s (connection string %s) doesn't support attributes.",
+                        consumer.resourceConfiguration.getConnectionType(),
+                        consumer.resourceConfiguration.getConnectionString()));
     }
 
     /**
@@ -781,31 +810,37 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param <TNotificationView> Type of the notification metadata.
      * @throws java.lang.IllegalArgumentException notificationsModel is {@literal null}.
      */
-    protected final <TNotificationView> void populateModel(final AbstractNotificationsModel<TNotificationView> notificationsModel){
-        if(notificationsModel == null) throw new IllegalArgumentException("notificationsModel is null.");
+    protected final <TNotificationView> void populateModel(final AbstractNotificationsModel<TNotificationView> notificationsModel) {
+        if (notificationsModel == null) throw new IllegalArgumentException("notificationsModel is null.");
         final Collection<String> topics = new HashSet<>(10);
-        for(final ManagedResourceConnectorConsumer consumer: connectors.values())
-            if(consumer.isNotificationsSupported()){
+        for (final ManagedResourceConnectorConsumer consumer : connectors.values())
+            if (consumer.isNotificationsSupported()) {
                 final NotificationSupport support = consumer.getWeakNotificationSupport();
+
                 final Map<String, EventConfiguration> events = consumer.resourceConfiguration.getElements(EventConfiguration.class);
-                if(events == null) continue;
-                for(final Map.Entry<String, EventConfiguration> entry: events.entrySet()){
+                if (events == null) continue;
+                for (final Map.Entry<String, EventConfiguration> entry : events.entrySet()) {
                     final String listID = notificationsModel.makeSubscriptionListID(consumer.resourceName, entry.getKey());
                     final EventConfiguration eventConfig = entry.getValue();
-                    final NotificationMetadata metadata = support.enableNotifications(listID, eventConfig.getCategory(), eventConfig.getParameters());
-                    if(metadata != null) {
+                    NotificationMetadata metadata;
+                    try {
+                        metadata = support.enableNotifications(listID, eventConfig.getCategory(), eventConfig.getParameters());
+                    } catch (final NotificationSupportException e) {
+                        getLogger().log(Level.WARNING, String.format("Failed to enable notifications for %s topic", listID), e.getCause());
+                        metadata = null;
+                    }
+                    if (metadata != null) {
                         final TNotificationView view = notificationsModel.createNotificationView(consumer.resourceName, entry.getKey(), metadata);
-                        if(view != null) {
+                        if (view != null) {
                             notificationsModel.put(listID, view);
                             topics.add(NotificationUtils.getTopicName(consumer.resourceConfiguration.getConnectionType(), metadata.getCategory(), listID));
                         }
-                        else support.disableNotifications(listID);
-                    }
-                    else getLogger().log(Level.WARNING, String.format("Event %s cannot be enabled for %s resource.", eventConfig.getCategory(), consumer.resourceConfiguration.getConnectionString()));
+                    } else
+                        getLogger().log(Level.WARNING, String.format("Event %s cannot be enabled for %s resource.", eventConfig.getCategory(), consumer.resourceConfiguration.getConnectionString()));
                 }
             }
         //starts listening for events received through EventAdmin
-        if(notificationsModel.size() > 0)
+        if (notificationsModel.size() > 0)
             notificationsModel.startListening(Utils.getBundleContextByObject(notificationsModel), topics);
     }
 
@@ -825,7 +860,12 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 if (consumer.isReferenced() && consumer.isNotificationsSupported()) {
                     final NotificationSupport support = consumer.getWeakNotificationSupport();
                     for (final String listID : notificationsModel.keySet())
-                        support.disableNotifications(listID);
+                        try {
+                            support.disableNotifications(listID);
+                        }
+                        catch (final NotificationSupportException e) {
+                            getLogger().log(Level.WARNING, String.format("Failed to disable notifications at %s topic", listID), e.getCause());
+                        }
                 }
             notificationsModel.clear();
         }

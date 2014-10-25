@@ -7,9 +7,7 @@ import org.apache.commons.cli.Options;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.Format;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
@@ -52,11 +50,8 @@ final class SetAttributeCommand extends AbstractManagementShellCommand {
         final SshAttributeView attr = getAdapterController().getAttribute(attributeID);
         if (attr == null) throw new CommandException("Attribute %s doesn't exist.", attributeID);
         try {
-            output.println(attr.setValue(fmt != null ? fmt.parseObject(value) : value) ?
-                    "OK" :
-                    "Unable to set value");
-        } catch (final ParseException | TimeoutException e) {
-
+            attr.setValue(fmt != null ? fmt.parseObject(value) : value);
+        } catch (final Exception e) {
             throw new CommandException(e);
         }
     }

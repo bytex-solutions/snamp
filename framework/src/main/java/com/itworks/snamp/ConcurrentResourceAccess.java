@@ -29,7 +29,7 @@ import org.apache.commons.collections4.Factory;
  *         public void put(final Entry<String, String> entry){
  *           map.write(new ConcurrentResourceAccess.ConsistentAction<Map<String, String>, Void>(){
  *             public Void write(final Map<String, String> m){
- *               m.put(entry.getKey(), entry.getValue());
+ *               m.put(entry.getKey(), entry.getRawValue());
  *               return null;
  *             }
  *           });

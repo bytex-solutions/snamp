@@ -3,8 +3,8 @@ package com.itworks.snamp.connectors;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.TypeLiterals;
-import com.itworks.snamp.connectors.attributes.AttributeMetadata;
-import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.WriteOnceRef;
+import com.itworks.snamp.connectors.attributes.*;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.MethodStub;
@@ -54,7 +54,7 @@ import static com.itworks.snamp.internal.Utils.safeCast;
  *
  *     final CustomConnector c = new CustomConnector();
  *     c.connectProperty("001", "property1", new HashMap<>());
- *     System.out.println(c.getAttribute("001", TimeSpan.INFINITE, ""));//output is: Hello, world!
+ *     System.out.println(c.getAttribute("001", TimeSpan.INFINITE));//output is: Hello, world!
  *     }</pre>
  * </p>
  * <p>
@@ -85,7 +85,8 @@ import static com.itworks.snamp.internal.Utils.safeCast;
  * @since 1.0
  * @version 1.0
  */
-public class ManagedResourceConnectorBean extends AbstractManagedResourceConnector<ManagedResourceConnectorBean.ManagedBeanDescriptor<?>> implements NotificationSupport, AttributeSupport {
+public class ManagedResourceConnectorBean extends AbstractManagedResourceConnector<ManagedResourceConnectorBean.ManagedBeanDescriptor<?>>
+        implements NotificationSupport, AttributeSupport {
 
     /**
      * Represents description of the bean to be managed by this connector.
@@ -143,11 +144,11 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
 
     private static final class SelfDescriptor implements ManagedBeanDescriptor<ManagedResourceConnectorBean> {
         private Reference<ManagedResourceConnectorBean> connectorRef;
-        private BeanInfo metadata;
+        private final WriteOnceRef<BeanInfo> metadata = new WriteOnceRef<>();
 
         private void setSelfReference(final ManagedResourceConnectorBean instance) throws IntrospectionException {
             connectorRef = new WeakReference<>(instance);
-            metadata = Introspector.getBeanInfo(instance.getClass(), ManagedResourceConnectorBean.class);
+            metadata.set(Introspector.getBeanInfo(instance.getClass(), ManagedResourceConnectorBean.class));
         }
 
         /**
@@ -157,7 +158,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          */
         @Override
         public BeanInfo getBeanInfo() {
-            return metadata;
+            return metadata.get();
         }
 
         /**
@@ -525,10 +526,51 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
 
     private static final class JavaBeanNotificationSupport extends AbstractNotificationSupport{
         private final WellKnownTypeSystem attachmentTypeSystem;
+        private final Logger logger;
 
-        public JavaBeanNotificationSupport(final WellKnownTypeSystem typeSystem){
+        private JavaBeanNotificationSupport(final WellKnownTypeSystem typeSystem,
+                                            final Logger logger){
             this.attachmentTypeSystem = typeSystem;
+            this.logger = logger;
         }
+
+        /**
+         * Reports an error when disabling notifications.
+         *
+         * @param listID Subscription list identifier.
+         * @param e      Internal connector error.
+         * @see #failedToDisableNotifications(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        @Override
+        protected void failedToDisableNotifications(final String listID, final Exception e) {
+            failedToDisableNotifications(logger, Level.WARNING, listID, e);
+        }
+
+        /**
+         * Reports an error when enabling notifications.
+         *
+         * @param listID   Subscription list identifier.
+         * @param category An event category.
+         * @param e        Internal connector error.
+         * @see #failedToEnableNotifications(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         */
+        @Override
+        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
+            failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
+        }
+
+        /**
+         * Reports an error when subscribing the listener.
+         *
+         * @param listenerID Subscription list identifier.
+         * @param e          Internal connector error.
+         * @see #failedToSubscribe(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        @Override
+        protected void failedToSubscribe(final String listenerID, final Exception e) {
+            failedToSubscribe(logger, Level.WARNING, listenerID, e);
+        }
+
         /**
          * Raises notification.
          * @param category The category of the event to raise.
@@ -591,26 +633,65 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         }
     }
 
-    private static final class JavaBeanAttributeSupport extends AbstractAttributeSupport{
+    private static final class JavaBeanAttributeSupport extends AbstractAttributeSupport {
         private final WellKnownTypeSystem typeSystem;
         private final ManagedBeanDescriptor<?> descriptor;
         private final Logger logger;
 
-        public JavaBeanAttributeSupport(final ManagedBeanDescriptor<?> descriptor,
+        private JavaBeanAttributeSupport(final ManagedBeanDescriptor<?> descriptor,
                                         final WellKnownTypeSystem typeSystem,
-                                        final Logger connectorLogger){
+                                        final Logger logger) {
             this.typeSystem = typeSystem;
             this.descriptor = descriptor;
-            this.logger = connectorLogger;
+            this.logger = logger;
+        }
+
+        /**
+         * Reports an error when connecting attribute.
+         *
+         * @param attributeID   The attribute identifier.
+         * @param attributeName The name of the attribute.
+         * @param e             Internal connector error.
+         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         */
+        @Override
+        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
+            failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
+        }
+
+        /**
+         * Reports an error when getting attribute.
+         *
+         * @param attributeID The attribute identifier.
+         * @param e           Internal connector error.
+         * @see #failedToGetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        @Override
+        protected void failedToGetAttribute(final String attributeID, final Exception e) {
+             failedToGetAttribute(logger, Level.WARNING, attributeID, e);
+        }
+
+        /**
+         * Reports an error when updating attribute.
+         *
+         * @param attributeID The attribute identifier.
+         * @param value       The value of the attribute.
+         * @param e           Internal connector error.
+         * @see #failedToSetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Object, Exception)
+         */
+        @Override
+        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
+            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
         }
 
         /**
          * Connects the specified Java Bean property.
+         *
          * @param property Java Bean property to connect.
-         * @param options Additional connection options.
+         * @param options  Additional connection options.
          * @return An information about registered attribute.
          */
-        protected final GenericAttributeMetadata connectAttribute(final PropertyDescriptor property, final Map<String, String> options){
+        protected final GenericAttributeMetadata connectAttribute(final PropertyDescriptor property, final Map<String, String> options) {
             return new JavaBeanPropertyMetadata(property, typeSystem, options);
         }
 
@@ -623,8 +704,8 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          */
         @Override
         protected final GenericAttributeMetadata connectAttribute(final String attributeName, final Map<String, String> options) {
-            for(final PropertyDescriptor pd: descriptor.getBeanInfo().getPropertyDescriptors())
-                if(Objects.equals(pd.getName(), attributeName))
+            for (final PropertyDescriptor pd : descriptor.getBeanInfo().getPropertyDescriptors())
+                if (Objects.equals(pd.getName(), attributeName))
                     return connectAttribute(pd, options);
             return null;
         }
@@ -632,24 +713,17 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         /**
          * Returns the value of the attribute.
          *
-         * @param attribute    The metadata of the attribute to get.
+         * @param attribute   The metadata of the attribute to get.
          * @param readTimeout Attribute read timeout.
-         * @param defaultValue The default value of the attribute if reading fails.
          * @return The value of the attribute.
-         * @throws java.util.concurrent.TimeoutException Attribute value cannot be obtained in the specified time.
-         *
+         * @throws java.lang.ReflectiveOperationException Unable to get attribute value.
          */
         @Override
-        protected final Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
-            if(attribute instanceof JavaBeanPropertyMetadata)
-                try {
-                    return ((JavaBeanPropertyMetadata)attribute).getValue(descriptor.getInstance());
-                }
-                catch (final ReflectiveOperationException e) {
-                    logger.log(Level.WARNING, "Unable to get attribute.", e);
-                    return null;
-                }
-            else return null;
+        protected final Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout) throws ReflectiveOperationException {
+            if (attribute.canRead() && attribute instanceof JavaBeanPropertyMetadata)
+                return ((JavaBeanPropertyMetadata) attribute).getValue(descriptor.getInstance());
+            else
+                throw new ReflectiveOperationException(String.format("Attribute %s is write-only", attribute.getName()));
         }
 
         /**
@@ -657,21 +731,15 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          *
          * @param attribute    The metadata of the attribute to set.
          * @param writeTimeout Attribute write timeout.
-         * @param value A new attribute value.
-         * @return {@literal true} if attribute is overridden successfully; otherwise, {@literal false}.
+         * @param value        A new attribute value.
+         * @throws java.lang.ReflectiveOperationException Unable to update attribute.
          */
         @Override
-        protected final boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
-            if(attribute.canWrite() && attribute instanceof JavaBeanPropertyMetadata){
-                try {
-                    ((JavaBeanPropertyMetadata)attribute).setValue(descriptor.getInstance(), value);
-                    return true;
-                }
-                catch (final ReflectiveOperationException e) {
-                    return false;
-                }
-            }
-            else return false;
+        protected final void setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws ReflectiveOperationException {
+            if (attribute.canWrite() && attribute instanceof JavaBeanPropertyMetadata)
+                ((JavaBeanPropertyMetadata) attribute).setValue(descriptor.getInstance(), value);
+            else
+                throw new ReflectiveOperationException(String.format("Attribute %s is read-only", attribute.getName()));
         }
     }
 
@@ -730,12 +798,12 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      */
     @SuppressWarnings("UnusedDeclaration")
     protected ManagedResourceConnectorBean(final WellKnownTypeSystem typeBuilder, final Logger logger) throws IntrospectionException {
-        super(new SelfDescriptor(),  logger);
+        super(new SelfDescriptor(), logger);
         //creates weak reference to this object
         safeCast(getConnectionOptions(), SelfDescriptor.class).setSelfReference(this);
-        if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
+        if (typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.attributes = new JavaBeanAttributeSupport(getConnectionOptions(), typeBuilder, logger);
-        this.notifications = new JavaBeanNotificationSupport(typeBuilder);
+        this.notifications = new JavaBeanNotificationSupport(typeBuilder, logger);
     }
 
     /**
@@ -753,10 +821,10 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
                                                final BeanIntrospector<T> introspector,
                                                final WellKnownTypeSystem typeBuilder,
                                                final Logger logger) throws IntrospectionException {
-        super(new BeanDescriptor<>(beanInstance, introspector),  logger);
-        if(typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
+        super(new BeanDescriptor<>(beanInstance, introspector), logger);
+        if (typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.attributes = new JavaBeanAttributeSupport(getConnectionOptions(), typeBuilder, logger);
-        this.notifications = new JavaBeanNotificationSupport(typeBuilder);
+        this.notifications = new JavaBeanNotificationSupport(typeBuilder, logger);
     }
 
     /**
@@ -767,7 +835,6 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @return A new instance of the management connector that wraps the Java Bean.
      * @throws IntrospectionException Cannot reflect the specified instance.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public static <T> ManagedResourceConnectorBean wrap(final T beanInstance, final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
         return new ManagedResourceConnectorBean(beanInstance, new StandardBeanIntrospector<>(), typeBuilder, Logger.getLogger(getLoggerName("javabean")));
     }
@@ -797,10 +864,12 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @param listId   An identifier of the subscription list.
      * @param category The name of the category to listen.
      * @param options  Event discovery options.
-     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+     * @return The metadata of the event to listen;
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
+     * @throws java.lang.IllegalStateException Resource connector is closed.
      */
     @Override
-    public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
+    public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) throws NotificationSupportException{
         verifyInitialization();
         return notifications.enableNotifications(listId, category, options);
     }
@@ -838,9 +907,10 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      *
      * @param listId The identifier of the subscription list.
      * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
     @Override
-    public final boolean disableNotifications(final String listId) {
+    public final boolean disableNotifications(final String listId) throws NotificationSupportException{
         verifyInitialization();
         return notifications.disableNotifications(listId);
     }
@@ -875,12 +945,12 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @param listenerId Unique identifier of the notification listener.
      * @param listener The notification listener.
      * @param delayed Specifies delayed subscription.
-     * @return An identifier of the notification listener generated by this connector.
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
     @Override
-    public final boolean subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) {
+    public final void subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) throws NotificationSupportException{
         verifyInitialization();
-        return notifications.subscribe(listenerId, listener, delayed);
+        notifications.subscribe(listenerId, listener, delayed);
     }
 
     /**
@@ -902,9 +972,10 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @param attributeName The name of the attribute.
      * @param options       The attribute discovery options.
      * @return The description of the attribute.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) {
+    public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) throws AttributeSupportException {
         verifyInitialization();
         return attributes.connectAttribute(id, attributeName, options);
     }
@@ -914,14 +985,15 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      *
      * @param id           A key string that is used to invoke attribute from this connector.
      * @param readTimeout  The attribute value invoke operation timeout.
-     * @param defaultValue The default value of the attribute if it is real value is not available.
      * @return The value of the attribute, or default value.
-     * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
+     * @throws java.util.concurrent.TimeoutException The attribute value cannot be obtained in the specified time constraint.
+     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException The requested attribute doesn't exist.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public final Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
+    public final Object getAttribute(final String id, final TimeSpan readTimeout) throws TimeoutException, UnknownAttributeException, AttributeSupportException {
         verifyInitialization();
-        return attributes.getAttribute(id, readTimeout, defaultValue);
+        return attributes.getAttribute(id, readTimeout);
     }
 
     /**
@@ -931,9 +1003,10 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @param readTimeout The attribute value invoke operation timeout.
      * @return The set of managementAttributes ids really written to the dictionary.
      * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public final Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException {
+    public final Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException {
         verifyInitialization();
         return attributes.getAttributes(output, readTimeout);
     }
@@ -944,13 +1017,14 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @param id           An identifier of the attribute,
      * @param writeTimeout The attribute value write operation timeout.
      * @param value        The value to write.
-     * @return {@literal true} if attribute set operation is supported by remote provider; otherwise, {@literal false}.
      * @throws java.util.concurrent.TimeoutException The attribute value cannot be write in the specified duration.
+     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException The requested attribute doesn't exist.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public final boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException {
+    public final void setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException, AttributeSupportException, UnknownAttributeException {
         verifyInitialization();
-        return attributes.setAttribute(id, writeTimeout, value);
+        attributes.setAttribute(id, writeTimeout, value);
     }
 
     /**
@@ -958,13 +1032,13 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      *
      * @param values       The dictionary of managementAttributes keys and its values.
      * @param writeTimeout Attribute write timeout.
-     * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
-     * @throws java.util.concurrent.TimeoutException
+     * @throws TimeoutException The attribute value cannot be written in the specified time constraint.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public final boolean setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException {
+    public final void setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException, AttributeSupportException {
         verifyInitialization();
-        return attributes.setAttributes(values, writeTimeout);
+        attributes.setAttributes(values, writeTimeout);
     }
 
     /**

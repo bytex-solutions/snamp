@@ -7,12 +7,10 @@ import org.apache.commons.cli.Options;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.Format;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
@@ -58,7 +56,7 @@ final class SetMapCommand extends AbstractManagementShellCommand {
                 map.put(key, fmt != null ? fmt.parseObject(entries.getProperty(key)) : entries.getProperty(key));
             output.println(attr.applyTransformation(SshAttributeView.UpdateMapTransformation.class,
                     map) ? "OK" : "Unable to set map entries");
-        } catch (final ReflectiveOperationException | TimeoutException | ParseException e) {
+        } catch (final Exception e) {
             throw new CommandException(e);
         }
     }

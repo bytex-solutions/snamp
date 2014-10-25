@@ -11,7 +11,7 @@ import java.util.concurrent.Future;
 public interface InvocationResult extends Future<Object> {
     /**
      * Returns the completion status of the operation invocation.
-     * @return The completion status of the operation invocation; or {@link com.itworks.snamp.connectors.operations.InvocationStatus#INCOMPLETED}
+     * @return The completion status of the operation invocation; or {@link com.itworks.snamp.connectors.operations.InvocationStatus#UNCOMPLETED}
      * if invocation is still running.
      */
     public InvocationStatus getStatus();

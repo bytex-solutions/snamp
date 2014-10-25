@@ -66,13 +66,13 @@ public final class RestAdapterService {
                                    @PathParam(ATTRIBUTE_NAME_PARAM)final String attributeName,
                                    final String attributeValue,
                                    @Context SecurityContext context) {
-        if(securityEnabled) RestAdapterHelpers.maintainerRequired(context);
+        if (securityEnabled) RestAdapterHelpers.maintainerRequired(context);
         final HttpAttributeMapping attr = attributes.get(resourceName, attributeName);
-        if(attr != null)
-            try{
-                return attributes.getJsonFormatter().toJson(new JsonPrimitive(attr.setValue(attributeValue)));
-            }
-            catch (final Exception e){
+        if (attr != null)
+            try {
+                attr.setValue(attributeValue);
+                return attributes.getJsonFormatter().toJson(new JsonPrimitive(true));
+            } catch (final Exception e) {
                 throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
             }
         else throw new WebApplicationException(Response.Status.NOT_FOUND);

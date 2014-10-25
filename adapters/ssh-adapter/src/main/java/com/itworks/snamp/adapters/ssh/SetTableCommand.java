@@ -11,7 +11,6 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
@@ -56,11 +55,11 @@ final class SetTableCommand extends AbstractManagementShellCommand{
 
     private static void deleteTableRow(final SshAttributeView attr,
                                        final String index,
-                                       final PrintWriter output) throws CommandException{
+                                       final PrintWriter output) throws CommandException {
         try {
-            output.println(attr.applyTransformation(SshAttributeView.DeleteRowTransformation.class,
-                    Integer.parseInt(index)) ? "OK" : "Unable to delete row");
-        } catch (final ReflectiveOperationException | TimeoutException e) {
+            attr.applyTransformation(SshAttributeView.DeleteRowTransformation.class,
+                    Integer.parseInt(index));
+        } catch (final Exception e) {
             throw new CommandException(e);
         }
     }

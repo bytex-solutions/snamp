@@ -3,6 +3,7 @@ package com.itworks.snamp.adapters.snmp;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import org.snmp4j.agent.mo.MOScalar;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.OID;
@@ -64,10 +65,10 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     public final T getValue() {
         Object result;
         try{
-            result = attribute.getValue(defaultValue);
+            result = attribute.getRawValue();
         }
-        catch (final TimeoutException timeout){
-            log.log(Level.WARNING, String.format("Read operation timeout detected for %s attribute", attribute.getName()), timeout);
+        catch (final TimeoutException | AttributeSupportException e){
+            log.log(Level.WARNING, String.format("Read operation failed for %s attribute", attribute.getName()), e);
             result = defaultValue;
         }
         return result == null ? defaultValue : convert(result);
@@ -83,10 +84,11 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     public final int setValue(final T value) {
         int result;
         try {
-            result = attribute.setValue(convert(value)) ? SnmpConstants.SNMP_ERROR_BAD_VALUE : SnmpConstants.SNMP_ERROR_SUCCESS;
-        } catch (final TimeoutException timeout) {
-            log.log(Level.WARNING, timeout.getLocalizedMessage(), timeout);
+            attribute.setValue(convert(value));
             result = SnmpConstants.SNMP_ERROR_SUCCESS;
+        } catch (final TimeoutException | AttributeSupportException e) {
+            log.log(Level.WARNING, e.getLocalizedMessage(), e);
+            result = SnmpConstants.SNMP_ERROR_RESOURCE_UNAVAILABLE;
         }
         return result;
     }

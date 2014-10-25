@@ -1,10 +1,13 @@
 package com.itworks.snamp.connectors.jmx;
 
+import com.itworks.snamp.ConversionException;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.NotificationListener;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.internal.Utils;
@@ -27,7 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.SEVERITY_PARAM;
 
-import static com.itworks.snamp.connectors.jmx.JmxConnectionManager.MBeanServerConnectionHandler;
 import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.OBJECT_NAME_PROPERTY;
 import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.USE_REGEXP_PARAM;
 
@@ -168,7 +170,59 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             this.connectionManager = connectionManager;
         }
 
-        private JmxAttributeProvider createPlainAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
+        /**
+         * Reports an error when connecting attribute.
+         *
+         * @param attributeID   The attribute identifier.
+         * @param attributeName The name of the attribute.
+         * @param e             Internal connector error.
+         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         */
+        @Override
+        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
+            failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
+        }
+
+        /**
+         * Reports an error when getting attribute.
+         *
+         * @param attributeID The attribute identifier.
+         * @param e           Internal connector error.
+         * @see #failedToGetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        @Override
+        protected void failedToGetAttribute(final String attributeID, final Exception e) {
+            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
+        }
+
+        /**
+         * Reports an error when updating attribute.
+         *
+         * @param attributeID The attribute identifier.
+         * @param value       The value of the attribute.
+         * @param e           Internal connector error.
+         * @see #failedToSetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Object, Exception)
+         */
+        @Override
+        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
+            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
+        }
+
+        private static Factory<OpenType<?>> createTypeDetectionFallback(final JmxAttributeProvider provider){
+            return new Factory<OpenType<?>>() {
+                @Override
+                public OpenType<?> create() {
+                    try {
+                        return provider.getTypeFromAttributeValue();
+                    } catch (final Exception e) {
+                        logger.log(Level.SEVERE, String.format("Failed to detect type of attribute %s", provider.getName()), e);
+                        return SimpleType.STRING;
+                    }
+                }
+            };
+        }
+
+        private JmxAttributeProvider createPlainAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options) throws Exception{
             //extracts JMX attribute metadata
             final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
                 @Override
@@ -177,16 +231,12 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                         if (attributeName.equals(attr.getName())) return attr;
                     return null;
                 }
-            }, null);
-            return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
+            });
+            if(targetAttr == null) throw new AttributeNotFoundException(attributeName);
+            else return new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
                 @Override
                 protected final JmxManagedEntityType detectAttributeType() {
-                    return typeSystem.createAttributeType(targetAttr, new Factory<OpenType<?>>() {
-                        @Override
-                        public OpenType<?> create() {
-                            return getTypeFromAttributeValue();
-                        }
-                    });
+                    return typeSystem.createAttributeType(targetAttr, createTypeDetectionFallback(this));
                 }
 
                 /**
@@ -229,10 +279,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                 public final String getDescription(final Locale locale) {
                     return targetAttr.getDescription();
                 }
-            } : null;
+            };
         }
 
-        private JmxAttributeProvider createCompositeAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
+        private JmxAttributeProvider createCompositeAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options) throws Exception{
             final CompositeValueNavigator navigator = new CompositeValueNavigator(attributeName);
             //получить описатель поля, этот описатель может содержать знак @ для вложенного атрибута
             final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
@@ -242,8 +292,9 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                         if(navigator.attributeName.equals(attr.getName())) return attr;
                     return null;
                 }
-            }, null);
-            return targetAttr != null ? new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
+            });
+            if(targetAttr == null) throw new AttributeNotFoundException(attributeName);
+            else return new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
 
                 @Override
                 public final boolean canRead() {
@@ -282,18 +333,13 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
 
                 @Override
                 protected final JmxManagedEntityType detectAttributeType() {
-                    final OpenType<?> compositeType = JmxTypeSystem.getOpenType(targetAttr, new Factory<OpenType<?>>() {
-                        @Override
-                        public OpenType<?> create() {
-                            return getTypeFromAttributeValue();
-                        }
-                    });
+                    final OpenType<?> compositeType = JmxTypeSystem.getOpenType(targetAttr, createTypeDetectionFallback(this));
                     return typeSystem.createEntityType(navigator.getType(compositeType));
                 }
-            } : null;
+            };
         }
 
-        private ObjectName findObjectName(final ObjectName namespace){
+        private ObjectName findObjectName(final ObjectName namespace) throws Exception {
             return connectionManager.handleConnection(new MBeanServerConnectionHandler<ObjectName>() {
                 @Override
                 public ObjectName handle(final MBeanServerConnection connection) throws IOException, JMException {
@@ -301,14 +347,14 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                     final Set<ObjectInstance> beans = connection.queryMBeans(namespace, null);
                     return beans.size() > 0 ? beans.iterator().next().getObjectName() : null;
                 }
-            }, null);
+            });
         }
 
         private static boolean useRegexpOption(final Map<String, String> options){
             return options.containsKey(USE_REGEXP_PARAM) && Boolean.TRUE.toString().equals(options.get(USE_REGEXP_PARAM));
         }
 
-        private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options, final boolean useRegexp){
+        private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options, final boolean useRegexp) throws Exception{
             //creates JMX attribute provider based on its metadata and connection options.
             if(namespace == null) return null;
             if(CompositeValueNavigator.isCompositeAttribute(attributeName))
@@ -317,7 +363,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             else return createPlainAttribute(namespace, attributeName, options);
         }
 
-        private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options){
+        private JmxAttributeProvider connectAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options) throws Exception{
             //creates JMX attribute provider based on its metadata and connection options.
             return connectAttribute(namespace, attributeName, options, useRegexpOption(options));
         }
@@ -327,9 +373,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * @param attributeName The name of the attribute.
          * @param options The attribute discovery options.
          * @return The description of the attribute.
+         * @throws java.lang.Exception Internal connector error.
          */
         @Override
-        protected JmxAttributeProvider connectAttribute(final String attributeName, final Map<String, String> options){
+        protected JmxAttributeProvider connectAttribute(final String attributeName, final Map<String, String> options) throws Exception{
 
             final String namespace = Objects.toString(options.get(OBJECT_NAME_PROPERTY), "");
             try {
@@ -350,14 +397,14 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          *
          * @param attribute    The metadata of the attribute to get.
          * @param readTimeout Read operation timeout.
-         * @param defaultValue The default value of the attribute if reading fails.
          * @return The value of the attribute.
-         * @throws java.util.concurrent.TimeoutException
          *
          */
         @Override
-        protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
-            return attribute instanceof JmxAttributeProvider ? ((JmxAttributeProvider)attribute).getValue(defaultValue) : defaultValue;
+        protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout) throws Exception {
+            if (attribute instanceof JmxAttributeProvider)
+                return ((JmxAttributeProvider) attribute).getValue();
+            else throw new ConversionException(attribute, JmxAttributeProvider.class);
         }
 
         /**
@@ -366,31 +413,69 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * @param attribute    The metadata of the attribute to set.
          * @param writeTimeout Write operation timeout.
          * @param value The value to write.
-         * @return {@literal true}, if attribute is written successfully.
          */
         @Override
-        protected final boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
-            return attribute instanceof JmxAttributeProvider && ((JmxAttributeProvider)attribute).setValue(value);
+        protected final void setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws Exception{
+            if(attribute instanceof JmxAttributeProvider)
+                ((JmxAttributeProvider)attribute).setValue(value);
+            else throw new ConversionException(attribute, JmxAttributeProvider.class);
         }
     }
 
-    private static final class JmxNotificationSupport extends AbstractNotificationSupport implements javax.management.NotificationListener, MBeanServerConnectionHandler<Void>{
+    private static final class JmxNotificationSupport extends AbstractNotificationSupport implements javax.management.NotificationListener, MBeanServerConnectionHandler<Void> {
         private final JmxConnectionManager connectionManager;
 
-        public JmxNotificationSupport(final JmxConnectionManager connectionManager){
+        public JmxNotificationSupport(final JmxConnectionManager connectionManager) {
             this.connectionManager = connectionManager;
             this.connectionManager.addReconnectionHandler(this);
         }
 
-        private Set<ObjectName> getNotificationTargets(){
+        /**
+         * Reports an error when enabling notifications.
+         *
+         * @param listID   Subscription list identifier.
+         * @param category An event category.
+         * @param e        Internal connector error.
+         * @see #failedToEnableNotifications(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         */
+        @Override
+        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
+            failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
+        }
+
+        /**
+         * Reports an error when disabling notifications.
+         *
+         * @param listID Subscription list identifier.
+         * @param e      Internal connector error.
+         * @see #failedToDisableNotifications(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        @Override
+        protected void failedToDisableNotifications(final String listID, final Exception e) {
+            failedToDisableNotifications(logger, Level.WARNING, listID, e);
+        }
+
+        /**
+         * Reports an error when subscribing the listener.
+         *
+         * @param listenerID Subscription list identifier.
+         * @param e          Internal connector error.
+         * @see #failedToSubscribe(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        @Override
+        protected void failedToSubscribe(final String listenerID, final Exception e) {
+            failedToSubscribe(logger, Level.WARNING, listenerID, e);
+        }
+
+        private Set<ObjectName> getNotificationTargets() {
             final Set<ObjectName> targets = new HashSet<>(10);
-            for(final String category: getCategories())
-                for(final JmxNotificationMetadata eventData: getEnabledNotifications(category, JmxNotificationMetadata.class).values())
+            for (final String category : getCategories())
+                for (final JmxNotificationMetadata eventData : getEnabledNotifications(category, JmxNotificationMetadata.class).values())
                     targets.add(eventData.eventOwner);
             return targets;
         }
 
-        private void enableListening(final ObjectName target){
+        private void enableListening(final ObjectName target) throws Exception {
             final javax.management.NotificationListener listener = this;
             connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
                 @Override
@@ -398,26 +483,24 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                     connection.addNotificationListener(target, listener, null, null);
                     return null;
                 }
-            }, null);
+            });
         }
 
-        private void disableListening(final ObjectName target){
-            final javax.management.NotificationListener listener = this;
-
+        private void disableListening(final ObjectName target) throws Exception {
             connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
+                private final javax.management.NotificationListener listener = JmxNotificationSupport.this;
+
                 @Override
                 public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
                     connection.removeNotificationListener(target, listener);
                     return null;
                 }
-            }, null);
+            });
         }
 
-
-
-        private void disableNotifications(final JmxNotificationMetadata notificationType){
+        private void disableNotifications(final JmxNotificationMetadata notificationType) throws Exception {
             final Set<ObjectName> targets = getNotificationTargets();
-            if(!targets.contains(notificationType.eventOwner))
+            if (!targets.contains(notificationType.eventOwner))
                 disableListening(notificationType.eventOwner);
         }
 
@@ -454,10 +537,14 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * @param notificationType The event descriptor.
          */
         @Override
-        protected void disableNotifications(final GenericNotificationMetadata notificationType) {
+        protected void disableNotifications(final GenericNotificationMetadata notificationType) throws Exception {
             //remove JMX listener if there is no one active MBean listener
-            if(notificationType instanceof JmxNotificationMetadata)
-                disableNotifications((JmxNotificationMetadata) notificationType);
+            try {
+                if (notificationType instanceof JmxNotificationMetadata)
+                    disableNotifications((JmxNotificationMetadata) notificationType);
+            } finally {
+                notificationType.removeListeners();
+            }
         }
 
         /**
@@ -466,9 +553,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * @param category The name of the category to listen.
          * @param options  Event discovery options.
          * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+         * @throws java.lang.Exception Internal connector error.
          */
         @Override
-        protected final GenericNotificationMetadata enableNotifications(final String category, final Map<String, String> options) {
+        protected final GenericNotificationMetadata enableNotifications(final String category, final Map<String, String> options) throws Exception {
             final JmxNotificationMetadata eventData = connectionManager.handleConnection(new MBeanServerConnectionHandler<JmxNotificationMetadata>() {
                 @Override
                 public JmxNotificationMetadata handle(final MBeanServerConnection connection) throws IOException, JMException {
@@ -481,39 +569,40 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                         return null;
                     } else return null;
                 }
-            }, null);
-            if(eventData != null){
+            });
+            if (eventData != null) {
                 //checks whether the enabled MBean object already listening
                 final Set<ObjectName> listeningContext = getNotificationTargets();
-                if(!listeningContext.contains(eventData.eventOwner))
+                if (!listeningContext.contains(eventData.eventOwner))
                     enableListening(eventData.eventOwner);
             }
             return eventData;
         }
 
-        private void handleNotification(final ObjectName source, final javax.management.Notification notification){
+        private void handleNotification(final ObjectName source, final javax.management.Notification notification) {
             final Map<String, JmxNotificationMetadata> enabledNotifs = getEnabledNotifications(notification.getType(), JmxNotificationMetadata.class);
-            for(final JmxNotificationMetadata eventMetadata: enabledNotifs.values())
-                if(source.equals(eventMetadata.eventOwner)) eventMetadata.fire(notification);
+            for (final JmxNotificationMetadata eventMetadata : enabledNotifs.values())
+                if (source.equals(eventMetadata.eventOwner)) eventMetadata.fire(notification);
         }
 
         @Override
         public final void handleNotification(final javax.management.Notification notification, final Object handback) {
             //iterates through all listeners and executes it
-            if(notification.getSource() instanceof ObjectName)
-                handleNotification((ObjectName)notification.getSource(), notification);
-            else logger.warning(String.format("Unable to handle notification %s because source is unknown", notification));
+            if (notification.getSource() instanceof ObjectName)
+                handleNotification((ObjectName) notification.getSource(), notification);
+            else
+                logger.warning(String.format("Unable to handle notification %s because source is unknown", notification));
         }
 
         public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
             //for each MBean object assigns notification listener
-            for(final ObjectName target: getNotificationTargets())
+            for (final ObjectName target : getNotificationTargets())
                 connection.addNotificationListener(target, this, null, null);
             return null;
         }
 
-        public final void unsubscribeAll(){
-            for(final ObjectName target: getNotificationTargets())
+        public final void unsubscribeAll() throws Exception {
+            for (final ObjectName target : getNotificationTargets())
                 disableListening(target);
         }
     }
@@ -642,16 +731,16 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             this.connectionManager = manager;
             this.namespace = namespace;
             options.put(JMX_ENTITY_OPTION, Boolean.toString(true));
-            this.options = options != null ? Collections.unmodifiableMap(options) : Collections.<String, String>emptyMap();
+            this.options = Collections.unmodifiableMap(options);
         }
 
-        protected final OpenType<?> getTypeFromAttributeValue(){
+        protected final OpenType<?> getTypeFromAttributeValue() throws Exception {
             return connectionManager.handleConnection(new MBeanServerConnectionHandler<OpenType<?>>() {
                 @Override
                 public OpenType<?> handle(final MBeanServerConnection connection) throws IOException, JMException {
                     return JmxTypeSystem.getOpenTypeFromValue(connection.getAttribute(namespace, getName()));
                 }
-            }, SimpleType.STRING);
+            });
         }
 
         @Override
@@ -724,35 +813,28 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
 
         /**
          * Returns the value of the attribute.
-         * @param defval The default value returned from this method if attribute value
-         *               is not directly accessible,
          * @return The value of the attribute.
+         * @throws java.lang.Exception Error when reading attribute.
          */
-        public final Object getValue(final Object defval){
+        public final Object getValue() throws Exception{
             if(canRead()){
                 if(attributeValueReader == null) attributeValueReader = createAttributeValueReader();
-                return connectionManager.handleConnection(attributeValueReader, defval);
+                return connectionManager.handleConnection(attributeValueReader);
             }
-            else return defval;
+            else throw new IllegalStateException("Attribute is write-only");
         }
 
         /**
          * Writes the value to the attribute.
          * @param value The value to write.
-         * @return {@literal true}, if value is written successfully; otherwise, {@literal false}.
+         * @throws java.lang.Exception Error when updating attribute.
          */
-        public final boolean setValue(Object value){
+        public final void setValue(Object value) throws Exception {
             final JmxManagedEntityType typeInfo = getType();
-            if(canWrite() && value != null)
-                try{
-                    value = typeInfo.convertToJmx(value);
-                    return connectionManager.handleConnection(createAttributeValueWriter(value), false);
-                }
-                catch (final InvalidAttributeValueException e){
-                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-                    return false;
-                }
-            else return false;
+            if (canWrite()) {
+                value = typeInfo.convertToJmx(value);
+                connectionManager.handleConnection(createAttributeValueWriter(value));
+            } else throw new IllegalStateException("Attribute is read-only");
         }
     }
 
@@ -842,7 +924,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     private final JmxAttributeSupport attributes;
     private final JmxConnectionManager connectionManager;
 
-    public JmxConnector(final JmxConnectionOptions connectionOptions){
+    public JmxConnector(final JmxConnectionOptions connectionOptions) {
         super(connectionOptions, logger);
         this.connectionManager = connectionOptions.createConnectionManager();
         this.notifications = new JmxNotificationSupport(connectionManager);
@@ -864,9 +946,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      * @param category The name of the category to listen.
      * @param options  Event discovery options.
      * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
     @Override
-    public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
+    public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) throws NotificationSupportException{
         verifyInitialization();
         return notifications.enableNotifications(listId, category, options);
     }
@@ -879,9 +962,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      *
      * @param listId The identifier of the subscription list.
      * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
     @Override
-    public final boolean disableNotifications(final String listId) {
+    public final boolean disableNotifications(final String listId) throws NotificationSupportException{
         verifyInitialization();
         return notifications.disableNotifications(listId);
     }
@@ -915,12 +999,12 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      * @param listenerId Unique identifier of the listener.
      * @param listener   The notification listener.
      * @param delayed Specifies delayed subscription.
-     * @return {@literal true}, if listener is added successfully; otherwise, {@literal false}.
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
     @Override
-    public boolean subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) {
+    public void subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) throws NotificationSupportException {
         verifyInitialization();
-        return notifications.subscribe(listenerId, listener, delayed);
+        notifications.subscribe(listenerId, listener, delayed);
     }
 
     /**
@@ -942,9 +1026,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      * @param attributeName The name of the attribute.
      * @param options       The attribute discovery options.
      * @return The description of the attribute.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) {
+    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) throws AttributeSupportException {
         verifyInitialization();
         return attributes.connectAttribute(id, attributeName, options);
     }
@@ -954,14 +1039,15 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      *
      * @param id           A key string that is used to invoke attribute from this connector.
      * @param readTimeout  The attribute value invoke operation timeout.
-     * @param defaultValue The default value of the attribute if it is real value is not available.
      * @return The value of the attribute, or default value.
      * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
+     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException Unregistered attribute detected.
      */
     @Override
-    public Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
+    public Object getAttribute(final String id, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException, UnknownAttributeException {
         verifyInitialization();
-        return attributes.getAttribute(id, readTimeout, defaultValue);
+        return attributes.getAttribute(id, readTimeout);
     }
 
     /**
@@ -971,9 +1057,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      * @param readTimeout The attribute value invoke operation timeout.
      * @return The set of managementAttributes ids really written to the dictionary.
      * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException {
+    public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException {
         verifyInitialization();
         return attributes.getAttributes(output, readTimeout);
     }
@@ -984,13 +1071,14 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      * @param id           An identifier of the attribute,
      * @param writeTimeout The attribute value write operation timeout.
      * @param value        The value to write.
-     * @return {@literal true} if attribute set operation is supported by remote provider; otherwise, {@literal false}.
      * @throws java.util.concurrent.TimeoutException The attribute value cannot be write in the specified duration.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
+     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException Unregistered attribute requested.
      */
     @Override
-    public boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException {
+    public void setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException, AttributeSupportException, UnknownAttributeException {
         verifyInitialization();
-        return attributes.setAttribute(id, writeTimeout, value);
+        attributes.setAttribute(id, writeTimeout, value);
     }
 
     /**
@@ -998,13 +1086,13 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      *
      * @param values       The dictionary of managementAttributes keys and its values.
      * @param writeTimeout Batch write operation timeout.
-     * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
      * @throws java.util.concurrent.TimeoutException
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public boolean setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException {
+    public void setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException, AttributeSupportException {
         verifyInitialization();
-        return attributes.setAttributes(values, writeTimeout);
+        attributes.setAttributes(values, writeTimeout);
     }
 
     /**

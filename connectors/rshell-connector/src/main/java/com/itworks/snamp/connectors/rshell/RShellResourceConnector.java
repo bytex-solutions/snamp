@@ -2,12 +2,15 @@ package com.itworks.snamp.connectors.rshell;
 
 import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
+import com.itworks.snamp.ConversionException;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 
 import javax.script.ScriptException;
 import java.io.File;
@@ -244,14 +247,52 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
         }
     }
 
-    private static final class RShellAttributes extends AbstractAttributeSupport{
+    private static final class RShellAttributes extends AbstractAttributeSupport {
 
         private final CommandExecutionChannel executionChannel;
         private final Logger logger;
 
-        private RShellAttributes(final CommandExecutionChannel channel, final Logger logger){
+        private RShellAttributes(final CommandExecutionChannel channel, final Logger logger) {
             this.executionChannel = channel;
             this.logger = logger;
+        }
+
+        /**
+         * Reports an error when connecting attribute.
+         *
+         * @param attributeID   The attribute identifier.
+         * @param attributeName The name of the attribute.
+         * @param e             Internal connector error.
+         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         */
+        @Override
+        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
+            failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
+        }
+
+        /**
+         * Reports an error when getting attribute.
+         *
+         * @param attributeID The attribute identifier.
+         * @param e           Internal connector error.
+         * @see #failedToGetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        @Override
+        protected void failedToGetAttribute(final String attributeID, final Exception e) {
+            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
+        }
+
+        /**
+         * Reports an error when updating attribute.
+         *
+         * @param attributeID The attribute identifier.
+         * @param value       The value of the attribute.
+         * @param e           Internal connector error.
+         * @see #failedToSetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Object, Exception)
+         */
+        @Override
+        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
+            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
         }
 
         /**
@@ -260,37 +301,34 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
          * @param attributeName The name of the attribute.
          * @param options       Attribute discovery options.
          * @return The description of the attribute.
+         * @throws com.itworks.snamp.connectors.rshell.CommandProfileNotFoundException Path to the command profile is specified but file not found.
          */
         @Override
-        protected GenericAttributeMetadata<?> connectAttribute(final String attributeName, final Map<String, String> options) {
-            if(options.containsKey(COMMAND_PROFILE_PATH_PARAM)){
+        protected GenericAttributeMetadata<?> connectAttribute(final String attributeName, final Map<String, String> options) throws CommandProfileNotFoundException, UndefinedCommandProfileException {
+            if (options.containsKey(COMMAND_PROFILE_PATH_PARAM)) {
                 final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(options.get(COMMAND_PROFILE_PATH_PARAM)));
-                if(profile != null)
+                if (profile != null)
                     return new RShellAttributeMetadata(attributeName, profile, options);
                 else
-                    logger.log(Level.WARNING, String.format("Command-line profile %s not found", options.get(COMMAND_PROFILE_PATH_PARAM)));
+                    throw new CommandProfileNotFoundException(options.get(COMMAND_PROFILE_PATH_PARAM));
             }
-            return null;
+            throw new UndefinedCommandProfileException();
         }
 
         /**
          * Returns the value of the attribute.
          *
-         * @param attribute    The metadata of the attribute to get.
-         * @param readTimeout  The attribute value invoke operation timeout.
-         * @param defaultValue The default value of the attribute if reading fails.
+         * @param attribute   The metadata of the attribute to get.
+         * @param readTimeout The attribute value invoke operation timeout.
          * @return The value of the attribute.
-         * @throws java.util.concurrent.TimeoutException
+         * @throws java.io.IOException          Some I/O error occurred.
+         * @throws javax.script.ScriptException Attempt to interpret incorrect portion of script code.
          */
         @Override
-        protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
+        protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout) throws IOException, ScriptException {
             if (attribute instanceof RShellAttributeMetadata)
-                try {
-                    return ((RShellAttributeMetadata) attribute).getValue(executionChannel);
-                } catch (final IOException | ScriptException e) {
-                    logger.log(Level.SEVERE, String.format("Unable to read %s attribute", attribute.getName()), e);
-                }
-            return null;
+                return ((RShellAttributeMetadata) attribute).getValue(executionChannel);
+            else throw new ConversionException(attribute, RShellAttributeMetadata.class);
         }
 
         /**
@@ -299,16 +337,14 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
          * @param attribute    The metadata of the attribute to set.
          * @param writeTimeout The attribute value write operation timeout.
          * @param value        The value to write.
-         * @return {@literal true} if attribute value is overridden successfully; otherwise, {@literal false}.
+         * @throws java.io.IOException          Some I/O error occurred.
+         * @throws javax.script.ScriptException Attempt to interpret incorrect portion of script code.
          */
         @Override
-        protected boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
-            try {
-                return attribute instanceof RShellAttributeMetadata && ((RShellAttributeMetadata)attribute).setValue(executionChannel, value);
-            } catch (final ScriptException | IOException e) {
-                logger.log(Level.SEVERE, String.format("Unable to set attribute %s", attribute.getName()), e);
-                return false;
-            }
+        protected void setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws ScriptException, IOException {
+            if (attribute instanceof RShellAttributeMetadata)
+                ((RShellAttributeMetadata) attribute).setValue(executionChannel, value);
+            else throw new ConversionException(attribute, RShellAttributeMetadata.class);
         }
     }
 
@@ -340,9 +376,10 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
      * @param attributeName The name of the attribute.
      * @param options       The attribute discovery options.
      * @return The description of the attribute.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) {
+    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) throws AttributeSupportException{
         verifyInitialization();
         return attributes.connectAttribute(id, attributeName, options);
     }
@@ -352,14 +389,15 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
      *
      * @param id           A key string that is used to invoke attribute from this connector.
      * @param readTimeout  The attribute value invoke operation timeout.
-     * @param defaultValue The default value of the attribute if it is real value is not available.
      * @return The value of the attribute, or default value.
      * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
+     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException Unregistered attribute requested.
      */
     @Override
-    public Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
+    public Object getAttribute(final String id, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException, UnknownAttributeException {
         verifyInitialization();
-        return attributes.getAttribute(id, readTimeout, defaultValue);
+        return attributes.getAttribute(id, readTimeout);
     }
 
     /**
@@ -369,9 +407,10 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
      * @param readTimeout The attribute value invoke operation timeout.
      * @return The set of managementAttributes ids really written to the dictionary.
      * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException {
+    public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException {
         verifyInitialization();
         return attributes.getAttributes(output, readTimeout);
     }
@@ -382,13 +421,14 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
      * @param id           An identifier of the attribute,
      * @param writeTimeout The attribute value write operation timeout.
      * @param value        The value to write.
-     * @return {@literal true} if attribute set operation is supported by remote provider; otherwise, {@literal false}.
      * @throws java.util.concurrent.TimeoutException The attribute value cannot be write in the specified duration.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
+     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException Unregistered attibute requested.
      */
     @Override
-    public boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException {
+    public void setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException, AttributeSupportException, UnknownAttributeException {
         verifyInitialization();
-        return attributes.setAttribute(id, writeTimeout, value);
+        attributes.setAttribute(id, writeTimeout, value);
     }
 
     /**
@@ -396,13 +436,13 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
      *
      * @param values       The dictionary of managementAttributes keys and its values.
      * @param writeTimeout The attribute value write operation timeout.
-     * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
      * @throws java.util.concurrent.TimeoutException
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public boolean setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException {
+    public void setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException, AttributeSupportException {
         verifyInitialization();
-        return attributes.setAttributes(values, writeTimeout);
+        attributes.setAttributes(values, writeTimeout);
     }
 
     /**

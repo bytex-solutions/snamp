@@ -4,6 +4,8 @@ import com.itworks.snamp.ThreadSafeObject;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
@@ -17,6 +19,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -65,7 +68,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         public static final String DESCRIPTION_PARAM = "description";
 
         private final String attributeName;
-        private T attributeType;
+        private volatile T attributeType;
 
         /**
          * Initializes a new attribute metadata.
@@ -131,8 +134,16 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          */
         @Override
         public final T getType() {
-            if(attributeType == null) attributeType = detectAttributeType();
-            return attributeType;
+            // use a temporary variable to reduce the number of reads of the
+            // volatile field
+            T result = attributeType;
+            if (result == null)
+                synchronized (this) {
+                    result = attributeType;
+                    if (result == null)
+                        result = attributeType = detectAttributeType();
+                }
+            return result;
         }
 
         /**
@@ -260,8 +271,9 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @param attributeName The name of the attribute.
          * @param options       Attribute discovery options.
          * @return The description of the attribute.
+         * @throws java.lang.Exception Internal connector error.
          */
-        protected abstract GenericAttributeMetadata<?> connectAttribute(final String attributeName, final Map<String, String> options);
+        protected abstract GenericAttributeMetadata<?> connectAttribute(final String attributeName, final Map<String, String> options) throws Exception;
 
         /**
          * Connects to the specified attribute.
@@ -271,10 +283,11 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @param attributeName The name of the attribute.
          * @param options       Attribute discovery options.
          * @return The description of the attribute.
+         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
          */
         @Override
         @ThreadSafe
-        public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) {
+        public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) throws AttributeSupportException{
             beginWrite();
             try {
                 //return existed attribute without exception to increase flexibility of the API
@@ -283,42 +296,107 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                 if ((attr = connectAttribute(attributeName, options)) != null)
                     attributes.put(id, attr);
                 return attr;
-            } finally {
+            }
+            catch (final Exception e){
+                failedToConnectAttribute(id, attributeName, e);
+                throw new AttributeSupportException(e);
+            }
+            finally {
                 endWrite();
             }
         }
+
+        /**
+         * Reports an error when connecting attribute.
+         * @param logger The logger instance. Cannot be {@literal null}.
+         * @param logLevel Logging level.
+         * @param attributeID The attribute identifier.
+         * @param attributeName The name of the attribute.
+         * @param e Internal connector error.
+         */
+        protected static void failedToConnectAttribute(final Logger logger,
+                                                       final Level logLevel,
+                                                       final String attributeID,
+                                                       final String attributeName,
+                                                       final Exception e){
+            logger.log(logLevel, String.format("Failed to connect attribute %s with ID %s", attributeName, attributeID), e);
+        }
+
+        /**
+         * Reports an error when connecting attribute.
+         * @param attributeID The attribute identifier.
+         * @param attributeName The name of the attribute.
+         * @param e Internal connector error.
+         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         */
+        protected abstract void failedToConnectAttribute(final String attributeID,
+                                                         final String attributeName,
+                                                         final Exception e);
 
         /**
          * Returns the value of the attribute.
          *
          * @param attribute    The metadata of the attribute to get.
          * @param readTimeout  The attribute value invoke operation timeout.
-         * @param defaultValue The default value of the attribute if reading fails.
          * @return The value of the attribute.
-         * @throws TimeoutException
+         * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
+         * @throws java.lang.Exception Internal connector error.
          */
-        protected abstract Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException;
+        protected abstract Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout) throws Exception;
 
         /**
          * Returns the attribute value.
          *
          * @param id           A key string that is used to invoke attribute from this connector.
          * @param readTimeout  The attribute value invoke operation timeout.
-         * @param defaultValue The default value of the attribute if it is real value is not available.
          * @return The value of the attribute, or default value.
          * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
+         * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException The requested attribute doesn't exist.
+         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
          */
         @Override
         @ThreadSafe
-        public final Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
+        public final Object getAttribute(final String id, final TimeSpan readTimeout) throws TimeoutException,
+                UnknownAttributeException,
+                AttributeSupportException {
             final CountdownTimer timer = CountdownTimer.start(readTimeout);
             beginRead();
             try {
-                return getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), defaultValue);
+                if (attributes.containsKey(id))
+                    return getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime());
+                else throw new UnknownAttributeException(id);
+            } catch (final UnknownAttributeException | TimeoutException e) {
+                throw e;
+            } catch (final Exception e) {
+                failedToGetAttribute(id, e);
+                throw new AttributeSupportException(e);
             } finally {
                 endRead();
             }
         }
+
+        /**
+         * Reports an error when getting attribure.
+         * @param logger The logger instance. Cannot be {@literal null}.
+         * @param logLevel Logging level.
+         * @param attributeID The attribute identifier.
+         * @param e Internal connector error.
+         */
+        protected static void failedToGetAttribute(final Logger logger,
+                                                   final Level logLevel,
+                                                   final String attributeID,
+                                                   final Exception e){
+            logger.log(logLevel, String.format("Failed to get attribute %s", attributeID), e);
+        }
+
+        /**
+         * Reports an error when getting attribute.
+         * @param attributeID The attribute identifier.
+         * @param e Internal connector error.
+         * @see #failedToGetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        protected abstract void failedToGetAttribute(final String attributeID,
+                                                     final Exception e);
 
         /**
          * Reads a set of managementAttributes.
@@ -327,27 +405,33 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @param readTimeout The attribute value invoke operation timeout.
          * @return The set of managementAttributes ids really written to the dictionary.
          * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
+         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector exception.
          */
         @Override
         @ThreadSafe
-        public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException {
+        public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException {
             final CountdownTimer timer = CountdownTimer.start(readTimeout);
             beginRead();
+            String attributeID = null;
             try {
                 //accumulator for really existed attribute IDs
                 final Set<String> result = new HashSet<>(attributes.size());
-                final Object missing = new Object(); //this object represents default value for understanding
                 //whether the attribute value is unavailable
                 timer.stop();
-                for (final String id : output.keySet()) {
-                    timer.start();
-                    final Object value = getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), missing);
-                    if (value != missing) { //attribute value is available
+                for (final String id : output.keySet())
+                    if (attributes.containsKey(attributeID = id)) {
+                        timer.start();
+                        final Object value = getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime());
                         result.add(id);
                         output.put(id, value);
+
                     }
-                }
                 return result;
+            } catch (final TimeoutException e) {
+                throw e;
+            } catch (final Exception e) {
+                failedToGetAttribute(attributeID, e);
+                throw new AttributeSupportException(e);
             } finally {
                 endRead();
             }
@@ -359,9 +443,10 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @param attribute    The metadata of the attribute to set.
          * @param writeTimeout The attribute value write operation timeout.
          * @param value        The value to write.
-         * @return {@literal true} if attribute value is overridden successfully; otherwise, {@literal false}.
+         * @throws java.util.concurrent.TimeoutException The attribute value cannot be written in the specified time constraint.
+         * @throws java.lang.Exception Internal connector error.
          */
-        protected abstract boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value);
+        protected abstract void setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws Exception;
 
         /**
          * Writes the value of the specified attribute.
@@ -369,43 +454,83 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @param id           An identifier of the attribute,
          * @param writeTimeout The attribute value write operation timeout.
          * @param value        The value to write.
-         * @return {@literal true} if attribute set operation is supported by remote provider; otherwise, {@literal false}.
-         * @throws TimeoutException The attribute value cannot be write in the specified duration.
+         * @throws TimeoutException The attribute value cannot be written in the specified time constraint.
+         * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException The requested attribute doesn't exist.
+         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
          */
         @Override
         @ThreadSafe
-        public final boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException {
+        public final void setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException, UnknownAttributeException, AttributeSupportException {
             final CountdownTimer timer = CountdownTimer.start(writeTimeout);
             beginWrite();
             try {
-                return attributes.containsKey(id) && setAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), value);
+                if (attributes.containsKey(id))
+                    setAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), value);
+                else throw new UnknownAttributeException(id);
+            } catch (final UnknownAttributeException | TimeoutException e) {
+                throw e;
+            } catch (final Exception e) {
+                failedToSetAttribute(id, value, e);
+                throw new AttributeSupportException(e);
             } finally {
                 endWrite();
             }
         }
 
         /**
+         * Reports an error when updating attribute.
+         * @param logger The logger instance. Cannot be {@literal null}.
+         * @param logLevel Logging level.
+         * @param attributeID The attribute identifier.
+         * @param value The value of the attribute.
+         * @param e Internal connector error.
+         */
+        protected static void failedToSetAttribute(final Logger logger,
+                                                   final Level logLevel,
+                                                   final String attributeID,
+                                                   final Object value,
+                                                   final Exception e){
+            logger.log(logLevel, String.format("Failed to update attribute %s with %s value", attributeID, value), e);
+        }
+
+        /**
+         * Reports an error when updating attribute.
+         * @param attributeID The attribute identifier.
+         * @param value The value of the attribute.
+         * @param e Internal connector error.
+         * @see #failedToSetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Object, Exception)
+         */
+        protected abstract void failedToSetAttribute(final String attributeID,
+                                                     final Object value,
+                                                     final Exception e);
+
+        /**
          * Writes a set of managementAttributes inside of the transaction.
          *
          * @param values       The dictionary of managementAttributes keys and its values.
          * @param writeTimeout Batch write timeout.
-         * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
-         * @throws TimeoutException
+         * @throws TimeoutException The attribute value cannot be written in the specified time constraint.
+         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
          */
         @Override
         @ThreadSafe
-        public boolean setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException {
+        public void setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException, AttributeSupportException {
             final CountdownTimer timer = CountdownTimer.start(writeTimeout);
             beginWrite();
+            String attributeID = null;
+            Object attributeValue = null;
             try {
-                boolean result = true;
                 //whether the attribute value is unavailable
                 timer.stop();
                 for (final Map.Entry<String, Object> entry : values.entrySet()) {
                     timer.start();
-                    result &= setAttributeValue(attributes.get(entry.getKey()), timer.stopAndGetElapsedTime(), entry.getValue());
+                    setAttributeValue(attributes.get(attributeID = entry.getKey()), timer.stopAndGetElapsedTime(), attributeValue = entry.getValue());
                 }
-                return result;
+            } catch (final TimeoutException e) {
+                throw e;
+            } catch (final Exception e) {
+                failedToSetAttribute(attributeID, attributeValue, e);
+                throw new AttributeSupportException(e);
             } finally {
                 endWrite();
             }
@@ -842,19 +967,21 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * </p>
          * @param category The name of the category to listen.
          * @param options  Event discovery options.
-         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+         * @return The metadata of the event to listen;
+         * @throws java.lang.Exception Internal connector error.
          */
-        protected abstract GenericNotificationMetadata enableNotifications(final String category, final Map<String, String> options);
+        protected abstract GenericNotificationMetadata enableNotifications(final String category, final Map<String, String> options) throws Exception;
 
         /**
          * Enables event listening for the specified category of events.
          * @param listId An identifier of the subscription list.
          * @param category A name of the category to listen.
          * @param options  Event discovery options.
-         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+         * @return The metadata of the event to listen.
+         * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
          */
         @Override
-        public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
+        public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) throws NotificationSupportException {
             beginWrite(ANSResource.CONNECTED_NOTIFS);
             try {
                 if (notifications.containsKey(category)) return notifications.get(category);
@@ -872,10 +999,40 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                     }
                 }
                 return metadata;
+            } catch (final Exception e) {
+                failedToEnableNotifications(listId, category, e);
+                throw new NotificationSupportException(e);
             } finally {
                 endWrite(ANSResource.CONNECTED_NOTIFS);
             }
         }
+
+        /**
+         * Reports an error when enabling notifications.
+         * @param logger The logger instance. Cannot be {@literal null}.
+         * @param logLevel Logging level.
+         * @param listID Subscription list identifier.
+         * @param category An event category.
+         * @param e Internal connector error.
+         */
+        protected static void failedToEnableNotifications(final Logger logger,
+                                                          final Level logLevel,
+                                                          final String listID,
+                                                          final String category,
+                                                          final Exception e){
+            logger.log(logLevel, String.format("Failed to enable notifications %s for %s subscription list", category, listID), e);
+        }
+
+        /**
+         * Reports an error when enabling notifications.
+         * @param listID Subscription list identifier.
+         * @param category An event category.
+         * @param e Internal connector error.
+         * @see #failedToEnableNotifications(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         */
+        protected abstract void failedToEnableNotifications(final String listID,
+                                                            final String category,
+                                                            final Exception e);
 
         /**
          * Disable all notifications associated with the specified event.
@@ -883,8 +1040,9 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          *     In the default implementation this method does nothing.
          * </p>
          * @param notificationType The event descriptor.
+         * @throws java.lang.Exception Internal connector error.
          */
-        protected void disableNotifications(final GenericNotificationMetadata notificationType){
+        protected void disableNotifications(final GenericNotificationMetadata notificationType) throws Exception{
             notificationType.removeListeners();
         }
 
@@ -893,19 +1051,47 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          *
          * @param listId An identifier of the subscription list.
          * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+         * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
          */
         @Override
-        public final boolean disableNotifications(final String listId) {
+        public final boolean disableNotifications(final String listId) throws NotificationSupportException{
             beginWrite(ANSResource.CONNECTED_NOTIFS);
             try {
                 if (notifications.containsKey(listId)) {
                     disableNotifications(notifications.remove(listId));
                     return true;
                 } else return false;
-            } finally {
+            }
+            catch (final Exception e){
+                failedToDisableNotifications(listId, e);
+                throw new NotificationSupportException(e);
+            }
+            finally {
                 endWrite(ANSResource.CONNECTED_NOTIFS);
             }
         }
+
+        /**
+         * Reports an error when disabling notifications.
+         * @param logger The logger instance. Cannot be {@literal null}.
+         * @param logLevel Logging level.
+         * @param listID Subscription list identifier.
+         * @param e Internal connector error.
+         */
+        protected static void failedToDisableNotifications(final Logger logger,
+                                                           final Level logLevel,
+                                                           final String listID,
+                                                           final Exception e){
+            logger.log(logLevel, String.format("Failed to disable notifications at %s topic", listID), e);
+        }
+
+        /**
+         * Reports an error when disabling notifications.
+         * @param listID Subscription list identifier.
+         * @param e Internal connector error.
+         * @see #failedToDisableNotifications(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        protected abstract void failedToDisableNotifications(final String listID, final Exception e);
 
         /**
          * Gets the notification metadata by its category.
@@ -928,8 +1114,9 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * Adds a new listener for the specified notification.
          * @param listener The event listener.
          * @return Any custom data associated with the subscription.
+         * @throws java.lang.Exception Internal connector error.
          */
-        protected abstract Object subscribe(final NotificationListener listener);
+        protected abstract Object subscribe(final NotificationListener listener) throws Exception;
 
         /**
          * Attaches the notification listener.
@@ -938,33 +1125,62 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @param listener The notification listener.
          * @param delayed {@literal true} to add notification listener event if this
          *                               object has no enabled notifications.
-         * @return An identifier of the notification listener generated by this connector.
+         * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
          */
+
         @Override
-        public final boolean subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) {
-            if (listenerId == null || listenerId.isEmpty() || listener == null) return false;
+        public final void subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) throws NotificationSupportException{
+            if (listenerId == null || listenerId.isEmpty())
+                throw new IllegalArgumentException("Invalid subscription list identifier");
+            else if(listener == null)
+                throw new IllegalArgumentException("listener is null.");
             else if (delayed) {
                 beginWrite(ANSResource.DELAYED_NOTIFS);
                 try {
-                    if (delayedNotifications.containsKey(listenerId))
-                        return false;
                     delayedNotifications.put(listenerId, listener);
-                    return true;
                 } finally {
                     endWrite(ANSResource.DELAYED_NOTIFS);
                 }
             } else {
-                final Object userData = subscribe(listener);
                 beginRead(ANSResource.CONNECTED_NOTIFS);
                 try {
+                    final Object userData = subscribe(listener);
                     for (final GenericNotificationMetadata metadata : notifications.values())
                         metadata.addListener(listenerId, listener, userData);
-                    return notifications.size() > 0;
-                } finally {
+                }
+                catch (final Exception e){
+                    failedToSubscribe(listenerId, e);
+                    throw new NotificationSupportException(e);
+                }
+                finally {
                     endRead(ANSResource.CONNECTED_NOTIFS);
                 }
             }
         }
+
+
+        /**
+         * Reports an error when subscribing the listener.
+         * @param logger The logger instance. Cannot be {@literal null}.
+         * @param logLevel Logging level.
+         * @param listenerID Subscription list identifier.
+         * @param e Internal connector error.
+         */
+        protected static void failedToSubscribe(final Logger logger,
+                                                final Level logLevel,
+                                                final String listenerID,
+                                                final Exception e){
+            logger.log(logLevel, String.format("Failed to subscribe on %s topic", listenerID), e);
+        }
+
+        /**
+         * Reports an error when subscribing the listener.
+         * @param listenerID Subscription list identifier.
+         * @param e Internal connector error.
+         * @see #failedToSubscribe(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        protected abstract void failedToSubscribe(final String listenerID,
+                                                  final Exception e);
 
         /**
          * Cancels the notification listening.

@@ -63,9 +63,8 @@ final class SetArrayCommand extends AbstractManagementShellCommand {
                                            final String index,
                                            final PrintWriter output) throws CommandException {
         try {
-            output.println(attr.applyTransformation(SshAttributeView.DeleteRowTransformation.class,
-                    Integer.parseInt(index)) ? "OK" :
-                    "Unable to delete element");
+            attr.applyTransformation(SshAttributeView.DeleteRowTransformation.class,
+                    Integer.parseInt(index));
         } catch (final Exception e) {
             throw new CommandException(e);
         }
