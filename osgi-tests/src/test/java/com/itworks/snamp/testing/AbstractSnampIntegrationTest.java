@@ -53,9 +53,10 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    private static AbstractProvisionOption<?>[] buildDependencies(AbstractProvisionOption<?>[] deps){
+    private static AbstractProvisionOption<?>[] buildDependencies(AbstractProvisionOption<?>[] deps) {
         deps = concat(deps, mavenBundle("org.apache.felix", "org.apache.felix.log", "1.0.1"),
-                mavenBundle("org.apache.felix", "org.apache.felix.eventadmin", "1.4.2"));
+                mavenBundle("org.apache.felix", "org.apache.felix.eventadmin", "1.4.2"),
+                mavenBundle("org.apache.sling", "org.apache.sling.commons.threads", "3.2.0"));
         return concat(SnampArtifact.makeBasicSet(), deps);
     }
 
