@@ -20,7 +20,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
 final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
     static final String JMX_LOGIN = "login";
     static final String JMX_PASSWORD = "password";
-    static final String CONNECTION_RETRY_COUNT = "retryCount";
+    static final String CONNECTION_CHECK_PERIOD = "connectionCheckPeriod";
     static final String OBJECT_NAME_PROPERTY = "objectName";
     static final String SEVERITY_PARAM = "severity";
     static final String USE_REGEXP_PARAM = "useRegexp";
@@ -46,7 +46,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
             super(ManagedResourceConfiguration.class,
                     JMX_LOGIN,
                     JMX_PASSWORD,
-                    CONNECTION_RETRY_COUNT);
+                    CONNECTION_CHECK_PERIOD);
         }
 
         @Override

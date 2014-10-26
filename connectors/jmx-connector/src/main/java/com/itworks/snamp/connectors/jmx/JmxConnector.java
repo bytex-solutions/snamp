@@ -16,7 +16,10 @@ import com.itworks.snamp.licensing.LicensingException;
 import org.apache.commons.collections4.Factory;
 
 import javax.management.*;
-import javax.management.openmbean.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.SimpleType;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -28,10 +31,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.SEVERITY_PARAM;
 
-import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.OBJECT_NAME_PROPERTY;
-import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.USE_REGEXP_PARAM;
+import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.*;
 
 /**
  * Represents JMX connector.
@@ -422,7 +423,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         }
     }
 
-    private static final class JmxNotificationSupport extends AbstractNotificationSupport implements javax.management.NotificationListener, MBeanServerConnectionHandler<Void> {
+    private static final class JmxNotificationSupport extends AbstractNotificationSupport implements javax.management.NotificationListener, ConnectionEstablishedEventHandler {
         private final JmxConnectionManager connectionManager;
 
         public JmxNotificationSupport(final JmxConnectionManager connectionManager) {
@@ -606,6 +607,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                 disableListening(target);
         }
     }
+
 
     /**
      * Represents field navigator in the composite JMX data.
@@ -927,6 +929,8 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     public JmxConnector(final JmxConnectionOptions connectionOptions) {
         super(connectionOptions, logger);
         this.connectionManager = connectionOptions.createConnectionManager();
+        //attempts to establish connection immediately
+        connectionManager.connect();
         this.notifications = new JmxNotificationSupport(connectionManager);
         this.attributes = new JmxAttributeSupport(connectionManager);
     }

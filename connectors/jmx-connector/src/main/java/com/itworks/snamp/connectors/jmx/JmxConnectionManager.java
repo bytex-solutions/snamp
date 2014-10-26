@@ -1,180 +1,226 @@
 package com.itworks.snamp.connectors.jmx;
 
-import com.itworks.snamp.internal.UpgradableReadWriteLock;
+import com.itworks.snamp.Repeater;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
-import javax.management.JMException;
-import javax.management.ListenerNotFoundException;
-import javax.management.NotificationListener;
+import javax.management.*;
 import javax.management.remote.JMXConnectionNotification;
 import javax.management.remote.JMXConnector;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Represents JMX connection manager that provides reliable access to
- * MBean Server connection. This class cannot be inherited.
+ * Represents JMX connectionHolder manager that provides reliable access to
+ * MBean Server connectionHolder. This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
 @Internal
-final class JmxConnectionManager implements Closeable {
+final class JmxConnectionManager implements AutoCloseable {
     private static final Logger logger = JmxConnectorHelpers.getLogger();
-    private final ReconnectionManager reconManager;
 
-    private final static class ReconnectionManager implements javax.management.NotificationListener{
-        private final JmxConnectionFactory serviceURL;
+    private static class ConnectionHolder implements Closeable {
+        private final JmxConnectionFactory factory;
         private volatile JMXConnector connection;
-        private final long connectionRetryCount;
-        private final List<MBeanServerConnectionHandler<Void>> reconnectionHandlers;
-        private final UpgradableReadWriteLock readWriteLock;
 
-        private ReconnectionManager(final JmxConnectionFactory serviceURL, final long connectionRetryCount) {
-            this.serviceURL = serviceURL;
-            this.connection = null;
-            this.connectionRetryCount = connectionRetryCount;
-            readWriteLock = new UpgradableReadWriteLock();
-            reconnectionHandlers = new Vector<>(5);
+        private ConnectionHolder(final JmxConnectionFactory factory) {
+            this.factory = Objects.requireNonNull(factory);
+            connection = null;
+        }
+
+        private JMXConnector createConnection() throws IOException {
+            return connection = factory.createConnection();
+        }
+
+        private JMXConnector getConnection() {
+            return connection;
+        }
+
+        private boolean isInitialized() {
+            return connection != null;
         }
 
         @Override
-        public void handleNotification(final javax.management.Notification notification, final Object handback) {
-            if (notification instanceof JMXConnectionNotification &&
-                    (Objects.equals(notification.getType(), JMXConnectionNotification.NOTIFS_LOST) ||
-                            Objects.equals(notification.getType(), JMXConnectionNotification.FAILED)))
-                try {
-                    readWriteLock.lockWrite();
-                    connection = reconnect(serviceURL, reconnectionHandlers, getClass().getClassLoader(), connectionRetryCount, 0L);
-                } catch (final IOException | InterruptedException e) {
-                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-                } finally {
-                    readWriteLock.unlockWrite();
-                }
-        }
-
-        private synchronized <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws IOException, JMException, InterruptedException {
-            final ClassLoader classLoader = getClass().getClassLoader();
-            readWriteLock.lockRead();
-            try {
-                if (connection == null) {
-                    //upgrade to write lock
-                    readWriteLock.lockWrite();
-                    try {
-                        Thread.currentThread().setContextClassLoader(classLoader);
-                        connection = serviceURL.createConnection();
-                    } finally {
-                        readWriteLock.unlockWrite();//downgrade to read lock
-                    }
-                } else unsubscribe(this, connection); //removes the listener
-                //here we have only read lock
-                return handler.handle(connection.getMBeanServerConnection());
-            } catch (final IOException e) {
-                //upgrade to write lock
-                readWriteLock.lockWrite();
-                try {
-                    connection = reconnect(serviceURL, reconnectionHandlers, classLoader, connectionRetryCount, 0L);
-                } finally {
-                    readWriteLock.unlockWrite();//downgrade to read lock
-                }
-                return handleConnection(handler);
-            } finally {
-                //adds listener back
-                subscribe(this, connection);
-                //here we have always a read lock (release it)
-                readWriteLock.unlockRead();
-            }
-        }
-
-        private static void subscribe(final NotificationListener listener, final JMXConnector connection) {
-            if (connection != null) {
-                connection.addConnectionNotificationListener(listener, null, null);
-            }
-        }
-
-        public static void unsubscribe(final NotificationListener listener, final JMXConnector connection) {
-            if (connection != null)
-                try {
-                    connection.removeConnectionNotificationListener(listener);
-                } catch (final ListenerNotFoundException ignored) {
-                }
+        public void close() throws IOException {
+            final JMXConnector con = connection;
+            if (con != null) con.close();
         }
     }
 
-    public JmxConnectionManager(final JmxConnectionFactory connectionString, final long retryCount) {
-        if (connectionString == null) throw new IllegalArgumentException("connectionString is null.");
-        this.reconManager = new ReconnectionManager(connectionString, retryCount);
-    }
+    /**
+     * Represents the watch dog that checks the JMX connectionHolder every N units of time.
+     * This class cannot be inherited.
+     */
+    private static final class ConnectionWatchDog extends Repeater {
+        private final Lock writeLock;
+        private final ConnectionHolder connectionHolder;
+        private final List<ConnectionEstablishedEventHandler> reconnectionHandlers;
+        private final AtomicReference<IOException> problem;
 
-    private static JMXConnector reconnect(final JmxConnectionFactory serviceURL,
-                                          final Collection<MBeanServerConnectionHandler<Void>> reconnectionHandlers,
-                                          final ClassLoader classLoader,
-                                          final long connectionRetryCount,
-                                          long attemptNumber) throws IOException {
-        try {
-            Thread.currentThread().setContextClassLoader(classLoader);
-            final JMXConnector connection = serviceURL.createConnection();
-            //raises reconnection event
-            for (final MBeanServerConnectionHandler<Void> handler : reconnectionHandlers)
+        private ConnectionWatchDog(final TimeSpan period,
+                                   final ConnectionHolder connection,
+                                   final Lock writeLock) {
+            super(period);
+            this.writeLock = Objects.requireNonNull(writeLock);
+            this.connectionHolder = connection;
+            this.reconnectionHandlers = new Vector<>(4);
+            this.problem = new AtomicReference<>(null);
+        }
+
+        /**
+         * Reports about connection problem.
+         *
+         * @param e The connection problem.
+         * @return {@literal true}, if there is not previous problems; otherwise, {@literal false}.
+         */
+        private boolean reportProblem(final IOException e) {
+            return reportProblem(this.problem, e);
+        }
+
+        private static boolean reportProblem(final AtomicReference<IOException> problemHolder, final IOException problem) {
+            return problemHolder.compareAndSet(null, problem);
+        }
+
+        private void onReconnection(final MBeanServerConnection server) throws IOException {
+            for (final ConnectionEstablishedEventHandler handler : reconnectionHandlers)
                 try {
-                    handler.handle(connection.getMBeanServerConnection());
+                    handler.handle(server);
                 } catch (final JMException e) {
-                    logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                    logger.log(Level.WARNING, String.format("Unable to handle JMX reconnection %s", connectionHolder.factory), e);
                 }
-            return connection;
+        }
+
+        private static NotificationListener createConnectionTracker(final AtomicReference<IOException> problemHolder) {
+            return new NotificationListener() {
+                @Override
+                public void handleNotification(final Notification notification, final Object handback) {
+                    if (notification instanceof JMXConnectionNotification &&
+                            (Objects.equals(notification.getType(), JMXConnectionNotification.NOTIFS_LOST) ||
+                                    Objects.equals(notification.getType(), JMXConnectionNotification.FAILED)))
+                        reportProblem(problemHolder, new IOException(notification.getMessage()));
+                }
+            };
+        }
+
+        /**
+         * Provides some periodical action.
+         */
+        @Override
+        protected void doAction() {
+            writeLock.lock();
+            try {
+                @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+                final IOException problem = this.problem.get();
+                final MBeanServerConnection server;
+                if (problem != null) { //we have a network problem, force reconnection
+                    final JMXConnector connector = connectionHolder.createConnection();
+                    server = connector.getMBeanServerConnection();
+                    connector.addConnectionNotificationListener(createConnectionTracker(this.problem), null, null);
+                } else return;//no problem, return from method
+                //notify about new connection
+                onReconnection(server);
+                this.problem.set(null);//erase the problem
+            } catch (final IOException e) {
+                logger.log(Level.SEVERE, String.format("Failed to restore JMX connectionHolder %s", connectionHolder.factory), e);
+                //save a problem
+                reportProblem(e);
+            } finally {
+                writeLock.unlock();
+            }
+        }
+    }
+
+    private final ConnectionHolder connectionHolder;
+    private final ConnectionWatchDog watchDog;
+    private final Lock readLock;
+    private final TimeSpan watchPeriod;
+
+    JmxConnectionManager(final JmxConnectionFactory connectionString,
+                         final long watchDogPeriod) {
+        final ReentrantReadWriteLock coordinator = new ReentrantReadWriteLock();
+        this.readLock = coordinator.readLock();
+        connectionHolder = new ConnectionHolder(connectionString);
+        watchDog = new ConnectionWatchDog(this.watchPeriod = new TimeSpan(watchDogPeriod), connectionHolder, coordinator.writeLock());
+        //staring the watch dog
+        watchDog.run();
+    }
+
+    @ThreadSafe(false)
+    boolean connect() {
+        try {
+            return connectionHolder.createConnection() != null;
         } catch (final IOException e) {
-            attemptNumber += 1;
-            if (attemptNumber > connectionRetryCount)
-                throw e;
-            else return reconnect(serviceURL, reconnectionHandlers, classLoader, connectionRetryCount, attemptNumber);
+            watchDog.reportProblem(e);
+            return false;
         }
     }
 
     @ThreadSafe
     public final <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws Exception {
-        return reconManager.handleConnection(handler);
+        readLock.lockInterruptibly();
+        try {
+            if (connectionHolder.isInitialized()) {
+                final JMXConnector connector = connectionHolder.getConnection();
+                return handler.handle(connector.getMBeanServerConnection());
+            }
+            else throw new IOException(String.format("Connection %s is not initialized", connectionHolder.factory));
+        } catch (final IOException e) {
+            watchDog.reportProblem(e);
+            throw e;
+        } finally {
+            readLock.unlock();
+        }
     }
 
     @ThreadSafe
-    public final void addReconnectionHandler(final MBeanServerConnectionHandler<Void> handler) {
-        reconManager.reconnectionHandlers.add(handler);
+    public final void addReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
+        watchDog.reconnectionHandlers.add(handler);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     @ThreadSafe
-    public final void removeReconnectionHandler(final MBeanServerConnectionHandler<Void> handler) {
-        reconManager.reconnectionHandlers.remove(handler);
+    public final void removeReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
+        watchDog.reconnectionHandlers.add(handler);
     }
 
     /**
-     * Simulates connection abort.
+     * Simulates connectionHolder abort.
      * <p>
-     *     Only for testing purposes only.
+     * Only for testing purposes only.
      * </p>
-     * @throws java.io.IOException Unable to simulate connection abort.
+     *
+     * @throws java.io.IOException Unable to simulate connectionHolder abort.
      */
     @Internal
     public final void simulateConnectionAbort() throws IOException {
-        JMXConnector con = reconManager.connection;
+        JMXConnector con = connectionHolder.connection;
         if (con != null)
             try {
                 con.close();
             } finally {
-                reconManager.handleNotification(new JMXConnectionNotification(JMXConnectionNotification.FAILED, this, "", 0, "Simulate connection abort", null), null);
+                watchDog.reportProblem(new IOException("Simulate connection abort"));
             }
     }
 
     @Override
     @ThreadSafe(false)
-    public final void close() throws IOException {
-        JMXConnector con = reconManager.connection;
-        if (con != null) con.close();
+    public final void close() throws Exception {
+        try {
+            watchDog.reconnectionHandlers.clear();
+            watchDog.stop(watchPeriod);
+        } finally {
+            connectionHolder.close();
+        }
     }
 }

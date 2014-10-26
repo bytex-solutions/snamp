@@ -2,6 +2,8 @@ package com.itworks.snamp.testing.connectors;
 
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
@@ -170,7 +172,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final Map<String, String> attributeOptions,
-                                           final boolean readOnlyTest) throws TimeoutException, IOException {
+                                           final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         try{
             final AttributeSupport connector = getManagementConnector().queryObject(AttributeSupport.class);
             assertNotNull(connector);
@@ -179,8 +181,8 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
             final TypeConverter<T> projection = metadata.getType().getProjection(attributeType);
             assertNotNull(projection);
             if(!readOnlyTest)
-                assertTrue(connector.setAttribute(attributeID, TimeSpan.INFINITE, attributeValue));
-            final T newValue = projection.convertFrom(connector.getAttribute(attributeID, TimeSpan.INFINITE, new Object()));
+                connector.setAttribute(attributeID, TimeSpan.INFINITE, attributeValue);
+            final T newValue = projection.convertFrom(connector.getAttribute(attributeID, TimeSpan.INFINITE));
             assertNotNull(newValue);
             assertTrue(comparator.equate(attributeValue, newValue));
             assertTrue(connector.disconnectAttribute(attributeID));
@@ -195,7 +197,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final Map<String, String> attributeOptions,
-                                           final boolean readOnlyTest) throws TimeoutException, IOException {
+                                           final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
        testAttribute("ID", attributeName, attributeType, attributeValue, comparator, attributeOptions, readOnlyTest);
     }
 
@@ -204,7 +206,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final Typed<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator,
-                                           final boolean readOnlyTest) throws TimeoutException, IOException {
+                                           final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final Map<String, String> attributeOptions = readSnampConfiguration().
                 getManagedResources().
                 get(TEST_RESOURCE_NAME).getElements(AttributeConfiguration.class).get(attributeID).getParameters();
@@ -216,14 +218,14 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final String attributeName,
                                            final Typed<T> attributeType,
                                            final T attributeValue,
-                                           final Equator<T> comparator) throws TimeoutException, IOException {
+                                           final Equator<T> comparator) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, comparator, false);
     }
 
     protected final <T> void testAttribute(final String attributeID,
                                        final String attributeName,
                                        final Typed<T> attributeType,
-                                       final T attributeValue) throws TimeoutException, IOException {
+                                       final T attributeValue) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, false);
     }
 
@@ -231,7 +233,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final String attributeName,
                                            final Typed<T> attributeType,
                                            final T attributeValue,
-                                           final boolean readOnlyTest) throws TimeoutException, IOException{
+                                           final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, AbstractResourceConnectorTest.<T>valueEquator(), readOnlyTest);
     }
 }

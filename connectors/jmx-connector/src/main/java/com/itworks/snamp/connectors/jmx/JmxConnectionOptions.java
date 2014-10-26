@@ -22,7 +22,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
 
     private final String login;
     private final String password;
-    private final long retryCount;
+    private final long watchDogPeriod;
 
     /**
      * Initializes a new JMX connection parameters.
@@ -41,8 +41,8 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
             password = options.get(JMX_PASSWORD);
         }
         else login = password = "";
-        this.retryCount = options.containsKey(CONNECTION_RETRY_COUNT) ?
-                Integer.valueOf(options.get(CONNECTION_RETRY_COUNT)) : 3L;
+        this.watchDogPeriod = options.containsKey(CONNECTION_CHECK_PERIOD) ?
+                Integer.valueOf(options.get(CONNECTION_CHECK_PERIOD)) : 3L;
     }
 
     private Map<String, Object> getJmxOptions(){
@@ -60,7 +60,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
      * @return A new instance of the connection manager.
      */
     public final JmxConnectionManager createConnectionManager(){
-        return new JmxConnectionManager(this, retryCount);
+        return new JmxConnectionManager(this, watchDogPeriod);
     }
 
     /**

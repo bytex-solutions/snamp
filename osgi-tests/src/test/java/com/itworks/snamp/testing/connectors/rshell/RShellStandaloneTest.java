@@ -4,6 +4,8 @@ import com.itworks.snamp.FutureThread;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Assume;
 import org.junit.Test;
@@ -35,7 +37,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
     }
 
     @Test
-    public void loadTest() throws InterruptedException, ExecutionException {
+    public void loadTest() throws InterruptedException, ExecutionException, AttributeSupportException {
         Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
         final ManagedResourceConnector<?> connector = getManagementConnector();
         assertNotNull(connector);
@@ -51,8 +53,8 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
             for(int i = 0; i < tables.length; i++)
                 tables[i] = FutureThread.start(new Callable<Object>() {
                     @Override
-                    public Object call() throws TimeoutException {
-                        return attributes.getAttribute("ms", TimeSpan.INFINITE, null);
+                    public Object call() throws TimeoutException, AttributeSupportException, UnknownAttributeException {
+                        return attributes.getAttribute("ms", TimeSpan.INFINITE);
                     }
                 });
             for (final FutureThread<Object> thread : tables) {
@@ -70,7 +72,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
     }
 
     @Test
-    public void readMemStatusAttribute() throws TimeoutException {
+    public void readMemStatusAttribute() throws TimeoutException, AttributeSupportException, UnknownAttributeException {
         Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
         final ManagedResourceConnector<?> connector = getManagementConnector();
         assertNotNull(connector);
@@ -81,7 +83,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
                 put("commandProfileLocation", "freemem-tool-profile.xml");
                 put("format", "-m");
             }}));
-            final Object table = attributes.getAttribute("ms", TimeSpan.INFINITE, null);
+            final Object table = attributes.getAttribute("ms", TimeSpan.INFINITE);
             assertNotNull(table);
             assertTrue(table instanceof Map);
             assertTrue(((Map)table).get("total") instanceof Long);
