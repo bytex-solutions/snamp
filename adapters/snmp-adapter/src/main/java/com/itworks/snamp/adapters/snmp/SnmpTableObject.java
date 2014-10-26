@@ -9,6 +9,7 @@ import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityTypeBuilder;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.internal.CountdownTimer;
 import com.itworks.snamp.internal.annotations.Temporary;
 import org.apache.commons.collections4.Closure;
@@ -299,12 +300,12 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
     }
 
     @SuppressWarnings("unchecked")
-    private static Object fill(final AttributeAccessor connector, final MOTable<MOMutableTableRow, MONamedColumn<Variable>, MOTableModel<MOMutableTableRow>> table) throws TimeoutException {
+    private static Object fill(final AttributeAccessor connector, final MOTable<MOMutableTableRow, MONamedColumn<Variable>, MOTableModel<MOMutableTableRow>> table) throws TimeoutException, AttributeSupportException {
         final Object lastUpdateSource;
         if(supportsProjection(connector.getType(), TypeLiterals.STRING_COLUMN_TABLE))
-            fill(convertFrom(connector.getType(), lastUpdateSource = connector.getValue(new SimpleTable<String>()), TypeLiterals.STRING_COLUMN_TABLE), table, (ManagedEntityTabularType)connector.getType(), connector);
+            fill(convertFrom(connector.getType(), lastUpdateSource = connector.getRawValue(), TypeLiterals.STRING_COLUMN_TABLE), table, (ManagedEntityTabularType)connector.getType(), connector);
         else if(supportsProjection(connector.getType(), TypeLiterals.OBJECT_ARRAY) && ManagedEntityTypeBuilder.isArray(connector.getType()))
-            fill(convertFrom(connector.getType(), lastUpdateSource = connector.getValue(new Object[0]), TypeLiterals.OBJECT_ARRAY), table, (ManagedEntityTabularType)connector.getType(), connector);
+            fill(convertFrom(connector.getType(), lastUpdateSource = connector.getRawValue(), TypeLiterals.OBJECT_ARRAY), table, (ManagedEntityTabularType)connector.getType(), connector);
         else {
             log.warning(String.format("Source attribute table %s is not supported", table.getOID()));
             lastUpdateSource = null;
@@ -312,7 +313,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
         return lastUpdateSource;
     }
 
-    private void fillTableIfNecessary() throws TimeoutException {
+    private void fillTableIfNecessary() throws TimeoutException, AttributeSupportException {
         if(isEmpty()) try{
             cacheManager.updateCompleted(fill(_connector, this));
         }
@@ -379,12 +380,12 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
         try {
             fillTableIfNecessary();
         }
-        catch (final TimeoutException e) {
+        catch (final TimeoutException | AttributeSupportException e) {
             log.log(Level.SEVERE, "Unable to update SNMP table.", e);
         }
     }
 
-    private Collection<OID> dumpArray(final ManagedEntityType elementType) throws TimeoutException {
+    private Collection<OID> dumpArray(final ManagedEntityType elementType) throws TimeoutException, AttributeSupportException {
         final Collection<OID> rowsToDelete = new ArrayList<>(model.getRowCount());
         final int rowStatusIndex = useRowStatus ? SnmpHelpers.findColumnIndex(this, MORowStatusColumn.class) : -1;
         final Object[] array = new Object[model.getRowCount()];
@@ -414,7 +415,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
     }
 
     //this method is synchronized because sending table rows to connector is atomic
-    private synchronized void dumpTable() throws TimeoutException {
+    private synchronized void dumpTable() throws TimeoutException, AttributeSupportException {
         final Collection<OID> rowsToDelete;
         if(ManagedEntityTypeBuilder.isArray(getTableType()))
             rowsToDelete = dumpArray(getTableType().getColumnType(ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME));
@@ -496,8 +497,8 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
                 try {
                     dumpTable();
                 }
-                catch (final TimeoutException e) {
-                    log.log(Level.SEVERE, "Timeout when sending table to management connector.", e);
+                catch (final TimeoutException | AttributeSupportException e) {
+                    log.log(Level.SEVERE, "Unable to clean table", e);
                     request.setErrorStatus(SnmpConstants.SNMP_ERROR_COMMIT_FAILED);
                     request.completed();
                     return;

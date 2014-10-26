@@ -103,7 +103,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * <p>
      *     This method can be called only from timer thread (from {@link #doAction() method}.
      * </p>
-     * @param e An exception occured in the repeatable action.
+     * @param e An exception occurred in the repeatable action.
      * @throws java.lang.IllegalStateException This repeater is not in {@link State#STARTED} state;
      *  or this method is not called from the {@link #doAction()} method.
      */

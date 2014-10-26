@@ -5,10 +5,9 @@ import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
-import com.itworks.snamp.connectors.notifications.Notification;
-import com.itworks.snamp.connectors.notifications.NotificationListener;
-import com.itworks.snamp.connectors.notifications.NotificationMetadata;
-import com.itworks.snamp.connectors.notifications.NotificationSupport;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
+import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
@@ -248,7 +247,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void notificationTest() throws TimeoutException, InterruptedException {
+    public void notificationTest() throws TimeoutException, InterruptedException, NotificationSupportException, UnknownSubscriptionException {
         try{
             final ManagedResourceConnector<?> connector = getManagementConnector();
             final NotificationSupport notifications = connector.queryObject(NotificationSupport.class);
@@ -259,12 +258,12 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
             }});
             assertNotNull(metadata);
             final SynchronizationEvent<Notification> trap = new SynchronizationEvent<>(false);
-            assertTrue(notifications.subscribe("123", new NotificationListener() {
+            notifications.subscribe("123", new NotificationListener() {
                 @Override
                 public boolean handle(final String listId, final Notification n) {
                     return trap.fire(n);
                 }
-            }, false));
+            }, false);
             //obtain client addresses
             final Address[] addresses = connector.queryObject(Address[].class);
             assertNotNull(addresses);
@@ -288,7 +287,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForOpaqueProperty() throws TimeoutException, IOException {
+    public void testForOpaqueProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final String ATTRIBUTE_ID = "1.6.10.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.OBJECT_ARRAY,
@@ -299,7 +298,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForIpAddressProperty() throws TimeoutException, IOException {
+    public void testForIpAddressProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final String ATTRIBUTE_ID = "1.6.9.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.OBJECT_ARRAY,
@@ -318,7 +317,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForOidProperty() throws TimeoutException, IOException {
+    public void testForOidProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final String ATTRIBUTE_ID = "1.6.8.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.OBJECT_ARRAY,
@@ -337,7 +336,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForGauge32Property() throws TimeoutException, IOException {
+    public void testForGauge32Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final String ATTRIBUTE_ID = "1.6.7.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.LONG,
@@ -348,7 +347,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForCounter64Property() throws TimeoutException, IOException {
+    public void testForCounter64Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final String ATTRIBUTE_ID = "1.6.6.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.LONG,
@@ -359,7 +358,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForCounter32Property() throws TimeoutException, IOException {
+    public void testForCounter32Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final String ATTRIBUTE_ID = "1.6.5.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.LONG,
@@ -370,7 +369,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForTimeTicksProperty() throws TimeoutException, IOException{
+    public void testForTimeTicksProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final String ATTRIBUTE_ID = "1.6.4.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.LONG,
@@ -389,7 +388,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForUnsignedInteger32Property() throws TimeoutException, IOException {
+    public void testForUnsignedInteger32Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final String ATTRIBUTE_ID = "1.6.3.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.LONG,
@@ -400,7 +399,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForInteger32Property() throws TimeoutException, IOException{
+    public void testForInteger32Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final String ATTRIBUTE_ID = "1.6.2.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.INTEGER,
@@ -411,7 +410,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForOctetStringProperty() throws TimeoutException, IOException {
+    public void testForOctetStringProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final String ATTRIBUTE_ID = "1.6.1.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.STRING,

@@ -1,11 +1,14 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.itworks.snamp.ConversionException;
 import com.itworks.snamp.ReferenceCountedObject;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.licensing.LicensingException;
 import org.apache.commons.lang3.StringUtils;
@@ -13,7 +16,10 @@ import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
 import org.snmp4j.SNMP4JSettings;
-import org.snmp4j.smi.*;
+import org.snmp4j.smi.Address;
+import org.snmp4j.smi.OID;
+import org.snmp4j.smi.Variable;
+import org.snmp4j.smi.VariableBinding;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -181,10 +187,47 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         private final ReferenceCountedObject<SnmpClient> client;
         private final Logger logger;
 
-        public SnmpNotificationSupport(final ReferenceCountedObject<SnmpClient> client,
+        private SnmpNotificationSupport(final ReferenceCountedObject<SnmpClient> client,
                                        final Logger logger){
             this.client = client;
             this.logger = logger;
+        }
+
+        /**
+         * Reports an error when enabling notifications.
+         *
+         * @param listID   Subscription list identifier.
+         * @param category An event category.
+         * @param e        Internal connector error.
+         * @see #failedToEnableNotifications(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         */
+        @Override
+        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
+            failedToEnableNotifications(logger, Level.SEVERE, listID, category, e);
+        }
+
+        /**
+         * Reports an error when disabling notifications.
+         *
+         * @param listID Subscription list identifier.
+         * @param e      Internal connector error.
+         * @see #failedToDisableNotifications(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        @Override
+        protected void failedToDisableNotifications(final String listID, final Exception e) {
+            failedToDisableNotifications(logger, Level.WARNING, listID, e);
+        }
+
+        /**
+         * Reports an error when subscribing the listener.
+         *
+         * @param listenerID Subscription list identifier.
+         * @param e          Internal connector error.
+         * @see #failedToSubscribe(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        @Override
+        protected void failedToSubscribe(final String listenerID, final Exception e) {
+            failedToSubscribe(logger, Level.WARNING, listenerID, e);
         }
 
         /**
@@ -350,9 +393,47 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         private final ReferenceCountedObject<SnmpClient> client;
         private final Logger logger;
 
-        public SnmpAttributeSupport(final ReferenceCountedObject<SnmpClient> client, final Logger log){
+        private SnmpAttributeSupport(final ReferenceCountedObject<SnmpClient> client, final Logger log){
             this.client = client;
             this.logger = log;
+        }
+
+        /**
+         * Reports an error when connecting attribute.
+         *
+         * @param attributeID   The attribute identifier.
+         * @param attributeName The name of the attribute.
+         * @param e             Internal connector error.
+         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         */
+        @Override
+        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
+            failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
+        }
+
+        /**
+         * Reports an error when getting attribute.
+         *
+         * @param attributeID The attribute identifier.
+         * @param e           Internal connector error.
+         * @see #failedToGetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
+         */
+        @Override
+        protected void failedToGetAttribute(final String attributeID, final Exception e) {
+            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
+        }
+
+        /**
+         * Reports an error when updating attribute.
+         *
+         * @param attributeID The attribute identifier.
+         * @param value       The value of the attribute.
+         * @param e           Internal connector error.
+         * @see #failedToSetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Object, Exception)
+         */
+        @Override
+        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
+            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
         }
 
         public Address[] getClientAddresses(){
@@ -408,13 +489,12 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
          */
         @Override
         protected boolean disconnectAttribute(final String id, final GenericAttributeMetadata<?> attributeInfo) {
-            if(super.disconnectAttribute(id, attributeInfo))
+            if (super.disconnectAttribute(id, attributeInfo))
                 try {
                     client.decref();
                     return true;
-                }
-                catch (final Exception e) {
-                    logger.log(Level.WARNING, String.format("Some problems occurred during disconnection of attribute %s", id), e);
+                } catch (final Exception e) {
+                    logger.log(Level.SEVERE, String.format("Some problems occurred during disconnection of attribute %s", id), e);
                     return true;
                 }
             else return false;
@@ -434,19 +514,14 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
          *
          * @param attribute    The metadata of the attribute to get.
          * @param readTimeout  The attribute value invoke operation timeout.
-         * @param defaultValue The default value of the attribute if reading fails.
          * @return The value of the attribute.
          * @throws java.util.concurrent.TimeoutException
          */
         @Override
-        protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
-            try {
-                return attribute instanceof SnmpAttributeMetadata ? getAttributeValue((SnmpAttributeMetadata)attribute, readTimeout) : defaultValue;
-            }
-            catch (final Exception e) {
-                logger.log(Level.WARNING, String.format("Unable to get value of attribute %s", attribute.getName()), e);
-                return null;
-            }
+        protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout) throws Exception {
+            if (attribute instanceof SnmpAttributeMetadata)
+                return getAttributeValue((SnmpAttributeMetadata) attribute, readTimeout);
+            else throw new ConversionException(attribute, SnmpAttributeMetadata.class);
         }
 
         /**
@@ -455,26 +530,22 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
          * @param attribute    The metadata of the attribute to set.
          * @param writeTimeout The attribute value write operation timeout.
          * @param value        The value to write.
-         * @return {@literal true} if attribute value is overridden successfully; otherwise, {@literal false}.
+         * @throws java.lang.Exception Internal connector error.
          */
         @Override
-        protected boolean setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) {
-            return attribute instanceof SnmpAttributeMetadata && setAttributeValue((SnmpAttributeMetadata)attribute, writeTimeout, value);
+        protected void setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws Exception{
+            if(attribute instanceof SnmpAttributeMetadata)
+                setAttributeValue((SnmpAttributeMetadata)attribute, writeTimeout, value);
+
         }
 
-        private boolean setAttributeValue(final SnmpAttributeMetadata attribute, final TimeSpan writeTimeout, final Object value){
-            return client.write(new ConsistentAction<SnmpClient, Boolean>() {
+        private void setAttributeValue(final SnmpAttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws Exception {
+            client.write(new Action<SnmpClient, Void, Exception>() {
                 @Override
-                public Boolean invoke(final SnmpClient client) {
-                    try {
-                        client.set(Collections.singletonMap(attribute.getAttributeID(),
-                                attribute.getType().convertToSnmp(value).get(new OID())), writeTimeout);
-                        return true;
-                    }
-                    catch (final Exception e) {
-                        logger.log(Level.WARNING, String.format("Unable to modify %s attribute", attribute.getAttributeID()), e);
-                        return false;
-                    }
+                public Void invoke(final SnmpClient client) throws Exception {
+                    client.set(Collections.singletonMap(attribute.getAttributeID(),
+                            attribute.getType().convertToSnmp(value).get(new OID())), writeTimeout);
+                    return null;
                 }
             });
         }
@@ -528,9 +599,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      * @param attributeName The name of the attribute.
      * @param options       The attribute discovery options.
      * @return The description of the attribute.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) {
+    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) throws AttributeSupportException{
         verifyInitialization();
         return attributes.connectAttribute(id, attributeName, options);
     }
@@ -540,14 +612,14 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      *
      * @param id           A key string that is used to invoke attribute from this connector.
      * @param readTimeout  The attribute value invoke operation timeout.
-     * @param defaultValue The default value of the attribute if it is real value is not available.
      * @return The value of the attribute, or default value.
      * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public Object getAttribute(final String id, final TimeSpan readTimeout, final Object defaultValue) throws TimeoutException {
+    public Object getAttribute(final String id, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException, UnknownAttributeException {
         verifyInitialization();
-        return attributes.getAttribute(id, readTimeout, defaultValue);
+        return attributes.getAttribute(id, readTimeout);
     }
 
     /**
@@ -557,9 +629,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      * @param readTimeout The attribute value invoke operation timeout.
      * @return The set of managementAttributes ids really written to the dictionary.
      * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException {
+    public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException {
         verifyInitialization();
         return attributes.getAttributes(output, readTimeout);
     }
@@ -570,13 +643,14 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      * @param id           An identifier of the attribute,
      * @param writeTimeout The attribute value write operation timeout.
      * @param value        The value to write.
-     * @return {@literal true} if attribute set operation is supported by remote provider; otherwise, {@literal false}.
      * @throws java.util.concurrent.TimeoutException The attribute value cannot be write in the specified duration.
+     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException Unregistered attribute requested.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
      */
     @Override
-    public boolean setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException {
+    public void setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException, AttributeSupportException, UnknownAttributeException {
         verifyInitialization();
-        return attributes.setAttribute(id, writeTimeout, value);
+        attributes.setAttribute(id, writeTimeout, value);
     }
 
     /**
@@ -584,13 +658,13 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      *
      * @param values       The dictionary of managementAttributes keys and its values.
      * @param writeTimeout The attribute value write operation timeout.
-     * @return {@literal null}, if the transaction is committed; otherwise, {@literal false}.
      * @throws java.util.concurrent.TimeoutException
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException
      */
     @Override
-    public boolean setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException {
+    public void setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException, AttributeSupportException {
         verifyInitialization();
-        return attributes.setAttributes(values, writeTimeout);
+        attributes.setAttributes(values, writeTimeout);
     }
 
     /**
@@ -638,9 +712,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      * @param category The name of the category to listen.
      * @param options  Event discovery options.
      * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
     @Override
-    public NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) {
+    public NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) throws NotificationSupportException{
         verifyInitialization();
         return notifications.enableNotifications(listId, category, options);
     }
@@ -653,9 +728,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      *
      * @param listId The identifier of the subscription list.
      * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
     @Override
-    public boolean disableNotifications(final String listId) {
+    public boolean disableNotifications(final String listId) throws NotificationSupportException{
         verifyInitialization();
         return notifications.disableNotifications(listId);
     }
@@ -690,12 +766,12 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      * @param delayed    {@literal true} to force delayed subscription. This flag indicates
      *                   that you can attach a listener even if this object
      *                   has no enabled notifications.
-     * @return {@literal true}, if listener is added successfully; otherwise, {@literal false}.
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
     @Override
-    public boolean subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) {
+    public void subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) throws NotificationSupportException{
         verifyInitialization();
-        return notifications.subscribe(listenerId, listener, delayed);
+        notifications.subscribe(listenerId, listener, delayed);
     }
 
     /**

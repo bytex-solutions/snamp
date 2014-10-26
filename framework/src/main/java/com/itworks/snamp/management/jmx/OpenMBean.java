@@ -305,7 +305,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
 
         @SuppressWarnings("unchecked")
         private Class<V> getJavaType() throws ReflectiveOperationException{
-            return (Class<V>)getClass().getMethod("getValue").getReturnType();
+            return (Class<V>)(getClass().getMethod("getRawValue").getReturnType());
         }
 
         /**
@@ -314,7 +314,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          */
         public final boolean isReadable(){
             try {
-                final Method getter = getClass().getMethod("getValue");
+                final Method getter = getClass().getMethod("getRawValue");
                 return Objects.equals(getter.getDeclaringClass(), getClass());
             }
             catch (final NoSuchMethodException e) {

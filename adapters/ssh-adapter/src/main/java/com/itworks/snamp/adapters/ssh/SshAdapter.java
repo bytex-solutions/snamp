@@ -4,6 +4,7 @@ import com.itworks.snamp.SimpleTable;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import org.apache.commons.collections4.CollectionUtils;
@@ -214,12 +215,12 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                 }
 
                 @Override
-                public boolean setValue(final Object value) throws TimeoutException{
-                    return accessor.setValue(value);
+                public void setValue(final Object value) throws TimeoutException, AttributeSupportException {
+                    accessor.setValue(value);
                 }
 
                 @Override
-                public <I, O> O applyTransformation(final Class<? extends ValueTransformation<I, O>> transformation, final I arg) throws ReflectiveOperationException, TimeoutException{
+                public <I, O> O applyTransformation(final Class<? extends ValueTransformation<I, O>> transformation, final I arg) throws ReflectiveOperationException, TimeoutException, AttributeSupportException{
                     final ValueTransformation<I, O> t = transformation.newInstance();
                     return t.transform(arg, accessor);
                 }

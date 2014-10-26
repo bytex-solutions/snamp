@@ -414,5 +414,11 @@ public final class Utils {
         return source.toArray((T[])Array.newInstance(componentType, source.size()));
     }
 
-
+    public static <I extends O, O> O castArrayElement(final I[] array,
+                                        final int index,
+                                        final Class<O> elementType,
+                                        final O defval){
+        final I element = array[index];
+        return elementType.isInstance(element) ? elementType.cast(element) : defval;
+    }
 }

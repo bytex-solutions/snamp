@@ -4,10 +4,7 @@ import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.ConfigurationManager;
-import com.itworks.snamp.connectors.notifications.Notification;
-import com.itworks.snamp.connectors.notifications.NotificationListener;
-import com.itworks.snamp.connectors.notifications.NotificationMetadata;
-import com.itworks.snamp.connectors.notifications.NotificationSupport;
+import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.annotations.Internal;
@@ -20,7 +17,10 @@ import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.FactoryUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.EventAdmin;
 
 import java.lang.ref.Reference;
@@ -533,33 +533,36 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
 
         /**
          * Initializes a new factory for the management connector with notification support.
-         * @param targetName The name of the management target.
+         *
+         * @param targetName          The name of the management target.
          * @param publisherDependency Notification delivery channel dependency. This dependency is mandatory.
-         * @param dependencies A collection of connector dependencies.
+         * @param dependencies        A collection of connector dependencies.
          */
         protected NotificationSupportProvider(final String targetName,
-                                              final RequiredServiceAccessor<EventAdmin> publisherDependency, final RequiredService<?>... dependencies){
+                                              final RequiredServiceAccessor<EventAdmin> publisherDependency, final RequiredService<?>... dependencies) {
             super(targetName, ArrayUtils.addAll(dependencies, publisherDependency));
         }
 
         /**
          * Initializes a new factory for the management connector with notification support.
          * <p>
-         *     This constructor calls {@link #NotificationSupportProvider(String, com.itworks.snamp.core.AbstractServiceLibrary.RequiredServiceAccessor, com.itworks.snamp.core.AbstractServiceLibrary.RequiredService[])}
-         *     and pass {@link com.itworks.snamp.core.AbstractBundleActivator.SimpleDependency} as dependency
-         *     descriptor for {@link org.osgi.service.event.EventAdmin} service.
+         * This constructor calls {@link #NotificationSupportProvider(String, com.itworks.snamp.core.AbstractServiceLibrary.RequiredServiceAccessor, com.itworks.snamp.core.AbstractServiceLibrary.RequiredService[])}
+         * and pass {@link com.itworks.snamp.core.AbstractBundleActivator.SimpleDependency} as dependency
+         * descriptor for {@link org.osgi.service.event.EventAdmin} service.
          * </p>
-         * @param targetName The name of the management target.
+         *
+         * @param targetName   The name of the management target.
          * @param dependencies A collection of connector dependencies.
          */
         @SuppressWarnings("UnusedDeclaration")
         protected NotificationSupportProvider(final String targetName,
-                                              final RequiredService<?>... dependencies){
+                                              final RequiredService<?>... dependencies) {
             this(targetName, new SimpleDependency<>(EventAdmin.class), dependencies);
         }
 
         /**
          * Creates a new instance of the management connector that supports notifications.
+         *
          * @param connectionString  The connection string.
          * @param connectionOptions The connection options.
          * @param dependencies      A collection of connector dependencies.
@@ -584,9 +587,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
             @SuppressWarnings("unchecked")
             final RequiredServiceAccessor<EventAdmin> eventAdmin = findDependency(RequiredServiceAccessor.class, EventAdmin.class, dependencies);
             final TConnectorImpl connector = newNotificationSupport(connectionString, connectionOptions, dependencies);
-            if(!connector.subscribe(NOTIF_TRANSPORT_LISTENER_ID,
-                    new EventAdminTransport(getConnectorName(), managedResourceName, eventAdmin, connector), true))
-                getLogger().warning(String.format("Unable to attach notification transport for %s connector.", getConnectorName()));
+            connector.subscribe(NOTIF_TRANSPORT_LISTENER_ID, new EventAdminTransport(getConnectorName(), managedResourceName, eventAdmin, connector), true);
             return connector;
         }
     }

@@ -1,10 +1,10 @@
 package com.itworks.snamp.adapters.ssh;
 
-import com.itworks.snamp.StringAppender;
 import com.itworks.snamp.connectors.notifications.Notification;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.lang3.text.StrBuilder;
 import org.apache.sshd.common.Session;
 
 import java.io.IOException;
@@ -41,17 +41,12 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
     }
 
     private static void displayNotifications(final AdapterController controller,
-                                             final PrintWriter output) throws CommandException {
-        try {
-            for (final String resourceName : controller.getConnectedResources())
-                StringAppender.init()
-                        .appendln("%s available notifications:", resourceName)
-                        .appendln(controller.getNotifications(resourceName))
-                        .newLine()
-                        .flush(output);
-        } catch (final IOException e) {
-            throw new CommandException(e);
-        }
+                                             final PrintWriter output) {
+        for (final String resourceName : controller.getConnectedResources())
+            output.append(new StrBuilder()
+                    .appendln("%s available notifications:", resourceName)
+                    .appendln(controller.getNotifications(resourceName))
+                    .appendNewLine());
     }
 
     private static void enableNotifications(
@@ -97,18 +92,13 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
     }
 
     private static void notificationsStatus(final NotificationManager manager,
-                                            final PrintWriter output) throws CommandException {
-        try {
-            StringAppender.init()
+                                            final PrintWriter output) {
+            output.append(new StrBuilder()
                     .appendln("Disabled notifications from resources:")
                     .appendln(manager.getDisabledResources())
-                    .newLine()
+                    .appendNewLine()
                     .appendln("Disabled notifications:")
-                    .appendln(manager.getDisabledNotifs())
-                    .flush(output);
-        } catch (final IOException e) {
-            throw new CommandException(e);
-        }
+                    .appendln(manager.getDisabledNotifs()));
     }
 
     private void pendingNotifications(final NotificationManager manager,
@@ -127,22 +117,20 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
                     continue;
                 }
                 final SshNotificationBox.AdditionalNotificationInfo info = SshNotificationBox.getAdditionalInfo(notif);
-                final StringAppender appender = StringAppender.init();
+                final StrBuilder appender = new StrBuilder();
                 if (info != null) {
                     appender.appendln("Event %s from resource %s", info.eventName, info.resourceName);
                 }
-                appender
+                output.append(appender
                         .appendln("Sequence #%s", notif.getSequenceNumber())
                         .appendln("Timestamp: %s", notif.getTimeStamp())
                         .appendln("Severity %s", notif.getSeverity())
                         .appendln(notif.getMessage())
-                        .newLine()
-                        .flush(output);
+                        .appendNewLine());
             }
         } catch (final IOException | InterruptedException e) {
             throw new CommandException(e);
-        }
-        finally {
+        } finally {
             controller.removeNotificationListener(listenerID);
         }
     }

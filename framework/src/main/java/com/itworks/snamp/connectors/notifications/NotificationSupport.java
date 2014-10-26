@@ -24,8 +24,9 @@ public interface NotificationSupport {
      * @param category The name of the category to listen.
      * @param options Event discovery options.
      * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
-    NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options);
+    NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) throws NotificationSupportException;
 
     /**
      * Disables event listening for the specified category of events.
@@ -34,8 +35,9 @@ public interface NotificationSupport {
      * </p>
      * @param listId The identifier of the subscription list.
      * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
-    boolean disableNotifications(final String listId);
+    boolean disableNotifications(final String listId) throws NotificationSupportException;
 
     /**
      * Gets the notification metadata by its category.
@@ -58,9 +60,11 @@ public interface NotificationSupport {
      * @param delayed {@literal true} to force delayed subscription. This flag indicates
      *                               that you can attach a listener even if this object
      *                               has no enabled notifications.
-     * @return {@literal true}, if listener is added successfully; otherwise, {@literal false}.
+     * @throws com.itworks.snamp.connectors.notifications.UnknownSubscriptionException The listening is not enabled previously (not raised if {@code delayed} is true).
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
+     * @throws java.lang.IllegalArgumentException listenerId is {@literal null} or empty; or listener is {@literal null}.
      */
-    boolean subscribe(final String listenerId, final NotificationListener listener, final boolean delayed);
+    void subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) throws UnknownSubscriptionException, NotificationSupportException;
 
     /**
      * Removes the notification listener.

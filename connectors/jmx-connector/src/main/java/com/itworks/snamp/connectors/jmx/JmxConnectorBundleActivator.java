@@ -12,6 +12,7 @@ import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -79,7 +80,7 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
                 final Map<String, ServiceReference<ManagedResourceConnector<?>>> connectors = ManagedResourceConnectorClient.getConnectors(context);
                 final FutureThread<String> result = new FutureThread<>(new Callable<String>() {
                     @Override
-                    public final String call() {
+                    public final String call() throws IOException{
                         for(final ServiceReference<ManagedResourceConnector<?>> ref: connectors.values())
                             if(Objects.equals(getConnectorType(ref), JmxConnector.NAME))
                                 try{

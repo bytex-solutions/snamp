@@ -7,6 +7,7 @@ import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.AttributeValue;
 import com.itworks.snamp.internal.Utils;
 import org.apache.commons.collections4.Closure;
@@ -29,7 +30,7 @@ import static com.itworks.snamp.connectors.WellKnownTypeSystem.*;
  */
 final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
     private final AttributeAccessor accessor;
-    private OpenType<?> attributeType;
+    private volatile OpenType<?> attributeType;
     private final boolean pureSerialization;
 
     public JmxAttributeMapping(final AttributeAccessor accessor, final boolean pureSerialization){
@@ -200,7 +201,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         else throw new OpenDataException(String.format("Unable to resolve %s entity type to JMX OpenType", source.type));
     }
 
-    public Object getValue() throws TimeoutException, OpenDataException {
+    public Object getValue() throws TimeoutException, OpenDataException, AttributeSupportException {
         return getValue(accessor.getValue(), accessor);
     }
 
@@ -289,16 +290,21 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         return parseValue(value, type, getAttributeType(type, Collections.<String, String>emptyMap()));
     }
 
-    public void setValue(final Object value) throws TimeoutException, OpenDataException, InvalidAttributeValueException{
+    public void setValue(final Object value) throws TimeoutException, OpenDataException, InvalidAttributeValueException, AttributeSupportException{
         if(!pureSerialization && JmxAdapterHelpers.isJmxCompliantAttribute(accessor))
             accessor.setValue(value);
         else accessor.setValue(parseValue(value, accessor.getType(), getAttributeType()));
     }
 
     public OpenType<?> getAttributeType() throws OpenDataException{
-        if(attributeType == null)
-            attributeType = getAttributeType(accessor.getType(), accessor);
-        return attributeType;
+        OpenType<?> type = attributeType;
+        if(type == null)
+            synchronized (this){
+                type = attributeType;
+                if(type == null)
+                    type = attributeType = getAttributeType(accessor.getType(), accessor);
+            }
+        return type;
     }
 
     @Override

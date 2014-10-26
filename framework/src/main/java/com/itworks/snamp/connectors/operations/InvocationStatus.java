@@ -49,5 +49,5 @@ public enum InvocationStatus {
     /**
      * Indicates that the operation is still running.
      */
-    public static final InvocationStatus INCOMPLETED = null;
+    public static final InvocationStatus UNCOMPLETED = null;
 }

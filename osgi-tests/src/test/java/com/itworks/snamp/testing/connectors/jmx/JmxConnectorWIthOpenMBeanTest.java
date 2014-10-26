@@ -4,9 +4,9 @@ import com.itworks.snamp.*;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.notifications.Notification;
-import com.itworks.snamp.connectors.notifications.NotificationSupport;
-import com.itworks.snamp.connectors.notifications.Severity;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
+import com.itworks.snamp.connectors.notifications.*;
 import org.apache.commons.collections4.Factory;
 import org.apache.commons.collections4.SetUtils;
 import org.junit.Test;
@@ -104,7 +104,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void notificationTest() throws TimeoutException, InterruptedException {
+    public final void notificationTest() throws TimeoutException, InterruptedException, NotificationSupportException, UnknownSubscriptionException, AttributeSupportException, UnknownAttributeException {
         final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
         final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
         assertNotNull(notificationSupport);
@@ -127,12 +127,12 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         final String TEST_LISTENER2_ID = "test-listener-2";
         final SynchronizationListener listener1 = new SynchronizationListener("19.1");
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
-        assertTrue(notificationSupport.subscribe(TEST_LISTENER1_ID,  listener1, false));
-        assertTrue(notificationSupport.subscribe(TEST_LISTENER2_ID, listener2, false));
+        notificationSupport.subscribe(TEST_LISTENER1_ID, listener1, false);
+        notificationSupport.subscribe(TEST_LISTENER2_ID, listener2, false);
         final SynchronizationEvent.Awaitor<Notification> awaitor1 = listener1.getAwaitor();
         final SynchronizationEvent.Awaitor<Notification> awaitor2 = listener2.getAwaitor();
         //force property changing
-        assertTrue(attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood"));
+        attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood");
         final Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif1);
         assertEquals(Severity.NOTICE, notif1.getSeverity());
@@ -148,7 +148,13 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void simulateConnectionAbortTest() throws TimeoutException, InterruptedException, ExecutionException {
+    public final void simulateConnectionAbortTest() throws TimeoutException,
+            InterruptedException,
+            ExecutionException,
+            AttributeSupportException,
+            NotificationSupportException,
+            UnknownSubscriptionException,
+            UnknownAttributeException {
         final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
         final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
         assertNotNull(notificationSupport);
@@ -171,14 +177,14 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         final String TEST_LISTENER2_ID = "test-listener-2";
         final SynchronizationListener listener1 = new SynchronizationListener("19.1");
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
-        assertTrue(notificationSupport.subscribe(TEST_LISTENER1_ID,  listener1, false));
-        assertTrue(notificationSupport.subscribe(TEST_LISTENER2_ID, listener2, false));
+        notificationSupport.subscribe(TEST_LISTENER1_ID, listener1, false);
+        notificationSupport.subscribe(TEST_LISTENER2_ID, listener2, false);
         final SynchronizationEvent.Awaitor<Notification> awaitor1 = listener1.getAwaitor();
         final SynchronizationEvent.Awaitor<Notification> awaitor2 = listener2.getAwaitor();
         //simulate connection abort
         assertEquals("OK", ManagedResourceConnectorClient.invokeMaintenanceAction(getTestBundleContext(), CONNECTOR_NAME, "simulateConnectionAbort", null, null).get(3, TimeUnit.SECONDS));
         //force property changing
-        assertTrue(attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood"));
+        attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood");
         final Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif1);
         assertEquals(Severity.NOTICE, notif1.getSeverity());
@@ -194,7 +200,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void testForTableProperty() throws TimeoutException, IOException {
+    public final void testForTableProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final Table<String> table = new SimpleTable<>(new HashMap<String, Class<?>>(3){{
             put("col1", Boolean.class);
             put("col2", Integer.class);
@@ -220,7 +226,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void testForDictionaryProperty() throws TimeoutException, IOException {
+    public final void testForDictionaryProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final Map<String, Object> dict = new HashMap<>(3);
         dict.put("col1", Boolean.TRUE);
         dict.put("col2", 42);
@@ -229,38 +235,38 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void testForArrayProperty() throws TimeoutException, IOException {
+    public final void testForArrayProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         final Object[] array = new Short[]{10, 20, 30, 40, 50};
         testAttribute("5.1", "array", TypeLiterals.OBJECT_ARRAY, array, arrayEquator());
     }
 
     @Test
-    public final void testForDateProperty() throws TimeoutException, IOException {
+    public final void testForDateProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute("9.0", "date", TypeLiterals.DATE, new Date());
     }
 
     @Test
-    public final void testForFloatProperty() throws TimeoutException, IOException {
+    public final void testForFloatProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute("8.0", "float", TypeLiterals.FLOAT, 3.14F);
     }
 
     @Test
-    public final void testForBigIntProperty() throws TimeoutException, IOException {
+    public final void testForBigIntProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute("4.0", "bigint", TypeLiterals.BIG_INTEGER, BigInteger.valueOf(100500));
     }
 
     @Test
-    public final void testForInt32Property() throws TimeoutException, IOException {
+    public final void testForInt32Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute("3.0", "int32", TypeLiterals.INTEGER, 42);
     }
 
     @Test
-    public final void testForBooleanProperty() throws TimeoutException, IOException {
+    public final void testForBooleanProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute("2.0", "boolean", TypeLiterals.BOOLEAN, Boolean.TRUE);
     }
 
     @Test
-    public final void testForStringProperty() throws TimeoutException, IOException {
+    public final void testForStringProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute("1.0", "string", TypeLiterals.STRING, "Frank Underwood");
     }
 
