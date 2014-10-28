@@ -66,9 +66,9 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Factory<ResourceAdapterConfiguration> adapterFactory) {
         final ResourceAdapterConfiguration restAdapter = adapterFactory.create();
         restAdapter.setAdapterName(ADAPTER_NAME);
-        restAdapter.getHostingParams().put("objectName", ROOT_OBJECT_NAME);
-        restAdapter.getHostingParams().put("usePlatformMBean", "true");
-        restAdapter.getHostingParams().put("dbgUsePureSerialization", "true");
+        restAdapter.getParameters().put("objectName", ROOT_OBJECT_NAME);
+        restAdapter.getParameters().put("usePlatformMBean", "true");
+        restAdapter.getParameters().put("dbgUsePureSerialization", "true");
         adapters.put("test-jmx", restAdapter);
     }
 

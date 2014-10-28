@@ -326,7 +326,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             server.start();
             return true;
         } catch (final IOException e) {
-            getLogger().log(Level.SEVERE, String.format("Unable to start SSH adapter"), e);
+            failedToStartAdapter(Level.SEVERE, e);
             return false;
         }
     }
@@ -343,7 +343,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             server.stop();
         }
         catch (final InterruptedException e) {
-            getLogger().log(Level.SEVERE, String.format("Unable to stop SSH adapter"), e);
+            failedToStopAdapter(Level.SEVERE, e);
         }
         finally {
             clearModel(attributes);

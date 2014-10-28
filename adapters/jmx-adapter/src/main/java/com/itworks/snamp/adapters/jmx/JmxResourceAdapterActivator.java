@@ -50,6 +50,7 @@ public final class JmxResourceAdapterActivator extends AbstractResourceAdapterAc
     /**
      * Initializes a new instance of the resource adapter.
      *
+     * @param adapterInstanceName The name of the adapter instance.
      * @param parameters   A collection of initialization parameters.
      * @param resources    A collection of managed resources to be exposed via adapter.
      * @param dependencies A collection of dependencies used by adapter.
@@ -57,7 +58,9 @@ public final class JmxResourceAdapterActivator extends AbstractResourceAdapterAc
      * @throws Exception Unable to instantiate resource adapter.
      */
     @Override
-    protected JmxResourceAdapter createAdapter(final Map<String, String> parameters, final Map<String, ManagedResourceConfiguration> resources, final RequiredService<?>... dependencies) throws Exception {
+    protected JmxResourceAdapter createAdapter(final String adapterInstanceName,
+                                               final Map<String, String> parameters,
+                                               final Map<String, ManagedResourceConfiguration> resources, final RequiredService<?>... dependencies) throws Exception {
         if (parameters.containsKey(OBJECT_NAME_PARAM)) {
             JmxAdapterLicenseLimitations.current().verifyServiceVersion(JmxResourceAdapter.class);
             final JmxResourceAdapter adapter = new JmxResourceAdapter(new ObjectName(parameters.get(OBJECT_NAME_PARAM)),

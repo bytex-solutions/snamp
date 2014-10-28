@@ -204,7 +204,7 @@ public final class XmlAgentConfiguration extends AbstractAgentConfiguration {
          */
         @Override
         @XmlTransient
-        public Map<String, String> getHostingParams() {
+        public Map<String, String> getParameters() {
             return params;
         }
     }

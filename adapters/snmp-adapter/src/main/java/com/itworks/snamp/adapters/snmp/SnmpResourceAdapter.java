@@ -1,11 +1,12 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.adapters.AbstractConcurrentResourceAdapter;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import net.engio.mbassy.bus.MBassador;
 import net.engio.mbassy.bus.config.BusConfiguration;
+import org.apache.commons.collections4.Factory;
 import org.osgi.service.event.EventHandler;
 import org.snmp4j.agent.mo.snmp.TransportDomains;
 import org.snmp4j.smi.OID;
@@ -15,6 +16,7 @@ import org.snmp4j.smi.UdpAddress;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,7 +28,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
  * @version 1.0
  * @since 1.0
  */
-final class SnmpResourceAdapter extends AbstractResourceAdapter {
+final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
 
     private static final class SnmpNotificationMappingImpl implements SnmpNotificationMapping{
         private final NotificationMetadata metadata;
@@ -188,8 +190,9 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
                                   final String hostName,
                                   final SecurityConfiguration securityOptions,
                                   final int socketTimeout,
+                                  final Factory<ExecutorService> threadPoolFactory,
                                   final Map<String, ManagedResourceConfiguration> resources) throws IOException {
-        super(resources);
+        super(threadPoolFactory, resources);
         agent = new SnmpAgent(port, hostName, securityOptions, socketTimeout);
         attributes = new SnmpAttributesModel();
         notifications = new SnmpNotificationsModel();
@@ -214,15 +217,14 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
      * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
      */
     @Override
-    protected boolean start() {
+    protected boolean start(final ExecutorService threadPool) {
         try {
             populateModel(attributes);
             populateModel(notifications);
             notifications.subscribe(agent);
-            return agent.start(attributes.values(), notifications.values());
-        }
-        catch (final IOException e) {
-            getLogger().log(Level.SEVERE, "Unable to start SNMP Agent", e);
+            return agent.start(attributes.values(), notifications.values(), threadPool);
+        } catch (final IOException e) {
+            failedToStartAdapter(Level.SEVERE, e);
             return false;
         }
     }
@@ -234,15 +236,18 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
      * </p>
      */
     @Override
-    protected void stop() {
+    protected void stop(final ExecutorService threadPool) {
+        threadPool.shutdownNow();
         try {
             notifications.unsubscribe(agent);
             agent.stop();
             clearModel(attributes);
             clearModel(notifications);
-        }
-        finally {
+        } catch (final Exception e) {
+            failedToStopAdapter(Level.SEVERE, e);
+        } finally {
             notifications.close();
         }
+        System.gc();
     }
 }

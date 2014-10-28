@@ -38,6 +38,11 @@ public interface AgentConfiguration extends PersistentObject, Cloneable {
      * @version 1.0
      */
     public static interface ConfigurationEntity{
+        /**
+         * Gets configuration parameters of this entity.
+         * @return A map of configuration parameters.
+         */
+        Map<String, String> getParameters();
     }
 
     /**
@@ -55,12 +60,6 @@ public interface AgentConfiguration extends PersistentObject, Cloneable {
          * @param adapterName The adapter name.
          */
         void setAdapterName(final String adapterName);
-
-        /**
-         * Returns a dictionary of hosting parameters, such as port and hosting address.
-         * @return The map of additional configuration elements.
-         */
-        Map<String, String> getHostingParams();
     }
 
     /**
@@ -83,11 +82,6 @@ public interface AgentConfiguration extends PersistentObject, Cloneable {
          * @version 1.0
          */
         public static interface ManagedEntity extends ConfigurationEntity{
-            /**
-             * Gets configuration parameters of this entity.
-             * @return A map of configuration parameters.
-             */
-            Map<String, String> getParameters();
         }
 
         /**

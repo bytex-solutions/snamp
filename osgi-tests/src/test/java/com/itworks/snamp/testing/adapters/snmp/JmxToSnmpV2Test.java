@@ -156,9 +156,9 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Factory<ResourceAdapterConfiguration> adapterFactory) {
         final ResourceAdapterConfiguration snmpAdapter = adapterFactory.create();
         snmpAdapter.setAdapterName(ADAPTER_NAME);
-        snmpAdapter.getHostingParams().put("port", SNMP_PORT);
-        snmpAdapter.getHostingParams().put("host", SNMP_HOST);
-        snmpAdapter.getHostingParams().put("socketTimeout", "5000");
+        snmpAdapter.getParameters().put("port", SNMP_PORT);
+        snmpAdapter.getParameters().put("host", SNMP_HOST);
+        snmpAdapter.getParameters().put("socketTimeout", "5000");
         adapters.put("test-snmp", snmpAdapter);
     }
 

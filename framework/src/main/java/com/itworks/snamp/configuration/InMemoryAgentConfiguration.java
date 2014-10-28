@@ -57,7 +57,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          * @return The map of additional hosting parameters.
          */
         @Override
-        public Map<String, String> getHostingParams() {
+        public Map<String, String> getParameters() {
             return additionalElements;
         }
 

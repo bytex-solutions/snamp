@@ -2,14 +2,16 @@ package com.itworks.snamp.adapters.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.adapters.AbstractConcurrentResourceAdapter;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.itworks.snamp.configuration.ThreadPoolConfig;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.internal.Utils;
 import net.engio.mbassy.bus.MBassador;
 import net.engio.mbassy.bus.common.PubSubSupport;
 import net.engio.mbassy.bus.config.BusConfiguration;
+import org.apache.commons.lang3.builder.Builder;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.eclipse.jetty.jaas.JAASLoginService;
 import org.eclipse.jetty.jaas.JAASRole;
@@ -24,10 +26,12 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.security.Constraint;
+import org.eclipse.jetty.util.thread.ExecutorThreadPool;
 import org.osgi.service.event.EventHandler;
 
 import java.text.DateFormat;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,7 +42,7 @@ import static org.apache.commons.lang3.ArrayUtils.toArray;
  * This class cannot be inherited.
  * @author Roman Sakno
  */
-final class RestAdapter extends AbstractResourceAdapter {
+final class RestAdapter extends AbstractConcurrentResourceAdapter {
     private static final String REALM_NAME = "SNAMP_REST_ADAPTER";
 
     private static final class HttpNotifications extends AbstractNotificationsModel<HttpNotificationMapping> implements EventHandler, HttpNotificationsModel, AutoCloseable{
@@ -140,7 +144,55 @@ final class RestAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private final Server jettyServer;
+    private static final class JettyServerBuilder implements Builder<Server>{
+        private int port;
+        private String host;
+        private ExecutorService threadPool;
+
+        private JettyServerBuilder(){
+            this(RestAdapterConfigurationDescriptor.DEFAULT_HOST,
+                    RestAdapterConfigurationDescriptor.DEFAULT_PORT);
+        }
+
+        private JettyServerBuilder(final String host, final int port) {
+            this.port = port;
+            this.host = host;
+        }
+
+        void setPort(final int value){
+            port = value;
+        }
+
+        void setHost(final String value){
+            host = value;
+        }
+
+        void setThreadPool(final ExecutorService value){
+            this.threadPool = value;
+        }
+
+        private static void removeConnectors(final Server jettyServer){
+            for(final Connector c: jettyServer.getConnectors())
+                if(c instanceof NetworkConnector) ((NetworkConnector)c).close();
+            jettyServer.setConnectors(new Connector[0]);
+        }
+
+        @Override
+        public Server build() {
+            final Server result = new Server(new ExecutorThreadPool(threadPool));
+            //remove all connectors.
+            removeConnectors(result);
+            //initializes a new connector.
+            final ServerConnector connector = new ServerConnector(result);
+            connector.setPort(port);
+            connector.setHost(host);
+            result.setConnectors(toArray(connector));
+            return result;
+        }
+    }
+
+    private Server jettyServer;
+    private final JettyServerBuilder serverFactory;
     private final String loginModuleName;
     private final HttpAttributes attributes;
     private final int webSocketTimeout;
@@ -151,18 +203,12 @@ final class RestAdapter extends AbstractResourceAdapter {
                        final String loginModuleName,
                        final String dateFormat,
                        final int webSocketTimeout,
+                       final ThreadPoolConfig threadPoolConfig,
                        final Map<String, ManagedResourceConfiguration> resources){
-        super(resources);
-        this.jettyServer = new Server();
+        super(threadPoolConfig, resources);
+        this.serverFactory = new JettyServerBuilder(host, port);
         this.loginModuleName = loginModuleName;
         this.webSocketTimeout = webSocketTimeout;
-        //remove all connectors.
-        removeConnectors(jettyServer);
-        //initializes a new connector.
-        final ServerConnector connector = new ServerConnector(jettyServer);
-        connector.setPort(port);
-        connector.setHost(host);
-        jettyServer.setConnectors(toArray(connector));
         final Gson jsonFormatter = createJsonFormatter(dateFormat);
         attributes = new HttpAttributes(jsonFormatter);
         notifications = new HttpNotifications(jsonFormatter);
@@ -177,12 +223,6 @@ final class RestAdapter extends AbstractResourceAdapter {
         return builder.create();
     }
 
-    private static void removeConnectors(final Server jettyServer){
-        for(final Connector c: jettyServer.getConnectors())
-            if(c instanceof NetworkConnector) ((NetworkConnector)c).close();
-        jettyServer.setConnectors(new Connector[0]);
-    }
-
     private static LoginService createLoginService(final String loginModuleName, final Class<?> callerClass){
         final JAASLoginService loginService = RestAdapterHelpers.createJaasLoginServiceForOsgi(callerClass.getClassLoader());
         loginService.setLoginModuleName(loginModuleName);
@@ -193,10 +233,13 @@ final class RestAdapter extends AbstractResourceAdapter {
 
     /**
      * Starts the adapter.
+     * @param threadPool The thread pool used by Web server.
      * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
      */
     @Override
-    protected boolean start() {
+    protected boolean start(final ExecutorService threadPool) {
+        serverFactory.setThreadPool(threadPool);
+        jettyServer = serverFactory.build();
         final ServletContextHandler resourcesHandler = new ServletContextHandler(ServletContextHandler.SECURITY);
         resourcesHandler.setContextPath("/snamp/managedResource");
         //security
@@ -240,7 +283,7 @@ final class RestAdapter extends AbstractResourceAdapter {
                     result.setValue(true);
                 }
                 catch (final Exception e) {
-                    getLogger().log(Level.SEVERE, "Unable to start embedded HTTP server", e);
+                    failedToStartAdapter(Level.SEVERE, e);
                 }
             }
         });
@@ -259,20 +302,25 @@ final class RestAdapter extends AbstractResourceAdapter {
 
     /**
      * Stops the adapter.
+     * @param threadPool The thread pool used by Web server.
      */
     @Override
-    protected void stop() {
+    protected void stop(final ExecutorService threadPool) {
         try {
+            threadPool.shutdownNow();
             jettyServer.stop();
         }
         catch (final Exception e) {
-            getLogger().log(Level.SEVERE, "Unable to stop embedded HTTP server.", e);
+            failedToStopAdapter(Level.SEVERE, e);
         }
         finally {
+            jettyServer.setHandler(null);
+            serverFactory.setThreadPool(null);
             clearModel(attributes);
             clearModel(notifications);
-            jettyServer.setHandler(null);
+            jettyServer = null;
         }
+        System.gc();
     }
 
     /**

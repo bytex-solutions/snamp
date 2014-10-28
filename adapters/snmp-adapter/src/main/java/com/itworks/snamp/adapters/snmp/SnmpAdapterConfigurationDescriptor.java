@@ -4,6 +4,7 @@ package com.itworks.snamp.adapters.snmp;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.itworks.snamp.configuration.ThreadPoolConfigurationDescriptor;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -99,14 +100,19 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     private static final String RESOURCE_NAME = "SnmpAdapterConfig";
 
 
-    private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> {
+    private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> implements ThreadPoolConfigurationDescriptor<ResourceAdapterConfiguration> {
         public ResourceAdapterConfigurationInfo(){
             super(ResourceAdapterConfiguration.class,
                     SNMPv3_GROUPS_PARAM,
                     SOCKET_TIMEOUT_PARAM,
                     PORT_PARAM_NAME,
                     HOST_PARAM_NAME,
-                    LDAP_URI_PARAM);
+                    LDAP_URI_PARAM,
+                    MIN_POOL_SIZE_PROPERTY,
+                    MAX_POOL_SIZE_PROPERTY,
+                    QUEUE_SIZE_PROPERTY,
+                    KEEP_ALIVE_TIME_PROPERTY,
+                    PRIORITY_PROPERTY);
         }
 
         /**

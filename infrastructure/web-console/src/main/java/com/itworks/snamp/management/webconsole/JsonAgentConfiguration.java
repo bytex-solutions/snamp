@@ -1,6 +1,5 @@
 package com.itworks.snamp.management.webconsole;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.itworks.snamp.TimeSpan;
@@ -76,11 +75,11 @@ final class JsonAgentConfiguration {
     private static JsonObject readResourceAdapter(final ResourceAdapterConfiguration adapterConfig){
         final JsonObject result = new JsonObject();
         result.addProperty(ADAPTER_NAME_FIELD, adapterConfig.getAdapterName());
-        if (!adapterConfig.getHostingParams().keySet().isEmpty()) {
+        if (!adapterConfig.getParameters().keySet().isEmpty()) {
             final JsonObject objectMap = new JsonObject();
 
-            for (final String propertyName : adapterConfig.getHostingParams().keySet())
-                objectMap.addProperty(propertyName, adapterConfig.getHostingParams().get(propertyName));
+            for (final String propertyName : adapterConfig.getParameters().keySet())
+                objectMap.addProperty(propertyName, adapterConfig.getParameters().get(propertyName));
 
             result.add(USER_DEFINED_PROPERTIES, objectMap);
         }
@@ -197,7 +196,7 @@ final class JsonAgentConfiguration {
         adapter.setAdapterName(toString(source.remove(ADAPTER_NAME_FIELD), ""));
         //deserialize other properties
         for(final Map.Entry<String, JsonElement> entry: source.entrySet())
-            adapter.getHostingParams().put(entry.getKey(), entry.getValue().getAsString());
+            adapter.getParameters().put(entry.getKey(), entry.getValue().getAsString());
         return adapter;
     }
 

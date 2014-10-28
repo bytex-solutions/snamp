@@ -222,6 +222,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
                 getLogger().log(Level.SEVERE, String.format("Unable to unregister MBean %s", name), e);
             }
         exposedBeans.clear();
+        System.gc();
     }
 
     /**

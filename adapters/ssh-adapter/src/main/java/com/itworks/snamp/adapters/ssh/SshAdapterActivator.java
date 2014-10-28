@@ -37,7 +37,9 @@ public final class SshAdapterActivator extends AbstractResourceAdapterActivator<
      * @throws Exception Unable to instantiate resource adapter.
      */
     @Override
-    protected SshAdapter createAdapter(final Map<String, String> parameters, final Map<String, AgentConfiguration.ManagedResourceConfiguration> resources, final RequiredService<?>... dependencies) throws Exception {
+    protected SshAdapter createAdapter(final String adapterInstanceName,
+                                        final Map<String, String> parameters,
+                                       final Map<String, AgentConfiguration.ManagedResourceConfiguration> resources, final RequiredService<?>... dependencies) throws Exception {
         final String host = parameters.containsKey(HOST_PARAM) ?
                 parameters.get(HOST_PARAM) :
                 DEFAULT_HOST;

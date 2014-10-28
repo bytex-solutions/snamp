@@ -289,10 +289,10 @@ public final class RestAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Factory<ResourceAdapterConfiguration> adapterFactory) {
         final ResourceAdapterConfiguration restAdapter = adapterFactory.create();
         restAdapter.setAdapterName(ADAPTER_NAME);
-        restAdapter.getHostingParams().put("port", HTTP_PORT);
-        restAdapter.getHostingParams().put("host", HTTP_HOST);
-        restAdapter.getHostingParams().put("webSocketIdleTimeout", "100000");
-        restAdapter.getHostingParams().put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        restAdapter.getParameters().put("port", HTTP_PORT);
+        restAdapter.getParameters().put("host", HTTP_HOST);
+        restAdapter.getParameters().put("webSocketIdleTimeout", "100000");
+        restAdapter.getParameters().put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         adapters.put("test-rest", restAdapter);
     }
 

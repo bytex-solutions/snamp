@@ -123,9 +123,9 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
 
     private static void copyAdapter(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output){
         output.setAdapterName(input.getAdapterName());
-        final Map<String, String> additionalElements = output.getHostingParams();
+        final Map<String, String> additionalElements = output.getParameters();
         additionalElements.clear();
-        additionalElements.putAll(input.getHostingParams());
+        additionalElements.putAll(input.getParameters());
     }
 
     private static <T extends ConfigurationEntity> void copy(final Map<String, T> input,
@@ -232,7 +232,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         else
             return adapter2 != null &&
                     Objects.equals(adapter1.getAdapterName(), adapter2.getAdapterName()) &&
-                    equals(adapter1.getHostingParams(), adapter2.getHostingParams());
+                    equals(adapter1.getParameters(), adapter2.getParameters());
     }
 
     public static boolean equals(final ManagedResourceConfiguration resource1, final ManagedResourceConfiguration resource2){

@@ -248,9 +248,9 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Factory<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory) {
         final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapterFactory.create();
         snmpAdapter.setAdapterName(ADAPTER_NAME);
-        snmpAdapter.getHostingParams().put("port", SNMP_PORT);
-        snmpAdapter.getHostingParams().put("host", SNMP_HOST);
-        snmpAdapter.getHostingParams().put("socketTimeout", "5000");
+        snmpAdapter.getParameters().put("port", SNMP_PORT);
+        snmpAdapter.getParameters().put("host", SNMP_HOST);
+        snmpAdapter.getParameters().put("socketTimeout", "5000");
         adapters.put("test-snmp", snmpAdapter);
     }
 

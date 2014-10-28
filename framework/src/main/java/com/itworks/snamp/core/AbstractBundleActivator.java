@@ -1,7 +1,11 @@
 package com.itworks.snamp.core;
 
+import com.itworks.snamp.Attribute;
+import com.itworks.snamp.AttributeReader;
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.collections4.Predicate;
+import org.apache.commons.lang3.reflect.Typed;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -24,17 +28,19 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ActivationProperty<T>{
+    protected static interface ActivationProperty<T> extends Attribute<T>{
         /**
-         * Gets type of this property.
-         * @return The type of this property.
+         * Gets type of the activation property.
+         * @return The type of the attribute value.
          */
-        Class<T> getType();
+        @Override
+        Typed<T> getType();
 
         /**
          * Gets default value of this property.
          * @return Default value of this property.
          */
+        @Override
         T getDefaultValue();
     }
 
@@ -84,15 +90,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ActivationPropertyReader{
-        /**
-         * Reads value of the activation property.
-         * @param propertyDef The definition of the activation property.
-         * @param <T> Type of the property value.
-         * @return The property value; or {@literal null}, if property doesn't exist.
-         */
-        <T> T getValue(final ActivationProperty<T> propertyDef);
-
+    protected static interface ActivationPropertyReader extends AttributeReader{
         /**
          * Finds the property definition.
          * @param propertyType The type of the property definition.
@@ -108,7 +106,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      */
     protected static final ActivationPropertyReader emptyActivationPropertyReader = new ActivationPropertyReader() {
         @Override
-        public <T> T getValue(final ActivationProperty<T> propertyDef) {
+        public <T> T getValue(final Attribute<T> propertyDef) {
             return null;
         }
 
@@ -149,15 +147,14 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
          * @return The property value; or {@literal null}, if property doesn't exist.
          */
         @Override
-        public <T> T getValue(final ActivationProperty<T> propertyDef) {
-            if(propertyDef == null) return null;
-            else if(containsKey(propertyDef)){
+        public <T> T getValue(final Attribute<T> propertyDef) {
+            if (propertyDef == null) return null;
+            else if (containsKey(propertyDef)) {
                 final Object value = get(propertyDef);
-                return propertyDef.getType().isInstance(value)?
-                    propertyDef.getType().cast(value):
-                    propertyDef.getDefaultValue();
-            }
-            else return null;
+                return TypeLiterals.isInstance(value, propertyDef.getType()) ?
+                        TypeLiterals.cast(value, propertyDef.getType()) :
+                        propertyDef.getDefaultValue();
+            } else return null;
         }
 
         /**
@@ -165,7 +162,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
          *
          * @param propertyType The type of the property definition.
          * @param filter       Property definition filter.
-         * @return The property definition; or {@literal null}, if porperty not found.
+         * @return The property definition; or {@literal null}, if property not found.
          */
         @Override
         public <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<P> filter) {
@@ -471,10 +468,21 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @param <T> Type of the property.
      * @return Activation property definition.
      */
-    protected static <T> ActivationProperty<T> defineActivationProperty(final Class<T> propertyType, final T defaultValue){
+    protected static <T> ActivationProperty<T> defineActivationProperty(final Class<T> propertyType, final T defaultValue) {
+        return defineActivationProperty(TypeLiterals.of(propertyType), defaultValue);
+    }
+
+    /**
+     * Defines activation property.
+     * @param propertyType The type of the property.
+     * @param defaultValue The default value of the property.
+     * @param <T> Type of the property.
+     * @return Activation property definition.
+     */
+    protected static <T> ActivationProperty<T> defineActivationProperty(final Typed<T> propertyType, final T defaultValue){
         return new ActivationProperty<T>() {
             @Override
-            public Class<T> getType() {
+            public Typed<T> getType() {
                 return propertyType;
             }
 
@@ -492,6 +500,16 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @return Activation property definition.
      */
     protected static <T> ActivationProperty<T> defineActivationProperty(final Class<T> propertyType){
+        return defineActivationProperty(TypeLiterals.of(propertyType));
+    }
+
+    /**
+     * Defines activation property without default value.
+     * @param propertyType The type of the property.
+     * @param <T> The type of the property.
+     * @return Activation property definition.
+     */
+    protected static <T> ActivationProperty<T> defineActivationProperty(final Typed<T> propertyType){
         return defineActivationProperty(propertyType, null);
     }
 
@@ -505,14 +523,16 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      */
     protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType, final T defaultValue){
         return new NamedActivationProperty<T>() {
+            private final Typed<T> pType = TypeLiterals.of(propertyType);
+
             @Override
             public String getName() {
                 return propertyName;
             }
 
             @Override
-            public Class<T> getType() {
-                return propertyType;
+            public Typed<T> getType() {
+                return pType;
             }
 
             @Override
@@ -525,10 +545,13 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
                 return propertyName.hashCode();
             }
 
-            @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
             @Override
             public boolean equals(final Object obj) {
-                return propertyName.equals(obj);
+                if(obj instanceof NamedActivationProperty<?>)
+                    return Objects.equals(propertyName, ((NamedActivationProperty<?>)obj).getName());
+                else if(obj instanceof String)
+                    return Objects.equals(propertyName, obj);
+                else return false;
             }
         };
     }

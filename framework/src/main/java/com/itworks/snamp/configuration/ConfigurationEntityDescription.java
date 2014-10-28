@@ -11,7 +11,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * Represents description of the SNAMP plugin configuration model.
  * <p>
  *     This interface provides description of additional configuration properties that can be obtained
- *     via {@link com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration#getHostingParams()},
+ *     via {@link com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration#getParameters()},
  *     {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getParameters()},
  *     {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration#getParameters()}
  *     or {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration#getParameters()}.

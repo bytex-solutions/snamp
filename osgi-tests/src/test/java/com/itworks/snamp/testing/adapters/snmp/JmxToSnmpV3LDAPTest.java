@@ -360,17 +360,17 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Factory<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory) {
         final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapterFactory.create();
         snmpAdapter.setAdapterName(ADAPTER_NAME);
-        snmpAdapter.getHostingParams().put("port", SNMP_PORT);
-        snmpAdapter.getHostingParams().put("host", SNMP_HOST);
-        snmpAdapter.getHostingParams().put("socketTimeout", "5000");
+        snmpAdapter.getParameters().put("port", SNMP_PORT);
+        snmpAdapter.getParameters().put("host", SNMP_HOST);
+        snmpAdapter.getParameters().put("socketTimeout", "5000");
         adapters.put("test-snmp", snmpAdapter);
-        snmpAdapter.getHostingParams().put("ldap-uri", "ldap://127.0.0.1:" + EmbeddedADSVerTrunk.SERVER_PORT);
-        snmpAdapter.getHostingParams().put("ldap-user", LDAP_ADMIN_USER);
-        snmpAdapter.getHostingParams().put("ldap-password", LDAP_ADMIN_PASSWORD);
-        snmpAdapter.getHostingParams().put("ldap-auth-protocol", "simple");
-        snmpAdapter.getHostingParams().put("ldap-base-dn", "dc=ad,dc=microsoft,dc=com");
-        snmpAdapter.getHostingParams().put("ldap-user-search-filter", String.format("(%s)", LDAP_USER));
-        snmpAdapter.getHostingParams().put("ldap-groups", "(&(objectclass=domain)(objectclass=top))");
+        snmpAdapter.getParameters().put("ldap-uri", "ldap://127.0.0.1:" + EmbeddedADSVerTrunk.SERVER_PORT);
+        snmpAdapter.getParameters().put("ldap-user", LDAP_ADMIN_USER);
+        snmpAdapter.getParameters().put("ldap-password", LDAP_ADMIN_PASSWORD);
+        snmpAdapter.getParameters().put("ldap-auth-protocol", "simple");
+        snmpAdapter.getParameters().put("ldap-base-dn", "dc=ad,dc=microsoft,dc=com");
+        snmpAdapter.getParameters().put("ldap-user-search-filter", String.format("(%s)", LDAP_USER));
+        snmpAdapter.getParameters().put("ldap-groups", "(&(objectclass=domain)(objectclass=top))");
     }
 
     @Override

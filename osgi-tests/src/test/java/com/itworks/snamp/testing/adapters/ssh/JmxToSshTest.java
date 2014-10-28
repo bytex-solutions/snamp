@@ -78,11 +78,11 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Factory<ResourceAdapterConfiguration> adapterFactory) {
         final ResourceAdapterConfiguration restAdapter = adapterFactory.create();
         restAdapter.setAdapterName(ADAPTER_NAME);
-        restAdapter.getHostingParams().put("host", "0.0.0.0");
-        restAdapter.getHostingParams().put("port", Integer.toString(PORT));
-        restAdapter.getHostingParams().put("userName", USER_NAME);
-        restAdapter.getHostingParams().put("password", PASSWORD);
-        restAdapter.getHostingParams().put("tty-options", "echo");
+        restAdapter.getParameters().put("host", "0.0.0.0");
+        restAdapter.getParameters().put("port", Integer.toString(PORT));
+        restAdapter.getParameters().put("userName", USER_NAME);
+        restAdapter.getParameters().put("password", PASSWORD);
+        restAdapter.getParameters().put("tty-options", "echo");
         adapters.put("test-jmx", restAdapter);
     }
 

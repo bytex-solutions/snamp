@@ -65,7 +65,8 @@ public final class SnmpResourceAdapterActivator extends AbstractResourceAdapterA
     }
 
     @Override
-    protected SnmpResourceAdapter createAdapter(final Map<String, String> parameters,
+    protected SnmpResourceAdapter createAdapter(final String adapterInstanceName,
+                                                final Map<String, String> parameters,
                                                 final Map<String, ManagedResourceConfiguration> resources,
                                                 final RequiredService<?>... dependencies) throws IOException{
         try{
@@ -78,9 +79,9 @@ public final class SnmpResourceAdapterActivator extends AbstractResourceAdapterA
                 final JNDIContextManager contextManager = getDependency(RequiredServiceAccessor.class, JNDIContextManager.class, dependencies);
                 final SecurityConfiguration security = new SecurityConfiguration(MPv3.createLocalEngineID(), toFactory(contextManager));
                 security.read(parameters);
-                return new SnmpResourceAdapter(Integer.valueOf(port), address, security, Integer.valueOf(socketTimeout), resources);
+                return new SnmpResourceAdapter(Integer.valueOf(port), address, security, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, adapterInstanceName), resources);
             }
-            else return new SnmpResourceAdapter(Integer.valueOf(port), address, null, Integer.valueOf(socketTimeout), resources);
+            else return new SnmpResourceAdapter(Integer.valueOf(port), address, null, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, adapterInstanceName), resources);
         }
         catch (final LicensingException e){
             getLogger().log(Level.SEVERE, "Unable to instatiate SNMP adapter due its license limitations.", e);

@@ -9,19 +9,21 @@ import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.mo.MOTableRow;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
+import org.snmp4j.mp.MPv1;
+import org.snmp4j.mp.MPv2c;
 import org.snmp4j.mp.MPv3;
 import org.snmp4j.mp.MessageProcessingModel;
-import org.snmp4j.security.SecurityLevel;
-import org.snmp4j.security.SecurityModel;
-import org.snmp4j.security.USM;
+import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.transport.TransportMappings;
+import org.snmp4j.util.ConcurrentMessageDispatcher;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,9 +44,10 @@ final class SnmpAgent extends BaseAgent {
     private boolean coldStart;
     private final Collection<SnmpAttributeMapping> attributes;
     private final Collection<SnmpNotificationMapping> notifications;
-    private SecurityConfiguration security;
+    private ExecutorService threadPool;
+    private final SecurityConfiguration security;
 
-	public SnmpAgent(final int port,
+    SnmpAgent(final int port,
                      final String hostName,
                      final SecurityConfiguration securityOptions,
                      final int socketTimeout) throws IOException {
@@ -134,6 +137,25 @@ final class SnmpAgent extends BaseAgent {
     }
 
     /**
+     * Initializes concurrent message dispatcher
+     */
+    protected void initMessageDispatcher() {
+        if (threadPool != null) {
+            dispatcher = new ConcurrentMessageDispatcher(threadPool);
+            mpv3 = new MPv3(agent.getContextEngineID().getValue());
+            usm = new USM(SecurityProtocols.getInstance(),
+                    agent.getContextEngineID(),
+                    updateEngineBoots());
+            SecurityModels.getInstance().addSecurityModel(usm);
+            SecurityProtocols.getInstance().addDefaultProtocols();
+            dispatcher.addMessageProcessingModel(new MPv1());
+            dispatcher.addMessageProcessingModel(new MPv2c());
+            dispatcher.addMessageProcessingModel(mpv3);
+            initSnmpSession();
+        } else super.initMessageDispatcher();
+    }
+
+    /**
      * Adds initial notification targets and filters.
      *
      * @param targetMIB       the SnmpTargetMIB holding the target configuration.
@@ -204,10 +226,13 @@ final class SnmpAgent extends BaseAgent {
         }
 	}
 
-	public boolean start(final Collection<SnmpAttributeMapping> attrs, final Collection<SnmpNotificationMapping> notifs) throws IOException {
+    boolean start(final Collection<SnmpAttributeMapping> attrs,
+                         final Collection<SnmpNotificationMapping> notifs,
+                         final ExecutorService threadPool) throws IOException {
 		switch (agentState){
             case STATE_STOPPED:
             case STATE_CREATED:
+                this.threadPool = threadPool;
                 attributes.addAll(attrs);
                 notifications.addAll(notifs);
                 init();
@@ -269,6 +294,7 @@ final class SnmpAgent extends BaseAgent {
             default:
                 attributes.clear();
                 notifications.clear();
+                threadPool = null;
         }
     }
 }

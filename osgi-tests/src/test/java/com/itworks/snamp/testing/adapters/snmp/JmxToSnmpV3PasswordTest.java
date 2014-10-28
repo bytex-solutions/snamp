@@ -325,25 +325,25 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Factory<ResourceAdapterConfiguration> adapterFactory) {
         final ResourceAdapterConfiguration snmpAdapter = adapterFactory.create();
         snmpAdapter.setAdapterName(ADAPTER_NAME);
-        snmpAdapter.getHostingParams().put("port", SNMP_PORT);
-        snmpAdapter.getHostingParams().put("host", SNMP_HOST);
-        snmpAdapter.getHostingParams().put("socketTimeout", "5000");
+        snmpAdapter.getParameters().put("port", SNMP_PORT);
+        snmpAdapter.getParameters().put("host", SNMP_HOST);
+        snmpAdapter.getParameters().put("socketTimeout", "5000");
         adapters.put("test-snmp", snmpAdapter);
-        snmpAdapter.getHostingParams().put("snmpv3-groups", "group1; group2");
+        snmpAdapter.getParameters().put("snmpv3-groups", "group1; group2");
         //group1 setup
-        snmpAdapter.getHostingParams().put("group1-security-level", "authPriv");
-        snmpAdapter.getHostingParams().put("group1-access-rights", "read; write; notify");
-        snmpAdapter.getHostingParams().put("group1-users", USER_NAME);
-        snmpAdapter.getHostingParams().put(USER_NAME + "-password", PASSWORD);
-        snmpAdapter.getHostingParams().put(USER_NAME + "-auth-protocol", "sha");
-        snmpAdapter.getHostingParams().put(USER_NAME + "-privacy-key", "6-7-8-9-0-passphrase");
-        snmpAdapter.getHostingParams().put(USER_NAME + "-privacy-protocol", "AES256");
+        snmpAdapter.getParameters().put("group1-security-level", "authPriv");
+        snmpAdapter.getParameters().put("group1-access-rights", "read; write; notify");
+        snmpAdapter.getParameters().put("group1-users", USER_NAME);
+        snmpAdapter.getParameters().put(USER_NAME + "-password", PASSWORD);
+        snmpAdapter.getParameters().put(USER_NAME + "-auth-protocol", "sha");
+        snmpAdapter.getParameters().put(USER_NAME + "-privacy-key", "6-7-8-9-0-passphrase");
+        snmpAdapter.getParameters().put(USER_NAME + "-privacy-protocol", "AES256");
         //group2 setup
-        snmpAdapter.getHostingParams().put("group2-security-level", "authNoPriv");
-        snmpAdapter.getHostingParams().put("group2-access-rights", "read");
-        snmpAdapter.getHostingParams().put("group2-users", "testuser2");
-        snmpAdapter.getHostingParams().put("testuser2-password", "1-2-3-4-5-password");
-        snmpAdapter.getHostingParams().put("testuser2-auth-protocol", "sha");
+        snmpAdapter.getParameters().put("group2-security-level", "authNoPriv");
+        snmpAdapter.getParameters().put("group2-access-rights", "read");
+        snmpAdapter.getParameters().put("group2-users", "testuser2");
+        snmpAdapter.getParameters().put("testuser2-password", "1-2-3-4-5-password");
+        snmpAdapter.getParameters().put("testuser2-auth-protocol", "sha");
     }
 
     @Override

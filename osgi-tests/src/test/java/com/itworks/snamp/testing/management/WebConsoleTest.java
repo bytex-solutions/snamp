@@ -77,7 +77,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.getElements(ManagedResourceConfiguration.AttributeConfiguration.class).put("sa", attr);
         ResourceAdapterConfiguration adapter = config.newConfigurationEntity(ResourceAdapterConfiguration.class);
         adapter.setAdapterName("SNMP");
-        adapter.getHostingParams().put("port", "1212");
+        adapter.getParameters().put("port", "1212");
         config.getResourceAdapters().put("s", adapter);
     }
 

@@ -1,9 +1,6 @@
 package com.itworks.snamp.adapters;
 
-import com.itworks.snamp.AbstractAggregator;
-import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.*;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -702,7 +699,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     private final KeyedObjects<String, ManagedResourceConnectorConsumer> connectors;
-    private AdapterState state;
+    private volatile AdapterState state;
+    private final WriteOnceRef<String> adapterInstanceName;
 
     /**
      * Initializes a new resource adapter.
@@ -710,6 +708,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *                  to the outside world.
      */
     protected AbstractResourceAdapter(final Map<String, ManagedResourceConfiguration> resources){
+        adapterInstanceName = new WriteOnceRef<>();
         connectors = new AbstractKeyedObjects<String, ManagedResourceConnectorConsumer>(resources.size()){
             @Override
             public String getKey(final ManagedResourceConnectorConsumer item) {
@@ -719,6 +718,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         for(final Map.Entry<String, ManagedResourceConfiguration> resourceConfig: resources.entrySet())
             connectors.put(new ManagedResourceConnectorConsumer(resourceConfig.getKey(), resourceConfig.getValue()));
         state = AdapterState.CREATED;
+    }
+
+    void setAdapterInstanceName(final String value){
+        adapterInstanceName.set(value);
     }
 
     /**
@@ -1014,10 +1017,37 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     /**
+     * Reports an error when starting adapter.
+     * @param logLevel Logging level.
+     * @param e The failure reason.
+     */
+    protected void failedToStartAdapter(final Level logLevel, final Exception e){
+        getLogger().log(logLevel, String.format("%s: Failed to start resource adapter.", adapterInstanceName.get()), e);
+    }
+
+    /**
+     * Reports an error when stopping adapter.
+     * @param logLevel Logging level.
+     * @param e The failure reason.
+     */
+    protected void failedToStopAdapter(final Level logLevel, final Exception e){
+        getLogger().log(logLevel, String.format("%s: Failed to stop resource adapter.", adapterInstanceName.get()), e);
+    }
+
+    /**
      * Gets set of hosted resources.
      * @return A set of hosted resources.
      */
     protected final Set<String> getHostedResources(){
         return connectors.keySet();
+    }
+
+    /**
+     * Returns a string representation of this adapter.
+     * @return A string representation of this adapter.
+     */
+    @Override
+    public String toString() {
+        return adapterInstanceName.isLocked() ? adapterInstanceName.get() : super.toString();
     }
 }
