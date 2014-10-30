@@ -1,36 +1,47 @@
 package com.itworks.snamp.internal;
 
-import org.apache.commons.collections4.Closure;
-import org.apache.commons.collections4.FunctorException;
-import org.apache.commons.collections4.Transformer;
-import org.apache.commons.lang3.mutable.MutableObject;
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.itworks.snamp.SafeConsumer;
 
 /**
- * Represents a bridge between transformer implementation and {@link org.apache.commons.collections4.Closure} interface.
+ * Represents a bridge between {@link com.google.common.base.Function} and {@link com.itworks.snamp.SafeConsumer}.
  * <p>
- *     Usually, this class can be used to obtain return value from the {@link org.apache.commons.collections4.Closure}
+ *     Usually, this class can be used to obtain return value from the {@link com.itworks.snamp.SafeConsumer}
  *     functional interface invocation.
  * </p>
  * @param <I> Type of the value to transform.
  * @param <O> The transformation value.
  */
-public abstract class TransformerClosure<I, O> extends MutableObject<O> implements Closure<I>, Transformer<I, O> {
-    protected TransformerClosure(){
+public abstract class TransformerClosure<I, O> implements SafeConsumer<I>, Function<I, O>, Supplier<O> {
+    private O result;
 
+    protected TransformerClosure() {
+        this(null);
     }
 
-    protected TransformerClosure(final O defaultValue){
-        super(defaultValue);
+    protected TransformerClosure(final O defaultValue) {
+        this.result = defaultValue;
     }
 
     /**
-     * Performs an action on the specified input object.
+     * Retrieves an instance of the appropriate type. The returned object may or
+     * may not be a new instance, depending on the implementation.
      *
-     * @param input the input to execute on
-     * @throws org.apache.commons.collections4.FunctorException         (runtime) if any other error occurs
+     * @return an instance of the appropriate type
      */
     @Override
-    public final void execute(final I input) throws FunctorException {
-        setValue(transform(input));
+    public final O get() {
+        return result;
+    }
+
+    /**
+     * Performs this operation on the given argument.
+     *
+     * @param value The value to process.
+     */
+    @Override
+    public final void accept(final I value) {
+        result = apply(value);
     }
 }

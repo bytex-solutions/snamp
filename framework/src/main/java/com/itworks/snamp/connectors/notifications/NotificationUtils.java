@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors.notifications;
 
 import com.itworks.snamp.SynchronizationEvent;
-import org.apache.commons.collections4.MapUtils;
+import com.itworks.snamp.internal.Utils;
 import org.osgi.service.event.Event;
 
 import java.util.Date;
@@ -69,7 +69,7 @@ public final class NotificationUtils {
          * @return The name of the manager resource.
          */
         public String getEmitter(){
-            return MapUtils.getString(this, EMITTER_EVENT_PROPERTY);
+            return Utils.getProperty(this, EMITTER_EVENT_PROPERTY, String.class);
         }
 
 
@@ -78,7 +78,7 @@ public final class NotificationUtils {
          * @return The subscription list identifier.
          */
         public String getSubscriptionListID(){
-            return MapUtils.getString(this, LIST_EVENT_PROPERTY);
+            return Utils.getProperty(this, LIST_EVENT_PROPERTY, String.class);
         }
 
         /**

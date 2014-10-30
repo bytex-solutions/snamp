@@ -1,5 +1,7 @@
 package com.itworks.snamp;
 
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import java.util.Objects;
@@ -11,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @version 1.0
  * @since 1.0
  */
-public class WriteOnceRef<T> implements Wrapper<T> {
+public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
     private volatile T value;
     private final AtomicBoolean locked;
 
@@ -103,7 +105,7 @@ public class WriteOnceRef<T> implements Wrapper<T> {
      * @return The wrapped object handling result.
      */
     @Override
-    public final <R> R handle(final WrappedObjectHandler<T, R> handler) {
-        return handler != null ? handler.invoke(value) : null;
+    public final <R> R handle(final Function<T, R> handler) {
+        return handler != null ? handler.apply(value) : null;
     }
 }

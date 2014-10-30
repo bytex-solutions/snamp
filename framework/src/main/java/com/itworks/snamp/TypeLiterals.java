@@ -1,8 +1,6 @@
 package com.itworks.snamp;
 
-import org.apache.commons.lang3.reflect.TypeLiteral;
-import org.apache.commons.lang3.reflect.TypeUtils;
-import org.apache.commons.lang3.reflect.Typed;
+import com.google.common.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -24,142 +22,121 @@ public final class TypeLiterals {
     /**
      * Represents wrapped {@link java.lang.Character}.
      */
-    public static final Typed<Character> CHAR = of(Character.class);
+    public static final TypeToken<Character> CHAR = TypeToken.of(Character.class);
 
     /**
      * Represents wrapped {@link java.lang.Number}.
      */
-    public static final Typed<Number> NUMBER = of(Number.class);
+    public static final TypeToken<Number> NUMBER = TypeToken.of(Number.class);
 
     /**
      * Represents wrapped {@link java.lang.Byte}.
      */
-    public static final Typed<Byte> BYTE = of(Byte.class);
+    public static final TypeToken<Byte> BYTE = TypeToken.of(Byte.class);
 
     /**
      * Represents wrapped {@link java.lang.Byte}[].
      */
-    public static final Typed<Byte[]> BYTE_ARRAY = of(Byte[].class);
+    public static final TypeToken<Byte[]> BYTE_ARRAY = TypeToken.of(Byte[].class);
 
     /**
      * Represents wrapped {@link java.lang.Short}.
      */
-    public static final Typed<Short> SHORT = of(Short.class);
+    public static final TypeToken<Short> SHORT = TypeToken.of(Short.class);
 
     /**
      * Represents wrapped {@link java.lang.Integer}.
      */
-    public static final Typed<Integer> INTEGER = of(Integer.class);
+    public static final TypeToken<Integer> INTEGER = TypeToken.of(Integer.class);
 
     /**
      * Represents wrapped {@link java.lang.Long}.
      */
-    public static final Typed<Long> LONG = of(Long.class);
+    public static final TypeToken<Long> LONG = TypeToken.of(Long.class);
 
     /**
      * Represents wrapped {@link java.math.BigInteger}.
      */
-    public static final Typed<BigInteger> BIG_INTEGER = of(BigInteger.class);
+    public static final TypeToken<BigInteger> BIG_INTEGER = TypeToken.of(BigInteger.class);
 
     /**
      * Represents wrapped {@link java.math.BigDecimal}.
      */
-    public static final Typed<BigDecimal> BIG_DECIMAL = of(BigDecimal.class);
+    public static final TypeToken<BigDecimal> BIG_DECIMAL = TypeToken.of(BigDecimal.class);
 
     /**
      * Represents wrapped {@link java.lang.Boolean}.
      */
-    public static final Typed<Boolean> BOOLEAN = of(Boolean.class);
+    public static final TypeToken<Boolean> BOOLEAN = TypeToken.of(Boolean.class);
 
     /**
      * Represents wrapped {@link java.util.Date}.
      */
-    public static final Typed<Date> DATE = of(Date.class);
+    public static final TypeToken<Date> DATE = TypeToken.of(Date.class);
 
     /**
      * Represents wrapped {@link java.lang.Float}.
      */
-    public static final Typed<Float> FLOAT = of(Float.class);
+    public static final TypeToken<Float> FLOAT = TypeToken.of(Float.class);
 
     /**
      * Represents wrapped {@link java.lang.Double}.
      */
-    public static final Typed<Double> DOUBLE = of(Double.class);
+    public static final TypeToken<Double> DOUBLE = TypeToken.of(Double.class);
 
     /**
      * Represents wrapped {@link java.lang.String}.
      */
-    public static final Typed<String> STRING = of(String.class);
+    public static final TypeToken<String> STRING = TypeToken.of(String.class);
 
     /**
      * Represents wrapped {@link java.lang.Object}.
      */
-    public static final Typed<Object> OBJECT = of(Object.class);
+    public static final TypeToken<Object> OBJECT = TypeToken.of(Object.class);
 
     /**
      * Represents wrapped {@link java.lang.Object}[].
      */
-    public static final Typed<Object[]> OBJECT_ARRAY = of(Object[].class);
+    public static final TypeToken<Object[]> OBJECT_ARRAY = TypeToken.of(Object[].class);
 
     /**
      * Represents wrapped {@link com.itworks.snamp.Table}&lt;{@link java.lang.String}&gt;
      */
-    public static final Typed<Table<String>> STRING_COLUMN_TABLE = new TypeLiteral<Table<String>>() {};
+    public static final TypeToken<Table<String>> STRING_COLUMN_TABLE = new TypeToken<Table<String>>() {};
 
     /**
      * Represents wrapped {@link java.util.Map}&lt;{@link java.lang.String}, {@link java.lang.Object}&gt;
      */
-    public static final Typed<Map<String, Object>> STRING_MAP = new TypeLiteral<Map<String, Object>>() {};
+    public static final TypeToken<Map<String, Object>> STRING_MAP = new TypeToken<Map<String, Object>>() {};
 
     /**
      * Represents wrapped {@link java.util.Calendar}.
      */
-    public static final Typed<Calendar> CALENDAR = of(Calendar.class);
+    public static final TypeToken<Calendar> CALENDAR = TypeToken.of(Calendar.class);
 
-    public static <T> Typed<T> of(final Class<T> t) {
-        return t != null ? new Typed<T>() {
-            @Override
-            public Type getType() {
-                return t;
-            }
-
-            @Override
-            public String toString() {
-                return t.toString();
-            }
-
-            @SuppressWarnings("EqualsBetweenInconvertibleTypes")
-            @Override
-            public boolean equals(final Object obj) {
-                return obj instanceof Typed<?> ?
-                        equals(((Typed<?>) obj).getType()) :
-                        t.equals(obj);
-            }
-
-            @Override
-            public int hashCode() {
-                return t.hashCode();
-            }
-        } : null;
-    }
 
     @SuppressWarnings("unchecked")
-    public static <T> T cast(final Object value, final Typed<T> target) throws ClassCastException {
+    public static <T> T cast(final Object value, final TypeToken<T> target) throws ClassCastException {
         if (isInstance(value, target))
             return (T) value;
-        else throw new ClassCastException(String.format("Unable to cast %s to %s", value, target.getType()));
+        else throw new ClassCastException(String.format("Unable to cast %s to %s", value, target));
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T safeCast(final Object value, final Typed<T> target){
-        return TypeUtils.isInstance(value, target.getType()) ? (T)value : null;
+    public static <T> T safeCast(final Object value, final TypeToken<T> target){
+        return isInstance(value, target) ? (T)value : null;
     }
 
-    public static boolean isInstance(final Object value, final Typed<?> target){
-        return TypeUtils.isInstance(value, target.getType());
+    public static boolean isInstance(final Object value, final TypeToken<?> target) {
+        return value != null && target.isAssignableFrom(value.getClass());
     }
 
-    public static boolean isAssignable(final Typed<?> type, final Typed<?> toType){
-        return TypeUtils.isAssignable(type.getType(), toType.getType());
+    public static boolean isAssignable(final Type from, final Type to) {
+        if (to == null) return from == null;
+        else if (to instanceof TypeToken<?>)
+            return ((TypeToken<?>) to).isAssignableFrom(from);
+        else if (to instanceof Class<?> && from instanceof Class<?>)
+            return ((Class<?>) to).isAssignableFrom((Class<?>) from);
+        else return TypeToken.of(to).isAssignableFrom(from);
     }
 }

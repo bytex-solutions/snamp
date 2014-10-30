@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters;
 
-import org.apache.commons.collections4.Factory;
+import com.google.common.base.Supplier;
 
 import java.util.Map;
 import java.util.Objects;
@@ -15,7 +15,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @since 1.0
  */
 public abstract class AbstractConcurrentResourceAdapter extends AbstractResourceAdapter {
-    private final Factory<ExecutorService> threadPoolFactory;
+    private final Supplier<ExecutorService> threadPoolFactory;
     private volatile ExecutorService threadPool;
 
     /**
@@ -24,7 +24,7 @@ public abstract class AbstractConcurrentResourceAdapter extends AbstractResource
      * @param resources A collection of managed resources to be exposed in protocol-specific manner
      *                  to the outside world.
      */
-    protected AbstractConcurrentResourceAdapter(final Factory<ExecutorService> threadPoolFactory, final Map<String, ManagedResourceConfiguration> resources) {
+    protected AbstractConcurrentResourceAdapter(final Supplier<ExecutorService> threadPoolFactory, final Map<String, ManagedResourceConfiguration> resources) {
         super(resources);
         this.threadPoolFactory = Objects.requireNonNull(threadPoolFactory, "threadPoolFactory is null.");
         this.threadPool = null;
@@ -42,7 +42,7 @@ public abstract class AbstractConcurrentResourceAdapter extends AbstractResource
      */
     @Override
     protected final boolean start() {
-        threadPool = threadPoolFactory.create();
+        threadPool = threadPoolFactory.get();
         return threadPool != null && start(threadPool);
     }
 

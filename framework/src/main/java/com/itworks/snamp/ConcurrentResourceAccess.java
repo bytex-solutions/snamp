@@ -1,6 +1,7 @@
 package com.itworks.snamp;
 
-import org.apache.commons.collections4.Factory;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 
 /**
  * Provides thread-safe access to the thread-unsafe resource.
@@ -94,12 +95,7 @@ public class ConcurrentResourceAccess<R> extends AbstractConcurrentResourceAcces
      */
     @SuppressWarnings("UnusedDeclaration")
     public final void changeResource(final R newResource){
-        changeResource(new Factory<R>() {
-            @Override
-            public R create() {
-                return newResource;
-            }
-        });
+        changeResource(Suppliers.ofInstance(newResource));
     }
 
     /**
@@ -110,12 +106,12 @@ public class ConcurrentResourceAccess<R> extends AbstractConcurrentResourceAcces
      * @param newResource The factory of the new resource. Cannot be {@literal null}.
      * @throws IllegalArgumentException newResource is {@literal null}.
      */
-    public final void changeResource(final Factory<? extends R> newResource){
+    public final void changeResource(final Supplier<? extends R> newResource){
         if(newResource == null) throw new IllegalArgumentException("newResource is null.");
         final WriteLock wl = writeLock();
         wl.lock();
         try{
-            setResource(newResource.create());
+            setResource(newResource.get());
         }
         finally {
             wl.unlock();

@@ -1,10 +1,17 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.Lists;
+import com.google.common.collect.ObjectArrays;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.ConfigurationManager;
-import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.connectors.notifications.NotificationListener;
+import com.itworks.snamp.connectors.notifications.NotificationMetadata;
+import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.annotations.Internal;
@@ -13,10 +20,6 @@ import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
-import org.apache.commons.collections4.Factory;
-import org.apache.commons.collections4.FactoryUtils;
-import org.apache.commons.collections4.IteratorUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -31,7 +34,6 @@ import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.itworks.snamp.connectors.notifications.NotificationUtils.NotificationEvent;
-import static com.itworks.snamp.internal.Utils.getProperty;
 
 /**
  * Represents a base class for management connector bundle.
@@ -143,11 +145,11 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
         private final Logger logger;
         private final LicenseReader licenseReader;
         private final Class<L> descriptor;
-        private final Factory<L> fallbackFactory;
+        private final Supplier<L> fallbackFactory;
 
         public ConnectorLicensingDescriptorService(final LicenseReader reader,
                                                    final Class<L> descriptor,
-                                                   final Factory<L> fallbackFactory,
+                                                   final Supplier<L> fallbackFactory,
                                                    final Logger l){
             this.licenseReader = reader;
             this.descriptor = descriptor;
@@ -167,7 +169,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          */
         @Override
         public Collection<String> getLimitations() {
-            return IteratorUtils.toList(licenseReader.getLimitations(descriptor, fallbackFactory).iterator());
+            return Lists.newArrayList((licenseReader.getLimitations(descriptor, fallbackFactory)));
         }
 
         /**
@@ -185,11 +187,11 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     }
 
     protected static class LicensingDescriptionServiceProvider<L extends LicenseLimitations> extends OptionalConnectorServiceProvider<LicensingDescriptionService, ConnectorLicensingDescriptorService>{
-        private final Factory<L> fallbackFactory;
+        private final Supplier<L> fallbackFactory;
         private final Class<L> descriptor;
 
         public LicensingDescriptionServiceProvider(final Class<L> limitationsDescriptor,
-                                                   final Factory<L> fallbackFactory) {
+                                                   final Supplier<L> fallbackFactory) {
             super(LicensingDescriptionService.class, new SimpleDependency<>(LicenseReader.class));
             if(fallbackFactory == null) throw new IllegalArgumentException("fallbackFactory is null.");
             else if(limitationsDescriptor == null) throw new IllegalArgumentException("limitationsDescriptor is null.");
@@ -428,7 +430,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
             return getProperty(getActivationPropertyValue(COMPLIANT_RESOURCES_HOLDER),
                     managedResourceName,
                     AgentConfiguration.ManagedResourceConfiguration.class,
-                    FactoryUtils.<AgentConfiguration.ManagedResourceConfiguration>nullFactory());
+                    Suppliers.<AgentConfiguration.ManagedResourceConfiguration>ofInstance(null));
         }
 
         /**
@@ -540,7 +542,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          */
         protected NotificationSupportProvider(final String targetName,
                                               final RequiredServiceAccessor<EventAdmin> publisherDependency, final RequiredService<?>... dependencies) {
-            super(targetName, ArrayUtils.addAll(dependencies, publisherDependency));
+            super(targetName, ObjectArrays.concat(dependencies, publisherDependency));
         }
 
         /**

@@ -1,10 +1,10 @@
 package com.itworks.snamp.internal;
 
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.itworks.snamp.Consumer;
 import com.itworks.snamp.internal.annotations.Internal;
-import org.apache.commons.collections4.Closure;
-import org.apache.commons.collections4.Factory;
-import org.apache.commons.collections4.FactoryUtils;
-import org.apache.commons.collections4.Transformer;
 import org.osgi.framework.*;
 
 import java.beans.BeanInfo;
@@ -105,14 +105,14 @@ public final class Utils {
      * @param iface Superclass or interface implemented by the specified object.
      * @param <I>
      * @param <T>
-     * @return
+     * @return Transparent proxy that holds weak reference to the wrapped object.
      */
     public static <I, T extends I> I weakReference(final T obj, final Class<I> iface){
         return wrapReference(new WeakReference<>(obj), iface);
     }
 
-    public static <I, T extends I> I weakReference(final Factory<T> activator, final Class<I> iface){
-        return weakReference(activator.create(), iface);
+    public static <I, T extends I> I weakReference(final Supplier<T> activator, final Class<I> iface){
+        return weakReference(activator.get(), iface);
     }
 
     /**
@@ -230,7 +230,7 @@ public final class Utils {
                                        final K propertyKey,
                                        final Class<V> propertyType,
                                        final V defaultValue){
-        return getProperty(map, propertyKey, propertyType, FactoryUtils.constantFactory(defaultValue));
+        return getProperty(map, propertyKey, propertyType, Suppliers.ofInstance(defaultValue));
     }
 
     /**
@@ -247,14 +247,14 @@ public final class Utils {
     public static <K, V> V getProperty(final Map<K, ?> map,
                                        final K propertyKey,
                                        final Class<V> propertyType,
-                                       final Factory<V> defaultValue){
-        if(defaultValue == null) return getProperty(map, propertyKey, propertyType, FactoryUtils.<V>nullFactory());
-        else if(map == null) return defaultValue.create();
+                                       final Supplier<V> defaultValue){
+        if(defaultValue == null) return getProperty(map, propertyKey, propertyType, Suppliers.<V>ofInstance(null));
+        else if(map == null) return defaultValue.get();
         else if(map.containsKey(propertyKey)){
             final Object value = map.get(propertyKey);
-            return propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.create();
+            return propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();
         }
-        else return defaultValue.create();
+        else return defaultValue.get();
     }
 
     /**
@@ -271,11 +271,11 @@ public final class Utils {
     public static <K, V> V getProperty(final Dictionary<K, ?> dict,
                                        final K propertyKey,
                                        final Class<V> propertyType,
-                                       final Factory<V> defaultValue){
-        if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, FactoryUtils.<V>nullFactory());
+                                       final Supplier<V> defaultValue){
+        if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, Suppliers.<V>ofInstance(null));
         else if(dict == null) return null;
         final Object value = dict.get(propertyKey);
-        return value != null && propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.create();
+        return value != null && propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();
     }
 
     /**
@@ -293,7 +293,7 @@ public final class Utils {
                                      final K propertyKey,
                                      final Class<V> propertyType,
                                      final V defaultValue){
-        return getProperty(dict, propertyKey, propertyType, FactoryUtils.constantFactory(defaultValue));
+        return getProperty(dict, propertyKey, propertyType, Suppliers.ofInstance(defaultValue));
     }
 
     /**
@@ -324,14 +324,14 @@ public final class Utils {
      * @param transformer The functional interface to convert.
      * @param <I> Type of the value to be transformed.
      * @param <O> Type of the transformation result.
-     * @return {@link org.apache.commons.collections4.Closure} representation of the transformer.
+     * @return {@link com.google.common.base.Function} representation of the transformer.
      */
-    public static <I, O> TransformerClosure<I, O> toClosure(final Transformer<I, O> transformer){
+    public static <I, O> TransformerClosure<I, O> toClosure(final Function<I, O> transformer) {
         return transformer != null ?
                 new TransformerClosure<I, O>() {
                     @Override
-                    public O transform(final I input) {
-                        return transformer.transform(input);
+                    public O apply(final I input) {
+                        return transformer.apply(input);
                     }
                 } : null;
     }
@@ -343,12 +343,14 @@ public final class Utils {
      * @param filter Exposed service selector. May be {@literal null} or empty.
      * @param serviceInvoker The object that implements procession logic.
      * @param <S> The contract of the exposed service.
+     * @param <E> Type of the exception that may be occurred in service invoker.
      * @throws InvalidSyntaxException Invalid service selector.
+     * @throws E Service invoker internal error.
      */
-    public static <S> void processExposedService(final Class<?> caller,
+    public static <S, E extends Throwable> void processExposedService(final Class<?> caller,
                                                  final Class<S> serviceType,
                                                  final String filter,
-                                                 final Closure<S> serviceInvoker) throws InvalidSyntaxException {
+                                                 final Consumer<S, E> serviceInvoker) throws InvalidSyntaxException, E {
         processExposedService(caller, serviceType, filter == null || filter.isEmpty() ? null : FrameworkUtil.createFilter(filter), serviceInvoker);
     }
 
@@ -359,19 +361,20 @@ public final class Utils {
      * @param filter Exposed service selector. May be {@literal null} or empty.
      * @param serviceInvoker The object that implements procession logic.
      * @param <S> The contract of the exposed service.
+     * @param <E> Type of the exception that can be thrown by service invoker.
+     * @throws E Service invoker internal error.
      */
-    public static <S> void processExposedService(final Class<?> caller,
+    public static <S, E extends Throwable> void processExposedService(final Class<?> caller,
                                                  final Class<S> serviceType,
                                                  final Filter filter,
-                                                 final Closure<S> serviceInvoker) {
+                                                 final Consumer<S, E> serviceInvoker) throws E {
         final Bundle owner = FrameworkUtil.getBundle(caller);
         final ServiceReference<?>[] services = owner.getRegisteredServices();
-        for(final ServiceReference<?> ref: services != null ? services : new ServiceReference<?>[0])
-            if((filter == null || filter.match(ref)) && isInstanceOf(ref, serviceType))
-                try{
-                    serviceInvoker.execute(serviceType.cast(owner.getBundleContext().getService(ref)));
-                }
-                finally {
+        for (final ServiceReference<?> ref : services != null ? services : new ServiceReference<?>[0])
+            if ((filter == null || filter.match(ref)) && isInstanceOf(ref, serviceType))
+                try {
+                    serviceInvoker.accept(serviceType.cast(owner.getBundleContext().getService(ref)));
+                } finally {
                     owner.getBundleContext().ungetService(ref);
                 }
     }

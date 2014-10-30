@@ -1,8 +1,9 @@
 package com.itworks.snamp.licensing;
 
+import com.google.common.base.Supplier;
+import com.google.common.collect.BoundType;
+import com.google.common.collect.Range;
 import com.itworks.snamp.core.FrameworkService;
-import org.apache.commons.collections4.Factory;
-import org.apache.commons.lang3.Range;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.Version;
@@ -135,8 +136,8 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
         }
 
         @SuppressWarnings("UnusedDeclaration")
-        protected RangeLimitation(final T lowerBound, final T upperBound){
-            this(Range.between(lowerBound, upperBound));
+        protected RangeLimitation(final T lowerBound, final T upperBound) {
+            this(Range.range(lowerBound, BoundType.CLOSED, upperBound, BoundType.CLOSED));
         }
 
         /**
@@ -277,11 +278,11 @@ public abstract class AbstractLicenseLimitations implements LicenseLimitations {
      */
     protected static <L extends AbstractLicenseLimitations> L current(final Class<L> limitationsType,
                                                                       final RequiredServiceAccessor<LicenseReader> licenseReader,
-                                                                      final Factory<L> fallbackFactory){
+                                                                      final Supplier<L> fallbackFactory){
         if(limitationsType == null) throw new IllegalArgumentException("limitationsType is null.");
         else if(licenseReader == null) throw new IllegalArgumentException("licenseReader is null.");
         else if(fallbackFactory == null) throw new IllegalArgumentException("fallbackFactory is null.");
         else if(licenseReader.isResolved()) return licenseReader.getService().getLimitations(limitationsType, fallbackFactory);
-        else return fallbackFactory.create();
+        else return fallbackFactory.get();
     }
 }

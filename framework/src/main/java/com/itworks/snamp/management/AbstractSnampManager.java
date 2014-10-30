@@ -2,13 +2,12 @@ package com.itworks.snamp.management;
 
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.Aggregator;
+import com.itworks.snamp.Consumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.internal.Utils;
-import org.apache.commons.collections4.Closure;
-import org.apache.commons.collections4.FunctorException;
 import org.osgi.framework.*;
 
 import java.util.ArrayList;
@@ -85,24 +84,21 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          *
          * @param serviceType    Requested service contract.
          * @param serviceInvoker User-defined action that is used to perform some management actions.
-         * @throws org.apache.commons.collections4.FunctorException An exception occurred during processing.
          * @return {@literal true}, if the specified service is invoked successfully.
-         * @see org.apache.commons.collections4.FunctorException#getCause()
          * @see com.itworks.snamp.management.Maintainable
          * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public <S extends ManagementService> boolean invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
+        public <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
             final BundleContext context = getItselfContext();
             final Bundle bnd = context.getBundle(getBundleID());
             boolean result = false;
             final ServiceReference<?>[] refs = bnd.getRegisteredServices();
-            for(final ServiceReference<?> candidate: refs != null ? refs : new ServiceReference<?>[0])
-                if(Utils.isInstanceOf(candidate, serviceType))
-                    try{
-                        serviceInvoker.execute(serviceType.cast(context.getService(candidate)));
-                    }
-                    finally {
+            for (final ServiceReference<?> candidate : refs != null ? refs : new ServiceReference<?>[0])
+                if (Utils.isInstanceOf(candidate, serviceType))
+                    try {
+                        serviceInvoker.accept(serviceType.cast(context.getService(candidate)));
+                    } finally {
                         context.ungetService(candidate);
                         result = true;
                     }
@@ -202,24 +198,20 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          *
          * @param serviceType    Requested service contract.
          * @param serviceInvoker User-defined action that is used to perform some management actions.
-         * @throws org.apache.commons.collections4.FunctorException An exception occurred during processing.
-         * @see org.apache.commons.collections4.FunctorException#getCause()
          * @see com.itworks.snamp.management.Maintainable
          * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public final  <S extends ManagementService> boolean invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
+        public final  <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
                 ref = ResourceAdapterClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
-                if(ref == null) return false;
-                serviceInvoker.execute(getItselfContext().getService(ref));
-            }
-            catch (final InvalidSyntaxException e) {
-                throw new FunctorException(e);
-            }
-            finally {
-                if(ref != null) getItselfContext().ungetService(ref);
+                if (ref == null) return false;
+                serviceInvoker.accept(getItselfContext().getService(ref));
+            } catch (final InvalidSyntaxException ignored) {
+                return false;
+            } finally {
+                if (ref != null) getItselfContext().ungetService(ref);
             }
             return true;
         }
@@ -327,24 +319,20 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          *
          * @param serviceType    Requested service contract.
          * @param serviceInvoker User-defined action that is used to perform some management actions.
-         * @throws org.apache.commons.collections4.FunctorException An exception occurred during processing.
-         * @see org.apache.commons.collections4.FunctorException#getCause()
          * @see com.itworks.snamp.management.Maintainable
          * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public final  <S extends ManagementService> boolean invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException {
+        public final  <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
                 ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
-                if(ref == null) return false;
-                serviceInvoker.execute(getItselfContext().getService(ref));
-            }
-            catch (final InvalidSyntaxException e) {
-                throw new FunctorException(e);
-            }
-            finally {
-                if(ref != null) getItselfContext().ungetService(ref);
+                if (ref == null) return false;
+                serviceInvoker.accept(getItselfContext().getService(ref));
+            } catch (final InvalidSyntaxException ignored) {
+                return false;
+            } finally {
+                if (ref != null) getItselfContext().ungetService(ref);
             }
             return true;
         }

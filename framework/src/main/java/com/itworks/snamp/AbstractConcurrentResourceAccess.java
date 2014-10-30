@@ -1,5 +1,7 @@
 package com.itworks.snamp;
 
+import com.google.common.base.Function;
+
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.*;
 
@@ -28,8 +30,8 @@ public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadW
      * @return The resource processing result.
      */
     @Override
-    public <RESULT> RESULT handle(final WrappedObjectHandler<R, RESULT> handler){
-        return handler != null ? handler.invoke(getResource()) : null;
+    public <RESULT> RESULT handle(final Function<R, RESULT> handler){
+        return handler != null ? handler.apply(getResource()) : null;
     }
 
     /**

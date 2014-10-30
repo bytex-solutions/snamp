@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters;
 
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.*;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
@@ -13,8 +14,6 @@ import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.ServiceReferenceHolder;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
-import org.apache.commons.lang3.reflect.TypeUtils;
-import org.apache.commons.lang3.reflect.Typed;
 import org.osgi.framework.*;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
@@ -159,7 +158,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * @throws java.lang.IllegalArgumentException Unsupported attribute type.
          * @throws TimeoutException Attribute value cannot be obtained during the configured duration.
          */
-        public <T> T getValue(final Typed<T> attributeType, final T defaultValue) throws TimeoutException, IllegalArgumentException {
+        public <T> T getValue(final TypeToken<T> attributeType, final T defaultValue) throws TimeoutException, IllegalArgumentException {
             try {
                 return getValue(attributeType);
             } catch (final AttributeSupportException e) {
@@ -175,7 +174,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * @throws TimeoutException Attribute value cannot be obtained during the configured duration.
          * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
          */
-        public <T> T getValue(final Typed<T> attributeType) throws TimeoutException, AttributeSupportException {
+        public <T> T getValue(final TypeToken<T> attributeType) throws TimeoutException, AttributeSupportException {
             if (attributeType == null) throw new IllegalArgumentException("attributeType is null.");
             final TypeConverter<T> converter = getType().getProjection(attributeType);
             if (converter == null)
@@ -188,7 +187,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             } catch (final UnknownAttributeException e) {
                 throw new AttributeSupportException(e);
             }
-            return TypeUtils.isInstance(result, attributeType.getType()) ?
+            return TypeLiterals.isInstance(result, attributeType) ?
                     TypeLiterals.cast(result, attributeType) : converter.convertFrom(result);
         }
 
@@ -308,7 +307,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * @throws java.lang.IllegalStateException The accessor is disconnected from the managed resource connector.
          * @see com.itworks.snamp.connectors.WellKnownTypeSystem
          */
-        public Typed<?> getWellKnownType() throws IllegalStateException{
+        public TypeToken<?> getWellKnownType() throws IllegalStateException{
             return WellKnownTypeSystem.getWellKnownType(getType());
         }
 

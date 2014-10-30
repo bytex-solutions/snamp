@@ -1,10 +1,10 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.base.Supplier;
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.AbstractTypeConverterProvider;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.TypeLiterals;
-import org.apache.commons.collections4.Factory;
-import org.apache.commons.lang3.reflect.Typed;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -73,7 +73,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
          */
         @SuppressWarnings("unchecked")
         @Override
-        public final <T> TypeConverter<T> getProjection(final Typed<T> projectionType) {
+        public final <T> TypeConverter<T> getProjection(final TypeToken<T> projectionType) {
             return getProjection(projectionType.getType());
         }
 
@@ -83,7 +83,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
          * @param to The type of the conversion result.
          * @return {@literal true}, if the MIB-specific type can be converted into another Java type; otherwise, {@literal false}.
          */
-        public final boolean canConvert(final Typed<?> from, final Typed<?> to) {
+        public final boolean canConvert(final TypeToken<?> from, final TypeToken<?> to) {
             if (from == null || to == null) return false;
             final TypeConverter<?> converter = projections.get(to.getType());
             return converter != null && converter.canConvertFrom(from);
@@ -116,9 +116,9 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
         /**
          * Represents a singleton activator for the simple management entity type.
          */
-        public static final Factory<SimpleManagedEntityType> ACTIVATOR = new Factory<SimpleManagedEntityType>() {
+        public static final Supplier<SimpleManagedEntityType> ACTIVATOR = new Supplier<SimpleManagedEntityType>() {
             @Override
-            public SimpleManagedEntityType create() {
+            public SimpleManagedEntityType get() {
                 return new SimpleManagedEntityType();
             }
         };
@@ -261,7 +261,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
          * Returns the type of the array index column.
          * <p>
          *     In the default implementation, this method always returns value
-         *     produced by invocation of {@link #createEntitySimpleType(Typed[])} with {@code Integer.class}
+         *     produced by invocation of {@link #createEntitySimpleType(TypeToken[])} with {@code Integer.class}
          *     argument.
          * </p>
          * @return The type of the array index column.
@@ -286,16 +286,16 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
     /**
      * Creates a new management entity type.
      * <p>
-     *     An implementation of {@link ManagedEntityType#getProjection(Typed)} supplied by SNAMP infrastructure
+     *     An implementation of {@link ManagedEntityType#getProjection(TypeToken)} supplied by SNAMP infrastructure
      *     and you cannot override behavior of this method.
      * </p>
      * @param activator An activator that creates a new instance of {@link ManagedEntityTypeBuilder.AbstractManagedEntityType} with custom methods.
      * @param projections An array of supported projections of the specified management entity type.
      * @return An instance of the management entity type.
      */
-    public final <T extends AbstractManagedEntityType> T createEntityType(final Factory<T> activator, final Typed<?>... projections) {
-        final T entityType = activator.create();
-        for(final Typed<?> t: projections){
+    public final <T extends AbstractManagedEntityType> T createEntityType(final Supplier<T> activator, final TypeToken<?>... projections) {
+        final T entityType = activator.get();
+        for(final TypeToken<?> t: projections){
             final TypeConverter<?> converter = getTypeConverter(t);
             if(converter != null) AbstractManagedEntityType.registerConverter(entityType, converter);
         }
@@ -307,7 +307,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
      * @param projections An array of supported projections of the specified management entity type.
      * @return A new instance of the simple management entity type.
      */
-    public final SimpleManagedEntityType createEntitySimpleType(final Typed<?>... projections){
+    public final SimpleManagedEntityType createEntitySimpleType(final TypeToken<?>... projections){
         return createEntityType(SimpleManagedEntityType.ACTIVATOR, projections);
     }
 
@@ -317,7 +317,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
      * @param t Native Java representation of the management entity type.
      * @return {@literal true}, if the management entity supports the specified type projection; otherwise, {@literal false}.
      */
-    public static boolean supportsProjection(final ManagedEntityType entityType, final Typed<?> t){
+    public static boolean supportsProjection(final ManagedEntityType entityType, final TypeToken<?> t){
         return entityType != null && entityType.getProjection(t) != null;
     }
 
