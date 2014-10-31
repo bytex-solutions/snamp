@@ -1,8 +1,8 @@
 package com.itworks.snamp.internal;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
-import org.apache.commons.collections4.Factory;
 import com.itworks.snamp.TimeSpan;
 
 import java.util.Date;
@@ -100,9 +100,9 @@ public class CountdownTimer {
      * @throws TimeoutException Attempts to start empty timer.
      */
     @ThreadSafe(false)
-    public final boolean start(final Factory<TimeoutException> timeoutException) throws TimeoutException{
+    public final boolean start(final Supplier<TimeoutException> timeoutException) throws TimeoutException{
         if(timeoutException == null) return start();
-        else if(isEmpty()) throw timeoutException.create();
+        else if(isEmpty()) throw timeoutException.get();
         else return start();
     }
 
@@ -135,10 +135,10 @@ public class CountdownTimer {
      * @throws TimeoutException The timer is empty.
      */
     @ThreadSafe(false)
-    public final boolean stop(final Factory<TimeoutException> timeoutException) throws TimeoutException{
+    public final boolean stop(final Supplier<TimeoutException> timeoutException) throws TimeoutException{
         if(timeoutException == null) return stop();
         else if(stop())
-            if(isEmpty()) throw timeoutException.create();
+            if(isEmpty()) throw timeoutException.get();
             else return true;
         else return false;
     }

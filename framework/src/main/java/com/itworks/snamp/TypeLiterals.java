@@ -1,5 +1,6 @@
 package com.itworks.snamp;
 
+import com.google.common.collect.Table;
 import com.google.common.reflect.TypeToken;
 
 import java.lang.reflect.Type;
@@ -100,9 +101,9 @@ public final class TypeLiterals {
     public static final TypeToken<Object[]> OBJECT_ARRAY = TypeToken.of(Object[].class);
 
     /**
-     * Represents wrapped {@link com.itworks.snamp.Table}&lt;{@link java.lang.String}&gt;
+     * Represents wrapped {@link com.google.common.collect.Table}&lt;{@link java.lang.Integer}, {@link java.lang.String}, {@link java.lang.Object}&gt;
      */
-    public static final TypeToken<Table<String>> STRING_COLUMN_TABLE = new TypeToken<Table<String>>() {};
+    public static final TypeToken<Table<Integer, String, Object>> STRING_COLUMN_TABLE = new TypeToken<Table<Integer, String, Object>>() {};
 
     /**
      * Represents wrapped {@link java.util.Map}&lt;{@link java.lang.String}, {@link java.lang.Object}&gt;

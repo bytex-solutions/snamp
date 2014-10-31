@@ -14,6 +14,7 @@ import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
 import com.itworks.snamp.core.FrameworkService;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.LicenseLimitations;
@@ -427,7 +428,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
         }
 
         private AgentConfiguration.ManagedResourceConfiguration getConfiguration(){
-            return getProperty(getActivationPropertyValue(COMPLIANT_RESOURCES_HOLDER),
+            return Utils.getProperty(getActivationPropertyValue(COMPLIANT_RESOURCES_HOLDER),
                     managedResourceName,
                     AgentConfiguration.ManagedResourceConfiguration.class,
                     Suppliers.<AgentConfiguration.ManagedResourceConfiguration>ofInstance(null));
