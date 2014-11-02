@@ -1,10 +1,9 @@
 package com.itworks.snamp.connectors;
 
-import com.itworks.snamp.Table;
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TypeLiterals;
-import org.apache.commons.collections4.Factory;
-import org.apache.commons.collections4.Transformer;
-import org.apache.commons.lang3.reflect.Typed;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -32,7 +31,7 @@ import java.util.*;
  *     following mapping:
  *     <ul>
  *         <li>Tabular data should be convertible to {@link com.itworks.snamp.Table} type. An implementation
- *         for this interface is provided by {@link com.itworks.snamp.SimpleTable} class. Entity data type
+ *         for this interface is provided by {@link com.itworks.snamp.InMemoryTable} class. Entity data type
  *         should implements {@link ManagedEntityTabularType} interface.</li>
  *         <li>Array data should be convertible to Java array and {@link com.itworks.snamp.Table} type. Attribute
  *         data type should inherits from {@link ManagedEntityTypeBuilder.ManagedEntityArrayType} class.</li>
@@ -44,7 +43,7 @@ import java.util.*;
  * <p>
  * Management entity type system is a set of converters that provides conversion between MIB-specific
  * data types and universal data types. This class provides set of converters between these data types
- * in the form {@link org.apache.commons.collections4.Transformer} interface implementation. Typically,
+ * in the form {@link com.google.common.base.Function} interface implementation. Typically,
  * each custom SNAMP connector contains its own type system converter, inherited from this class.
  * The following example demonstrates your own type system converter:
  * <pre><code>
@@ -72,6 +71,8 @@ import java.util.*;
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
+ * @see com.itworks.snamp.TypeLiterals#STRING_COLUMN_TABLE
+ * @see com.itworks.snamp.TypeLiterals#STRING_MAP
  */
 public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
     /**
@@ -79,122 +80,122 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      */
     public WellKnownTypeSystem(){
         registerConverter(TypeLiterals.STRING, TypeLiterals.BYTE,
-                new Transformer<String, Byte>() {
+                new Function<String, Byte>() {
                     @Override
-                    public Byte transform(final String input) {
+                    public Byte apply(final String input) {
                         return Byte.valueOf(input);
                     }
                 });
         registerConverter(TypeLiterals.STRING, TypeLiterals.SHORT,
-                new Transformer<String, Short>() {
+                new Function<String, Short>() {
                     @Override
-                    public Short transform(final String input) {
+                    public Short apply(final String input) {
                         return Short.valueOf(input);
                     }
                 });
         registerConverter(TypeLiterals.STRING, TypeLiterals.INTEGER,
-                new Transformer<String, Integer>() {
+                new Function<String, Integer>() {
                     @Override
-                    public Integer transform(final String input) {
+                    public Integer apply(final String input) {
                         return Integer.valueOf(input);
                     }
                 });
         registerConverter(TypeLiterals.STRING, TypeLiterals.LONG,
-                new Transformer<String, Long>() {
+                new Function<String, Long>() {
                     @Override
-                    public Long transform(final String input) {
+                    public Long apply(final String input) {
                         return Long.parseLong(input);
                     }
                 });
         registerConverter(TypeLiterals.STRING, TypeLiterals.BIG_INTEGER,
-                new Transformer<String, BigInteger>() {
+                new Function<String, BigInteger>() {
                     @Override
-                    public BigInteger transform(final String input) {
+                    public BigInteger apply(final String input) {
                         return new BigInteger(input);
                     }
                 });
         registerConverter(TypeLiterals.STRING, TypeLiterals.BOOLEAN,
-                new Transformer<String, Boolean>() {
+                new Function<String, Boolean>() {
                     @Override
-                    public Boolean transform(final String input) {
+                    public Boolean apply(final String input) {
                         return Boolean.parseBoolean(input);
                     }
                 });
         registerConverter(TypeLiterals.STRING, TypeLiterals.FLOAT,
-                new Transformer<String, Float>() {
+                new Function<String, Float>() {
                     @Override
-                    public Float transform(final String input) {
+                    public Float apply(final String input) {
                         return Float.parseFloat(input);
                     }
                 });
         registerConverter(TypeLiterals.STRING, TypeLiterals.DOUBLE,
-                new Transformer<String, Double>() {
+                new Function<String, Double>() {
                     @Override
-                    public Double transform(final String input) {
+                    public Double apply(final String input) {
                         return Double.parseDouble(input);
                     }
                 });
         registerConverter(TypeLiterals.STRING, TypeLiterals.BIG_DECIMAL,
-                new Transformer<String, BigDecimal>() {
+                new Function<String, BigDecimal>() {
                     @Override
-                    public BigDecimal transform(final String input) {
+                    public BigDecimal apply(final String input) {
                         return new BigDecimal(input);
                     }
                 });
         registerConverter(TypeLiterals.NUMBER, TypeLiterals.BYTE,
-                new Transformer<Number, Byte>() {
+                new Function<Number, Byte>() {
                     @Override
-                    public Byte transform(final Number input) {
+                    public Byte apply(final Number input) {
                         return input.byteValue();
                     }
                 });
         registerConverter(TypeLiterals.NUMBER, TypeLiterals.SHORT,
-                new Transformer<Number, Short>() {
+                new Function<Number, Short>() {
                     @Override
-                    public Short transform(final Number input) {
+                    public Short apply(final Number input) {
                         return input.shortValue();
                     }
                 });
         registerConverter(TypeLiterals.NUMBER, TypeLiterals.INTEGER,
-                new Transformer<Number, Integer>() {
+                new Function<Number, Integer>() {
                     @Override
-                    public Integer transform(final Number input) {
+                    public Integer apply(final Number input) {
                         return input.intValue();
                     }
                 });
         registerConverter(TypeLiterals.NUMBER, TypeLiterals.LONG,
-                new Transformer<Number, Long>() {
+                new Function<Number, Long>() {
                     @Override
-                    public Long transform(final Number input) {
+                    public Long apply(final Number input) {
                         return input.longValue();
                     }
                 });
         registerConverter(TypeLiterals.NUMBER, TypeLiterals.FLOAT,
-                new Transformer<Number, Float>() {
+                new Function<Number, Float>() {
                     @Override
-                    public Float transform(final Number input) {
+                    public Float apply(final Number input) {
                         return input.floatValue();
                     }
                 });
         registerConverter(TypeLiterals.NUMBER, TypeLiterals.DOUBLE,
-                new Transformer<Number, Double>() {
+                new Function<Number, Double>() {
                     @Override
-                    public Double transform(final Number input) {
+                    public Double apply(final Number input) {
                         return input.doubleValue();
                     }
                 });
         registerConverter(TypeLiterals.NUMBER, TypeLiterals.BIG_INTEGER,
-                new Transformer<Number, BigInteger>() {
+                new Function<Number, BigInteger>() {
                     @Override
-                    public BigInteger transform(final Number input) {
+                    public BigInteger apply(final Number input) {
                         return input instanceof BigInteger ?
                                 (BigInteger)input : BigInteger.valueOf(input.longValue());
                     }
                 });
         registerConverter(TypeLiterals.NUMBER, TypeLiterals.BIG_DECIMAL,
-                new Transformer<Number, BigDecimal>() {
+                new Function<Number, BigDecimal>() {
                     @Override
-                    public BigDecimal transform(final Number input) {
+                    public BigDecimal apply(final Number input) {
                         if(input instanceof BigDecimal)
                             return (BigDecimal)input;
                         else if(input instanceof BigInteger)
@@ -207,106 +208,106 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                     }
                 });
         registerConverter(TypeLiterals.NUMBER, TypeLiterals.DATE,
-                new Transformer<Number, Date>() {
+                new Function<Number, Date>() {
                     @Override
-                    public Date transform(final Number input) {
+                    public Date apply(final Number input) {
                         return new Date(input.longValue());
                     }
                 });
         registerConverter(TypeLiterals.NUMBER, TypeLiterals.CALENDAR,
-                new Transformer<Number, Calendar>() {
+                new Function<Number, Calendar>() {
                     @Override
-                    public Calendar transform(final Number input) {
+                    public Calendar apply(final Number input) {
                         final Calendar now = Calendar.getInstance();
                         now.setTime(new Date(input.longValue()));
                         return now;
                     }
                 });
         registerConverter(TypeLiterals.NUMBER, TypeLiterals.BOOLEAN,
-                new Transformer<Number, Boolean>() {
+                new Function<Number, Boolean>() {
                     @Override
-                    public Boolean transform(final Number input) {
+                    public Boolean apply(final Number input) {
                         if(input instanceof BigInteger) return !BigInteger.ZERO.equals(input);
                         else if(input instanceof BigDecimal) return !BigDecimal.ZERO.equals(input);
                         else return input.longValue() != 0;
                     }
                 });
         registerConverter(TypeLiterals.CALENDAR, TypeLiterals.LONG,
-                new Transformer<Calendar, Long>() {
+                new Function<Calendar, Long>() {
                     @Override
-                    public Long transform(final Calendar input) {
+                    public Long apply(final Calendar input) {
                         return input.getTime().getTime();
                     }
                 });
         registerConverter(TypeLiterals.CALENDAR, TypeLiterals.DATE,
-                new Transformer<Calendar, Date>() {
+                new Function<Calendar, Date>() {
                     @Override
-                    public Date transform(final Calendar input) {
+                    public Date apply(final Calendar input) {
                         return input.getTime();
                     }
                 });
         registerConverter(TypeLiterals.DATE, TypeLiterals.CALENDAR,
-                new Transformer<Date, Calendar>() {
+                new Function<Date, Calendar>() {
                     @Override
-                    public Calendar transform(final Date input) {
+                    public Calendar apply(final Date input) {
                         final Calendar now = Calendar.getInstance();
                         now.setTime(input);
                         return now;
                     }
                 });
         registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.BYTE,
-                new Transformer<Boolean, Byte>() {
+                new Function<Boolean, Byte>() {
                     @Override
-                    public Byte transform(final Boolean input) {
+                    public Byte apply(final Boolean input) {
                         return input ? (byte)1 : 0;
                     }
                 });
         registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.SHORT,
-                new Transformer<Boolean, Short>() {
+                new Function<Boolean, Short>() {
                     @Override
-                    public Short transform(final Boolean input) {
+                    public Short apply(final Boolean input) {
                         return input ? (short)1 : 0;
                     }
                 });
         registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.INTEGER,
-                new Transformer<Boolean, Integer>() {
+                new Function<Boolean, Integer>() {
                     @Override
-                    public Integer transform(final Boolean input) {
+                    public Integer apply(final Boolean input) {
                         return input ? 1 : 0;
                     }
                 });
         registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.LONG,
-                new Transformer<Boolean, Long>() {
+                new Function<Boolean, Long>() {
                     @Override
-                    public Long transform(final Boolean input) {
+                    public Long apply(final Boolean input) {
                         return input ? 1L : 0L;
                     }
                 });
         registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.BIG_INTEGER,
-                new Transformer<Boolean, BigInteger>() {
+                new Function<Boolean, BigInteger>() {
                     @Override
-                    public BigInteger transform(final Boolean input) {
+                    public BigInteger apply(final Boolean input) {
                         return input ? BigInteger.ONE : BigInteger.ZERO;
                     }
                 });
         registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.BIG_DECIMAL,
-                new Transformer<Boolean, BigDecimal>() {
+                new Function<Boolean, BigDecimal>() {
                     @Override
-                    public BigDecimal transform(final Boolean input) {
+                    public BigDecimal apply(final Boolean input) {
                         return input ? BigDecimal.ONE : BigDecimal.ZERO;
                     }
                 });
         registerConverter(TypeLiterals.STRING, TypeLiterals.CHAR,
-                new Transformer<String, Character>() {
+                new Function<String, Character>() {
                     @Override
-                    public Character transform(final String input) {
+                    public Character apply(final String input) {
                         return input.isEmpty() ? '\0' : input.charAt(0);
                     }
                 });
         registerConverter(TypeLiterals.DATE, TypeLiterals.LONG,
-                new Transformer<Date, Long>() {
+                new Function<Date, Long>() {
                     @Override
-                    public Long transform(final Date input) {
+                    public Long apply(final Date input) {
                         return input.getTime();
                     }
                 });
@@ -538,7 +539,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new array type that can be converted into {@link Object[]}.
      */
     public final AbstractManagedEntityType createEntityArrayType(final ManagedEntityType elementType){
-        return createEntityType(new Factory<ManagedEntityArrayType>(){
+        return createEntityType(new Supplier<AbstractManagedEntityType>(){
 
             /**
              * Creates a new instance of the specified type.
@@ -546,14 +547,14 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public ManagedEntityArrayType create() {
+            public ManagedEntityArrayType get() {
                 return new ManagedEntityArrayType(elementType);
             }
         }, TypeLiterals.OBJECT_ARRAY);
     }
 
     /**
-     * Creates a new tabular type that can be converted into {@link Table}.
+     * Creates a new tabular type that can be converted into {@link com.itworks.snamp.Table}.
      * <p>
      *  The returned {@link ManagedEntityTabularType} instance throws {@link UnsupportedOperationException}
      *  exception when {@link ManagedEntityTabularType#getRowCount()} is invoked.
@@ -565,7 +566,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
     public final ManagedEntityType createEntityTabularType(final Map<String, ManagedEntityType> columns, final String... index){
         final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
         final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
-        return createEntityType(new Factory<AbstractManagedEntityTabularType>(){
+        return createEntityType(new Supplier<AbstractManagedEntityTabularType>(){
 
             /**
              * Creates a new instance of the specified type.
@@ -573,7 +574,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public AbstractManagedEntityTabularType create() {
+            public AbstractManagedEntityTabularType get() {
                 return new AbstractManagedEntityTabularType() {
                     @Override
                     public final Collection<String> getColumns() {
@@ -606,11 +607,11 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
     }
 
     public final ManagedEntityType createEntityDictionaryType(final Map<String, ManagedEntityType> keys) {
-        return createEntityType(new Factory<AbstractManagedEntityType>() {
+        return createEntityType(new Supplier<AbstractManagedEntityType>() {
             private final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(keys);
 
             @Override
-            public AbstractManagedEntityTabularType create() {
+            public AbstractManagedEntityTabularType get() {
                 return new AbstractManagedEntityTabularType() {
 
                     /**
@@ -660,7 +661,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
     }
 
     /**
-     * Creates a new tabular type that can be converted into {@link Table}.
+     * Creates a new tabular type that can be converted into {@link com.itworks.snamp.Table}.
      * <p>
      *  The returned {@link ManagedEntityTabularType} returns {@code rowCount} from
      *  {@link ManagedEntityTabularType#getRowCount()} method.
@@ -671,7 +672,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return A new instance of the tabular type.
      */
     public final ManagedEntityType createEntityTabularType(final Map<String, ManagedEntityType> columns, final int rowCount, final String... index){
-        return createEntityType(new Factory<AbstractManagedEntityTabularType>(){
+        return createEntityType(new Supplier<AbstractManagedEntityType>(){
             private final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
             private final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
 
@@ -681,7 +682,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
              * @return A new instance of the specified type.
              */
             @Override
-            public AbstractManagedEntityTabularType create() {
+            public AbstractManagedEntityTabularType get() {
                 return new AbstractManagedEntityTabularType() {
                     @Override
                     public final Collection<String> getColumns() {
@@ -719,7 +720,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @return System type; or {@literal null}, if the specified managed entity is not a part
      * of well-known type system.
      */
-    public static Typed<?> getWellKnownType(final ManagedEntityType type){
+    public static TypeToken<?> getWellKnownType(final ManagedEntityType type){
         if(type == null)
             return null;
         else if(supportsBoolean(type))

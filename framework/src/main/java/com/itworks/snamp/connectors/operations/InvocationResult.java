@@ -1,5 +1,7 @@
 package com.itworks.snamp.connectors.operations;
 
+import com.google.common.annotations.Beta;
+
 import java.util.concurrent.Future;
 
 /**
@@ -8,6 +10,7 @@ import java.util.concurrent.Future;
  * @since 1.0
  * @version 1.0
  */
+@Beta
 public interface InvocationResult extends Future<Object> {
     /**
      * Returns the completion status of the operation invocation.

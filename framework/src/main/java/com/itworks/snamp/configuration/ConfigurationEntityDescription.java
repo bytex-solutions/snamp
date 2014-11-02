@@ -101,12 +101,12 @@ public interface ConfigurationEntityDescription<T extends ConfigurationEntity> e
      * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
      * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
      */
-    public Class<T> getEntityType();
+    Class<T> getEntityType();
 
     /**
      * Returns the description of the specified parameter.
      * @param parameterName The name of the parameter.
      * @return The description of the specified parameter; or {@literal null}, if the specified parameter doesn't exist.
      */
-    public ParameterDescription getParameterDescriptor(final String parameterName);
+    ParameterDescription getParameterDescriptor(final String parameterName);
 }

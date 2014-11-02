@@ -1,15 +1,11 @@
 package com.itworks.snamp.testing.connectors.snmp;
 
-import com.itworks.snamp.Repeater;
-import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.*;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
-import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.snmp4j.TransportMapping;
@@ -302,7 +298,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         final String ATTRIBUTE_ID = "1.6.9.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.OBJECT_ARRAY,
-                ArrayUtils.toObject(new IpAddress("192.168.0.1").toByteArray()),
+                ArrayUtils.boxArray(new IpAddress("192.168.0.1").toByteArray()),
                 AbstractResourceConnectorTest.arrayEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
@@ -321,7 +317,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         final String ATTRIBUTE_ID = "1.6.8.0";
         testAttribute(ATTRIBUTE_ID,
                 TypeLiterals.OBJECT_ARRAY,
-                ArrayUtils.toObject(new OID("1.4.5.3.1").getValue()),
+                ArrayUtils.boxArray(new OID("1.4.5.3.1").getValue()),
                 AbstractResourceConnectorTest.arrayEquator(),
                 Collections.<String, String>emptyMap(),
                 false);

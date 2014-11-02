@@ -1,5 +1,6 @@
 package com.itworks.snamp.management.impl;
 
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
@@ -8,7 +9,6 @@ import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
 import com.itworks.snamp.management.jmx.FrameworkMBean;
 import com.itworks.snamp.management.jmx.OpenMBean;
-import org.apache.commons.collections4.Closure;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogService;
@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -154,24 +155,29 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
             row.put(IS_MANAGEABLE_COLUMN, false);
             row.put(IS_LICENSED_COLUMN, false);
             row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, false);
-            component.invokeManagementService(Maintainable.class, new Closure<Maintainable>() {
-                @Override
-                public void execute(final Maintainable input) {
-                    row.put(IS_MANAGEABLE_COLUMN, input != null);
-                }
-            });
-            component.invokeManagementService(ConfigurationEntityDescriptionProvider.class, new Closure<ConfigurationEntityDescriptionProvider>() {
-                @Override
-                public void execute(final ConfigurationEntityDescriptionProvider input) {
-                    row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, input != null);
-                }
-            });
-            component.invokeManagementService(LicensingDescriptionService.class, new Closure<LicensingDescriptionService>() {
-                @Override
-                public void execute(final LicensingDescriptionService input) {
-                    row.put(IS_LICENSED_COLUMN, input != null);
-                }
-            });
+            try {
+                component.invokeManagementService(Maintainable.class, new SafeConsumer<Maintainable>() {
+                    @Override
+                    public void accept(final Maintainable input) {
+                        row.put(IS_MANAGEABLE_COLUMN, input != null);
+                    }
+                });
+                component.invokeManagementService(ConfigurationEntityDescriptionProvider.class, new SafeConsumer<ConfigurationEntityDescriptionProvider>() {
+                    @Override
+                    public void accept(final ConfigurationEntityDescriptionProvider input) {
+                        row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, input != null);
+                    }
+                });
+                component.invokeManagementService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
+                    @Override
+                    public void accept(final LicensingDescriptionService input) {
+                        row.put(IS_LICENSED_COLUMN, input != null);
+                    }
+                });
+            }
+            catch (final Exception e){
+                MonitoringUtils.getLogger().log(Level.WARNING, e.getLocalizedMessage(), e);
+            }
             return new CompositeDataSupport(openType.getRowType(), row);
         }
 

@@ -1,6 +1,6 @@
 package com.itworks.snamp.configuration;
 
-import org.apache.commons.collections4.Factory;
+import com.google.common.base.Supplier;
 
 import java.util.*;
 
@@ -74,21 +74,21 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         additionalElements.putAll(source.getParameters());
     }
 
-    private static void copyAttributes(final Map<String, ManagedResourceConfiguration.AttributeConfiguration> input, final Map<String, ManagedResourceConfiguration.AttributeConfiguration> output, final Factory<ManagedResourceConfiguration.AttributeConfiguration> attributeFactory){
+    private static void copyAttributes(final Map<String, ManagedResourceConfiguration.AttributeConfiguration> input, final Map<String, ManagedResourceConfiguration.AttributeConfiguration> output, final Supplier<ManagedResourceConfiguration.AttributeConfiguration> attributeFactory){
         if(input != null && output != null)
             for(final String attributeId: input.keySet()){
                 final ManagedResourceConfiguration.AttributeConfiguration inputAttr = input.get(attributeId);
-                final ManagedResourceConfiguration.AttributeConfiguration outputAttr = attributeFactory.create();
+                final ManagedResourceConfiguration.AttributeConfiguration outputAttr = attributeFactory.get();
                 copy(inputAttr, outputAttr);
                 output.put(attributeId, outputAttr);
             }
     }
 
-    private static void copyEvents(final Map<String, ManagedResourceConfiguration.EventConfiguration> input, final Map<String, ManagedResourceConfiguration.EventConfiguration> output, final Factory<ManagedResourceConfiguration.EventConfiguration> eventFactory){
+    private static void copyEvents(final Map<String, ManagedResourceConfiguration.EventConfiguration> input, final Map<String, ManagedResourceConfiguration.EventConfiguration> output, final Supplier<ManagedResourceConfiguration.EventConfiguration> eventFactory){
         if(input != null && output != null)
             for(final String eventID: input.keySet()){
                 final ManagedResourceConfiguration.EventConfiguration inputEv = input.get(eventID);
-                final ManagedResourceConfiguration.EventConfiguration outputEv = eventFactory.create();
+                final ManagedResourceConfiguration.EventConfiguration outputEv = eventFactory.get();
                 copy(inputEv, outputEv);
                 output.put(eventID, outputEv);
             }
@@ -104,18 +104,18 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         //import managementAttributes
         copyAttributes(input.getElements(ManagedResourceConfiguration.AttributeConfiguration.class),
                 output.getElements(ManagedResourceConfiguration.AttributeConfiguration.class),
-                new Factory<ManagedResourceConfiguration.AttributeConfiguration>() {
+                new Supplier<ManagedResourceConfiguration.AttributeConfiguration>() {
                     @Override
-                    public ManagedResourceConfiguration.AttributeConfiguration create() {
+                    public ManagedResourceConfiguration.AttributeConfiguration get() {
                         return output.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
                     }
                 }
         );
         copyEvents(input.getElements(ManagedResourceConfiguration.EventConfiguration.class),
                 output.getElements(ManagedResourceConfiguration.EventConfiguration.class),
-                new Factory<ManagedResourceConfiguration.EventConfiguration>() {
+                new Supplier<ManagedResourceConfiguration.EventConfiguration>() {
                     @Override
-                    public ManagedResourceConfiguration.EventConfiguration create() {
+                    public ManagedResourceConfiguration.EventConfiguration get() {
                         return output.newElement(ManagedResourceConfiguration.EventConfiguration.class);
                     }
                 });
@@ -130,12 +130,12 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
 
     private static <T extends ConfigurationEntity> void copy(final Map<String, T> input,
                              final Map<String, T> output,
-                             final Factory<T> entityFactory,
+                             final Supplier<T> entityFactory,
                              final ConfigurationEntityCopier<T> copier){
         output.clear();
         for(final String entry: input.keySet()){
             final T source = input.get(entry);
-            final T dest = entityFactory.create();
+            final T dest = entityFactory.get();
             copier.copy(source, dest);
             output.put(entry, dest);
         }
@@ -160,9 +160,9 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         if(input == null || output == null) return;
         //import hosting configuration
         copy(input.getResourceAdapters(), output.getResourceAdapters(),
-                new Factory<ResourceAdapterConfiguration>() {
+                new Supplier<ResourceAdapterConfiguration>() {
             @Override
-            public ResourceAdapterConfiguration create() {
+            public ResourceAdapterConfiguration get() {
                 return output.newConfigurationEntity(ResourceAdapterConfiguration.class);
             }
         },
@@ -174,9 +174,9 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         });
         //import management targets
         copy(input.getManagedResources(), output.getManagedResources(),
-                new Factory<ManagedResourceConfiguration>() {
+                new Supplier<ManagedResourceConfiguration>() {
                     @Override
-                    public ManagedResourceConfiguration create() {
+                    public ManagedResourceConfiguration get() {
                         return output.newConfigurationEntity(ManagedResourceConfiguration.class);
                     }
                 },

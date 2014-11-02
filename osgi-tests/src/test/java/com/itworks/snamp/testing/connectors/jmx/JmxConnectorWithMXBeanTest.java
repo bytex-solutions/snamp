@@ -1,10 +1,10 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
-import org.apache.commons.collections4.Factory;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerMethod;
@@ -30,12 +30,12 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Factory<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.create();
+    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
+        AttributeConfiguration attribute = attributeFactory.get();
         attribute.setAttributeName("ObjectPendingFinalizationCount");
         attribute.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
         attributes.put("1", attribute);
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("HeapMemoryUsage");
         attribute.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
         attributes.put("2", attribute);

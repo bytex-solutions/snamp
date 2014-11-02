@@ -1,6 +1,7 @@
 package com.itworks.snamp.management.webconsole;
 
 import com.google.gson.*;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
@@ -15,7 +16,6 @@ import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
 import com.sun.jersey.spi.resource.Singleton;
-import org.apache.commons.collections4.Closure;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
@@ -174,16 +174,16 @@ public final class ManagementServiceImpl {
 
     private static String getConfigurationSchema(final SnampComponentDescriptor component,
                                                  final Gson jsonFormatter,
-                                                 final String locale){
+                                                 final String locale) throws Exception {
         final TransformerClosure<ConfigurationEntityDescriptionProvider, String> closure = new TransformerClosure<ConfigurationEntityDescriptionProvider, String>("{}") {
             @Override
-            public String transform(final ConfigurationEntityDescriptionProvider input) {
+            public String apply(final ConfigurationEntityDescriptionProvider input) {
                 final JsonObject result = getConfigurationSchema(input, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale));
                 return jsonFormatter.toJson(result);
             }
         };
         component.invokeManagementService(ConfigurationEntityDescriptionProvider.class, closure);
-        return closure.getValue();
+        return closure.get();
     }
 
     //example of configuration schema:
@@ -210,23 +210,27 @@ public final class ManagementServiceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public String getConnectorConfigurationSchema(@PathParam("connectorName") final String connectorName,
                                                   @QueryParam("locale")final String locale,
-                                                  @Context final SecurityContext context){
+                                                  @Context final SecurityContext context) throws WebApplicationException {
         SecurityUtils.adminRequired(context);
-        for(final SnampComponentDescriptor connector: snampManager.getInstalledResourceConnectors())
+        for (final SnampComponentDescriptor connector : snampManager.getInstalledResourceConnectors())
             if (Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
-                return getConfigurationSchema(connector, jsonFormatter, locale);
+                try {
+                    return getConfigurationSchema(connector, jsonFormatter, locale);
+                } catch (final Exception e) {
+                    throw new WebApplicationException(e);
+                }
         return "{}";
     }
 
-    private static JsonObject getComponentInfo(final SnampComponentDescriptor component, final Locale loc){
+    private static JsonObject getComponentInfo(final SnampComponentDescriptor component, final Locale loc) throws Exception{
         final JsonObject result = new JsonObject();
         result.addProperty("Version", Objects.toString(component.getVersion(), "0.0"));
         result.addProperty("State", component.getState());
         result.addProperty("DisplayName", component.getName(loc));
         result.addProperty("Description", component.getDescription(loc));
-        component.invokeManagementService(LicensingDescriptionService.class, new Closure<LicensingDescriptionService>() {
+        component.invokeManagementService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
             @Override
-            public void execute(final LicensingDescriptionService input) {
+            public void accept(final LicensingDescriptionService input) {
                 final JsonObject limitations = new JsonObject();
                 for(final String limitation: input.getLimitations())
                     limitations.addProperty(limitation, input.getDescription(limitation, loc));
@@ -255,7 +259,11 @@ public final class ManagementServiceImpl {
         SecurityUtils.wellKnownRoleRequired(context);
         for(final SnampComponentDescriptor connector: snampManager.getInstalledResourceConnectors())
             if(Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
-                return jsonFormatter.toJson(getComponentInfo(connector, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
+                try {
+                    return jsonFormatter.toJson(getComponentInfo(connector, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
+                } catch (final Exception e) {
+                    throw new WebApplicationException(e);
+                }
         throw new WebApplicationException(new IllegalArgumentException(String.format("Connector %s doesn't exist", connectorName)), Response.Status.NOT_FOUND);
     }
 
@@ -274,11 +282,15 @@ public final class ManagementServiceImpl {
     @Path("/adapters/{adapterName}")
     public String getAdapterInfo(@PathParam("adapterName")final String adapterName,
                                  @QueryParam("locale")final String locale,
-                                 @Context SecurityContext context){
+                                 @Context SecurityContext context) throws WebApplicationException{
         SecurityUtils.wellKnownRoleRequired(context);
         for(final SnampComponentDescriptor adapter: snampManager.getInstalledResourceAdapters())
             if(Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY)))
-                return jsonFormatter.toJson(getComponentInfo(adapter, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
+                try {
+                    return jsonFormatter.toJson(getComponentInfo(adapter, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
+                } catch (final Exception e) {
+                    throw new WebApplicationException(e);
+                }
         throw new WebApplicationException(new IllegalArgumentException(String.format("Adapter %s doesn't exist", adapterName)), Response.Status.NOT_FOUND);
     }
 
@@ -287,11 +299,15 @@ public final class ManagementServiceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public String getAdapterConfigurationSchema(@PathParam("adapterName")final String adapterName,
                                                 @QueryParam("locale")final String locale,
-                                                @Context SecurityContext context){
+                                                @Context SecurityContext context) throws WebApplicationException{
         SecurityUtils.adminRequired(context);
         for(final SnampComponentDescriptor adapter: snampManager.getInstalledResourceAdapters())
             if(Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY)))
-                return getConfigurationSchema(adapter, jsonFormatter, locale);
+                try {
+                    return getConfigurationSchema(adapter, jsonFormatter, locale);
+                } catch (final Exception e) {
+                    throw new WebApplicationException(e);
+                }
         return "{}";
     }
 
@@ -299,16 +315,21 @@ public final class ManagementServiceImpl {
     @Path("/components")
     @Produces(MediaType.APPLICATION_JSON)
     public String getInstalledComponents(@QueryParam("locale")final String locale,
-                                         @Context final SecurityContext context) {
+                                         @Context final SecurityContext context) throws WebApplicationException{
         SecurityUtils.wellKnownRoleRequired(context);
         final JsonArray result = new JsonArray();
         final Locale loc = locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale);
-        for (final SnampComponentDescriptor connector : snampManager.getInstalledResourceConnectors())
-            result.add(getComponentInfo(connector, loc));
-        for (final SnampComponentDescriptor adapter : snampManager.getInstalledResourceAdapters())
-            result.add(getComponentInfo(adapter, loc));
-        for (final SnampComponentDescriptor component : snampManager.getInstalledComponents())
-            result.add(getComponentInfo(component, loc));
+        try {
+            for (final SnampComponentDescriptor connector : snampManager.getInstalledResourceConnectors())
+                result.add(getComponentInfo(connector, loc));
+            for (final SnampComponentDescriptor adapter : snampManager.getInstalledResourceAdapters())
+                result.add(getComponentInfo(adapter, loc));
+            for (final SnampComponentDescriptor component : snampManager.getInstalledComponents())
+                result.add(getComponentInfo(component, loc));
+        }
+        catch (final Exception e){
+            throw new WebApplicationException(e);
+        }
         return jsonFormatter.toJson(result);
     }
 }

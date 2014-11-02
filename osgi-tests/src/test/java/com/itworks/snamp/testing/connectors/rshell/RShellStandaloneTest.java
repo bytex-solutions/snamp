@@ -6,7 +6,7 @@ import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
-import org.apache.commons.lang3.SystemUtils;
+import com.itworks.snamp.internal.Utils;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Test
     public void loadTest() throws InterruptedException, ExecutionException, AttributeSupportException {
-        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
+        Assume.assumeTrue(Utils.IS_OS_LINUX);
         final ManagedResourceConnector<?> connector = getManagementConnector();
         assertNotNull(connector);
         try{
@@ -73,7 +73,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Test
     public void readMemStatusAttribute() throws TimeoutException, AttributeSupportException, UnknownAttributeException {
-        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
+        Assume.assumeTrue(Utils.IS_OS_LINUX);
         final ManagedResourceConnector<?> connector = getManagementConnector();
         assertNotNull(connector);
         try{

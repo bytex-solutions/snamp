@@ -1,7 +1,7 @@
 package com.itworks.snamp.core;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.AbstractAggregator;
-import org.apache.commons.collections4.Factory;
 import com.itworks.snamp.internal.annotations.Internal;
 
 import java.util.logging.*;
@@ -53,8 +53,8 @@ public abstract class AbstractFrameworkService extends AbstractAggregator implem
      * @throws E An exception to be thrown by this method.
      */
     @SuppressWarnings("UnusedDeclaration")
-    protected final <E extends Throwable> void throwAndLog(final Level logLevel, final Factory<E> e) throws E{
-        throwAndLog(logLevel, e.create());
+    protected final <E extends Throwable> void throwAndLog(final Level logLevel, final Supplier<E> e) throws E{
+        throwAndLog(logLevel, e.get());
     }
 
     /**

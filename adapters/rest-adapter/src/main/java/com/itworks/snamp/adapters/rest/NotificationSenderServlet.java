@@ -1,10 +1,8 @@
 package com.itworks.snamp.adapters.rest;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import com.itworks.snamp.internal.annotations.Internal;
-import net.engio.mbassy.bus.common.PubSubSupport;
-import net.engio.mbassy.listener.Invoke;
-import net.engio.mbassy.listener.Listener;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.StatusCode;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
@@ -16,6 +14,8 @@ import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.EventBusManager.SubscriptionManager;
 
 /**
  * Represents web socket factory that is used to deliver notifications to the client.
@@ -37,8 +37,7 @@ final class NotificationSenderServlet extends WebSocketServlet {
      * @version 1.0
      */
     @Internal
-    @Listener
-    private static final class NotificationSender implements WebSocketListener{
+    private static final class NotificationSender implements WebSocketListener, JsonNotificationListener{
         private final Gson jsonFormatter;
         private static final Logger log = RestAdapterHelpers.getLogger();
         private volatile Reference<Session> currentSession;
@@ -124,7 +123,7 @@ final class NotificationSenderServlet extends WebSocketServlet {
             }
         }
 
-        @net.engio.mbassy.listener.Handler(delivery = Invoke.Asynchronously)
+        @Subscribe
         public void processNotification(final JsonNotification notification){
             final Session session = currentSession != null ? currentSession.get() : null;
             if(session != null) processNotification(session, notification, jsonFormatter);
@@ -132,10 +131,10 @@ final class NotificationSenderServlet extends WebSocketServlet {
     }
 
     private static final class NotificationSenderFactory implements WebSocketCreator {
-        private final PubSubSupport<JsonNotification> subscriptionManager;
+        private final SubscriptionManager<JsonNotificationListener> subscriptionManager;
         private final Gson jsonFormatter;
 
-        public NotificationSenderFactory(final PubSubSupport<JsonNotification> subscriber, final Gson jsonFormatter) {
+        public NotificationSenderFactory(final SubscriptionManager<JsonNotificationListener> subscriber, final Gson jsonFormatter) {
             this.subscriptionManager = subscriber;
             this.jsonFormatter = jsonFormatter;
         }
@@ -160,11 +159,11 @@ final class NotificationSenderServlet extends WebSocketServlet {
         }
     }
 
-    private final PubSubSupport<JsonNotification> subscriber;
+    private final SubscriptionManager<JsonNotificationListener> subscriber;
     private final Gson jsonFormatter;
     private final int webSocketIdleTimeout;
 
-    public NotificationSenderServlet(final PubSubSupport<JsonNotification> subscriber,
+    public NotificationSenderServlet(final SubscriptionManager<JsonNotificationListener> subscriber,
                                      final Gson jsonFormatter,
                                      final int idleTimeout){
         this.subscriber = subscriber;

@@ -6,18 +6,19 @@ import java.util.*;
 
 /**
  * Represents generic in-memory table.
+ * <p>
+ *     This interface is not compatible with Guava {@link com.google.common.collect.Table}
  * @param <COLUMN> Type of the column descriptor. It is recommended to use {@link String} as a title for table columns.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
- * @see SimpleTable
+ * @see InMemoryTable
  */
 public interface Table<COLUMN> {
     /**
      * Returns a set of available columns.
      * @return A set of available columns.
      */
-    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafe(false)
     Set<COLUMN> getColumns();
 
@@ -44,7 +45,6 @@ public interface Table<COLUMN> {
      * @return The type of values at the specified column.
      * @throws IndexOutOfBoundsException  The specified column doesn't exist.
      */
-    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafe(false)
     Class<?> getColumnType(final COLUMN column) throws IndexOutOfBoundsException;
 
@@ -56,7 +56,6 @@ public interface Table<COLUMN> {
      * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
      * @throws ClassCastException The value type is not compliant with column type.
      */
-    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafe(false)
     void setCell(final COLUMN column, final int row, final Object value) throws UnsupportedOperationException, ClassCastException;
 
@@ -68,7 +67,7 @@ public interface Table<COLUMN> {
      * @throws IllegalArgumentException The count of values doesn't match to column count.
      */
     @ThreadSafe(false)
-    void addRow(final Map<COLUMN, ?> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
+    void addRow(final Map<? extends COLUMN, ?> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
 
     /**
      * Inserts the row into this table.
@@ -79,7 +78,7 @@ public interface Table<COLUMN> {
      * @throws IllegalArgumentException The count of values doesn't match to column count.
      */
     @ThreadSafe(false)
-    void insertRow(final int index, final Map<COLUMN, ?> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
+    void insertRow(final int index, final Map<? extends COLUMN, ?> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
 
     /**
      * Gets row by its index.
@@ -94,7 +93,6 @@ public interface Table<COLUMN> {
      * @param rowIndex An index of the row to remove.
      * @throws UnsupportedOperationException Operation is not supported because this table is read-only.
      */
-    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafe(false)
     void removeRow(final int rowIndex) throws UnsupportedOperationException;
 
@@ -107,5 +105,5 @@ public interface Table<COLUMN> {
      * @throws IllegalArgumentException The count of values doesn't match to column count.
      */
     @ThreadSafe(false)
-    void setRow(final int index, final Map<COLUMN, Object> row) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
+    void setRow(final int index, final Map<? extends COLUMN, Object> row) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException;
 }

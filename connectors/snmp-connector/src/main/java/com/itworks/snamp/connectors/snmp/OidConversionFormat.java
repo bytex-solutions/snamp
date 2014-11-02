@@ -1,8 +1,8 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.reflect.TypeToken;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TypeLiterals;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.reflect.Typed;
 import org.snmp4j.smi.OID;
 
 import java.util.Map;
@@ -19,7 +19,7 @@ enum OidConversionFormat {
     TEXT,
     INT_ARRAY;
 
-    static final Typed<OID> OBJ_ID = TypeLiterals.of(OID.class);
+    static final TypeToken<OID> OBJ_ID = TypeToken.of(OID.class);
 
     public static OidConversionFormat getFormat(final Map<String, String> options){
         if(options.containsKey(SNMP_CONVERSION_FORMAT))
@@ -45,7 +45,7 @@ enum OidConversionFormat {
             default: return new SMITypeProjection<OID, Object[]>(OBJ_ID, TypeLiterals.OBJECT_ARRAY) {
                 @Override
                 protected Integer[] convertFrom(final OID value) throws IllegalArgumentException {
-                    return ArrayUtils.toObject(value.getValue());
+                    return ArrayUtils.boxArray(value.getValue());
                 }
             };
         }

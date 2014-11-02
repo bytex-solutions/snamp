@@ -1,10 +1,10 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
 import com.itworks.snamp.licensing.FrameworkServiceLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingException;
-import org.apache.commons.collections4.Factory;
 import org.osgi.framework.Version;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -42,9 +42,9 @@ public final class SnmpConnectorLicenseLimitations extends AbstractLicenseLimita
         this.authenticationEnabled = AuthenticationFeatureLimitationAdapter.createLimitation(authenticationEnabled);
     }
 
-    static final Factory<SnmpConnectorLicenseLimitations> fallbackFactory = new Factory<SnmpConnectorLicenseLimitations>() {
+    static final Supplier<SnmpConnectorLicenseLimitations> fallbackFactory = new Supplier<SnmpConnectorLicenseLimitations>() {
         @Override
-        public SnmpConnectorLicenseLimitations create() {
+        public SnmpConnectorLicenseLimitations get() {
             return new SnmpConnectorLicenseLimitations();
         }
     };

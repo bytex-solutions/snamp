@@ -1,11 +1,11 @@
 package com.itworks.snamp.testing.adapters.jmx;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.rshell.AbstractRShellConnectorTest;
-import org.apache.commons.collections4.Factory;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -63,8 +63,8 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     }
 
     @Override
-    protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Factory<ResourceAdapterConfiguration> adapterFactory) {
-        final ResourceAdapterConfiguration restAdapter = adapterFactory.create();
+    protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Supplier<ResourceAdapterConfiguration> adapterFactory) {
+        final ResourceAdapterConfiguration restAdapter = adapterFactory.get();
         restAdapter.setAdapterName(ADAPTER_NAME);
         restAdapter.getParameters().put("objectName", ROOT_OBJECT_NAME);
         restAdapter.getParameters().put("usePlatformMBean", "true");
@@ -73,8 +73,8 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Factory<AttributeConfiguration> attributeFactory) {
-        final AttributeConfiguration attr = attributeFactory.create();
+    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
+        final AttributeConfiguration attr = attributeFactory.get();
         attr.setAttributeName("memStatus");
         attr.getParameters().put("commandProfileLocation", "freemem-tool-profile.xml");
         attr.getParameters().put("format", "-m");

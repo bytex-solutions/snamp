@@ -1,15 +1,16 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.WriteOnceRef;
-import com.itworks.snamp.connectors.attributes.*;
+import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.MethodStub;
-import org.apache.commons.lang3.reflect.TypeUtils;
-import org.apache.commons.lang3.reflect.Typed;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -198,7 +199,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
 
     private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<ManagedEntityTypeBuilder.AbstractManagedEntityType>{
         private final Map<String, String> properties;
-        private final Typed<?> propertyType;
+        private final TypeToken<?> propertyType;
         private final Method getter;
         private final Method setter;
         private final Reference<WellKnownTypeSystem> typeBuilder;
@@ -208,7 +209,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
             properties = new HashMap<>(props);
             properties.put("displayName", descriptor.getDisplayName());
             properties.put("shortDescription", descriptor.getShortDescription());
-            propertyType = TypeLiterals.of(descriptor.getPropertyType());
+            propertyType = TypeToken.of(descriptor.getPropertyType());
             getter = descriptor.getReadMethod();
             if(getter != null && !getter.isAccessible()) getter.setAccessible(true);
             setter = descriptor.getWriteMethod();
@@ -299,8 +300,8 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
                     typeInfo = (ManagedEntityTypeBuilder.AbstractManagedEntityType)typeProviderImpl.invoke(typeBuilder);
                 }
                 catch (final ReflectiveOperationException e) {
-                    if(TypeUtils.isArrayType(propertyType.getType()))
-                        typeInfo = typeBuilder.createEntityArrayType(typeBuilder.createEntitySimpleType(TypeUtils.wrap(TypeUtils.getArrayComponentType(propertyType.getType()))));
+                    if(propertyType.isArray())
+                        typeInfo = typeBuilder.createEntityArrayType(typeBuilder.createEntitySimpleType(propertyType.getComponentType()));
                     else
                         typeInfo = typeBuilder.createEntitySimpleType(propertyType);
                 }
@@ -475,7 +476,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         @Override
         public final ManagedEntityType getAttachmentType(final Object attachment) {
             if(attachment == null) return typeSystem.createFallbackEntityType();
-            final ManagedEntityType typeInfo = typeSystem.createEntitySimpleType(TypeUtils.wrap(attachment.getClass()));
+            final ManagedEntityType typeInfo = typeSystem.createEntitySimpleType(TypeToken.of(attachment.getClass()));
             return typeInfo != null ? typeInfo: typeSystem.createFallbackEntityType();
         }
 

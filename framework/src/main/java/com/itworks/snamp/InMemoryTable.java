@@ -1,8 +1,9 @@
 package com.itworks.snamp;
 
-import org.apache.commons.collections4.*;
-import org.apache.commons.collections4.map.Flat3Map;
-import org.apache.commons.collections4.map.HashedMap;
+
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
+import com.itworks.snamp.internal.Utils;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -16,62 +17,77 @@ import java.util.*;
  * @since 1.0
  * @version 1.0
  */
-public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implements Table<COLUMN> {
-    private static final class ColumnBuilder<COLUMN> implements Put<COLUMN, Class<?>>{
-        private IterableMap<COLUMN, Class<?>> columns;
-
-        private ColumnBuilder(final int columnsCount){
-            columns = new HashedMap<>(columnsCount);
-        }
-
-        private Map<COLUMN, Class<?>> build(final Closure<Put<COLUMN, Class<?>>> filler) {
-            filler.execute(this);
-            final Map<COLUMN, Class<?>> result = columns;
-            columns = null;
-            return result;
-        }
-
-        private void checkInternalBuffer(){
-            if(columns == null)
-                throw new IllegalStateException("The column builder is closed.");
-        }
-
-        @Override
-        public void clear() {
-            checkInternalBuffer();
-            columns.clear();
-        }
-
-        @Override
-        public Object put(final COLUMN key, final Class<?> value) {
-            checkInternalBuffer();
-            return columns.put(key, value);
-        }
-
-        @Override
-        public void putAll(final Map<? extends COLUMN, ? extends Class<?>> t) {
-            checkInternalBuffer();
-            columns.putAll(t);
-        }
-    }
-
-    private final Map<COLUMN, Class<?>> _columns;
-
+public class InMemoryTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implements Table<COLUMN> {
+    private final ImmutableMap<COLUMN, Class<?>> _columns;
 
     /**
      * Initializes a new table using the column builder.
      * <p>
      *     Note that the builder will be cleaned inside of the constructor.
      * @param builder The column builder with constructed columns.
-     * @param columnsCount Expected count of columns.
      * @param rowCapacity The initial capacity of the table.
      */
-    public SimpleTable(final Closure<Put<COLUMN, Class<?>>> builder,
-                       final int columnsCount,
-                       final int rowCapacity) {
+    public <E extends Exception> InMemoryTable(final Consumer<ImmutableMap.Builder<COLUMN, Class<?>>, E> builder,
+                                               final int rowCapacity) throws E {
         super(rowCapacity);
-        final ColumnBuilder<COLUMN> factory = new ColumnBuilder<>(columnsCount);
-        _columns = factory.build(builder);
+        final ImmutableMap.Builder<COLUMN, Class<?>> b = ImmutableMap.builder();
+        builder.accept(b);
+        _columns = b.build();
+    }
+
+    private InMemoryTable(final Iterator<COLUMN> columns,
+                          final int columnCount,
+                          final Class<?> columnType,
+                          final int rowCapacity) {
+        super(rowCapacity);
+        switch (columnCount) {
+            case 0:
+                _columns = ImmutableMap.of();
+                return;
+            case 1:
+                _columns = ImmutableMap.<COLUMN, Class<?>>of(columns.next(),
+                        columnType);
+                return;
+            case 2:
+                _columns = ImmutableMap.of(columns.next(), columnType,
+                        columns.next(), columnType);
+                return;
+            case 3:
+                _columns = ImmutableMap.of(columns.next(), columnType,
+                        columns.next(), columnType,
+                        columns.next(), columnType);
+                return;
+            case 4:
+                _columns = ImmutableMap.of(columns.next(), columnType,
+                        columns.next(), columnType,
+                        columns.next(), columnType,
+                        columns.next(), columnType);
+                return;
+            case 5:
+                _columns = ImmutableMap.of(columns.next(), columnType,
+                        columns.next(), columnType,
+                        columns.next(), columnType,
+                        columns.next(), columnType,
+                        columns.next(), columnType);
+                return;
+            default:
+                final ImmutableMap.Builder<COLUMN, Class<?>> builder = ImmutableMap.builder();
+                while (columns.hasNext())
+                    builder.put(columns.next(), columnType);
+                _columns = builder.build();
+        }
+    }
+
+    /**
+     * Initializes a new table with identical column type.
+     * @param columns A collection of columns.
+     * @param columnType The type of all columns.
+     * @param rowCapacity Expected count of rows.
+     */
+    public InMemoryTable(final Collection<COLUMN> columns,
+                         final Class<?> columnType,
+                         final int rowCapacity){
+        this(columns.iterator(), columns.size(), columnType, rowCapacity);
     }
 
     /**
@@ -82,14 +98,10 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @param columns A map for columns.
      * @param rows A map of rows.
      */
-    public SimpleTable(final Map<COLUMN, Class<?>> columns,
-                       final Collection<Map<COLUMN, Object>> rows) {
-        this(new Factory<Map<COLUMN, Class<?>>>() {
-            @Override
-            public Map<COLUMN, Class<?>> create() {
-                return columns;
-            }
-        }, rows.size());
+    public InMemoryTable(final ImmutableMap<COLUMN, Class<?>> columns,
+                         final Collection<Map<COLUMN, Object>> rows) {
+        super(rows.size());
+        this._columns = Objects.requireNonNull(columns, "columns is null.");
         addAll(rows);
     }
 
@@ -98,27 +110,79 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @param cols An array of unique columns.
      */
     @SafeVarargs
-    public SimpleTable(final Map.Entry<COLUMN, Class<?>>... cols) {
-        this(new Factory<Map<COLUMN, Class<?>>>() {
-            @Override
-            public Map<COLUMN, Class<?>> create() {
-                switch (cols.length){
-                    case 1:
-                    case 2:
-                    case 3: return new Flat3Map<>();
-                    default: return new HashMap<>(cols.length);
-                }
-            }
-        }, 5);
-        for (final Map.Entry<COLUMN, Class<?>> c : cols)
-            _columns.put(c.getKey(), c.getValue());
+    public InMemoryTable(final Map.Entry<COLUMN, Class<?>>... cols) {
+        switch (cols.length) {
+            case 0:
+                _columns = ImmutableMap.of();
+                return;
+            case 1:
+                _columns = createColumns(cols[0]);
+                return;
+            case 2:
+                _columns = createColumns(cols[0], cols[1]);
+                return;
+            case 3:
+                _columns = createColumns(cols[0], cols[1], cols[2]);
+                return;
+            case 4:
+                _columns = createColumns(cols[0], cols[1], cols[2], cols[3]);
+                return;
+            case 5:
+                _columns = createColumns(cols[0], cols[1], cols[2], cols[3], cols[4]);
+                return;
+            default:
+                ImmutableMap.Builder<COLUMN, Class<?>> builder = ImmutableMap.builder();
+                for (final Map.Entry<COLUMN, Class<?>> column : cols)
+                    builder = builder.put(column);
+                _columns = builder.build();
+        }
+    }
+
+    private static <COLUMN> ImmutableMap<COLUMN, Class<?>> createColumns(final Map.Entry<COLUMN, Class<?>> column1,
+                                                                         final Map.Entry<COLUMN, Class<?>> column2,
+                                                                         final Map.Entry<COLUMN, Class<?>> column3,
+                                                                         final Map.Entry<COLUMN, Class<?>> column4,
+                                                                         final Map.Entry<COLUMN, Class<?>> column5){
+        return ImmutableMap.of(column1.getKey(), column1.getValue(),
+                column2.getKey(), column2.getValue(),
+                column3.getKey(), column3.getValue(),
+                column4.getKey(), column4.getValue(),
+                column5.getKey(), column5.getValue());
+    }
+
+    private static <COLUMN> ImmutableMap<COLUMN, Class<?>> createColumns(final Map.Entry<COLUMN, Class<?>> column1,
+                                                                         final Map.Entry<COLUMN, Class<?>> column2,
+                                                                         final Map.Entry<COLUMN, Class<?>> column3,
+                                                                         final Map.Entry<COLUMN, Class<?>> column4){
+        return ImmutableMap.of(column1.getKey(), column1.getValue(),
+                column2.getKey(), column2.getValue(),
+                column3.getKey(), column3.getValue(),
+                column4.getKey(), column4.getValue());
+    }
+
+    private static <COLUMN> ImmutableMap<COLUMN, Class<?>> createColumns(final Map.Entry<COLUMN, Class<?>> column1,
+                                                                         final Map.Entry<COLUMN, Class<?>> column2,
+                                                                         final Map.Entry<COLUMN, Class<?>> column3){
+        return ImmutableMap.of(column1.getKey(), column1.getValue(),
+                column2.getKey(), column2.getValue(),
+                column3.getKey(), column3.getValue());
+    }
+
+    private static <COLUMN> ImmutableMap<COLUMN, Class<?>> createColumns(final Map.Entry<COLUMN, Class<?>> column1,
+                                                                         final Map.Entry<COLUMN, Class<?>> column2){
+        return ImmutableMap.of(column1.getKey(), column1.getValue(),
+                column2.getKey(), column2.getValue());
+    }
+
+    private static <COLUMN> ImmutableMap<COLUMN, Class<?>> createColumns(final Map.Entry<COLUMN, Class<?>> column){
+        return ImmutableMap.<COLUMN, Class<?>>of(column.getKey(), column.getValue());
     }
 
     /**
      * Initializes a new simple table with the specified collection of columns.
      * @param columns A collection of unique columns.
      */
-    public SimpleTable(final Map<COLUMN, Class<?>> columns){
+    public InMemoryTable(final Map<COLUMN, Class<?>> columns){
         this(columns, 5);
     }
 
@@ -127,30 +191,9 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @param columns A collection of unique columns.
      * @param rowCapacity Initial row capacity.
      */
-    public SimpleTable(final Map<COLUMN, Class<?>> columns, final int rowCapacity) {
-        this(new Factory<Map<COLUMN, Class<?>>>() {
-            @Override
-            public Map<COLUMN, Class<?>> create() {
-                switch (columns.size()) {
-                    case 1:
-                    case 2:
-                    case 3:
-                        return new Flat3Map<>(columns);
-                    default:
-                        return new HashMap<>(columns);
-                }
-            }
-        }, rowCapacity);
-    }
-
-    /**
-     * Initializes a new table with the specified factory for the map with columns.
-     * @param columnsFactory The factory for the columns.
-     * @param rowCapacity Initial row capacity.
-     */
-    protected SimpleTable(final Factory<Map<COLUMN, Class<?>>> columnsFactory, final int rowCapacity){
+    public InMemoryTable(final Map<COLUMN, Class<?>> columns, final int rowCapacity) {
         super(rowCapacity);
-        _columns = columnsFactory.create();
+        _columns = ImmutableMap.copyOf(columns);
     }
 
     /**
@@ -159,9 +202,9 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @param columnType The column type.
      * @param rowCapacity The initial capacity of the table.
      */
-    public SimpleTable(final COLUMN columnId, final Class<?> columnType, final int rowCapacity) {
+    public InMemoryTable(final COLUMN columnId, final Class<?> columnType, final int rowCapacity) {
         super(rowCapacity);
-        _columns = Collections.<COLUMN, Class<?>>singletonMap(columnId, columnType);
+        _columns = ImmutableMap.<COLUMN, Class<?>>of(columnId, columnType);
     }
 
     /**
@@ -172,17 +215,11 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @param columnType2 The type of the second column.
      * @param rowCapacity The initial capacity of the table.
      */
-    public SimpleTable(final COLUMN columnId1, final Class<?> columnType1,
-                       final COLUMN columnId2, final Class<?> columnType2,
-                       final int rowCapacity){
-        this(new Factory<Map<COLUMN, Class<?>>>() {
-            @Override
-            public Flat3Map<COLUMN, Class<?>> create() {
-                return new Flat3Map<>();
-            }
-        }, rowCapacity);
-        _columns.put(columnId1, columnType1);
-        _columns.put(columnId2, columnType2);
+    public InMemoryTable(final COLUMN columnId1, final Class<?> columnType1,
+                         final COLUMN columnId2, final Class<?> columnType2,
+                         final int rowCapacity){
+        super(rowCapacity);
+        _columns = ImmutableMap.of(columnId1, columnType1, columnId2, columnType2);
     }
 
     /**
@@ -195,31 +232,24 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @param columnType3 The type of the third column.
      * @param rowCapacity The initial capacity of the table.
      */
-    public SimpleTable(final COLUMN columnId1, final Class<?> columnType1,
-                       final COLUMN columnId2, final Class<?> columnType2,
-                       final COLUMN columnId3, final Class<?> columnType3,
-                       final int rowCapacity){
-        this(new Factory<Map<COLUMN, Class<?>>>() {
-            @Override
-            public Flat3Map<COLUMN, Class<?>> create() {
-                return new Flat3Map<>();
-            }
-        },
-        rowCapacity);
-        _columns.put(columnId1, columnType1);
-        _columns.put(columnId2, columnType2);
-        _columns.put(columnId3, columnType3);
+    public InMemoryTable(final COLUMN columnId1, final Class<?> columnType1,
+                         final COLUMN columnId2, final Class<?> columnType2,
+                         final COLUMN columnId3, final Class<?> columnType3,
+                         final int rowCapacity) {
+        super(rowCapacity);
+        _columns = ImmutableMap.of(columnId1, columnType1,
+                columnId2, columnType2,
+                columnId3, columnType3);
     }
 
-    public static <COLUMN> SimpleTable<COLUMN> fromRow(final Map<COLUMN, ?> row) {
-        final SimpleTable<COLUMN> result = new SimpleTable<>(new Closure<Put<COLUMN, Class<?>>>() {
+    public static <COLUMN> InMemoryTable<COLUMN> fromRow(final Map<COLUMN, ?> row) {
+        final InMemoryTable<COLUMN> result = new InMemoryTable<>(new SafeConsumer<ImmutableMap.Builder<COLUMN, Class<?>>>() {
             @Override
-            public void execute(final Put<COLUMN, Class<?>> input) {
+            public void accept(final ImmutableMap.Builder<COLUMN, Class<?>> input) {
                 for (final Map.Entry<COLUMN, ?> entry : row.entrySet())
                     input.put(entry.getKey(), entry.getValue().getClass());
             }
         },
-                row.size(),
                 1);
         result.addRow(row);
         return result;
@@ -231,19 +261,27 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @param <COLUMN> Type of the column descriptor.
      * @return A new instance of the in-memory table.
      */
-    public static <COLUMN> SimpleTable<COLUMN> fromArray(final Map<COLUMN, Object>[] rows){
-        if(rows.length == 0) return new SimpleTable<>();
-        SimpleTable<COLUMN> result = null;
+    public static <COLUMN> InMemoryTable<COLUMN> fromArray(final Map<COLUMN, Object>[] rows){
+        if(rows.length == 0) return new InMemoryTable<>();
+        InMemoryTable<COLUMN> result = null;
         for(final Map<COLUMN, Object> row: rows){
             if(result == null){
                 final Map<COLUMN, Class<?>> columns = new HashMap<>(10);
                 for(final COLUMN key: row.keySet())
                     columns.put(key, Object.class);
-                result = new SimpleTable<>(columns, rows.length);
+                result = new InMemoryTable<>(columns, rows.length);
             }
             result.addRow(row);
         }
         return result;
+    }
+
+    /**
+     * Gets number of columns in this table.
+     * @return The number of columns in this table.
+     */
+    public final int getColumnCount(){
+        return _columns.size();
     }
 
     /**
@@ -279,6 +317,10 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
         return size();
     }
 
+    private static IndexOutOfBoundsException createInvalidColumnException(final Object column){
+        return new IndexOutOfBoundsException(String.format("Column %s doesn't exist", column));
+    }
+
     /**
      * Returns a cell value.
      *
@@ -290,9 +332,42 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     @Override
     public final Object getCell(final COLUMN column, final int rowIndex) throws IndexOutOfBoundsException {
         final Map<COLUMN, Object> row = get(rowIndex);
-        if(row == null) throw new IndexOutOfBoundsException(String.format("Row %s doesn't exist", rowIndex));
-        else if(row.containsKey(column)) return row.get(column);
-        else throw new IndexOutOfBoundsException(String.format("Column %s doesn't exist", column));
+        if(row.containsKey(column)) return row.get(column);
+        else throw createInvalidColumnException(column);
+    }
+
+    /**
+     * Returns a table cell.
+     * @param column The cell column.
+     * @param rowIndex The cell row (zero-based).
+     * @param cellType The expected cell type.
+     * @param safeCast {@literal true} for {@literal null} when cell value is not a {@code cellType}; {@literal false} for {@link java.lang.ClassCastException}.
+     * @param <CELL> Expected type of the cell.
+     * @return The table cell.
+     * @throws IndexOutOfBoundsException Incorrect row index or column.
+     */
+    public final <CELL> com.google.common.collect.Table.Cell<Integer, COLUMN, CELL> getCell(final COLUMN column,
+                                                                                            final int rowIndex,
+                                                                                            final Class<CELL> cellType,
+                                                                                            final boolean safeCast) throws IndexOutOfBoundsException {
+        final Map<COLUMN, Object> row = get(rowIndex);
+        return new com.google.common.collect.Table.Cell<Integer, COLUMN, CELL>() {
+            @Override
+            public Integer getRowKey() {
+                return rowIndex;
+            }
+
+            @Override
+            public COLUMN getColumnKey() {
+                return column;
+            }
+
+            @Override
+            public CELL getValue() {
+                final Object cellValue = row.get(getColumnKey());
+                return safeCast ? Utils.safeCast(cellValue, cellType) : cellType.cast(cellValue);
+            }
+        };
     }
 
     /**
@@ -305,7 +380,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     @Override
     public final Class<?> getColumnType(final COLUMN column) throws IndexOutOfBoundsException {
         if(_columns.containsKey(column)) return _columns.get(column);
-        else throw new IndexOutOfBoundsException(String.format("Column %s doesn't exist.", column));
+        else throw createInvalidColumnException(column);
     }
 
     /**
@@ -330,7 +405,7 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @throws IllegalArgumentException      The count of values doesn't match to column count.
      */
     @Override
-    public final void addRow(final Map<COLUMN, ?> values) throws IllegalArgumentException {
+    public final void addRow(final Map<? extends COLUMN, ?> values) throws IllegalArgumentException {
         if(values.size() < _columns.size()) throw new IllegalArgumentException(String.format("Expected %s values", _columns.size()));
         super.add(new HashMap<>(values));
     }
@@ -345,10 +420,10 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @throws IllegalArgumentException      The count of values doesn't match to column count.
      */
     @Override
-    public void insertRow(final int index, final Map<COLUMN, ?> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException {
+    public final void insertRow(final int index, final Map<? extends COLUMN, ?> values) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException {
         if (values.size() < _columns.size())
             throw new IllegalArgumentException(String.format("Expected %s values", _columns.size()));
-        else super.add(index, new HashMap<COLUMN, Object>(values));
+        else super.add(index, new HashMap<>(values));
     }
 
     /**
@@ -359,8 +434,25 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @throws IndexOutOfBoundsException The specified row doesn't exist.
      */
     @Override
-    public Map<COLUMN, Object> getRow(final int index) {
+    public final Map<COLUMN, Object> getRow(final int index) {
         return get(index);
+    }
+
+    public final <CELL> void getRow(final int index,
+                             final Map<COLUMN, CELL> output,
+                             final Class<CELL> cellType,
+                             final boolean safeCast){
+        getTypedRow(this, index, output, cellType, safeCast);
+    }
+
+    public static <COLUMN, CELL> void getTypedRow(final Table<COLUMN> table,
+                                                          final int index,
+                                                          final Map<COLUMN, CELL> output,
+                                                          final Class<CELL> cellType,
+                                                          final boolean safeCast){
+        final Map<COLUMN, Object> source = table.getRow(index);
+        for(final Map.Entry<COLUMN, Object> row: source.entrySet())
+            output.put(row.getKey(), safeCast ? Utils.safeCast(row.getValue(), cellType) : cellType.cast(row.getValue()));
     }
 
     /**
@@ -382,19 +474,17 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     }
 
     private static Table<String> create(final List<PropertyDescriptor> columns,
-                                            final Collection<?> rows) throws ReflectiveOperationException{
-        final Table<String> result = new SimpleTable<>(new Factory<Map<String, Class<?>>>() {
+                                        final Collection<?> rows) throws ReflectiveOperationException {
+        final Table<String> result = new InMemoryTable<>(new SafeConsumer<ImmutableMap.Builder<String, Class<?>>>() {
             @Override
-            public Map<String, Class<?>> create() {
-                final Map<String, Class<?>> cols = new HashMap<>(columns.size());
-                for(final PropertyDescriptor descr: columns)
-                    cols.put(descr.getName(), descr.getPropertyType());
-                return cols;
+            public void accept(final ImmutableMap.Builder<String, Class<?>> builder) {
+                for (final PropertyDescriptor descr : columns)
+                    builder.put(descr.getName(), descr.getPropertyType());
             }
         }, rows.size());
-        for(final Object source: rows){
+        for (final Object source : rows) {
             final Map<String, Object> destination = new HashMap<>(columns.size());
-            for(final PropertyDescriptor descr: columns)
+            for (final PropertyDescriptor descr : columns)
                 destination.put(descr.getName(), descr.getReadMethod().invoke(source));
             result.addRow(destination);
         }
@@ -458,12 +548,12 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
         return create(rowType, rows, new HashSet<>(Arrays.asList(columns)));
     }
 
-    private static <T> List<T> fromTable(final Factory<T> beanFactory,
-                                               final Collection<PropertyDescriptor> columns,
-                                               final Table<String> table) throws IntrospectionException, ReflectiveOperationException{
+    private static <T> List<T> fromTable(final Supplier<T> beanFactory,
+                                         final Collection<PropertyDescriptor> columns,
+                                         final Table<String> table) throws IntrospectionException, ReflectiveOperationException{
         final List<T> result = new ArrayList<>(table.getRowCount());
         for (int i = 0; i < table.getRowCount(); i++) {
-            final T newRow = beanFactory.create();
+            final T newRow = beanFactory.get();
             for (final PropertyDescriptor col : columns)
                 col.getWriteMethod().invoke(newRow, table.getCell(col.getName(), i));
             result.add(newRow);
@@ -472,8 +562,8 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
     }
 
     public static <T> List<T> fromTable(final Class<T> rowType,
-                                              final Factory<T> beanFactory,
-                                              final Table<String> table) throws IntrospectionException, ReflectiveOperationException {
+                                        final Supplier<T> beanFactory,
+                                        final Table<String> table) throws IntrospectionException, ReflectiveOperationException {
         if (rowType == null || table == null) return Collections.emptyList();
         else {
             final Collection<PropertyDescriptor> columns = new ArrayList<>(table.getColumns().size());
@@ -481,24 +571,6 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
                 if (table.getColumns().contains(descr.getName()))
                     columns.add(descr);
             return fromTable(beanFactory, columns, table);
-        }
-    }
-
-    public static <T> List<T> fromTable(final Class<T> rowType,
-                                              final Table<String> table) throws IntrospectionException, ReflectiveOperationException {
-        try {
-            return fromTable(rowType, new Factory<T>() {
-                @Override
-                public T create() {
-                    try {
-                        return rowType.newInstance();
-                    } catch (final ReflectiveOperationException e) {
-                        throw new FunctorException(e);
-                    }
-                }
-            }, table);
-        } catch (final FunctorException e) {
-            throw new ReflectiveOperationException(e);
         }
     }
 
@@ -541,9 +613,9 @@ public class SimpleTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implemen
      * @throws IllegalArgumentException      The count of values doesn't match to column count.
      */
     @Override
-    public void setRow(final int index, final Map<COLUMN, Object> row) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException {
+    public void setRow(final int index, final Map<? extends COLUMN, Object> row) throws UnsupportedOperationException, ClassCastException, IllegalArgumentException {
         if(row == null) throw new IllegalArgumentException("row is null.");
         else if(row.size() < _columns.size()) throw new IllegalArgumentException("Row is not well formed");
-        else super.set(index, row);
+        else super.get(index).putAll(row);
     }
 }

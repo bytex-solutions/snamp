@@ -1,8 +1,9 @@
 package com.itworks.snamp;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
-import org.apache.commons.collections4.Predicate;
-import org.apache.commons.collections4.Transformer;
 
 import java.util.Objects;
 
@@ -16,24 +17,24 @@ import java.util.Objects;
 public final class Switch<I, O> {
     private static final class SwitchNode<I, O> {
         private final Predicate<I> predicate;
-        private final Transformer<I, O> transformer;
+        private final Function<I, O> transformer;
         private SwitchNode<I, O> nextNode = null;
 
         private SwitchNode(final Predicate<I> condition,
-                           final Transformer<I, O> action) {
+                           final Function<I, O> action) {
             this.predicate = Objects.requireNonNull(condition, "condition is null.");
             this.transformer = Objects.requireNonNull(action, "action is null.");
         }
 
         private SwitchNode<I, O> append(final Predicate<I> condition,
-                                        final Transformer<I, O> action) {
+                                        final Function<I, O> action) {
             return this.nextNode = new SwitchNode<>(condition, action);
         }
     }
 
     private SwitchNode<I, O> first;
     private SwitchNode<I, O> last;
-    private Transformer<I, O> defaultCase;
+    private Function<I, O> defaultCase;
 
     private Switch(){
         first = last = null;
@@ -57,30 +58,25 @@ public final class Switch<I, O> {
      * @return This object.
      */
     public Switch<I, O> addCase(final Predicate<I> condition,
-                        final Transformer<I, O> action){
+                        final Function<I, O> action){
         if(first == null)
             first = last = new SwitchNode<>(condition, action);
         else last = last.append(condition, action);
         return this;
     }
 
-    private static <I, O> Transformer<I, O> valueProvider(final O value) {
-        return new Transformer<I, O>() {
+    private static <I, O> Function<I, O> valueProvider(final O value) {
+        return new Function<I, O>() {
             @Override
-            public O transform(final I input) {
+            public O apply(final I input) {
                 return value;
             }
         };
     }
 
     public Switch<I, O> equals(final I value,
-                               final Transformer<I, O> action) {
-        return addCase(new Predicate<I>() {
-            @Override
-            public boolean evaluate(final I other) {
-                return Objects.equals(value, other);
-            }
-        }, action);
+                               final Function<I, O> action) {
+        return addCase(Predicates.equalTo(value), action);
     }
 
     public Switch<I, O> equals(final I value,
@@ -89,10 +85,10 @@ public final class Switch<I, O> {
     }
 
     public Switch<I, O> theSame(final I value,
-                                final Transformer<I, O> action){
+                                final Function<I, O> action){
         return addCase(new Predicate<I>() {
             @Override
-            public boolean evaluate(final I other) {
+            public boolean apply(final I other) {
                 return System.identityHashCode(value) == System.identityHashCode(other);
             }
         }, action);
@@ -108,15 +104,15 @@ public final class Switch<I, O> {
      * @param action The action performed on input value.
      * @return This object.
      */
-    public Switch<I, O> defaultCase(final Transformer<I, O> action){
+    public Switch<I, O> defaultCase(final Function<I, O> action){
         this.defaultCase = action;
         return this;
     }
 
     public Switch<I, O> defaultCase(final O output) {
-        return defaultCase(new Transformer<I, O>() {
+        return defaultCase(new Function<I, O>() {
             @Override
-            public O transform(final I input) {
+            public O apply(final I input) {
                 return output;
             }
         });
@@ -130,11 +126,11 @@ public final class Switch<I, O> {
     public O execute(final I value){
         SwitchNode<I, O> lookup = first;
         while (lookup != null){
-            if(lookup.predicate.evaluate(value))
-                return lookup.transformer.transform(value);
+            if(lookup.predicate.apply(value))
+                return lookup.transformer.apply(value);
             lookup = lookup.nextNode;
         }
-        return defaultCase != null ? defaultCase.transform(value) : null;
+        return defaultCase != null ? defaultCase.apply(value) : null;
     }
 
     public <S extends O> S execute(final I value, final Class<S> resultType) {

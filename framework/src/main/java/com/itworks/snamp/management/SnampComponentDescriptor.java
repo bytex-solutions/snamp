@@ -1,8 +1,7 @@
 package com.itworks.snamp.management;
 
+import com.itworks.snamp.Consumer;
 import com.itworks.snamp.Descriptive;
-import org.apache.commons.collections4.Closure;
-import org.apache.commons.collections4.FunctorException;
 import org.osgi.framework.Version;
 
 import java.util.Locale;
@@ -53,16 +52,17 @@ public interface SnampComponentDescriptor extends Descriptive, Map<String, Strin
      */
     Version getVersion();
 
+
     /**
      * Gets SNAMP component management service and pass it to the user-defined action.
      * @param serviceType Requested service contract.
      * @param serviceInvoker User-defined action that is used to perform some management actions.
      * @param <S> Type of the management service contract.
+     * @param <E> Type of the exception that may be raised by invoker.
      * @return {@literal true}, if the requested service is invoked; otherwise, {@literal false}.
-     * @throws FunctorException An exception occurred during processing.
-     * @see org.apache.commons.collections4.FunctorException#getCause()
+     * @throws E An exception raised by service invoker.
      * @see com.itworks.snamp.management.Maintainable
      * @see com.itworks.snamp.licensing.LicensingDescriptionService
      */
-    <S extends ManagementService> boolean invokeManagementService(final Class<S> serviceType, final Closure<S> serviceInvoker) throws FunctorException;
+    <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E;
 }

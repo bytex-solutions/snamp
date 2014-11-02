@@ -1,6 +1,6 @@
 package com.itworks.jcommands.impl;
 
-import org.apache.commons.lang3.ArrayUtils;
+import com.itworks.snamp.ArrayUtils;
 import org.stringtemplate.v4.Interpreter;
 import org.stringtemplate.v4.ModelAdaptor;
 import org.stringtemplate.v4.ST;
@@ -36,7 +36,7 @@ final class StringTemplateExtender implements ModelAdaptor {
         else if(value instanceof BigInteger)
             return ((BigInteger)value).toString(16);
         else if(value instanceof Byte[])
-            return DatatypeConverter.printHexBinary(ArrayUtils.toPrimitive((Byte[])value));
+            return DatatypeConverter.printHexBinary(ArrayUtils.unboxArray((Byte[]) value));
         else if(value instanceof byte[])
             return DatatypeConverter.printHexBinary((byte[])value);
         else throw createNoSuchPropertyException(value, HEX_PROPERTY);
@@ -44,7 +44,7 @@ final class StringTemplateExtender implements ModelAdaptor {
 
     private static String getBase64Property(final Object value) throws STNoSuchPropertyException{
         if(value instanceof Byte[])
-            return DatatypeConverter.printBase64Binary(ArrayUtils.toPrimitive((Byte[])value));
+            return DatatypeConverter.printBase64Binary(ArrayUtils.unboxArray((Byte[])value));
         else if(value instanceof byte[])
             return DatatypeConverter.printBase64Binary((byte[])value);
         else throw createNoSuchPropertyException(value, BASE64_PROPERTY);

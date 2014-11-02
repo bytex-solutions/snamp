@@ -1,13 +1,12 @@
 package com.itworks.snamp.adapters.jmx;
 
+import com.google.common.eventbus.EventBus;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicensingException;
-import net.engio.mbassy.bus.MBassador;
-import net.engio.mbassy.bus.config.BusConfiguration;
 
 import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
@@ -26,12 +25,12 @@ import java.util.logging.Logger;
  */
 final class JmxResourceAdapter extends AbstractResourceAdapter {
 
-    private static final class JmxNotifications extends AbstractNotificationsModel<JmxNotificationMapping>{
-        private final MBassador<JmxNotification> notificationBus;
+    private static final class JmxNotifications extends AbstractNotificationsModel<JmxNotificationMapping> {
+        private final EventBus notificationBus;
         private static final String ID_SEPARATOR = "::";
 
-        public JmxNotifications(){
-            notificationBus = new MBassador<>(BusConfiguration.Default());
+        public JmxNotifications() {
+            notificationBus = new EventBus();
         }
 
         /**
@@ -49,13 +48,14 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
         /**
          * Processes SNMP notification.
-         * @param sender The name of the managed resource which emits the notification.
+         *
+         * @param sender               The name of the managed resource which emits the notification.
          * @param notif                The notification to process.
          * @param notificationMetadata The metadata of the notification.
          */
         @Override
         protected void handleNotification(final String sender, final Notification notif, final JmxNotificationMapping notificationMetadata) {
-            notificationBus.publishAsync(new JmxNotification(sender, notif, notificationMetadata.getCategory()));
+            notificationBus.post(new JmxNotification(sender, notif, notificationMetadata.getCategory()));
         }
 
         /**
@@ -70,18 +70,18 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             return hashCode() + ID_SEPARATOR + resourceName + ID_SEPARATOR + eventName;
         }
 
-        public Map<String, JmxNotificationMapping> get(final String resourceName){
+        public Map<String, JmxNotificationMapping> get(final String resourceName) {
             final Map<String, JmxNotificationMapping> attributes = new HashMap<>(10);
-            for(final String id: keySet()){
+            for (final String id : keySet()) {
                 final String[] parts = id.split(ID_SEPARATOR);
-                if(parts.length != 3 || !Objects.equals(parts[0], resourceName)) continue;
+                if (parts.length != 3 || !Objects.equals(parts[0], resourceName)) continue;
                 attributes.put(parts[2], super.get(id));
             }
             return attributes;
         }
 
-        public void addListener(final NotificationEmitter listener){
-            notificationBus.subscribe(listener);
+        public <L extends NotificationEmitter & JmxNotificationHandler> void addListener(final L listener) {
+            notificationBus.register(listener);
         }
     }
 

@@ -1,7 +1,5 @@
 package com.itworks.snamp;
 
-import org.apache.commons.collections4.CollectionUtils;
-
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -61,7 +59,7 @@ public abstract class ThreadSafeObject {
                 throw new IllegalArgumentException("Set is empty.");
             case 1:
                 resourceGroups = Collections.<Enum<?>, ReentrantReadWriteLock>singletonMap(
-                        CollectionUtils.get(groups.iterator(), 0), new ReentrantReadWriteLock());
+                        groups.iterator().next(), new ReentrantReadWriteLock());
                 break;
             default:
                 resourceGroups = new HashMap<>(groups.size());

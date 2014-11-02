@@ -1,6 +1,6 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
-import com.itworks.snamp.SimpleTable;
+import com.itworks.snamp.InMemoryTable;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.Table;
 import org.snmp4j.*;
@@ -257,7 +257,7 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @throws Exception
      */
     public final Table<Integer> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception {
-        final Table<Integer> table = new SimpleTable<>(columns);
+        final Table<Integer> table = new InMemoryTable<>(columns);
         final Collection<Variable[]> rows = this.getTable(method, oid, columns.size());
         for(final Variable[] row: rows)
             table.addRow(new HashMap<Integer, Object>(){{

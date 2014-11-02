@@ -1,7 +1,7 @@
 package com.itworks.snamp.configuration;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.GroupedThreadFactory;
-import org.apache.commons.collections4.Factory;
 
 import java.util.Map;
 import java.util.concurrent.*;
@@ -15,7 +15,7 @@ import static com.itworks.snamp.configuration.ThreadPoolConfigurationDescriptor.
  * @version 1.0
  * @since 1.0
  */
-public class ThreadPoolConfig implements Factory<ExecutorService> {
+public class ThreadPoolConfig implements Supplier<ExecutorService> {
     /**
      * Represents infinite queue size.
      */
@@ -95,7 +95,7 @@ public class ThreadPoolConfig implements Factory<ExecutorService> {
      * @return A new thread pool.
      */
     @Override
-    public ExecutorService create() {
+    public ExecutorService get() {
         return new ThreadPoolExecutor(minPoolSize,
                 maxPoolSize,
                 keepAliveTime,

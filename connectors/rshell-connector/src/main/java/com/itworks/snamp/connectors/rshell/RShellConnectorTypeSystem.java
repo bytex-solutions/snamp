@@ -1,15 +1,15 @@
 package com.itworks.snamp.connectors.rshell;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
-import com.itworks.snamp.SimpleTable;
+import com.itworks.snamp.InMemoryTable;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
-import org.apache.commons.collections4.Closure;
-import org.apache.commons.collections4.Put;
-import org.apache.commons.collections4.Transformer;
 
 import java.util.*;
 
@@ -23,10 +23,10 @@ import java.util.*;
 final class RShellConnectorTypeSystem extends WellKnownTypeSystem {
     RShellConnectorTypeSystem() {
         registerIdentityConverter(TypeLiterals.STRING_MAP);
-        registerConverter(TypeLiterals.STRING_MAP, TypeLiterals.STRING_COLUMN_TABLE, new Transformer<Map<String, Object>, Table<String>>() {
+        registerConverter(TypeLiterals.STRING_MAP, TypeLiterals.STRING_COLUMN_TABLE, new Function<Map<String,Object>, Table<String>>() {
             @Override
-            public Table<String> transform(final Map<String, Object> input) {
-                return SimpleTable.fromRow(input);
+            public Table<String> apply(final Map<String, Object> input) {
+                return InMemoryTable.fromRow(input);
             }
         });
         registerIdentityConverter(TypeLiterals.STRING_COLUMN_TABLE);
@@ -93,13 +93,12 @@ final class RShellConnectorTypeSystem extends WellKnownTypeSystem {
     }
 
     static Table<String> toTable(final Collection<Map<String, Object>> value, final XmlParserDefinition definition) {
-        final SimpleTable<String> result = new SimpleTable<>(new Closure<Put<String, Class<?>>>() {
+        final InMemoryTable<String> result = new InMemoryTable<>(new SafeConsumer<ImmutableMap.Builder<String, Class<?>>>() {
             @Override
-            public void execute(final Put<String, Class<?>> input) {
+            public void accept(final ImmutableMap.Builder<String, Class<?>> input) {
                 definition.exportTableOrDictionaryType(input);
             }
         },
-                10,
                 value.size());
         for (final Map<String, Object> row : value)
             result.addRow(row);

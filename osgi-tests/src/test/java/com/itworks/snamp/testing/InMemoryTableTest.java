@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing;
 
-import com.itworks.snamp.SimpleTable;
+import com.google.common.base.Supplier;
+import com.itworks.snamp.InMemoryTable;
 import com.itworks.snamp.Table;
 import org.junit.Test;
 
@@ -12,15 +13,15 @@ import java.util.Map;
 /**
  * @author Roman Sakno
  */
-public class SimpleTableTest extends AbstractUnitTest<SimpleTable> {
+public class InMemoryTableTest extends AbstractUnitTest<InMemoryTable> {
 
-    public SimpleTableTest(){
-        super(SimpleTable.class);
+    public InMemoryTableTest(){
+        super(InMemoryTable.class);
     }
 
     @Test
     public void tableModificaitonTest(){
-        final Table<String> table = new SimpleTable<>(new HashMap<String, Class<?>>(){{
+        final Table<String> table = new InMemoryTable<>(new HashMap<String, Class<?>>(){{
             put("COL1", Integer.class);
             put("COL2", String.class);
             put("COL3", Boolean.class);
@@ -58,7 +59,7 @@ public class SimpleTableTest extends AbstractUnitTest<SimpleTable> {
         row.put("key1", 42L);
         row.put("key2", "hello");
         row.put("key3", false);
-        final Table<String> t = SimpleTable.fromArray(rows);
+        final Table<String> t = InMemoryTable.fromArray(rows);
         assertEquals(2, t.getRowCount());
         assertEquals(Boolean.TRUE, t.getCell("key3", 0));
         assertEquals(Object.class, t.getColumnType("key2"));
@@ -97,7 +98,7 @@ public class SimpleTableTest extends AbstractUnitTest<SimpleTable> {
         final RowBean row2 = new RowBean();
         row2.setColumn1(43);
         row2.setColumn2("string2");
-        final Table<String> t = SimpleTable.create(RowBean.class,
+        final Table<String> t = InMemoryTable.create(RowBean.class,
                 new RowBean[]{row1, row2}, "column1", "column2");
         assertEquals(2, t.getRowCount());
         assertEquals(42, t.getCell("column1", 0));
@@ -108,7 +109,7 @@ public class SimpleTableTest extends AbstractUnitTest<SimpleTable> {
 
     @Test
     public final void toJavaBeanTest() throws IntrospectionException, ReflectiveOperationException {
-        final Table<String> t = new SimpleTable<>(new HashMap<String, Class<?>>(2){{
+        final Table<String> t = new InMemoryTable<>(new HashMap<String, Class<?>>(2){{
             put("column1", Integer.class);
             put("column2", String.class);
         }});
@@ -120,7 +121,12 @@ public class SimpleTableTest extends AbstractUnitTest<SimpleTable> {
             put("column1", 43);
             put("column2", "string2");
         }});
-        final List<RowBean> rows = SimpleTable.fromTable(RowBean.class, t);
+        final List<RowBean> rows = InMemoryTable.fromTable(RowBean.class, new Supplier<RowBean>() {
+            @Override
+            public RowBean get() {
+                return new RowBean();
+            }
+        }, t);
         assertEquals(2, rows.size());
         assertEquals(42, rows.get(0).getColumn1());
         assertEquals("string1", rows.get(0).getColumn2());

@@ -1,9 +1,9 @@
 package com.itworks.snamp.testing.licensing.limitations;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
 import com.itworks.snamp.licensing.LicensingException;
 import com.itworks.snamp.licensing.FrameworkServiceLimitations;
-import org.apache.commons.collections4.Factory;
 import org.osgi.framework.Version;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -31,9 +31,9 @@ public final class TestLicenseLimitation extends AbstractLicenseLimitations impl
 
     }
 
-    public static final Factory<TestLicenseLimitation> fallbackFactory = new Factory<TestLicenseLimitation>() {
+    public static final Supplier<TestLicenseLimitation> fallbackFactory = new Supplier<TestLicenseLimitation>() {
         @Override
-        public TestLicenseLimitation create() {
+        public TestLicenseLimitation get() {
             return new TestLicenseLimitation(0L, 0L, "0.0");
         }
     };

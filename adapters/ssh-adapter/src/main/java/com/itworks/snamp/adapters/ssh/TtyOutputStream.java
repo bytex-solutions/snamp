@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.internal.Utils;
 import jline.console.ConsoleReader;
-import org.apache.commons.lang3.SystemUtils;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -26,6 +26,6 @@ final class TtyOutputStream extends FilterOutputStream {
     }
 
     static boolean needToApply() {
-        return SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_MAC_OSX;
+        return Utils.IS_OS_LINUX || Utils.IS_OS_MAC_OSX;
     }
 }

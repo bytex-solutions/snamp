@@ -1,11 +1,14 @@
 package com.itworks.snamp.connectors.operations;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Represents operation invocation status.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
+@Beta
 public enum InvocationStatus {
     /**
      * Operation invocation status is unknown, but invocation is completed.

@@ -1,5 +1,7 @@
 package com.itworks.snamp.testing.management;
 
+import com.google.common.base.Supplier;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
@@ -13,8 +15,6 @@ import com.itworks.snamp.management.SnampManager;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
-import org.apache.commons.collections4.Closure;
-import org.apache.commons.collections4.Factory;
 import org.junit.Test;
 import org.ops4j.pax.exam.options.FrameworkPropertyOption;
 import org.osgi.framework.Bundle;
@@ -151,15 +151,15 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     private void testSnmpAdapterDescriptor(final SnampComponentDescriptor descriptor){
         assertEquals(new Version(1, 0, 0), descriptor.getVersion());
         assertFalse(descriptor.getDescription(Locale.getDefault()).isEmpty());
-        descriptor.invokeManagementService(LicensingDescriptionService.class, new Closure<LicensingDescriptionService>() {
+        descriptor.invokeManagementService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
             @Override
-            public void execute(final LicensingDescriptionService input) {
+            public void accept(final LicensingDescriptionService input) {
                 assertFalse(input.getLimitations().isEmpty());
             }
         });
-        descriptor.invokeManagementService(ConfigurationEntityDescriptionProvider.class, new Closure<ConfigurationEntityDescriptionProvider>() {
+        descriptor.invokeManagementService(ConfigurationEntityDescriptionProvider.class, new SafeConsumer<ConfigurationEntityDescriptionProvider>() {
             @Override
-            public void execute(final ConfigurationEntityDescriptionProvider input) {
+            public void accept(final ConfigurationEntityDescriptionProvider input) {
                 assertNotNull(input.getDescription(AgentConfiguration.ResourceAdapterConfiguration.class));
             }
         });
@@ -189,21 +189,21 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     private static void testJmxConnectorDescriptor(final SnampComponentDescriptor descriptor){
         assertEquals(new Version(1, 0, 0), descriptor.getVersion());
         assertFalse(descriptor.getDescription(Locale.getDefault()).isEmpty());
-        descriptor.invokeManagementService(DiscoveryService.class, new Closure<DiscoveryService>() {
+        descriptor.invokeManagementService(DiscoveryService.class, new SafeConsumer<DiscoveryService>() {
             @Override
-            public void execute(final DiscoveryService input) {
+            public void accept(final DiscoveryService input) {
                 assertNotNull(input);
             }
         });
-        descriptor.invokeManagementService(LicensingDescriptionService.class, new Closure<LicensingDescriptionService>() {
+        descriptor.invokeManagementService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
             @Override
-            public void execute(final LicensingDescriptionService input) {
+            public void accept(final LicensingDescriptionService input) {
                 assertNotNull(input);
             }
         });
-        descriptor.invokeManagementService(Maintainable.class, new Closure<Maintainable>() {
+        descriptor.invokeManagementService(Maintainable.class, new SafeConsumer<Maintainable>() {
             @Override
-            public void execute(final Maintainable input) {
+            public void accept(final Maintainable input) {
                 assertNotNull(input);
             }
         });
@@ -245,8 +245,8 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Override
-    protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Factory<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory) {
-        final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapterFactory.create();
+    protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Supplier<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory) {
+        final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapterFactory.get();
         snmpAdapter.setAdapterName(ADAPTER_NAME);
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
@@ -255,70 +255,70 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Factory<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributeFactory) {
-        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute = attributeFactory.create();
+    protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Supplier<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributeFactory) {
+        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute = attributeFactory.get();
         attribute.setAttributeName("string");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.1.0");
         attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.2.0");
         attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.3.0");
         attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.4.0");
         attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("array");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.5.1");
         attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("dictionary");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.6.1");
         attributes.put("6.1", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("table");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.7.1");
         attributes.put("7.1", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("float");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.8.0");
         attributes.put("8.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         attribute.getParameters().put("oid", "1.1.9.0");
         attributes.put("9.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903-human-readable");
         attribute.getParameters().put("oid", "1.1.10.0");
         attributes.put("10.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903");

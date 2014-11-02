@@ -1,10 +1,10 @@
 package com.itworks.jcommands.impl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableMap;
+import com.itworks.snamp.ResettableIterator;
 import com.itworks.snamp.internal.annotations.Internal;
-import org.apache.commons.collections4.Put;
-import org.apache.commons.collections4.ResettableListIterator;
-import org.apache.commons.collections4.iterators.ListIteratorWrapper;
-import org.apache.commons.collections4.map.LRUMap;
 
 import javax.script.*;
 import javax.xml.bind.DatatypeConverter;
@@ -318,32 +318,26 @@ public class XmlParserDefinition {
     @SuppressWarnings("UnusedDeclaration")
     @Internal
     public static final class DataParser{
-        private final LRUMap<String, NumberParser> cachedNumberParsers;
-        private final LRUMap<String, DateParser> cachedDateParsers;
+        private final Cache<String, NumberParser> cachedNumberParsers;
+        private final Cache<String, DateParser> cachedDateParsers;
 
         private DataParser(){
-            cachedNumberParsers = new LRUMap<>(8);
-            cachedDateParsers = new LRUMap<>(4);
+            cachedNumberParsers = CacheBuilder.newBuilder().maximumSize(8).build();
+            cachedDateParsers = CacheBuilder.newBuilder().maximumSize(4).build();
         }
 
         private NumberParser getNumberParser(final String format){
-            if(cachedNumberParsers.containsKey(format))
-                return cachedNumberParsers.get(format);
-            else {
-                final NumberParser parser = createNumberParser(format);
-                cachedNumberParsers.put(format, parser);
-                return parser;
-            }
+            NumberParser parser = cachedNumberParsers.getIfPresent(format);
+            if(parser == null)
+                cachedNumberParsers.put(format, parser = createNumberParser(format));
+            return parser;
         }
 
         private DateParser getDateParser(final String format) {
-            if (cachedDateParsers.containsKey(format))
-                return cachedDateParsers.get(format);
-            else {
-                final DateParser parser = new SimpleDateParser(format);
-                cachedDateParsers.put(format, parser);
-                return parser;
-            }
+            DateParser parser = cachedDateParsers.getIfPresent(format);
+            if(parser == null)
+                cachedDateParsers.put(format, parser = new SimpleDateParser(format));
+            return parser;
         }
 
         public byte parseByte(final String value) throws NumberFormatException{
@@ -628,12 +622,12 @@ public class XmlParserDefinition {
         for (final Object templateFragment : parsingTemplate)
             if (templateFragment instanceof String) {
                 final Object result = engine.eval(templateFragment.toString());
-                return result != null ? converter.transform(result.toString()) : defaultValue;
+                return result != null ? converter.apply(result.toString()) : defaultValue;
             }
             else if (templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule) templateFragment).getRule(), engine);
             else if(templateFragment instanceof ConstantParsingRule)
-                return converter.transform(((ConstantParsingRule)templateFragment).getValue());
+                return converter.apply(((ConstantParsingRule) templateFragment).getValue());
         throw new ScriptException("Parsing rule doesn't contain parser for scalar value.");
     }
 
@@ -644,7 +638,7 @@ public class XmlParserDefinition {
                 engine,
                 new Converter<Short>() {
                     @Override
-                    public Short transform(final String input) {
+                    public Short apply(final String input) {
                         try {
                             return format.parseAsShort(input);
                         } catch (final ParseException e) {
@@ -662,7 +656,7 @@ public class XmlParserDefinition {
                 engine,
                 new Converter<Byte>() {
                     @Override
-                    public Byte transform(final String input) {
+                    public Byte apply(final String input) {
                         try {
                             return format.parseAsByte(input);
                         } catch (final ParseException e) {
@@ -680,7 +674,7 @@ public class XmlParserDefinition {
                 engine,
                 new Converter<Integer>() {
                     @Override
-                    public Integer transform(final String input) {
+                    public Integer apply(final String input) {
                         try {
                             return format.parseAsInt(input);
                         } catch (final ParseException e) {
@@ -698,7 +692,7 @@ public class XmlParserDefinition {
                 engine,
                 new Converter<Long>() {
                     @Override
-                    public Long transform(final String input) {
+                    public Long apply(final String input) {
                         try {
                             return format.parseAsLong(input);
                         } catch (final ParseException e) {
@@ -716,7 +710,7 @@ public class XmlParserDefinition {
                 engine,
                 new Converter<BigInteger>() {
                     @Override
-                    public BigInteger transform(final String input) {
+                    public BigInteger apply(final String input) {
                         try {
                             return format.parseAsBigInteger(input);
                         } catch (final ParseException e) {
@@ -734,7 +728,7 @@ public class XmlParserDefinition {
                 engine,
                 new Converter<BigDecimal>() {
                     @Override
-                    public BigDecimal transform(final String input) {
+                    public BigDecimal apply(final String input) {
                         try {
                             return parser.parseAsBigDecimal(input);
                         } catch (final ParseException e) {
@@ -751,7 +745,7 @@ public class XmlParserDefinition {
                 engine,
                 new Converter<String>() {
                     @Override
-                    public String transform(final String input) {
+                    public String apply(final String input) {
                         return input;
                     }
                 },
@@ -764,7 +758,7 @@ public class XmlParserDefinition {
                 engine,
                 new Converter<Boolean>() {
                     @Override
-                    public Boolean transform(final String input) {
+                    public Boolean apply(final String input) {
                         switch (input.toLowerCase()) {
                             case "1":
                             case "true":
@@ -786,7 +780,7 @@ public class XmlParserDefinition {
                 engine,
                 new Converter<Float>() {
                     @Override
-                    public Float transform(final String input) {
+                    public Float apply(final String input) {
                         try {
                             return parser.parseAsFloat(input);
                         } catch (final ParseException e) {
@@ -803,7 +797,7 @@ public class XmlParserDefinition {
                 engine,
                 new Converter<Double>() {
                     @Override
-                    public Double transform(final String input) {
+                    public Double apply(final String input) {
                         try {
                             return parser.parseAsDouble(input);
                         } catch (final ParseException e) {
@@ -820,7 +814,7 @@ public class XmlParserDefinition {
                 engine,
                 new Converter<Date>() {
                     @Override
-                    public Date transform(final String input) {
+                    public Date apply(final String input) {
                         try {
                             return dateTimeFormat.parse(input);
                         } catch (final ParseException ignored) {
@@ -843,7 +837,7 @@ public class XmlParserDefinition {
             engine.eval(fragment);
     }
 
-    private Object[] parseArray(final ResettableListIterator parsingTemplateIter,
+    private Object[] parseArray(final ResettableIterator parsingTemplateIter,
                                      final ScriptEngine engine) throws ScriptException {
         final ArrayBuilder builder = new ArrayBuilder();
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
@@ -868,7 +862,7 @@ public class XmlParserDefinition {
         return builder.toArray();
     }
 
-    private Map<String, Object> parseDictionary(final ResettableListIterator parsingTemplateIter,
+    private Map<String, Object> parseDictionary(final ResettableIterator parsingTemplateIter,
                                                 final ScriptEngine engine) throws ScriptException {
         final Map<String, Object> result = new HashMap<>(20);
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
@@ -886,7 +880,7 @@ public class XmlParserDefinition {
         return result;
     }
 
-    private Collection<Map<String, Object>> parseTable(final ResettableListIterator parsingTemplateIter,
+    private Collection<Map<String, Object>> parseTable(final ResettableIterator parsingTemplateIter,
                                                        final ScriptEngine engine) throws ScriptException{
         final List<Map<String, Object>> table = new LinkedList<>();
         Map<String, Object> row = new HashMap<>(20);
@@ -941,13 +935,13 @@ public class XmlParserDefinition {
             case BLOB:
                 return parseBLOB(parsingTemplate, blobFormatter, engine);
             case ARRAY:
-                return parseArray(new ListIteratorWrapper(parsingTemplate.iterator()),
+                return parseArray(new ResettableIterator(parsingTemplate),
                         engine);
             case DICTIONARY:
-                return parseDictionary(new ListIteratorWrapper(parsingTemplate.iterator()),
+                return parseDictionary(new ResettableIterator(parsingTemplate),
                         engine);
             case TABLE:
-                return parseTable(new ListIteratorWrapper(parsingTemplate.iterator()),
+                return parseTable(new ResettableIterator(parsingTemplate),
                         engine);
             default:
                 throw new IllegalStateException(String.format("Invalid return type %s", getParsingResultType()));
@@ -962,7 +956,7 @@ public class XmlParserDefinition {
         }
     }
 
-    public final void exportTableOrDictionaryType(final Put<String, Class<?>> output) {
+    public final void exportTableOrDictionaryType(final ImmutableMap.Builder<String, Class<?>> output) {
         for (final Object templateFragment : getParsingTemplate())
             if (templateFragment instanceof TableColumnParsingRule) {
                 final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;

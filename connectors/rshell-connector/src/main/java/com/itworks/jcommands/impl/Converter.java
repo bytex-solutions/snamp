@@ -1,12 +1,12 @@
 package com.itworks.jcommands.impl;
 
-import org.apache.commons.collections4.Transformer;
+import com.google.common.base.Function;
 
 /**
 * @author Roman Sakno
 * @version 1.0
 * @since 1.0
 */
-interface Converter<T> extends Transformer<String, T> {
+interface Converter<T> extends Function<String, T> {
 
 }

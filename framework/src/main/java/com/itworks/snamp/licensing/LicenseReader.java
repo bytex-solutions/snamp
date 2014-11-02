@@ -1,7 +1,7 @@
 package com.itworks.snamp.licensing;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.core.FrameworkService;
-import org.apache.commons.collections4.Factory;
 
 /**
  * Represents OSGi service that allows to restrict functionality of another SNAMP services.
@@ -32,5 +32,5 @@ public interface LicenseReader extends FrameworkService {
      * @param <T> Type of the license limitations descriptor.
      * @return A new instance of the license limitations.
      */
-     <T extends LicenseLimitations> T getLimitations(final Class<T> limitationsDescriptor, final Factory<T> fallback);
+     <T extends LicenseLimitations> T getLimitations(final Class<T> limitationsDescriptor, final Supplier<T> fallback);
 }

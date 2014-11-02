@@ -1,18 +1,16 @@
 package com.itworks.snamp.adapters.ssh;
 
-import com.itworks.snamp.SimpleTable;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.MapMaker;
+import com.itworks.snamp.InMemoryTable;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.Transformer;
-import org.apache.commons.collections4.map.AbstractReferenceMap;
-import org.apache.commons.collections4.map.ReferenceMap;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
@@ -47,8 +45,11 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class SshNotificationsModel extends AbstractNotificationsModel<SshNotificationView>{
         private final AtomicLong idCounter = new AtomicLong(0L);
-        private final Map<Long, NotificationListener> listeners = new ReferenceMap<>(AbstractReferenceMap.ReferenceStrength.HARD,
-                AbstractReferenceMap.ReferenceStrength.WEAK);
+        private final Map<Long, NotificationListener> listeners;
+
+        private SshNotificationsModel() {
+            listeners = new MapMaker().weakValues().initialCapacity(10).makeMap();
+        }
 
         /**
          * Creates a new notification metadata representation.
@@ -132,7 +133,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         protected SshAttributeView createAttributeView(final String resourceName, final String userDefinedAttributeName, final AttributeAccessor accessor) {
             return new SshAttributeView() {
                 private void printValue(final Object[] value, final PrintWriter output){
-                    output.println(String.format("ARRAY = %s", ArrayUtils.toString(value)));
+                    output.println(String.format("ARRAY = %s", Arrays.toString(value)));
                 }
 
                 private void printValue(final Map<String, Object> value, final PrintWriter output){
@@ -143,14 +144,14 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
                 private String joinString(Collection<?> values,
                                                final String format,
-                                               final String separator){
-                    values = CollectionUtils.collect(values, new Transformer<Object, String>() {
+                                               final String separator) {
+                    Collections2.transform(values, new Function<Object, String>() {
                         @Override
-                        public String transform(final Object input) {
+                        public final String apply(final Object input) {
                             return String.format(format, input);
                         }
                     });
-                    return StringUtils.join(values, separator);
+                    return Joiner.on(separator).join(values);
                 }
 
                 private void printValue(final Table<String> value,
@@ -159,14 +160,14 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                     output.println("TABLE");
                     output.println();
                     if(columnBasedView){
-                        final List<String> columns = SimpleTable.getOrderedColumns(value);
+                        final List<String> columns = InMemoryTable.getOrderedColumns(value);
                         final String COLUMN_SEPARATOR = "\t";
                         final String ITEM_FORMAT = "%-10s";
                         //print columns first
                         output.println(joinString(columns, ITEM_FORMAT, COLUMN_SEPARATOR));
                         //print rows
                         for(int row = 0; row < value.getRowCount(); row++){
-                            output.println(joinString(SimpleTable.getRow(value, columns, row), ITEM_FORMAT, COLUMN_SEPARATOR));
+                            output.println(joinString(InMemoryTable.getRow(value, columns, row), ITEM_FORMAT, COLUMN_SEPARATOR));
                         }
 
                     }

@@ -1,8 +1,7 @@
 package com.itworks.snamp.adapters.jmx;
 
+import com.google.common.eventbus.Subscribe;
 import com.itworks.snamp.management.jmx.OpenMBeanProvider;
-import net.engio.mbassy.listener.Handler;
-import net.engio.mbassy.listener.Listener;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -19,8 +18,7 @@ import java.util.logging.Level;
  * @version 1.0
  * @since 1.0
  */
-@Listener
-final class ProxyMBean extends NotificationBroadcasterSupport implements DynamicMBean {
+final class ProxyMBean extends NotificationBroadcasterSupport implements DynamicMBean, JmxNotificationHandler {
     private final Map<String, JmxAttributeMapping> attributes;
     private final Map<String, JmxNotificationMapping> notifications;
     private final String resourceName;
@@ -45,9 +43,8 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
         if(registration != null) registration.unregister();
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    @Handler
-    public void sendNotification(final JmxNotification notification) {
+    @Subscribe
+    public void processNotification(final JmxNotification notification) {
         if (Objects.equals(notification.getSource(), resourceName))
             super.sendNotification(notification.toWellKnownNotification(this, sequenceCounter.getAndIncrement()));
     }

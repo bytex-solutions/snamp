@@ -1,12 +1,11 @@
 package com.itworks.snamp.connectors.attributes;
 
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
-import org.apache.commons.lang3.reflect.TypeUtils;
-import org.apache.commons.lang3.reflect.Typed;
 
 /**
  * Represents utility class that represents raw attribute value and its type.
@@ -46,9 +45,9 @@ public final class AttributeValue<T extends ManagedEntityType> {
      * @return {@literal true}, if conversion to the specified type is supported.
      */
     @ThreadSafe
-    public final <G> boolean canConvertTo(final Typed<G> target) {
+    public final <G> boolean canConvertTo(final TypeToken<G> target) {
         return target != null &&
-                (TypeUtils.isInstance(rawValue, target.getType()) || type.getProjection(target) != null);
+                (TypeLiterals.isInstance(rawValue, target) || type.getProjection(target) != null);
     }
 
     /**
@@ -60,9 +59,9 @@ public final class AttributeValue<T extends ManagedEntityType> {
      * @throws IllegalArgumentException The target type is not supported.
      */
     @ThreadSafe
-    public final <G> G convertTo(final Typed<G> target) throws IllegalArgumentException {
+    public final <G> G convertTo(final TypeToken<G> target) throws IllegalArgumentException {
         if(target == null) throw new IllegalArgumentException("target is null.");
-        else if(TypeUtils.isInstance(rawValue, target.getType())) return TypeLiterals.cast(rawValue, target);
+        else if(TypeLiterals.isInstance(rawValue, target)) return TypeLiterals.cast(rawValue, target);
         else {
             final TypeConverter<G> converter = type.getProjection(target);
             if(converter == null) throw new IllegalArgumentException(String.format("Type %s is not supported", target));

@@ -1,9 +1,8 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.TypeLiterals;
-import org.apache.commons.lang3.reflect.TypeUtils;
-import org.apache.commons.lang3.reflect.Typed;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,8 +29,8 @@ public final class ManagedEntityTypeHelper {
      * @return {@literal true}, if the specified management entity supports all of the specified projections; otherwise, {@literal false}.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public static boolean supportsAllProjections(final ManagedEntityType entityType, final Typed<?>... projections){
-        for(final Typed<?> p: projections)
+    public static boolean supportsAllProjections(final ManagedEntityType entityType, final TypeToken<?>... projections){
+        for(final TypeToken<?> p: projections)
             if(!supportsProjection(entityType, p)) return false;
         return true;
     }
@@ -43,8 +42,8 @@ public final class ManagedEntityTypeHelper {
      * @return {@literal true}, if the specified management entity supports one of the specified projections; otherwise, {@literal false}.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public static boolean supportsAnyProjection(final ManagedEntityType entityType, final Typed<?>... projections){
-        for(final Typed<?> p: projections)
+    public static boolean supportsAnyProjection(final ManagedEntityType entityType, final TypeToken<?>... projections){
+        for(final TypeToken<?> p: projections)
             if(supportsProjection(entityType, p)) return true;
         return false;
     }
@@ -55,7 +54,7 @@ public final class ManagedEntityTypeHelper {
      * @param projection A projection to check.
      * @return {@literal true}, if the specified projection is supported; otherwise, {@literal false}.
      */
-    public static boolean supportsProjection(final ManagedEntityType entityType, final Typed<?> projection){
+    public static boolean supportsProjection(final ManagedEntityType entityType, final TypeToken<?> projection){
         return entityType != null && projection != null && entityType.getProjection(projection) != null;
     }
 
@@ -68,9 +67,9 @@ public final class ManagedEntityTypeHelper {
      * @return Well-known representation of the management entity value.
      * @throws IllegalArgumentException {@code entityType} is {@literal null}; or the specified conversion is not supported.
      */
-    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final Typed<T> nativeType) throws IllegalArgumentException{
+    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final TypeToken<T> nativeType) throws IllegalArgumentException{
         if(entityType == null) throw new IllegalArgumentException("entityType is null.");
-        else if(TypeUtils.isInstance(value, nativeType.getType())) return TypeLiterals.cast(value, nativeType);
+        else if(TypeLiterals.isInstance(value, nativeType)) return TypeLiterals.cast(value, nativeType);
         final TypeConverter<T> converter = entityType.getProjection(nativeType);
         if(converter == null) throw new IllegalArgumentException(String.format("Projection %s is not supported of management entity %s", nativeType, entityType));
         return converter.convertFrom(value);
@@ -103,11 +102,11 @@ public final class ManagedEntityTypeHelper {
      */
     @SuppressWarnings("unchecked")
     @SafeVarargs
-    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final Typed<T> baseType, final ConversionFallback<T> fallback, final Typed<? extends T>... projections){
+    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final TypeToken<T> baseType, final ConversionFallback<T> fallback, final TypeToken<? extends T>... projections){
         if(entityType == null) throw new IllegalArgumentException("entityType is null.");
         else if(projections == null || projections.length == 0) return convertFrom(entityType, value, baseType);
-        else for(final Typed<? extends T> proj: projections)
-            if(TypeUtils.isInstance(value, proj.getType())) return (T)value;
+        else for(final TypeToken<? extends T> proj: projections)
+            if(TypeLiterals.isInstance(value, proj)) return (T)value;
             else {
                 final TypeConverter<? extends T> converter = entityType.getProjection(proj);
                 if(converter != null) return converter.convertFrom(value);
@@ -127,7 +126,7 @@ public final class ManagedEntityTypeHelper {
      */
     @SuppressWarnings("UnusedDeclaration")
     @SafeVarargs
-    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final Typed<T> baseType, final Typed<? extends T>... projections) throws IllegalArgumentException{
+    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final TypeToken<T> baseType, final TypeToken<? extends T>... projections) throws IllegalArgumentException{
         return convertFrom(entityType, value, baseType, new ConversionFallback<T>() {
             @Override
             public T call() {
@@ -148,7 +147,7 @@ public final class ManagedEntityTypeHelper {
      */
     @SuppressWarnings("UnusedDeclaration")
     @SafeVarargs
-    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final T defaultValue, final Typed<T> baseType, final Typed<? extends T>... projections){
+    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final T defaultValue, final TypeToken<T> baseType, final TypeToken<? extends T>... projections){
         return convertFrom(entityType, value, baseType, new ConversionFallback<T>() {
             @Override
             public T call() {

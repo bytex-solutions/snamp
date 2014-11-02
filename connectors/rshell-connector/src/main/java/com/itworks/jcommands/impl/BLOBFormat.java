@@ -1,6 +1,7 @@
 package com.itworks.jcommands.impl;
 
-import org.apache.commons.lang3.ArrayUtils;
+
+import com.itworks.snamp.ArrayUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.annotation.XmlEnum;
@@ -24,7 +25,8 @@ public enum BLOBFormat implements Converter<Byte[]> {
 
         @Override
         public Byte[] parse(final String input) {
-            return ArrayUtils.toObject(DatatypeConverter.parseHexBinary(input));
+
+            return ArrayUtils.boxArray(DatatypeConverter.parseHexBinary(input));
         }
     },
 
@@ -35,7 +37,7 @@ public enum BLOBFormat implements Converter<Byte[]> {
     BASE64 {
         @Override
         public Byte[] parse(final String input) {
-            return ArrayUtils.toObject(DatatypeConverter.parseBase64Binary(input));
+            return ArrayUtils.boxArray(DatatypeConverter.parseBase64Binary(input));
         }
     };
 
@@ -54,7 +56,7 @@ public enum BLOBFormat implements Converter<Byte[]> {
      * @return An array of bytes that represents the BLOB.
      */
     @Override
-    public final Byte[] transform(final String input) {
+    public final Byte[] apply(final String input) {
         return parse(input);
     }
 }

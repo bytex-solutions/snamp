@@ -3,7 +3,6 @@ package com.itworks.snamp.internal;
 import com.itworks.snamp.WriteOnceRef;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
-import org.apache.commons.collections4.Factory;
 
 /**
  * Represents object state flag that can be aggregated inside of stateful objects.
@@ -12,13 +11,19 @@ import org.apache.commons.collections4.Factory;
  * @since 1.0
  */
 @Internal
-public abstract class IllegalStateFlag extends WriteOnceRef<Boolean> implements Factory<IllegalStateException> {
+public abstract class IllegalStateFlag extends WriteOnceRef<Boolean> {
     /**
      * Initializes a new state flag initially set to {@literal false}.
      */
     protected IllegalStateFlag(){
         super(false);
     }
+
+    /**
+     * Creates a new exception that indicates invalid object state.
+     * @return A new exception that indicates invalid object state.
+     */
+    protected abstract IllegalStateException create();
 
     /**
      * Verifies that this state is legal.

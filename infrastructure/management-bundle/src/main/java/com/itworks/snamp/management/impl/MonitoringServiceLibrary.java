@@ -1,5 +1,6 @@
 package com.itworks.snamp.management.impl;
 
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
 import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.internal.Utils;
@@ -7,7 +8,6 @@ import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.management.SnampManager;
 import com.itworks.snamp.management.jmx.FrameworkMBean;
 import com.itworks.snamp.management.jmx.OpenMBeanProvider;
-import org.apache.commons.collections4.Closure;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
@@ -141,14 +141,14 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
                 Utils.processExposedService(getClass(),
                         FrameworkMBean.class,
                         String.format("(%s=%s)", SnampCoreMBean.OBJECT_NAME_IDENTITY_PROPERTY, SnampCoreMBean.OBJECT_NAME),
-                        new Closure<FrameworkMBean>() {
+                        new SafeConsumer<FrameworkMBean>() {
                             @Override
-                            public void execute(final FrameworkMBean input) {
+                            public void accept(final FrameworkMBean input) {
                                 input.queryObject(LogListener.class).logged(entry);
                             }
                         });
             }
-            catch (final InvalidSyntaxException e) {
+            catch (final Exception e) {
                 MonitoringUtils.getLogger().log(Level.SEVERE,
                         "Invalid filter for selecting SnampCoreMBean. Call for SNAMP developers.",
                         e);

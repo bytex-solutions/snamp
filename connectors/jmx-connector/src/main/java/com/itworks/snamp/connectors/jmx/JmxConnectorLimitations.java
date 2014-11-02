@@ -1,10 +1,10 @@
 package com.itworks.snamp.connectors.jmx;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
 import com.itworks.snamp.licensing.FrameworkServiceLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingException;
-import org.apache.commons.collections4.Factory;
 import org.osgi.framework.Version;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -40,9 +40,9 @@ public final class JmxConnectorLimitations extends AbstractLicenseLimitations im
         this.maxVersion = ConnectorVersionAdapter.createLimitation(pluginVersion);
     }
 
-    static final Factory<JmxConnectorLimitations> fallbackFactory = new Factory<JmxConnectorLimitations>() {
+    static final Supplier<JmxConnectorLimitations> fallbackFactory = new Supplier<JmxConnectorLimitations>() {
         @Override
-        public JmxConnectorLimitations create() {
+        public JmxConnectorLimitations get() {
             return new JmxConnectorLimitations();
         }
     };

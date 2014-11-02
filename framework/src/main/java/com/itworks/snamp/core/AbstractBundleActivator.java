@@ -1,11 +1,11 @@
 package com.itworks.snamp.core;
 
+import com.google.common.base.Predicate;
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.Attribute;
 import com.itworks.snamp.AttributeReader;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.internal.annotations.MethodStub;
-import org.apache.commons.collections4.Predicate;
-import org.apache.commons.lang3.reflect.Typed;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -34,7 +34,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
          * @return The type of the attribute value.
          */
         @Override
-        Typed<T> getType();
+        TypeToken<T> getType();
 
         /**
          * Gets default value of this property.
@@ -170,7 +170,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
             for(final ActivationProperty<?> prop: keySet())
                 if(propertyType.isInstance(prop)){
                     final P candidate = propertyType.cast(prop);
-                    if(filter.evaluate(candidate)) return candidate;
+                    if(filter.apply(candidate)) return candidate;
                 }
             return null;
         }
@@ -469,7 +469,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @return Activation property definition.
      */
     protected static <T> ActivationProperty<T> defineActivationProperty(final Class<T> propertyType, final T defaultValue) {
-        return defineActivationProperty(TypeLiterals.of(propertyType), defaultValue);
+        return defineActivationProperty(TypeToken.of(propertyType), defaultValue);
     }
 
     /**
@@ -479,10 +479,10 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @param <T> Type of the property.
      * @return Activation property definition.
      */
-    protected static <T> ActivationProperty<T> defineActivationProperty(final Typed<T> propertyType, final T defaultValue){
+    protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType, final T defaultValue){
         return new ActivationProperty<T>() {
             @Override
-            public Typed<T> getType() {
+            public TypeToken<T> getType() {
                 return propertyType;
             }
 
@@ -500,7 +500,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @return Activation property definition.
      */
     protected static <T> ActivationProperty<T> defineActivationProperty(final Class<T> propertyType){
-        return defineActivationProperty(TypeLiterals.of(propertyType));
+        return defineActivationProperty(TypeToken.of(propertyType));
     }
 
     /**
@@ -509,7 +509,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @param <T> The type of the property.
      * @return Activation property definition.
      */
-    protected static <T> ActivationProperty<T> defineActivationProperty(final Typed<T> propertyType){
+    protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType){
         return defineActivationProperty(propertyType, null);
     }
 
@@ -523,7 +523,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      */
     protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType, final T defaultValue){
         return new NamedActivationProperty<T>() {
-            private final Typed<T> pType = TypeLiterals.of(propertyType);
+            private final TypeToken<T> pType = TypeToken.of(propertyType);
 
             @Override
             public String getName() {
@@ -531,7 +531,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
             }
 
             @Override
-            public Typed<T> getType() {
+            public TypeToken<T> getType() {
                 return pType;
             }
 

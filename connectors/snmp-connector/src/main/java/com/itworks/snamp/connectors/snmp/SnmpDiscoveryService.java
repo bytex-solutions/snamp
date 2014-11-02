@@ -1,13 +1,13 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
 import com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration.InMemoryAttributeConfiguration;
 import com.itworks.snamp.connectors.DiscoveryService;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.Transformer;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 import org.snmp4j.smi.VariableBinding;
@@ -42,9 +42,9 @@ final class SnmpDiscoveryService extends AbstractAggregator implements Discovery
         final SnmpConnectionOptions connection = new SnmpConnectionOptions(connectionString, options);
         try(final SnmpClient client = connection.createSnmpClient()){
             client.listen();
-            return CollectionUtils.collect(client.walk(getDiscoveryTimeout()), new Transformer<VariableBinding, AttributeConfiguration>() {
+            return Collections2.transform(client.walk(getDiscoveryTimeout()), new Function<VariableBinding, AttributeConfiguration>() {
                 @Override
-                public AttributeConfiguration transform(final VariableBinding input) {
+                public AttributeConfiguration apply(final VariableBinding input) {
                     final InMemoryAttributeConfiguration config = new InMemoryAttributeConfiguration();
                     config.setAttributeName(input.getOid().toDottedString());
                     setupAttributeOptions(input.getVariable(), config.getParameters());

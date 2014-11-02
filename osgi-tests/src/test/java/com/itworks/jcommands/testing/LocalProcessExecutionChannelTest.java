@@ -6,8 +6,8 @@ import com.itworks.jcommands.channels.CommandExecutionChannels;
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.testing.AbstractUnitTest;
-import org.apache.commons.lang3.SystemUtils;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -49,7 +49,7 @@ public class LocalProcessExecutionChannelTest extends AbstractUnitTest<CommandEx
 
     @Test
     public void freeMemTest() throws IOException, ScriptException {
-        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
+        Assume.assumeTrue(Utils.IS_OS_LINUX);
         final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
         template.setCommandTemplate("free {format}");
         template.getCommandOutputParser().setParsingLanguage(XmlParserDefinition.REGEXP_LANG);

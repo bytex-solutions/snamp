@@ -1,5 +1,7 @@
 package com.itworks.snamp;
 
+import com.google.common.base.Function;
+
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.*;
 
@@ -28,8 +30,8 @@ public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadW
      * @return The resource processing result.
      */
     @Override
-    public <RESULT> RESULT handle(final WrappedObjectHandler<R, RESULT> handler){
-        return handler != null ? handler.invoke(getResource()) : null;
+    public <RESULT> RESULT handle(final Function<R, RESULT> handler){
+        return handler != null ? handler.apply(getResource()) : null;
     }
 
     /**
@@ -60,7 +62,7 @@ public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadW
      * @param <R> Type of the resource to handle.
      * @param <V> Type of the resource handling.
      */
-    public static interface ConsistentAction<R, V> extends Action<R, V, Exception> {
+    public static interface ConsistentAction<R, V> extends Action<R, V, ExceptionPlaceholder> {
         /**
          * Handles the resource.
          * @param resource The resource to handle.
@@ -80,15 +82,7 @@ public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadW
      * @return The value obtained from the resource.
      */
     public final <V> V read(final ConsistentAction<R, V> reader){
-        if(reader == null) return null;
-        final Lock rl = readLock();
-        rl.lock();
-        try{
-            return reader.invoke(getResource());
-        }
-        finally {
-            rl.unlock();
-        }
+        return read((Action<R, V, ExceptionPlaceholder>)reader);
     }
 
     /**
@@ -103,22 +97,7 @@ public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadW
      * @throws java.util.concurrent.TimeoutException Read lock cannot be acquired in the specified time.
      */
     public final <V> V read(final ConsistentAction<R, V> reader, final TimeSpan readTimeout) throws TimeoutException{
-        if(reader == null) return null;
-        final Lock rl = readLock();
-        if(readTimeout == TimeSpan.INFINITE) rl.lock();
-        else try {
-            if(!rl.tryLock(readTimeout.duration, readTimeout.unit))
-                throw new TimeoutException(String.format("Read operation cannot be completed in %s time.", readTimeout));
-        }
-        catch (final InterruptedException e) {
-            throw new TimeoutException(e.getMessage());
-        }
-        try{
-            return reader.invoke(getResource());
-        }
-        finally {
-            rl.unlock();
-        }
+        return read((Action<R, V, ExceptionPlaceholder>)reader, readTimeout);
     }
 
     /**
@@ -185,15 +164,7 @@ public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadW
      * @return The value obtained from the resource.
      */
     public final <O> O write(final ConsistentAction<R, O> writer){
-        if(writer == null) return null;
-        final Lock wl = writeLock();
-        wl.lock();
-        try{
-            return writer.invoke(getResource());
-        }
-        finally {
-            wl.unlock();
-        }
+        return write((Action<R, O, ExceptionPlaceholder>)writer);
     }
 
     /**
@@ -207,22 +178,7 @@ public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadW
      * @throws java.util.concurrent.TimeoutException Write lock cannot be acquired in the specified time.
      */
     public final <O> O write(final ConsistentAction<R, O> writer, final TimeSpan writeTimeout) throws TimeoutException{
-        if(writer == null) return null;
-        final Lock wl = writeLock();
-        if(writeTimeout == TimeSpan.INFINITE) wl.lock();
-        else try {
-            if(!wl.tryLock(writeTimeout.duration, writeTimeout.unit))
-                throw new TimeoutException(String.format("Write operation cannot be completed in %s time.", writeTimeout));
-        }
-        catch (final InterruptedException e) {
-            throw new TimeoutException(e.getMessage());
-        }
-        try{
-            return writer.invoke(getResource());
-        }
-        finally {
-            wl.unlock();
-        }
+        return write((Action<R, O, ExceptionPlaceholder>)writer, writeTimeout);
     }
 
     /**

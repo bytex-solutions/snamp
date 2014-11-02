@@ -3,7 +3,6 @@ package com.itworks.snamp.connectors.snmp;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.internal.CountdownTimer;
-import org.apache.commons.collections4.collection.CompositeCollection;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
@@ -49,8 +48,12 @@ abstract class SnmpClient extends Snmp implements Closeable {
         private final Collection<VariableBinding> bindings;
 
         public SnmpTreeListener(){
+            this(new ArrayList<VariableBinding>(10));
+        }
+
+        public SnmpTreeListener(final Collection<VariableBinding> bindings){
             super(false);
-            bindings = new ArrayList<>(10);
+            this.bindings = Objects.requireNonNull(bindings);
         }
 
         /**
@@ -255,18 +258,18 @@ abstract class SnmpClient extends Snmp implements Closeable {
             throw new IOException(String.format("Unable to set %s variables. Status is %s(%s).", Arrays.toString(variables), response.getResponse().getErrorStatusText(), response.getResponse().getErrorStatus()));
     }
 
-    public final Collection<VariableBinding> walk(final OID root, final TimeSpan timeout) throws TimeoutException, InterruptedException {
+    public final void walk(final OID root, final TimeSpan timeout, final Collection<VariableBinding> output) throws TimeoutException, InterruptedException {
         final TreeUtils tree = new TreeUtils(this, new DefaultPDUFactory());
-        final SnmpTreeListener listener = new SnmpTreeListener();
+        final SnmpTreeListener listener = new SnmpTreeListener(output);
         tree.walk(createTarget(timeout), new OID[]{root}, null, listener);
-        return listener.getAwaitor().await(timeout);
+        listener.getAwaitor().await(timeout);
     }
 
-    public final Iterable<VariableBinding> walk(final TimeSpan timeout) throws TimeoutException, InterruptedException {
-        final CompositeCollection<VariableBinding> result = new CompositeCollection<>();
+    public final Collection<VariableBinding> walk(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+        final Collection<VariableBinding> result = new ArrayList<>(20);
         final CountdownTimer timer = CountdownTimer.start(timeout);
         for(int i = 1; i <= 10; i++) {
-            result.addComposited(walk(new OID(new int[]{i}), timer.stopAndGetElapsedTime()));
+            walk(new OID(new int[]{i}), timer.stopAndGetElapsedTime(), result);
             if(!timer.start()) throw new TimeoutException(String.format("Not enough time to collect all variables. Loop stopped at %s iteration.", i));
         }
         return result;

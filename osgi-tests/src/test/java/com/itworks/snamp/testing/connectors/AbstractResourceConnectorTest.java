@@ -1,18 +1,18 @@
 package com.itworks.snamp.testing.connectors;
 
-import com.itworks.snamp.connectors.ManagedResourceConnector;
-import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
-import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
+import com.google.common.base.Supplier;
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.itworks.snamp.connectors.ManagedResourceConnector;
+import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import org.apache.commons.collections4.Factory;
-import org.apache.commons.lang3.reflect.Typed;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
+import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -24,7 +24,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.connectors.AbstractManagedResourceActivator.*;
+import static com.itworks.snamp.connectors.AbstractManagedResourceActivator.startResourceConnector;
+import static com.itworks.snamp.connectors.AbstractManagedResourceActivator.stopResourceConnector;
 
 /**
  * Represents an abstract class for all integration tests that checks management connectors.
@@ -113,12 +114,12 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     }
 
     @SuppressWarnings("UnusedParameters")
-    protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Factory<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributeFactory){
+    protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory){
 
     }
 
     @SuppressWarnings("UnusedParameters")
-    protected void fillEvents(final Map<String, AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events, final Factory<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> eventFactory){
+    protected void fillEvents(final Map<String, AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events, final Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> eventFactory){
 
     }
 
@@ -129,7 +130,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         startResourceConnector(context, connectorType);
     }
 
-    protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Factory<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory){
+    protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Supplier<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory){
 
     }
 
@@ -143,23 +144,23 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         final AgentConfiguration.ManagedResourceConfiguration targetConfig =
                 config.newConfigurationEntity(AgentConfiguration.ManagedResourceConfiguration.class);
         targetConfig.getParameters().putAll(connectorParameters);
-        fillAdapters(config.getResourceAdapters(), new Factory<AgentConfiguration.ResourceAdapterConfiguration>() {
+        fillAdapters(config.getResourceAdapters(), new Supplier<AgentConfiguration.ResourceAdapterConfiguration>() {
             @Override
-            public AgentConfiguration.ResourceAdapterConfiguration create() {
+            public AgentConfiguration.ResourceAdapterConfiguration get() {
                 return config.newConfigurationEntity(AgentConfiguration.ResourceAdapterConfiguration.class);
             }
         });
         targetConfig.setConnectionString(connectionString);
         targetConfig.setConnectionType(connectorType);
-        fillAttributes(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class), new Factory<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration>() {
+        fillAttributes(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration>() {
             @Override
-            public AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration create() {
+            public AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration get() {
                 return targetConfig.newElement(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class);
             }
         });
-        fillEvents(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class), new Factory<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration>() {
+        fillEvents(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration>() {
             @Override
-            public AgentConfiguration.ManagedResourceConfiguration.EventConfiguration create() {
+            public AgentConfiguration.ManagedResourceConfiguration.EventConfiguration get() {
                 return targetConfig.newElement(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
             }
         });
@@ -168,7 +169,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected final <T> void testAttribute(final String attributeID,
                                            final String attributeName,
-                                           final Typed<T> attributeType,
+                                           final TypeToken<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final Map<String, String> attributeOptions,
@@ -193,7 +194,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     }
 
     protected final <T> void testAttribute(final String attributeName,
-                                           final Typed<T> attributeType,
+                                           final TypeToken<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final Map<String, String> attributeOptions,
@@ -203,7 +204,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected final <T> void testAttribute(final String attributeID,
                                            final String attributeName,
-                                           final Typed<T> attributeType,
+                                           final TypeToken<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
@@ -216,7 +217,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected final <T> void testAttribute(final String attributeID,
                                            final String attributeName,
-                                           final Typed<T> attributeType,
+                                           final TypeToken<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, comparator, false);
@@ -224,14 +225,14 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected final <T> void testAttribute(final String attributeID,
                                        final String attributeName,
-                                       final Typed<T> attributeType,
+                                       final TypeToken<T> attributeType,
                                        final T attributeValue) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, false);
     }
 
     protected final <T> void testAttribute(final String attributeID,
                                            final String attributeName,
-                                           final Typed<T> attributeType,
+                                           final TypeToken<T> attributeType,
                                            final T attributeValue,
                                            final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, AbstractResourceConnectorTest.<T>valueEquator(), readOnlyTest);

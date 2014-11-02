@@ -1,18 +1,17 @@
 package com.itworks.snamp.adapters.rest;
 
+import com.google.common.base.Supplier;
+import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.itworks.snamp.Box;
+import com.itworks.snamp.EventBusManager;
 import com.itworks.snamp.adapters.AbstractConcurrentResourceAdapter;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.configuration.ThreadPoolConfig;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.internal.Utils;
-import net.engio.mbassy.bus.MBassador;
-import net.engio.mbassy.bus.common.PubSubSupport;
-import net.engio.mbassy.bus.config.BusConfiguration;
-import org.apache.commons.lang3.builder.Builder;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.eclipse.jetty.jaas.JAASLoginService;
 import org.eclipse.jetty.jaas.JAASRole;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -35,8 +34,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.apache.commons.lang3.ArrayUtils.toArray;
-
 /**
  * Represents HTTP adapter that exposes management information through HTTP and WebSocket to the outside world.
  * This class cannot be inherited.
@@ -47,15 +44,15 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
 
     private static final class HttpNotifications extends AbstractNotificationsModel<HttpNotificationMapping> implements EventHandler, HttpNotificationsModel, AutoCloseable{
         private final Gson jsonFormatter;
-        private final MBassador<JsonNotification> notificationBus;
+        private final EventBus notificationBus;
 
         public HttpNotifications(final Gson jsonFormatter){
             this.jsonFormatter = jsonFormatter;
-            this.notificationBus = new MBassador<>(BusConfiguration.Default());
+            this.notificationBus = new EventBus();
         }
 
-        public PubSubSupport<JsonNotification> getNotificationEmitter(){
-            return notificationBus;
+        public EventBusManager.SubscriptionManager<JsonNotificationListener> getNotificationEmitter(){
+            return EventBusManager.getSubscriptionManager(notificationBus);
         }
 
         /**
@@ -79,7 +76,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
          */
         @Override
         protected void handleNotification(final String sender, final Notification notif, final HttpNotificationMapping notificationMetadata) {
-            notificationBus.publishAsync(new JsonNotification(notif, notificationMetadata.getCategory()));
+            notificationBus.post(new JsonNotification(notif, notificationMetadata.getCategory()));
         }
 
         @Override
@@ -94,7 +91,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
 
         @Override
         public void close() {
-            notificationBus.shutdown();
+
         }
     }
 
@@ -144,7 +141,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
         }
     }
 
-    private static final class JettyServerBuilder implements Builder<Server>{
+    private static final class JettyServerBuilder implements Supplier<Server> {
         private int port;
         private String host;
         private ExecutorService threadPool;
@@ -178,7 +175,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
         }
 
         @Override
-        public Server build() {
+        public Server get() {
             final Server result = new Server(new ExecutorThreadPool(threadPool));
             //remove all connectors.
             removeConnectors(result);
@@ -186,7 +183,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
             final ServerConnector connector = new ServerConnector(result);
             connector.setPort(port);
             connector.setHost(host);
-            result.setConnectors(toArray(connector));
+            result.setConnectors(new Connector[]{connector});
             return result;
         }
     }
@@ -227,7 +224,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
         final JAASLoginService loginService = RestAdapterHelpers.createJaasLoginServiceForOsgi(callerClass.getClassLoader());
         loginService.setLoginModuleName(loginModuleName);
         loginService.setName(REALM_NAME);
-        loginService.setRoleClassNames(toArray(JAASRole.class.getName()));
+        loginService.setRoleClassNames(new String[]{JAASRole.class.getName()});
         return loginService;
     }
 
@@ -239,7 +236,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
     @Override
     protected boolean start(final ExecutorService threadPool) {
         serverFactory.setThreadPool(threadPool);
-        jettyServer = serverFactory.build();
+        jettyServer = serverFactory.get();
         final ServletContextHandler resourcesHandler = new ServletContextHandler(ServletContextHandler.SECURITY);
         resourcesHandler.setContextPath("/snamp/managedResource");
         //security
@@ -250,14 +247,14 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
             final Constraint constraint = new Constraint();
             constraint.setAuthenticate(true);
             constraint.setName("restadapterauth");
-            constraint.setRoles(toArray(RestAdapterHelpers.MAINTAINER_ROLE, RestAdapterHelpers.MONITOR_ROLE));
+            constraint.setRoles(new String[]{RestAdapterHelpers.MAINTAINER_ROLE, RestAdapterHelpers.MONITOR_ROLE});
             security.setRealmName(REALM_NAME);
             security.addRole(RestAdapterHelpers.MAINTAINER_ROLE);
             security.addRole(RestAdapterHelpers.MONITOR_ROLE);
             final ConstraintMapping cmapping = new ConstraintMapping();
             cmapping.setPathSpec("/attributes/*");
             cmapping.setConstraint(constraint);
-            security.setConstraintMappings(toArray(cmapping));
+            security.setConstraintMappings(new ConstraintMapping[]{cmapping});
             security.setLoginService(createLoginService(loginModuleName, getClass()));
             security.setAuthenticator(new DigestAuthenticator());
             resourcesHandler.setSecurityHandler(security);
@@ -274,20 +271,20 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
         jettyServer.setHandler(resourcesHandler);
         populateModel(attributes);
         populateModel(notifications);
-        final MutableBoolean result = new MutableBoolean(false);
+        final Box<Boolean> result = new Box<>(false);
         Utils.withContextClassLoader(getClass().getClassLoader(),  new Runnable() {
             @Override
             public void run() {
                 try {
                     jettyServer.start();
-                    result.setValue(true);
+                    result.set(true);
                 }
                 catch (final Exception e) {
                     failedToStartAdapter(Level.SEVERE, e);
                 }
             }
         });
-        return result.getValue();
+        return result.get();
     }
 
     /**

@@ -1,6 +1,6 @@
 package com.itworks.snamp;
 
-import org.apache.commons.lang3.reflect.Typed;
+import com.google.common.reflect.TypeToken;
 
 /**
  * Represents typed attribute that can be used to store and retrieve typed data
@@ -14,7 +14,7 @@ public interface Attribute<T> {
      * Gets type of the attribute value.
      * @return The type of the attribute value.
      */
-    Typed<T> getType();
+    TypeToken<T> getType();
 
     /**
      * Gets default value of the attribute.

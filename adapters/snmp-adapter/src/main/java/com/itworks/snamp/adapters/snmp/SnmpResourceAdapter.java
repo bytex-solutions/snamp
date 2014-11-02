@@ -1,12 +1,12 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.google.common.base.Supplier;
+import com.google.common.eventbus.EventBus;
 import com.itworks.snamp.adapters.AbstractConcurrentResourceAdapter;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
-import net.engio.mbassy.bus.MBassador;
-import net.engio.mbassy.bus.config.BusConfiguration;
-import org.apache.commons.collections4.Factory;
+import com.itworks.snamp.internal.annotations.MethodStub;
 import org.osgi.service.event.EventHandler;
 import org.snmp4j.agent.mo.snmp.TransportDomains;
 import org.snmp4j.smi.OID;
@@ -92,18 +92,18 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
     }
 
     private static final class SnmpNotificationsModel extends AbstractNotificationsModel<SnmpNotificationMapping> implements EventHandler, AutoCloseable{
-        private final MBassador<SnmpNotification> notificationBus;
+        private final EventBus notificationBus;
 
         public SnmpNotificationsModel(){
-            notificationBus = new MBassador<>(BusConfiguration.Default());
+            notificationBus = new EventBus();
         }
 
-        public void subscribe(final Object listener){
-            notificationBus.subscribe(listener);
+        public void subscribe(final SnmpNoitificationListener listener){
+            notificationBus.register(listener);
         }
 
-        public void unsubscribe(final Object listener){
-            notificationBus.unsubscribe(listener);
+        public void unsubscribe(final SnmpNoitificationListener listener){
+            notificationBus.unregister(listener);
         }
 
         /**
@@ -138,12 +138,13 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
                     notif,
                     notificationMetadata.getMetadata().getCategory(),
                     notificationMetadata.getTimestampFormatter());
-            notificationBus.post(wrappedNotification).asynchronously();
+            notificationBus.post(wrappedNotification);
         }
 
         @Override
+        @MethodStub
         public void close() {
-            notificationBus.shutdown();
+
         }
     }
 
@@ -190,7 +191,7 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
                                   final String hostName,
                                   final SecurityConfiguration securityOptions,
                                   final int socketTimeout,
-                                  final Factory<ExecutorService> threadPoolFactory,
+                                  final Supplier<ExecutorService> threadPoolFactory,
                                   final Map<String, ManagedResourceConfiguration> resources) throws IOException {
         super(threadPoolFactory, resources);
         agent = new SnmpAgent(port, hostName, securityOptions, socketTimeout);

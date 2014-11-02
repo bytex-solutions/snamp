@@ -1,9 +1,8 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.TypeLiterals;
-import org.apache.commons.lang3.reflect.TypeUtils;
-import org.apache.commons.lang3.reflect.Typed;
 import org.snmp4j.smi.Variable;
 
 /**
@@ -15,10 +14,10 @@ import org.snmp4j.smi.Variable;
  * @since 1.0
  */
 abstract class SMITypeProjection<V extends Variable, J> implements TypeConverter<J> {
-    private final Typed<J> javaType;
-    private final Typed<V> smiType;
+    private final TypeToken<J> javaType;
+    private final TypeToken<V> smiType;
 
-    protected SMITypeProjection(final Typed<V> smiType, final Typed<J> javaType){
+    protected SMITypeProjection(final TypeToken<V> smiType, final TypeToken<J> javaType){
         this.javaType = javaType;
         this.smiType = smiType;
     }
@@ -29,7 +28,7 @@ abstract class SMITypeProjection<V extends Variable, J> implements TypeConverter
      * @return The type for which this converter is instantiated.
      */
     @Override
-    public final Typed<J> getType() {
+    public final TypeToken<J> getType() {
         return javaType;
     }
 
@@ -40,8 +39,8 @@ abstract class SMITypeProjection<V extends Variable, J> implements TypeConverter
      * @return {@literal true}, if the value of the specified type can be converted into {@code T}; otherwise, {@literal false}.
      */
     @Override
-    public final boolean canConvertFrom(final Typed<?> source) {
-        return TypeUtils.isAssignable(source.getType(), smiType.getType());
+    public final boolean canConvertFrom(final TypeToken<?> source) {
+        return smiType.isAssignableFrom(source);
     }
 
     protected abstract J convertFrom(final V value) throws IllegalArgumentException;
@@ -51,7 +50,7 @@ abstract class SMITypeProjection<V extends Variable, J> implements TypeConverter
      *
      * @param value The value to convert.
      * @return The value of the original type described by this converter.
-     * @throws IllegalArgumentException Unsupported type of the source value. Check the type with {@link #canConvertFrom(Typed)} method.
+     * @throws IllegalArgumentException Unsupported type of the source value. Check the type with {@link #canConvertFrom(com.google.common.reflect.TypeToken)} method.
      */
     @Override
     public final J convertFrom(final Object value) throws IllegalArgumentException {

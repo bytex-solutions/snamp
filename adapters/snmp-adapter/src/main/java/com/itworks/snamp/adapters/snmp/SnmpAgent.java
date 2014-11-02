@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
-import net.engio.mbassy.listener.Handler;
-import net.engio.mbassy.listener.Listener;
+import com.google.common.eventbus.Subscribe;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
@@ -33,8 +32,7 @@ import java.util.logging.Logger;
  * @author Roman Sakno, Evgeniy Kirichenko
  * 
  */
-@Listener
-final class SnmpAgent extends BaseAgent {
+final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
     private static final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
     private static final Logger logger = SnmpHelpers.getLogger();
 
@@ -267,9 +265,9 @@ final class SnmpAgent extends BaseAgent {
 		communityMIB.getSnmpCommunityEntry().addRow(row);
 	}
 
-    @Handler
-    @SuppressWarnings("UnusedDeclaration")
-    public void sendNotification(final SnmpNotification wrappedNotification){
+    @Subscribe
+    @Override
+    public void processNotification(final SnmpNotification wrappedNotification){
         if(notificationOriginator != null){
             notificationOriginator.notify(new OctetString(), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv3 sending
             notificationOriginator.notify(new OctetString("public"), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv2 sending
