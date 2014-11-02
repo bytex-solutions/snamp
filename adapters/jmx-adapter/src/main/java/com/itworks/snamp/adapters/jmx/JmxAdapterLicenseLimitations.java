@@ -1,11 +1,11 @@
 package com.itworks.snamp.adapters.jmx;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.core.AbstractBundleActivator;
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
 import com.itworks.snamp.licensing.FrameworkServiceLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingException;
-import org.apache.commons.collections4.Factory;
 import org.osgi.framework.Version;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -22,9 +22,9 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 public final class JmxAdapterLicenseLimitations extends AbstractLicenseLimitations implements FrameworkServiceLimitations<JmxResourceAdapter> {
     public static final AbstractBundleActivator.RequiredServiceAccessor<LicenseReader> licenseReader = new AbstractBundleActivator.SimpleDependency<>(LicenseReader.class);
 
-    static final Factory<JmxAdapterLicenseLimitations> fallbackFactory = new Factory<JmxAdapterLicenseLimitations>() {
+    static final Supplier<JmxAdapterLicenseLimitations> fallbackFactory = new Supplier<JmxAdapterLicenseLimitations>() {
         @Override
-        public JmxAdapterLicenseLimitations create() {
+        public JmxAdapterLicenseLimitations get() {
             return new JmxAdapterLicenseLimitations();
         }
     };

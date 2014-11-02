@@ -1,10 +1,10 @@
 package com.itworks.snamp.management.webconsole;
 
+import com.google.common.base.Supplier;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import org.apache.commons.collections4.Factory;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -191,8 +191,8 @@ final class JsonAgentConfiguration {
         return value != null && value.isJsonPrimitive() ? new TimeSpan(value.getAsLong()) : TimeSpan.INFINITE;
     }
 
-    private static ResourceAdapterConfiguration deserializeResourceAdapter(final JsonObject source, final Factory<ResourceAdapterConfiguration> configFactory){
-        final ResourceAdapterConfiguration adapter = configFactory.create();
+    private static ResourceAdapterConfiguration deserializeResourceAdapter(final JsonObject source, final Supplier<ResourceAdapterConfiguration> configFactory){
+        final ResourceAdapterConfiguration adapter = configFactory.get();
         adapter.setAdapterName(toString(source.remove(ADAPTER_NAME_FIELD), ""));
         //deserialize other properties
         for(final Map.Entry<String, JsonElement> entry: source.entrySet())
@@ -202,7 +202,7 @@ final class JsonAgentConfiguration {
 
     private static void writeResourceAdapters(final JsonObject source,
                                               final Map<String, ResourceAdapterConfiguration> dest,
-                                              final Factory<ResourceAdapterConfiguration> configFactory){
+                                              final Supplier<ResourceAdapterConfiguration> configFactory){
         for(final Map.Entry<String, JsonElement> entry: source.entrySet())
             if(entry.getValue().isJsonObject())
             dest.put(entry.getKey(), deserializeResourceAdapter(entry.getValue().getAsJsonObject(), configFactory));
@@ -210,14 +210,14 @@ final class JsonAgentConfiguration {
 
     private static void writeResourceAdapters(final JsonElement source,
                                               final Map<String, ResourceAdapterConfiguration> dest,
-                                              final Factory<ResourceAdapterConfiguration> configFactory){
+                                              final Supplier<ResourceAdapterConfiguration> configFactory){
         if (source != null && source.isJsonObject() && dest != null) {
             writeResourceAdapters(source.getAsJsonObject(), dest, configFactory);
         }
     }
 
-    private static AttributeConfiguration deserializeAttribute(final JsonObject source, final Factory<AttributeConfiguration> configFactory){
-        final AttributeConfiguration attribute = configFactory.create();
+    private static AttributeConfiguration deserializeAttribute(final JsonObject source, final Supplier<AttributeConfiguration> configFactory){
+        final AttributeConfiguration attribute = configFactory.get();
         attribute.setAttributeName(toString(source.remove(ATTRIBUTE_NAME_FIELD), ""));
         attribute.setReadWriteTimeout(source.has(READ_WRITE_TIMEOUT_FIELD) ?
                 toTimeSpan(source.remove(READ_WRITE_TIMEOUT_FIELD)) : TimeSpan.INFINITE);
@@ -227,8 +227,8 @@ final class JsonAgentConfiguration {
         return attribute;
     }
 
-    private static EventConfiguration deserializeEvent(final JsonObject source, final Factory<EventConfiguration> configFactory){
-        final EventConfiguration event = configFactory.create();
+    private static EventConfiguration deserializeEvent(final JsonObject source, final Supplier<EventConfiguration> configFactory){
+        final EventConfiguration event = configFactory.get();
         event.setCategory(toString(source.remove(EVENT_CATEGORY_FIELD), "unknown"));
         for(final Map.Entry<String, JsonElement> entry: source.entrySet())
             if(entry.getValue().isJsonPrimitive())
@@ -236,14 +236,14 @@ final class JsonAgentConfiguration {
         return event;
     }
 
-    private static void deserializeAttributes(final JsonObject source, final Map<String, AttributeConfiguration> dest, final Factory<AttributeConfiguration> configFactory){
+    private static void deserializeAttributes(final JsonObject source, final Map<String, AttributeConfiguration> dest, final Supplier<AttributeConfiguration> configFactory){
         if(dest == null) return;
         for(final Map.Entry<String, JsonElement> entry: source.entrySet())
             if(entry.getValue().isJsonObject())
                 dest.put(entry.getKey(), deserializeAttribute(entry.getValue().getAsJsonObject(), configFactory));
     }
 
-    private static void deserializeEvents(final JsonObject source, final Map<String, EventConfiguration> dest, final Factory<EventConfiguration> configFactory){
+    private static void deserializeEvents(final JsonObject source, final Map<String, EventConfiguration> dest, final Supplier<EventConfiguration> configFactory){
         if(dest == null) return;
         for(final Map.Entry<String, JsonElement> entry: source.entrySet())
             if(entry.getValue().isJsonObject())
@@ -251,8 +251,8 @@ final class JsonAgentConfiguration {
     }
 
     private static ManagedResourceConfiguration deserializeResourceConnector(final JsonObject source,
-                                                                             final Factory<ManagedResourceConfiguration> configFactory){
-        final ManagedResourceConfiguration resource = configFactory.create();
+                                                                             final Supplier<ManagedResourceConfiguration> configFactory){
+        final ManagedResourceConfiguration resource = configFactory.get();
         resource.setConnectionString(toString(source.remove(CONNECTION_STRING_FIELD), ""));
         resource.setConnectionType(toString(source.remove(CONNECTION_TYPE_FIELD), "unknown"));
         final JsonElement attributes = source.remove(ATTRIBUTES_SECTION);
@@ -261,16 +261,16 @@ final class JsonAgentConfiguration {
             if(entry.getValue().isJsonPrimitive())
                 resource.getParameters().put(entry.getKey(), entry.getValue().getAsString());
         if(attributes != null && attributes.isJsonObject())
-            deserializeAttributes(attributes.getAsJsonObject(), resource.getElements(AttributeConfiguration.class), new Factory<AttributeConfiguration>(){
+            deserializeAttributes(attributes.getAsJsonObject(), resource.getElements(AttributeConfiguration.class), new Supplier<AttributeConfiguration>(){
                 @Override
-                public AttributeConfiguration create() {
+                public AttributeConfiguration get() {
                     return resource.newElement(AttributeConfiguration.class);
                 }
             });
         if(events != null && events.isJsonObject())
-            deserializeEvents(events.getAsJsonObject(), resource.getElements(EventConfiguration.class), new Factory<EventConfiguration>(){
+            deserializeEvents(events.getAsJsonObject(), resource.getElements(EventConfiguration.class), new Supplier<EventConfiguration>(){
                 @Override
-                public EventConfiguration create() {
+                public EventConfiguration get() {
                     return resource.newElement(EventConfiguration.class);
                 }
             });
@@ -279,14 +279,14 @@ final class JsonAgentConfiguration {
 
     private static void writeResourceConnectors(final JsonObject source,
                                                 final Map<String, ManagedResourceConfiguration> dest,
-                                                final Factory<ManagedResourceConfiguration> configFactory){
+                                                final Supplier<ManagedResourceConfiguration> configFactory){
         for(final Map.Entry<String, JsonElement> entry: source.entrySet())
             dest.put(entry.getKey(), deserializeResourceConnector(entry.getValue().getAsJsonObject(), configFactory));
     }
 
     private static void writeResourceConnectors(final JsonElement source,
                                            final Map<String, ManagedResourceConfiguration> dest,
-                                           final Factory<ManagedResourceConfiguration> configFactory){
+                                           final Supplier<ManagedResourceConfiguration> configFactory){
         if(source != null && dest != null){
             writeResourceConnectors(source.getAsJsonObject(), dest, configFactory);
         }
@@ -294,16 +294,16 @@ final class JsonAgentConfiguration {
 
     private static void write(final JsonObject source, final AgentConfiguration dest){
         dest.clear();
-        writeResourceAdapters(source.get(RESOURCE_ADAPTERS_SECTION), dest.getResourceAdapters(), new Factory<ResourceAdapterConfiguration>(){
+        writeResourceAdapters(source.get(RESOURCE_ADAPTERS_SECTION), dest.getResourceAdapters(), new Supplier<ResourceAdapterConfiguration>(){
             @Override
-            public ResourceAdapterConfiguration create() {
+            public ResourceAdapterConfiguration get() {
                 return dest.newConfigurationEntity(ResourceAdapterConfiguration.class);
             }
         });
-        writeResourceConnectors(source.get(RESOURCES_SECTION), dest.getManagedResources(), new Factory<ManagedResourceConfiguration>(){
+        writeResourceConnectors(source.get(RESOURCES_SECTION), dest.getManagedResources(), new Supplier<ManagedResourceConfiguration>(){
 
             @Override
-            public ManagedResourceConfiguration create() {
+            public ManagedResourceConfiguration get() {
                 return dest.newConfigurationEntity(ManagedResourceConfiguration.class);
             }
         });

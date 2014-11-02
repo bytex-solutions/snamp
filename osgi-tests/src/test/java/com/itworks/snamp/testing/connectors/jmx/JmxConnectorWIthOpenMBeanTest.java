@@ -1,5 +1,6 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.*;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -7,8 +8,7 @@ import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
-import org.apache.commons.collections4.Factory;
-import org.apache.commons.collections4.SetUtils;
+import com.itworks.snamp.internal.Utils;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerMethod;
@@ -41,62 +41,62 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Override
-    protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Factory<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.create();
+    protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
+        AttributeConfiguration attribute = attributeFactory.get();
         attribute.setAttributeName("string");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("boolean");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("int32");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("bigint");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("array");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("dictionary");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("6.1", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("table");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("7.1", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("float");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("8.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         attributes.put("9.0", attribute);
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Factory<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.create();
+    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
+        EventConfiguration event = eventFactory.get();
         event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         events.put("19.1", event);
 
-        event = eventFactory.create();
+        event = eventFactory.get();
         event.setCategory("com.itworks.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
@@ -201,7 +201,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public final void testForTableProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
-        final Table<String> table = new SimpleTable<>(new HashMap<String, Class<?>>(3){{
+        final Table<String> table = new InMemoryTable<>(new HashMap<String, Class<?>>(3){{
             put("col1", Boolean.class);
             put("col2", Integer.class);
             put("col3", String.class);
@@ -220,7 +220,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
             @Override
             public boolean equate(final Table<String> o1, final Table<String> o2) {
                 return o1.getRowCount() == o2.getRowCount() &&
-                        SetUtils.isEqualSet(o1.getColumns(), o2.getColumns());
+                        Utils.isEqualSet(o1.getColumns(), o2.getColumns());
             }
         });
     }

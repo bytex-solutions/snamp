@@ -1,8 +1,8 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.reflect.TypeToken;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TypeLiterals;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.reflect.Typed;
 import org.snmp4j.smi.OctetString;
 
 import java.util.Map;
@@ -31,7 +31,7 @@ enum OctetStringConversionFormat {
      */
     BYTE_ARRAY;
 
-    static final Typed<OctetString> OCTET_STRING = TypeLiterals.of(OctetString.class);
+    static final TypeToken<OctetString> OCTET_STRING = TypeToken.of(OctetString.class);
 
     public static OctetStringConversionFormat adviceFormat(final OctetString value){
         return value.isPrintable() ? TEXT : HEX;
@@ -69,7 +69,7 @@ enum OctetStringConversionFormat {
             default: return new SMITypeProjection<OctetString, Object[]>(OCTET_STRING, TypeLiterals.OBJECT_ARRAY) {
                 @Override
                 protected Byte[] convertFrom(final OctetString value) throws IllegalArgumentException {
-                    return ArrayUtils.toObject(value.getValue());
+                    return ArrayUtils.boxArray(value.getValue());
                 }
             };
         }

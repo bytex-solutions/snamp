@@ -1,10 +1,10 @@
 package com.itworks.snamp.adapters.rest;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
 import com.itworks.snamp.licensing.FrameworkServiceLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingException;
-import org.apache.commons.collections4.Factory;
 import org.osgi.framework.Version;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -24,9 +24,9 @@ import static com.itworks.snamp.core.AbstractBundleActivator.SimpleDependency;
 public final class RestAdapterLimitations extends AbstractLicenseLimitations implements FrameworkServiceLimitations<RestAdapter> {
     public static final RequiredServiceAccessor<LicenseReader> licenseReader = new SimpleDependency<>(LicenseReader.class);
 
-    static final Factory<RestAdapterLimitations> fallbackFactory = new Factory<RestAdapterLimitations>() {
+    static final Supplier<RestAdapterLimitations> fallbackFactory = new Supplier<RestAdapterLimitations>() {
         @Override
-        public RestAdapterLimitations create() {
+        public RestAdapterLimitations get() {
             return new RestAdapterLimitations();
         }
     };

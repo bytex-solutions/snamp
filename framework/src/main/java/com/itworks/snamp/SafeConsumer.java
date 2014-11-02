@@ -7,7 +7,7 @@ package com.itworks.snamp;
  * @version 1.0
  * @since 1.0
  */
-public interface SafeConsumer<T> extends Consumer<T, Exception> {
+public interface SafeConsumer<T> extends Consumer<T, ExceptionPlaceholder> {
     /**
      * Performs this operation on the given argument.
      *

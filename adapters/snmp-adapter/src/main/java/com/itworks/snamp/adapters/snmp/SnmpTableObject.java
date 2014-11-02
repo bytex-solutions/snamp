@@ -1,9 +1,7 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.SimpleTable;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.TypeLiterals;
+import com.google.common.collect.ImmutableMap;
+import com.itworks.snamp.*;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
@@ -12,8 +10,6 @@ import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.internal.CountdownTimer;
 import com.itworks.snamp.internal.annotations.Temporary;
-import org.apache.commons.collections4.Closure;
-import org.apache.commons.collections4.Put;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.MOQuery;
 import org.snmp4j.agent.MOScope;
@@ -286,7 +282,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
 
     private static void fill(final Object[] values, final MOTable<MOMutableTableRow, MONamedColumn<Variable>, MOTableModel<MOMutableTableRow>> table, final ManagedEntityTabularType type, final Map<String, String> conversionOptions){
         @Temporary
-        final SimpleTable<String> tempTable = new SimpleTable<>(ManagedEntityTypeBuilder.ManagedEntityArrayType.VALUE_COLUMN_NAME,
+        final InMemoryTable<String> tempTable = new InMemoryTable<>(ManagedEntityTypeBuilder.ManagedEntityArrayType.VALUE_COLUMN_NAME,
                 Object.class,
                 values.length);
         for(int arrayIndex = 0; arrayIndex < values.length; arrayIndex++){
@@ -421,16 +417,15 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             rowsToDelete = dumpArray(getTableType().getColumnType(ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME));
         else {
             rowsToDelete = new ArrayList<>(model.getRowCount());
-            final Table<String> table = new SimpleTable<>(new Closure<Put<String, Class<?>>>() {
+            final Table<String> table = new InMemoryTable<>(new SafeConsumer<ImmutableMap.Builder<String, Class<?>>>() {
                 @Override
-                public void execute(final Put<String, Class<?>> output) {
+                public void accept(final ImmutableMap.Builder<String, Class<?>> output) {
                     for(int i = 0; i < getColumnCount(); i++){
                         final MONamedColumn<Variable> column = getColumn(i);
                         if(!column.isSynthetic()) output.put(column.name, Object.class);
                     }
                 }
             },
-                    model.getColumnCount(),
                     model.getRowCount());
             for(int r = 0; r < model.getRowCount(); r++){
                 final MOMutableTableRow row = model.getRow(makeRowID(r));

@@ -1,6 +1,7 @@
 package com.itworks.snamp.internal;
 
 import com.google.common.base.Function;
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.itworks.snamp.Consumer;
@@ -16,10 +17,10 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -34,8 +35,28 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
+    private static final String OS_NAME = StandardSystemProperty.OS_NAME.value();
+    /**
+     * Determines whether the underlying OS is Linux.
+     */
+    public static final boolean IS_OS_LINUX = getOS().startsWith("LINUX") || getOS().startsWith("Linux");
+
+    /**
+     * Determines whether the underlying OS is MacOS X.
+     */
+    public static final boolean IS_OS_MAC_OSX = getOS().startsWith("Mac OS X");
+
+    /**
+     * Determines whether the underlying OS is Windows.
+     */
+    public static final boolean IS_OS_WINDOWS = getOS().startsWith("Windows");
+
     private Utils(){
 
+    }
+
+    private static String getOS(){
+        return System.getProperty(OS_NAME, "undefined");
     }
 
     /**
@@ -405,23 +426,12 @@ public final class Utils {
         }
     }
 
-    /**
-     * Converts collection to array.
-     * @param source The collection to convert.
-     * @param componentType Array component type.
-     * @param <T> Array component type.
-     * @return An array with elements from the collection.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T[] toArray(final Collection<T> source, final Class<T> componentType){
-        return source.toArray((T[])Array.newInstance(componentType, source.size()));
-    }
-
-    public static <I extends O, O> O castArrayElement(final I[] array,
-                                        final int index,
-                                        final Class<O> elementType,
-                                        final O defval){
-        final I element = array[index];
-        return elementType.isInstance(element) ? elementType.cast(element) : defval;
+    public static <T> boolean isEqualSet(final Set<T> columns1, final Set<T> columns2) {
+        if (columns1 == null) return columns2 == null;
+        else if (columns2 == null) return false;
+        else if (columns1.size() != columns2.size()) return false;
+        else for (final T element : columns1)
+                if (!columns2.contains(element)) return false;
+        return true;
     }
 }

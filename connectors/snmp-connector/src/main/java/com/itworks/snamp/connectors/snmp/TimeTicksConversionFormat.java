@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TypeLiterals;
-import org.apache.commons.lang3.reflect.Typed;
 import org.snmp4j.smi.TimeTicks;
 
 import java.util.Map;
@@ -18,7 +18,7 @@ enum TimeTicksConversionFormat {
     TEXT,
     LONG;
 
-    static final Typed<TimeTicks> TIME_TICKS = TypeLiterals.of(TimeTicks.class);
+    static final TypeToken<TimeTicks> TIME_TICKS = TypeToken.of(TimeTicks.class);
 
     public static TimeTicksConversionFormat getFormat(final Map<String, String> options){
         if(options.containsKey(SNMP_CONVERSION_FORMAT))

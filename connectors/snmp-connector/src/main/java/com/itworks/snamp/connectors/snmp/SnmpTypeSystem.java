@@ -1,11 +1,11 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.google.common.reflect.TypeToken;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
-import org.apache.commons.collections4.Factory;
-import org.apache.commons.collections4.Transformer;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.reflect.Typed;
 import org.snmp4j.smi.*;
 
 import java.lang.reflect.Array;
@@ -48,7 +48,7 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             if (value instanceof byte[])
                 return new IpAddress((byte[]) value);
             else if (value instanceof Byte[])
-                return new IpAddress(ArrayUtils.toPrimitive((Byte[]) value));
+                return new IpAddress(ArrayUtils.unboxArray((Byte[]) value));
             else if (value instanceof Object[])
                 return convertToScalar(Arrays.copyOf((Object[]) value, Array.getLength(value), Byte[].class));
             else if (value instanceof String)
@@ -67,7 +67,7 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             if (value instanceof int[])
                 return new OID((int[]) value);
             else if (value instanceof Integer[])
-                return new OID(ArrayUtils.toPrimitive((Integer[]) value));
+                return new OID(ArrayUtils.unboxArray((Integer[]) value));
             else if (value instanceof Object[])
                 return convertToScalar(Arrays.copyOf((Object[]) value, Array.getLength(value), Integer[].class));
             else if (value instanceof String)
@@ -100,7 +100,7 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             if (value instanceof byte[])
                 return OctetString.fromByteArray((byte[]) value);
             else if (value instanceof Byte[])
-                return OctetString.fromByteArray(ArrayUtils.toPrimitive((Byte[]) value));
+                return OctetString.fromByteArray(ArrayUtils.unboxArray((Byte[]) value));
             else if (value instanceof Object[])
                 return convertToScalar(Arrays.copyOf((Object[]) value, Array.getLength(value), Byte[].class));
             else if (value instanceof String)
@@ -111,53 +111,53 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    static final Typed<Integer32> INTEGER_32 = TypeLiterals.of(Integer32.class);
-    static final Typed<Counter64> COUNTER_64 = TypeLiterals.of(Counter64.class);
-    static final Typed<Gauge32> GAUGE_32 = TypeLiterals.of(Gauge32.class);
-    static final Typed<UnsignedInteger32> UNSIGNED_INTEGER_32 = TypeLiterals.of(UnsignedInteger32.class);
-    static final Typed<Opaque> OPAQUE = TypeLiterals.of(Opaque.class);
+    static final TypeToken<Integer32> INTEGER_32 = TypeToken.of(Integer32.class);
+    static final TypeToken<Counter64> COUNTER_64 = TypeToken.of(Counter64.class);
+    static final TypeToken<Gauge32> GAUGE_32 = TypeToken.of(Gauge32.class);
+    static final TypeToken<UnsignedInteger32> UNSIGNED_INTEGER_32 = TypeToken.of(UnsignedInteger32.class);
+    static final TypeToken<Opaque> OPAQUE = TypeToken.of(Opaque.class);
 
     SnmpTypeSystem() {
         registerConverter(INTEGER_32, TypeLiterals.INTEGER,
-                new Transformer<Integer32, Integer>() {
+                new Function<Integer32, Integer>() {
                     @Override
-                    public Integer transform(final Integer32 input) {
+                    public Integer apply(final Integer32 input) {
                         return input.toInt();
                     }
                 });
         registerConverter(INTEGER_32, TypeLiterals.LONG,
-                new Transformer<Integer32, Long>() {
+                new Function<Integer32, Long>() {
                     @Override
-                    public Long transform(final Integer32 input) {
+                    public Long apply(final Integer32 input) {
                         return input.toLong();
                     }
                 });
         registerConverter(COUNTER_64, TypeLiterals.LONG,
-                new Transformer<Counter64, Long>() {
+                new Function<Counter64, Long>() {
                     @Override
-                    public Long transform(final Counter64 input) {
+                    public Long apply(final Counter64 input) {
                         return input.toLong();
                     }
                 });
         registerConverter(GAUGE_32, TypeLiterals.LONG,
-                new Transformer<Gauge32, Long>() {
+                new Function<Gauge32, Long>() {
                     @Override
-                    public Long transform(final Gauge32 input) {
+                    public Long apply(final Gauge32 input) {
                         return input.toLong();
                     }
                 });
         registerConverter(UNSIGNED_INTEGER_32, TypeLiterals.LONG,
-                new Transformer<UnsignedInteger32, Long>() {
+                new Function<UnsignedInteger32, Long>() {
                     @Override
-                    public Long transform(final UnsignedInteger32 input) {
+                    public Long apply(final UnsignedInteger32 input) {
                         return input.toLong();
                     }
                 });
         registerConverter(OPAQUE, TypeLiterals.OBJECT_ARRAY,
-                new Transformer<Opaque, Object[]>() {
+                new Function<Opaque, Object[]>() {
                     @Override
-                    public Byte[] transform(final Opaque input) {
-                        return ArrayUtils.toObject(input.toByteArray());
+                    public Byte[] apply(final Opaque input) {
+                        return ArrayUtils.boxArray(input.toByteArray());
                     }
                 });
     }
@@ -165,29 +165,29 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
     public SnmpManagedEntityType resolveSnmpScalarType(final Variable value, final Map<String, String> options) {
         //Opaque
         if (value instanceof Opaque)
-            return createEntityType(new Factory<SnmpManagedEntityScalarType<Opaque>>() {
-                public SnmpManagedEntityScalarType<Opaque> create() {
+            return createEntityType(new Supplier<SnmpManagedEntityScalarType<Opaque>>() {
+                public SnmpManagedEntityScalarType<Opaque> get() {
                     return new SnmpManagedEntityScalarType<Opaque>(Opaque.class, SMIConstants.SYNTAX_OPAQUE) {
                         @Override
                         protected Opaque convertToScalar(final Object value) throws InvalidSnmpValueException {
                             if (value instanceof byte[])
                                 return new Opaque((byte[]) value);
                             else if (value instanceof Byte[])
-                                return new Opaque(ArrayUtils.toPrimitive((Byte[]) value));
+                                return new Opaque(ArrayUtils.unboxArray((Byte[]) value));
                             else if (value instanceof Object[])
                                 return convertToScalar(Arrays.copyOf((Object[]) value, Array.getLength(value), Byte[].class));
                             else throw createInvalidValueException(value);
                         }
                     };
                 }
-            }, TypeLiterals.OBJECT_ARRAY, TypeLiterals.BYTE_ARRAY, TypeLiterals.of(byte[].class));
+            }, TypeLiterals.OBJECT_ARRAY, TypeLiterals.BYTE_ARRAY, TypeToken.of(byte[].class));
             //Octet string
         else if (value instanceof OctetString)
             return new OctetStringType(OctetStringConversionFormat.getFormat((OctetString) value, options));
             //Integer32
         else if (value instanceof Integer32)
-            return createEntityType(new Factory<SnmpManagedEntityScalarType<Integer32>>() {
-                public SnmpManagedEntityScalarType<Integer32> create() {
+            return createEntityType(new Supplier<SnmpManagedEntityScalarType<Integer32>>() {
+                public SnmpManagedEntityScalarType<Integer32> get() {
                     return new SnmpManagedEntityScalarType<Integer32>(Integer32.class, SMIConstants.SYNTAX_INTEGER) {
                         @Override
                         protected Integer32 convertToScalar(final Object value) throws InvalidSnmpValueException {
@@ -206,8 +206,8 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             }, TypeLiterals.INTEGER);
             //Counter 32
         else if (value instanceof Counter32)
-            return createEntityType(new Factory<SnmpManagedEntityScalarType<Counter32>>() {
-                public SnmpManagedEntityScalarType<Counter32> create() {
+            return createEntityType(new Supplier<SnmpManagedEntityScalarType<Counter32>>() {
+                public SnmpManagedEntityScalarType<Counter32> get() {
                     return new SnmpManagedEntityScalarType<Counter32>(Counter32.class, SMIConstants.SYNTAX_COUNTER32) {
                         @Override
                         protected Counter32 convertToScalar(final Object value) throws InvalidSnmpValueException {
@@ -228,8 +228,8 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             }, TypeLiterals.LONG);
             //Counter 64
         else if (value instanceof Counter64)
-            return createEntityType(new Factory<SnmpManagedEntityScalarType<Counter64>>() {
-                public SnmpManagedEntityScalarType<Counter64> create() {
+            return createEntityType(new Supplier<SnmpManagedEntityScalarType<Counter64>>() {
+                public SnmpManagedEntityScalarType<Counter64> get() {
                     return new SnmpManagedEntityScalarType<Counter64>(Counter64.class, SMIConstants.SYNTAX_COUNTER64) {
                         @Override
                         protected Counter64 convertToScalar(final Object value) throws InvalidSnmpValueException {
@@ -250,8 +250,8 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             }, TypeLiterals.LONG);
             //Gauge32
         else if (value instanceof Gauge32)
-            return createEntityType(new Factory<SnmpManagedEntityScalarType<Gauge32>>() {
-                public SnmpManagedEntityScalarType<Gauge32> create() {
+            return createEntityType(new Supplier<SnmpManagedEntityScalarType<Gauge32>>() {
+                public SnmpManagedEntityScalarType<Gauge32> get() {
                     return new SnmpManagedEntityScalarType<Gauge32>(Gauge32.class, SMIConstants.SYNTAX_GAUGE32) {
                         @Override
                         protected Gauge32 convertToScalar(final Object value) throws InvalidSnmpValueException {
@@ -275,8 +275,8 @@ final class SnmpTypeSystem extends WellKnownTypeSystem {
             return new TimeTicksType(TimeTicksConversionFormat.getFormat(options));
             //UnsignedInteger32
         else if (value instanceof UnsignedInteger32)
-            return createEntityType(new Factory<SnmpManagedEntityScalarType<UnsignedInteger32>>() {
-                public SnmpManagedEntityScalarType<UnsignedInteger32> create() {
+            return createEntityType(new Supplier<SnmpManagedEntityScalarType<UnsignedInteger32>>() {
+                public SnmpManagedEntityScalarType<UnsignedInteger32> get() {
                     return new SnmpManagedEntityScalarType<UnsignedInteger32>(UnsignedInteger32.class, SMIConstants.SYNTAX_UNSIGNED_INTEGER32) {
                         @Override
                         protected UnsignedInteger32 convertToScalar(final Object value) throws InvalidSnmpValueException {

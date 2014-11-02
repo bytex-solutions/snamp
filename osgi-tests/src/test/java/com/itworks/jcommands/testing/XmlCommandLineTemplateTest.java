@@ -4,7 +4,7 @@ import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
-import com.itworks.snamp.SimpleTable;
+import com.itworks.snamp.InMemoryTable;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
@@ -56,7 +56,7 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
     public void renderTableTest(){
         final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
         template.setCommandTemplate("{table:{x | {x.column1} = {x.column2}}}");
-        final Table<String> table = new SimpleTable<>(new HashMap<String, Class<?>>(2){{
+        final Table<String> table = new InMemoryTable<>(new HashMap<String, Class<?>>(2){{
             put("column1", String.class);
             put("column2", Integer.class);
         }},

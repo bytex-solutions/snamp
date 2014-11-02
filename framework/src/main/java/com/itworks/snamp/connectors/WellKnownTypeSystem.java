@@ -30,12 +30,12 @@ import java.util.*;
  *     For non-scalar data types such as arrays, dictionaries and tables it is recommended to use the
  *     following mapping:
  *     <ul>
- *         <li>Tabular data should be convertible to {@link com.google.common.collect.Table} type. An implementation
- *         for this interface is provided by {@link com.google.common.collect.ImmutableTable} class. Entity data type
+ *         <li>Tabular data should be convertible to {@link com.itworks.snamp.Table} type. An implementation
+ *         for this interface is provided by {@link com.itworks.snamp.InMemoryTable} class. Entity data type
  *         should implements {@link ManagedEntityTabularType} interface.</li>
- *         <li>Array data should be convertible to Java array and {@link com.google.common.collect.Table} type. Attribute
+ *         <li>Array data should be convertible to Java array and {@link com.itworks.snamp.Table} type. Attribute
  *         data type should inherits from {@link ManagedEntityTypeBuilder.ManagedEntityArrayType} class.</li>
- *         <li>Map data should be convertible to {@link com.google.common.collect.Table} type, and, optionally,
+ *         <li>Map data should be convertible to {@link com.itworks.snamp.Table} type, and, optionally,
  *         to {@link Map} type. Map is a special case of tabular data when table has single row
  *         and multiple columns, where each column represents map key.</li>
  *     </ul>
@@ -71,6 +71,8 @@ import java.util.*;
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
+ * @see com.itworks.snamp.TypeLiterals#STRING_COLUMN_TABLE
+ * @see com.itworks.snamp.TypeLiterals#STRING_MAP
  */
 public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
     /**
@@ -552,7 +554,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
     }
 
     /**
-     * Creates a new tabular type that can be converted into {@link com.google.common.collect.Table}.
+     * Creates a new tabular type that can be converted into {@link com.itworks.snamp.Table}.
      * <p>
      *  The returned {@link ManagedEntityTabularType} instance throws {@link UnsupportedOperationException}
      *  exception when {@link ManagedEntityTabularType#getRowCount()} is invoked.
@@ -659,7 +661,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
     }
 
     /**
-     * Creates a new tabular type that can be converted into {@link com.google.common.collect.Table}.
+     * Creates a new tabular type that can be converted into {@link com.itworks.snamp.Table}.
      * <p>
      *  The returned {@link ManagedEntityTabularType} returns {@code rowCount} from
      *  {@link ManagedEntityTabularType#getRowCount()} method.

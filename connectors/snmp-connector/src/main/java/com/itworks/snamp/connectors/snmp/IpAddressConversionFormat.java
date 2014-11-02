@@ -1,8 +1,8 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.reflect.TypeToken;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TypeLiterals;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.reflect.Typed;
 import org.snmp4j.smi.IpAddress;
 
 import java.util.Map;
@@ -19,7 +19,7 @@ enum IpAddressConversionFormat {
     TEXT,
     BYTE_ARRAY;
 
-    static final Typed<IpAddress> IP_ADDRESS = TypeLiterals.of(IpAddress.class);
+    static final TypeToken<IpAddress> IP_ADDRESS = TypeToken.of(IpAddress.class);
 
     public static IpAddressConversionFormat getFormat(final Map<String, String> options){
         if(options.containsKey(SNMP_CONVERSION_FORMAT))
@@ -45,7 +45,7 @@ enum IpAddressConversionFormat {
             default: return new SMITypeProjection<IpAddress, Object[]>(IP_ADDRESS, TypeLiterals.OBJECT_ARRAY) {
                 @Override
                 protected Byte[] convertFrom(final IpAddress value) throws IllegalArgumentException {
-                    return ArrayUtils.toObject(value.toByteArray());
+                    return ArrayUtils.boxArray(value.toByteArray());
                 }
             };
         }

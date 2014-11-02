@@ -21,8 +21,6 @@ import org.osgi.framework.BundleContext;
 
 import java.util.Collection;
 
-import static org.apache.commons.lang3.ArrayUtils.toArray;
-
 /**
  * @author Roman Sakno
  * @version 1.0
@@ -46,7 +44,7 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         final JAASLoginService loginService = SecurityUtils.createJaasLoginServiceForOsgi(callerClass.getClassLoader());
         loginService.setLoginModuleName(LOGIN_MODULE_NAME);
         loginService.setName(REALM);
-        loginService.setRoleClassNames(toArray(JAASRole.class.getName()));
+        loginService.setRoleClassNames(new String[]{JAASRole.class.getName()});
         return loginService;
     }
 
@@ -68,7 +66,7 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         final ServerConnector connector = new ServerConnector(jettyServer);
         connector.setPort(port);
         connector.setHost(host);
-        jettyServer.setConnectors(toArray(connector));
+        jettyServer.setConnectors(new Connector[]{connector});
         //add dependencies
         bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationManager.class));
         bundleLevelDependencies.add(new SimpleDependency<>(SnampManager.class));
@@ -95,14 +93,14 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         final Constraint constraint = new Constraint();
         constraint.setAuthenticate(true);
         constraint.setName("snampauth");
-        constraint.setRoles(toArray(SecurityUtils.ADMIN_ROLE, SecurityUtils.USER_ROLE));
+        constraint.setRoles(new String[]{SecurityUtils.ADMIN_ROLE, SecurityUtils.USER_ROLE});
         security.setRealmName(REALM);
         security.addRole(SecurityUtils.ADMIN_ROLE);
         security.addRole(SecurityUtils.USER_ROLE);
         final ConstraintMapping cmapping = new ConstraintMapping();
         cmapping.setPathSpec("/management/*");
         cmapping.setConstraint(constraint);
-        security.setConstraintMappings(toArray(cmapping));
+        security.setConstraintMappings(new ConstraintMapping[]{cmapping});
         security.setLoginService(createLoginService(getClass()));
         security.setAuthenticator(new DigestAuthenticator());
         //Setup REST service

@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
-import com.itworks.snamp.SimpleTable;
+import com.google.common.base.Supplier;
+import com.itworks.snamp.InMemoryTable;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TimeSpan;
@@ -10,7 +11,6 @@ import com.itworks.snamp.connectors.notifications.Severity;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
-import org.apache.commons.collections4.Factory;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerMethod;
@@ -197,7 +197,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     @Test
     public final void testForTableProperty() throws Exception{
         try {
-            Table<Integer> table = new SimpleTable<>(new HashMap<Integer, Class<?>>() {{
+            Table<Integer> table = new InMemoryTable<>(new HashMap<Integer, Class<?>>() {{
                 put(2, Variable.class);//bool
                 put(3, Variable.class);//int
                 put(4, Variable.class);//str
@@ -247,7 +247,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     @Test
     public final void testForArrayProperty() throws Exception{
         try {
-            Table<Integer> array = new SimpleTable<>(new HashMap<Integer, Class<?>>(1) {{
+            Table<Integer> array = new InMemoryTable<>(new HashMap<Integer, Class<?>>(1) {{
                 put(2, Variable.class);
             }});
             array.addRow(new HashMap<Integer, Object>(2) {{
@@ -273,7 +273,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     @Test
     public final void testForDictionaryProperty() throws Exception{
         try {
-            Table<Integer> dict = new SimpleTable<>(new HashMap<Integer, Class<?>>() {{
+            Table<Integer> dict = new InMemoryTable<>(new HashMap<Integer, Class<?>>() {{
                 put(2, Variable.class);
                 put(3, Variable.class);
                 put(4, Variable.class);
@@ -357,8 +357,8 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     }
 
     @Override
-    protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Factory<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory) {
-        final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapterFactory.create();
+    protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Supplier<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory) {
+        final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapterFactory.get();
         snmpAdapter.setAdapterName(ADAPTER_NAME);
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
@@ -374,8 +374,8 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     }
 
     @Override
-    protected void fillEvents(final Map<String, AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events, final Factory<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> eventFactory) {
-        AgentConfiguration.ManagedResourceConfiguration.EventConfiguration event = eventFactory.create();
+    protected void fillEvents(final Map<String, AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events, final Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> eventFactory) {
+        AgentConfiguration.ManagedResourceConfiguration.EventConfiguration event = eventFactory.get();
         event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
@@ -384,7 +384,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
         event.getParameters().put("oid", "1.1.19.1");
         events.put("19.1", event);
 
-        event = eventFactory.create();
+        event = eventFactory.get();
         event.setCategory("com.itworks.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
@@ -395,70 +395,70 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Factory<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributeFactory) {
-        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute = attributeFactory.create();
+    protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Supplier<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributeFactory) {
+        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute = attributeFactory.get();
         attribute.setAttributeName("string");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.1.0");
         attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.2.0");
         attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.3.0");
         attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.4.0");
         attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("array");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.5.1");
         attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("dictionary");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.6.1");
         attributes.put("6.1", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("table");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.7.1");
         attributes.put("7.1", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("float");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.8.0");
         attributes.put("8.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         attribute.getParameters().put("oid", "1.1.9.0");
         attributes.put("9.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903-human-readable");
         attribute.getParameters().put("oid", "1.1.10.0");
         attributes.put("10.0", attribute);
 
-        attribute = attributeFactory.create();
+        attribute = attributeFactory.get();
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903");

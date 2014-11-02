@@ -4,9 +4,9 @@ import com.itworks.jcommands.ChannelProcessingMode;
 import com.itworks.jcommands.ChannelProcessor;
 import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.snamp.MapBuilder;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.exec.ExecuteException;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.net.telnet.TelnetClient;
 
 import java.io.IOException;
@@ -42,9 +42,9 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
     public int getNormalExitCode() {
         if (containsKey(NORMAL_EXIT_CODE_PARAM))
             return Integer.valueOf(get(NORMAL_EXIT_CODE_PARAM));
-        else if (SystemUtils.IS_OS_LINUX)
+        else if (Utils.IS_OS_LINUX)
             return 0;
-        else if (SystemUtils.IS_OS_WINDOWS)
+        else if (Utils.IS_OS_WINDOWS)
             return 0;
         else return 0;
     }

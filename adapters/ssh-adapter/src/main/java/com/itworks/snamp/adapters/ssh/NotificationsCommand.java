@@ -1,10 +1,10 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.StringAppender;
 import com.itworks.snamp.connectors.notifications.Notification;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.lang3.text.StrBuilder;
 import org.apache.sshd.common.Session;
 
 import java.io.IOException;
@@ -41,12 +41,13 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
     }
 
     private static void displayNotifications(final AdapterController controller,
-                                             final PrintWriter output) {
+                                             final PrintWriter output) throws IOException{
         for (final String resourceName : controller.getConnectedResources())
-            output.append(new StrBuilder()
+            StringAppender.init()
                     .appendln("%s available notifications:", resourceName)
                     .appendln(controller.getNotifications(resourceName))
-                    .appendNewLine());
+                    .newLine()
+                    .flush(output);
     }
 
     private static void enableNotifications(
@@ -92,13 +93,14 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
     }
 
     private static void notificationsStatus(final NotificationManager manager,
-                                            final PrintWriter output) {
-            output.append(new StrBuilder()
+                                            final PrintWriter output) throws IOException {
+            StringAppender.init()
                     .appendln("Disabled notifications from resources:")
                     .appendln(manager.getDisabledResources())
-                    .appendNewLine()
+                    .newLine()
                     .appendln("Disabled notifications:")
-                    .appendln(manager.getDisabledNotifs()));
+                    .appendln(manager.getDisabledNotifs())
+                    .flush(output);
     }
 
     private void pendingNotifications(final NotificationManager manager,
@@ -117,16 +119,17 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
                     continue;
                 }
                 final SshNotificationBox.AdditionalNotificationInfo info = SshNotificationBox.getAdditionalInfo(notif);
-                final StrBuilder appender = new StrBuilder();
+                final StringAppender appender = StringAppender.init();
                 if (info != null) {
                     appender.appendln("Event %s from resource %s", info.eventName, info.resourceName);
                 }
-                output.append(appender
+                appender
                         .appendln("Sequence #%s", notif.getSequenceNumber())
                         .appendln("Timestamp: %s", notif.getTimeStamp())
                         .appendln("Severity %s", notif.getSeverity())
                         .appendln(notif.getMessage())
-                        .appendNewLine());
+                        .newLine()
+                        .flush(output);
             }
         } catch (final IOException | InterruptedException e) {
             throw new CommandException(e);
@@ -144,7 +147,12 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
         final String[] arguments = input.getArgs();
         switch (arguments.length) {
             case 0:
-                displayNotifications(getAdapterController(), output);
+                try {
+                    displayNotifications(getAdapterController(), output);
+                }
+                catch (final IOException e){
+                    throw new CommandException(e);
+                }
                 return;
             case 1:
                 final String resourceName = input.getOptionValue(RES_OPT, "");
@@ -157,7 +165,11 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
                         disableNotifications(manager, resourceName, eventName, output);
                         return;
                     case "status":
-                        notificationsStatus(manager, output);
+                        try {
+                            notificationsStatus(manager, output);
+                        } catch (final IOException e) {
+                            throw new CommandException(e);
+                        }
                         return;
                     case "start":
                         pendingNotifications(manager,

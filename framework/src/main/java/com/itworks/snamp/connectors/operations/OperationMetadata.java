@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.operations;
 
+import com.google.common.annotations.Beta;
 import com.itworks.snamp.connectors.ManagedEntityMetadata;
 import com.itworks.snamp.connectors.ManagedEntityType;
 
@@ -11,6 +12,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
+@Beta
 public interface OperationMetadata extends ManagedEntityMetadata {
 
     /**

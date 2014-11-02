@@ -1,10 +1,10 @@
 package com.itworks.snamp.adapters.ssh;
 
 import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Switch;
 import com.itworks.snamp.WriteOnceRef;
 import jline.console.ConsoleReader;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.Session;
 import org.apache.sshd.server.Command;
@@ -13,7 +13,10 @@ import org.apache.sshd.server.ExitCallback;
 import org.apache.sshd.server.SessionAware;
 import org.apache.sshd.server.session.ServerSession;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;

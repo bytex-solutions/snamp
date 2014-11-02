@@ -1,5 +1,7 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.google.common.reflect.TypeToken;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
@@ -7,8 +9,6 @@ import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityTypeBuilder;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.reflect.Typed;
 
 import java.io.PrintWriter;
 import java.util.Map;
@@ -89,7 +89,7 @@ interface SshAttributeView {
                                                   final boolean insert,
                                                   final AttributeAccessor output) throws TimeoutException, AttributeSupportException {
             final ManagedEntityType elementType = type.getColumnType(ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME);
-            final Typed<?> elementJavaType = WellKnownTypeSystem.getWellKnownType(elementType);
+            final TypeToken<?> elementJavaType = WellKnownTypeSystem.getWellKnownType(elementType);
             if (elementJavaType == null)
                 return false;
             else if (insert)
@@ -107,7 +107,7 @@ interface SshAttributeView {
                                               final AttributeAccessor output) throws TimeoutException, AttributeSupportException{
             for(final String column: row.keySet()) {
                 final ManagedEntityType columnType = type.getColumnType(column);
-                final Typed<?> columnJavaType = WellKnownTypeSystem.getWellKnownType(columnType);
+                final TypeToken<?> columnJavaType = WellKnownTypeSystem.getWellKnownType(columnType);
                 if(columnJavaType == null) continue;
                 row.put(column, columnType.getProjection(columnJavaType).convertFrom(row.get(column)));
             }
@@ -158,7 +158,7 @@ interface SshAttributeView {
                                          final AttributeAccessor output) throws TimeoutException, AttributeSupportException{
             for(final Map.Entry<String, Object> entry: from.entrySet()) {
                 final ManagedEntityType keyType = type.getColumnType(entry.getKey());
-                final Typed<?> keyJavaType = WellKnownTypeSystem.getWellKnownType(keyType);
+                final TypeToken<?> keyJavaType = WellKnownTypeSystem.getWellKnownType(keyType);
                 if(keyJavaType == null) return false;
                 to.put(entry.getKey(), keyType.getProjection(keyJavaType).convertFrom(entry.getValue()));
             }
@@ -168,13 +168,10 @@ interface SshAttributeView {
 
         @Override
         public Boolean transform(final Map<String, Object> arg, final AttributeAccessor input) throws TimeoutException, AttributeSupportException {
-            final Typed<?> elementJavaType = input.getWellKnownType();
+            final TypeToken<?> elementJavaType = input.getWellKnownType();
             if(elementJavaType == null) return false;
             final Object map = input.getValue(elementJavaType, null);
-            if(TypeLiterals.isInstance(map, TypeLiterals.STRING_MAP)){
-                return updateMap(arg, TypeLiterals.cast(map, TypeLiterals.STRING_MAP), (ManagedEntityTabularType)input.getType(), input);
-            }
-            else return false;
+            return TypeLiterals.isInstance(map, TypeLiterals.STRING_MAP) && updateMap(arg, TypeLiterals.cast(map, TypeLiterals.STRING_MAP), (ManagedEntityTabularType) input.getType(), input);
         }
     }
 

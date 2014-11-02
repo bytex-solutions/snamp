@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.jmx;
 
-import com.itworks.snamp.SimpleTable;
+import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.InMemoryTable;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
@@ -9,9 +10,6 @@ import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.AttributeValue;
-import com.itworks.snamp.internal.Utils;
-import org.apache.commons.collections4.Closure;
-import org.apache.commons.collections4.Put;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
@@ -130,7 +128,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         if(source.canConvertTo(JmxTypeLiterals.COMPOSITE_DATA)){
             final CompositeData dict = source.convertTo(JmxTypeLiterals.COMPOSITE_DATA);
             return new CompositeDataSupport(getAttributeMapType(source.type, options),
-                    Utils.toArray(dict.getCompositeType().keySet(), String.class),
+                    ArrayUtils.toArray(dict.getCompositeType().keySet(), String.class),
                     dict.values().toArray());
         }
         final Map<String, Object> m = new HashMap<>(10);
@@ -150,7 +148,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
                 if(row instanceof CompositeData){
                     final CompositeData typedRow = (CompositeData)row;
                     result.put(new CompositeDataSupport(result.getTabularType().getRowType(),
-                            Utils.toArray(typedRow.getCompositeType().keySet(), String.class),
+                            ArrayUtils.toArray(typedRow.getCompositeType().keySet(), String.class),
                             typedRow.values().toArray()));
                 }
             return result;
@@ -226,21 +224,13 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
     }
 
     private static Object parseTabularData(final TabularData data,
-                                           final ManagedEntityTabularType tabularType) throws OpenDataException, InvalidAttributeValueException{
-        final Table<String> result = new SimpleTable<>(new Closure<Put<String, Class<?>>>() {
-            @Override
-            public void execute(final Put<String, Class<?>> input) {
-                for(final String columnName: tabularType.getColumns())
-                    input.put(columnName, Object.class);
-            }
-        },
-        data.keySet().size(),
-        data.size());
-        for(final Object row: data.values())
-            if(row instanceof CompositeData) {
-                final CompositeData sourceRow = (CompositeData)row;
+                                           final ManagedEntityTabularType tabularType) throws OpenDataException, InvalidAttributeValueException {
+        final Table<String> result = new InMemoryTable<>(tabularType.getColumns(), Object.class, data.size());
+        for (final Object row : data.values())
+            if (row instanceof CompositeData) {
+                final CompositeData sourceRow = (CompositeData) row;
                 final Map<String, Object> destRow = new HashMap<>(sourceRow.values().size());
-                for(final String columnName: sourceRow.getCompositeType().keySet())
+                for (final String columnName : sourceRow.getCompositeType().keySet())
                     destRow.put(columnName, parseValue(sourceRow.get(columnName), tabularType.getColumnType(columnName)));
                 result.addRow(destRow);
             }

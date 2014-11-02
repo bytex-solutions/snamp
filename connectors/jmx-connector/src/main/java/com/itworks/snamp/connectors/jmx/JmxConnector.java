@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.jmx;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.ConversionException;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
@@ -13,7 +14,6 @@ import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.LicensingException;
-import org.apache.commons.collections4.Factory;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -209,10 +209,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
         }
 
-        private static Factory<OpenType<?>> createTypeDetectionFallback(final JmxAttributeProvider provider){
-            return new Factory<OpenType<?>>() {
+        private static Supplier<OpenType<?>> createTypeDetectionFallback(final JmxAttributeProvider provider){
+            return new Supplier<OpenType<?>>() {
                 @Override
-                public OpenType<?> create() {
+                public OpenType<?> get() {
                     try {
                         return provider.getTypeFromAttributeValue();
                     } catch (final Exception e) {

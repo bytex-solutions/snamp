@@ -1,11 +1,11 @@
 package com.itworks.snamp.testing;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationManager;
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingException;
-import org.apache.commons.collections4.Factory;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
@@ -56,7 +56,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     private static AbstractProvisionOption<?>[] buildDependencies(AbstractProvisionOption<?>[] deps) {
         deps = concat(deps, mavenBundle("org.apache.felix", "org.apache.felix.log", "1.0.1"),
                 mavenBundle("org.apache.felix", "org.apache.felix.eventadmin", "1.4.2"),
-                mavenBundle("org.apache.sling", "org.apache.sling.commons.threads", "3.2.0"));
+                mavenBundle("com.google.guava", "guava", "18.0"));
         return concat(SnampArtifact.makeBasicSet(), deps);
     }
 
@@ -130,13 +130,13 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     protected final <L extends AbstractLicenseLimitations, A> void verifyLicenseLimitation(final Class<L> descriptor,
                                                                                            final String limitationName,
                                                                                            final A actualValue,
-                                                                                           final Factory<L> fallback) throws LicensingException{
+                                                                                           final Supplier<L> fallback) throws LicensingException{
         final L lims = getLicenseLimitation(descriptor, fallback);
         assertNotNull(String.format("Limitation %s is not described in license", descriptor), lims);
         lims.verify(limitationName, actualValue);
     }
 
-    protected final <L extends AbstractLicenseLimitations> L getLicenseLimitation(final Class<L> limitationType, final Factory<L> fallback){
+    protected final <L extends AbstractLicenseLimitations> L getLicenseLimitation(final Class<L> limitationType, final Supplier<L> fallback){
         assertNotNull("Licensing service is not available.", licenseReader);
         return licenseReader.getLimitations(limitationType, fallback);
     }

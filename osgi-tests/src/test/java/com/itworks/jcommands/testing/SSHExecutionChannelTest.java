@@ -6,8 +6,8 @@ import com.itworks.jcommands.channels.CommandExecutionChannels;
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.testing.AbstractUnitTest;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
@@ -70,7 +70,7 @@ public final class SSHExecutionChannelTest extends AbstractUnitTest<CommandExecu
 
     @Test
     public void executeFreeCommandWithParsingTest() throws Exception{
-        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
+        Assume.assumeTrue(Utils.IS_OS_LINUX);
         final CommandExecutionChannel channel = CommandExecutionChannels.createChannel("ssh", new HashMap<String, String>(){{
             put("userName", USER_NAME);
             put("password", PASSWORD);
@@ -100,7 +100,7 @@ public final class SSHExecutionChannelTest extends AbstractUnitTest<CommandExecu
 
     @Test
     public void executeFreeCommandWithoutParsingTest() throws Exception {
-        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
+        Assume.assumeTrue(Utils.IS_OS_LINUX);
         final CommandExecutionChannel channel = CommandExecutionChannels.createChannel("ssh", new HashMap<String, String>(){{
             put("userName", USER_NAME);
             put("password", PASSWORD);

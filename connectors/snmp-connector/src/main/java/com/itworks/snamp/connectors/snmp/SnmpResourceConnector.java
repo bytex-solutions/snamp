@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.base.Joiner;
 import com.itworks.snamp.ConversionException;
 import com.itworks.snamp.ReferenceCountedObject;
 import com.itworks.snamp.TimeSpan;
@@ -11,7 +12,6 @@ import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.licensing.LicensingException;
-import org.apache.commons.lang3.StringUtils;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
@@ -96,7 +96,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
             final Collection<VariableBinding> bindings = event.getBindingList(getNotificationID());
             if(bindings.size() == 0) return;
             String template = get(MESSAGE_TEMPLATE);
-            if(template == null) template = StringUtils.join(bindings, System.lineSeparator());
+            if(template == null) template = Joiner.on(System.lineSeparator()).join(bindings);
             else for(final VariableBinding binding: bindings){
                 final OID postfix = SnmpConnectorHelpers.getPostfix(getNotificationID(), binding.getOid());
                 if(postfix.size() == 0) continue;
