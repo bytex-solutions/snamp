@@ -72,4 +72,6 @@ public final class JmxResourceAdapterActivator extends AbstractResourceAdapterAc
         }
         else throw new MalformedURLException(String.format("Adapter configuration has no %s entry", OBJECT_NAME_PARAM));
     }
+
+
 }

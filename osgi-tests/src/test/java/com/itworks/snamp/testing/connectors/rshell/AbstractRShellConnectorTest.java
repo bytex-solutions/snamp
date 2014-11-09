@@ -78,7 +78,7 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
     }
 
     @Override
-    protected void afterCleanupTest(final BundleContext context) throws InterruptedException {
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
         server.stop();
     }
 }

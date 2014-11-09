@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.jmx;
 
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.InMemoryTable;
+import com.itworks.snamp.MapBuilder;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
@@ -18,6 +18,7 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
+import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME;
 import static com.itworks.snamp.connectors.WellKnownTypeSystem.*;
 
@@ -131,7 +132,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
                     ArrayUtils.toArray(dict.getCompositeType().keySet(), String.class),
                     dict.values().toArray());
         }
-        final Map<String, Object> m = new HashMap<>(10);
+        final Map<String, Object> m = MapBuilder.createStringHashMap(10);
         for(final Map.Entry<String, ?> entry: source.convertTo(TypeLiterals.STRING_MAP).entrySet()){
             m.put(entry.getKey(), getValue(new AttributeValue<>(entry.getValue(), source.type.getColumnType(entry.getKey())), Collections.<String, String>emptyMap()));
         }
@@ -217,7 +218,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
 
     private static Object parseCompositeData(final CompositeData data,
                                              final ManagedEntityTabularType mapType) throws OpenDataException, InvalidAttributeValueException{
-        final Map<String, Object> map = new HashMap<>(data.getCompositeType().keySet().size());
+        final Map<String, Object> map = MapBuilder.createStringHashMap(data.getCompositeType().keySet().size());
         for(final String key: data.getCompositeType().keySet())
             map.put(key, parseValue(data.get(key), mapType.getColumnType(key)));
         return map;
@@ -225,7 +226,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
 
     private static Object parseTabularData(final TabularData data,
                                            final ManagedEntityTabularType tabularType) throws OpenDataException, InvalidAttributeValueException {
-        final Table<String> result = new InMemoryTable<>(tabularType.getColumns(), Object.class, data.size());
+        final Table<String> result = STRING_TABLE_FACTORY.create(tabularType.getColumns(), Object.class, data.size());
         for (final Object row : data.values())
             if (row instanceof CompositeData) {
                 final CompositeData sourceRow = (CompositeData) row;

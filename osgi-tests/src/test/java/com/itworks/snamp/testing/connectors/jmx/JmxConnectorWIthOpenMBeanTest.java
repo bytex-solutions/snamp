@@ -1,7 +1,10 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.*;
+import com.itworks.snamp.SynchronizationEvent;
+import com.itworks.snamp.Table;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
@@ -24,6 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.connectors.notifications.NotificationUtils.SynchronizationListener;
@@ -201,7 +205,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public final void testForTableProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
-        final Table<String> table = new InMemoryTable<>(new HashMap<String, Class<?>>(3){{
+        final Table<String> table = STRING_TABLE_FACTORY.create(new HashMap<String, Class<?>>(3){{
             put("col1", Boolean.class);
             put("col2", Integer.class);
             put("col3", String.class);

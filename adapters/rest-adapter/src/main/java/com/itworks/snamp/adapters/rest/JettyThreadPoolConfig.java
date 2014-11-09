@@ -10,8 +10,8 @@ import java.util.Map;
  * @since 1.0
  */
 final class JettyThreadPoolConfig extends ThreadPoolConfig {
-    private static final int DEFAULT_MIN_POOL_SIZE = 1;
-    private static final int DEFAULT_MAX_POOL_SIZE = 5;
+    private static final int DEFAULT_MIN_POOL_SIZE = 5;
+    private static final int DEFAULT_MAX_POOL_SIZE = 10;
     private static final long DEFAULT_KEEP_ALIVE_TIME = 60 * 1000;
     private static final int DEFAULT_QUEUE_SIZE = INFINITE_QUEUE_SIZE;
     private static final int DEFAULT_PRIORITY = Thread.NORM_PRIORITY;

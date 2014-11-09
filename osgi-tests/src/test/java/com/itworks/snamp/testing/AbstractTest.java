@@ -11,6 +11,8 @@ import java.lang.reflect.Array;
  * @since 1.0
  */
 public abstract class AbstractTest extends Assert {
+
+
     @SafeVarargs
     protected static <T> T[] concat(final T[] array1, final T... array2){
         @SuppressWarnings("unchecked")

@@ -35,7 +35,6 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
-    private static final String OS_NAME = StandardSystemProperty.OS_NAME.value();
     /**
      * Determines whether the underlying OS is Linux.
      */
@@ -56,7 +55,7 @@ public final class Utils {
     }
 
     private static String getOS(){
-        return System.getProperty(OS_NAME, "undefined");
+        return StandardSystemProperty.OS_NAME.value();
     }
 
     /**

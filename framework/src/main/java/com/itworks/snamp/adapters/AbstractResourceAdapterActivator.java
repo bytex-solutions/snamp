@@ -324,6 +324,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     }
 
     private void deactivate() throws Exception{
+
         for(final TAdapter adapter: adapters.values())
             adapter.close();
     }

@@ -13,6 +13,8 @@ import com.itworks.snamp.connectors.WellKnownTypeSystem;
 
 import java.util.*;
 
+import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
+
 /**
  * Represents managed entity type resolved that convert {@link com.itworks.jcommands.impl.XmlParserDefinition}
  * into {@link com.itworks.snamp.connectors.ManagedEntityType}.
@@ -26,7 +28,7 @@ final class RShellConnectorTypeSystem extends WellKnownTypeSystem {
         registerConverter(TypeLiterals.STRING_MAP, TypeLiterals.STRING_COLUMN_TABLE, new Function<Map<String,Object>, Table<String>>() {
             @Override
             public Table<String> apply(final Map<String, Object> input) {
-                return InMemoryTable.fromRow(input);
+                return STRING_TABLE_FACTORY.fromSingleRow(input);
             }
         });
         registerIdentityConverter(TypeLiterals.STRING_COLUMN_TABLE);
@@ -93,7 +95,7 @@ final class RShellConnectorTypeSystem extends WellKnownTypeSystem {
     }
 
     static Table<String> toTable(final Collection<Map<String, Object>> value, final XmlParserDefinition definition) {
-        final InMemoryTable<String> result = new InMemoryTable<>(new SafeConsumer<ImmutableMap.Builder<String, Class<?>>>() {
+        final InMemoryTable<String> result = STRING_TABLE_FACTORY.create(new SafeConsumer<ImmutableMap.Builder<String, Class<?>>>() {
             @Override
             public void accept(final ImmutableMap.Builder<String, Class<?>> input) {
                 definition.exportTableOrDictionaryType(input);

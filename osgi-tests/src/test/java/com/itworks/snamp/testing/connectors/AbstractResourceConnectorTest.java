@@ -6,6 +6,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
@@ -15,6 +16,7 @@ import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 
 import java.io.IOException;
@@ -23,9 +25,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
-
-import static com.itworks.snamp.connectors.AbstractManagedResourceActivator.startResourceConnector;
-import static com.itworks.snamp.connectors.AbstractManagedResourceActivator.stopResourceConnector;
 
 /**
  * Represents an abstract class for all integration tests that checks management connectors.
@@ -123,11 +122,19 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     }
 
+    protected final void stopResourceConnector(final BundleContext context) throws BundleException{
+        AbstractManagedResourceActivator.stopResourceConnector(context, connectorType);
+    }
+
+    protected final void startResourceConnector(final BundleContext context) throws BundleException{
+        AbstractManagedResourceActivator.startResourceConnector(context, connectorType);
+    }
+
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         //restart management connector bundle for updating SNAMP configuration
-        stopResourceConnector(context, connectorType);
-        startResourceConnector(context, connectorType);
+        stopResourceConnector(context);
+        startResourceConnector(context);
     }
 
     protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Supplier<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory){

@@ -9,6 +9,8 @@ import com.itworks.snamp.licensing.LicensingException;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
+import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
+import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.osgi.framework.BundleContext;
 
 import javax.inject.Inject;
@@ -25,6 +27,7 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  * @version 1.0
  * @since 1.0
  */
+@ExamReactorStrategy(PerClass.class)
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
 
     /**

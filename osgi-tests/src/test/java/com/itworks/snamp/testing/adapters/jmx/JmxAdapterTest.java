@@ -71,88 +71,57 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void testStringProperty() throws BundleException, JMException, IOException {
-        try {
-            testJmxAttribute(new Attribute("1.0", "Frank Underwood"));
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+        testJmxAttribute(new Attribute("1.0", "Frank Underwood"));
     }
 
     @Test
     public void testBooleanProperty() throws BundleException, JMException, IOException {
-        try {
-            testJmxAttribute(new Attribute("2.0", Boolean.TRUE));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+        testJmxAttribute(new Attribute("2.0", Boolean.TRUE));
     }
 
     @Test
     public void testInt32Property() throws BundleException, JMException, IOException {
-        try {
-            testJmxAttribute(new Attribute("3.0", 19081));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+        testJmxAttribute(new Attribute("3.0", 19081));
     }
 
     @Test
     public void testBigintProperty() throws BundleException, JMException, IOException {
-        try {
-            testJmxAttribute(new Attribute("4.0", new BigInteger("100500")));
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+        testJmxAttribute(new Attribute("4.0", new BigInteger("100500")));
     }
 
     @Test
     public void testArrayProperty() throws BundleException, JMException, IOException {
-        try {
-            testJmxAttribute(new Attribute("5.1", new short[]{8, 4, 2, 1}));
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+        testJmxAttribute(new Attribute("5.1", new short[]{8, 4, 2, 1}));
     }
 
     @Test
     public void testDictionaryProperty() throws BundleException, JMException, IOException {
-        try {
-            final CompositeType ct = new CompositeType("dict", "dummy",
-                    new String[]{"col1", "col2", "col3"},
-                    new String[]{"col1", "col2", "col3"},
-                    new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
-            final Map<String, Object> dict = new HashMap<>(3);
-            dict.put("col1", true);
-            dict.put("col2", 42);
-            dict.put("col3", "Frank Underwood");
-            testJmxAttribute(new Attribute("6.1", new CompositeDataSupport(ct, dict)));
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+        final CompositeType ct = new CompositeType("dict", "dummy",
+                new String[]{"col1", "col2", "col3"},
+                new String[]{"col1", "col2", "col3"},
+                new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
+        final Map<String, Object> dict = new HashMap<>(3);
+        dict.put("col1", true);
+        dict.put("col2", 42);
+        dict.put("col3", "Frank Underwood");
+        testJmxAttribute(new Attribute("6.1", new CompositeDataSupport(ct, dict)));
     }
 
     @Test
     public void testTableProperty() throws BundleException, JMException, IOException {
-        try {
-            final CompositeType rowType = new CompositeType("table", "dummy",
-                    new String[]{"col1", "col2", "col3"},
-                    new String[]{"col1", "col2", "col3"},
-                    new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
-            final TabularData table = new TabularDataSupport(new TabularType("table", "table", rowType,
-                    new String[]{"col3"}));
-            table.put(new CompositeDataSupport(rowType,
-                    new String[]{"col1", "col2", "col3"},
-                    new Object[]{true, 67, "Dostoevsky"}));
-            table.put(new CompositeDataSupport(rowType,
-                    new String[]{"col1", "col2", "col3"},
-                    new Object[]{false, 98, "Pushkin"}));
-            testJmxAttribute(new Attribute("7.1", table));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+        final CompositeType rowType = new CompositeType("table", "dummy",
+                new String[]{"col1", "col2", "col3"},
+                new String[]{"col1", "col2", "col3"},
+                new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
+        final TabularData table = new TabularDataSupport(new TabularType("table", "table", rowType,
+                new String[]{"col3"}));
+        table.put(new CompositeDataSupport(rowType,
+                new String[]{"col1", "col2", "col3"},
+                new Object[]{true, 67, "Dostoevsky"}));
+        table.put(new CompositeDataSupport(rowType,
+                new String[]{"col1", "col2", "col3"},
+                new Object[]{false, 98, "Pushkin"}));
+        testJmxAttribute(new Attribute("7.1", table));
     }
 
     @Test
@@ -213,9 +182,16 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
-        super.afterStartTest(context);
         AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        super.afterStartTest(context);
         AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        stopResourceConnector(context);
+        super.afterCleanupTest(context);
     }
 
     @Override

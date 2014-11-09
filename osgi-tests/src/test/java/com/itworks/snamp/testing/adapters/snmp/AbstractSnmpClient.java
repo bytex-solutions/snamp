@@ -1,17 +1,21 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
-import com.itworks.snamp.InMemoryTable;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.Table;
 import org.snmp4j.*;
-import org.snmp4j.event.*;
+import org.snmp4j.event.ResponseEvent;
+import org.snmp4j.event.ResponseListener;
 import org.snmp4j.smi.*;
-import org.snmp4j.util.*;
+import org.snmp4j.util.DefaultPDUFactory;
+import org.snmp4j.util.TableEvent;
+import org.snmp4j.util.TableUtils;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.TableFactory.INTEGER_TABLE_FACTORY;
 
 /**
  * Represents abstract class for any SNMP client side helper
@@ -257,12 +261,12 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @throws Exception
      */
     public final Table<Integer> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception {
-        final Table<Integer> table = new InMemoryTable<>(columns);
         final Collection<Variable[]> rows = this.getTable(method, oid, columns.size());
+        final Table<Integer> table = INTEGER_TABLE_FACTORY.create(columns, rows.size());
         for(final Variable[] row: rows)
             table.addRow(new HashMap<Integer, Object>(){{
                 for(int i = 0; i < row.length; i++){
-                    final Integer column = new Integer(i + 2);
+                    final Integer column = i + 2;
                     put(column, deserialize(row[i], columns.get(column)));
                 }
             }});

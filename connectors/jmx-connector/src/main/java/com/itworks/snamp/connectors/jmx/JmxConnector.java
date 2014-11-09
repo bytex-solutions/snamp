@@ -477,11 +477,11 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         }
 
         private void enableListening(final ObjectName target) throws Exception {
-            final javax.management.NotificationListener listener = this;
             connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
+
                 @Override
                 public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    connection.addNotificationListener(target, listener, null, null);
+                    connection.addNotificationListener(target, JmxNotificationSupport.this, null, null);
                     return null;
                 }
             });
@@ -489,11 +489,9 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
 
         private void disableListening(final ObjectName target) throws Exception {
             connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
-                private final javax.management.NotificationListener listener = JmxNotificationSupport.this;
-
                 @Override
                 public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    connection.removeNotificationListener(target, listener);
+                    connection.removeNotificationListener(target, JmxNotificationSupport.this);
                     return null;
                 }
             });

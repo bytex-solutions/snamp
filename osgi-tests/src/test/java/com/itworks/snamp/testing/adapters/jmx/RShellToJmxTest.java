@@ -57,9 +57,16 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
-        super.afterStartTest(context);
         AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        super.afterStartTest(context);
         AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        stopResourceConnector(context);
+        super.afterCleanupTest(context);
     }
 
     @Override
@@ -96,15 +103,11 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
 
     @Test
     public void readMemStatusTest() throws BundleException, IOException, JMException {
-        try {
-            final Object memStatus = readAttribute("ms");
-            assertNotNull(memStatus);
-            assertTrue(memStatus instanceof CompositeData);
-            assertTrue(((CompositeData)memStatus).get("total") instanceof Long);
-            assertTrue(((CompositeData)memStatus).get("used") instanceof Long);
-            assertTrue(((CompositeData)memStatus).get("free") instanceof Long);
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+        final Object memStatus = readAttribute("ms");
+        assertNotNull(memStatus);
+        assertTrue(memStatus instanceof CompositeData);
+        assertTrue(((CompositeData) memStatus).get("total") instanceof Long);
+        assertTrue(((CompositeData) memStatus).get("used") instanceof Long);
+        assertTrue(((CompositeData) memStatus).get("free") instanceof Long);
     }
 }

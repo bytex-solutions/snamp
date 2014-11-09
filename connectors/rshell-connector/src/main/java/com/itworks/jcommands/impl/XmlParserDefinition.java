@@ -864,7 +864,7 @@ public class XmlParserDefinition {
 
     private Map<String, Object> parseDictionary(final ResettableIterator parsingTemplateIter,
                                                 final ScriptEngine engine) throws ScriptException {
-        final Map<String, Object> result = new HashMap<>(20);
+        final Map<String, Object> result = new HashMap<String, Object>(20) { };
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){
             final Object templateFragment = parsingTemplateIter.next();

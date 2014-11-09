@@ -3,12 +3,15 @@ package com.itworks.snamp.testing;
 import com.google.common.base.Supplier;
 import com.itworks.snamp.InMemoryTable;
 import com.itworks.snamp.Table;
+import com.itworks.snamp.TableFactory;
 import org.junit.Test;
 
 import java.beans.IntrospectionException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
 
 /**
  * @author Roman Sakno
@@ -21,7 +24,7 @@ public class InMemoryTableTest extends AbstractUnitTest<InMemoryTable> {
 
     @Test
     public void tableModificaitonTest(){
-        final Table<String> table = new InMemoryTable<>(new HashMap<String, Class<?>>(){{
+        final Table<String> table = STRING_TABLE_FACTORY.create(new HashMap<String, Class<?>>(){{
             put("COL1", Integer.class);
             put("COL2", String.class);
             put("COL3", Boolean.class);
@@ -59,7 +62,7 @@ public class InMemoryTableTest extends AbstractUnitTest<InMemoryTable> {
         row.put("key1", 42L);
         row.put("key2", "hello");
         row.put("key3", false);
-        final Table<String> t = InMemoryTable.fromArray(rows);
+        final Table<String> t = STRING_TABLE_FACTORY.fromArray(rows);
         assertEquals(2, t.getRowCount());
         assertEquals(Boolean.TRUE, t.getCell("key3", 0));
         assertEquals(Object.class, t.getColumnType("key2"));
@@ -98,7 +101,7 @@ public class InMemoryTableTest extends AbstractUnitTest<InMemoryTable> {
         final RowBean row2 = new RowBean();
         row2.setColumn1(43);
         row2.setColumn2("string2");
-        final Table<String> t = InMemoryTable.create(RowBean.class,
+        final Table<String> t = TableFactory.fromBeans(RowBean.class,
                 new RowBean[]{row1, row2}, "column1", "column2");
         assertEquals(2, t.getRowCount());
         assertEquals(42, t.getCell("column1", 0));
@@ -109,7 +112,7 @@ public class InMemoryTableTest extends AbstractUnitTest<InMemoryTable> {
 
     @Test
     public final void toJavaBeanTest() throws IntrospectionException, ReflectiveOperationException {
-        final Table<String> t = new InMemoryTable<>(new HashMap<String, Class<?>>(2){{
+        final Table<String> t = STRING_TABLE_FACTORY.create(new HashMap<String, Class<?>>(2){{
             put("column1", Integer.class);
             put("column2", String.class);
         }});
@@ -121,7 +124,7 @@ public class InMemoryTableTest extends AbstractUnitTest<InMemoryTable> {
             put("column1", 43);
             put("column2", "string2");
         }});
-        final List<RowBean> rows = InMemoryTable.fromTable(RowBean.class, new Supplier<RowBean>() {
+        final List<RowBean> rows = TableFactory.toBeans(RowBean.class, new Supplier<RowBean>() {
             @Override
             public RowBean get() {
                 return new RowBean();

@@ -1,7 +1,6 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.InMemoryTable;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TimeSpan;
@@ -34,6 +33,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.itworks.snamp.TableFactory.INTEGER_TABLE_FACTORY;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
@@ -197,7 +197,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     @Test
     public final void testForTableProperty() throws Exception{
         try {
-            Table<Integer> table = new InMemoryTable<>(new HashMap<Integer, Class<?>>() {{
+            Table<Integer> table = INTEGER_TABLE_FACTORY.create(new HashMap<Integer, Class<?>>() {{
                 put(2, Variable.class);//bool
                 put(3, Variable.class);//int
                 put(4, Variable.class);//str
@@ -247,7 +247,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     @Test
     public final void testForArrayProperty() throws Exception{
         try {
-            Table<Integer> array = new InMemoryTable<>(new HashMap<Integer, Class<?>>(1) {{
+            Table<Integer> array = INTEGER_TABLE_FACTORY.create(new HashMap<Integer, Class<?>>(1) {{
                 put(2, Variable.class);
             }});
             array.addRow(new HashMap<Integer, Object>(2) {{
@@ -273,7 +273,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     @Test
     public final void testForDictionaryProperty() throws Exception{
         try {
-            Table<Integer> dict = new InMemoryTable<>(new HashMap<Integer, Class<?>>() {{
+            Table<Integer> dict = INTEGER_TABLE_FACTORY.create(new HashMap<Integer, Class<?>>() {{
                 put(2, Variable.class);
                 put(3, Variable.class);
                 put(4, Variable.class);

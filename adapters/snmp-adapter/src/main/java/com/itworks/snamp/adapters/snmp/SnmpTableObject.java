@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
+import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.convertFrom;
 import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.supportsProjection;
@@ -282,7 +283,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
 
     private static void fill(final Object[] values, final MOTable<MOMutableTableRow, MONamedColumn<Variable>, MOTableModel<MOMutableTableRow>> table, final ManagedEntityTabularType type, final Map<String, String> conversionOptions){
         @Temporary
-        final InMemoryTable<String> tempTable = new InMemoryTable<>(ManagedEntityTypeBuilder.ManagedEntityArrayType.VALUE_COLUMN_NAME,
+        final InMemoryTable<String> tempTable = STRING_TABLE_FACTORY.create(ManagedEntityTypeBuilder.ManagedEntityArrayType.VALUE_COLUMN_NAME,
                 Object.class,
                 values.length);
         for(int arrayIndex = 0; arrayIndex < values.length; arrayIndex++){
@@ -417,7 +418,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             rowsToDelete = dumpArray(getTableType().getColumnType(ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME));
         else {
             rowsToDelete = new ArrayList<>(model.getRowCount());
-            final Table<String> table = new InMemoryTable<>(new SafeConsumer<ImmutableMap.Builder<String, Class<?>>>() {
+            final Table<String> table = STRING_TABLE_FACTORY.create(new SafeConsumer<ImmutableMap.Builder<String, Class<?>>>() {
                 @Override
                 public void accept(final ImmutableMap.Builder<String, Class<?>> output) {
                     for(int i = 0; i < getColumnCount(); i++){

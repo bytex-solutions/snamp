@@ -112,9 +112,9 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
         final Process proc = rt.exec(command.renderCommand(obj, this));
         try (final Reader input = new InputStreamReader(proc.getInputStream());
              final Reader error = new InputStreamReader(proc.getErrorStream())) {
+            final int processExitCode = proc.waitFor();
             final String result = toString(input);
             final String err = toString(error);
-            final int processExitCode = proc.waitFor();
             return err != null && err.length() > 0 || processExitCode != getNormalExitCode() ?
                     command.process(result, new ExecuteException(err, processExitCode)) :
                     command.process(result, null);

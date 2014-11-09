@@ -995,14 +995,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     /**
      * Releases all resources associated with this adapter.
-     * <p>
-     *     You should call base implementation of this method
-     *     in the overridden method.
-     * </p>
      * @throws Exception An exception occurred during adapter releasing.
      */
     @Override
-    public void close() throws Exception{
+    public final void close() throws Exception{
         try{
             if(state == AdapterState.STARTED)
                 stop();

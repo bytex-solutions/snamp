@@ -18,6 +18,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
+
 /**
  * Represents JMX type system. This class cannot be inherited.
  * @author Roman Sakno
@@ -62,7 +64,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
      */
     private static Table<String> convertToTable(final TabularData value){
         final TabularType tt = value.getTabularType();
-        final InMemoryTable<String> result = new InMemoryTable<>(tt.getRowType().keySet(),
+        final InMemoryTable<String> result = STRING_TABLE_FACTORY.create(tt.getRowType().keySet(),
                 Object.class,
                 value.size());
         for(final Object rowIndex: value.values()){
@@ -77,7 +79,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
 
     private static Map<String, Object> convertToMap(final CompositeData value){
         final CompositeType ct = value.getCompositeType();
-        final Map<String, Object> result = new HashMap<>(ct.keySet().size());
+        final Map<String, Object> result = MapBuilder.createStringHashMap(ct.keySet().size());
         for(final String key: ct.keySet())
             result.put(key, value.get(key));
         return result;
@@ -85,7 +87,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
 
     private static Table<String> convertToTable(final CompositeData value) {
         final CompositeType ct = value.getCompositeType();
-        final InMemoryTable<String> result = new InMemoryTable<>(ct.keySet(), Object.class, 1);
+        final InMemoryTable<String> result = STRING_TABLE_FACTORY.create(ct.keySet(), Object.class, 1);
         final Map<String, Object> row = result.newRow();
         for (final String columnName : ct.keySet())
             row.put(columnName, value.get(columnName));
@@ -393,7 +395,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
 
         private CompositeData convertToJmxType(final Map<String, Object> value) throws InvalidAttributeValueException{
-            final Map<String, Object> convertedValue = new HashMap<>(value.size());
+            final Map<String, Object> convertedValue = MapBuilder.createStringHashMap(value.size());
             for(final String columnName: value.keySet()){
                 final JmxManagedEntityType columnType = createEntityType(getOpenType().getType(columnName));
                 convertedValue.put(columnName, columnType.convertToJmx(value.get(columnName)));
@@ -407,7 +409,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
 
         private CompositeData convertToJmxType(final Table<String> value) throws InvalidAttributeValueException{
-            final Map<String, Object> result = new HashMap<>(10);
+            final Map<String, Object> result = MapBuilder.createStringHashMap(value.getColumns().size());
             if(value.getRowCount() > 0)
                 for(final String columnName: getOpenType().keySet()){
                     final JmxManagedEntityType columnType = createEntityType(getOpenType().getType(columnName));

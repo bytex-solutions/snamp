@@ -196,4 +196,16 @@ public final class MapBuilder<K, V> implements Iterable<Entry<K, V>> {
             result.put(key, props.getProperty(key));
         return result;
     }
+
+    /**
+     * Creates a new instance of the map with {@link java.lang.String} keys.
+     * <p>
+     *    The method produce an instance of anonymous class derived from {@link java.util.HashMap}.
+     *    This behavior is useful when actual type of the key should be captured.
+     * @param capacity The initial capacity of the map.
+     * @return A new instance of the map.
+     */
+    public static HashMap<String, Object> createStringHashMap(final int capacity){
+        return new HashMap<String, Object>(capacity){ };
+    }
 }

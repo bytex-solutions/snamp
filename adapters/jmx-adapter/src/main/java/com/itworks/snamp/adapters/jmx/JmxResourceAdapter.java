@@ -226,14 +226,6 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     /**
-     * Releases all resources associated with this adapter.
-     */
-    @Override
-    public void close() {
-        exposedBeans.clear();
-    }
-
-    /**
      * Gets logger associated with this service.
      *
      * @return The logger associated with this service.

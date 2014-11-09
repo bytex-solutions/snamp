@@ -16,7 +16,6 @@ import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
@@ -85,79 +84,47 @@ public final class SecureRestAdapterTest extends AbstractJmxConnectorTest<TestOp
     }
 
     @Test
-    public void testStringAttribute() throws BundleException {
-        try {
-            testJsonAttribute(new JsonPrimitive("Frank Underwood"), "1.0");
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    public void testStringAttribute() {
+        testJsonAttribute(new JsonPrimitive("Frank Underwood"), "1.0");
     }
 
     @Test
-    public void testBooleanAttribute() throws BundleException {
-        try {
-            testJsonAttribute(new JsonPrimitive(true), "2.0");
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    public void testBooleanAttribute() {
+        testJsonAttribute(new JsonPrimitive(true), "2.0");
     }
 
     @Test
-    public void testInt32Attribute() throws BundleException {
-        try {
-            testJsonAttribute(new JsonPrimitive(1234), "3.0");
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    public void testInt32Attribute() {
+        testJsonAttribute(new JsonPrimitive(1234), "3.0");
     }
 
     @Test
-    public void testBigIntAttribute() throws BundleException {
-        try {
-            testJsonAttribute(new JsonPrimitive(new BigInteger("100500")), "4.0");
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    public void testBigIntAttribute() {
+        testJsonAttribute(new JsonPrimitive(new BigInteger("100500")), "4.0");
     }
 
     @Test
-    public void testFloatAttribute() throws BundleException {
-        try {
-            testJsonAttribute(new JsonPrimitive(1234F), "8.0");
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    public void testFloatAttribute() {
+        testJsonAttribute(new JsonPrimitive(1234F), "8.0");
     }
 
     @Test
-    public void testDateAttribute() throws BundleException {
-        try {
-            testJsonAttribute(jsonFormatter.toJsonTree(new Date(), Date.class), "9.0");
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    public void testDateAttribute() {
+        testJsonAttribute(jsonFormatter.toJsonTree(new Date(), Date.class), "9.0");
     }
 
     @Test
-    public void testArrayAttribute() throws BundleException {
-        try {
-            testJsonAttribute(jsonFormatter.toJsonTree(new short[]{8, 7, 6, 5, 4}, short[].class), "5.1");
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    public void testArrayAttribute() {
+        testJsonAttribute(jsonFormatter.toJsonTree(new short[]{8, 7, 6, 5, 4}, short[].class), "5.1");
     }
 
     @Test
-    public void testDictionaryAttribute() throws BundleException {
-        try {
-            final JsonObject dic = new JsonObject();
-            dic.add("col1", new JsonPrimitive(true));
-            dic.add("col2", new JsonPrimitive(42));
-            dic.add("col3", new JsonPrimitive("Hello, world!"));
-            testJsonAttribute(dic, "6.1");
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    public void testDictionaryAttribute() {
+        final JsonObject dic = new JsonObject();
+        dic.add("col1", new JsonPrimitive(true));
+        dic.add("col2", new JsonPrimitive(42));
+        dic.add("col3", new JsonPrimitive("Hello, world!"));
+        testJsonAttribute(dic, "6.1");
     }
 
     private static JsonArray createTestTable1() {
@@ -190,37 +157,29 @@ public final class SecureRestAdapterTest extends AbstractJmxConnectorTest<TestOp
     }
 
     @Test
-    public void testTableAttribute() throws BundleException {
-        try {
-            testJsonAttribute(createTestTable1(), "7.1");
-        } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    public void testTableAttribute() {
+        testJsonAttribute(createTestTable1(), "7.1");
     }
 
     @Test
     public void notificationsTest() throws Exception {
-        try {
-            final WebSocketClient webSocketClient = new WebSocketClient();
-            final JsonNotificationBox notificationBox = new JsonNotificationBox(jsonParser);
-            webSocketClient.start();
-            //subscribe to event
-            final ClientUpgradeRequest request = new ClientUpgradeRequest();
-            request.setSubProtocols("text");
-            try (final Session ignored = webSocketClient.connect(notificationBox, new URI(String.format("ws://%s:%s/snamp/managedResource/notifications", HTTP_HOST, HTTP_PORT)), request).get()) {
-                //forces attribute changing
-                testJsonAttribute(new JsonPrimitive(1234), "3.0");
-                int counter = 0;
-                while (notificationBox.size() < 2) {
-                    Thread.sleep(100);
-                    if (counter++ > 50) break;
-                }
-                assertEquals(2, notificationBox.size());
-            } finally {
-                webSocketClient.stop();
+        final WebSocketClient webSocketClient = new WebSocketClient();
+        final JsonNotificationBox notificationBox = new JsonNotificationBox(jsonParser);
+        webSocketClient.start();
+        //subscribe to event
+        final ClientUpgradeRequest request = new ClientUpgradeRequest();
+        request.setSubProtocols("text");
+        try (final Session ignored = webSocketClient.connect(notificationBox, new URI(String.format("ws://%s:%s/snamp/managedResource/notifications", HTTP_HOST, HTTP_PORT)), request).get()) {
+            //forces attribute changing
+            testJsonAttribute(new JsonPrimitive(1234), "3.0");
+            int counter = 0;
+            while (notificationBox.size() < 2) {
+                Thread.sleep(100);
+                if (counter++ > 50) break;
             }
+            assertEquals(2, notificationBox.size());
         } finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+            webSocketClient.stop();
         }
     }
 
@@ -275,9 +234,16 @@ public final class SecureRestAdapterTest extends AbstractJmxConnectorTest<TestOp
 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
-        super.afterStartTest(context);
         AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        super.afterStartTest(context);
         AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        stopResourceConnector(context);
+        super.afterCleanupTest(context);
     }
 
     @Override

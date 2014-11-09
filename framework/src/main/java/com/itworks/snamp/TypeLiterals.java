@@ -101,11 +101,13 @@ public final class TypeLiterals {
 
     /**
      * Represents wrapped {@link com.google.common.collect.Table}&lt;{@link java.lang.Integer}, {@link java.lang.String}, {@link java.lang.Object}&gt;
+     * @see com.itworks.snamp.TableFactory#STRING_TABLE_FACTORY
      */
     public static final TypeToken<Table<String>> STRING_COLUMN_TABLE = new TypeToken<Table<String>>() {};
 
     /**
      * Represents wrapped {@link java.util.Map}&lt;{@link java.lang.String}, {@link java.lang.Object}&gt;
+     * @see com.itworks.snamp.MapBuilder#createStringHashMap(int)
      */
     public static final TypeToken<Map<String, Object>> STRING_MAP = new TypeToken<Map<String, Object>>() {};
 

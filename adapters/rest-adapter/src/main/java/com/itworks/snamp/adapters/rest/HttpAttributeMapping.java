@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.rest;
 
 import com.google.gson.*;
-import com.itworks.snamp.InMemoryTable;
+import com.itworks.snamp.MapBuilder;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME;
 import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.isArray;
@@ -140,7 +141,7 @@ final class HttpAttributeMapping {
     private static Map<String, Object> fromMapJson(final JsonObject attributeValue,
                                                    final ManagedEntityTabularType attributeType,
                                                    final Gson jsonFormatter){
-        final Map<String, Object> result = new HashMap<>(10);
+        final Map<String, Object> result = MapBuilder.createStringHashMap(10);
         for(final String column: attributeType.getColumns())
             if(attributeValue.has(column))
                 result.put(column, fromJson(jsonFormatter.toJson(attributeValue.get(column)), attributeType.getColumnType(column), jsonFormatter));
@@ -180,7 +181,7 @@ final class HttpAttributeMapping {
     private static Table<String> fromTableJson(final JsonArray attributeValue,
                                                final ManagedEntityTabularType attributeType,
                                                final Gson jsonFormatter){
-        final Table<String> result = new InMemoryTable<>(attributeType.getColumns(), Object.class, attributeValue.size());
+        final Table<String> result = STRING_TABLE_FACTORY.create(attributeType.getColumns(), Object.class, attributeValue.size());
         for(final JsonElement element: attributeValue)
             if(element instanceof JsonObject)
                 insertRow(result, (JsonObject)element, attributeType, jsonFormatter);

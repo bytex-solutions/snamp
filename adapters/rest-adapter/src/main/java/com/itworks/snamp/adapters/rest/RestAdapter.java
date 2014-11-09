@@ -176,7 +176,9 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
 
         @Override
         public Server get() {
-            final Server result = new Server(new ExecutorThreadPool(threadPool));
+            final Server result = threadPool != null ?
+                    new Server(new ExecutorThreadPool(threadPool)):
+                    new Server();
             //remove all connectors.
             removeConnectors(result);
             //initializes a new connector.
@@ -237,11 +239,11 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
     protected boolean start(final ExecutorService threadPool) {
         serverFactory.setThreadPool(threadPool);
         jettyServer = serverFactory.get();
-        final ServletContextHandler resourcesHandler = new ServletContextHandler(ServletContextHandler.SECURITY);
+        final boolean securityEnabled = loginModuleName != null && loginModuleName.length() > 0;
+        final ServletContextHandler resourcesHandler = new ServletContextHandler(securityEnabled ? ServletContextHandler.SECURITY : ServletContextHandler.NO_SESSIONS);
         resourcesHandler.setContextPath("/snamp/managedResource");
         //security
-        final boolean securityEnabled;
-        if(securityEnabled = loginModuleName != null && loginModuleName.length() > 0) {
+        if(securityEnabled) {
             final ConstraintSecurityHandler security = new ConstraintSecurityHandler();
             security.setCheckWelcomeFiles(true);
             final Constraint constraint = new Constraint();
@@ -304,39 +306,20 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
     @Override
     protected void stop(final ExecutorService threadPool) {
         try {
-            threadPool.shutdownNow();
             jettyServer.stop();
         }
         catch (final Exception e) {
             failedToStopAdapter(Level.SEVERE, e);
         }
         finally {
+            threadPool.shutdownNow();
             jettyServer.setHandler(null);
             serverFactory.setThreadPool(null);
             clearModel(attributes);
             clearModel(notifications);
+            notifications.close();
             jettyServer = null;
         }
         System.gc();
-    }
-
-    /**
-     * Releases all resources associated with this adapter.
-     * <p>
-     * You should call base implementation of this method
-     * in the overridden method.
-     * </p>
-     *
-     * @throws Exception An exception occurred during adapter releasing.
-     */
-    @Override
-    public void close() throws Exception {
-        try {
-            jettyServer.stop();
-        }
-        finally {
-            notifications.close();
-            super.close();
-        }
     }
 }

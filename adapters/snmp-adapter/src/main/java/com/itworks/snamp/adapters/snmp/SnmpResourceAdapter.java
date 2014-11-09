@@ -238,7 +238,6 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
      */
     @Override
     protected void stop(final ExecutorService threadPool) {
-        threadPool.shutdownNow();
         try {
             notifications.unsubscribe(agent);
             agent.stop();
@@ -247,6 +246,7 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
         } catch (final Exception e) {
             failedToStopAdapter(Level.SEVERE, e);
         } finally {
+            threadPool.shutdownNow();
             notifications.close();
         }
         System.gc();
