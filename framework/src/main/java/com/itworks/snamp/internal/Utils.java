@@ -7,6 +7,7 @@ import com.google.common.base.Suppliers;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.internal.annotations.Internal;
 import org.osgi.framework.*;
+import org.osgi.service.event.Event;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -432,5 +433,26 @@ public final class Utils {
         else for (final T element : columns1)
                 if (!columns2.contains(element)) return false;
         return true;
+    }
+
+    /**
+     * Reads event property.
+     * @param ev An event to parse.
+     * @param propertyName The name of the event property to read.
+     * @param propertyType The type of the event property.
+     * @param defaultValue The default value if the property is not available.
+     * @param <T> Type of the property to read.
+     * @return The value of the property; or default value.
+     */
+    public static <T> T getEventProperty(final Event ev,
+                                         final String propertyName,
+                                         final Class<T> propertyType,
+                                         final T defaultValue){
+        if(ev == null) return defaultValue;
+        else if(ev.containsProperty(propertyName)){
+            final Object result = ev.getProperty(propertyName);
+            return propertyType.isInstance(result) ? propertyType.cast(result) : defaultValue;
+        }
+        else return defaultValue;
     }
 }

@@ -37,10 +37,10 @@ public final class NotificationUtils {
          */
         @SuppressWarnings("UnusedDeclaration")
         public NotificationEvent(final Event ev){
-            super( getEventProperty(ev, SEVERITY_EVENT_PROPERTY, Severity.class, Severity.UNKNOWN),
-                    getEventProperty(ev, SEQ_NUM_EVENT_PROPERTY, Long.class, 0L),
-                    getEventProperty(ev, TIME_STAMP_EVENT_PROPERTY, Date.class, new Date()),
-                    getEventProperty(ev, MESSAGE_EVENT_PROPERTY, String.class, ""));
+            super( Utils.getEventProperty(ev, SEVERITY_EVENT_PROPERTY, Severity.class, Severity.UNKNOWN),
+                    Utils.getEventProperty(ev, SEQ_NUM_EVENT_PROPERTY, Long.class, 0L),
+                    Utils.getEventProperty(ev, TIME_STAMP_EVENT_PROPERTY, Date.class, new Date()),
+                    Utils.getEventProperty(ev, MESSAGE_EVENT_PROPERTY, String.class, ""));
             //parse attachments
             for(final String propertyName: ev.getPropertyNames())
                 switch (propertyName){
@@ -215,26 +215,5 @@ public final class NotificationUtils {
                                       final NotificationMetadata metadata,
                                       final String subscriptionList){
         return getTopicName(connectorName, metadata.getCategory(), subscriptionList);
-    }
-
-    /**
-     * Reads event property.
-     * @param ev An event to parse.
-     * @param propertyName The name of the event property to read.
-     * @param propertyType The type of the event property.
-     * @param defaultValue The default value if the property is not available.
-     * @param <T> Type of the property to read.
-     * @return The value of the property; or default value.
-     */
-    public static <T> T getEventProperty(final Event ev,
-                                         final String propertyName,
-                                         final Class<T> propertyType,
-                                         final T defaultValue){
-        if(ev == null) return defaultValue;
-        else if(ev.containsProperty(propertyName)){
-            final Object result = ev.getProperty(propertyName);
-            return propertyType.isInstance(result) ? propertyType.cast(result) : defaultValue;
-        }
-        else return defaultValue;
     }
 }

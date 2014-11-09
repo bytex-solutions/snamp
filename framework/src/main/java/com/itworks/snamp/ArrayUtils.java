@@ -66,6 +66,17 @@ public final class ArrayUtils {
     }
 
     /**
+     * Adds an element to the end of the array.
+     * @param array An array to add element.
+     * @param element An element to insert.
+     * @param <T> Type of the array component.
+     * @return A newly created array.
+     */
+    public static <T> T[] addToEnd(final T[] array, final T element){
+        return add(array, array.length, element);
+    }
+
+    /**
      * Inserts a new element into the array.
      * @param array An array to add the element.
      * @param index An index of the element to add.
