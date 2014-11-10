@@ -717,6 +717,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         for(final Map.Entry<String, ManagedResourceConfiguration> resourceConfig: resources.entrySet())
             connectors.put(new ManagedResourceConnectorConsumer(resourceConfig.getKey(), resourceConfig.getValue()));
         state = AdapterState.CREATED;
+
     }
 
     void setAdapterInstanceName(final String value){

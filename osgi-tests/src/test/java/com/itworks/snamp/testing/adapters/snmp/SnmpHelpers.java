@@ -3,10 +3,7 @@ package com.itworks.snamp.testing.adapters.snmp;
 import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.SimpleTimeZone;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,8 +11,14 @@ import java.util.regex.Pattern;
  * @author Roman Sakno
  */
 final class SnmpHelpers {
+    private static final TimeZone ZERO_TIME_ZONE = new SimpleTimeZone(0, "UTC");
+
     private SnmpHelpers(){
 
+    }
+
+    private static Calendar createCalendar() {
+        return Calendar.getInstance(ZERO_TIME_ZONE, Locale.ROOT);
     }
 
     /**
@@ -93,7 +96,7 @@ final class SnmpHelpers {
 
         @Override
         public byte[] convert(final Date value) {
-            final Calendar cal = new GregorianCalendar();
+            final Calendar cal = createCalendar();
             cal.setTime(value);
             return convert(cal);
         }
@@ -173,7 +176,7 @@ final class SnmpHelpers {
         }
 
         public final Calendar build(){
-            final Calendar cal = Calendar.getInstance();
+            final Calendar cal = createCalendar();
             int offsetMills = offsetInHours * 3600000 + offsetInMinutes * 60000;
             if(!directionFromUTCPlus) offsetMills = -offsetMills;
             cal.setTimeZone(new SimpleTimeZone(offsetMills, "UTC"));
@@ -229,7 +232,7 @@ final class SnmpHelpers {
 
         @Override
         public byte[] convert(final Date value) {
-            final Calendar cal = new GregorianCalendar();
+            final Calendar cal = createCalendar();
             cal.setTime(value);
             return convert(cal).getBytes();
         }
