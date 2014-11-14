@@ -88,6 +88,13 @@ final class JmxConnectionManager implements AutoCloseable {
             return reportProblem(this.problem, e);
         }
 
+        @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+        private void reportProblemAndWait(final IOException e) throws InterruptedException {
+            reportProblem(problem, e);
+            while (problem.get() != null)
+                Thread.sleep(1);
+        }
+
         private static boolean reportProblem(final AtomicReference<IOException> problemHolder, final IOException problem) {
             return problemHolder.compareAndSet(null, problem);
         }
@@ -203,13 +210,13 @@ final class JmxConnectionManager implements AutoCloseable {
      * @throws java.io.IOException Unable to simulate connectionHolder abort.
      */
     @Internal
-    public final void simulateConnectionAbort() throws IOException {
+    public final void simulateConnectionAbort() throws IOException, InterruptedException {
         JMXConnector con = connectionHolder.connection;
         if (con != null)
             try {
                 con.close();
             } finally {
-                watchDog.reportProblem(new IOException("Simulate connection abort"));
+                watchDog.reportProblemAndWait(new IOException("Simulate connection abort"));
             }
     }
 

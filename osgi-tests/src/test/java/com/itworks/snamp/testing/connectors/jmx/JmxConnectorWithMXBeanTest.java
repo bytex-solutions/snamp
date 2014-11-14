@@ -6,8 +6,7 @@ import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfigu
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import org.junit.Test;
-import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
-import org.ops4j.pax.exam.spi.reactors.PerMethod;
+import org.osgi.framework.BundleContext;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
@@ -22,7 +21,6 @@ import java.util.concurrent.TimeoutException;
  * @version 1.0
  * @since 1.0
  */
-@ExamReactorStrategy(PerMethod.class)
 public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<MemoryMXBean> {
 
     public JmxConnectorWithMXBeanTest() throws MalformedObjectNameException {
@@ -39,6 +37,12 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
         attribute.setAttributeName("HeapMemoryUsage");
         attribute.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
         attributes.put("2", attribute);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        stopResourceConnector(context);
+        super.afterCleanupTest(context);
     }
 
     @Test

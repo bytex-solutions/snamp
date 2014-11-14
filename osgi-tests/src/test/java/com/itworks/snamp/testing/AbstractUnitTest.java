@@ -1,5 +1,8 @@
 package com.itworks.snamp.testing;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
 /**
  * Represents a base class for all test classes.
  * @author Roman Sakno
@@ -7,12 +10,10 @@ package com.itworks.snamp.testing;
  * @since 1.0
  */
 public abstract class AbstractUnitTest<T> extends AbstractTest {
-    /**
-     * Represents a reference to the testing class.
-     */
-    protected final Class<T> testingClass;
 
-    protected AbstractUnitTest(final Class<T> testingClass){
-        this.testingClass = testingClass;
+    @SuppressWarnings("unchecked")
+    protected final Class<T> getTestingClass(){
+        final Type superclass = getClass().getGenericSuperclass();
+        return (Class<T>)((ParameterizedType) superclass).getActualTypeArguments()[0];
     }
 }

@@ -13,9 +13,6 @@ import java.util.concurrent.ExecutionException;
  */
 public final class FutureThreadTest extends AbstractUnitTest<FutureThread> {
 
-    public FutureThreadTest(){
-        super(FutureThread.class);
-    }
 
     @Test
     public final void multipleTasksTest() throws ExecutionException, InterruptedException {

@@ -11,9 +11,6 @@ import org.junit.Test;
  * @since 1.0
  */
 public final class CountdownTimerTest extends AbstractUnitTest<CountdownTimer> {
-    public CountdownTimerTest() {
-        super(CountdownTimer.class);
-    }
 
     @Test
     public void timerTest1() throws InterruptedException {

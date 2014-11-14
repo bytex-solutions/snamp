@@ -12,6 +12,7 @@ import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
@@ -49,7 +50,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     private static final int REMOTE_PORT = 1161;
     private static final int LOCAL_PORT = 44495;
 
-    private static Map<String, String> getParameters(){
+    private static Map<String, String> getParameters() {
         final Map<String, String> params = new HashMap<>(1);
         params.put("community", "public");
         params.put("localAddress", "udp://127.0.0.1/" + LOCAL_PORT);
@@ -100,21 +101,19 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                     server.register(new MOScalar<>(new OID("1.6.10.0"),
                             new MOAccessImpl(MOAccessImpl.ACCESSIBLE_FOR_READ_WRITE),
                             new Opaque(new byte[]{1, 2, 3, 4})), null);
-                }
-                catch (final DuplicateRegistrationException e) {
+                } catch (final DuplicateRegistrationException e) {
                     fail(e.getMessage());
                 }
             }
 
             protected void initTransportMappings() throws IOException {
                 final TransportMappings mappings = TransportMappings.getInstance();
-                try{
+                try {
                     TransportMapping<?> tm = mappings.createTransportMapping(GenericAddress.parse(String.format("%s/%s", HOST_NAME, REMOTE_PORT)));
-                    if(tm instanceof DefaultUdpTransportMapping)
-                        ((DefaultUdpTransportMapping)tm).setSocketTimeout(5000);
+                    if (tm instanceof DefaultUdpTransportMapping)
+                        ((DefaultUdpTransportMapping) tm).setSocketTimeout(5000);
                     transportMappings = new TransportMapping[]{tm};
-                }
-                catch (final RuntimeException e){
+                } catch (final RuntimeException e) {
                     throw new IOException(String.format("Unable to create SNMP transport for %s/%s address.", HOST_NAME, REMOTE_PORT), e);
                 }
             }
@@ -178,7 +177,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
             @SuppressWarnings("unchecked")
             @Override
             protected void addCommunities(final SnmpCommunityMIB communityMIB) {
-                final Variable[] com2sec = new Variable[] { new OctetString("public"), // community
+                final Variable[] com2sec = new Variable[]{new OctetString("public"), // community
                         // name
                         new OctetString("cpublic"), // security name
                         agent.getContextEngineID(), // local engine ID
@@ -200,11 +199,10 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
              */
             @Override
             public void stop() {
-                if(notifSender != null)
+                if (notifSender != null)
                     try {
                         notifSender.stop(TimeSpan.fromSeconds(1));
-                    }
-                    catch (final Exception e) {
+                    } catch (final Exception e) {
                         fail(e.getMessage());
                     }
                 notifSender = null;
@@ -215,10 +213,10 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
             @Override
             public void init() throws IOException {
                 super.init();
-                if(coldStart) getServer().addContext(new OctetString("public"));
+                if (coldStart) getServer().addContext(new OctetString("public"));
                 finishInit();
                 run();
-                if(coldStart) sendColdStartNotification();
+                if (coldStart) sendColdStartNotification();
                 coldStart = false;
                 notifSender = new Repeater(TimeSpan.fromSeconds(1)) {
                     @Override
@@ -227,7 +225,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                                 new VariableBinding(new OID("1.7.1.1.0"), new OctetString("Hello, world!")),
                                 new VariableBinding(new OID("1.7.1.2.0"), new Integer32(42))
                         };
-                        if(notificationOriginator != null)
+                        if (notificationOriginator != null)
                             notificationOriginator.notify(new OctetString("public"), new OID("1.7.1"), bindings);
                     }
                 };
@@ -243,12 +241,12 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
 
     @Test
     public void notificationTest() throws TimeoutException, InterruptedException, NotificationSupportException, UnknownSubscriptionException {
-        try{
+        try {
             final ManagedResourceConnector<?> connector = getManagementConnector();
             final NotificationSupport notifications = connector.queryObject(NotificationSupport.class);
             assertNotNull(notifications);
             final String LIST_ID = "snmp-notif";
-            final NotificationMetadata metadata = notifications.enableNotifications(LIST_ID, "1.7.1", new HashMap<String, String>(1){{
+            final NotificationMetadata metadata = notifications.enableNotifications(LIST_ID, "1.7.1", new HashMap<String, String>(1) {{
                 put("messageTemplate", "{1.0} - {2.0}");
             }});
             assertNotNull(metadata);
@@ -270,13 +268,11 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 assertEquals("Hello, world! - 42", n.getMessage());
                 assertEquals(0L, n.getSequenceNumber());
                 assertEquals(2, n.size());
-            }
-            finally {
+            } finally {
                 assertTrue(notifications.unsubscribe("123"));
             }
             assertTrue(notifications.disableNotifications(LIST_ID));
-        }
-        finally {
+        } finally {
             releaseManagementConnector();
         }
     }
@@ -305,7 +301,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 TypeLiterals.STRING,
                 "192.168.0.1",
                 AbstractResourceConnectorTest.<String>valueEquator(),
-                new HashMap<String, String>(1){{
+                new HashMap<String, String>(1) {{
                     put("snmpConversionFormat", "text");
                 }},
                 false);
@@ -324,7 +320,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 TypeLiterals.STRING,
                 "1.4.5.3.1",
                 AbstractResourceConnectorTest.<String>valueEquator(),
-                new HashMap<String, String>(1){{
+                new HashMap<String, String>(1) {{
                     put("snmpConversionFormat", "text");
                 }},
                 false);
@@ -376,7 +372,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 TypeLiterals.STRING,
                 new TimeTicks(642584974L).toString(),
                 AbstractResourceConnectorTest.<String>valueEquator(),
-                new HashMap<String, String>(1){{
+                new HashMap<String, String>(1) {{
                     put("snmpConversionFormat", "text");
                 }},
                 false);
@@ -411,7 +407,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 TypeLiterals.STRING,
                 "Jack Ryan",
                 AbstractResourceConnectorTest.<String>valueEquator(),
-                new HashMap<String, String>(1){{
+                new HashMap<String, String>(1) {{
                     put("snmpConversionFormat", "text");
                 }},
                 false);
@@ -419,7 +415,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 TypeLiterals.STRING,
                 new OctetString("Java Enterprise Edition").toHexString(),
                 AbstractResourceConnectorTest.<String>valueEquator(),
-                new HashMap<String, String>(1){{
+                new HashMap<String, String>(1) {{
                     put("snmpConversionFormat", "hex");
                 }},
                 false);
@@ -427,7 +423,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 TypeLiterals.OBJECT_ARRAY,
                 new Byte[]{10, 20, 1, 4},
                 AbstractResourceConnectorTest.arrayEquator(),
-                new HashMap<String, String>(1){{
+                new HashMap<String, String>(1) {{
                     put("snmpConversionFormat", "raw");
                 }},
                 false);
@@ -445,14 +441,14 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void licensingServiceTest(){
+    public void licensingServiceTest() {
         final Map<String, String> limitations = ManagedResourceConnectorClient.getLicenseLimitations(getTestBundleContext(), CONNECTOR_NAME, null);
         assertNotNull(limitations);
         assertFalse(limitations.isEmpty());
     }
 
     @Test
-    public void configurationDescriptionServiceTest(){
+    public void configurationDescriptionServiceTest() {
         final ConfigurationEntityDescription<AttributeConfiguration> attributesConfig = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), CONNECTOR_NAME, AttributeConfiguration.class);
         assertNotNull(attributesConfig);
         final ConfigurationEntityDescription.ParameterDescription descr = attributesConfig.getParameterDescriptor("snmpConversionFormat");
@@ -464,7 +460,8 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Override
-    protected void afterCleanupTest(final BundleContext context) {
+    protected void afterCleanupTest(final BundleContext context) throws BundleException {
+        stopResourceConnector(context);
         agent.stop();
     }
 }

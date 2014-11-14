@@ -12,9 +12,6 @@ import java.util.Map;
  * @since 1.0
  */
 public final class MapBuilderTest extends AbstractUnitTest<MapBuilder> {
-    public MapBuilderTest(){
-        super(MapBuilder.class);
-    }
 
     @Test
     public void iteratorTest(){

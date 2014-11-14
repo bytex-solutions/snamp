@@ -1,16 +1,34 @@
 package com.itworks.snamp.management;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.Futures;
 import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.FutureThread;
 
-import java.lang.annotation.*;
-import java.lang.ref.*;
-import java.lang.reflect.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * Represents an abstract class for building your own maintainable object.
+ * <p>
+ *     Derived class should not be inner private.
  * @param <T> Type of the enum that describes all maintenance actions supported by this class.
  * @author Roman Sakno
  * @version 1.0
@@ -29,16 +47,79 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface Action{
         /**
-         * Determines whether the annotated action
-         * @return
+         * Represents default value of {@link #localeSpecific()} parameter.
          */
-        boolean localeSpecific() default false;
+        boolean DEFAULT_LOCALE_SPECIFIC = false;
+
+        /**
+         * Determines whether the annotated action behavior is locale-specific.
+         * <p>
+         *  If action is locale-specific then the last parameter of the action
+         *  should have {@link java.util.Locale} type.
+         * @return {@literal true}, if action is locale-specific; otherwise, {@literal false}.
+         */
+        boolean localeSpecific() default DEFAULT_LOCALE_SPECIFIC;
     }
 
     /**
-     * Represents enum type that describes all maintenance actions.
+     * Represents action implementation. This class cannot be inherited or instantiated directly
+     * from your code.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
-    protected final Class<T> maintenanceActions;
+    protected static final class ActionHandle{
+        private final MethodHandle handle;
+        /**
+         * Indicates that the action behavior is locale-specific
+         */
+        public final boolean localeSpecific;
+
+        private ActionHandle(final Maintainable owner,
+                             final Method actionImpl,
+                             final MethodHandles.Lookup resolver) throws IllegalAccessException {
+            handle = resolver.unreflect(actionImpl).bindTo(owner);
+            final Action actionInfo = actionImpl.getAnnotation(Action.class);
+            localeSpecific = actionInfo != null ? actionInfo.localeSpecific() : Action.DEFAULT_LOCALE_SPECIFIC;
+        }
+
+        /**
+         * Executes an action.
+         * @param args Action invocation arguments.
+         * @param loc The locale of the action behavior.
+         * @return Action invocation result.
+         * @throws Exception Some troubles
+         */
+        public String doAction(Object[] args, final Locale loc) throws Exception {
+            if (localeSpecific)
+                args = ArrayUtils.addToEnd(args, loc);
+            try {
+                return Objects.toString(handle.invokeWithArguments(args));
+            } catch (final Exception | Error e) {
+                throw e;
+            } catch (final Throwable e) {
+                throw new Exception(e);
+            }
+        }
+    }
+
+    private final Cache<T, ActionHandle> actionCache;
+    private final EnumSet<T> allActions;
+    private final MethodHandles.Lookup actionResolver;
+
+    /**
+     * Initializes a new maintainable object.
+     * @param actions A set of supported actions. Cannot be {@literal null}.
+     * @throws IllegalArgumentException actions is {@literal null}.
+     */
+    protected AbstractMaintainable(final EnumSet<T> actions) {
+        this.allActions = Objects.requireNonNull(actions, "actions is null.");
+        this.actionCache = CacheBuilder
+                .<T, MethodHandle>newBuilder()
+                .maximumSize(actions.size())
+                .build();
+        this.actionResolver = MethodHandles.lookup().in(getClass());
+    }
 
     /**
      * Initializes a new maintainable object.
@@ -46,8 +127,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * @throws IllegalArgumentException actions is {@literal null}.
      */
     protected AbstractMaintainable(final Class<T> actions){
-        if(actions == null) throw new IllegalArgumentException("action is null.");
-        maintenanceActions = actions;
+        this(actions != null ? EnumSet.allOf(actions) : null);
     }
 
     /**
@@ -57,7 +137,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      */
     @Override
     public final Set<String> getActions() {
-        return getMaintenanceActions(maintenanceActions);
+        return getMaintenanceActions(allActions);
     }
 
     /**
@@ -70,7 +150,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      */
     @Override
     public final String getActionDescription(final String actionName, final Locale loc) {
-        return getActionDescription(maintenanceActions, actionName, loc);
+        return getActionDescription(allActions, actionName, loc);
     }
 
     private static boolean isPublicInstance(final int modifiers){
@@ -83,38 +163,38 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * @param arguments The string to parse.
      * @param loc The localization of the action arguments.
      * @return An array of parsed arguments.
+     * @throws java.text.ParseException Unable to parse arguments.
      */
-    protected abstract Object[] parseArguments(final T action, final String arguments, final Locale loc);
-
-    private static Future<String> doAction(final Reference<?> owner, final Method action, final Object[] arguments){
-        final FutureThread<String> thread = new FutureThread<>(new Callable<String>() {
-            @Override
-            public final String call() throws Exception {
-                return Objects.toString(action.invoke(owner.get(), arguments));
-            }
-        });
-        thread.start();
-        return thread;
-    }
+    protected abstract Object[] parseArguments(final T action, final String arguments, final Locale loc) throws ParseException;
 
     /**
      * Executes method that implements action logic.
      * <p>
      *     In the default implementation this method executes each
      *     action in separated thread.
-     * </p>
-     * @param action A method that implements action logic.
+     * @param action Bounded method handle that references the action implementation logic.
      * @param arguments A method invocation arguments.
-     * @param loc The culture context of the specified action.
+     * @param loc The locale of the action behavior.
      * @return An object that represents asynchronous execution the action.
      */
-    protected Future<String> doAction(final Method action, Object[] arguments, final Locale loc){
-        final Action actionInfo = action.getAnnotation(Action.class);
-        if(actionInfo.localeSpecific()){
-            arguments = Arrays.copyOf(arguments, arguments.length + 1);
-            arguments[arguments.length - 1] = loc;
-        }
-        return doAction(new WeakReference<>(this), action, arguments);
+    protected Future<String> doAction(final ActionHandle action, final Object[] arguments, final Locale loc) {
+        return FutureThread.start(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return action.doAction(arguments, loc);
+            }
+        });
+    }
+
+    private static ActionHandle findActionImplementation(final Maintainable maintainable,
+                                                   final MaintenanceActionInfo action,
+                                                   final MethodHandles.Lookup resolver) throws IllegalAccessException {
+        for (final Method m : maintainable.getClass().getMethods())
+            if (isPublicInstance(m.getModifiers()) &&
+                    m.isAnnotationPresent(Action.class) &&
+                    Objects.equals(m.getName(), action.getName()))
+                return new ActionHandle(maintainable, m, resolver);
+        throw new NoSuchElementException(String.format("An implementation of %s action doesn't exist", action.getName()));
     }
 
     /**
@@ -124,14 +204,29 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * @param loc The culture context of the action invocation.
      * @return An object that represents asynchronous execution the action.
      */
-    public final Future<String> doAction(final T action, final String arguments, final Locale loc){
+    public final Future<String> doAction(final T action, final String arguments, final Locale loc) {
         //find the action implemented through reflection
-        for(final Method m: getClass().getMethods())
-            if(isPublicInstance(m.getModifiers()) &&
-                    m.isAnnotationPresent(Action.class) &&
-                    Objects.equals(m.getName(), action.getName()))
-                return doAction(m, parseArguments(action, arguments, loc), loc);
-        return null;
+        try {
+            final ActionHandle actionImpl = actionCache.get(action, new Callable<ActionHandle>() {
+
+                @Override
+                public ActionHandle call() throws IllegalAccessException {
+                    return findActionImplementation(AbstractMaintainable.this, action, actionResolver);
+                }
+            });
+            if (actionImpl == null)
+                throw new NoSuchElementException(String.format("Action %s doesn't exist", action.getName()));
+            else return doAction(actionImpl, parseArguments(action, arguments, loc), loc);
+        } catch (final ExecutionException e) {
+            final Throwable cause = e.getCause();
+            if (cause instanceof Error)
+                throw (Error) cause;
+            else if (cause instanceof Exception)
+                return Futures.immediateFailedCheckedFuture((Exception) cause);
+            else return Futures.immediateFailedCheckedFuture(e);
+        } catch (final NoSuchElementException | ParseException e) {
+            return Futures.immediateFailedCheckedFuture(e);
+        }
     }
 
     /**
@@ -145,8 +240,17 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      */
     @Override
     public final Future<String> doAction(final String actionName, final String arguments, final Locale loc) {
-        final T action = getAction(maintenanceActions, actionName);
+        final T action = getAction(allActions, actionName);
         return action != null ? doAction(action, arguments, loc): null;
+    }
+
+    private static <T extends Enum<T> & MaintenanceActionInfo> Set<String> getMaintenanceActions(final Iterable<T> actions) {
+        return ImmutableSet.copyOf(Iterables.transform(actions, new Function<T, String>() {
+            @Override
+            public String apply(final T input) {
+                return input.getName();
+            }
+        }));
     }
 
     /**
@@ -156,11 +260,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * @return A collection of maintenance actions.
      */
     public static <T extends Enum<T> & MaintenanceActionInfo> Set<String> getMaintenanceActions(final Class<T> actions){
-        final T[] values = actions.getEnumConstants();
-        final Set<String> result = new HashSet<>(values.length);
-        for(final T v: values)
-            result.add(v.getName());
-        return result;
+        return getMaintenanceActions(EnumSet.allOf(actions));
     }
 
     /**
@@ -169,11 +269,40 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * @param actionName The name of the maintenance action.
      * @param <T> Type of the enum that describes maintenance action.
      * @return Enum constant that describes the specified maintenance action.
+     * @throws java.util.NoSuchElementException Action with the specified name doesn't exist.
+     */
+    public static <T extends Enum<T> & MaintenanceActionInfo> T getAction(final Set<T> actions, final String actionName) {
+        return Iterables.find(actions, new Predicate<T>() {
+            @Override
+            public boolean apply(final T input) {
+                return Objects.equals(input.getName(), actionName);
+            }
+        });
+    }
+
+    /**
+     * Returns an enum constant that describes the specified maintenance action.
+     * @param actions An enum that describes maintenance action.
+     * @param actionName The name of the maintenance action.
+     * @param <T> Type of the enum that describes maintenance action.
+     * @return Enum constant that describes the specified maintenance action.
+     * @throws java.util.NoSuchElementException Action with the specified name doesn't exist.
      */
     public static <T extends Enum<T> & MaintenanceActionInfo> T getAction(final Class<T> actions, final String actionName){
-        for(final T value: actions.getEnumConstants())
-            if(Objects.equals(value.getName(), actionName)) return value;
-        return null;
+        return getAction(EnumSet.allOf(actions), actionName);
+    }
+
+    /**
+     * Returns description of the specified action.
+     * @param actions A set of maintenance actions.
+     * @param actionName The name of the maintenance action.
+     * @param loc The locale of the description.
+     * @param <T> Type of the enum that describes maintenance actions.
+     * @return Localized description of the maintenance action.
+     * @throws java.util.NoSuchElementException Action with the specified name doesn't exist.
+     */
+    public static <T extends Enum<T> & MaintenanceActionInfo> String getActionDescription(final Set<T> actions, final String actionName, final Locale loc){
+        return getAction(actions, actionName).getDescription(loc);
     }
 
     /**
@@ -183,9 +312,9 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * @param loc The locale of the description.
      * @param <T> Type of the enum that describes maintenance actions.
      * @return Localized description of the maintenance action.
+     * @throws java.util.NoSuchElementException Action with the specified name doesn't exist.
      */
     public static <T extends Enum<T> & MaintenanceActionInfo> String getActionDescription(final Class<T> actions, final String actionName, final Locale loc){
-        final T value = getAction(actions, actionName);
-        return value != null ? value.getDescription(loc) : "";
+        return getActionDescription(EnumSet.allOf(actions), actionName, loc);
     }
 }

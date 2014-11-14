@@ -68,7 +68,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected Collection<FrameworkPropertyOption> getFrameworkProperties() {
-        return Arrays.asList(new FrameworkPropertyOption("com.itworks.snamp.management.usePlatformMBean").value(true));
+        return Arrays.asList(new FrameworkPropertyOption("com.itworks.snamp.management.usePlatformMBean").value("true"));
     }
 
     @Test
@@ -93,6 +93,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             logger.log(LogService.LOG_ERROR, "Some error #2");
             logger.log(LogService.LOG_WARNING, "Some warning #1");
             //expected 2 errors and 1 warning
+            Thread.sleep(500);  //wait for updating counters
             assertEquals(2L, connection.getAttribute(commonsObj, "FaultsCount"));
             assertEquals(1L, connection.getAttribute(commonsObj, "WarningMessagesCount"));
             //wait for refresh counters
@@ -234,14 +235,16 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
-        super.afterStartTest(context);
         AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        super.afterStartTest(context);
         AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
     }
 
     @Override
-    protected void beforeCleanupTest(final BundleContext context) throws Exception {
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
         AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        stopResourceConnector(context);
+        super.afterCleanupTest(context);
     }
 
     @Override

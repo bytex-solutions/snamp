@@ -48,6 +48,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 SnampArtifact.MANAGEMENT.getReference(),
                 SnampArtifact.WEB_CONSOLE.getReference(),
                 SnampArtifact.SNMP_CONNECTOR.getReference(),
+                SnampArtifact.SNMP4J.getReference(),
                 SnampArtifact.JMX_CONNECTOR.getReference());
     }
 
@@ -112,7 +113,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     public void readConfigurationTest() throws InterruptedException {
         final Client webConsoleClient = new Client();
         webConsoleClient.addFilter(new HTTPDigestAuthFilter("roman", "mypassword"));
-        Thread.sleep(100000000);
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/configuration");
         final String configJson = config.get(String.class);
         assertNotNull(configJson);
@@ -170,7 +170,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final JsonParser parser = new JsonParser();
         final JsonElement connectors = parser.parse(config.get(String.class));
         assertTrue(connectors.isJsonArray());
-        assertEquals(1, connectors.getAsJsonArray().size());
+        assertEquals(2, connectors.getAsJsonArray().size());
     }
 
     @Test
@@ -190,7 +190,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         webConsoleClient.addFilter(new HTTPDigestAuthFilter("roman", "mypassword"));
         final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/console/");
         final String pageContent = config.get(String.class);
-        assertTrue(pageContent.contains("<html>"));
+        assertTrue(pageContent.contains("<html"));
     }
 }
 

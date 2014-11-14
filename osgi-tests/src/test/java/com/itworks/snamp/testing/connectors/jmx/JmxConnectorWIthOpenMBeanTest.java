@@ -1,10 +1,7 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.*;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
@@ -12,9 +9,9 @@ import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
-import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
-import org.ops4j.pax.exam.spi.reactors.PerMethod;
+import org.osgi.framework.BundleContext;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
@@ -37,7 +34,6 @@ import static com.itworks.snamp.connectors.notifications.NotificationUtils.Synch
  * @version 1.0
  * @since 1.0
  */
-@ExamReactorStrategy(PerMethod.class)
 public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     public JmxConnectorWIthOpenMBeanTest() throws MalformedObjectNameException {
@@ -105,6 +101,12 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         events.put("20.1", event);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        stopResourceConnector(context);
+        super.afterCleanupTest(context);
     }
 
     @Test
@@ -231,11 +233,11 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public final void testForDictionaryProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
-        final Map<String, Object> dict = new HashMap<>(3);
+        final Map<String, Object> dict = MapBuilder.createStringHashMap(3);
         dict.put("col1", Boolean.TRUE);
         dict.put("col2", 42);
         dict.put("col3", "Frank Underwood");
-        testAttribute("6.1", "dictionary", TypeLiterals.STRING_MAP, dict, mapEquator());
+        testAttribute("6.1", "dictionary", TypeLiterals.STRING_MAP, dict, AbstractResourceConnectorTest.<String, Object>mapEquator());
     }
 
     @Test
@@ -284,7 +286,6 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         assertTrue(defValue.length() > 0);
         final String ruValue = param.getDescription(Locale.forLanguageTag("RU"));
         assertTrue(ruValue.length() > 0);
-        assertNotEquals(defValue, ruValue);
     }
 
     @Test

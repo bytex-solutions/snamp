@@ -221,10 +221,14 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @since 1.0
      */
     protected static abstract class OpenAttribute<V, T extends OpenType<V>> extends OpenMBeanElement<MBeanAttributeInfo> {
+        private static final String GET_VALUE_METHOD = "getValue";
+        private static final String SET_VALUE_METHOD = "setValue";
+
         /**
          * Represents type of the attribute.
          */
         protected final T openType;
+        private volatile Class<V> javaType;
 
         /**
          * Initializes a new attribute.
@@ -234,6 +238,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         protected OpenAttribute(final String attributeName, final T openType){
             super(attributeName);
             this.openType = openType;
+            javaType = null;
         }
 
         /**
@@ -304,8 +309,10 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         }
 
         @SuppressWarnings("unchecked")
-        private Class<V> getJavaType() throws ReflectiveOperationException{
-            return (Class<V>)(getClass().getMethod("getRawValue").getReturnType());
+        private synchronized Class<V> getJavaType() throws ClassNotFoundException {
+            if(javaType == null)
+                javaType = (Class<V>)Class.forName(openType.getClassName());
+            return javaType;
         }
 
         /**
@@ -314,7 +321,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          */
         public final boolean isReadable(){
             try {
-                final Method getter = getClass().getMethod("getRawValue");
+                final Method getter = getClass().getMethod(GET_VALUE_METHOD);
                 return Objects.equals(getter.getDeclaringClass(), getClass());
             }
             catch (final NoSuchMethodException e) {
@@ -328,7 +335,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          */
         public final boolean isWritable(){
             try {
-                final Method getter = getClass().getMethod("setValue", getJavaType());
+                final Method getter = getClass().getMethod(SET_VALUE_METHOD, getJavaType());
                 return Objects.equals(getter.getDeclaringClass(), getClass());
             }
             catch (final ReflectiveOperationException e) {

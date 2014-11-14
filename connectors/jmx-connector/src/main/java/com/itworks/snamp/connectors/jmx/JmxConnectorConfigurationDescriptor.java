@@ -20,6 +20,9 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
 final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
     static final String JMX_LOGIN = "login";
     static final String JMX_PASSWORD = "password";
+    /**
+     * Connection watchdog control period (in milliseconds).
+     */
     static final String CONNECTION_CHECK_PERIOD = "connectionCheckPeriod";
     static final String OBJECT_NAME_PROPERTY = "objectName";
     static final String SEVERITY_PARAM = "severity";

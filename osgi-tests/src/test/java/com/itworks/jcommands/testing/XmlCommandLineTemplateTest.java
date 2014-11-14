@@ -27,9 +27,6 @@ import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
  * @since 1.0
  */
 public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlCommandLineTemplate> {
-    public XmlCommandLineTemplateTest(){
-        super(XmlCommandLineTemplate.class);
-    }
 
     @Test
     public void serializationTest() throws IOException {

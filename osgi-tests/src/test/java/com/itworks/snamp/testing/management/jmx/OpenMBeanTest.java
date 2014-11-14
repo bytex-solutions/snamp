@@ -54,10 +54,6 @@ public final class OpenMBeanTest extends AbstractUnitTest<OpenMBean> {
         }
     }
 
-    public OpenMBeanTest(){
-        super(OpenMBean.class);
-    }
-
     @Test
     public void openAttributeTest() throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
         final DynamicMBean mbean = new DummyOpenMBean();

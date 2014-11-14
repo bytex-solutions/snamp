@@ -1,6 +1,6 @@
 package com.itworks.snamp.management;
 
-import java.util.Locale;
+import com.itworks.snamp.Descriptive;
 
 /**
  * Represents helper interface that can be implemented by enum
@@ -9,17 +9,10 @@ import java.util.Locale;
  * @version 1.0
  * @since 1.0
  */
-public interface MaintenanceActionInfo {
+public interface MaintenanceActionInfo extends Descriptive {
     /**
      * Gets system name of this action,
      * @return The system name of this action.
      */
     public String getName();
-
-    /**
-     * Gets description of this action.
-     * @param loc The locale of the description.
-     * @return The description of this action.
-     */
-    public String getDescription(final Locale loc);
 }

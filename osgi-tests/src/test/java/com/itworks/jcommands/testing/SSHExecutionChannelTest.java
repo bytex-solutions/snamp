@@ -38,7 +38,6 @@ public final class SSHExecutionChannelTest extends AbstractUnitTest<CommandExecu
     private static final int PORT = 22000;
 
     public SSHExecutionChannelTest() {
-        super(CommandExecutionChannel.class);
         server = SshServer.setUpDefaultServer();
         server.setPort(PORT);
         server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));

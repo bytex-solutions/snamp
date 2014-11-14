@@ -68,10 +68,6 @@ public final class ManagedResourceConnectorBeanTest extends AbstractUnitTest<Man
         }
     }
 
-    public ManagedResourceConnectorBeanTest() {
-        super(ManagedResourceConnectorBean.class);
-    }
-
     @Test
     public final void testConnectorBean() throws IntrospectionException, TimeoutException, InterruptedException, AttributeSupportException, NotificationSupportException, UnknownAttributeException {
         final TestManagementConnectorBeanTest connector = new TestManagementConnectorBeanTest();

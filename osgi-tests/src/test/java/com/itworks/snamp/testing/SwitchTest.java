@@ -9,9 +9,6 @@ import org.junit.Test;
  * @since 1.0
  */
 public final class SwitchTest extends AbstractUnitTest<Switch> {
-    public SwitchTest(){
-        super(Switch.class);
-    }
 
     @Test
     public void simpleTest(){

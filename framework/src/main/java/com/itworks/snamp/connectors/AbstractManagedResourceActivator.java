@@ -332,7 +332,6 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          * @return A new factory for the special service that provides configuration schema for the resource connector.
          * @see com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider
          */
-        @SuppressWarnings("UnusedParameters")
         @MethodStub
         protected ConfigurationEntityDescriptionProviderHolder<?> createDescriptionProvider(final ActivationPropertyReader activationProperties,
                                                                                                          final RequiredService<?>... bundleLevelDependencies){
@@ -346,7 +345,6 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          * @return A new factory of the special service that can automatically discover elements of the managed resource.
          * @see com.itworks.snamp.connectors.DiscoveryService
          */
-        @SuppressWarnings("UnusedParameters")
         @MethodStub
         protected DiscoveryServiceProvider<?> createDiscoveryServiceProvider(final ActivationPropertyReader activationProperties,
                                                                              final RequiredService<?>... bundleLevelDependencies){
@@ -367,7 +365,6 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          * @param dependencies A collection of resolved library-level dependencies.
          * @return A new instance of the service provider.
          */
-        @SuppressWarnings("UnusedParameters")
         @MethodStub
         protected MaintenanceServiceProvider<?> createMaintenanceServiceProvider(final RequiredService<?>... dependencies){
             return null;

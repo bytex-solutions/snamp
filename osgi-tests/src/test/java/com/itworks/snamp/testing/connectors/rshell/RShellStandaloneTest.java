@@ -9,6 +9,7 @@ import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.internal.Utils;
 import org.junit.Assume;
 import org.junit.Test;
+import org.osgi.framework.BundleContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,38 +37,33 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
                 FINGERPRINT);
     }
 
-    @Test
+    @Test()
     public void loadTest() throws InterruptedException, ExecutionException, AttributeSupportException {
         Assume.assumeTrue(Utils.IS_OS_LINUX);
         final ManagedResourceConnector<?> connector = getManagementConnector();
         assertNotNull(connector);
-        try{
-            final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
-            assertNotNull(attributes);
-            assertNotNull(attributes.connectAttribute("ms", "memStatus", new HashMap<String, String>(1) {{
-                put("commandProfileLocation", "freemem-tool-profile.xml");
-                put("format", "-m");
-            }}));
-            @SuppressWarnings("unchecked")
-            final FutureThread<Object>[] tables = new FutureThread[10];
-            for(int i = 0; i < tables.length; i++)
-                tables[i] = FutureThread.start(new Callable<Object>() {
-                    @Override
-                    public Object call() throws TimeoutException, AttributeSupportException, UnknownAttributeException {
-                        return attributes.getAttribute("ms", TimeSpan.INFINITE);
-                    }
-                });
-            for (final FutureThread<Object> thread : tables) {
-                final Object table = thread.get();
-                assertNotNull(table);
-                assertTrue(table instanceof Map);
-                assertTrue(((Map) table).get("total") instanceof Long);
-                assertTrue(((Map) table).get("used") instanceof Long);
-                assertTrue(((Map) table).get("free") instanceof Long);
-            }
-        }
-        finally {
-            releaseManagementConnector();
+        final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
+        assertNotNull(attributes);
+        assertNotNull(attributes.connectAttribute("ms", "memStatus", new HashMap<String, String>(1) {{
+            put("commandProfileLocation", "freemem-tool-profile.xml");
+            put("format", "-m");
+        }}));
+        @SuppressWarnings("unchecked")
+        final FutureThread<Object>[] tables = new FutureThread[10];
+        for (int i = 0; i < tables.length; i++)
+            tables[i] = FutureThread.start(new Callable<Object>() {
+                @Override
+                public Object call() throws TimeoutException, AttributeSupportException, UnknownAttributeException {
+                    return attributes.getAttribute("ms", TimeSpan.INFINITE);
+                }
+            });
+        for (final FutureThread<Object> thread : tables) {
+            final Object table = thread.get();
+            assertNotNull(table);
+            assertTrue(table instanceof Map);
+            assertTrue(((Map) table).get("total") instanceof Long);
+            assertTrue(((Map) table).get("used") instanceof Long);
+            assertTrue(((Map) table).get("free") instanceof Long);
         }
     }
 
@@ -76,22 +72,23 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         Assume.assumeTrue(Utils.IS_OS_LINUX);
         final ManagedResourceConnector<?> connector = getManagementConnector();
         assertNotNull(connector);
-        try{
-            final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
-            assertNotNull(attributes);
-            assertNotNull(attributes.connectAttribute("ms", "memStatus", new HashMap<String, String>(1) {{
-                put("commandProfileLocation", "freemem-tool-profile.xml");
-                put("format", "-m");
-            }}));
-            final Object table = attributes.getAttribute("ms", TimeSpan.INFINITE);
-            assertNotNull(table);
-            assertTrue(table instanceof Map);
-            assertTrue(((Map)table).get("total") instanceof Long);
-            assertTrue(((Map)table).get("used") instanceof Long);
-            assertTrue(((Map)table).get("free") instanceof Long);
-        }
-        finally {
-            releaseManagementConnector();
-        }
+        final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
+        assertNotNull(attributes);
+        assertNotNull(attributes.connectAttribute("ms", "memStatus", new HashMap<String, String>(1) {{
+            put("commandProfileLocation", "freemem-tool-profile.xml");
+            put("format", "-m");
+        }}));
+        final Object table = attributes.getAttribute("ms", TimeSpan.INFINITE);
+        assertNotNull(table);
+        assertTrue(table instanceof Map);
+        assertTrue(((Map) table).get("total") instanceof Long);
+        assertTrue(((Map) table).get("used") instanceof Long);
+        assertTrue(((Map) table).get("free") instanceof Long);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        stopResourceConnector(context);
+        super.afterCleanupTest(context);
     }
 }

@@ -48,7 +48,7 @@ public final class MaintainableTest extends AbstractUnitTest<AbstractMaintainabl
         }
     }
 
-    private static final class MaintainableImpl extends AbstractMaintainable<MaintenanceActions>{
+    public static final class MaintainableImpl extends AbstractMaintainable<MaintenanceActions>{
         public MaintainableImpl(){
             super(MaintenanceActions.class);
         }
@@ -86,10 +86,6 @@ public final class MaintainableTest extends AbstractUnitTest<AbstractMaintainabl
         public Logger getLogger() {
             return Logger.getAnonymousLogger();
         }
-    }
-
-    public MaintainableTest(){
-        super(AbstractMaintainable.class);
     }
 
     @Test

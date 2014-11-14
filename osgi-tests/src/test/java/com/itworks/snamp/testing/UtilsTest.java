@@ -21,10 +21,6 @@ public class UtilsTest extends AbstractUnitTest<Utils> {
         }
     }
 
-    public UtilsTest(){
-        super(Utils.class);
-    }
-
     @Test
     public final void isolateTest(){
         final SampleInterfaceImpl impl = new SampleInterfaceImpl();

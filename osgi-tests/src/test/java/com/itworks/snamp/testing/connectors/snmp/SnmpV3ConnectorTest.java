@@ -8,6 +8,7 @@ import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
@@ -440,7 +441,8 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Override
-    protected void afterCleanupTest(final BundleContext context) {
+    protected void afterCleanupTest(final BundleContext context) throws BundleException {
+        stopResourceConnector(context);
         agent.stop();
     }
 }

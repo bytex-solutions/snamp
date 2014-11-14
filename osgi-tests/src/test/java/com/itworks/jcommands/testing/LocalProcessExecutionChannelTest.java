@@ -23,9 +23,6 @@ import java.util.Map;
  * @since 1.0
  */
 public class LocalProcessExecutionChannelTest extends AbstractUnitTest<CommandExecutionChannel> {
-    public LocalProcessExecutionChannelTest() {
-        super(CommandExecutionChannel.class);
-    }
 
     @Test
     public void echoTest() throws Exception {

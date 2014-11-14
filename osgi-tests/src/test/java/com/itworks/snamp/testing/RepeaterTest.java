@@ -50,10 +50,6 @@ public class RepeaterTest extends AbstractUnitTest<Repeater> {
         }
     }
 
-    public RepeaterTest(){
-        super(Repeater.class);
-    }
-
     @Test
     public final void occurencesTest() throws InterruptedException, TimeoutException {
         try(final SecondsCounter counter = new SecondsCounter()){

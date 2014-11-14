@@ -11,8 +11,6 @@ import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.junit.Test;
-import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
-import org.ops4j.pax.exam.spi.reactors.PerMethod;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.snmp4j.security.SecurityLevel;
@@ -44,7 +42,6 @@ import static org.ops4j.pax.exam.CoreOptions.*;
  * @version 1.0
  * @since 1.0
  */
-@ExamReactorStrategy(PerMethod.class)
 public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
@@ -105,6 +102,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
         try {
             final Calendar cal = Calendar.getInstance();
             cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
+            cal.set(Calendar.MILLISECOND, 0);
             final String valueToCheck = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(cal.getTime());
             final OID oid = new OID("1.1.9.0");
             client.writeAttribute(oid, valueToCheck, String.class);
@@ -121,6 +119,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
         try {
             final Calendar cal = Calendar.getInstance();
             cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
+            cal.set(Calendar.MILLISECOND, 0);
             final SnmpHelpers.DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter("rfc1903-human-readable");
             final String valueToCheck = new String(formatter.convert(cal.getTime()));
             final OID oid = new OID("1.1.10.0");
@@ -138,6 +137,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
         try {
             final Calendar cal = Calendar.getInstance();
             cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
+            cal.set(Calendar.MILLISECOND, 0);
             final SnmpHelpers.DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter("rfc1903");
             final byte[] byteString = formatter.convert(cal.getTime());
             final OID oid = new OID("1.1.11.0");
@@ -343,9 +343,16 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
-        super.afterStartTest(context);
         AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        super.afterStartTest(context);
         AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        stopResourceConnector(context);
+        super.afterCleanupTest(context);
     }
 
     @Override

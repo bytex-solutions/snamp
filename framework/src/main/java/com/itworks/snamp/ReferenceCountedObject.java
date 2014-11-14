@@ -84,7 +84,10 @@ public abstract class ReferenceCountedObject<R> extends ConcurrentResourceAccess
     public synchronized void decref(final int count) throws Exception{
         if(count > 0){
             refCounter = count > refCounter ? 0 : refCounter - count;
-            if(refCounter == 0) cleanupResource(getAndSetResource(null));
+            if(refCounter == 0){
+                final R resource = getAndSetResource(null);
+                if(resource != null) cleanupResource(resource);
+            }
         }
     }
 

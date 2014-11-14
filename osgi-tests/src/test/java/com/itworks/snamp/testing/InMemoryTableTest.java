@@ -18,10 +18,6 @@ import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
  */
 public class InMemoryTableTest extends AbstractUnitTest<InMemoryTable> {
 
-    public InMemoryTableTest(){
-        super(InMemoryTable.class);
-    }
-
     @Test
     public void tableModificaitonTest(){
         final Table<String> table = STRING_TABLE_FACTORY.create(new HashMap<String, Class<?>>(){{

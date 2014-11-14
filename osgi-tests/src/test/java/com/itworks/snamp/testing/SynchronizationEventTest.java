@@ -10,9 +10,6 @@ import static com.itworks.snamp.SynchronizationEvent.Awaitor;
  * @since 1.0
  */
 public final class SynchronizationEventTest extends AbstractUnitTest<SynchronizationEvent> {
-    public SynchronizationEventTest() {
-        super(SynchronizationEvent.class);
-    }
 
     @Test
     public final void manualResetTest() throws InterruptedException{

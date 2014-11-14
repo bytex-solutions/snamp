@@ -55,13 +55,16 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         };
     }
 
-    protected static Equator<Map<String, Object>> mapEquator(){
-        return new Equator<Map<String, Object>>() {
+    protected static <K, V> Equator<Map<K, V>> mapEquator(){
+        return new Equator<Map<K, V>>() {
             @Override
-            public boolean equate(final Map<String, Object> value1, final Map<String, Object> value2) {
+            public boolean equate(final Map<K, V> value1, final Map<K, V> value2) {
                 if(value1.size() == value2.size())
-                    for(final Object key: value1.keySet())
-                        if(!value2.containsKey(key)) return false;
+                    for(final K key: value1.keySet()) {
+                        if (!value2.containsKey(key)) return false;
+                        if(!Objects.equals(value1.get(key), value2.get(key)))
+                            return false;
+                    }
                 else return false;
                 return true;
             }

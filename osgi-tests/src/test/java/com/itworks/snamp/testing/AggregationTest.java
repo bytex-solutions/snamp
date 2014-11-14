@@ -18,9 +18,6 @@ public final class AggregationTest extends AbstractUnitTest<AbstractAggregator> 
         }
     }
 
-    public AggregationTest(){
-        super(AbstractAggregator.class);
-    }
 
     @Test
     public final void serviceRetrievingTest(){

@@ -3,8 +3,6 @@ package com.itworks.snamp.testing.configuration;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import org.junit.Test;
-import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
-import org.ops4j.pax.exam.spi.reactors.PerMethod;
 
 import java.io.IOException;
 
@@ -14,7 +12,6 @@ import java.io.IOException;
  * @version 1.0
  * @since 1.0
  */
-@ExamReactorStrategy(PerMethod.class)
 public final class XmlConfigurationTest extends AbstractSnampIntegrationTest {
 
     @Test
