@@ -2,8 +2,11 @@ package com.itworks.snamp.testing.adapters.rest;
 
 import com.google.common.base.Supplier;
 import com.google.gson.*;
+import com.itworks.snamp.ExceptionPlaceholder;
+import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
@@ -163,7 +166,12 @@ public final class SecureRestAdapterTest extends AbstractJmxConnectorTest<TestOp
 
     @Test
     public void notificationsTest() throws Exception {
-        final WebSocketClient webSocketClient = new WebSocketClient();
+        final WebSocketClient webSocketClient = Utils.withContextClassLoader(getClass().getClassLoader(), new ExceptionalCallable<WebSocketClient, ExceptionPlaceholder>() {
+            @Override
+            public WebSocketClient call() {
+                return new WebSocketClient();
+            }
+        });
         final JsonNotificationBox notificationBox = new JsonNotificationBox(jsonParser);
         webSocketClient.start();
         //subscribe to event

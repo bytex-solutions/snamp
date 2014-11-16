@@ -23,27 +23,27 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     /**
      * Represents configuration property that provides a set of user groups.
      */
-    public static final String SNMPv3_GROUPS_PARAM = "snmpv3-groups";
+    static final String SNMPv3_GROUPS_PARAM = "snmpv3-groups";
 
     /**
      * Represents LDAP server URI.
      */
-    public static final String LDAP_URI_PARAM = "ldap-uri";
+    static final String LDAP_URI_PARAM = "ldap-uri";
 
     /**
      * Represents LDAP DN of the admin user that is used to read security configuration structure.
      */
-    public static final String LDAP_ADMINDN_PARAM = "ldap-user";
+    static final String LDAP_ADMINDN_PARAM = "ldap-user";
 
     /**
      * Represents LDAP admin user password.
      */
-    public static final String LDAP_ADMIN_PASSWORD_PARAM = "ldap-password";
+    static final String LDAP_ADMIN_PASSWORD_PARAM = "ldap-password";
 
     /**
      * Represents type of the LDAP authentication.
      */
-    public static final String LDAP_ADMIN_AUTH_TYPE_PARAM = "ldap-auth-protocol";
+    static final String LDAP_ADMIN_AUTH_TYPE_PARAM = "ldap-auth-protocol";
 
     /**
      * Represents user search filter template that is used to find users in the group.
@@ -51,17 +51,17 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
      *     $GROUPNAME$ string inside of the filter will be replaced with group name.
      * </p>
      */
-    public static final String LDAP_USER_SEARCH_FILTER_PARAM = "ldap-user-search-filter";
+    static final String LDAP_USER_SEARCH_FILTER_PARAM = "ldap-user-search-filter";
 
     /**
      * Represents semicolon delimiter string of group DNs.
      */
-    public static final String LDAP_GROUPS_PARAM = "ldap-groups";
+    static final String LDAP_GROUPS_PARAM = "ldap-groups";
 
     /**
      * Represents search base DN.
      */
-    public static final String LDAP_BASE_DN_PARAM = "ldap-base-dn";
+    static final String LDAP_BASE_DN_PARAM = "ldap-base-dn";
 
     /**
      * Represents JNDI/LDAP factory name.
@@ -69,23 +69,23 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
      *     By default, this property equals to com.sun.jndi.ldap.LdapCtxFactory.
      * </p>
      */
-    public static final String JNDI_LDAP_FACTORY_PARAM = "jndi-ldap-factory";
+    static final String JNDI_LDAP_FACTORY_PARAM = "jndi-ldap-factory";
 
     /**
      * Represents name of the attribute in directory that holds the user attribute as clear text.
      */
-    public static final String LDAP_PASSWORD_HOLDER_PARAM = "ldap-user-password-attribute-name";
+    static final String LDAP_PASSWORD_HOLDER_PARAM = "ldap-user-password-attribute-name";
 
     /**
      * Represents configuration property that contains UDP socket timeout, in milliseconds.
      */
-    public static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
+    static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
 
-    public static final String PORT_PARAM_NAME = "port";
+    static final String PORT_PARAM_NAME = "port";
 
-    public static final String HOST_PARAM_NAME = "host";
+    static final String HOST_PARAM_NAME = "host";
 
-    public static final String OID_PARAM_NAME = "oid";
+    static final String OID_PARAM_NAME = "oid";
 
     /**
      * Represents name of the metadata property that specifies unix time display format.

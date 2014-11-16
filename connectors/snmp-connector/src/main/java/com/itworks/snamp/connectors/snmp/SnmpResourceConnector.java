@@ -183,7 +183,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         }
     }
 
-    private static final class SnmpNotificationSupport extends AbstractNotificationSupport implements AutoCloseable{
+    private static final class SnmpNotificationSupport extends AbstractNotificationSupport{
         private final ReferenceCountedObject<SnmpClient> client;
         private final Logger logger;
 
@@ -309,16 +309,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         protected void unsubscribe(final NotificationListener listener, final Object data) {
 
         }
-
-        @Override
-        public void close() throws Exception {
-            try {
-                client.decref();
-            }
-            finally {
-                clear();
-            }
-        }
     }
 
     private static final class SnmpAttributeMetadata extends GenericAttributeMetadata<SnmpManagedEntityType> {
@@ -389,7 +379,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         }
     }
 
-    private static final class SnmpAttributeSupport extends AbstractAttributeSupport implements AutoCloseable{
+    private static final class SnmpAttributeSupport extends AbstractAttributeSupport{
         private final ReferenceCountedObject<SnmpClient> client;
         private final Logger logger;
 
@@ -448,7 +438,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         private SnmpAttributeMetadata connectAttribute(final OID attributeID, final Map<String, String> options) throws Exception{
             final Variable value = client.increfAndRead(new Action<SnmpClient, Variable, Exception>() {
                 @Override
-                public Variable invoke(final SnmpClient client) throws Exception {
+                public Variable invoke(final SnmpClient client) throws IOException, TimeoutException, InterruptedException{
                     return client.get(attributeID, TimeSpan.fromSeconds(5));
                 }
             });
@@ -489,15 +479,13 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
          */
         @Override
         protected boolean disconnectAttribute(final String id, final GenericAttributeMetadata<?> attributeInfo) {
-            if (super.disconnectAttribute(id, attributeInfo))
-                try {
-                    client.decref();
-                    return true;
-                } catch (final Exception e) {
-                    logger.log(Level.SEVERE, String.format("Some problems occurred during disconnection of attribute %s", id), e);
-                    return true;
-                }
-            else return false;
+            try {
+                client.decref();
+                return true;
+            } catch (final Exception e) {
+                logger.log(Level.SEVERE, String.format("Some problems occurred during disconnection of attribute %s", id), e);
+                return false;
+            }
         }
 
         private Variable getAttributeValue(final SnmpAttributeMetadata metadata, final TimeSpan readTimeout) throws Exception{
@@ -549,20 +537,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
                 }
             });
         }
-
-        @Override
-        public void close() throws Exception {
-            try {
-                client.decref(attributesCount());
-            }
-            finally {
-                clear();
-            }
-        }
     }
 
     private final SnmpAttributeSupport attributes;
     private final SnmpNotificationSupport notifications;
+    private final ReferenceCountedObject<SnmpClient> client;
 
     /**
      * Initializes a new management connector.
@@ -571,7 +550,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      */
     public SnmpResourceConnector(final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
         super(snmpConnectionOptions, SnmpConnectorHelpers.getLogger());
-        final ReferenceCountedObject<SnmpClient> client = new ReferenceCountedObject<SnmpClient>() {
+        client = new ReferenceCountedObject<SnmpClient>() {
             @Override
             protected SnmpClient createResource() throws IOException {
                 final SnmpClient client = snmpConnectionOptions.createSnmpClient();
@@ -793,8 +772,12 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      */
     @Override
     public void close() throws Exception {
-        attributes.close();
-        notifications.close();
+        try {
+            client.close();
+        } finally {
+            attributes.clear();
+            notifications.clear();
+        }
     }
 
     /**

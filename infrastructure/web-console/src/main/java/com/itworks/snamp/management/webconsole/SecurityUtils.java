@@ -1,5 +1,8 @@
 package com.itworks.snamp.management.webconsole;
 
+import com.itworks.snamp.ExceptionPlaceholder;
+import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.internal.Utils;
 import org.eclipse.jetty.jaas.JAASLoginService;
 import org.eclipse.jetty.jaas.spi.LdapLoginModule;
 import org.eclipse.jetty.server.UserIdentity;
@@ -22,20 +25,26 @@ public final class SecurityUtils {
     public static final String ADMIN_ROLE = "admin";
     public static final String USER_ROLE = "user";
 
+    private static final class OsgiCompliantJaasLoginService extends JAASLoginService{
+        private final ClassLoader osgiClassLoader;
+
+        private OsgiCompliantJaasLoginService(final ClassLoader osgiClassLoader){
+            this.osgiClassLoader = osgiClassLoader;
+        }
+
+        @Override
+        public UserIdentity login(final String username, final Object credentials) {
+            return Utils.withContextClassLoader(osgiClassLoader, new ExceptionalCallable<UserIdentity, ExceptionPlaceholder>() {
+                @Override
+                public UserIdentity call() {
+                    return OsgiCompliantJaasLoginService.super.login(username, credentials);
+                }
+            });
+        }
+    }
+
     public static JAASLoginService createJaasLoginServiceForOsgi(final ClassLoader osgiClassLoader){
-        return new JAASLoginService(){
-            @Override
-            public UserIdentity login(final String username, final Object credentials) {
-                final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                Thread.currentThread().setContextClassLoader(osgiClassLoader);
-                try{
-                    return super.login(username, credentials);
-                }
-                finally {
-                    Thread.currentThread().setContextClassLoader(loader);
-                }
-            }
-        };
+        return new OsgiCompliantJaasLoginService(osgiClassLoader);
     }
 
     //this method is not used by this bundle but required for correct Import-Package

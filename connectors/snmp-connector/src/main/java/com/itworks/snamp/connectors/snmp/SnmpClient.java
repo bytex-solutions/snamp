@@ -97,7 +97,7 @@ abstract class SnmpClient extends Snmp implements Closeable {
         }
     }
 
-    SnmpClient(final MessageDispatcher dispatcher,
+    private SnmpClient(final MessageDispatcher dispatcher,
                        final TransportMapping<?> transport){
         super(dispatcher, transport);
     }
@@ -110,12 +110,13 @@ abstract class SnmpClient extends Snmp implements Closeable {
                                     final OID encryptionProtocol,
                                     final OctetString encryptionKey,
                                     final OctetString contextName,
-                                    final Address localAddress) throws IOException {
+                                    final Address localAddress,
+                                    final int socketTimeout) throws IOException {
         if(userName == null ||
                 userName.length() == 0 ||
                 password == null ||
                 password.length() == 0)
-            return create(connectionAddress, new OctetString("public"), localAddress);
+            return create(connectionAddress, new OctetString("public"), localAddress, socketTimeout);
         final SecurityLevel secLevel = encryptionProtocol != null && encryptionProtocol.size() > 0 &&
                 encryptionKey != null && encryptionKey.length() > 0 ?
             SecurityLevel.authPriv : SecurityLevel.authNoPriv;
@@ -124,7 +125,9 @@ abstract class SnmpClient extends Snmp implements Closeable {
         userModel.addUser(userName, engineID,
                 new UsmUser(userName, authenticationProtocol, password, encryptionProtocol, encryptionKey));
         dispatcher.addMessageProcessingModel(new MPv3(userModel));
-        return new SnmpClient(dispatcher, localAddress instanceof UdpAddress ? new DefaultUdpTransportMapping((UdpAddress)localAddress) : new DefaultUdpTransportMapping()) {
+        final DefaultUdpTransportMapping transport = localAddress instanceof UdpAddress ? new DefaultUdpTransportMapping((UdpAddress)localAddress) : new DefaultUdpTransportMapping();
+        transport.setSocketTimeout(socketTimeout);
+        return new SnmpClient(dispatcher, transport) {
             @Override
             protected Target createTarget(TimeSpan timeout) {
                 final UserTarget target = new UserTarget(connectionAddress,
@@ -154,10 +157,13 @@ abstract class SnmpClient extends Snmp implements Closeable {
 
     public static SnmpClient create(final Address connectionAddress,
                                     final OctetString community,
-                                    final Address localAddress) throws IOException{
+                                    final Address localAddress,
+                                    final int socketTimeout) throws IOException{
         final MessageDispatcher dispatcher = new MessageDispatcherImpl();
         dispatcher.addMessageProcessingModel(new MPv2c());
-        return new SnmpClient(dispatcher, localAddress instanceof UdpAddress ? new DefaultUdpTransportMapping((UdpAddress)localAddress) : new DefaultUdpTransportMapping()){
+        final DefaultUdpTransportMapping transport = localAddress instanceof UdpAddress ? new DefaultUdpTransportMapping((UdpAddress)localAddress) : new DefaultUdpTransportMapping();
+        transport.setSocketTimeout(socketTimeout);
+        return new SnmpClient(dispatcher, transport){
             @Override
             protected Target createTarget(TimeSpan timeout) {
                 final CommunityTarget target = new CommunityTarget(connectionAddress, community);

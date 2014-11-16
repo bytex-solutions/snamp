@@ -21,6 +21,8 @@ package com.itworks.snamp.testing.adapters.snmp;
  */
 
 
+import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.internal.Utils;
 import org.apache.directory.api.ldap.model.entry.DefaultModification;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.ModificationOperation;
@@ -222,42 +224,47 @@ public class EmbeddedADSVerTrunk{
         service.setInstanceLayout( new InstanceLayout( workDir ) );
         service.setAllowAnonymousAccess(true);
 
-        CacheService cacheService = new CacheService();
+        final CacheService cacheService = new CacheService();
         //this line is necessary to valid loading of EHCACHE ReadWriteCopyStrategy
         //see CopyStrategyConfiguration, line 69
-        Thread.currentThread().setContextClassLoader(cacheService.getClass().getClassLoader());
-        cacheService.initialize( service.getInstanceLayout() );
-        service.setCacheService( cacheService );
-        // first load the schema
-        initSchemaPartition();
+        final Partition userPartition = Utils.withContextClassLoader(cacheService.getClass().getClassLoader(), new ExceptionalCallable<Partition, Exception>() {
+            @Override
+            public Partition call() throws Exception{
+                cacheService.initialize( service.getInstanceLayout() );
+                service.setCacheService( cacheService );
+                // first load the schema
+                initSchemaPartition();
 
-        // then the system partition
-        // this is a MANDATORY partition
-        // DO NOT add this via addPartition() method, trunk code complains about duplicate partition
-        // while initializing
-        JdbmPartition systemPartition = new JdbmPartition(service.getSchemaManager(), service.getDnFactory());
-        systemPartition.setId( "system" );
-        systemPartition.setPartitionPath( new File( service.getInstanceLayout().getPartitionsDirectory(), systemPartition.getId() ).toURI() );
-        systemPartition.setSuffixDn( new Dn( ServerDNConstants.SYSTEM_DN ) );
-        systemPartition.setSchemaManager( service.getSchemaManager() );
+                // then the system partition
+                // this is a MANDATORY partition
+                // DO NOT add this via addPartition() method, trunk code complains about duplicate partition
+                // while initializing
+                JdbmPartition systemPartition = new JdbmPartition(service.getSchemaManager(), service.getDnFactory());
+                systemPartition.setId( "system" );
+                systemPartition.setPartitionPath( new File( service.getInstanceLayout().getPartitionsDirectory(), systemPartition.getId() ).toURI() );
+                systemPartition.setSuffixDn( new Dn( ServerDNConstants.SYSTEM_DN ) );
+                systemPartition.setSchemaManager( service.getSchemaManager() );
 
-        // mandatory to call this method to set the system partition
-        // Note: this system partition might be removed from trunk
-        service.setSystemPartition( systemPartition );
+                // mandatory to call this method to set the system partition
+                // Note: this system partition might be removed from trunk
+                service.setSystemPartition( systemPartition );
 
-        // Disable the ChangeLog system
-        service.getChangeLog().setEnabled( false );
-        service.setDenormalizeOpAttrsEnabled( true );
+                // Disable the ChangeLog system
+                service.getChangeLog().setEnabled( false );
+                service.setDenormalizeOpAttrsEnabled( true );
 
-        // Now we can create as many partitions as we need
-        // Create some new partitions named 'foo', 'bar' and 'apache'.
-        Partition userPartition = addPartition( "users", "dc=ad,dc=microsoft,dc=com", service.getDnFactory() );
+                // Now we can create as many partitions as we need
+                // Create some new partitions named 'foo', 'bar' and 'apache'.
+                Partition userPartition = addPartition( "users", "dc=ad,dc=microsoft,dc=com", service.getDnFactory() );
 
-        // Index some attributes on the apache partition
-        addIndex( userPartition, "objectClass", "ou", "uid" );
+                // Index some attributes on the apache partition
+                addIndex( userPartition, "objectClass", "ou", "uid" );
 
-        // And start the service
-        service.startup();
+                // And start the service
+                service.startup();
+                return userPartition;
+            }
+        });
 
         // Inject the context entry for dc=foo,dc=com partition if it does not already exist
         try

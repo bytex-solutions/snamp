@@ -3,6 +3,7 @@ package com.itworks.snamp.connectors.snmp;
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
 import com.itworks.snamp.licensing.LicensingException;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Level;
@@ -35,7 +36,7 @@ public final class SnmpResourceConnectorActivator extends AbstractManagedResourc
                 limitations.verifyServiceVersion();
                 result = new ManagedResourceConnectorProvider<SnmpResourceConnector>(resourceName) {
                     @Override
-                    protected SnmpResourceConnector createConnector(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {
+                    protected SnmpResourceConnector createConnector(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws IOException {
                         if(SnmpConnectionOptions.authenticationRequred(connectionOptions))
                             limitations.verifyAuthenticationFeature();
                         return new SnmpResourceConnector(connectionString, connectionOptions);

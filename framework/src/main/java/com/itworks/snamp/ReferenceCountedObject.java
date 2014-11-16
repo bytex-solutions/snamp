@@ -10,7 +10,7 @@ import com.itworks.snamp.internal.annotations.ThreadSafe;
  * @since 1.0
  */
 public abstract class ReferenceCountedObject<R> extends ConcurrentResourceAccess<R> implements AutoCloseable {
-    private volatile int refCounter;
+    private int refCounter;
 
     /**
      * Initializes a new reference counted object.

@@ -1,5 +1,8 @@
 package com.itworks.snamp.connectors.jmx;
 
+import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.internal.Utils;
+
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
@@ -72,7 +75,11 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
     public final JMXConnector createConnection() throws IOException {
         //this string should be used in OSGI environment. Otherwise, JMX connector
         //will not resolve the JMX registry via JNDI
-        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-        return JMXConnectorFactory.connect(this, getJmxOptions());
+        return Utils.withContextClassLoader(getClass().getClassLoader(), new ExceptionalCallable<JMXConnector, IOException>() {
+            @Override
+            public JMXConnector call() throws IOException {
+                return JMXConnectorFactory.connect(JmxConnectionOptions.this, getJmxOptions());
+            }
+        });
     }
 }

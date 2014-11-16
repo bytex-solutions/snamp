@@ -18,20 +18,22 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  */
 final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescriptionProviderImpl {
     //connector related parameters
-    public static final String COMMUNITY_PARAM = "community";
-    public static final String ENGINE_ID_PARAM = "engineID";
-    public static final String USER_NAME_PARAM = "userName";
-    public static final String AUTH_PROTOCOL_PARAM = "authenticationProtocol";
-    public static final String ENCRYPTION_PROTOCOL_PARAM = "encryptionProtocol";
-    public static final String PASSWORD_PARAM = "password";
-    public static final String ENCRYPTION_KEY_PARAM = "encryptionKey";
-    public static final String LOCAL_ADDRESS_PARAM = "localAddress";
-    public static final String SECURITY_CONTEXT_PARAM = "securityContext";
+    static final String COMMUNITY_PARAM = "community";
+    static final String ENGINE_ID_PARAM = "engineID";
+    static final String USER_NAME_PARAM = "userName";
+    static final String AUTH_PROTOCOL_PARAM = "authenticationProtocol";
+    static final String ENCRYPTION_PROTOCOL_PARAM = "encryptionProtocol";
+    static final String PASSWORD_PARAM = "password";
+    static final String ENCRYPTION_KEY_PARAM = "encryptionKey";
+    static final String LOCAL_ADDRESS_PARAM = "localAddress";
+    static final String SECURITY_CONTEXT_PARAM = "securityContext";
+    static final String SOCKET_TIMEOUT = "socketTimeout";
+    static final int DEFAULT_SOCKET_TIMEOUT = 3000;
     //attribute related parameters
-    public static final String SNMP_CONVERSION_FORMAT = "snmpConversionFormat";
+    static final String SNMP_CONVERSION_FORMAT = "snmpConversionFormat";
     //event related parameters
-    public static final String SEVERITY_PARAM = "severity";
-    public static final String MESSAGE_TEMPLATE = "messageTemplate";
+    static final String SEVERITY_PARAM = "severity";
+    static final String MESSAGE_TEMPLATE = "messageTemplate";
 
     private static final class EventConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
         private static final String RESOURCE_NAME = "EventOptions";

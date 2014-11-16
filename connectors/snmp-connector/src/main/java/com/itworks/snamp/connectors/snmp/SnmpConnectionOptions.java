@@ -29,6 +29,7 @@ final class SnmpConnectionOptions {
     private final OID encryptionProtocol;
     private final OctetString encryptionKey;
     private final OctetString securityContext;
+    private final int socketTimeout;
 
     public SnmpConnectionOptions(final String connectionString, final Map<String, String> parameters) {
         connectionAddress = GenericAddress.parse(connectionString);
@@ -59,6 +60,9 @@ final class SnmpConnectionOptions {
         securityContext = parameters.containsKey(SECURITY_CONTEXT_PARAM) ?
                 new OctetString(parameters.get(SECURITY_CONTEXT_PARAM)) :
                 null;
+        socketTimeout = parameters.containsKey(SOCKET_TIMEOUT) ?
+                Integer.parseInt(parameters.get(SOCKET_TIMEOUT)) :
+                DEFAULT_SOCKET_TIMEOUT;
     }
 
     private static OID getAuthenticationProtocol(final String authProtocol){
@@ -97,8 +101,8 @@ final class SnmpConnectionOptions {
      */
     public SnmpClient createSnmpClient() throws IOException{
         return userName == null ?
-                SnmpClient.create(connectionAddress, community, localAddress):
-                SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress);
+                SnmpClient.create(connectionAddress, community, localAddress, socketTimeout):
+                SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress, socketTimeout);
     }
 
     public static boolean authenticationRequred(final Map<String, String> connectionOptions) {

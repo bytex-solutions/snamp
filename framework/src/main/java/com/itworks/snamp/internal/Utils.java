@@ -5,6 +5,8 @@ import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.itworks.snamp.Consumer;
+import com.itworks.snamp.ExceptionPlaceholder;
+import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.internal.annotations.Internal;
 import org.osgi.framework.*;
 import org.osgi.service.event.Event;
@@ -415,14 +417,25 @@ public final class Utils {
         return bundle.getBundleContext().getServiceReferences(serviceType, filter).size() > 0;
     }
 
-    public static void withContextClassLoader(final ClassLoader loader, final Runnable action){
-        final ClassLoader previous = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(loader);
+    public static void withContextClassLoader(final ClassLoader loader, final Runnable action) {
+        withContextClassLoader(loader, new ExceptionalCallable<Void, ExceptionPlaceholder>() {
+            @Override
+            public Void call() {
+                action.run();
+                return null;
+            }
+        });
+    }
+
+    public static <V, E extends Exception> V withContextClassLoader(final ClassLoader loader, final ExceptionalCallable<V, E> action) throws E{
+        final Thread currentThread = Thread.currentThread();
+        final ClassLoader previous = currentThread.getContextClassLoader();
+        currentThread.setContextClassLoader(loader);
         try{
-            action.run();
+            return action.call();
         }
         finally {
-            Thread.currentThread().setContextClassLoader(previous);
+            currentThread.setContextClassLoader(previous);
         }
     }
 
