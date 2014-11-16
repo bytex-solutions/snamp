@@ -1,0 +1,25 @@
+<body>
+SNAMP is a middleware solution for monitoring of the software components in your enterprise IT-infrastructure.
+This solution is running on top of OSGi Framework and can be hosted in every OSGi R4.3-compliant containers,
+such as Apache Felix, Knopflerfish, Eclipse Equinox.
+It consists of the following parts (bundles):
+<ul>
+    <li>SNAMP Framework - reusable set of classes and interfaces used to write SNAMP components.</li>
+    <li>Resource connector - provides connection to the managed resource such as server.
+        This is a back-end component of the SNAMP solution.</li>
+    <li>Resource Adapter - provides access to the managed resource in protocol-specific manner (such as SNMP).
+    Resource adapter provides conversion between management protocol and resource connector interface.
+    This is a front-end of the SNAMP solution.</li>
+    <li>Manager - provides SNAMP management interface for configuring SNAMP, such as Web console or
+    command-line interface.</li>
+    <li>(Agent) configuration - the configuration of the SNAMP specific bundles used to instantiate
+    connectors and adapters.</li>
+</ul>
+For each architectural component the SNAMP solution provides separated Java package:
+<ul>
+    <li>{@link com.itworks.snamp.connectors} for management connectors.</li>
+    <li>{@link com.itworks.snamp.adapters} for adapters.</li>
+    <li>{@link com.itworks.snamp.management} for managers.</li>
+    <li>{@link com.itworks.snamp.configuration} for configuring SNAMP bundles.</li>
+</ul>
+</body>

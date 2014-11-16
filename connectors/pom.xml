@@ -2,25 +2,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.snamp</groupId>
+    <groupId>com.itworks.snamp</groupId>
     <artifactId>snamp</artifactId>
     <version>1.0.0</version>
   </parent>
   <artifactId>connectors</artifactId>
   <version>1.0.0</version>
   <packaging>pom</packaging>
-  <name>SNAMP Connector Plugin Framework</name>
+  <name>SNAMP Connectors</name>
   <description>A base classes for building SNAMP management connectors</description>
-  <dependencies>
-    <dependency>
-      <groupId>com.snamp</groupId>
-      <artifactId>agent</artifactId>
-      <version>1.0.0</version>
-    </dependency>
-  </dependencies>
   <modules>
-    <module>jmx-connector</module>
-    <module>ibmwmb-connector</module>
-    <module>ibmwmq-connector</module>
+      <module>jmx-connector</module>
+      <module>snmp-connector</module>
+      <module>rshell-connector</module>
+      <!--<module>ibmwmb-connector</module>
+      <module>ibmwmq-connector</module>-->
   </modules>
 </project>
