@@ -17,7 +17,7 @@ import static com.itworks.snamp.adapters.jmx.JmxAdapterConfigurationProvider.*;
  * @since 1.0
  */
 public final class JmxResourceAdapterActivator extends AbstractResourceAdapterActivator<JmxResourceAdapter> {
-    private static final class JmxConfigurationDescriptor extends ConfigurationEntityDescriptionProviderHolder<JmxAdapterConfigurationProvider>{
+    private static final class JmxConfigurationDescriptor extends ConfigurationEntityDescriptionManager<JmxAdapterConfigurationProvider> {
 
         @Override
         protected JmxAdapterConfigurationProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {

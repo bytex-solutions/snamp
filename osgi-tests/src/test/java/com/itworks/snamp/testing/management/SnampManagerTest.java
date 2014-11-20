@@ -7,7 +7,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.itworks.snamp.connectors.DiscoveryService;
+import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import com.itworks.snamp.management.SnampComponentDescriptor;
@@ -152,13 +152,13 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     private void testSnmpAdapterDescriptor(final SnampComponentDescriptor descriptor){
         assertEquals(new Version(1, 0, 0), descriptor.getVersion());
         assertFalse(descriptor.getDescription(Locale.getDefault()).isEmpty());
-        descriptor.invokeManagementService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
+        descriptor.invokeSupportService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
             @Override
             public void accept(final LicensingDescriptionService input) {
                 assertFalse(input.getLimitations().isEmpty());
             }
         });
-        descriptor.invokeManagementService(ConfigurationEntityDescriptionProvider.class, new SafeConsumer<ConfigurationEntityDescriptionProvider>() {
+        descriptor.invokeSupportService(ConfigurationEntityDescriptionProvider.class, new SafeConsumer<ConfigurationEntityDescriptionProvider>() {
             @Override
             public void accept(final ConfigurationEntityDescriptionProvider input) {
                 assertNotNull(input.getDescription(AgentConfiguration.ResourceAdapterConfiguration.class));
@@ -190,19 +190,19 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     private static void testJmxConnectorDescriptor(final SnampComponentDescriptor descriptor){
         assertEquals(new Version(1, 0, 0), descriptor.getVersion());
         assertFalse(descriptor.getDescription(Locale.getDefault()).isEmpty());
-        descriptor.invokeManagementService(DiscoveryService.class, new SafeConsumer<DiscoveryService>() {
+        descriptor.invokeSupportService(DiscoveryService.class, new SafeConsumer<DiscoveryService>() {
             @Override
             public void accept(final DiscoveryService input) {
                 assertNotNull(input);
             }
         });
-        descriptor.invokeManagementService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
+        descriptor.invokeSupportService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
             @Override
             public void accept(final LicensingDescriptionService input) {
                 assertNotNull(input);
             }
         });
-        descriptor.invokeManagementService(Maintainable.class, new SafeConsumer<Maintainable>() {
+        descriptor.invokeSupportService(Maintainable.class, new SafeConsumer<Maintainable>() {
             @Override
             public void accept(final Maintainable input) {
                 assertNotNull(input);

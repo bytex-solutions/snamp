@@ -4,6 +4,8 @@ import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.WriteOnceRef;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration.*;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
@@ -16,6 +18,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.Serializable;
 import java.lang.annotation.*;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -115,11 +118,13 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         private final T instance;
         private final BeanInfo metadata;
 
-        private BeanDescriptor(final T beanInstance, final BeanIntrospector<T> introspector) throws IntrospectionException {
+        private BeanDescriptor(final T beanInstance, final BeanIntrospector introspector) throws IntrospectionException {
             if(beanInstance == null) throw new IllegalArgumentException("beanInstance is null.");
             else if(introspector == null) throw new IllegalArgumentException("introspector is null.");
-            else
-                this.metadata = introspector.getBeanInfo(this.instance = beanInstance);
+            else {
+                this.instance = beanInstance;
+                this.metadata = introspector.getBeanInfo(beanInstance.getClass());
+            }
         }
 
         /**
@@ -186,7 +191,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          * Determines whether the attribute if cached.
          * @return {@literal true}, if attribute value is cached in the private field; otherwise, {@literal false}.
          */
-        public boolean cached() default false;
+        boolean cached() default false;
 
         /**
          * Gets the name of the public instance parameterless method in {@link WellKnownTypeSystem} class that returns
@@ -194,7 +199,28 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          * @return The name of the public instance method that produces {@link WellKnownTypeSystem} instance
          * for the annotated bean property.
          */
-        public String typeProvider() default "";
+        String typeProvider() default "";
+    }
+
+    /**
+     * Represents an interface that should be implemented by {@link java.lang.Enum} which represents
+     * all possible management event types.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static interface ManagementEvent<E extends ManagementEvent<E>> extends Serializable, Comparable<E>{
+        /**
+         * Gets a string representation of this event.
+         * @return A string representation of this event.
+         */
+        String getCategory();
+
+        /**
+         * Gets severity of this event.
+         * @return The severity of this event.
+         */
+        Severity getSeverity();
     }
 
     private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<ManagedEntityTypeBuilder.AbstractManagedEntityType>{
@@ -353,6 +379,12 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         public final Set<Entry<String, String>> entrySet() {
             return properties.entrySet();
         }
+
+        private static boolean isAttribute(final PropertyDescriptor attr) {
+            final Method getter = attr.getReadMethod(), setter = attr.getWriteMethod();
+            return getter != null && getter.isAnnotationPresent(ManagementAttribute.class) ||
+                    setter != null && setter.isAnnotationPresent(ManagementAttribute.class);
+        }
     }
 
     private static final class JavaBeanNotification extends HashMap<String, Object> implements Notification {
@@ -365,7 +397,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         public JavaBeanNotification(final Severity severity,
                                     final long sequenceNumber,
                                     final String message,
-                                    final Map<String, Object> attachments){
+                                    final Map<String, ?> attachments){
             this.timeStamp = new Date();
             this.severity = severity != null ? severity : Severity.UNKNOWN;
             this.seqnum = sequenceNumber;
@@ -453,7 +485,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
             this.listenerInvoker = listenerInvoker;
         }
 
-        public final void fireListeners(final Severity severity, final String message, final Map<String, Object> attachments){
+        private void fireListeners(final Severity severity, final String message, final Map<String, ?> attachments){
             fire(new JavaBeanNotification(severity, sequenceCounter.getAndIncrement(), message, attachments), listenerInvoker);
         }
 
@@ -579,7 +611,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          * @param message Human-readable description of the event.
          * @param attachments A set of notification attachments. May be {@literal null}.
          */
-        public final void emitNotification(final String category, final Severity severity, final String message, final Map<String, Object> attachments){
+        public final void emitNotification(final String category, final Severity severity, final String message, final Map<String, ?> attachments){
             for(final JavaBeanEventMetadata eventMetadata: getEnabledNotifications(category, JavaBeanEventMetadata.class).values())
                 eventMetadata.fireListeners(severity, message, attachments);
         }
@@ -745,45 +777,42 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
     }
 
     /**
-     * Provides introspection for the specified bean instance.
-     * @param <T> Type of JavaBean to reflect.
+     * Provides introspection for the specified bean type.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static interface BeanIntrospector<T>{
+    protected static interface BeanIntrospector{
         /**
          * Reflects the specified JavaBean.
-         * @param beanInstance An instance of JavaBean to reflect.
+         * @param beanType A type of JavaBean to reflect.
          * @return Metadata of the specified JavaBean.
          * @throws IntrospectionException Cannot reflect the specified JavaBean.
          */
-        public BeanInfo getBeanInfo(final T beanInstance) throws IntrospectionException;
+        BeanInfo getBeanInfo(final Class<?> beanType) throws IntrospectionException;
     }
 
     /**
      * Provides the standard implementation of JavaBean reflection that simply
      * calls {@link Introspector#getBeanInfo(Class)} method. This class cannot be inherited.
-     * @param <T> Type of JavaBean to reflect.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static final class StandardBeanIntrospector<T> implements BeanIntrospector<T>{
+    protected static final class StandardBeanIntrospector implements BeanIntrospector{
 
         /**
          * Reflects the specified JavaBean.
          * <p>
          *     This method simply calls {@link Introspector#getBeanInfo(Class)} method.
-         * </p>
-         * @param beanInstance An instance of JavaBean to reflect.
+         * @param beanType A type of JavaBean to reflect.
          * @return Metadata of the specified JavaBean.
          * @throws java.beans.IntrospectionException
          *          Cannot reflect the specified JavaBean.
          */
         @Override
-        public final BeanInfo getBeanInfo(final T beanInstance) throws IntrospectionException {
-            return Introspector.getBeanInfo(beanInstance.getClass());
+        public final BeanInfo getBeanInfo(final Class<?> beanType) throws IntrospectionException {
+            return Introspector.getBeanInfo(beanType);
         }
     }
 
@@ -813,13 +842,11 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @param beanInstance An instance of JavaBean to reflect. Cannot be {@literal null}.
      * @param introspector An introspector that reflects the specified JavaBean. Cannot be {@literal null}.
      * @param typeBuilder Type information provider that provides property type converter. Cannot be {@literal null}.
-     * @param <T>  Type of JavaBean to reflect.
      * @throws IntrospectionException Cannot reflect the specified instance.
      * @throws IllegalArgumentException At least one of the specified arguments is {@literal null}.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    protected <T> ManagedResourceConnectorBean(final T beanInstance,
-                                               final BeanIntrospector<T> introspector,
+    protected ManagedResourceConnectorBean(final Object beanInstance,
+                                               final BeanIntrospector introspector,
                                                final WellKnownTypeSystem typeBuilder,
                                                final Logger logger) throws IntrospectionException {
         super(new BeanDescriptor<>(beanInstance, introspector), logger);
@@ -837,14 +864,13 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @throws IntrospectionException Cannot reflect the specified instance.
      */
     public static <T> ManagedResourceConnectorBean wrap(final T beanInstance, final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
-        return new ManagedResourceConnectorBean(beanInstance, new StandardBeanIntrospector<>(), typeBuilder, Logger.getLogger(getLoggerName("javabean")));
+        return new ManagedResourceConnectorBean(beanInstance, new StandardBeanIntrospector(), typeBuilder, Logger.getLogger(getLoggerName("javabean")));
     }
 
     /**
      * Returns an array of all discovered managementAttributes available for registration.
      * @return An array of all discovered managementAttributes available for registration.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public final String[] availableAttributes(){
         final PropertyDescriptor[] properties = getConnectionOptions().getBeanInfo().getPropertyDescriptors();
         final String[] result = new String[properties.length];
@@ -890,14 +916,24 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      *       emitNotification("propertyChanged", Notification.Severity.NOTICE, String.format("Property %s changed", propertyName), attachments);
      *     }
      *     }</pre>
-     * </p>
      * @param category The category of the event to raise.
      * @param severity The severity of the event to raise.
      * @param message Human-readable description of the event.
      * @param attachments A set of notification attachments. May be {@literal null}.
      */
-    protected final void emitNotification(final String category, final Severity severity, final String message, final Map<String, Object> attachments){
+    protected final void emitNotification(final String category, final Severity severity, final String message, final Map<String, ?> attachments){
         notifications.emitNotification(category, severity, message, attachments);
+    }
+
+    /**
+     * Raises notification.
+     * @param event Type of the event to emit.
+     * @param message Human-readable description of the event.
+     * @param attachments A set of notification attachments. May be {@literal null}.
+     * @param <E> Type of the event to emit.
+     */
+    protected final <E extends Enum<E> & ManagementEvent<E>> void emitNotification(final E event, final String message, final Map<String, ?> attachments){
+        emitNotification(event.getCategory(), event.getSeverity(), message, attachments);
     }
 
     /**
@@ -1086,5 +1122,62 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         super.close();
         attributes.clear();
         notifications.clear();
+    }
+
+    /**
+     * Extracts information about attributes.
+     * @param info An information about JavaBean. Cannot be {@literal null}.
+     * @return A collection of discovered attributes.
+     * @see com.itworks.snamp.connectors.discovery.DiscoveryService
+     */
+    public static Collection<AttributeConfiguration> discoverAttributes(final BeanInfo info) {
+        final PropertyDescriptor[] attributes = info.getPropertyDescriptors();
+        final Collection<AttributeConfiguration> config = new ArrayList<>(attributes.length);
+        for (final PropertyDescriptor attr : attributes)
+            if (JavaBeanPropertyMetadata.isAttribute(attr))
+                config.add(new InMemoryAttributeConfiguration(attr.getName()));
+        return config;
+    }
+
+    /**
+     * Extracts information about attributes.
+     * @param beanType A type of JavaBean to reflect. Cannot be {@literal null}.
+     * @param introspector An introspector that reflects the specified JavaBean. Cannot be {@literal null}.
+     * @return A collection of extracted attributes.
+     * @throws IntrospectionException Unable to reflect JavaBean.
+     * @see com.itworks.snamp.connectors.discovery.DiscoveryService
+     */
+    public static Collection<AttributeConfiguration> discoverAttributes(final Class<?> beanType,
+                                                                            final BeanIntrospector introspector) throws IntrospectionException{
+        return discoverAttributes(introspector.getBeanInfo(beanType));
+    }
+
+    /**
+     * Extracts information about attributes.
+     * @param bean A type of JavaBean to reflect. Cannot be {@literal null}.
+     * @return A collection of extracted attributes.
+     * @throws IntrospectionException Unable to reflect JavaBean.
+     * @see com.itworks.snamp.connectors.discovery.DiscoveryService
+     */
+    public static Collection<AttributeConfiguration> discoverAttributes(final Class<?> bean) throws IntrospectionException {
+        return discoverAttributes(bean, new StandardBeanIntrospector());
+    }
+
+    private static <E extends Enum<E> & ManagementEvent<E>> Collection<EventConfiguration> discoverEvents(final Set<E> notificationTypes){
+        final Collection<EventConfiguration> result = new ArrayList<>(notificationTypes.size());
+        for(final E notif: notificationTypes)
+            result.add(new InMemoryEventConfiguration(notif.getCategory()));
+        return result;
+    }
+
+    /**
+     * Extracts information about notifications.
+     * @param notificationTypes A type of the enum which describes notification types. Cannot be {@literal null}.
+     * @param <E> A type of the enum which describes notification types. Cannot be {@literal null}.
+     * @return A collection of discovered events.
+     * @see com.itworks.snamp.connectors.discovery.DiscoveryService
+     */
+    protected static <E extends Enum<E> & ManagementEvent<E>> Collection<EventConfiguration> discoverEvents(final Class<E> notificationTypes){
+        return discoverEvents(EnumSet.allOf(notificationTypes));
     }
 }

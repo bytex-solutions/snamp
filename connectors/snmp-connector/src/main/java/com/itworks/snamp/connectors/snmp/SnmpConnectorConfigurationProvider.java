@@ -3,6 +3,7 @@ package com.itworks.snamp.connectors.snmp;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.itworks.snamp.configuration.ThreadPoolConfigurationDescriptor;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -65,7 +66,7 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
         }
     }
 
-    private static final class ConnectorConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
+    private static final class ConnectorConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration> implements ThreadPoolConfigurationDescriptor<ManagedResourceConfiguration>{
         private static final String RESOURCE_NAME = "ConnectorOptions";
 
         public ConnectorConfigurationDescriptor(){
@@ -78,7 +79,12 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
                     ENCRYPTION_PROTOCOL_PARAM,
                     PASSWORD_PARAM,
                     LOCAL_ADDRESS_PARAM,
-                    SECURITY_CONTEXT_PARAM);
+                    SECURITY_CONTEXT_PARAM,
+                    QUEUE_SIZE_PROPERTY,
+                    PRIORITY_PROPERTY,
+                    KEEP_ALIVE_TIME_PROPERTY,
+                    MIN_POOL_SIZE_PROPERTY,
+                    MAX_POOL_SIZE_PROPERTY);
         }
 
         @Override

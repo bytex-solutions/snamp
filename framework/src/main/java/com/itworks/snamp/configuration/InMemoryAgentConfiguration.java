@@ -88,8 +88,22 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          */
         public static final class InMemoryEventConfiguration implements EventConfiguration, Serializable{
             private final Map<String, String> additionalElements = new HashMap<>();
-            private String eventCategory = "";
+            private String eventCategory;
 
+            /**
+             * Initializes a event configuration with predefined category.
+             * @param category The event category.
+             */
+            public InMemoryEventConfiguration(final String category){
+                this.eventCategory = category != null ? category : "";
+            }
+
+            /**
+             * Initializes a new empty configuration of the event.
+             */
+            public InMemoryEventConfiguration(){
+                this("");
+            }
 
             /**
              * Gets the event category.

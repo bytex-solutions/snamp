@@ -1,6 +1,6 @@
 package com.itworks.snamp.licensing;
 
-import com.itworks.snamp.management.ManagementService;
+import com.itworks.snamp.core.SupportService;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -11,7 +11,7 @@ import java.util.Locale;
  * @version 1.0
  * @since 1.0
  */
-public interface LicensingDescriptionService extends ManagementService {
+public interface LicensingDescriptionService extends SupportService {
     /**
      * Gets a read-only collection of license limitations.
      * @return A read-only collection of license limitations.

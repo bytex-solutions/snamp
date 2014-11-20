@@ -2,12 +2,10 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
 import com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration.InMemoryAttributeConfiguration;
-import com.itworks.snamp.connectors.DiscoveryService;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 import org.snmp4j.smi.VariableBinding;
@@ -16,7 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Logger;
+import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT;
 
@@ -26,8 +24,12 @@ import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvid
  * @version 1.0
  * @since 1.0
  */
-final class SnmpDiscoveryService extends AbstractAggregator implements DiscoveryService {
+final class SnmpDiscoveryService {
     private static final String DISCOVERY_TIMEOUT_PROPERTY = "com.itworks.snamp.connectors.snmp.discoveryTimeout";
+
+    private SnmpDiscoveryService(){
+
+    }
 
     private static TimeSpan getDiscoveryTimeout(){
         return new TimeSpan(Long.valueOf(System.getProperty(DISCOVERY_TIMEOUT_PROPERTY, "5000")));
@@ -38,41 +40,22 @@ final class SnmpDiscoveryService extends AbstractAggregator implements Discovery
             options.put(SNMP_CONVERSION_FORMAT, OctetStringConversionFormat.adviceFormat((OctetString)v).toString());
     }
 
-    private static Collection<AttributeConfiguration> discoverAttributes(final String connectionString, final Map<String, String> options){
-        final SnmpConnectionOptions connection = new SnmpConnectionOptions(connectionString, options);
-        try(final SnmpClient client = connection.createSnmpClient()){
-            client.listen();
-            return Collections2.transform(client.walk(getDiscoveryTimeout()), new Function<VariableBinding, AttributeConfiguration>() {
-                @Override
-                public AttributeConfiguration apply(final VariableBinding input) {
-                    final InMemoryAttributeConfiguration config = new InMemoryAttributeConfiguration();
-                    config.setAttributeName(input.getOid().toDottedString());
-                    setupAttributeOptions(input.getVariable(), config.getParameters());
-                    return config;
-                }
-            });
-        }
-        catch (final Exception e) {
-            return Collections.emptyList();
-        }
+    private static Collection<AttributeConfiguration> discoverAttributes(final SnmpClient client) throws TimeoutException, InterruptedException {
+        return Collections2.transform(client.walk(getDiscoveryTimeout()), new Function<VariableBinding, AttributeConfiguration>() {
+            @Override
+            public AttributeConfiguration apply(final VariableBinding input) {
+                final InMemoryAttributeConfiguration config = new InMemoryAttributeConfiguration();
+                config.setAttributeName(input.getOid().toDottedString());
+                setupAttributeOptions(input.getVariable(), config.getParameters());
+                return config;
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public <T extends ManagedEntity> Collection<T> discover(final String connectionString, final Map<String, String> connectionOptions, final Class<T> entityType) {
-        if(Objects.equals(entityType, AttributeConfiguration.class))
-            return (Collection<T>)discoverAttributes(connectionString, connectionOptions);
+    static  <T extends ManagedEntity> Collection<T> discover(final Class<T> entityType, final SnmpClient client) throws TimeoutException, InterruptedException {
+        if (Objects.equals(entityType, AttributeConfiguration.class))
+            return (Collection<T>) discoverAttributes(client);
         else return Collections.emptyList();
-    }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    @Aggregation
-    public Logger getLogger() {
-        return SnmpConnectorHelpers.getLogger();
     }
 }

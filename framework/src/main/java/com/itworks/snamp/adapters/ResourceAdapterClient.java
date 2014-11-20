@@ -5,7 +5,7 @@ import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
-import com.itworks.snamp.management.ManagementService;
+import com.itworks.snamp.core.SupportService;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -24,7 +24,7 @@ public final class ResourceAdapterClient {
     }
 
     private static UnsupportedOperationException unsupportedServiceRequest(final String connectorType,
-                                                                           final Class<? extends ManagementService> serviceType){
+                                                                           final Class<? extends SupportService> serviceType){
         return new UnsupportedOperationException(String.format("Resource adapter %s doesn't expose %s service", connectorType, serviceType));
     }
 
@@ -77,9 +77,8 @@ public final class ResourceAdapterClient {
             final ConfigurationEntityDescriptionProvider provider = context.getService(ref);
             return provider.getDescription(configurationEntity);
         }
-        catch (final InvalidSyntaxException ignored) {
-            ref = null;
-            return null;
+        catch (final InvalidSyntaxException e) {
+            throw new UnsupportedOperationException(e);
         }
         finally {
             if(ref != null) context.ungetService(ref);
@@ -110,8 +109,8 @@ public final class ResourceAdapterClient {
                 result.put(limName, lims.getDescription(limName, loc));
             return result;
         }
-        catch (final InvalidSyntaxException ignored) {
-            return Collections.emptyMap();
+        catch (final InvalidSyntaxException e) {
+            throw new UnsupportedOperationException(e);
         }
         finally {
             if(ref != null) context.ungetService(ref);
@@ -144,8 +143,7 @@ public final class ResourceAdapterClient {
             return result;
         }
         catch (final InvalidSyntaxException e) {
-            ref = null;
-            return Collections.emptyMap();
+            throw new UnsupportedOperationException(e);
         }
         finally {
             if(ref != null) context.ungetService(ref);
@@ -178,8 +176,7 @@ public final class ResourceAdapterClient {
             return context.getService(ref).doAction(actionName, arguments, resultLocale);
         }
         catch (final InvalidSyntaxException e) {
-            ref = null;
-            return null;
+            throw new UnsupportedOperationException(e);
         }
         finally {
             if(ref != null) context.ungetService(ref);

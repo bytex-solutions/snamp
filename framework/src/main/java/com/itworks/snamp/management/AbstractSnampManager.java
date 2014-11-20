@@ -7,6 +7,7 @@ import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
+import com.itworks.snamp.core.SupportService;
 import com.itworks.snamp.internal.Utils;
 import org.osgi.framework.*;
 
@@ -89,7 +90,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
             final BundleContext context = getItselfContext();
             final Bundle bnd = context.getBundle(getBundleID());
             boolean result = false;
@@ -202,7 +203,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public final  <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
                 ref = ResourceAdapterClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
@@ -323,7 +324,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public final  <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
                 ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);

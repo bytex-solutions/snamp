@@ -12,7 +12,7 @@ import java.util.Map;
  * @since 1.0
  */
 public final class RShellResourceConnectorActivator extends AbstractManagedResourceActivator<RShellResourceConnector> {
-    private static final class RShellResourceConnectorProvider extends ManagedResourceConnectorProvider<RShellResourceConnector> {
+    private static final class RShellResourceConnectorManager extends ManagedResourceConnectorManager<RShellResourceConnector> {
 
         /**
          * Initializes a new management connector factory.
@@ -20,7 +20,7 @@ public final class RShellResourceConnectorActivator extends AbstractManagedResou
          * @param managedResource The name of the managed resource.
          * @throws IllegalArgumentException config is {@literal null}.
          */
-        private RShellResourceConnectorProvider(final String managedResource) {
+        private RShellResourceConnectorManager(final String managedResource) {
             super(managedResource);
         }
 
@@ -39,7 +39,7 @@ public final class RShellResourceConnectorActivator extends AbstractManagedResou
         }
     }
 
-    private static final class RShellResourceConnectorFactory extends ManagedResourceConnectorProviderFactory<RShellResourceConnector> {
+    private static final class RShellResourceConnectorFactory extends ServiceFactories<RShellResourceConnector> {
 
         /**
          * Creates a new instance of the management connector factory.
@@ -51,8 +51,8 @@ public final class RShellResourceConnectorActivator extends AbstractManagedResou
          * @return A new instance of the resource connector factory.
          */
         @Override
-        protected ManagedResourceConnectorProvider<RShellResourceConnector> createConnectorFactory(final String resourceName, final long instances, final Iterable<RequiredService<?>> services, final ActivationPropertyReader activationProperties) {
-            return new RShellResourceConnectorProvider(resourceName);
+        protected ManagedResourceConnectorManager<RShellResourceConnector> createConnectorManager(final String resourceName, final long instances, final Iterable<RequiredService<?>> services, final ActivationPropertyReader activationProperties) {
+            return new RShellResourceConnectorManager(resourceName);
         }
 
         /**
@@ -67,8 +67,8 @@ public final class RShellResourceConnectorActivator extends AbstractManagedResou
          * @see com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider
          */
         @Override
-        protected ConfigurationEntityDescriptionProviderHolder<RShellConnectorConfigurationDescriptor> createDescriptionProvider(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
-            return new ConfigurationEntityDescriptionProviderHolder<RShellConnectorConfigurationDescriptor>() {
+        protected ConfigurationEntityDescriptionManager<RShellConnectorConfigurationDescriptor> createDescriptionServiceManager(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
+            return new ConfigurationEntityDescriptionManager<RShellConnectorConfigurationDescriptor>() {
                 @Override
                 protected RShellConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
                     return new RShellConnectorConfigurationDescriptor();

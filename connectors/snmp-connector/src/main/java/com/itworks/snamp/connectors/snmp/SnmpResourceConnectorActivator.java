@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
 import com.itworks.snamp.licensing.LicensingException;
 
@@ -16,7 +17,7 @@ import java.util.logging.Level;
  */
 public final class SnmpResourceConnectorActivator extends AbstractManagedResourceActivator<SnmpResourceConnector> {
 
-    private static final class SnmpManagedResourceConnectorProviderFactory extends ManagedResourceConnectorProviderFactory<SnmpResourceConnector> {
+    private static final class SnmpServiceFactories extends ServiceFactories<SnmpResourceConnector> {
 
         /**
          * Creates a new instance of the management connector factory.
@@ -28,13 +29,13 @@ public final class SnmpResourceConnectorActivator extends AbstractManagedResourc
          * @return A new instance of the resource connector factory.
          */
         @Override
-        protected ManagedResourceConnectorProvider<SnmpResourceConnector> createConnectorFactory(final String resourceName, final long instances, final Iterable<RequiredService<?>> services, final ActivationPropertyReader activationProperties) {
-            ManagedResourceConnectorProvider<SnmpResourceConnector> result = null;
+        protected ManagedResourceConnectorManager<SnmpResourceConnector> createConnectorManager(final String resourceName, final long instances, final Iterable<RequiredService<?>> services, final ActivationPropertyReader activationProperties) {
+            ManagedResourceConnectorManager<SnmpResourceConnector> result = null;
             try{
                 final SnmpConnectorLicenseLimitations limitations = SnmpConnectorLicenseLimitations.current();
                 limitations.verifyMaxInstanceCount(instances);
                 limitations.verifyServiceVersion();
-                result = new ManagedResourceConnectorProvider<SnmpResourceConnector>(resourceName) {
+                result = new ManagedResourceConnectorManager<SnmpResourceConnector>(resourceName) {
                     @Override
                     protected SnmpResourceConnector createConnector(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws IOException {
                         if(SnmpConnectionOptions.authenticationRequred(connectionOptions))
@@ -61,8 +62,8 @@ public final class SnmpResourceConnectorActivator extends AbstractManagedResourc
          * @see com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider
          */
         @Override
-        protected ConfigurationEntityDescriptionProviderHolder<?> createDescriptionProvider(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
-            return new ConfigurationEntityDescriptionProviderHolder<SnmpConnectorConfigurationProvider>() {
+        protected ConfigurationEntityDescriptionManager<?> createDescriptionServiceManager(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
+            return new ConfigurationEntityDescriptionManager<SnmpConnectorConfigurationProvider>() {
                 @Override
                 protected SnmpConnectorConfigurationProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
                     return new SnmpConnectorConfigurationProvider();
@@ -71,31 +72,37 @@ public final class SnmpResourceConnectorActivator extends AbstractManagedResourc
         }
 
         @Override
-        protected LicensingDescriptionServiceProvider<SnmpConnectorLicenseLimitations> createLicenseLimitationsProvider() {
-            return new LicensingDescriptionServiceProvider<>(SnmpConnectorLicenseLimitations.class, SnmpConnectorLicenseLimitations.fallbackFactory);
+        protected LicensingDescriptionServiceManager<SnmpConnectorLicenseLimitations> createLicenseServiceManager() {
+            return new LicensingDescriptionServiceManager<>(SnmpConnectorLicenseLimitations.class, SnmpConnectorLicenseLimitations.fallbackFactory);
         }
 
         /**
-         * Creates a new instance of the {@link com.itworks.snamp.connectors.DiscoveryService} factory.
+         * Creates a new instance of the {@link com.itworks.snamp.connectors.discovery.DiscoveryService} factory.
          *
          * @param activationProperties    A collection of activation properties to read.
          * @param bundleLevelDependencies A collection of bundle-level dependencies.
          * @return A new factory of the special service that can automatically discover elements of the managed resource.
-         * @see com.itworks.snamp.connectors.DiscoveryService
+         * @see com.itworks.snamp.connectors.discovery.DiscoveryService
          */
         @Override
-        protected DiscoveryServiceProvider<?> createDiscoveryServiceProvider(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
-            return new DiscoveryServiceProvider<SnmpDiscoveryService>() {
+        protected DiscoveryServiceManager<?> createDiscoveryServiceManager(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
+            return new SimpleDiscoveryServiceManager<SnmpClient>() {
+
                 @Override
-                protected SnmpDiscoveryService createDiscoveryService(final RequiredService<?>... dependencies) throws Exception {
-                    return new SnmpDiscoveryService();
+                protected SnmpClient createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {
+                    return new SnmpConnectionOptions(connectionString, connectionOptions).createSnmpClient();
+                }
+
+                @Override
+                protected <T extends ManagedEntity> Collection<T> getManagementInformation(final Class<T> entityType, final SnmpClient client, final RequiredService<?>... dependencies) throws Exception {
+                    return SnmpDiscoveryService.discover(entityType, client);
                 }
             };
         }
     }
 
     public SnmpResourceConnectorActivator(){
-        super(SnmpConnectorHelpers.CONNECTOR_NAME, new SnmpManagedResourceConnectorProviderFactory());
+        super(SnmpConnectorHelpers.CONNECTOR_NAME, new SnmpServiceFactories());
     }
 
     /**

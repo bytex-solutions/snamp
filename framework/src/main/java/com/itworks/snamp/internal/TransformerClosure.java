@@ -2,7 +2,10 @@ package com.itworks.snamp.internal;
 
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
+import com.itworks.snamp.Box;
 import com.itworks.snamp.SafeConsumer;
+
+import java.util.Objects;
 
 /**
  * Represents a bridge between {@link com.google.common.base.Function} and {@link com.itworks.snamp.SafeConsumer}.
@@ -14,14 +17,18 @@ import com.itworks.snamp.SafeConsumer;
  * @param <O> The transformation value.
  */
 public abstract class TransformerClosure<I, O> implements SafeConsumer<I>, Function<I, O>, Supplier<O> {
-    private O result;
+    private final Box<O> valueHolder;
+
+    protected TransformerClosure(final Box<O> valueHolder) {
+        this.valueHolder = Objects.requireNonNull(valueHolder);
+    }
 
     protected TransformerClosure() {
-        this(null);
+        this(new Box<O>());
     }
 
     protected TransformerClosure(final O defaultValue) {
-        this.result = defaultValue;
+        this(new Box<>(defaultValue));
     }
 
     /**
@@ -32,7 +39,7 @@ public abstract class TransformerClosure<I, O> implements SafeConsumer<I>, Funct
      */
     @Override
     public final O get() {
-        return result;
+        return valueHolder.get();
     }
 
     /**
@@ -42,6 +49,6 @@ public abstract class TransformerClosure<I, O> implements SafeConsumer<I>, Funct
      */
     @Override
     public final void accept(final I value) {
-        result = apply(value);
+        valueHolder.set(value, this);
     }
 }

@@ -567,7 +567,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         notifications = new SnmpNotificationSupport(client, getLogger());
     }
 
-    public SnmpResourceConnector(final String connectionString, final Map<String, String> parameters) throws IOException {
+    public SnmpResourceConnector(final String connectionString,
+                                 final Map<String, String> parameters) throws IOException {
         this(new SnmpConnectionOptions(connectionString, parameters));
     }
 

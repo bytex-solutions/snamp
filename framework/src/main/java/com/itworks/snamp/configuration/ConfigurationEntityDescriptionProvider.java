@@ -1,6 +1,6 @@
 package com.itworks.snamp.configuration;
 
-import com.itworks.snamp.management.ManagementService;
+import com.itworks.snamp.core.SupportService;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
 
@@ -13,7 +13,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * @version 1.0
  * @since 1.0
  */
-public interface ConfigurationEntityDescriptionProvider extends ManagementService {
+public interface ConfigurationEntityDescriptionProvider extends SupportService {
 
     /**
      * Retrieves configuration description for the specified configuration element type.

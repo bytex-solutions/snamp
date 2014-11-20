@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.base.Supplier;
 import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.internal.CountdownTimer;
@@ -12,14 +13,12 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
-import org.snmp4j.util.DefaultPDUFactory;
-import org.snmp4j.util.TreeEvent;
-import org.snmp4j.util.TreeListener;
-import org.snmp4j.util.TreeUtils;
+import org.snmp4j.util.*;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -111,16 +110,18 @@ abstract class SnmpClient extends Snmp implements Closeable {
                                     final OctetString encryptionKey,
                                     final OctetString contextName,
                                     final Address localAddress,
-                                    final int socketTimeout) throws IOException {
+                                    final int socketTimeout,
+                                    final Supplier<ExecutorService> threadPoolFactory) throws IOException {
         if(userName == null ||
                 userName.length() == 0 ||
                 password == null ||
                 password.length() == 0)
-            return create(connectionAddress, new OctetString("public"), localAddress, socketTimeout);
+            return create(connectionAddress, new OctetString("public"), localAddress, socketTimeout, threadPoolFactory);
         final SecurityLevel secLevel = encryptionProtocol != null && encryptionProtocol.size() > 0 &&
                 encryptionKey != null && encryptionKey.length() > 0 ?
             SecurityLevel.authPriv : SecurityLevel.authNoPriv;
-        final MessageDispatcher dispatcher = new MessageDispatcherImpl();
+        final ExecutorService threadPool = threadPoolFactory.get();
+        final MessageDispatcher dispatcher = new ConcurrentMessageDispatcher(threadPool);
         final USM userModel = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), engineBoots.getAndIncrement());
         userModel.addUser(userName, engineID,
                 new UsmUser(userName, authenticationProtocol, password, encryptionProtocol, encryptionKey));
@@ -152,14 +153,26 @@ abstract class SnmpClient extends Snmp implements Closeable {
                     result.setContextName(contextName);
                 return result;
             }
+
+            @Override
+            public void close() throws IOException {
+                try{
+                    super.close();
+                }
+                finally {
+                    threadPool.shutdown();
+                }
+            }
         };
     }
 
     public static SnmpClient create(final Address connectionAddress,
                                     final OctetString community,
                                     final Address localAddress,
-                                    final int socketTimeout) throws IOException{
-        final MessageDispatcher dispatcher = new MessageDispatcherImpl();
+                                    final int socketTimeout,
+                                    final Supplier<ExecutorService> threadPoolFactory) throws IOException{
+        final ExecutorService threadPool = threadPoolFactory.get();
+        final MessageDispatcher dispatcher = new ConcurrentMessageDispatcher(threadPool);
         dispatcher.addMessageProcessingModel(new MPv2c());
         final DefaultUdpTransportMapping transport = localAddress instanceof UdpAddress ? new DefaultUdpTransportMapping((UdpAddress)localAddress) : new DefaultUdpTransportMapping();
         transport.setSocketTimeout(socketTimeout);
@@ -181,6 +194,16 @@ abstract class SnmpClient extends Snmp implements Closeable {
                 final PDU result = new PDU();
                 result.setType(pduType);
                 return result;
+            }
+
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                }
+                finally {
+                    threadPool.shutdown();
+                }
             }
         };
     }
