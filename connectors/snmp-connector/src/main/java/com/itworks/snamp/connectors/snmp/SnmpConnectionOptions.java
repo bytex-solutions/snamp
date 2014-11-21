@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.base.Supplier;
 import org.snmp4j.mp.MPv3;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.Address;
@@ -9,6 +10,7 @@ import org.snmp4j.smi.OctetString;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.*;
 
@@ -30,9 +32,12 @@ final class SnmpConnectionOptions {
     private final OctetString encryptionKey;
     private final OctetString securityContext;
     private final int socketTimeout;
+    private final Supplier<ExecutorService> threadPoolConfig;
 
-    public SnmpConnectionOptions(final String connectionString, final Map<String, String> parameters) {
+    public SnmpConnectionOptions(final String connectionString,
+                                 final Map<String, String> parameters) {
         connectionAddress = GenericAddress.parse(connectionString);
+        threadPoolConfig = new SnmpThreadPoolConfig(parameters, connectionString);
         engineID = parameters.containsKey(ENGINE_ID_PARAM) ?
                 new OctetString(parameters.get(ENGINE_ID_PARAM)) :
                 new OctetString(MPv3.createLocalEngineID());
@@ -100,9 +105,10 @@ final class SnmpConnectionOptions {
      * @throws IOException Unable to instantiate SNMP client.
      */
     public SnmpClient createSnmpClient() throws IOException{
+
         return userName == null ?
-                SnmpClient.create(connectionAddress, community, localAddress, socketTimeout):
-                SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress, socketTimeout);
+                SnmpClient.create(connectionAddress, community, localAddress, socketTimeout, threadPoolConfig):
+                SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress, socketTimeout, threadPoolConfig);
     }
 
     public static boolean authenticationRequred(final Map<String, String> connectionOptions) {

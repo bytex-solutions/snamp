@@ -1,9 +1,6 @@
 package com.itworks.snamp.testing.management;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import com.itworks.snamp.testing.SnampArtifact;
@@ -14,6 +11,7 @@ import org.junit.Test;
 import org.ops4j.pax.exam.options.FrameworkPropertyOption;
 
 import javax.ws.rs.core.MediaType;
+import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -45,10 +43,13 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 mavenBundle("com.sun.jersey", "jersey-client", "1.17.1"),
                 mavenBundle("com.google.code.gson", "gson", "2.2.4"),
                 mavenBundle("org.eclipse.jetty", "jetty-jaas", "9.1.1.v20140108"),
+                mavenBundle("jline", "jline", "2.12"),
+                SnampArtifact.SSHJ.getReference(),
                 SnampArtifact.MANAGEMENT.getReference(),
                 SnampArtifact.WEB_CONSOLE.getReference(),
                 SnampArtifact.SNMP_CONNECTOR.getReference(),
                 SnampArtifact.SNMP4J.getReference(),
+                SnampArtifact.SSH_ADAPTER.getReference(),
                 SnampArtifact.JMX_CONNECTOR.getReference());
     }
 
@@ -69,17 +70,75 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         ManagedResourceConfiguration resource = config.newConfigurationEntity(ManagedResourceConfiguration.class);
         config.getManagedResources().put("test-resource-1", resource);
         resource.getParameters().put("$param$", "value");
-        resource.setConnectionString("connection-string");
-        resource.setConnectionType("JMX");
+        final String jmxPort = System.getProperty("com.sun.management.jmxremote.port");
+        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
+        resource.setConnectionString(connectionString);
+        resource.setConnectionType("jmx");
         ManagedResourceConfiguration.AttributeConfiguration attr = resource.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
         attr.setAttributeName("simpleAttribute");
-        attr.getParameters().put("objectName", "someObjectYea");
+        attr.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
         attr.getParameters().put("useRegexp", "false");
         resource.getElements(ManagedResourceConfiguration.AttributeConfiguration.class).put("sa", attr);
         ResourceAdapterConfiguration adapter = config.newConfigurationEntity(ResourceAdapterConfiguration.class);
-        adapter.setAdapterName("SNMP");
+        adapter.setAdapterName("ssh");
         adapter.getParameters().put("port", "1212");
-        config.getResourceAdapters().put("s", adapter);
+        config.getResourceAdapters().put("sshAdapter", adapter);
+    }
+
+    @Test
+    public void discoverMetadataTest() {
+        final Client webConsoleClient = new Client();
+        webConsoleClient.addFilter(new HTTPDigestAuthFilter("roman", "mypassword"));
+        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/connectors/jmx/availableMetadata");
+        final String jmxPort = System.getProperty("com.sun.management.jmxremote.port");
+        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
+        final Gson serializer = new Gson();
+        final String metadata = config
+                .queryParam("connectionString", serializer.toJson(new JsonPrimitive(connectionString)))
+                        .get(String.class);
+        final JsonParser parser = new JsonParser();
+        final JsonElement jsonMeta = parser.parse(metadata);
+        assertTrue(jsonMeta.isJsonObject());
+        assertTrue(jsonMeta.getAsJsonObject().has("attributes"));
+        assertTrue(jsonMeta.getAsJsonObject().has("events"));
+        assertTrue(jsonMeta.getAsJsonObject().getAsJsonArray("attributes").size() > 0);
+        assertTrue(jsonMeta.getAsJsonObject().getAsJsonArray("events").size() > 0);
+    }
+
+    @Test
+    public void suggestAdapterAttributeValues(){
+        final Client webConsoleClient = new Client();
+        webConsoleClient.addFilter(new HTTPDigestAuthFilter("roman", "mypassword"));
+        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/adapters/ssh/configurationSchema/host");
+        final Gson serializer = new Gson();
+        final String suggestedValues = config
+                .queryParam("host", serializer.toJson(new JsonPrimitive("localhost")))
+                .get(String.class);
+        assertNotNull(suggestedValues);
+        assertFalse(suggestedValues.isEmpty());
+        final JsonParser parser = new JsonParser();
+        final JsonElement values = parser.parse(suggestedValues);
+        assertTrue(values.isJsonArray());
+        assertTrue(values.getAsJsonArray().size() > 0);
+    }
+
+    @Test
+    public void suggestConnectorAttributeValues(){
+        final Client webConsoleClient = new Client();
+        webConsoleClient.addFilter(new HTTPDigestAuthFilter("roman", "mypassword"));
+        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/management/api/connectors/jmx/configurationSchema/attribute/objectName");
+        final String jmxPort = System.getProperty("com.sun.management.jmxremote.port");
+        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
+        final Gson serializer = new Gson();
+        final String suggestedValues = config
+                .queryParam("connectionString", serializer.toJson(new JsonPrimitive(connectionString)))
+                .get(String.class);
+        assertNotNull(suggestedValues);
+        assertFalse(suggestedValues.isEmpty());
+        final JsonParser parser = new JsonParser();
+        final JsonElement values = parser.parse(suggestedValues);
+        assertTrue(values.isJsonArray());
+        assertTrue(values.getAsJsonArray().size() > 5);
     }
 
     @Test

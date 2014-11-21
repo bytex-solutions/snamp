@@ -2,6 +2,7 @@ package com.itworks.snamp.management;
 
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.Descriptive;
+import com.itworks.snamp.core.SupportService;
 import org.osgi.framework.Version;
 
 import java.util.Locale;
@@ -64,5 +65,5 @@ public interface SnampComponentDescriptor extends Descriptive, Map<String, Strin
      * @see com.itworks.snamp.management.Maintainable
      * @see com.itworks.snamp.licensing.LicensingDescriptionService
      */
-    <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E;
+    <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E;
 }

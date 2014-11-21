@@ -101,7 +101,6 @@ public interface AgentConfiguration extends PersistentObject, Cloneable {
              * Sets the category of the event to listen.
              * @param eventCategory The category of the event to listen.
              */
-            @SuppressWarnings("UnusedDeclaration")
             void setCategory(final String eventCategory);
         }
 
@@ -125,7 +124,7 @@ public interface AgentConfiguration extends PersistentObject, Cloneable {
 
             /**
              * Returns the attribute name.
-             * @return The attribute name,
+             * @return The attribute name.
              */
             String getAttributeName();
 

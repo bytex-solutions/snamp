@@ -1,11 +1,20 @@
 package com.itworks.snamp.management.webconsole;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.Maps;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
+import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
+import com.itworks.snamp.connectors.discovery.DiscoveryService;
 
+import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -318,5 +327,90 @@ final class JsonAgentConfiguration {
         if (source != null && dest != null) {
             write(source.getAsJsonObject(), dest);
         }
+    }
+
+    private static JsonArray toJsonArray(final String[] values) {
+        final JsonArray result = new JsonArray();
+        if (values != null)
+            for (final String value : values) result.add(new JsonPrimitive(value));
+        return result;
+    }
+
+    private static Map<String, String> toMap(final Map<String, JsonElement> m){
+        return Maps.transformEntries(m, new Maps.EntryTransformer<String, JsonElement, String>() {
+            @Override
+            public String transformEntry(final String key, final JsonElement value) {
+                return JsonAgentConfiguration.toString(value, "");
+            }
+        });
+    }
+
+    private static JsonArray getSuggestedValues(final SelectableAdapterParameterDescriptor adapterParameter,
+                                             final Map<String, JsonElement> adapterOptions,
+                                             final Locale loc) throws Exception{
+        return toJsonArray(adapterParameter.suggestValues(toMap(adapterOptions), loc));
+    }
+
+    public static JsonArray getSuggestedValues(final ConfigurationEntityDescription.ParameterDescription adapterParameter,
+                                            final Map<String, JsonElement> adapterOptions,
+                                            final Locale loc) throws Exception {
+        if (adapterParameter == null)
+            return new JsonArray();
+        else if (adapterParameter instanceof SelectableAdapterParameterDescriptor)
+            return getSuggestedValues((SelectableAdapterParameterDescriptor) adapterParameter,
+                    adapterOptions, loc);
+        else return new JsonArray();
+    }
+
+    private static JsonArray getSuggestedValues(final SelectableConnectorParameterDescriptor connectorParameter,
+                                                final JsonPrimitive connectionString,
+                                                final Map<String, JsonElement> connectionOptions,
+                                                final Locale loc) throws Exception {
+        return toJsonArray(connectorParameter.suggestValues(connectionString.getAsString(),
+                toMap(connectionOptions),
+                loc));
+    }
+
+    public static JsonArray getSuggestedValues(final ConfigurationEntityDescription.ParameterDescription connectorParameter,
+                                               final JsonElement connectionString,
+                                               final Map<String, JsonElement> connectionOptions,
+                                               final Locale loc) throws Exception{
+        if (connectorParameter == null)
+            return new JsonArray();
+        else if (connectorParameter instanceof SelectableConnectorParameterDescriptor)
+            return getSuggestedValues((SelectableConnectorParameterDescriptor) connectorParameter,
+                    connectionString.getAsJsonPrimitive(),
+                    connectionOptions,
+                    loc);
+        else return new JsonArray();
+    }
+
+    private static JsonArray getAttributes(final Collection<AttributeConfiguration> attributes){
+        final JsonArray result = new JsonArray();
+        for(final AttributeConfiguration attr: attributes)
+            result.add(readAttribute(attr));
+        return result;
+    }
+
+    private static JsonArray getEvents(final Collection<EventConfiguration> events){
+        final JsonArray result = new JsonArray();
+        for(final EventConfiguration ev: events)
+            result.add(readEvent(ev));
+        return result;
+    }
+
+    public static JsonObject discoverManagementMetadata(final DiscoveryService discovery,
+                                                        final JsonElement connectionString,
+                                                        final Map<String, JsonElement> connectionOptions){
+        @SuppressWarnings("unchecked")
+        final DiscoveryService.DiscoveryResult metadata = discovery.discover(
+                toString(connectionString, ""),
+                toMap(connectionOptions),
+                AttributeConfiguration.class,
+                EventConfiguration.class);
+        final JsonObject result = new JsonObject();
+        result.add("attributes", getAttributes(metadata.getSubResult(AttributeConfiguration.class)));
+        result.add("events", getEvents(metadata.getSubResult(EventConfiguration.class)));
+        return result;
     }
 }

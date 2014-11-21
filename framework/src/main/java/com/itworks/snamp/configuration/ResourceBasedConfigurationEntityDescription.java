@@ -122,6 +122,76 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
     }
 
     /**
+     * Represents parameter descriptor.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected class ParameterDescriptionImpl implements ParameterDescription{
+        private final String parameterName;
+
+        /**
+         * Initializes a new parameter descriptor.
+         * @param parameterName The name of the configuration parameter.
+         */
+        protected ParameterDescriptionImpl(final String parameterName){
+            this.parameterName = Objects.requireNonNull(parameterName);
+        }
+
+        @Override
+        public final String getName() {
+            return parameterName;
+        }
+
+        @Override
+        public final String getDescription(final Locale loc) {
+            return getParameterDescription(parameterName, loc);
+        }
+
+        @Override
+        public final boolean isRequired() {
+            return isRequiredParameter(parameterName);
+        }
+
+        @Override
+        public final String getValuePattern(final Locale loc) {
+            return getParameterValuePattern(parameterName, loc);
+        }
+
+        @Override
+        public final boolean validateValue(final String value, final Locale loc) {
+            if(value == null) return false;
+            final String pattern = getValuePattern(loc);
+            return pattern == null || pattern.isEmpty() || value.matches(pattern);
+        }
+
+        @Override
+        public final Collection<String> getRelatedParameters(final ParameterRelationship relationship) {
+            return getParameterRelations(parameterName, relationship);
+        }
+
+        /**
+         * Returns the default value of this configuration parameter.
+         *
+         * @param loc The localization of the default value. May be {@literal null}.
+         * @return The default value of this configuration parameter; or {@literal null} if value is not available.
+         */
+        @Override
+        public final String getDefaultValue(final Locale loc) {
+            return getParameterDefaultValue(parameterName, loc);
+        }
+    }
+
+    /**
+     * Creates a new resource-based parameter descriptor.
+     * @param parameterName The name of the configuration parameter.
+     * @return A new instance of descriptor.
+     */
+    protected ParameterDescriptionImpl createParameterDescriptor(final String parameterName){
+        return new ParameterDescriptionImpl(parameterName);
+    }
+
+    /**
      * Returns the description of the specified parameter.
      *
      * @param parameterName The name of the parameter.
@@ -130,50 +200,7 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
     @Override
     public final ParameterDescription getParameterDescriptor(final String parameterName) {
         return contains(parameterName) ?
-                new ParameterDescription() {
-                    @Override
-                    public final String getName() {
-                        return parameterName;
-                    }
-
-                    @Override
-                    public final String getDescription(final Locale loc) {
-                        return getParameterDescription(parameterName, loc);
-                    }
-
-                    @Override
-                    public final boolean isRequired() {
-                        return isRequiredParameter(parameterName);
-                    }
-
-                    @Override
-                    public final String getValuePattern(final Locale loc) {
-                        return getParameterValuePattern(parameterName, loc);
-                    }
-
-                    @Override
-                    public final boolean validateValue(final String value, final Locale loc) {
-                        if(value == null) return false;
-                        final String pattern = getValuePattern(loc);
-                        return pattern == null || pattern.isEmpty() || value.matches(pattern);
-                    }
-
-                    @Override
-                    public final Collection<String> getRelatedParameters(final ParameterRelationship relationship) {
-                        return getParameterRelations(parameterName, relationship);
-                    }
-
-                    /**
-                     * Returns the default value of this configuration parameter.
-                     *
-                     * @param loc The localization of the default value. May be {@literal null}.
-                     * @return The default value of this configuration parameter; or {@literal null} if value is not available.
-                     */
-                    @Override
-                    public String getDefaultValue(final Locale loc) {
-                        return getParameterDefaultValue(parameterName, loc);
-                    }
-                }: null;
+                createParameterDescriptor(parameterName) : null;
     }
 
     /**

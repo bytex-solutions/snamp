@@ -1,5 +1,7 @@
 package com.itworks.snamp.management;
 
+import com.itworks.snamp.core.SupportService;
+
 import java.util.*;
 import java.util.concurrent.Future;
 
@@ -14,7 +16,7 @@ import java.util.concurrent.Future;
  * @since 1.0
  * @see AbstractMaintainable
  */
-public interface Maintainable extends ManagementService {
+public interface Maintainable extends SupportService {
     /**
      * Returns read-only map of maintenance actions.
      * @return Read-only map of maintenance action,

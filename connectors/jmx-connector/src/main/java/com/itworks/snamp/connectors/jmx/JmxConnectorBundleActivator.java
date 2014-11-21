@@ -2,8 +2,8 @@ package com.itworks.snamp.connectors.jmx;
 
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.FutureThread;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
-import com.itworks.snamp.connectors.DiscoveryService;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.licensing.LicensingException;
@@ -12,6 +12,8 @@ import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
+import javax.management.JMException;
+import javax.management.remote.JMXConnector;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
@@ -111,7 +113,7 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
         }
     }
 
-    private static final class JmxMaintenanceServiceProvider extends MaintenanceServiceProvider<JmxMaintenanceService>{
+    private static final class JmxMaintenanceServiceManager extends MaintenanceServiceManager<JmxMaintenanceService> {
 
         @Override
         protected JmxMaintenanceService createMaintenanceService(final RequiredService<?>... dependencies) throws Exception {
@@ -119,9 +121,9 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
         }
     }
 
-    private static final class JmxConnectorProvider extends NotificationSupportProvider<JmxConnector>{
+    private static final class JmxConnectorManager extends NotificationSupportManager<JmxConnector> {
 
-        public JmxConnectorProvider(final String targetName){
+        public JmxConnectorManager(final String targetName){
             super(targetName, JmxConnectorLimitations.licenseReader);
         }
 
@@ -142,11 +144,11 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
         }
     }
 
-    private static final class ProvidedJmxConnectors extends ManagedResourceConnectorProviderFactory<JmxConnector> {
+    private static final class ProvidedJmxConnectors extends ServiceFactories<JmxConnector> {
 
         @Override
-        protected ConfigurationEntityDescriptionProviderHolder<?> createDescriptionProvider(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
-            return new ConfigurationEntityDescriptionProviderHolder<JmxConnectorConfigurationDescriptor>() {
+        protected ConfigurationEntityDescriptionManager<?> createDescriptionServiceManager(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
+            return new ConfigurationEntityDescriptionManager<JmxConnectorConfigurationDescriptor>() {
                 @Override
                 protected JmxConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
                     return new JmxConnectorConfigurationDescriptor();
@@ -156,23 +158,31 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
 
         @SuppressWarnings("unchecked")
         @Override
-        protected LicensingDescriptionServiceProvider createLicenseLimitationsProvider() {
-            return new LicensingDescriptionServiceProvider(JmxConnectorLimitations.class, JmxConnectorLimitations.fallbackFactory);
+        protected LicensingDescriptionServiceManager createLicenseServiceManager() {
+            return new LicensingDescriptionServiceManager(JmxConnectorLimitations.class, JmxConnectorLimitations.fallbackFactory);
         }
 
         @Override
-        protected DiscoveryServiceProvider<?> createDiscoveryServiceProvider(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
-            return new DiscoveryServiceProvider<DiscoveryService>() {
+        protected DiscoveryServiceManager<?> createDiscoveryServiceManager(final ActivationPropertyReader activationProperties, final RequiredService<?>... bundleLevelDependencies) {
+            return new SimpleDiscoveryServiceManager<JMXConnector>() {
+
                 @Override
-                protected DiscoveryService createDiscoveryService(final RequiredService<?>... dependencies) throws Exception {
-                    return new JmxDiscoveryService();
+                protected JMXConnector createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws IOException {
+                    return new JmxConnectionOptions(connectionString, connectionOptions).createConnection();
+                }
+
+                @Override
+                protected <T extends ManagedEntity> Collection<T> getManagementInformation(final Class<T> entityType,
+                                                                                           final JMXConnector connection,
+                                                                                           final RequiredService<?>... dependencies) throws JMException, IOException {
+                    return JmxDiscoveryService.discover(connection, entityType);
                 }
             };
         }
 
         @Override
-        protected MaintenanceServiceProvider<?> createMaintenanceServiceProvider(final RequiredService<?>... dependencies) {
-            return new JmxMaintenanceServiceProvider();
+        protected MaintenanceServiceManager<?> createMaintenanceServiceManager(final RequiredService<?>... dependencies) {
+            return new JmxMaintenanceServiceManager();
         }
 
         /**
@@ -185,13 +195,13 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
          * @return A new instance of the resource connector factory.
          */
         @Override
-        protected ManagedResourceConnectorProvider<JmxConnector> createConnectorFactory(final String resourceName, final long instances, final Iterable<RequiredService<?>> services, final ActivationPropertyReader activationProperties) {
-            ManagedResourceConnectorProvider<JmxConnector> result = null;
+        protected ManagedResourceConnectorManager<JmxConnector> createConnectorManager(final String resourceName, final long instances, final Iterable<RequiredService<?>> services, final ActivationPropertyReader activationProperties) {
+            ManagedResourceConnectorManager<JmxConnector> result = null;
             try{
                 final JmxConnectorLimitations limitations = JmxConnectorLimitations.current();
                 limitations.verifyMaxInstanceCount(instances);
                 limitations.verifyServiceVersion();
-                result = new JmxConnectorProvider(resourceName);
+                result = new JmxConnectorManager(resourceName);
             }
             catch (final LicensingException e){
                 JmxConnectorHelpers.getLogger().log(Level.SEVERE, String.format("The limit of instances is reached: %s. Unable to connect %s managed resource.", instances, resourceName), e);

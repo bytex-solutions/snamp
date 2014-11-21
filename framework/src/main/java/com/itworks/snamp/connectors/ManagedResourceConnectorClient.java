@@ -3,10 +3,11 @@ package com.itworks.snamp.connectors;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
-import com.itworks.snamp.management.ManagementService;
+import com.itworks.snamp.core.SupportService;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -27,7 +28,7 @@ public final class ManagedResourceConnectorClient {
     }
 
     private static UnsupportedOperationException unsupportedServiceRequest(final String connectorType,
-                                                                           final Class<? extends ManagementService> serviceType){
+                                                                           final Class<? extends SupportService> serviceType){
         return new UnsupportedOperationException(String.format("Resource connector %s doesn't expose %s service", connectorType, serviceType));
     }
 
@@ -173,7 +174,7 @@ public final class ManagedResourceConnectorClient {
     /**
      * Discovers elements for the managed resource.
      * <p>
-     *     The connector bundle should expose {@link com.itworks.snamp.connectors.DiscoveryService} service.
+     *     The connector bundle should expose {@link com.itworks.snamp.connectors.discovery.DiscoveryService} service.
      * </p>
      * @param context The context of the caller bundle.
      * @param connectorType The system name of the connector.
@@ -197,8 +198,7 @@ public final class ManagedResourceConnectorClient {
             final DiscoveryService service = context.getService(ref);
             return service.discover(connectionString, connectionOptions, entityType);
         }
-        catch (final InvalidSyntaxException e) {
-            ref = null;
+        catch (final InvalidSyntaxException ignored) {
             return Collections.emptyList();
         }
         finally {

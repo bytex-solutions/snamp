@@ -5,9 +5,9 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import com.itworks.snamp.AbstractAggregator;
-import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.itworks.snamp.configuration.ConfigurationManager;
+import com.itworks.snamp.configuration.*;
+import com.itworks.snamp.connectors.discovery.AbstractDiscoveryService;
+import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationListener;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
@@ -94,13 +94,13 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
-     * @see com.itworks.snamp.connectors.AbstractManagedResourceActivator.ConfigurationEntityDescriptionProviderHolder
-     * @see com.itworks.snamp.connectors.AbstractManagedResourceActivator.DiscoveryServiceProvider
-     * @see com.itworks.snamp.connectors.AbstractManagedResourceActivator.LicensingDescriptionServiceProvider
+     * @see com.itworks.snamp.connectors.AbstractManagedResourceActivator.ConfigurationEntityDescriptionManager
+     * @see com.itworks.snamp.connectors.AbstractManagedResourceActivator.DiscoveryServiceManager
+     * @see com.itworks.snamp.connectors.AbstractManagedResourceActivator.LicensingDescriptionServiceManager
      */
-    protected static abstract class OptionalConnectorServiceProvider<S extends FrameworkService, T extends S> extends LoggableProvidedService<S, T>{
+    protected static abstract class SupportConnectorServiceManager<S extends FrameworkService, T extends S> extends LoggableProvidedService<S, T>{
 
-        private OptionalConnectorServiceProvider(final Class<S> contract, final RequiredService<?>... dependencies) {
+        private SupportConnectorServiceManager(final Class<S> contract, final RequiredService<?>... dependencies) {
             super(contract, dependencies);
         }
 
@@ -120,9 +120,9 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class MaintenanceServiceProvider<T extends Maintainable> extends OptionalConnectorServiceProvider<Maintainable,T>{
+    protected static abstract class MaintenanceServiceManager<T extends Maintainable> extends SupportConnectorServiceManager<Maintainable,T> {
 
-        protected MaintenanceServiceProvider(final RequiredService<?>... dependencies) {
+        protected MaintenanceServiceManager(final RequiredService<?>... dependencies) {
             super(Maintainable.class, dependencies);
         }
 
@@ -187,12 +187,12 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
         }
     }
 
-    protected static class LicensingDescriptionServiceProvider<L extends LicenseLimitations> extends OptionalConnectorServiceProvider<LicensingDescriptionService, ConnectorLicensingDescriptorService>{
+    protected static class LicensingDescriptionServiceManager<L extends LicenseLimitations> extends SupportConnectorServiceManager<LicensingDescriptionService, ConnectorLicensingDescriptorService> {
         private final Supplier<L> fallbackFactory;
         private final Class<L> descriptor;
 
-        public LicensingDescriptionServiceProvider(final Class<L> limitationsDescriptor,
-                                                   final Supplier<L> fallbackFactory) {
+        public LicensingDescriptionServiceManager(final Class<L> limitationsDescriptor,
+                                                  final Supplier<L> fallbackFactory) {
             super(LicensingDescriptionService.class, new SimpleDependency<>(LicenseReader.class));
             if(fallbackFactory == null) throw new IllegalArgumentException("fallbackFactory is null.");
             else if(limitationsDescriptor == null) throw new IllegalArgumentException("limitationsDescriptor is null.");
@@ -221,20 +221,110 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     }
 
     /**
-     * Represents factory for {@link com.itworks.snamp.connectors.DiscoveryService} service.
-     * @param <T> The class that supplies implementation of {@link com.itworks.snamp.connectors.DiscoveryService}
+     * Represents simple manager that exposes default implementation of {@link com.itworks.snamp.connectors.discovery.DiscoveryService}.
+     * <p>
+     *     Discovery algorithm is based on the abstract methods that you should implement in the derived manager.
+     *     Note that these methods should be stateless.
+     * @param <TProvider> Type of management information provider.
+     * @author Roman Sakno
+     * @since 1.0
+     */
+    protected abstract static class SimpleDiscoveryServiceManager<TProvider extends AutoCloseable> extends DiscoveryServiceManager<AbstractDiscoveryService<TProvider>>{
+        /**
+         * Initializes a new instance of the discovery service manager.
+         * @param dependencies A collection of discovery service dependencies.
+         */
+        protected SimpleDiscoveryServiceManager(final RequiredService<?>... dependencies){
+            super(dependencies);
+        }
+
+        /**
+         * Creates a new instance of the management information provider.
+         * <p>
+         *     This method should be stateless.
+         * @param connectionString Managed resource connection string.
+         * @param connectionOptions Managed resource connection options.
+         * @param dependencies A collection of discovery service dependencies.
+         * @return A new instance of the management information provider.
+         * @throws Exception Unable to instantiate provider.
+         */
+        protected abstract TProvider createManagementInformationProvider(final String connectionString,
+                                                                         final Map<String, String> connectionOptions,
+                                                                         final RequiredService<?>... dependencies) throws Exception;
+
+        /**
+         * Extracts management information from provider.
+         * <p>
+         *     This method should be stateless.
+         * @param entityType Type of the requested management information.
+         * @param provider An instance of the management information provider.
+         * @param dependencies A collection of discovery service dependencies.
+         * @param <T> Type of the requested management information.
+         * @return A new instance of the management information provider.
+         * @throws Exception Unable to extract management information.
+         */
+        protected abstract <T extends ManagedResourceConfiguration.ManagedEntity> Collection<T> getManagementInformation(final Class<T> entityType,
+                                                                                                                         final TProvider provider,
+                                                                                                                         final RequiredService<?>... dependencies) throws Exception;
+
+        /**
+         * Creates a new instance of the discovery service.
+         *
+         * @param dependencies A collection of discovery service dependencies.
+         * @return A new instance of the discovery service.
+         * @throws Exception Unable to instantiate discovery service.
+         */
+        @Override
+        protected final AbstractDiscoveryService<TProvider> createDiscoveryService(final RequiredService<?>... dependencies) throws Exception {
+            return new AbstractDiscoveryService<TProvider>() {
+                @Override
+                protected TProvider createProvider(final String connectionString, final Map<String, String> connectionOptions) throws Exception {
+                    return createManagementInformationProvider(connectionString, connectionOptions, dependencies);
+                }
+
+                @Override
+                protected <T extends ManagedResourceConfiguration.ManagedEntity> Collection<T> getEntities(final Class<T> entityType, final TProvider provider) throws Exception {
+                    return getManagementInformation(entityType, provider, dependencies);
+                }
+
+                @Override
+                public Logger getLogger() {
+                    return SimpleDiscoveryServiceManager.this.getLogger();
+                }
+            };
+        }
+
+        /**
+         * Provides service cleanup operations.
+         * <p>
+         * In the default implementation this method does nothing.
+         *
+         * @param serviceInstance An instance of the hosted service to cleanup.
+         * @param stopBundle      {@literal true}, if this method calls when the owner bundle is stopping;
+         *                        {@literal false}, if this method calls when loosing dependency.
+         */
+        @Override
+        @MethodStub
+        protected final void cleanupService(final AbstractDiscoveryService<TProvider> serviceInstance, final boolean stopBundle) throws Exception {
+            //do nothing
+        }
+    }
+
+    /**
+     * Represents factory for {@link com.itworks.snamp.connectors.discovery.DiscoveryService} service.
+     * @param <T> A class that provides implementation of {@link com.itworks.snamp.connectors.discovery.DiscoveryService}
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected abstract static class DiscoveryServiceProvider<T extends DiscoveryService> extends OptionalConnectorServiceProvider<DiscoveryService, T>{
+    protected abstract static class DiscoveryServiceManager<T extends DiscoveryService> extends SupportConnectorServiceManager<DiscoveryService, T> {
 
         /**
          * Initializes a new holder for the provided service.
          * @param dependencies A collection of service dependencies.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
-        protected DiscoveryServiceProvider(final RequiredService<?>... dependencies) {
+        protected DiscoveryServiceManager(final RequiredService<?>... dependencies) {
             super(DiscoveryService.class, dependencies);
         }
 
@@ -262,12 +352,58 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     }
 
     /**
+     * Represents a simple implementation of configuration description service manager based
+     * on provided array of descriptions for each {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity}.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected final static class SimpleConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<ConfigurationEntityDescriptionProviderImpl>{
+        private final ConfigurationEntityDescription<?>[] descriptions;
+
+        /**
+         * Initializes a new configuration service manager.
+         * @param descriptions An array of configuration entity descriptors.
+         */
+        public SimpleConfigurationEntityDescriptionManager(final ConfigurationEntityDescription<?>... descriptions){
+            this.descriptions = Arrays.copyOf(descriptions, 0);
+        }
+
+        /**
+         * Creates a new instance of the configuration description provider.
+         *
+         * @param dependencies A collection of provider dependencies.
+         * @return A new instance of the configuration description provider.
+         */
+        @Override
+        protected ConfigurationEntityDescriptionProviderImpl createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+            return new ConfigurationEntityDescriptionProviderImpl(descriptions);
+        }
+
+        /**
+         * Provides service cleanup operations.
+         * <p>
+         * In the default implementation this method does nothing.
+         * </p>
+         *
+         * @param serviceInstance An instance of the hosted service to cleanup.
+         * @param stopBundle      {@literal true}, if this method calls when the owner bundle is stopping;
+         *                        {@literal false}, if this method calls when loosing dependency.
+         */
+        @Override
+        @MethodStub
+        protected void cleanupService(final ConfigurationEntityDescriptionProviderImpl serviceInstance, final boolean stopBundle) throws Exception {
+            //nothing to do
+        }
+    }
+
+    /**
      * Represents a holder for connector configuration descriptor.
      * @param <T> Type of the configuration descriptor implementation.
      * @author Roman Sakno
      * @since 1.0
      */
-    protected abstract static class ConfigurationEntityDescriptionProviderHolder<T extends ConfigurationEntityDescriptionProvider> extends OptionalConnectorServiceProvider<ConfigurationEntityDescriptionProvider, T>{
+    protected abstract static class ConfigurationEntityDescriptionManager<T extends ConfigurationEntityDescriptionProvider> extends SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, T> {
 
         /**
          * Initializes a new holder for the provided service.
@@ -275,7 +411,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          * @param dependencies A collection of service dependencies.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
-        protected ConfigurationEntityDescriptionProviderHolder(final RequiredService<?>... dependencies) {
+        protected ConfigurationEntityDescriptionManager(final RequiredService<?>... dependencies) {
             super(ConfigurationEntityDescriptionProvider.class, dependencies);
         }
 
@@ -302,12 +438,12 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     }
 
     /**
-     * Represents a factory for management connectors.
-     * @param <TConnectorImpl> Type of the management connector.
+     * Represents a set of factories for resource connector related services.
+     * @param <TConnectorImpl> Type of the resource connector implementation.
      * @author Roman Sakno
      * @since 1.0
      */
-    protected static abstract class ManagedResourceConnectorProviderFactory<TConnectorImpl extends ManagedResourceConnector<?>> implements ProvidedServices{
+    protected static abstract class ServiceFactories<TConnectorImpl extends ManagedResourceConnector<?>> implements ProvidedServices{
 
         /**
          * Creates a new instance of the management connector factory.
@@ -317,10 +453,10 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          * @param activationProperties A collection of activation properties to read.
          * @return A new instance of the resource connector factory.
          */
-        protected abstract ManagedResourceConnectorProvider<TConnectorImpl> createConnectorFactory(final String resourceName,
-                                                                                                   final long instances,
-                                                                                                   final Iterable<RequiredService<?>> services,
-                                                                                              final ActivationPropertyReader activationProperties);
+        protected abstract ManagedResourceConnectorManager<TConnectorImpl> createConnectorManager(final String resourceName,
+                                                                                                  final long instances,
+                                                                                                  final Iterable<RequiredService<?>> services,
+                                                                                                  final ActivationPropertyReader activationProperties);
 
         /**
          * Creates a new factory for the special service that provides configuration schema for the resource connector.
@@ -333,27 +469,27 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          * @see com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider
          */
         @MethodStub
-        protected ConfigurationEntityDescriptionProviderHolder<?> createDescriptionProvider(final ActivationPropertyReader activationProperties,
-                                                                                                         final RequiredService<?>... bundleLevelDependencies){
+        protected ConfigurationEntityDescriptionManager<?> createDescriptionServiceManager(final ActivationPropertyReader activationProperties,
+                                                                                           final RequiredService<?>... bundleLevelDependencies){
             return null;
         }
 
         /**
-         * Creates a new instance of the {@link com.itworks.snamp.connectors.DiscoveryService} factory.
+         * Creates a new instance of the {@link com.itworks.snamp.connectors.discovery.DiscoveryService} factory.
          * @param activationProperties A collection of activation properties to read.
          * @param bundleLevelDependencies A collection of bundle-level dependencies.
          * @return A new factory of the special service that can automatically discover elements of the managed resource.
-         * @see com.itworks.snamp.connectors.DiscoveryService
+         * @see com.itworks.snamp.connectors.discovery.DiscoveryService
          */
         @MethodStub
-        protected DiscoveryServiceProvider<?> createDiscoveryServiceProvider(final ActivationPropertyReader activationProperties,
-                                                                             final RequiredService<?>... bundleLevelDependencies){
+        protected DiscoveryServiceManager<?> createDiscoveryServiceManager(final ActivationPropertyReader activationProperties,
+                                                                           final RequiredService<?>... bundleLevelDependencies){
             return null;
         }
 
         @Internal
         @MethodStub
-        protected LicensingDescriptionServiceProvider createLicenseLimitationsProvider(){
+        protected LicensingDescriptionServiceManager createLicenseServiceManager(){
             return null;
         }
 
@@ -366,7 +502,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          * @return A new instance of the service provider.
          */
         @MethodStub
-        protected MaintenanceServiceProvider<?> createMaintenanceServiceProvider(final RequiredService<?>... dependencies){
+        protected MaintenanceServiceManager<?> createMaintenanceServiceManager(final RequiredService<?>... dependencies){
             return null;
         }
 
@@ -385,29 +521,29 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
             final Map<String, ManagedResourceConfiguration> targets = activationProperties.getValue(COMPLIANT_RESOURCES_HOLDER);
             int instanceCount = 0;
             for(final String targetName: targets != null ? targets.keySet() : Collections.<String>emptySet()) {
-                final ManagedResourceConnectorProvider<TConnectorImpl> provider = createConnectorFactory(targetName, instanceCount, Arrays.asList(bundleLevelDependencies), activationProperties);
+                final ManagedResourceConnectorManager<TConnectorImpl> provider = createConnectorManager(targetName, instanceCount, Arrays.asList(bundleLevelDependencies), activationProperties);
                 if(provider != null)
                     services.add(provider);
             }
-            ProvidedService<?, ?> advancedService = createDescriptionProvider(activationProperties, bundleLevelDependencies);
+            ProvidedService<?, ?> advancedService = createDescriptionServiceManager(activationProperties, bundleLevelDependencies);
             if(advancedService != null) services.add(advancedService);
-            advancedService = createDiscoveryServiceProvider(activationProperties, bundleLevelDependencies);
+            advancedService = createDiscoveryServiceManager(activationProperties, bundleLevelDependencies);
             if(advancedService != null) services.add(advancedService);
-            advancedService = createLicenseLimitationsProvider();
+            advancedService = createLicenseServiceManager();
             if(advancedService != null) services.add(advancedService);
-            advancedService = createMaintenanceServiceProvider(bundleLevelDependencies);
+            advancedService = createMaintenanceServiceManager(bundleLevelDependencies);
             if(advancedService != null) services.add(advancedService);
         }
     }
 
     /**
-     * Represents factory for management connector.
+     * Represents factory for resource connector.
      * @param <TConnectorImpl> Type of the management connector implementation.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected abstract static class ManagedResourceConnectorProvider<TConnectorImpl extends ManagedResourceConnector<?>> extends LoggableProvidedService<ManagedResourceConnector, TConnectorImpl>{
+    protected abstract static class ManagedResourceConnectorManager<TConnectorImpl extends ManagedResourceConnector<?>> extends LoggableProvidedService<ManagedResourceConnector, TConnectorImpl>{
         /**
          * Represents name of the managed resource bounded to this resource connector factory.
          */
@@ -419,7 +555,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          * @param dependencies A collection of connector dependencies.
          * @throws IllegalArgumentException config is {@literal null}.
          */
-        protected ManagedResourceConnectorProvider(final String managedResource, final RequiredService<?>... dependencies) {
+        protected ManagedResourceConnectorManager(final String managedResource, final RequiredService<?>... dependencies) {
             super(ManagedResourceConnector.class, dependencies);
             this.managedResourceName = managedResource;
         }
@@ -528,7 +664,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * @version 1.0
      */
     @SuppressWarnings("UnusedDeclaration")
-    protected static abstract class NotificationSupportProvider<TConnectorImpl extends ManagedResourceConnector<?> & NotificationSupport> extends ManagedResourceConnectorProvider<TConnectorImpl> {
+    protected static abstract class NotificationSupportManager<TConnectorImpl extends ManagedResourceConnector<?> & NotificationSupport> extends ManagedResourceConnectorManager<TConnectorImpl> {
         private static final String NOTIF_TRANSPORT_LISTENER_ID = "EventAdminTransport";
 
         /**
@@ -538,15 +674,15 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          * @param publisherDependency Notification delivery channel dependency. This dependency is mandatory.
          * @param dependencies        A collection of connector dependencies.
          */
-        protected NotificationSupportProvider(final String targetName,
-                                              final RequiredServiceAccessor<EventAdmin> publisherDependency, final RequiredService<?>... dependencies) {
+        protected NotificationSupportManager(final String targetName,
+                                             final RequiredServiceAccessor<EventAdmin> publisherDependency, final RequiredService<?>... dependencies) {
             super(targetName, ObjectArrays.concat(dependencies, publisherDependency));
         }
 
         /**
          * Initializes a new factory for the management connector with notification support.
          * <p>
-         * This constructor calls {@link #NotificationSupportProvider(String, com.itworks.snamp.core.AbstractServiceLibrary.RequiredServiceAccessor, com.itworks.snamp.core.AbstractServiceLibrary.RequiredService[])}
+         * This constructor calls {@link #NotificationSupportManager(String, com.itworks.snamp.core.AbstractServiceLibrary.RequiredServiceAccessor, com.itworks.snamp.core.AbstractServiceLibrary.RequiredService[])}
          * and pass {@link com.itworks.snamp.core.AbstractBundleActivator.SimpleDependency} as dependency
          * descriptor for {@link org.osgi.service.event.EventAdmin} service.
          * </p>
@@ -555,8 +691,8 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          * @param dependencies A collection of connector dependencies.
          */
         @SuppressWarnings("UnusedDeclaration")
-        protected NotificationSupportProvider(final String targetName,
-                                              final RequiredService<?>... dependencies) {
+        protected NotificationSupportManager(final String targetName,
+                                             final RequiredService<?>... dependencies) {
             this(targetName, new SimpleDependency<>(EventAdmin.class), dependencies);
         }
 
@@ -604,7 +740,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * @throws IllegalArgumentException connectorName is {@literal null}.
      */
     @SuppressWarnings("UnusedDeclaration")
-    protected AbstractManagedResourceActivator(final String connectorName, final ManagedResourceConnectorProviderFactory<TConnector> connectorFactory){
+    protected AbstractManagedResourceActivator(final String connectorName, final ServiceFactories<TConnector> connectorFactory){
         this(connectorName, connectorFactory, null);
     }
 
@@ -615,7 +751,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * @param explicitLogger An instance of the logger associated with the all management connector instances.
      * @throws IllegalArgumentException connectorName is {@literal null}.
      */
-    protected AbstractManagedResourceActivator(final String connectorName, final ManagedResourceConnectorProviderFactory<TConnector> connectorFactory, final Logger explicitLogger){
+    protected AbstractManagedResourceActivator(final String connectorName, final ServiceFactories<TConnector> connectorFactory, final Logger explicitLogger){
         super(explicitLogger != null ? explicitLogger : AbstractManagedResourceConnector.getLogger(connectorName),
                 connectorFactory);
         this.connectorName = connectorName;

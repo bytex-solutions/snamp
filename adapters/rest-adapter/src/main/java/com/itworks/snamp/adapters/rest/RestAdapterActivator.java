@@ -17,7 +17,7 @@ import static com.itworks.snamp.adapters.rest.RestAdapterConfigurationDescriptor
 public final class RestAdapterActivator extends AbstractResourceAdapterActivator<RestAdapter> {
     public static final String NAME = RestAdapterHelpers.ADAPTER_NAME;
 
-    private static final class RestAdapterConfigurationProvider extends ConfigurationEntityDescriptionProviderHolder<RestAdapterConfigurationDescriptor>{
+    private static final class RestAdapterConfigurationManager extends ConfigurationEntityDescriptionManager<RestAdapterConfigurationDescriptor> {
 
         @Override
         protected RestAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
@@ -27,8 +27,8 @@ public final class RestAdapterActivator extends AbstractResourceAdapterActivator
 
     public RestAdapterActivator(){
         super(NAME, RestAdapterHelpers.getLogger(),
-                new RestAdapterConfigurationProvider(),
-                new LicensingDescriptionServiceProvider<>(RestAdapterLimitations.class, RestAdapterLimitations.fallbackFactory));
+                new RestAdapterConfigurationManager(),
+                new LicensingDescriptionServiceManager<>(RestAdapterLimitations.class, RestAdapterLimitations.fallbackFactory));
     }
 
     /**

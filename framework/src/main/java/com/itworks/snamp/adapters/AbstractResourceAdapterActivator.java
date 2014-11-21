@@ -56,12 +56,12 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
-     * @see com.itworks.snamp.adapters.AbstractResourceAdapterActivator.ConfigurationEntityDescriptionProviderHolder
-     * @see com.itworks.snamp.adapters.AbstractResourceAdapterActivator.LicensingDescriptionServiceProvider
+     * @see com.itworks.snamp.adapters.AbstractResourceAdapterActivator.ConfigurationEntityDescriptionManager
+     * @see com.itworks.snamp.adapters.AbstractResourceAdapterActivator.LicensingDescriptionServiceManager
      */
-    protected abstract static class OptionalAdapterServiceProvider<S extends FrameworkService, T extends S> extends LoggableProvidedService<S, T>{
+    protected abstract static class SupportAdapterServiceManager<S extends FrameworkService, T extends S> extends LoggableProvidedService<S, T>{
 
-        private OptionalAdapterServiceProvider(final Class<S> contract, final RequiredService<?>... dependencies) {
+        private SupportAdapterServiceManager(final Class<S> contract, final RequiredService<?>... dependencies) {
             super(contract, dependencies);
         }
 
@@ -75,15 +75,15 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     }
 
     /**
-     * Represents maintenance service provider.
+     * Represents maintenance service manager.
      * @param <T> Type of the maintenance service implementation.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class MaintenanceServiceProvider<T extends Maintainable> extends OptionalAdapterServiceProvider<Maintainable,T>{
+    protected static abstract class MaintenanceServiceManager<T extends Maintainable> extends SupportAdapterServiceManager<Maintainable,T> {
 
-        protected MaintenanceServiceProvider(final RequiredService<?>... dependencies) {
+        protected MaintenanceServiceManager(final RequiredService<?>... dependencies) {
             super(Maintainable.class, dependencies);
         }
 
@@ -148,12 +148,12 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
         }
     }
 
-    protected final static class LicensingDescriptionServiceProvider<L extends LicenseLimitations> extends OptionalAdapterServiceProvider<LicensingDescriptionService, AdapterLicensingDescriptorService>{
+    protected final static class LicensingDescriptionServiceManager<L extends LicenseLimitations> extends SupportAdapterServiceManager<LicensingDescriptionService, AdapterLicensingDescriptorService> {
         private final Supplier<L> fallbackFactory;
         private final Class<L> descriptor;
 
-        public LicensingDescriptionServiceProvider(final Class<L> limitationsDescriptor,
-                                                   final Supplier<L> fallbackFactory) {
+        public LicensingDescriptionServiceManager(final Class<L> limitationsDescriptor,
+                                                  final Supplier<L> fallbackFactory) {
             super(LicensingDescriptionService.class, new SimpleDependency<>(LicenseReader.class));
             if(fallbackFactory == null) throw new IllegalArgumentException("fallbackFactory is null.");
             else if(limitationsDescriptor == null) throw new IllegalArgumentException("limitationsDescriptor is null.");
@@ -187,7 +187,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @author Roman Sakno
      * @since 1.0
      */
-    protected abstract static class ConfigurationEntityDescriptionProviderHolder<T extends ConfigurationEntityDescriptionProvider> extends OptionalAdapterServiceProvider<ConfigurationEntityDescriptionProvider, T>{
+    protected abstract static class ConfigurationEntityDescriptionManager<T extends ConfigurationEntityDescriptionProvider> extends SupportAdapterServiceManager<ConfigurationEntityDescriptionProvider, T> {
 
         /**
          * Initializes a new holder for the provided service.
@@ -195,7 +195,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
          * @param dependencies A collection of service dependencies.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
-        protected ConfigurationEntityDescriptionProviderHolder(final RequiredService<?>... dependencies) {
+        protected ConfigurationEntityDescriptionManager(final RequiredService<?>... dependencies) {
             super(ConfigurationEntityDescriptionProvider.class, dependencies);
         }
 
@@ -233,7 +233,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @param optionalServices Additional services exposed by adapter.
      */
     @SuppressWarnings("UnusedDeclaration")
-    protected AbstractResourceAdapterActivator(final String adapterName, final OptionalAdapterServiceProvider<?, ?>... optionalServices){
+    protected AbstractResourceAdapterActivator(final String adapterName, final SupportAdapterServiceManager<?, ?>... optionalServices){
         this(adapterName, AbstractResourceAdapter.getLogger(adapterName), optionalServices);
     }
 
@@ -243,7 +243,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @param loggerInstance The logger associated with the adapter.
      * @param optionalServices Additional services exposed by adapter.
      */
-    protected AbstractResourceAdapterActivator(final String adapterName, final Logger loggerInstance, final OptionalAdapterServiceProvider<?, ?>... optionalServices){
+    protected AbstractResourceAdapterActivator(final String adapterName, final Logger loggerInstance, final SupportAdapterServiceManager<?, ?>... optionalServices){
         super(loggerInstance != null ? loggerInstance : AbstractResourceAdapter.getLogger(adapterName), optionalServices);
         this.adapterName = adapterName;
         adapters = new HashMap<>(4);

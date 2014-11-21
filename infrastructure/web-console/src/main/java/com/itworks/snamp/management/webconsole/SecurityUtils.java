@@ -66,7 +66,7 @@ public final class SecurityUtils {
         checkRoles(context, ADMIN_ROLE);
     }
 
-    public static void wellKnownRoleRequired(final SecurityContext context){
+    public static void wellKnownRoleRequired(final SecurityContext context) throws WebApplicationException{
         checkRoles(context, ADMIN_ROLE, USER_ROLE);
     }
 }

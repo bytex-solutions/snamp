@@ -156,19 +156,19 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
             row.put(IS_LICENSED_COLUMN, false);
             row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, false);
             try {
-                component.invokeManagementService(Maintainable.class, new SafeConsumer<Maintainable>() {
+                component.invokeSupportService(Maintainable.class, new SafeConsumer<Maintainable>() {
                     @Override
                     public void accept(final Maintainable input) {
                         row.put(IS_MANAGEABLE_COLUMN, input != null);
                     }
                 });
-                component.invokeManagementService(ConfigurationEntityDescriptionProvider.class, new SafeConsumer<ConfigurationEntityDescriptionProvider>() {
+                component.invokeSupportService(ConfigurationEntityDescriptionProvider.class, new SafeConsumer<ConfigurationEntityDescriptionProvider>() {
                     @Override
                     public void accept(final ConfigurationEntityDescriptionProvider input) {
                         row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, input != null);
                     }
                 });
-                component.invokeManagementService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
+                component.invokeSupportService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
                     @Override
                     public void accept(final LicensingDescriptionService input) {
                         row.put(IS_LICENSED_COLUMN, input != null);

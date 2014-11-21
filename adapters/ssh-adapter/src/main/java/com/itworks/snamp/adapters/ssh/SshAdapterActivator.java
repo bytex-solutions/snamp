@@ -22,9 +22,22 @@ import static com.itworks.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*
  */
 public final class SshAdapterActivator extends AbstractResourceAdapterActivator<SshAdapter> {
 
+    private static final class ConfigurationDescriptorServiceManager extends ConfigurationEntityDescriptionManager<SshAdapterConfigurationDescriptor> {
+
+        /**
+         * Creates a new instance of the configuration description provider.
+         *
+         * @param dependencies A collection of provider dependencies.
+         * @return A new instance of the configuration description provider.
+         */
+        @Override
+        protected SshAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+            return new SshAdapterConfigurationDescriptor();
+        }
+    }
 
     public SshAdapterActivator() {
-        super(SshAdapter.NAME, SshHelpers.getLogger());
+        super(SshAdapter.NAME, SshHelpers.getLogger(), new ConfigurationDescriptorServiceManager());
     }
 
     /**
