@@ -90,7 +90,9 @@ public final class SnmpResourceConnectorActivator extends AbstractManagedResourc
 
                 @Override
                 protected SnmpClient createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {
-                    return new SnmpConnectionOptions(connectionString, connectionOptions).createSnmpClient();
+                    final SnmpClient client = new SnmpConnectionOptions(connectionString, connectionOptions).createSnmpClient();
+                    client.listen();
+                    return client;
                 }
 
                 @Override
