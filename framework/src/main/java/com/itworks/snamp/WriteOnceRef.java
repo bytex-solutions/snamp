@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @since 1.0
  */
 public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
-    private volatile T value;
+    private T value;
     private final AtomicBoolean locked;
 
     /**
@@ -43,9 +43,11 @@ public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
      */
     @ThreadSafe
     public final boolean set(final T value){
-        if(locked.getAndSet(true)) return false;
-        this.value = value;
-        return true;
+        if(locked.compareAndSet(false, true)) {
+            this.value = value;
+            return true;
+        }
+        else return false;
     }
 
     /**
@@ -82,7 +84,8 @@ public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
      */
     @Override
     public int hashCode() {
-        return value != null ? value.hashCode() : 0;
+        final T v = value;
+        return v != null ? v.hashCode() : 0;
     }
 
     /**

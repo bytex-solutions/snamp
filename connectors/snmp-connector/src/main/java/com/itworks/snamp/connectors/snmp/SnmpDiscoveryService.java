@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT;
@@ -40,7 +41,7 @@ final class SnmpDiscoveryService {
             options.put(SNMP_CONVERSION_FORMAT, OctetStringConversionFormat.adviceFormat((OctetString)v).toString());
     }
 
-    private static Collection<AttributeConfiguration> discoverAttributes(final SnmpClient client) throws TimeoutException, InterruptedException {
+    private static Collection<AttributeConfiguration> discoverAttributes(final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
         return Collections2.transform(client.walk(getDiscoveryTimeout()), new Function<VariableBinding, AttributeConfiguration>() {
             @Override
             public AttributeConfiguration apply(final VariableBinding input) {
@@ -53,7 +54,7 @@ final class SnmpDiscoveryService {
     }
 
     @SuppressWarnings("unchecked")
-    static  <T extends ManagedEntity> Collection<T> discover(final Class<T> entityType, final SnmpClient client) throws TimeoutException, InterruptedException {
+    static  <T extends ManagedEntity> Collection<T> discover(final Class<T> entityType, final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
         if (Objects.equals(entityType, AttributeConfiguration.class))
             return (Collection<T>) discoverAttributes(client);
         else return Collections.emptyList();

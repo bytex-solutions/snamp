@@ -256,4 +256,8 @@ public final class TimeSpan {
     public long toNanos(){
         return unit.toNanos(duration);
     }
+
+    public long toMillis(){
+        return unit.toMillis(duration);
+    }
 }
