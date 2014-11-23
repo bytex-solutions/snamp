@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.jmx;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.ConversionException;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
@@ -20,11 +21,13 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
+import javax.management.remote.JMXConnector;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.rmi.server.RMIClassLoader;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,9 +58,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * Represents owner of this notification metadata.
          */
         public final ObjectName eventOwner;
-
+        private final Descriptor advancedMetadata;
 
         public JmxNotificationMetadata(final String notifType,
+                                       final Descriptor notificationDescriptor,
                                        final ObjectName eventOwner,
                                        final Map<String, String> options){
             super(notifType);
@@ -65,22 +69,38 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             this.options = Collections.unmodifiableMap(options);
             this.eventOwner = eventOwner;
             this.executor = Executors.newSingleThreadExecutor();
+            this.advancedMetadata = notificationDescriptor;
+        }
+
+        private static Severity parseSeverity(final String value){
+            switch (value){
+                case "1": //jmx severity level
+                case "panic": return Severity.PANIC;
+                case "2": //jmx severity level
+                case "alert": return Severity.ALERT;
+                case "3": //jmx severity level
+                case "critical": return Severity.CRITICAL;
+                case "4": //jmx severity level
+                case "error": return Severity.ERROR;
+                case "5": //jmx severity level
+                case "warning": return Severity.WARNING;
+                case "6": //jmx severity level
+                case "notice": return Severity.NOTICE;
+                case "7": //jmx severity level
+                case "info": return Severity.INFO;
+                case "8": //jmx severity level
+                case "debug": return Severity.DEBUG;
+                case "0": //jmx severity level
+                default: return Severity.UNKNOWN;
+            }
         }
 
         public final Severity getSeverity(){
+            final String JMX_SEVERITY = "severity";
             if(options.containsKey(SEVERITY_PARAM))
-                switch (options.get(SEVERITY_PARAM)){
-                    case "panic": return Severity.PANIC;
-                    case "alert": return Severity.ALERT;
-                    case "critical": return Severity.CRITICAL;
-                    case "error": return Severity.ERROR;
-                    case "warning": return Severity.WARNING;
-                    case "notice": return Severity.NOTICE;
-                    case "info": return Severity.INFO;
-                    case "debug": return Severity.DEBUG;
-                    default: return Severity.UNKNOWN;
-
-                }
+                return parseSeverity(options.get(SEVERITY_PARAM));
+            else if(advancedMetadata != null && ArrayUtils.contains(advancedMetadata.getFieldNames(), JMX_SEVERITY))
+                return parseSeverity(Objects.toString(advancedMetadata.getFieldValue(JMX_SEVERITY)));
             else return Severity.UNKNOWN;
         }
 
@@ -108,16 +128,21 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         }
 
         /**
-         * Returns the attachment type descriptor.
-         * @param attachment The notification attachment.
-         * @return The attachment type descriptor for the specified attachment; or {@literal null} if
-         * attachment is not supported.
+         * Detects the attachment type.
+         * <p/>
+         * This method will be called automatically by SNAMP infrastructure
+         * and once for this instance of notification metadata.
+         *
+         * @return The attachment type.
          */
         @Override
-        public final ManagedEntityType getAttachmentType(final Object attachment) {
-            return attachment != null ?
-                    typeSystem.createEntityType(JmxTypeSystem.getOpenTypeFromValue(attachment)) :
-                    null;
+        protected ManagedEntityType detectAttachmentType() {
+            final String JMX_USER_DATA_OPEN_TYPE = JmxTypeSystem.OPEN_TYPE_DESCR_FIELD;
+            MBeanServer m; m.getCla
+            if (advancedMetadata != null && ArrayUtils.contains(advancedMetadata.getFieldNames(), JMX_USER_DATA_OPEN_TYPE)) {
+                final OpenType<?> attachmentType = (OpenType<?>) advancedMetadata.getFieldValue(JMX_USER_DATA_OPEN_TYPE);
+                return typeSystem.createEntityType(attachmentType);
+            } else return null;
         }
 
         @Override
@@ -564,7 +589,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                         for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(on).getNotifications())
                             for (final String notifType : notificationInfo.getNotifTypes())
                                 if (Objects.equals(notifType, category))
-                                    return new JmxNotificationMetadata(notifType, on, options);
+                                    return new JmxNotificationMetadata(notifType, notificationInfo.getDescriptor(), on, options);
                         return null;
                     } else return null;
                 }

@@ -25,6 +25,7 @@ import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
  * @author Roman Sakno
  */
 final class JmxTypeSystem extends WellKnownTypeSystem {
+    static final String OPEN_TYPE_DESCR_FIELD = "openType";
     static final TypeToken<TabularData> TABULAR_DATA = TypeToken.of(TabularData.class);
     static final TypeToken<CompositeData> COMPOSITE_DATA = TypeToken.of(CompositeData.class);
 
@@ -149,8 +150,8 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
     public static OpenType<?> getOpenType(final MBeanAttributeInfo targetAttr, final Supplier<OpenType<?>> fallback) {
         if(targetAttr instanceof OpenMBeanAttributeInfo)
              return ((OpenMBeanAttributeInfo)targetAttr).getOpenType();
-        else if(ArrayUtils.contains(targetAttr.getDescriptor().getFieldNames(), "openType"))
-            return (OpenType<?>)targetAttr.getDescriptor().getFieldValue("openType");
+        else if(ArrayUtils.contains(targetAttr.getDescriptor().getFieldNames(), OPEN_TYPE_DESCR_FIELD))
+            return (OpenType<?>)targetAttr.getDescriptor().getFieldValue(OPEN_TYPE_DESCR_FIELD);
         else return getOpenType(targetAttr.getType(), fallback);
     }
 

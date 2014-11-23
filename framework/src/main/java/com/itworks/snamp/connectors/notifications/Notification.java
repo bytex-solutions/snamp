@@ -3,7 +3,6 @@ package com.itworks.snamp.connectors.notifications;
 import com.itworks.snamp.UserDataSupport;
 
 import java.util.Date;
-import java.util.Map;
 
 /**
  * Represents notification.
@@ -15,7 +14,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-public interface Notification extends Map<String, Object>, UserDataSupport<Object> {
+public interface Notification extends UserDataSupport<Object> {
 
     /**
      * Represents name of the notification property that may contains
@@ -49,4 +48,12 @@ public interface Notification extends Map<String, Object>, UserDataSupport<Objec
      * @return The message description of this notification.
      */
     String getMessage();
+
+    /**
+     * Gets attachment associated with this notification.
+     * <p>
+     *
+     * @return An attachment associated with this notification; or {@literal null} if no attachment present.
+     */
+    Object getAttachment();
 }

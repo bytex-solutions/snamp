@@ -24,10 +24,9 @@ public interface NotificationMetadata extends ManagedEntityMetadata {
     NotificationModel getNotificationModel();
 
     /**
-     * Returns the type descriptor for the specified attachment.
-     * @param attachment The notification attachment.
-     * @return The type descriptor for the specified attachment; or {@literal null} if the specified
-     * attachment is not supported.
+     * Gets attachment descriptor that can be used to convert notification attachment
+     * into well-known object.
+     * @return An attachment descriptor; or {@literal null} if attachments are not supported.
      */
-    ManagedEntityType getAttachmentType(final Object attachment);
+    ManagedEntityType getAttachmentType();
 }
