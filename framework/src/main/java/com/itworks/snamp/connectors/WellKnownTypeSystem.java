@@ -606,8 +606,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
         }, TypeLiterals.STRING_COLUMN_TABLE);
     }
 
-    public final ManagedEntityType createEntityDictionaryType(final Map<String, ManagedEntityType> keys) {
-        return createEntityType(new Supplier<AbstractManagedEntityType>() {
+    public final AbstractManagedEntityTabularType createEntityDictionaryType(final Map<String, ManagedEntityType> keys) {
+        return createEntityType(new Supplier<AbstractManagedEntityTabularType>() {
             private final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(keys);
 
             @Override

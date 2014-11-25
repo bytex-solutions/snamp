@@ -2,10 +2,7 @@ package com.itworks.snamp.adapters;
 
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.*;
-import com.itworks.snamp.connectors.ManagedEntityType;
-import com.itworks.snamp.connectors.ManagedResourceConnector;
-import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
-import com.itworks.snamp.connectors.WellKnownTypeSystem;
+import com.itworks.snamp.connectors.*;
 import com.itworks.snamp.connectors.attributes.*;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.FrameworkService;
@@ -27,7 +24,8 @@ import java.util.logging.Logger;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.itworks.snamp.connectors.notifications.NotificationUtils.NotificationEvent;
+
+import com.itworks.snamp.connectors.notifications.NotificationEvent;
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 import static com.itworks.snamp.internal.Utils.isInstanceOf;
 
@@ -95,7 +93,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         public final void handleEvent(final Event event) {
             final NotificationEvent notif = new NotificationEvent(event);
             if(containsKey(notif.getSubscriptionListID()))
-                handleNotification(notif.getEmitter(), notif, get(notif.getSubscriptionListID()));
+                handleNotification(notif.getSender(), notif, get(notif.getSubscriptionListID()));
         }
 
         private void startListening(final BundleContext context, final Collection<String> topics) {
@@ -197,10 +195,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * @throws TimeoutException Attribute value cannot be obtained during the configured duration.
          * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
          */
-        public AttributeValue<?> getValue() throws TimeoutException, AttributeSupportException {
+        public ManagedEntityValue<?> getValue() throws TimeoutException, AttributeSupportException {
             try {
                 final Object result = attributeSupport.getAttribute(attributeID, readWriteTimeout);
-                return new AttributeValue<>(result, getType());
+                return new ManagedEntityValue<>(result, getType());
             } catch (final UnknownAttributeException e) {
                 throw new AttributeSupportException(e);  //never happens
             }

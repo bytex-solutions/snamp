@@ -327,7 +327,7 @@ public final class Utils {
      * @return The value of the property.
      * @throws IntrospectionException Unable to get property value.
      */
-    public static Object getProperty(final javax.management.Notification obj,
+    public static Object getProperty(final Object obj,
                                      final BeanInfo descriptor,
                                      final String propertyName) throws IntrospectionException, ReflectiveOperationException{
         if(obj == null) throw new IllegalArgumentException("obj is null.");

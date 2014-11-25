@@ -1,11 +1,13 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.WriteOnceRef;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
-import com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration.*;
+import com.itworks.snamp.*;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration.InMemoryAttributeConfiguration;
+import com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration.InMemoryEventConfiguration;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
@@ -91,6 +93,168 @@ import static com.itworks.snamp.internal.Utils.safeCast;
  */
 public class ManagedResourceConnectorBean extends AbstractManagedResourceConnector<ManagedResourceConnectorBean.ManagedBeanDescriptor<?>>
         implements NotificationSupport, AttributeSupport {
+
+    /**
+     * Represents attribute reading or writing context.
+     * This class cannot be inherited or instantiated directly in your code.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static final class AttributeContext{
+        private final static ThreadLocal<AttributeContext> currentContext = new ThreadLocal<>();
+        private final AttributeMetadata metadata;
+        private final TimeSpan operationTimeout;
+
+        private AttributeContext(final AttributeMetadata metadata, final TimeSpan operationTimeout){
+            this.metadata = metadata;
+            this.operationTimeout = operationTimeout;
+        }
+
+        /**
+         * Gets metadata of the calling attribute.
+         * @return The metadata of the calling attribute.
+         */
+        public AttributeMetadata getMetadata(){
+            return metadata;
+        }
+
+        /**
+         * Gets timeout for the attribute get/set operation.
+         * @return The operation timeout.
+         */
+        public TimeSpan getOperationTimeout(){
+            return operationTimeout;
+        }
+
+        /**
+         * Gets current context.
+         * <p>
+         *     This method can be called inside of bean property and allows
+         *     to capture connector specific information.
+         * @return The current context.
+         */
+        public static AttributeContext get(){
+            return currentContext.get();
+        }
+
+        private static void setContext(final AttributeMetadata metadata, final TimeSpan timeout){
+            currentContext.set(new AttributeContext(metadata, timeout));
+        }
+
+        private static void unsetContext(){
+            currentContext.remove();
+        }
+    }
+
+    /**
+     * Represents notification builder that can be used to construct
+     * notifications based on the notification context.
+     * <p>
+     *      This class cannot be instantiated or inherited directly in your code.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static final class NotificationBuilder implements Supplier<JavaBeanNotification>{
+        private Severity severity;
+        private String message;
+        private Object attachment;
+        private String correlationID;
+        private final JavaBeanEventMetadata metadata;
+        private NotificationBuilder nextBuilder;
+
+        private NotificationBuilder(final JavaBeanEventMetadata metadata){
+            this.metadata = metadata;
+            this.severity = Severity.UNKNOWN;
+            this.message = "";
+            this.attachment = this.correlationID = null;
+            this.nextBuilder = null;
+        }
+
+        /**
+         * Retrieves an instance of the appropriate type. The returned object may or
+         * may not be a new instance, depending on the implementation.
+         *
+         * @return an instance of the appropriate type
+         */
+        @Override
+        public JavaBeanNotification get() {
+            return metadata.createNotification(severity,
+                    message,
+                    correlationID,
+                    attachment,
+                    nextBuilder);
+        }
+
+        /**
+         * Creates a new builder for the correlated notification.
+         * @return A new builder for correlated notification.
+         */
+        public NotificationBuilder newCorrelation(){
+            if(nextBuilder == null) {
+                nextBuilder = new NotificationBuilder(metadata);
+                nextBuilder.setCorrelationID(correlationID);
+                nextBuilder.setSeverity(severity);
+            }
+            return nextBuilder;
+        }
+
+        /**
+         * Gets the notification metadata.
+         * @return The notification metadata.
+         */
+        public final JavaBeanEventMetadata getMetadata(){
+            return metadata;
+        }
+
+        /**
+         * Sets severity of the notification.
+         * @param value The severity of the notification.
+         */
+        public void setSeverity(final Severity value){
+            severity = value;
+        }
+
+        /**
+         * Sets a descriptive message that describes what happen.
+         * @param value A message to be associated with notification.
+         */
+        public void setMessage(final String value){
+            message = value;
+        }
+
+        /**
+         * Sets additional notification payload.
+         * @param value The additional payload.
+         */
+        public void setAttachment(final Object value){
+            attachment = value;
+        }
+
+        /**
+         * Sets additional notification payload with dynamically defined type.
+         * @param value The additional payload.
+         * @param valueType The type of the payload.
+         * @param <T> The payload type descriptor.
+         */
+        public final <T extends ManagedEntityType> void setAttachment(final Object value,
+                                        final T valueType){
+            setAttachment(new ManagedEntityValue<>(value, valueType));
+        }
+
+        /**
+         * Setup correlation identifier.
+         * @param value The correlation identifier.
+         */
+        public final void setCorrelationID(final String value){
+            this.correlationID = value;
+        }
+
+        private void emit() {
+            metadata.fire(get());
+        }
+    }
 
     /**
      * Represents description of the bean to be managed by this connector.
@@ -221,6 +385,12 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          * @return The severity of this event.
          */
         Severity getSeverity();
+
+        /**
+         * Gets attachment type descriptor.
+         * @return The attachment type descriptor; or {@literal null} if attachment is not supported.
+         */
+        ManagedEntityType getAttachmentType();
     }
 
     private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<ManagedEntityTypeBuilder.AbstractManagedEntityType>{
@@ -279,15 +449,26 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
             return getAttributeInfo().cached();
         }
 
-        public final Object getValue(final Object beanInstance) throws ReflectiveOperationException {
+        private Object getValue(final Object beanInstance, final TimeSpan timeout) throws ReflectiveOperationException {
             if(getter == null) return null;
-            return getter.invoke(beanInstance);
+            AttributeContext.setContext(this, timeout);
+            try{
+                return getter.invoke(beanInstance);
+            }
+            finally {
+                AttributeContext.unsetContext();
+            }
         }
 
-        public final void setValue(final Object beanInstance, final Object value) throws ReflectiveOperationException {
+        private void setValue(final Object beanInstance, final Object value, final TimeSpan timeout) throws ReflectiveOperationException {
             final TypeConverter<?> converter = getType().getProjection(propertyType);
-            if(converter != null)
+            if (converter == null) return;
+            AttributeContext.setContext(this, timeout);
+            try {
                 setter.invoke(beanInstance, converter.convertFrom(value));
+            } finally {
+                AttributeContext.unsetContext();
+            }
         }
 
         /**
@@ -387,106 +568,50 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         }
     }
 
-    private static final class JavaBeanNotification extends HashMap<String, Object> implements Notification {
-        private final Date timeStamp;
-        private final Severity severity;
-        private final long seqnum;
-        private final String message;
-        private transient volatile Object userData;
+    private static final class JavaBeanNotification extends NotificationImpl {
 
-        public JavaBeanNotification(final Severity severity,
+        private JavaBeanNotification(final Severity severity,
                                     final long sequenceNumber,
                                     final String message,
-                                    final Map<String, ?> attachments){
-            this.timeStamp = new Date();
-            this.severity = severity != null ? severity : Severity.UNKNOWN;
-            this.seqnum = sequenceNumber;
-            this.message = message != null ? message : "";
-            putAll(attachments != null ? attachments : Collections.<String, Object>emptyMap());
-            userData = null;
-        }
-
-        /**
-         * Gets user data associated with this object.
-         *
-         * @return The user data associated with this object.
-         */
-        @Override
-        public Object getUserData() {
-            return userData;
-        }
-
-        /**
-         * Sets the user data associated with this object.
-         *
-         * @param value The user data to be associated with this object.
-         */
-        @Override
-        public void setUserData(final Object value) {
-            userData = value;
-        }
-
-        /**
-         * Gets the date and time at which the notification is generated.
-         *
-         * @return The date and time at which the notification is generated.
-         */
-        @Override
-        public final Date getTimeStamp() {
-            return timeStamp;
-        }
-
-        /**
-         * Gets the order number of the notification message.
-         *
-         * @return The order number of the notification message.
-         */
-        @Override
-        public final long getSequenceNumber() {
-            return seqnum;
-        }
-
-        /**
-         * Gets a severity of this event.
-         *
-         * @return The severity of this event.
-         */
-        @Override
-        public final Severity getSeverity() {
-            return severity;
-        }
-
-        /**
-         * Gets a message description of this notification.
-         *
-         * @return The message description of this notification.
-         */
-        @Override
-        public final String getMessage() {
-            return message;
+                                    final String correlationID,
+                                    final Object attachment,
+                                    final Supplier<JavaBeanNotification> notification){
+            super(severity, sequenceNumber, new Date(), message, correlationID, attachment, notification);
         }
     }
 
     private static final class JavaBeanEventMetadata extends GenericNotificationMetadata{
         private final AtomicLong sequenceCounter;
-        private final WellKnownTypeSystem typeSystem;
         private final Map<String, String> options;
         private final NotificationListenerInvoker listenerInvoker;
+        private final Supplier<ManagedEntityType> attachmentType;
 
-        public JavaBeanEventMetadata(final WellKnownTypeSystem typeSys,
-                                     final String category,
+        private JavaBeanEventMetadata(final String category,
                                      final Map<String, String> options,
+                                     final Supplier<ManagedEntityType> attachmentType,
                                      final NotificationListenerInvoker listenerInvoker){
             super(category);
             if(listenerInvoker == null) throw new IllegalArgumentException("listenerInvoker is null.");
             sequenceCounter = new AtomicLong(0L);
-            typeSystem = typeSys;
-            this.options = options != null ? Collections.unmodifiableMap(options) : new HashMap<String, String>();
+            this.options = options != null ? Collections.unmodifiableMap(options) : Collections.<String, String>emptyMap();
             this.listenerInvoker = listenerInvoker;
+            this.attachmentType = attachmentType;
         }
 
-        private void fireListeners(final Severity severity, final String message, final Map<String, ?> attachments){
-            fire(new JavaBeanNotification(severity, sequenceCounter.getAndIncrement(), message, attachments), listenerInvoker);
+        private void fire(final JavaBeanNotification notification){
+            fire(notification, listenerInvoker);
+        }
+
+        private JavaBeanNotification createNotification(final Severity severity,
+                                                        final String message,
+                                                        final String correlationID,
+                                                        final Object attachment,
+                                                        final Supplier<JavaBeanNotification> next){
+            return new JavaBeanNotification(severity,
+                    sequenceCounter.getAndIncrement(),
+                    message, correlationID,
+                    attachment,
+                    next);
         }
 
         /**
@@ -499,17 +624,16 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         }
 
         /**
-         * Returns the type descriptor for the specified attachment.
+         * Detects the attachment type.
+         * <p/>
+         * This method will be called automatically by SNAMP infrastructure
+         * and once for this instance of notification metadata.
          *
-         * @param attachment The notification attachment.
-         * @return The type descriptor for the specified attachment; or {@literal null} if the specified
-         *         attachment is not supported.
+         * @return The attachment type.
          */
         @Override
-        public final ManagedEntityType getAttachmentType(final Object attachment) {
-            if(attachment == null) return typeSystem.createFallbackEntityType();
-            final ManagedEntityType typeInfo = typeSystem.createEntitySimpleType(TypeToken.of(attachment.getClass()));
-            return typeInfo != null ? typeInfo: typeSystem.createFallbackEntityType();
+        protected ManagedEntityType detectAttachmentType() {
+            return attachmentType.get();
         }
 
         @Override
@@ -558,12 +682,12 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
     }
 
     private static final class JavaBeanNotificationSupport extends AbstractNotificationSupport{
-        private final WellKnownTypeSystem attachmentTypeSystem;
         private final Logger logger;
+        private final Collection<? extends ManagementEvent<?>> wellKnownEvents;
 
-        private JavaBeanNotificationSupport(final WellKnownTypeSystem typeSystem,
+        private JavaBeanNotificationSupport(final Collection<? extends ManagementEvent<?>> events,
                                             final Logger logger){
-            this.attachmentTypeSystem = typeSystem;
+            this.wellKnownEvents = events;
             this.logger = logger;
         }
 
@@ -604,16 +728,29 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
             failedToSubscribe(logger, Level.WARNING, listenerID, e);
         }
 
-        /**
-         * Raises notification.
-         * @param category The category of the event to raise.
-         * @param severity The severity of the event to raise.
-         * @param message Human-readable description of the event.
-         * @param attachments A set of notification attachments. May be {@literal null}.
-         */
-        public final void emitNotification(final String category, final Severity severity, final String message, final Map<String, ?> attachments){
-            for(final JavaBeanEventMetadata eventMetadata: getEnabledNotifications(category, JavaBeanEventMetadata.class).values())
-                eventMetadata.fireListeners(severity, message, attachments);
+        private void emitNotification(final String category,
+                                      final Severity severity,
+                                      final String message,
+                                      final String correlationID,
+                                      final Object attachment) {
+            emitNotification(category, new SafeConsumer<NotificationBuilder>() {
+                @Override
+                public void accept(final NotificationBuilder value) {
+                    value.setSeverity(severity);
+                    value.setMessage(message);
+                    value.setAttachment(attachment);
+                    value.setCorrelationID(correlationID);
+                }
+            });
+        }
+
+        private <E extends Exception> void emitNotification(final String category,
+                                                            final Consumer<NotificationBuilder, E> notificationBuilder) throws E {
+            for (final JavaBeanEventMetadata eventMetadata : getEnabledNotifications(category, JavaBeanEventMetadata.class).values()) {
+                final NotificationBuilder builder = new NotificationBuilder(eventMetadata);
+                notificationBuilder.accept(builder);
+                builder.emit();
+            }
         }
 
         /**
@@ -638,7 +775,11 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          */
         @Override
         protected final GenericNotificationMetadata enableNotifications(final String category, final Map<String, String> options) {
-            return new JavaBeanEventMetadata(attachmentTypeSystem, category, options, createListenerInvoker());
+            //find the appropriate notification descriptor to detect the attachment type
+            for (final ManagementEvent<?> ev : wellKnownEvents)
+                if (Objects.equals(ev.getCategory(), category))
+                    return new JavaBeanEventMetadata(category, options, Suppliers.ofInstance(ev.getAttachmentType()), createListenerInvoker());
+            return new JavaBeanEventMetadata(category, options, Suppliers.<ManagedEntityType>ofInstance(null), createListenerInvoker());
         }
 
         /**
@@ -754,7 +895,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         @Override
         protected final Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout) throws ReflectiveOperationException {
             if (attribute.canRead() && attribute instanceof JavaBeanPropertyMetadata)
-                return ((JavaBeanPropertyMetadata) attribute).getValue(descriptor.getInstance());
+                    return ((JavaBeanPropertyMetadata) attribute).getValue(descriptor.getInstance(), readTimeout);
             else
                 throw new ReflectiveOperationException(String.format("Attribute %s is write-only", attribute.getName()));
         }
@@ -770,7 +911,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         @Override
         protected final void setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws ReflectiveOperationException {
             if (attribute.canWrite() && attribute instanceof JavaBeanPropertyMetadata)
-                ((JavaBeanPropertyMetadata) attribute).setValue(descriptor.getInstance(), value);
+                ((JavaBeanPropertyMetadata) attribute).setValue(descriptor.getInstance(), value, writeTimeout);
             else
                 throw new ReflectiveOperationException(String.format("Attribute %s is read-only", attribute.getName()));
         }
@@ -819,6 +960,17 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
     private final JavaBeanNotificationSupport notifications;
     private final JavaBeanAttributeSupport attributes;
 
+    private ManagedResourceConnectorBean(final WellKnownTypeSystem typeBuilder,
+                                         final Collection<? extends ManagementEvent<?>> wellKnownEvents,
+                                         final Logger logger) throws IntrospectionException{
+        super(new SelfDescriptor(), logger);
+        //creates weak reference to this object
+        safeCast(getConnectionOptions(), SelfDescriptor.class).setSelfReference(this);
+        if (typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
+        this.attributes = new JavaBeanAttributeSupport(getConnectionOptions(), typeBuilder, logger);
+        this.notifications = new JavaBeanNotificationSupport(wellKnownEvents, logger);
+    }
+
     /**
      * Initializes a new management connector that reflects properties of this class as
      * connector managementAttributes.
@@ -826,14 +978,23 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @param logger A logger for this management connector.
      * @throws IllegalArgumentException typeBuilder is {@literal null}.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    protected ManagedResourceConnectorBean(final WellKnownTypeSystem typeBuilder, final Logger logger) throws IntrospectionException {
-        super(new SelfDescriptor(), logger);
-        //creates weak reference to this object
-        safeCast(getConnectionOptions(), SelfDescriptor.class).setSelfReference(this);
-        if (typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
-        this.attributes = new JavaBeanAttributeSupport(getConnectionOptions(), typeBuilder, logger);
-        this.notifications = new JavaBeanNotificationSupport(typeBuilder, logger);
+    protected ManagedResourceConnectorBean(final WellKnownTypeSystem typeBuilder,
+                                           final Logger logger) throws IntrospectionException {
+        this(typeBuilder, Collections.<ManagementEvent<?>>emptyList(), logger);
+    }
+
+    /**
+     * Initializes a new management connector that reflects properties of this class as
+     * connector managementAttributes.
+     * @param typeBuilder Type information provider that provides property type converter.
+     * @param logger A logger for this management connector.
+     * @param wellKnownEvents A set of well-known events (notifications).
+     * @throws IllegalArgumentException typeBuilder is {@literal null}.
+     */
+    protected <E extends Enum<E> & ManagementEvent<E>> ManagedResourceConnectorBean(final WellKnownTypeSystem typeBuilder,
+                                                                                    final Set<E> wellKnownEvents,
+                                                                                    final Logger logger) throws IntrospectionException {
+        this(typeBuilder, (Collection<? extends ManagementEvent<?>>) wellKnownEvents, logger);
     }
 
     /**
@@ -852,7 +1013,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         super(new BeanDescriptor<>(beanInstance, introspector), logger);
         if (typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
         this.attributes = new JavaBeanAttributeSupport(getConnectionOptions(), typeBuilder, logger);
-        this.notifications = new JavaBeanNotificationSupport(typeBuilder, logger);
+        this.notifications = new JavaBeanNotificationSupport(Collections.<ManagementEvent<?>>emptyList(), logger);
     }
 
     /**
@@ -913,27 +1074,48 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      *         put("oldValue", oldValue);
      *         put("newValue", newValue);
      *       }};
-     *       emitNotification("propertyChanged", Notification.Severity.NOTICE, String.format("Property %s changed", propertyName), attachments);
+     *       emitNotification("propertyChanged", Notification.Severity.NOTICE, String.format("Property %s changed", propertyName), null, attachments);
      *     }
      *     }</pre>
      * @param category The category of the event to raise.
      * @param severity The severity of the event to raise.
      * @param message Human-readable description of the event.
-     * @param attachments A set of notification attachments. May be {@literal null}.
+     * @param correlationID Notification correlation identifier.
+     * @param attachment Additional payload that can be associated with the notification. May be {@literal null}.
      */
-    protected final void emitNotification(final String category, final Severity severity, final String message, final Map<String, ?> attachments){
-        notifications.emitNotification(category, severity, message, attachments);
+    protected final void emitNotification(final String category,
+                                          final Severity severity,
+                                          final String message,
+                                          final String correlationID,
+                                          final Object attachment){
+        notifications.emitNotification(category, severity, message, correlationID, attachment);
     }
 
     /**
      * Raises notification.
-     * @param event Type of the event to emit.
+     * @param event The category of the event to raise.
      * @param message Human-readable description of the event.
-     * @param attachments A set of notification attachments. May be {@literal null}.
+     * @param correlationID Notification correlation identifier.
+     * @param attachment Additional payload that can be associated with the notification. May be {@literal null}.
      * @param <E> Type of the event to emit.
      */
-    protected final <E extends Enum<E> & ManagementEvent<E>> void emitNotification(final E event, final String message, final Map<String, ?> attachments){
-        emitNotification(event.getCategory(), event.getSeverity(), message, attachments);
+    protected final <E extends Enum<E> & ManagementEvent<E>> void emitNotification(final E event,
+                                                                                   final String message,
+                                                                                   final String correlationID,
+                                                                                   final Object attachment){
+        emitNotification(event.getCategory(), event.getSeverity(), message, correlationID, attachment);
+    }
+
+    /**
+     * Raises notification.
+     * @param category The category of the event to raise.
+     * @param notificationBuilder An object that fills the notification content.
+     * @param <E> Type of the exception that can be produced by builder.
+     * @throws E Unable to emit notification.
+     */
+    protected final <E extends Exception> void emitNotification(final String category,
+                                                                final Consumer<NotificationBuilder, E> notificationBuilder) throws E{
+        notifications.emitNotification(category, notificationBuilder);
     }
 
     /**
@@ -1179,5 +1361,15 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      */
     protected static <E extends Enum<E> & ManagementEvent<E>> Collection<EventConfiguration> discoverEvents(final Class<E> notificationTypes){
         return discoverEvents(EnumSet.allOf(notificationTypes));
+    }
+
+    /**
+     * Gets current attribute context.
+     * <p>
+     *     You should call this method inside of bean property getter or setter.
+     * @return The current attribute context.
+     */
+    protected static AttributeContext getAttributeContext(){
+        return AttributeContext.get();
     }
 }

@@ -65,8 +65,8 @@ final class SnmpConnectionOptions {
         securityContext = parameters.containsKey(SECURITY_CONTEXT_PARAM) ?
                 new OctetString(parameters.get(SECURITY_CONTEXT_PARAM)) :
                 null;
-        socketTimeout = parameters.containsKey(SOCKET_TIMEOUT) ?
-                Integer.parseInt(parameters.get(SOCKET_TIMEOUT)) :
+        socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ?
+                Integer.parseInt(parameters.get(SOCKET_TIMEOUT_PARAM)) :
                 DEFAULT_SOCKET_TIMEOUT;
     }
 

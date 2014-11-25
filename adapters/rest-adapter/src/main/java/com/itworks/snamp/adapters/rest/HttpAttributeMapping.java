@@ -7,7 +7,7 @@ import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.attributes.AttributeValue;
+import com.itworks.snamp.connectors.ManagedEntityValue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -40,24 +40,24 @@ final class HttpAttributeMapping {
         this.jsonFormatter = jsonFormatter;
     }
 
-    private static JsonArray toJsonArray(final AttributeValue<ManagedEntityTabularType> array, final Gson jsonFormatter){
+    private static JsonArray toJsonArray(final ManagedEntityValue<ManagedEntityTabularType> array, final Gson jsonFormatter){
         final JsonArray result = new JsonArray();
         //invoke all elements and converts each of them to JSON
         for(final Object rawValue: array.convertTo(TypeLiterals.OBJECT_ARRAY)){
-            result.add(toJson(new AttributeValue<>(rawValue, array.type.getColumnType(VALUE_COLUMN_NAME)), jsonFormatter));
+            result.add(toJson(new ManagedEntityValue<>(rawValue, array.type.getColumnType(VALUE_COLUMN_NAME)), jsonFormatter));
         }
         return result;
     }
 
-    private static JsonObject toJsonMap(final AttributeValue<ManagedEntityTabularType> map, final Gson jsonFormatter){
+    private static JsonObject toJsonMap(final ManagedEntityValue<ManagedEntityTabularType> map, final Gson jsonFormatter){
         final JsonObject result = new JsonObject();
         final Map<String, Object> value = map.convertTo(TypeLiterals.STRING_MAP);
         for(final String column: value.keySet())
-            result.add(column, toJson(new AttributeValue<>(value.get(column), map.type.getColumnType(column)), jsonFormatter));
+            result.add(column, toJson(new ManagedEntityValue<>(value.get(column), map.type.getColumnType(column)), jsonFormatter));
         return result;
     }
 
-    private static JsonElement toJsonTable(final AttributeValue<ManagedEntityTabularType> table, final Gson jsonFormatter){
+    private static JsonElement toJsonTable(final ManagedEntityValue<ManagedEntityTabularType> table, final Gson jsonFormatter){
         final JsonArray result = new JsonArray();
         final Table<String> tableReader = table.convertTo(TypeLiterals.STRING_COLUMN_TABLE);
         //table representation in JSON: [{column: value}, {column: value}]
@@ -66,13 +66,13 @@ final class HttpAttributeMapping {
             final JsonObject row = new JsonObject();
             //iterates through columns
             for(final String columnName: table.type.getColumns())
-                row.add(columnName, toJson(new AttributeValue<>(tableReader.getCell(columnName, rowIndex), table.type.getColumnType(columnName)), jsonFormatter));
+                row.add(columnName, toJson(new ManagedEntityValue<>(tableReader.getCell(columnName, rowIndex), table.type.getColumnType(columnName)), jsonFormatter));
             result.add(row);
         }
         return result;
     }
 
-    private static JsonElement toJson(final AttributeValue<? extends ManagedEntityType> value, final Gson jsonFormatter){
+    private static JsonElement toJson(final ManagedEntityValue<? extends ManagedEntityType> value, final Gson jsonFormatter){
         if(value == null || value.rawValue == null)
             return JsonNull.INSTANCE;
         else if(supportsString(value.type))

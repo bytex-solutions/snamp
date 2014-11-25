@@ -2,10 +2,12 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Joiner;
 import com.itworks.snamp.ConversionException;
+import com.itworks.snamp.MapBuilder;
 import com.itworks.snamp.ReferenceCountedObject;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedEntityType;
+import com.itworks.snamp.connectors.ManagedEntityValue;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
@@ -16,15 +18,11 @@ import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
 import org.snmp4j.SNMP4JSettings;
-import org.snmp4j.smi.Address;
-import org.snmp4j.smi.OID;
-import org.snmp4j.smi.Variable;
-import org.snmp4j.smi.VariableBinding;
+import org.snmp4j.smi.*;
 
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -35,8 +33,7 @@ import static com.itworks.snamp.AbstractConcurrentResourceAccess.Action;
 import static com.itworks.snamp.AbstractConcurrentResourceAccess.ConsistentAction;
 import static com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory.ExceptionHandler;
 import static com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker;
-import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.MESSAGE_TEMPLATE;
-import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SEVERITY_PARAM;
+import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.*;
 
 /**
  * Represents SNMP-compliant managed resource.
@@ -48,23 +45,45 @@ import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvid
 final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpConnectionOptions> implements AttributeSupport, NotificationSupport {
     private static final SnmpTypeSystem typeSystem = new SnmpTypeSystem();
 
+    private static final class SnmpNotification extends NotificationImpl{
+        private SnmpNotification(final Severity severity,
+                                 final long sequenceNumber,
+                                 final String message,
+                                 final Integer32 requestID,
+                                 final ManagedEntityValue<?> attachment){
+            super(severity,
+                    sequenceNumber,
+                    new Date(),
+                    message,
+                    requestID != null ? requestID.toString() : null,
+                    attachment);
+        }
+    }
+
     private static final class SnmpNotificationMetadata extends GenericNotificationMetadata implements CommandResponder{
         private final Map<String, String> options;
         private final AtomicLong sequenceNumber;
-        private final Logger logger;
-        private final ExecutorService executor;
+        private final NotificationListenerInvoker listenerInvoker;
 
-        public SnmpNotificationMetadata(final OID category,
+        private SnmpNotificationMetadata(final OID category,
                                         final Map<String, String> options,
                                         final Logger logger){
             super(category.toDottedString());
             this.options = Collections.unmodifiableMap(options);
             this.sequenceNumber = new AtomicLong(0L);
-            this.logger = logger;
-            this.executor = Executors.newSingleThreadExecutor();
+            this.listenerInvoker = createInvoker(logger);
         }
 
-        public OID getNotificationID(){
+        private static NotificationListenerInvoker createInvoker(final Logger logger){
+            return createParallelExceptionResistantInvoker(Executors.newSingleThreadExecutor(), new ExceptionHandler() {
+                @Override
+                public final void handle(final Throwable e, final NotificationListener source) {
+                    logger.log(Level.SEVERE, "Unable to process SNMP notification.", e);
+                }
+            });
+        }
+
+        private OID getNotificationID(){
             return new OID(getCategory());
         }
 
@@ -85,29 +104,68 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
             else return Severity.UNKNOWN;
         }
 
-        private static Map<String, Object> getAttachments(final Collection<VariableBinding> bindings){
-            final Map<String, Object> attachments = new HashMap<>(bindings.size());
-            for(final VariableBinding b: bindings)
-                attachments.put(b.getOid().toDottedString(), b.getVariable());
-            return attachments;
+        private static ManagedEntityValue<?> getAttachments(final List<VariableBinding> bindings,
+                                                     final Map<String, String> options){
+            switch (bindings.size()){
+                case 0: return null;
+                case 1:
+                    final Variable binding = bindings.get(0).getVariable();
+                    return new ManagedEntityValue<>(binding,
+                            typeSystem.resolveSnmpScalarType(binding, options));
+                default:
+                    final Map<String, Object> attachment = MapBuilder.createStringHashMap(bindings.size());
+                    final Map<String, ManagedEntityType> attachmentType = new HashMap<>(bindings.size());
+                    for(final VariableBinding b: bindings){
+                        final String key = b.getOid().toDottedString();
+                        attachment.put(key, b.getVariable());
+                        attachmentType.put(key, typeSystem.resolveSnmpScalarType(b.getVariable(), options));
+                    }
+                    return new ManagedEntityValue<>(attachment, typeSystem.createEntityDictionaryType(attachmentType));
+            }
         }
 
         private void processPdu(final PDU event){
-            final Collection<VariableBinding> bindings = event.getBindingList(getNotificationID());
+            List<VariableBinding> bindings = event.getBindingList(getNotificationID());
             if(bindings.size() == 0) return;
-            String template = get(MESSAGE_TEMPLATE);
-            if(template == null) template = Joiner.on(System.lineSeparator()).join(bindings);
-            else for(final VariableBinding binding: bindings){
-                final OID postfix = SnmpConnectorHelpers.getPostfix(getNotificationID(), binding.getOid());
-                if(postfix.size() == 0) continue;
-                template = template.replaceAll(String.format("\\{%s\\}", postfix), binding.getVariable().toString());
-            }
-            fire(new NotificationImpl(getSeverity(), sequenceNumber.getAndIncrement(), new Date(), template, getAttachments(bindings)), createParallelExceptionResistantInvoker(executor, new ExceptionHandler() {
-                @Override
-                public final void handle(final Throwable e, final NotificationListener source) {
-                    logger.log(Level.SEVERE, "Unable to process JMX notification.", e);
+
+            String message;
+            if(containsKey(MESSAGE_TEMPLATE_PARAM)){  //format message, no attachments
+                message = get(MESSAGE_TEMPLATE_PARAM);
+                for(final VariableBinding binding: bindings) {
+                    final OID postfix = SnmpConnectorHelpers.getPostfix(getNotificationID(), binding.getOid());
+                    if (postfix.size() == 0) continue;
+                    message = message.replaceAll(String.format("\\{%s\\}", postfix), binding.getVariable().toString());
                 }
-            }));
+                bindings = Collections.emptyList();
+            }
+            else if(containsKey(MESSAGE_OID_PARAM)){      //extract message, add attachments
+                final OID messageOID = new OID(message = get(MESSAGE_OID_PARAM));
+                bindings = new ArrayList<>(bindings);
+                final Iterator<VariableBinding> iterator = bindings.iterator();
+                while (iterator.hasNext()){
+                    final VariableBinding b = iterator.next();
+                    if(Objects.equals(messageOID, SnmpConnectorHelpers.getPostfix(getNotificationID(), b.getOid()))){
+                        message = b.getVariable().toString();
+                        iterator.remove();
+                        break;
+                    }
+                }
+            }
+            else {              //concatenate bindings, no attachments
+                message = Joiner.on(System.lineSeparator()).join(bindings);
+                bindings = Collections.emptyList();
+            }
+            fire(message, event.getRequestID(), bindings);
+        }
+
+        private void fire(final String message,
+                          final Integer32 requestID,
+                          final List<VariableBinding> attachment){
+            fire(new SnmpNotification(getSeverity(),
+                    sequenceNumber.getAndIncrement(),
+                    message,
+                    requestID,
+                    getAttachments(attachment, options)), listenerInvoker);
         }
 
         @Override
@@ -122,21 +180,20 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
          */
         @Override
         public NotificationModel getNotificationModel() {
-            return NotificationModel.MULTICAST;
+            return NotificationModel.MULTICAST_SEQUENTIAL;
         }
 
         /**
-         * Returns the type descriptor for the specified attachment.
+         * Detects the attachment type.
+         * <p/>
+         * This method will be called automatically by SNAMP infrastructure
+         * and once for this instance of notification metadata.
          *
-         * @param attachment The notification attachment.
-         * @return The type descriptor for the specified attachment; or {@literal null} if the specified
-         * attachment is not supported.
+         * @return The attachment type.
          */
         @Override
-        public ManagedEntityType getAttachmentType(final Object attachment) {
-            return attachment instanceof Variable ?
-                    typeSystem.resolveSnmpScalarType((Variable)attachment, options) :
-                    null;
+        protected ManagedEntityType detectAttachmentType() {
+            return null;
         }
 
         @Override

@@ -26,7 +26,12 @@ public interface NotificationMetadata extends ManagedEntityMetadata {
     /**
      * Gets attachment descriptor that can be used to convert notification attachment
      * into well-known object.
-     * @return An attachment descriptor; or {@literal null} if attachments are not supported.
+     * <p>
+     *  When attachment type cannot be defined statically then this method returns {@literal null}.
+     *  However, the {@link Notification#getAttachment()} may return {@link com.itworks.snamp.connectors.ManagedEntityValue}
+     *  object which contains dynamically defined attachment type.
+     * </p>
+     * @return An attachment descriptor; or {@literal null} if attachment type cannot be detected statically.
      */
     ManagedEntityType getAttachmentType();
 }

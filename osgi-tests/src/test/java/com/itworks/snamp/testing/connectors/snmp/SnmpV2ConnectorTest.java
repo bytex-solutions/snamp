@@ -2,7 +2,8 @@ package com.itworks.snamp.testing.connectors.snmp;
 
 import com.itworks.snamp.*;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -267,7 +268,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 assertNotNull(n);
                 assertEquals("Hello, world! - 42", n.getMessage());
                 assertEquals(0L, n.getSequenceNumber());
-                assertEquals(2, n.size());
+                assertNull(n.getAttachment());
             } finally {
                 assertTrue(notifications.unsubscribe("123"));
             }

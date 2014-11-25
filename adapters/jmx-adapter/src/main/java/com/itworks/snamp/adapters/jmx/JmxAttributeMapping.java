@@ -9,7 +9,7 @@ import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.attributes.AttributeValue;
+import com.itworks.snamp.connectors.ManagedEntityValue;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
@@ -124,7 +124,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         else throw new OpenDataException(String.format("Unable to resolve %s entity type to JMX OpenType", entityType));
     }
 
-    private static CompositeData toCompositeData(final AttributeValue<ManagedEntityTabularType> source,
+    private static CompositeData toCompositeData(final ManagedEntityValue<ManagedEntityTabularType> source,
                                                  final Map<String, String> options) throws OpenDataException{
         if(source.canConvertTo(JmxTypeLiterals.COMPOSITE_DATA)){
             final CompositeData dict = source.convertTo(JmxTypeLiterals.COMPOSITE_DATA);
@@ -134,12 +134,12 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         }
         final Map<String, Object> m = MapBuilder.createStringHashMap(10);
         for(final Map.Entry<String, ?> entry: source.convertTo(TypeLiterals.STRING_MAP).entrySet()){
-            m.put(entry.getKey(), getValue(new AttributeValue<>(entry.getValue(), source.type.getColumnType(entry.getKey())), Collections.<String, String>emptyMap()));
+            m.put(entry.getKey(), getValue(new ManagedEntityValue<>(entry.getValue(), source.type.getColumnType(entry.getKey())), Collections.<String, String>emptyMap()));
         }
         return new CompositeDataSupport(getAttributeMapType(source.type, options), m);
     }
 
-    private static TabularData toTabularData(final AttributeValue<ManagedEntityTabularType> source,
+    private static TabularData toTabularData(final ManagedEntityValue<ManagedEntityTabularType> source,
                                              final Map<String, String> options) throws OpenDataException{
         final TabularData result;
         if(source.canConvertTo(JmxTypeLiterals.TABULAR_DATA)){
@@ -160,7 +160,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
             for (int i = 0; i < table.getRowCount(); i++) {
                 final Map<String, Object> row = new HashMap<>(table.getColumns().size());
                 for (final String columnName : table.getColumns())
-                    row.put(columnName, getValue(new AttributeValue<>(table.getCell(columnName, i), source.type.getColumnType(columnName)), Collections.<String, String>emptyMap()));
+                    row.put(columnName, getValue(new ManagedEntityValue<>(table.getCell(columnName, i), source.type.getColumnType(columnName)), Collections.<String, String>emptyMap()));
                 result.put(new CompositeDataSupport(result.getTabularType().getRowType(), row));
             }
             return result;
@@ -168,7 +168,7 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         else throw new OpenDataException(String.format("Unsupported table type %s", source.type));
     }
 
-    private static Object getValue(final AttributeValue<?> source, final Map<String, String> options) throws OpenDataException{
+    private static Object getValue(final ManagedEntityValue<?> source, final Map<String, String> options) throws OpenDataException{
         if(supportsBoolean(source.type))
             return source.convertTo(TypeLiterals.BOOLEAN);
         else if(supportsInt8(source.type))

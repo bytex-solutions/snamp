@@ -7,7 +7,7 @@ import org.snmp4j.smi.OID;
 
 import java.util.Map;
 
-import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT;
+import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
 
 /**
  * Represents {@link org.snmp4j.smi.OID} conversion format.
@@ -22,8 +22,8 @@ enum OidConversionFormat {
     static final TypeToken<OID> OBJ_ID = TypeToken.of(OID.class);
 
     public static OidConversionFormat getFormat(final Map<String, String> options){
-        if(options.containsKey(SNMP_CONVERSION_FORMAT))
-            return getFormat(options.get(SNMP_CONVERSION_FORMAT));
+        if(options.containsKey(SNMP_CONVERSION_FORMAT_PARAM))
+            return getFormat(options.get(SNMP_CONVERSION_FORMAT_PARAM));
         else return INT_ARRAY;
     }
 

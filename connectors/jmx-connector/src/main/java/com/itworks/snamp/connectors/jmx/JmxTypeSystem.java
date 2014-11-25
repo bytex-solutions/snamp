@@ -637,13 +637,15 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
 
     @SuppressWarnings("unchecked")
     public final JmxManagedEntityOpenType<?> createEntityType(final OpenType<?> attributeType){
-        if(attributeType instanceof SimpleType)
+        if(attributeType == null)
+            return null;
+        else if(attributeType instanceof SimpleType)
             return createEntitySimpleType((SimpleType<?>) attributeType);
         else if(attributeType instanceof CompositeType)
-            return createEntityType(new Supplier<AbstractJmxEntityCompositeType>(){
+            return createEntityType(new Supplier<AbstractJmxEntityCompositeType>() {
                 @Override
                 public final AbstractJmxEntityCompositeType get() {
-                    return new JmxManagedEntityCompositeType((CompositeType)attributeType);
+                    return new JmxManagedEntityCompositeType((CompositeType) attributeType);
                 }
             }, AbstractJmxEntityCompositeType.WELL_KNOWN_TYPES);
         else if(attributeType instanceof ArrayType)
