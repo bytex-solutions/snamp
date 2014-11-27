@@ -1,18 +1,20 @@
 package com.itworks.jcommands.channels;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.ChannelProcessingMode;
 import com.itworks.jcommands.ChannelProcessor;
 import com.itworks.jcommands.CommandExecutionChannel;
-import com.itworks.snamp.MapBuilder;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.exec.ExecuteException;
-import org.apache.commons.net.telnet.TelnetClient;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents channel that executes commands as processes in
@@ -30,13 +32,10 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
     public LocalProcessExecutionChannel(final Map<String, String> params){
         super(params);
         rt = Runtime.getRuntime();
-        org.apache.commons.net.telnet.TelnetClient cl = new TelnetClient();
     }
 
     public LocalProcessExecutionChannel(final int normalExitCode) {
-        this(MapBuilder
-                .create(NORMAL_EXIT_CODE_PARAM, Integer.toString(normalExitCode))
-                .buildHashMap());
+        this(ImmutableMap.of(NORMAL_EXIT_CODE_PARAM, Integer.toString(normalExitCode)));
     }
 
     public int getNormalExitCode() {

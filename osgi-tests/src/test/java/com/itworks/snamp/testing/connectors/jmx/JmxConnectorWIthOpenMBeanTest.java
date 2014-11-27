@@ -233,7 +233,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public final void testForDictionaryProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
-        final Map<String, Object> dict = MapBuilder.createStringHashMap(3);
+        final Map<String, Object> dict = Utils.createStringHashMap(3);
         dict.put("col1", Boolean.TRUE);
         dict.put("col2", 42);
         dict.put("col3", "Frank Underwood");

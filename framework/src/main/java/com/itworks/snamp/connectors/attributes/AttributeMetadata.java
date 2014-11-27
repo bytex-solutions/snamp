@@ -13,21 +13,6 @@ import java.util.Locale;
  */
 public interface AttributeMetadata extends ManagedEntityMetadata {
     /**
-     * The name of the optional metadata property that provides a name of the attribute type.
-     */
-    String TYPE_NAME = "typeName";
-
-    /**
-     * The name of the optional metadata property that provides a description of the attribute type.
-     */
-    String TYPE_DESCRIPTION = "typeDescription";
-
-    /**
-     * The name of the optional metadata property that contains pattern for column description.
-     */
-    String COLUMN_DESCRIPTION = "column.%s.description";
-
-    /**
      * Returns the system name of the attribute.
      * @return The attribute name.
      */

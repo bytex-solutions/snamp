@@ -1,13 +1,13 @@
 package com.itworks.snamp.adapters.rest;
 
 import com.google.gson.*;
-import com.itworks.snamp.MapBuilder;
 import com.itworks.snamp.Table;
 import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.ManagedEntityValue;
+import com.itworks.snamp.internal.Utils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -141,7 +141,7 @@ final class HttpAttributeMapping {
     private static Map<String, Object> fromMapJson(final JsonObject attributeValue,
                                                    final ManagedEntityTabularType attributeType,
                                                    final Gson jsonFormatter){
-        final Map<String, Object> result = MapBuilder.createStringHashMap(10);
+        final Map<String, Object> result = Utils.createStringHashMap(10);
         for(final String column: attributeType.getColumns())
             if(attributeValue.has(column))
                 result.put(column, fromJson(jsonFormatter.toJson(attributeValue.get(column)), attributeType.getColumnType(column), jsonFormatter));

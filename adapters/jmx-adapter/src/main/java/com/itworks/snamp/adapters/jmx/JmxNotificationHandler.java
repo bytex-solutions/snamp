@@ -10,5 +10,5 @@ import com.google.common.eventbus.Subscribe;
  */
 interface JmxNotificationHandler {
     @Subscribe
-    void processNotification(final JmxNotification notification);
+    void processNotification(final JmxNotificationSurrogate notification);
 }

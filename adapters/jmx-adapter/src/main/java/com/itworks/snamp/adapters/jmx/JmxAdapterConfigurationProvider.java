@@ -15,19 +15,19 @@ import java.util.ResourceBundle;
  */
 final class JmxAdapterConfigurationProvider extends ConfigurationEntityDescriptionProviderImpl {
 
-    public static final String OBJECT_NAME_PARAM = "objectName";
+    static final String OBJECT_NAME_PARAM = "objectName";
 
-    public static final String USE_PLATFORM_MBEAN_PARAM = "usePlatformMBean";
+    static final String USE_PLATFORM_MBEAN_PARAM = "usePlatformMBean";
 
-    public static final String DEBUG_USE_PURE_SERIALIZATION_PARAM = "dbgUsePureSerialization";
+    static final String DEBUG_USE_PURE_SERIALIZATION_PARAM = "dbgUsePureSerialization";
 
-    public static final String NOTIF_TYPE_PARAM = "jmxNotificationType";
+    static final String SEVERITY_PARAM = "severity";
 
     private static final class EventConfigSchema extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
         private static final String RESOURCE_NAME = "JmxEventSettings";
 
         public EventConfigSchema(){
-            super(EventConfiguration.class, NOTIF_TYPE_PARAM);
+            super(EventConfiguration.class, SEVERITY_PARAM);
         }
 
         @Override

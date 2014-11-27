@@ -2,10 +2,11 @@ package com.itworks.snamp.connectors.jmx;
 
 import com.google.common.base.Suppliers;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.MapBuilder;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityTypeBuilder.AbstractManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityValue;
+import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.internal.annotations.MethodStub;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.Descriptor;
@@ -51,28 +52,22 @@ final class AttachmentResolverFactory {
             return null;
         }
 
+        private static ManagedEntityValue<?> convertAttachment(final Object value,
+                                                               final JmxTypeSystem typeSystem){
+            final OpenType<?> type = JmxTypeSystem.getOpenTypeFromValue(value, Suppliers.<OpenType<?>>ofInstance(null));
+            return type != null ? new ManagedEntityValue<>(value, typeSystem.createEntityType(type)) : null;
+        }
+
         @Override
         public Object extractAttachment(final Notification notif,
                                         final JmxTypeSystem typeSystem) {
-            try {
-                final BeanInfo info = Introspector.getBeanInfo(notif.getClass(), Notification.class);
-                final PropertyDescriptor[] properties = info.getPropertyDescriptors();
-                final Map<String, Object> result = MapBuilder.createStringHashMap(properties.length);
-                final Map<String, ManagedEntityType> attachmentType = new HashMap<>(properties.length);
-                for (final PropertyDescriptor prop : properties) {
-                    final Method getter = prop.getReadMethod();
-                    if (getter == null) continue;
-                    final Object attachmentValue = getter.invoke(notif);
-                    final ManagedEntityType propertyType = typeSystem.createEntityType(attachmentValue.getClass(), Suppliers.<OpenType<?>>ofInstance(null));
-                    if (propertyType == null) continue;
-                    result.put(prop.getName(), attachmentValue);
-                    attachmentType.put(prop.getName(), propertyType);
-                }
-                return new ManagedEntityValue<>(result, typeSystem.createEntityDictionaryType(attachmentType));
-            } catch (final IntrospectionException | ReflectiveOperationException e) {
-                unableToReflectNotificationType(notif.getClass(), e);
-                return null;
-            }
+            return convertAttachment(notif.getUserData(), typeSystem);
+        }
+
+        @Override
+        @MethodStub
+        public void exposeTypeInfo(final Map<String, String> options) {
+
         }
     }
 
@@ -92,6 +87,11 @@ final class AttachmentResolverFactory {
         public Object extractAttachment(final Notification notif, final JmxTypeSystem typeSystem) {
             return notif.getUserData();
         }
+
+        @Override
+        public void exposeTypeInfo(final Map<String, String> options) {
+            JmxTypeSystem.exposeTypeInfo(userDataType, options);
+        }
     }
 
     private static final class ClassBasedAttachmentResolver<T extends Notification> implements AttachmentResolver{
@@ -107,10 +107,10 @@ final class AttachmentResolverFactory {
                 try{
                     final BeanInfo info = Introspector.getBeanInfo(notificationType, Notification.class);
                     final PropertyDescriptor[] properties = info.getPropertyDescriptors();
-                    final Map<String, Object> attachments = MapBuilder.createStringHashMap(properties.length);
+                    final Map<String, Object> attachments = Utils.createStringHashMap(properties.length);
                     reflectProperties(properties, typeSystem, new PropertyReflector() {
                         @Override
-                        public void reflect(final PropertyDescriptor prop, final ManagedEntityType type) throws ReflectiveOperationException {
+                        public void reflect(final PropertyDescriptor prop, final JmxManagedEntityOpenType<?> type) throws ReflectiveOperationException {
                             attachments.put(prop.getName(), prop.getReadMethod().invoke(notif));
                         }
                     });
@@ -123,18 +123,28 @@ final class AttachmentResolverFactory {
         }
 
         @Override
+        @MethodStub
+        public void exposeTypeInfo(final Map<String, String> options) {
+
+        }
+
+        private Map<String, JmxManagedEntityOpenType<?>> resolveTypeCore(final JmxTypeSystem typeSystem) throws IntrospectionException, ReflectiveOperationException {
+            final BeanInfo info = Introspector.getBeanInfo(notificationType, Notification.class);
+            final PropertyDescriptor[] properties = info.getPropertyDescriptors();
+            final Map<String, JmxManagedEntityOpenType<?>> attachmentType = new HashMap<>(properties.length);
+            reflectProperties(properties, typeSystem, new PropertyReflector() {
+                @Override
+                public void reflect(final PropertyDescriptor prop, final JmxManagedEntityOpenType<?> propertyType) throws ReflectiveOperationException {
+                    attachmentType.put(prop.getName(), propertyType);
+                }
+            });
+            return attachmentType;
+        }
+
+        @Override
         public AbstractManagedEntityTabularType resolveType(final JmxTypeSystem typeSystem) {
             try {
-                final BeanInfo info = Introspector.getBeanInfo(notificationType, Notification.class);
-                final PropertyDescriptor[] properties = info.getPropertyDescriptors();
-                final Map<String, ManagedEntityType> attachmentType = new HashMap<>(properties.length);
-                reflectProperties(properties, typeSystem, new PropertyReflector() {
-                    @Override
-                    public void reflect(final PropertyDescriptor prop, final ManagedEntityType propertyType) throws ReflectiveOperationException {
-                        attachmentType.put(prop.getName(), propertyType);
-                    }
-                });
-                return typeSystem.createEntityDictionaryType(attachmentType);
+                return typeSystem.createEntityDictionaryType(resolveTypeCore(typeSystem));
             }
             catch (final IntrospectionException | ReflectiveOperationException e) {
                 unableToReflectNotificationType(notificationType, e);
@@ -144,7 +154,7 @@ final class AttachmentResolverFactory {
     }
 
     private static interface PropertyReflector{
-        void reflect(final PropertyDescriptor descr, final ManagedEntityType type) throws ReflectiveOperationException;
+        void reflect(final PropertyDescriptor descr, final JmxManagedEntityOpenType<?> type) throws ReflectiveOperationException;
     }
 
     private static void reflectProperties(final PropertyDescriptor[] properties,
@@ -153,7 +163,7 @@ final class AttachmentResolverFactory {
         for (final PropertyDescriptor prop : properties) {
             final Method getter = prop.getReadMethod();
             if (getter == null) continue;
-            final ManagedEntityType propertyType = typeSystem.createEntityType(getter.getReturnType(), Suppliers.<OpenType<?>>ofInstance(null));
+            final JmxManagedEntityOpenType<?> propertyType = typeSystem.createEntityType(getter.getReturnType(), Suppliers.<OpenType<?>>ofInstance(null));
             if (propertyType == null) continue;
             reflector.reflect(prop, propertyType);
         }

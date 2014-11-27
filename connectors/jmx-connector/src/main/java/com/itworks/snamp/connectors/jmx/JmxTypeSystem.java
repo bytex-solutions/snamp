@@ -7,6 +7,7 @@ import com.itworks.snamp.*;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
+import com.itworks.snamp.internal.Utils;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
@@ -19,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
+import static com.itworks.snamp.connectors.ManagedEntityMetadata.*;
 
 /**
  * Represents JMX type system. This class cannot be inherited.
@@ -80,7 +82,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
 
     private static Map<String, Object> convertToMap(final CompositeData value){
         final CompositeType ct = value.getCompositeType();
-        final Map<String, Object> result = MapBuilder.createStringHashMap(ct.keySet().size());
+        final Map<String, Object> result = Utils.createStringHashMap(ct.keySet().size());
         for(final String key: ct.keySet())
             result.put(key, value.get(key));
         return result;
@@ -147,7 +149,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
     }
 
-    public static OpenType<?> getOpenType(final MBeanAttributeInfo targetAttr, final Supplier<OpenType<?>> fallback) {
+    static OpenType<?> getOpenType(final MBeanAttributeInfo targetAttr, final Supplier<OpenType<?>> fallback) {
         if(targetAttr instanceof OpenMBeanAttributeInfo)
              return ((OpenMBeanAttributeInfo)targetAttr).getOpenType();
         else if(ArrayUtils.contains(targetAttr.getDescriptor().getFieldNames(), OPEN_TYPE_DESCR_FIELD))
@@ -396,7 +398,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
 
         private CompositeData convertToJmxType(final Map<String, Object> value) throws InvalidAttributeValueException{
-            final Map<String, Object> convertedValue = MapBuilder.createStringHashMap(value.size());
+            final Map<String, Object> convertedValue = Utils.createStringHashMap(value.size());
             for(final String columnName: value.keySet()){
                 final JmxManagedEntityType columnType = createEntityType(getOpenType().getType(columnName));
                 convertedValue.put(columnName, columnType.convertToJmx(value.get(columnName)));
@@ -410,7 +412,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
 
         private CompositeData convertToJmxType(final Table<String> value) throws InvalidAttributeValueException{
-            final Map<String, Object> result = MapBuilder.createStringHashMap(value.getColumns().size());
+            final Map<String, Object> result = Utils.createStringHashMap(value.getColumns().size());
             if(value.getRowCount() > 0)
                 for(final String columnName: getOpenType().keySet()){
                     final JmxManagedEntityType columnType = createEntityType(getOpenType().getType(columnName));
@@ -660,25 +662,45 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         else return createEntitySimpleType(SimpleType.STRING);
     }
 
-    public JmxManagedEntityType createEntityType(final Class<?> attributeType, final Supplier<OpenType<?>> fallback){
-        return createEntityType(attributeType.getCanonicalName(), fallback);
-    }
-
-    public JmxManagedEntityType createEntityType(final String attributeType, final Supplier<OpenType<?>> fallback){
+    JmxManagedEntityOpenType<?> createEntityType(final Class<?> attributeType, final Supplier<OpenType<?>> fallback){
         return createEntityType(getOpenType(attributeType, fallback));
     }
 
-    public static OpenType<?> getOpenTypeFromValue(final Object value){
+    static OpenType<?> getOpenType(final Class<?> nativeType, final Supplier<OpenType<?>> fallback){
+        return getOpenType(nativeType.getCanonicalName(), fallback);
+    }
+
+    static OpenType<?> getOpenTypeFromValue(final Object value, final Supplier<OpenType<?>> fallback){
         if(value instanceof CompositeData)
             return ((CompositeData)value).getCompositeType();
         else if(value instanceof TabularData)
             return ((TabularData)value).getTabularType();
         else if(value != null)
-            return getOpenType(value.getClass().getCanonicalName(), null);
-        else return SimpleType.STRING;
+            return getOpenType(value.getClass(), fallback);
+        else if(fallback != null)
+            return fallback.get();
+        else return null;
     }
 
-    public JmxManagedEntityType createAttributeType(final MBeanAttributeInfo attribute, final Supplier<OpenType<?>> fallback){
-        return createEntityType(getOpenType(attribute, fallback));
+    private static void exposeTypeInfo(final CompositeType tinfo, final Map<String, String> options){
+        options.put(TYPE_NAME, tinfo.getTypeName());
+        options.put(TYPE_DESCRIPTION, tinfo.getDescription());
+        for(final String columnName: tinfo.keySet())
+            options.put(String.format(COLUMN_DESCRIPTION, columnName), tinfo.getDescription(columnName));
+    }
+
+    private static void exposeTypeInfo(final TabularType tinfo, final Map<String, String> options){
+        options.put(TYPE_NAME, tinfo.getTypeName());
+        options.put(TYPE_DESCRIPTION, tinfo.getDescription());
+        final CompositeType rowType = tinfo.getRowType();
+        for(final String columnName: rowType.keySet())
+            options.put(String.format(COLUMN_DESCRIPTION, columnName), rowType.getDescription(columnName));
+    }
+
+    static void exposeTypeInfo(final OpenType<?> tinfo, final Map<String, String> output){
+        if(tinfo instanceof CompositeType)
+            exposeTypeInfo((CompositeType) tinfo, output);
+        else if(tinfo instanceof TabularType)
+            exposeTypeInfo((TabularType)tinfo, output);
     }
 }

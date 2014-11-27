@@ -1,9 +1,8 @@
 package com.itworks.snamp.adapters.jmx;
 
-import com.itworks.snamp.UserDataSupport;
-
 import javax.management.DynamicMBean;
 import javax.management.Notification;
+import java.util.Date;
 
 /**
  * Represents wrapped JMX notification.
@@ -12,15 +11,15 @@ import javax.management.Notification;
  * @version 1.0
  * @since 1.0
  */
-final class JmxNotification extends Notification implements UserDataSupport<Object> {
-
-    public JmxNotification(final String type, final String sourceRes, final Object userData) {
-        super(type, sourceRes, 0L);
-        setUserData(userData);
-    }
-
-    public JmxNotification(final String sender, final com.itworks.snamp.connectors.notifications.Notification notif, final String eventCategory) {
-        this(eventCategory, sender, notif.getSeverity().toString());
+final class JmxNotificationSurrogate extends Notification {
+    JmxNotificationSurrogate(final String notificationType,
+                                     final String senderResource,
+                                     final String message,
+                                     final Date timeStamp,
+                                     final Object attachment) {
+        super(notificationType, senderResource, 0L, message);
+        setUserData(attachment);
+        setTimeStamp(timeStamp.getTime());
     }
 
     /**
@@ -28,11 +27,12 @@ final class JmxNotification extends Notification implements UserDataSupport<Obje
      *
      * @return The name of the emitter resource.
      */
+    @Override
     public String getSource() {
         return (String) super.getSource();
     }
 
-    public Notification toWellKnownNotification(final DynamicMBean source, final long sequenceNum) {
+    Notification toWellKnownNotification(final DynamicMBean source, final long sequenceNum) {
         final Notification result = new Notification(getType(), source, sequenceNum, getTimeStamp(), getMessage());
         result.setUserData(getUserData());
         return result;

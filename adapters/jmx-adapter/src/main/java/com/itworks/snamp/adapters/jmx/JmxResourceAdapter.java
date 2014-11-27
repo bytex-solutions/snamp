@@ -12,8 +12,12 @@ import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotificationEmitter;
 import javax.management.ObjectName;
+import javax.management.openmbean.OpenDataException;
 import java.lang.management.ManagementFactory;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,9 +32,11 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     private static final class JmxNotifications extends AbstractNotificationsModel<JmxNotificationMapping> {
         private final EventBus notificationBus;
         private static final String ID_SEPARATOR = "::";
+        private final Logger logger;
 
-        public JmxNotifications() {
+        private JmxNotifications(final Logger logger) {
             notificationBus = new EventBus();
+            this.logger = logger;
         }
 
         /**
@@ -43,7 +49,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
          */
         @Override
         protected JmxNotificationMapping createNotificationView(final String resourceName, final String eventName, final NotificationMetadata notifMeta) {
-            return new JmxNotificationMapping(notifMeta);
+            return new JmxNotificationMapping(notifMeta, eventName);
         }
 
         /**
@@ -54,8 +60,19 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
          * @param notificationMetadata The metadata of the notification.
          */
         @Override
-        protected void handleNotification(final String sender, final Notification notif, final JmxNotificationMapping notificationMetadata) {
-            notificationBus.post(new JmxNotification(sender, notif, notificationMetadata.getCategory()));
+        protected void handleNotification(final String sender, Notification notif, final JmxNotificationMapping notificationMetadata) {
+            Object attachment = notif.getAttachment();
+            try {
+                attachment = notificationMetadata.convertAttachment(attachment);
+            } catch (final OpenDataException e) {
+                logger.log(Level.WARNING,
+                        String.format("Unable to parse attachment %s from notification %s",
+                                attachment, notificationMetadata.getCategory()), e);
+                attachment = null;
+            }
+            notificationBus.post(new JmxNotificationSurrogate(notificationMetadata.getCategory(), sender, notif.getMessage(), notif.getTimeStamp(), attachment));
+            notif = notif.getNext();
+            if(notif != null) handleNotification(sender, notif, notificationMetadata);
         }
 
         /**
@@ -146,10 +163,10 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         this.usePlatformMBean = usePlatformMBean;
         this.attributes = new JmxAttributes();
         this.exposedBeans = new HashMap<>(10);
-        this.notifications = new JmxNotifications();
+        this.notifications = new JmxNotifications(getLogger());
     }
 
-    public void usePureSerialization(){
+    void usePureSerialization(){
         attributes.usePureSerialization();
     }
 

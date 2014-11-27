@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.AbstractTypeConverterProvider;
 import com.itworks.snamp.TypeConverter;
@@ -154,7 +155,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
         /**
          * Represents read-only collection of columns.
          */
-        public static final Collection<String> COLUMNS = Collections.unmodifiableList(Arrays.asList(INDEX_COLUMN_NAME, VALUE_COLUMN_NAME));
+        public static final Collection<String> COLUMNS = ImmutableList.of(INDEX_COLUMN_NAME, VALUE_COLUMN_NAME);
 
         /**
          * Gets a set of dictionary keys (items).
@@ -367,14 +368,6 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
     public static boolean isArray(final ManagedEntityType entityType){
         return entityType instanceof ManagedEntityTabularType && isArray((ManagedEntityTabularType)entityType);
 
-    }
-
-    /**
-     * Creates a new simple management entity type that can convert any value to {@link String}.
-     * @return A new simple management entity type that can convert any value to {@link String}.
-     */
-    public final ManagedEntityType createFallbackEntityType(){
-        return createEntitySimpleType(TypeLiterals.STRING);
     }
 
     /**

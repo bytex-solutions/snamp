@@ -69,7 +69,7 @@ public interface Notification extends UserDataSupport<Object> {
      * </p>
      * <p>
      *     Each notification in the chain should have the same correlation identifier
-     *     ({@literal null} is allowed).
+     *     ({@literal null} is allowed) and the same attachment type.
      * </p>
      * @return The next notification in the chain; or {@literal null} if this is a last notification
      * in the chain of correlated notifications.

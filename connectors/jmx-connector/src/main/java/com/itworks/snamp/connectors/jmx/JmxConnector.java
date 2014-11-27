@@ -17,10 +17,12 @@ import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.LicensingException;
 
 import javax.management.*;
+import javax.management.monitor.MonitorNotification;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
+import javax.management.timer.TimerNotification;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
@@ -43,7 +45,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     public static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
     private static final Logger logger = JmxConnectorHelpers.getLogger();
     private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
-    private static final String JMX_ENTITY_OPTION = "jmx-compliant";
+    private static final String JMX_COMPLIANT = "jmx-compliant";
 
 
     private final static class JmxNotificationMetadata extends GenericNotificationMetadata{
@@ -63,17 +65,18 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                                        final ObjectName eventOwner,
                                        final Map<String, String> options){
             super(notifType);
-            options.put(JMX_ENTITY_OPTION, Boolean.toString(true));
-            this.options = Collections.unmodifiableMap(options);
+            this.options = new HashMap<>(options);
+            options.put(JMX_COMPLIANT, Boolean.toString(true));
             this.eventOwner = eventOwner;
             this.executor = Executors.newSingleThreadExecutor();
             this.advancedMetadata = notificationDescriptor;
             this.attachmentResolution = AttachmentResolverFactory.createResolver(notificationClassName,
                     notificationDescriptor);
+            attachmentResolution.exposeTypeInfo(options);
         }
 
         private static Severity parseSeverity(final String value){
-            switch (value){
+            switch (value.toLowerCase()){
                 case "1": //jmx severity level
                 case "panic": return Severity.PANIC;
                 case "2": //jmx severity level
@@ -108,7 +111,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * Raises the notification associated with this descriptor.
          * @param n A notification to emit.
          */
-        public final void fire(final javax.management.Notification n){
+        private void fire(final javax.management.Notification n){
             fire(new JmxNotificationWrapper(getSeverity(), attachmentResolution, n), NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
                 @Override
                 public final void handle(final Throwable e, final NotificationListener source) {
@@ -257,7 +260,9 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             else return new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
                 @Override
                 protected final JmxManagedEntityType detectAttributeType() {
-                    return typeSystem.createAttributeType(targetAttr, createTypeDetectionFallback(this));
+                    final OpenType<?> ot = JmxTypeSystem.getOpenType(targetAttr, createTypeDetectionFallback(this));
+                    exposeTypeInfo(ot);
+                    return typeSystem.createEntityType(ot);
                 }
 
                 /**
@@ -354,8 +359,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
 
                 @Override
                 protected final JmxManagedEntityType detectAttributeType() {
-                    final OpenType<?> compositeType = JmxTypeSystem.getOpenType(targetAttr, createTypeDetectionFallback(this));
-                    return typeSystem.createEntityType(navigator.getType(compositeType));
+                    OpenType<?> type = JmxTypeSystem.getOpenType(targetAttr, createTypeDetectionFallback(this));
+                    type = navigator.getType(type);
+                    exposeTypeInfo(type);
+                    return typeSystem.createEntityType(type);
                 }
             };
         }
@@ -754,15 +761,19 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             super(attributeName);
             this.connectionManager = manager;
             this.namespace = namespace;
-            options.put(JMX_ENTITY_OPTION, Boolean.toString(true));
-            this.options = Collections.unmodifiableMap(options);
+            options.put(JMX_COMPLIANT, Boolean.toString(true));
+            this.options = new HashMap<>(options);
+        }
+
+        protected final void exposeTypeInfo(final OpenType<?> tinfo){
+            JmxTypeSystem.exposeTypeInfo(tinfo, options);
         }
 
         protected final OpenType<?> getTypeFromAttributeValue() throws Exception {
             return connectionManager.handleConnection(new MBeanServerConnectionHandler<OpenType<?>>() {
                 @Override
                 public OpenType<?> handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    return JmxTypeSystem.getOpenTypeFromValue(connection.getAttribute(namespace, getName()));
+                    return JmxTypeSystem.getOpenTypeFromValue(connection.getAttribute(namespace, getName()), null);
                 }
             });
         }
@@ -877,10 +888,21 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             this.attachmentResolver = resolver;
         }
 
-        //JMX doesn't support correlation identifiers
+        private static String getCorrelationID(final TimerNotification notif){
+            return Integer.toString(notif.getNotificationID());
+        }
+
+        private static String getCorrelationID(final MonitorNotification notif){
+            return String.format("%s/%s", notif.getObservedObject(), notif.getObservedAttribute());
+        }
+
         @Override
         public String getCorrelationID() {
-            return null;
+            if(jmxNotification instanceof TimerNotification)
+                return getCorrelationID((TimerNotification)jmxNotification);
+            else if(jmxNotification instanceof MonitorNotification)
+                return getCorrelationID((MonitorNotification)jmxNotification);
+            else return null;
         }
 
         //JMX connector doesn't support correlation analysis

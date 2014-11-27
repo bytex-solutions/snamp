@@ -20,10 +20,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -467,5 +464,9 @@ public final class Utils {
             return propertyType.isInstance(result) ? propertyType.cast(result) : defaultValue;
         }
         else return defaultValue;
+    }
+
+    public static Map<String, Object> createStringHashMap(final int capacity){
+        return new HashMap<String, Object>(capacity){ };
     }
 }

@@ -2,7 +2,6 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Joiner;
 import com.itworks.snamp.ConversionException;
-import com.itworks.snamp.MapBuilder;
 import com.itworks.snamp.ReferenceCountedObject;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
@@ -13,6 +12,7 @@ import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicensingException;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
@@ -113,7 +113,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
                     return new ManagedEntityValue<>(binding,
                             typeSystem.resolveSnmpScalarType(binding, options));
                 default:
-                    final Map<String, Object> attachment = MapBuilder.createStringHashMap(bindings.size());
+                    final Map<String, Object> attachment = Utils.createStringHashMap(bindings.size());
                     final Map<String, ManagedEntityType> attachmentType = new HashMap<>(bindings.size());
                     for(final VariableBinding b: bindings){
                         final String key = b.getOid().toDottedString();
