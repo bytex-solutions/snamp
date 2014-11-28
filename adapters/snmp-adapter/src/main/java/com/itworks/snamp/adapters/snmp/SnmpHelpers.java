@@ -39,7 +39,7 @@ final class SnmpHelpers {
     /**
      * Represents date/time formatter.
      */
-    public static interface DateTimeFormatter{
+    static interface DateTimeFormatter{
         byte[] convert(final Date value);
         Date convert(final byte[] value) throws ParseException;
     }

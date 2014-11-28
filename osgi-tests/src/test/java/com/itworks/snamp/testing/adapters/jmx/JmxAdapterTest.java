@@ -19,7 +19,6 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -155,7 +154,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
             assertNotNull(testEvent.getAwaitor().await(TimeSpan.fromSeconds(10)));
             final Notification withAttachment = eventWithAttachmentHolder.getAwaitor().await(TimeSpan.fromSeconds(10));
             assertNotNull(withAttachment);
-            assertNotNull(withAttachment.getUserData() instanceof BigDecimal);
+            assertNotNull(withAttachment.getUserData() instanceof TabularData);
         }
         finally {
             AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);

@@ -7,7 +7,6 @@ import com.itworks.snamp.TimeSpan;
 import javax.management.*;
 import javax.management.openmbean.*;
 import javax.management.timer.TimerNotification;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashMap;
@@ -303,7 +302,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
                 sequenceCounter.getAndIncrement(),
                 System.currentTimeMillis(),
                 "Message");
-        notif.setUserData(new BigDecimal(42.0));
+        notif.setUserData(table);
         sendNotification(notif);
     }
 

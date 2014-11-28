@@ -3,15 +3,17 @@ package com.itworks.snamp.connectors.jmx;
 import com.google.common.base.Suppliers;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.connectors.ManagedEntityType;
-import com.itworks.snamp.connectors.ManagedEntityTypeBuilder.AbstractManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityValue;
-import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.internal.annotations.MethodStub;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.Descriptor;
 import javax.management.Notification;
 import javax.management.monitor.MonitorNotification;
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import javax.management.relation.RelationNotification;
 import javax.management.timer.TimerNotification;
@@ -20,9 +22,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -96,6 +96,8 @@ final class AttachmentResolverFactory {
 
     private static final class ClassBasedAttachmentResolver<T extends Notification> implements AttachmentResolver{
         private final Class<T> notificationType;
+        private static final String TYPE_NAME = "Attachment";
+        private static final String TYPE_DESCR = "Attachment Payload";
 
         private ClassBasedAttachmentResolver(final Class<T> notifType){
             this.notificationType = notifType;
@@ -103,50 +105,69 @@ final class AttachmentResolverFactory {
 
         @Override
         public Object extractAttachment(final Notification notif, final JmxTypeSystem typeSystem) {
-            if(notificationType.isInstance(notif))
-                try{
+            if (notificationType.isInstance(notif))
+                try {
                     final BeanInfo info = Introspector.getBeanInfo(notificationType, Notification.class);
                     final PropertyDescriptor[] properties = info.getPropertyDescriptors();
-                    final Map<String, Object> attachments = Utils.createStringHashMap(properties.length);
+                    final List<String>
+                            itemDescriptions = new ArrayList<>(properties.length);
+                    final List<OpenType<?>> itemTypes = new ArrayList<>(properties.length);
+                    final Map<String, Object> itemValues = new HashMap<>(properties.length);
                     reflectProperties(properties, typeSystem, new PropertyReflector() {
                         @Override
                         public void reflect(final PropertyDescriptor prop, final JmxManagedEntityOpenType<?> type) throws ReflectiveOperationException {
-                            attachments.put(prop.getName(), prop.getReadMethod().invoke(notif));
+                            itemDescriptions.add(prop.getName());
+                            itemTypes.add(type.getOpenType());
+                            itemValues.put(prop.getName(), prop.getReadMethod().invoke(notif));
                         }
                     });
-                    return attachments;
-            }
-            catch (final IntrospectionException | ReflectiveOperationException e){
-                unableToReflectNotificationType(notif.getClass(), e);
-            }
+                    return new CompositeDataSupport(new CompositeType(TYPE_NAME,
+                            TYPE_DESCR,
+                            ArrayUtils.toArray(itemValues.keySet(), String.class),
+                            ArrayUtils.toArray(itemDescriptions, String.class),
+                            itemTypes.toArray(new OpenType<?>[itemTypes.size()])
+                    ), itemValues);
+                } catch (final IntrospectionException | ReflectiveOperationException | OpenDataException e) {
+                    unableToReflectNotificationType(notif.getClass(), e);
+                }
             return null;
         }
 
         @Override
         @MethodStub
         public void exposeTypeInfo(final Map<String, String> options) {
-
+            options.put(AttributeMetadata.TYPE_NAME, TYPE_NAME);
+            options.put(AttributeMetadata.TYPE_DESCRIPTION, TYPE_DESCR);
         }
 
-        private Map<String, JmxManagedEntityOpenType<?>> resolveTypeCore(final JmxTypeSystem typeSystem) throws IntrospectionException, ReflectiveOperationException {
+        private CompositeType resolveTypeCore(final JmxTypeSystem typeSystem) throws IntrospectionException, ReflectiveOperationException, OpenDataException {
             final BeanInfo info = Introspector.getBeanInfo(notificationType, Notification.class);
             final PropertyDescriptor[] properties = info.getPropertyDescriptors();
-            final Map<String, JmxManagedEntityOpenType<?>> attachmentType = new HashMap<>(properties.length);
+            final List<String> itemNames = new ArrayList<>(properties.length),
+                    itemDescriptions = new ArrayList<>(properties.length);
+            final List<OpenType<?>> itemTypes = new ArrayList<>(properties.length);
             reflectProperties(properties, typeSystem, new PropertyReflector() {
                 @Override
                 public void reflect(final PropertyDescriptor prop, final JmxManagedEntityOpenType<?> propertyType) throws ReflectiveOperationException {
-                    attachmentType.put(prop.getName(), propertyType);
+                    itemNames.add(prop.getName());
+                    itemDescriptions.add(prop.getName());
+                    itemTypes.add(propertyType.getOpenType());
                 }
             });
-            return attachmentType;
+            return new CompositeType(TYPE_NAME,
+                    TYPE_DESCR,
+                    ArrayUtils.toArray(itemNames, String.class),
+                    ArrayUtils.toArray(itemDescriptions, String.class),
+                    itemTypes.toArray(new OpenType<?>[itemTypes.size()])
+                    );
         }
 
         @Override
-        public AbstractManagedEntityTabularType resolveType(final JmxTypeSystem typeSystem) {
+        public JmxManagedEntityOpenType<?> resolveType(final JmxTypeSystem typeSystem) {
             try {
-                return typeSystem.createEntityDictionaryType(resolveTypeCore(typeSystem));
+                return typeSystem.createEntityType(resolveTypeCore(typeSystem));
             }
-            catch (final IntrospectionException | ReflectiveOperationException e) {
+            catch (final IntrospectionException | ReflectiveOperationException | OpenDataException e) {
                 unableToReflectNotificationType(notificationType, e);
                 return null;
             }

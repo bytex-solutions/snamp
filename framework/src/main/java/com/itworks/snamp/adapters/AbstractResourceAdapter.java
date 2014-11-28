@@ -3,7 +3,10 @@ package com.itworks.snamp.adapters;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.*;
 import com.itworks.snamp.connectors.*;
-import com.itworks.snamp.connectors.attributes.*;
+import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
@@ -24,8 +27,6 @@ import java.util.logging.Logger;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-
-import com.itworks.snamp.connectors.notifications.NotificationEvent;
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 import static com.itworks.snamp.internal.Utils.isInstanceOf;
 
@@ -523,6 +524,15 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         @Override
         public Set<Entry<String, String>> entrySet() throws IllegalStateException{
             return getMetadataAndCheckState().entrySet();
+        }
+
+        /**
+         * Determines whether this attribute has the type which is a subtype of the specified type.
+         * @param expectedType The expected type.
+         * @return {@literal true}, if this attribute has the type which is a subtype of the specified type; otherwise, {@literal false}.
+         */
+        public boolean hasManagedType(final Class<? extends ManagedEntityType> expectedType) {
+            return expectedType.isInstance(getType());
         }
     }
 

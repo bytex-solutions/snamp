@@ -269,16 +269,23 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     public final void notificationTest() throws IOException, TimeoutException, InterruptedException {
         final SynchronizationEvent.Awaitor<SnmpNotification> awaitor1 = client.addNotificationListener(new OID("1.1.19.1"));
         final SynchronizationEvent.Awaitor<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
+        final SynchronizationEvent.Awaitor<SnmpNotification> awaitor3 = client.addNotificationListener(new OID("1.1.21.1"));
         client.writeAttribute(new OID("1.1.1.0"), "NOTIFICATION TEST", String.class);
         final SnmpNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
         final SnmpNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.MINUTES));
+        final SnmpNotification p3 = awaitor3.await(new TimeSpan(4, TimeUnit.MINUTES));
         assertNotNull(p1);
         assertNotNull(p2);
         assertEquals(Severity.NOTICE, p1.getSeverity());
         assertEquals(Severity.PANIC, p2.getSeverity());
+        assertEquals(Severity.NOTICE, p3.getSeverity());
         assertEquals(0L, p1.getSequenceNumber());
+        assertEquals(1L, p2.getSequenceNumber());
+        assertEquals(2L, p3.getSequenceNumber());
+        assertNotNull(p3.getCategory());
         assertEquals("Property string is changed", p1.getMessage());
         assertEquals("Property changed", p2.getMessage());
+        assertTrue(p3.size() > 10);
     }
 
     @Test
@@ -316,6 +323,15 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         event.getParameters().put("receiverName", "test-receiver-2");
         event.getParameters().put("oid", "1.1.20.1");
         events.put("20.1", event);
+
+        event = eventFactory.get();
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.plainnotif");
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("objectName", BEAN_NAME);
+        event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
+        event.getParameters().put("receiverName", "test-receiver-3");
+        event.getParameters().put("oid", "1.1.21.1");
+        events.put("21.1", event);
     }
 
     @Override
