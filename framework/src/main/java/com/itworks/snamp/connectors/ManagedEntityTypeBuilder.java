@@ -3,9 +3,9 @@ package com.itworks.snamp.connectors;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.AbstractTypeConverterProvider;
-import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.AbstractTypeConverterProvider;
+import com.itworks.snamp.mapping.TypeConverter;
+import com.itworks.snamp.mapping.TypeLiterals;
 
 import java.lang.reflect.Type;
 import java.util.*;

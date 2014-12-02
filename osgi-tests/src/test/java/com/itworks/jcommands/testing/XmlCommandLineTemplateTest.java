@@ -4,7 +4,7 @@ import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
-import com.itworks.snamp.Table;
+import com.itworks.snamp.mapping.Table;
 import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
+import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 
 /**
  * @author Roman Sakno

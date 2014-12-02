@@ -1,7 +1,9 @@
-package com.itworks.snamp;
+package com.itworks.snamp.mapping;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
+import com.itworks.snamp.Consumer;
+import com.itworks.snamp.SafeConsumer;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;

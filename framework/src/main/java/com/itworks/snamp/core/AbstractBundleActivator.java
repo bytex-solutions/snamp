@@ -4,7 +4,7 @@ import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.Attribute;
 import com.itworks.snamp.AttributeReader;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.osgi.framework.*;
 

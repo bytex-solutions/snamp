@@ -3,6 +3,7 @@ package com.itworks.snamp.connectors.operations;
 
 import com.google.common.annotations.Beta;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.views.View;
 
 import java.util.*;
 
@@ -13,7 +14,7 @@ import java.util.*;
  * @since 1.0
  */
 @Beta
-public interface OperationSupport {
+public interface OperationSupport extends View {
 
     /**
      * Creates a new invocation queue that is used to execute the specified operations.

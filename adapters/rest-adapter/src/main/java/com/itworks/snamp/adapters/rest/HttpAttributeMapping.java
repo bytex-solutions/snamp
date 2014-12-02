@@ -1,8 +1,8 @@
 package com.itworks.snamp.adapters.rest;
 
 import com.google.gson.*;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.Table;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
+import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME;
 import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.isArray;

@@ -11,6 +11,9 @@ import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.internal.CountdownTimer;
 import com.itworks.snamp.internal.annotations.Temporary;
+import com.itworks.snamp.mapping.InMemoryTable;
+import com.itworks.snamp.mapping.Table;
+import com.itworks.snamp.mapping.TypeLiterals;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.MOQuery;
 import org.snmp4j.agent.MOScope;
@@ -29,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
-import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
+import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.convertFrom;
 import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.supportsProjection;

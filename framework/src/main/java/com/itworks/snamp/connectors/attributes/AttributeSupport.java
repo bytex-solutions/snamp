@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.attributes;
 
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.views.View;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -11,7 +12,7 @@ import java.util.concurrent.TimeoutException;
  * @version 1.0
  * @since 1.0
  */
-public interface AttributeSupport {
+public interface AttributeSupport extends View {
     /**
      * Connects to the specified attribute.
      * @param id A key string that is used to invoke attribute from this connector.

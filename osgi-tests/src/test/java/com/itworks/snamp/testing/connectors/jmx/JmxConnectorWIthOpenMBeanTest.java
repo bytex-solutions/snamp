@@ -9,6 +9,8 @@ import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.mapping.Table;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -25,7 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
+import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.connectors.notifications.NotificationUtils.SynchronizationListener;

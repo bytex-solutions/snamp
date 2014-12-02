@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.TypeLiterals;
 import org.snmp4j.smi.TimeTicks;
 
 import java.util.Map;

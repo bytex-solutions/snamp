@@ -4,12 +4,12 @@
  * There are the following useful classes:
  * <ul>
  *     <li>Advanced synchronization utilities, such as {@link com.itworks.snamp.AbstractConcurrentResourceAccess}, {@link com.itworks.snamp.SynchronizationEvent}, {@link com.itworks.snamp.ThreadSafeObject}.</li>
- *     <li>Simple containers: {@link com.itworks.snamp.Wrapper}, {@link com.itworks.snamp.WriteOnceRef}.</li>
+ *     <li>Simple containers: {@link com.itworks.snamp.Wrapper}, {@link com.itworks.snamp.WriteOnceRef}, {@link com.itworks.snamp.Box}, {@link com.itworks.snamp.VolatileBox}</li>
  *     <li>Lightweight timer: {@link com.itworks.snamp.Repeater}.</li>
- *     <li>In-memory data table: {@link com.itworks.snamp.Table}, {@link com.itworks.snamp.InMemoryTable}.</li>
- *     <li>Thread executors: {@link com.itworks.snamp.FutureThread}</li>
- *     <li>Data transformation: {@link com.itworks.snamp.TypeConverterProvider}, {@link com.itworks.snamp.TypeConverter}</li>
- *     <li>Complex data builders: {@link com.itworks.snamp.MapBuilder}</li>
+ *     <li>Concurrency helpers: {@link com.itworks.snamp.FutureThread}, {@link com.itworks.snamp.GroupedThreadFactory}, {@link com.itworks.snamp.Repeater}</li>
+ *     <li>Syntactic sugar: {@link com.itworks.snamp.Switch}, {@link com.itworks.snamp.StringAppender}</li>
+ *     <li>Functional interfaces: {@link com.itworks.snamp.Consumer}, {@link com.itworks.snamp.SafeConsumer}, {@link com.itworks.snamp.ExceptionalCallable}</li>
+ *     <li>Array helpers: {@link com.itworks.snamp.ArrayUtils}</li>
  * </ul>
  * </p>
  * @since 1.0

@@ -15,6 +15,7 @@ import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.MethodStub;
+import com.itworks.snamp.mapping.TypeConverter;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -79,7 +80,7 @@ import static com.itworks.snamp.internal.Utils.safeCast;
  *         <li>{@link java.math.BigInteger}</li>
  *         <li>{@link java.math.BigDecimal}</li>
  *     </ul>
- *     To support custom type (such as {@link com.itworks.snamp.Table}, {@link Map} or array) you apply do the following steps:
+ *     To support custom type (such as {@link com.itworks.snamp.mapping.Table}, {@link Map} or array) you apply do the following steps:
  *     <ul>
  *      <li>Creates your own type system provider that derives from {@link WellKnownTypeSystem}.</li>
  *      <li>Declares public instance parameterless method that have {@link ManagedEntityType} return type in custom type system provider.</li>

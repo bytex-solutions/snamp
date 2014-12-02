@@ -2,7 +2,7 @@ package com.itworks.snamp.testing.connectors;
 
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedResourceConnectorBean;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;

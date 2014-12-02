@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.mapping;
 
 
 import com.google.common.collect.ImmutableMap;
@@ -12,7 +12,7 @@ import java.util.*;
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
- * @see com.itworks.snamp.TableFactory
+ * @see TableFactory
  */
 public class InMemoryTable<COLUMN> extends ArrayList<Map<COLUMN, Object>> implements Table<COLUMN> {
     private final ImmutableMap<COLUMN, Class<?>> _columns;

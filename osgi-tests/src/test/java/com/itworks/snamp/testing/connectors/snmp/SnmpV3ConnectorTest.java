@@ -6,6 +6,7 @@ import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;

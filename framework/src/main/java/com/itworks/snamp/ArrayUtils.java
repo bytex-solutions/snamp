@@ -1,5 +1,7 @@
 package com.itworks.snamp;
 
+import com.google.common.collect.ObjectArrays;
+
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Objects;
@@ -12,7 +14,6 @@ import java.util.Objects;
  */
 public final class ArrayUtils {
     private ArrayUtils(){
-
     }
 
     /**
@@ -22,17 +23,8 @@ public final class ArrayUtils {
      * @param <T> Array component type.
      * @return An array with elements from the collection.
      */
-    @SuppressWarnings("unchecked")
     public static <T> T[] toArray(final Collection<T> source, final Class<T> componentType){
-        return source.toArray((T[])Array.newInstance(componentType, source.size()));
-    }
-
-    public static <I, O extends I> O castArrayElement(final I[] array,
-                                                      final int index,
-                                                      final Class<O> elementType,
-                                                      final O defval){
-        final I element = array[index];
-        return elementType.isInstance(element) ? elementType.cast(element) : defval;
+        return source.toArray(ObjectArrays.newArray(componentType, source.size()));
     }
 
     /**

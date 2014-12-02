@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.jmx;
 
 import com.google.common.collect.ImmutableMap;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityValue;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;

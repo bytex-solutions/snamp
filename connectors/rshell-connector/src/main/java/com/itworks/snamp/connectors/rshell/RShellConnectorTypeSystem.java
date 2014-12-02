@@ -4,16 +4,16 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
-import com.itworks.snamp.InMemoryTable;
+import com.itworks.snamp.mapping.InMemoryTable;
 import com.itworks.snamp.SafeConsumer;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.Table;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 
 import java.util.*;
 
-import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
+import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 
 /**
  * Represents managed entity type resolved that convert {@link com.itworks.jcommands.impl.XmlParserDefinition}

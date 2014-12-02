@@ -1,7 +1,7 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
 import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.Table;
+import com.itworks.snamp.mapping.Table;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
@@ -15,7 +15,7 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.TableFactory.INTEGER_TABLE_FACTORY;
+import static com.itworks.snamp.mapping.TableFactory.INTEGER_TABLE_FACTORY;
 
 /**
  * Represents abstract class for any SNMP client side helper

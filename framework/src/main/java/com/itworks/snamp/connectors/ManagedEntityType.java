@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors;
 
 import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.TypeConverter;
+import com.itworks.snamp.mapping.TypeConverter;
 
 /**
  * Describes type of the management entity, such as attribute or notification attachment.

@@ -1,9 +1,10 @@
-package com.itworks.snamp.testing;
+package com.itworks.snamp.testing.mapping;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.InMemoryTable;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TableFactory;
+import com.itworks.snamp.mapping.InMemoryTable;
+import com.itworks.snamp.mapping.Table;
+import com.itworks.snamp.mapping.TableFactory;
+import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 
 import java.beans.IntrospectionException;
@@ -11,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
+import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 
 /**
  * @author Roman Sakno

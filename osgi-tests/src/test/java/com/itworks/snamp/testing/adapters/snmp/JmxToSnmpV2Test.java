@@ -2,7 +2,7 @@ package com.itworks.snamp.testing.adapters.snmp;
 
 import com.google.common.base.Supplier;
 import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.Table;
+import com.itworks.snamp.mapping.Table;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.TableFactory.INTEGER_TABLE_FACTORY;
+import static com.itworks.snamp.mapping.TableFactory.INTEGER_TABLE_FACTORY;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;

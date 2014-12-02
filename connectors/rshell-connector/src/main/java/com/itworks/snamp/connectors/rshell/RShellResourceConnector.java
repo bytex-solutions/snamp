@@ -4,7 +4,7 @@ import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
 import com.itworks.snamp.ConversionException;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;

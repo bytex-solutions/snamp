@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import org.snmp4j.smi.*;

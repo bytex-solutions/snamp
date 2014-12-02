@@ -2,8 +2,8 @@ package com.itworks.snamp.adapters.jmx;
 
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.Table;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityValue;
@@ -14,7 +14,7 @@ import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.util.*;
 
-import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
+import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.connectors.ManagedEntityMetadata.*;
 import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME;
 import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.isArray;

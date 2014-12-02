@@ -1,6 +1,6 @@
 package com.itworks.jcommands.impl;
 
-import com.itworks.snamp.Table;
+import com.itworks.snamp.mapping.Table;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;

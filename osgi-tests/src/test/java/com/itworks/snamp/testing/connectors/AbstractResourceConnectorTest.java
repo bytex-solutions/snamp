@@ -3,7 +3,7 @@ package com.itworks.snamp.testing.connectors;
 import com.google.common.base.Supplier;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.TypeConverter;
+import com.itworks.snamp.mapping.TypeConverter;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;

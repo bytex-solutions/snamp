@@ -2,8 +2,8 @@ package com.itworks.snamp.adapters.ssh;
 
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.Table;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityTypeBuilder;

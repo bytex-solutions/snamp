@@ -33,7 +33,7 @@ public class SynchronizationEvent<T> {
          * @throws TimeoutException     timeout parameter too small for waiting.
          * @throws InterruptedException Waiting thread is aborted.
          */
-        public T await(final TimeSpan timeout) throws TimeoutException, InterruptedException;
+        T await(final TimeSpan timeout) throws TimeoutException, InterruptedException;
 
         /**
          * Blocks the caller thread (may be infinitely) until the event will not be raised.
@@ -41,7 +41,7 @@ public class SynchronizationEvent<T> {
          * @return The event data.
          * @throws InterruptedException Waiting thread is aborted.
          */
-        public T await() throws InterruptedException;
+        T await() throws InterruptedException;
     }
 
     /**
@@ -71,7 +71,7 @@ public class SynchronizationEvent<T> {
             return true;
         }
 
-        public final boolean set(final T result) {
+        private boolean set(final T result) {
             if (isSignalled()) return false;
             this.eventObj = result;
             return releaseShared(1);

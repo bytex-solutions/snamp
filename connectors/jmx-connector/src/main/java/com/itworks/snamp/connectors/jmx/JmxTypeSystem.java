@@ -3,11 +3,12 @@ package com.itworks.snamp.connectors.jmx;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.*;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.mapping.*;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
@@ -19,8 +20,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.connectors.ManagedEntityMetadata.*;
+import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 
 /**
  * Represents JMX type system. This class cannot be inherited.
@@ -44,6 +45,13 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
                         return convertToTable(input);
                     }
                 });
+        registerConverter(TABULAR_DATA, TypeLiterals.ROW_SET,
+                new Function<TabularData, RowSet<?>>() {
+                    @Override
+                    public RowSet<?> apply(final TabularData input) {
+                        return convertToRowSet(input);
+                    }
+                });
         registerConverter(COMPOSITE_DATA, TypeLiterals.STRING_MAP,
                 new Function<CompositeData, Map<String,Object>>() {
                     @Override
@@ -51,6 +59,12 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
                         return convertToMap(input);
                     }
                 });
+        registerConverter(COMPOSITE_DATA, TypeLiterals.NAMED_RECORD_SET, new Function<CompositeData, RecordSet<String, ?>>() {
+            @Override
+            public RecordSet<String, ?> apply(final CompositeData input) {
+                return convertToRecordSet(input);
+            }
+        });
         registerConverter(COMPOSITE_DATA, TypeLiterals.STRING_COLUMN_TABLE,
                 new Function<CompositeData, Table<String>>() {
                     @Override
@@ -86,6 +100,43 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         for(final String key: ct.keySet())
             result.put(key, value.get(key));
         return result;
+    }
+
+    private static RecordSet<String, ?> convertToRecordSet(final CompositeData value) {
+        return new KeyedRecordSet<String, Object>() {
+            @Override
+            protected Set<String> getKeys() {
+                return value.getCompositeType().keySet();
+            }
+
+            @Override
+            protected Object getRecord(final String key) {
+                return value.get(key);
+            }
+        };
+    }
+
+    private static RowSet<Object> convertToRowSet(final TabularData value){
+        return new AbstractRowSet<Object>() {
+            @SuppressWarnings("unchecked")
+            private final List<CompositeData> rows = new ArrayList<>((Collection<CompositeData>)value.values());
+
+            @Override
+            protected Object getCell(final String columnName, final int rowIndex) {
+                final CompositeData row = rows.get(rowIndex);
+                return row.get(columnName);
+            }
+
+            @Override
+            public Set<String> getColumns() {
+                return value.getTabularType().getRowType().keySet();
+            }
+
+            @Override
+            public int size() {
+                return value.size();
+            }
+        };
     }
 
     private static Table<String> convertToTable(final CompositeData value) {

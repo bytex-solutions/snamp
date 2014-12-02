@@ -1,7 +1,7 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
 import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.Table;
+import com.itworks.snamp.mapping.Table;
 import org.snmp4j.PDU;
 import org.snmp4j.smi.OID;
 

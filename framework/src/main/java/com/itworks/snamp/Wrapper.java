@@ -10,7 +10,6 @@ import com.google.common.base.Function;
  * @since 1.0
  */
 public interface Wrapper<T> {
-
     /**
      * Handles the wrapped object.
      * <p>
@@ -21,5 +20,6 @@ public interface Wrapper<T> {
      * @param <R>     Type of the wrapped object handling result.
      * @return The wrapped object handling result.
      */
-    public <R> R handle(final Function<T, R> handler);
+    <R> R handle(final Function<T, R> handler);
+
 }
