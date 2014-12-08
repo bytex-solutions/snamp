@@ -1,22 +1,21 @@
 package com.itworks.snamp.adapters.rest;
 
 import com.google.gson.*;
-import com.itworks.snamp.mapping.Table;
-import com.itworks.snamp.mapping.TypeLiterals;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.ManagedEntityValue;
-import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.connectors.MapReader;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.internal.annotations.Temporary;
+import com.itworks.snamp.mapping.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME;
 import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.isArray;
@@ -49,26 +48,37 @@ final class HttpAttributeMapping {
         return result;
     }
 
-    private static JsonObject toJsonMap(final ManagedEntityValue<ManagedEntityTabularType> map, final Gson jsonFormatter){
+    private static JsonObject toJsonMap(final ManagedEntityValue<ManagedEntityTabularType> map,
+                                        final Gson jsonFormatter){
         final JsonObject result = new JsonObject();
-        final Map<String, Object> value = map.convertTo(TypeLiterals.STRING_MAP);
-        for(final String column: value.keySet())
-            result.add(column, toJson(new ManagedEntityValue<>(value.get(column), map.type.getColumnType(column)), jsonFormatter));
+        map.convertTo(TypeLiterals.NAMED_RECORD_SET).sequential().forEach(new MapReader<ExceptionPlaceholder>(map.type) {
+            @Override
+            protected void read(final String column, final ManagedEntityValue<?> value) {
+                result.add(column, toJson(value, jsonFormatter));
+            }
+        });
         return result;
     }
 
-    private static JsonElement toJsonTable(final ManagedEntityValue<ManagedEntityTabularType> table, final Gson jsonFormatter){
+    private static JsonElement toJsonTable(final ManagedEntityValue<ManagedEntityTabularType> table,
+                                           final Gson jsonFormatter) {
         final JsonArray result = new JsonArray();
-        final Table<String> tableReader = table.convertTo(TypeLiterals.STRING_COLUMN_TABLE);
         //table representation in JSON: [{column: value}, {column: value}]
         //therefore, iterates through rows
-        for(int rowIndex = 0; rowIndex < tableReader.getRowCount(); rowIndex++){
-            final JsonObject row = new JsonObject();
-            //iterates through columns
-            for(final String columnName: table.type.getColumns())
-                row.add(columnName, toJson(new ManagedEntityValue<>(tableReader.getCell(columnName, rowIndex), table.type.getColumnType(columnName)), jsonFormatter));
-            result.add(row);
-        }
+        table.convertTo(TypeLiterals.ROW_SET).sequential().forEach(new RecordReader<Integer, RecordSet<String, ?>, ExceptionPlaceholder>() {
+            @Override
+            public void read(final Integer index, final RecordSet<String, ?> value) {
+                final JsonObject row = new JsonObject();
+                //iterates through columns
+                value.sequential().forEach(new MapReader<ExceptionPlaceholder>(table.type) {
+                    @Override
+                    protected void read(final String columnName, final ManagedEntityValue<?> value) {
+                        row.add(columnName, toJson(value, jsonFormatter));
+                    }
+                });
+                result.add(row);
+            }
+        });
         return result;
     }
 
@@ -138,18 +148,23 @@ final class HttpAttributeMapping {
         return fromArrayJson(jsonParser.parse(attributeValue), attributeType.getColumnType(VALUE_COLUMN_NAME), jsonFormatter);
     }
 
-    private static Map<String, Object> fromMapJson(final JsonObject attributeValue,
+    private static RecordSet<String, ?> fromMapJson(final JsonObject attributeValue,
                                                    final ManagedEntityTabularType attributeType,
-                                                   final Gson jsonFormatter){
-        final Map<String, Object> result = Utils.createStringHashMap(10);
-        for(final String column: attributeType.getColumns())
-            if(attributeValue.has(column))
-                result.put(column, fromJson(jsonFormatter.toJson(attributeValue.get(column)), attributeType.getColumnType(column), jsonFormatter));
-            else throw new JsonSyntaxException(String.format("JSON key %s not found.", column));
-        return result;
+                                                   final Gson jsonFormatter) {
+        return new KeyedRecordSet<String, Object>() {
+            @Override
+            protected Set<String> getKeys() {
+                return attributeType.getColumns();
+            }
+
+            @Override
+            protected Object getRecord(final String column) {
+                return fromJson(jsonFormatter.toJson(attributeValue.get(column)), attributeType.getColumnType(column), jsonFormatter);
+            }
+        };
     }
 
-    private static Map<String, Object> fromMapJson(final JsonElement attributeValue,
+    private static RecordSet<String, ?> fromMapJson(final JsonElement attributeValue,
                                                    final ManagedEntityTabularType attributeType,
                                                    final Gson jsonFormatter){
         if(attributeValue instanceof JsonObject)
@@ -159,37 +174,42 @@ final class HttpAttributeMapping {
         }
     }
 
-    private static Map<String, Object> fromMapJson(final String attributeValue,
+    private static RecordSet<String, ?> fromMapJson(final String attributeValue,
                                             final ManagedEntityTabularType attributeType,
                                             final Gson jsonFormatter){
         return fromMapJson(jsonParser.parse(attributeValue), attributeType, jsonFormatter);
     }
 
-    private static void insertRow(final Table<String> table,
-                                  final JsonObject row,
-                                  final ManagedEntityTabularType attributeType,
-                                  final Gson jsonFormatter){
-        final Map<String, Object> insertedRow = new HashMap<>(10);
-        //iterates through each column
-        for(final Map.Entry<String, JsonElement> column: row.entrySet()){
-            insertedRow.put(column.getKey(),
-                    fromJson(jsonFormatter.toJson(row.get(column.getKey())), attributeType.getColumnType(column.getKey()), jsonFormatter));
-        }
-        table.addRow(insertedRow);
-    }
-
-    private static Table<String> fromTableJson(final JsonArray attributeValue,
+    private static RowSet<?> fromTableJson(final JsonArray attributeValue,
                                                final ManagedEntityTabularType attributeType,
                                                final Gson jsonFormatter){
-        final Table<String> result = STRING_TABLE_FACTORY.create(attributeType.getColumns(), Object.class, attributeValue.size());
-        for(final JsonElement element: attributeValue)
-            if(element instanceof JsonObject)
-                insertRow(result, (JsonObject)element, attributeType, jsonFormatter);
-            else throw new JsonSyntaxException("The element of the JSON array must be a JSON dictionary");
-        return result;
+        return new AbstractRowSet<Object>() {
+            @Override
+            protected Object getCell(final String columnName, final int rowIndex) {
+                @Temporary
+                final JsonObject row = attributeValue.get(rowIndex).getAsJsonObject();
+                final ManagedEntityType cellType = attributeType.getColumnType(columnName);
+                return fromJson(jsonFormatter.toJson(row.get(columnName)), cellType, jsonFormatter);
+            }
+
+            @Override
+            public Set<String> getColumns() {
+                return attributeType.getColumns();
+            }
+
+            @Override
+            public boolean isIndexed(final String columnName) {
+                return attributeType.isIndexed(columnName);
+            }
+
+            @Override
+            public int size() {
+                return attributeValue.size();
+            }
+        };
     }
 
-    private static Table<String> fromTableJson(final JsonElement attributeValue,
+    private static RowSet<?> fromTableJson(final JsonElement attributeValue,
                                                final ManagedEntityTabularType attributeType,
                                                final Gson jsonFormatter){
         if(attributeValue instanceof JsonArray)
@@ -199,12 +219,11 @@ final class HttpAttributeMapping {
             array.add(attributeValue);
             return fromTableJson(array, attributeType, jsonFormatter);
         }
-        else {
+        else
             throw  new JsonSyntaxException(String.format("Expected JSON array, but actually found %s", jsonFormatter.toJson(attributeValue)));
-        }
     }
 
-    private static Table<String> fromTableJson(final String attributeValue,
+    private static RowSet<?> fromTableJson(final String attributeValue,
                                                final ManagedEntityTabularType attributeType,
                                                final Gson jsonFormatter){
         return fromTableJson(jsonParser.parse(attributeValue), attributeType, jsonFormatter);

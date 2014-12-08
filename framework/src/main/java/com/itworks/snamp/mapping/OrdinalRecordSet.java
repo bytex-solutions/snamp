@@ -1,10 +1,10 @@
 package com.itworks.snamp.mapping;
 
+import com.google.common.base.Function;
 import com.itworks.snamp.WriteOnceRef;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -15,52 +15,7 @@ import java.util.concurrent.ExecutorService;
  * @version 1.0
  * @since 1.0
  */
-public abstract class OrdinalRecordSet<I, R> implements RecordSet<I, R> {
-    private static abstract class ProxyOrdinalRecordSet<I, R> extends OrdinalRecordSet<I, R>{
-        protected final OrdinalRecordSet<I, R> recordSet;
-
-        private ProxyOrdinalRecordSet(final OrdinalRecordSet<I, R> os){
-            recordSet = os;
-        }
-
-        @Override
-        protected final I first() {
-            return recordSet.first();
-        }
-
-        @Override
-        protected final I next(final I index) {
-            return recordSet.next(index);
-        }
-
-        @Override
-        protected final R getRecord(final I index) {
-            return recordSet.getRecord(index);
-        }
-
-        @Override
-        public final OrdinalRecordSet<I, R> parallel(final ExecutorService executor) {
-            return recordSet.parallel(executor);
-        }
-
-        @Override
-        public final OrdinalRecordSet<I, R> sequential() {
-            return recordSet.sequential();
-        }
-
-        @Override
-        public final int size() {
-            return recordSet.size();
-        }
-
-        @Override
-        protected final void forEachInterrupted(final InterruptedException e) {
-            recordSet.forEachInterrupted(e);
-        }
-
-        @Override
-        public abstract <E extends Exception> void forEach(final RecordReader<? super I, ? super R, E> reader) throws E;
-    }
+public abstract class OrdinalRecordSet<I, R> extends AbstractRecordSet<I, R> {
 
     /**
      * Gets index of the first element.
@@ -88,6 +43,7 @@ public abstract class OrdinalRecordSet<I, R> implements RecordSet<I, R> {
      * @param reader The record reader.
      * @throws E An exception occurred in the reader.
      */
+    @Override
     protected final <E extends Exception> void forEachSequential(final RecordReader<? super I, ? super R, E> reader) throws E{
         for(I index = first(); index != null; index = next(index))
             reader.read(index, getRecord(index));
@@ -95,36 +51,40 @@ public abstract class OrdinalRecordSet<I, R> implements RecordSet<I, R> {
 
     /**
      * Executes reader through records in this set in parallel.
+     * <p>
+     *     The default implementation doesn't support record set partitioning. This means
+     *     that the each record will be processed in the separated task (submitted via {@link java.util.concurrent.ExecutorService#submit(java.util.concurrent.Callable)})
+     *     that may be not acceptable for huge record sets with hundred of elements.
      * @param <E> Type of the exception that may be thrown by reader.
      * @param reader The record reader.
      * @param executor An executor used to schedule readers.
      * @throws E An exception occurred in the reader.
      */
-    @SuppressWarnings("unchecked")
-    protected final <E extends Exception> void forEachParallel(final RecordReader<? super I, ? super R, E> reader,
+    @Override
+    protected <E extends Exception> void forEachParallel(final RecordReader<? super I, ? super R, E> reader,
                                          final ExecutorService executor) throws E {
-        final List<Callable<Void>> tasks = new ArrayList<>(size());
-        final WriteOnceRef<Exception> fault = new WriteOnceRef<>(null);
-        for (I index = first(); index != null; index = next(index)) {
-            final I currentIndex = index;
-            tasks.add(new Callable<Void>() {
+        try {
+            forEachParallel(reader, executor, new Function<WriteOnceRef<Exception>, Collection<RecordProcessingTask<I, R, E>>>() {
                 @Override
-                public Void call() throws Exception {
-                    try {
-                        reader.read(currentIndex, getRecord(currentIndex));
+                public Collection<RecordProcessingTask<I, R, E>> apply(final WriteOnceRef<Exception> errorHandler) {
+                    final Collection<RecordProcessingTask<I, R, E>> tasks = new ArrayList<>(size());
+                    for (I index = first(); index != null; index = next(index)) {
+                        final I currentIndex = index;
+                        tasks.add(new RecordProcessingTask<I, R, E>(reader, errorHandler) {
+                            @Override
+                            protected I getIndex() {
+                                return currentIndex;
+                            }
+
+                            @Override
+                            protected R getRecord() {
+                                return OrdinalRecordSet.this.getRecord(currentIndex);
+                            }
+                        });
                     }
-                    catch (final Exception e){
-                        fault.set(e);
-                        throw e;
-                    }
-                    return null;
+                    return tasks;
                 }
             });
-        }
-        //wait for completion
-        try {
-            executor.invokeAll(tasks);
-            RecordReaderUtils.checkAndThrow(reader, fault.get());
         }
         catch (final InterruptedException e) {
             forEachInterrupted(e);
@@ -137,63 +97,5 @@ public abstract class OrdinalRecordSet<I, R> implements RecordSet<I, R> {
      */
     protected void forEachInterrupted(final InterruptedException e){
 
-    }
-
-    /**
-     * Iterates over each record in this set.
-     * <p>
-     *     In the default implementation this method calls {@link #forEachSequential(RecordReader)}.
-     * @param reader An object that accepts the record.
-     * @throws E Unable to read records.
-     * @see #forEachParallel(RecordReader, java.util.concurrent.ExecutorService)
-     * @see #forEachSequential(RecordReader)
-     */
-    @Override
-    public <E extends Exception> void forEach(final RecordReader<? super I, ? super R, E> reader) throws E{
-        forEachSequential(reader);
-    }
-
-    /**
-     * Returns an equivalent object that is parallel.
-     * May return itself, either because the object was already parallel,
-     * or because the underlying object state was modified to be parallel.
-     *
-     * @param executor An executor used to execute methods in parallel manner.
-     * @return An object that supports parallel execution of some methods.
-     */
-    @Override
-    public OrdinalRecordSet<I, R> parallel(final ExecutorService executor){
-        return parallel(this, executor);
-    }
-
-    private static <I, R> ProxyOrdinalRecordSet<I, R> parallel(final OrdinalRecordSet<I, R> parent,
-                                                               final ExecutorService executor){
-        return new ProxyOrdinalRecordSet<I, R>(parent) {
-            @Override
-            public <E extends Exception> void forEach(final RecordReader<? super I, ? super R, E> reader) throws E {
-                recordSet.forEachParallel(reader, executor);
-            }
-        };
-    }
-
-    private static <I, R> ProxyOrdinalRecordSet<I, R> sequential(final OrdinalRecordSet<I, R> parent){
-        return new ProxyOrdinalRecordSet<I, R>(parent) {
-            @Override
-            public <E extends Exception> void forEach(final RecordReader<? super I, ? super R, E> reader) throws E {
-                recordSet.forEachSequential(reader);
-            }
-        };
-    }
-
-    /**
-     * Returns an equivalent object that is sequential.
-     * May return itself, either because the object was already sequential,
-     * or because the underlying object state was modified to be sequential.
-     *
-     * @return An object that supports sequential execution of some methods.
-     */
-    @Override
-    public OrdinalRecordSet<I, R> sequential(){
-        return sequential(this);
     }
 }

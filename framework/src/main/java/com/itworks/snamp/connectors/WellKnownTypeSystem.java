@@ -2,6 +2,8 @@ package com.itworks.snamp.connectors;
 
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.mapping.TypeLiterals;
 
@@ -30,13 +32,13 @@ import java.util.*;
  *     For non-scalar data types such as arrays, dictionaries and tables it is recommended to use the
  *     following mapping:
  *     <ul>
- *         <li>Tabular data should be convertible to {@link com.itworks.snamp.mapping.Table} type. An implementation
- *         for this interface is provided by {@link com.itworks.snamp.mapping.InMemoryTable} class. Entity data type
+ *         <li>Tabular data should be convertible to {@link com.itworks.snamp.mapping.RowSet} type. An implementation
+ *         for this interface is provided by {@link com.itworks.snamp.mapping.AbstractRowSet} class. Entity data type
  *         should implements {@link ManagedEntityTabularType} interface.</li>
- *         <li>Array data should be convertible to Java array and {@link com.itworks.snamp.mapping.Table} type. Attribute
+ *         <li>Array data should be convertible to Java array. Attribute
  *         data type should inherits from {@link ManagedEntityTypeBuilder.ManagedEntityArrayType} class.</li>
- *         <li>Map data should be convertible to {@link com.itworks.snamp.mapping.Table} type, and, optionally,
- *         to {@link Map} type. Map is a special case of tabular data when table has single row
+ *         <li>Map data should be convertible to {@link com.itworks.snamp.mapping.RowSet} type, and, optionally,
+ *         to {@link com.itworks.snamp.mapping.RecordSet} type. Map is a special case of tabular data when table has single row
  *         and multiple columns, where each column represents map key.</li>
  *     </ul>
  * </p>
@@ -71,8 +73,8 @@ import java.util.*;
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
- * @see com.itworks.snamp.mapping.TypeLiterals#STRING_COLUMN_TABLE
- * @see com.itworks.snamp.mapping.TypeLiterals#STRING_MAP
+ * @see com.itworks.snamp.mapping.TypeLiterals#ROW_SET
+ * @see com.itworks.snamp.mapping.TypeLiterals#NAMED_RECORD_SET
  */
 public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
     /**
@@ -554,7 +556,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
     }
 
     /**
-     * Creates a new tabular type that can be converted into {@link com.itworks.snamp.mapping.Table}.
+     * Creates a new tabular type that can be converted into {@link com.itworks.snamp.mapping.RowSet}.
      * <p>
      *  The returned {@link ManagedEntityTabularType} instance throws {@link UnsupportedOperationException}
      *  exception when {@link ManagedEntityTabularType#getRowCount()} is invoked.
@@ -562,11 +564,12 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @param columns A collection of columns.
      * @param index An array of indexed columns.
      * @return A new instance of the tabular type.
+     * @see com.itworks.snamp.mapping.TypeLiterals#ROW_SET
      */
     public final ManagedEntityType createEntityTabularType(final Map<String, ManagedEntityType> columns, final String... index){
-        final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
-        final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
         return createEntityType(new Supplier<AbstractManagedEntityTabularType>(){
+            private final Map<String, ManagedEntityType> readonlyColumns = ImmutableMap.copyOf(columns);
+            private final Set<String> readonlyIndex = ImmutableSet.copyOf(index);
 
             /**
              * Creates a new instance of the specified type.
@@ -577,7 +580,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
             public AbstractManagedEntityTabularType get() {
                 return new AbstractManagedEntityTabularType() {
                     @Override
-                    public final Collection<String> getColumns() {
+                    public final Set<String> getColumns() {
                         return readonlyColumns.keySet();
                     }
 
@@ -603,12 +606,19 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                     }
                 };
             }
-        }, TypeLiterals.STRING_COLUMN_TABLE);
+        }, TypeLiterals.ROW_SET);
     }
 
+    /**
+     * Creates a dictionary type descriptor.
+     * @param keys A map of dictionary keys.
+     * @return A type which describes the dictionary.
+     * @see com.itworks.snamp.mapping.TypeLiterals#ROW_SET
+     * @see com.itworks.snamp.mapping.TypeLiterals#NAMED_RECORD_SET
+     */
     public final AbstractManagedEntityTabularType createEntityDictionaryType(final Map<String, ? extends ManagedEntityType> keys) {
         return createEntityType(new Supplier<AbstractManagedEntityTabularType>() {
-            private final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(keys);
+            private final Map<String, ManagedEntityType> readonlyColumns = ImmutableMap.copyOf(keys);
 
             @Override
             public AbstractManagedEntityTabularType get() {
@@ -620,7 +630,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                      * @return The set of column names.
                      */
                     @Override
-                    public Collection<String> getColumns() {
+                    public Set<String> getColumns() {
                         return readonlyColumns.keySet();
                     }
 
@@ -657,11 +667,11 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                     }
                 };
             }
-        }, TypeLiterals.STRING_COLUMN_TABLE, TypeLiterals.STRING_MAP);
+        }, TypeLiterals.ROW_SET, TypeLiterals.NAMED_RECORD_SET);
     }
 
     /**
-     * Creates a new tabular type that can be converted into {@link com.itworks.snamp.mapping.Table}.
+     * Creates a new tabular type that can be converted into {@link com.itworks.snamp.mapping.RowSet}.
      * <p>
      *  The returned {@link ManagedEntityTabularType} returns {@code rowCount} from
      *  {@link ManagedEntityTabularType#getRowCount()} method.
@@ -670,11 +680,12 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * @param rowCount A row count in the table.
      * @param index An array of indexed columns.
      * @return A new instance of the tabular type.
+     * @see com.itworks.snamp.mapping.TypeLiterals#ROW_SET
      */
     public final ManagedEntityType createEntityTabularType(final Map<String, ManagedEntityType> columns, final int rowCount, final String... index){
         return createEntityType(new Supplier<AbstractManagedEntityType>(){
-            private final Map<String, ManagedEntityType> readonlyColumns = Collections.unmodifiableMap(columns);
-            private final Collection<String> readonlyIndex = Collections.unmodifiableCollection(Arrays.asList(index));
+            private final Map<String, ManagedEntityType> readonlyColumns = ImmutableMap.copyOf(columns);
+            private final Collection<String> readonlyIndex = ImmutableSet.copyOf(index);
 
             /**
              * Creates a new instance of the specified type.
@@ -685,7 +696,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
             public AbstractManagedEntityTabularType get() {
                 return new AbstractManagedEntityTabularType() {
                     @Override
-                    public final Collection<String> getColumns() {
+                    public final Set<String> getColumns() {
                         return readonlyColumns.keySet();
                     }
 
@@ -711,7 +722,7 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                     }
                 };
             }
-        }, TypeLiterals.STRING_COLUMN_TABLE);
+        }, TypeLiterals.ROW_SET);
     }
 
     /**
@@ -748,9 +759,9 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
         else if(isArray(type))
             return TypeLiterals.OBJECT_ARRAY;
         else if(isMap(type))
-            return TypeLiterals.STRING_MAP;
+            return TypeLiterals.NAMED_RECORD_SET;
         else if(isTable(type))
-            return TypeLiterals.STRING_COLUMN_TABLE;
+            return TypeLiterals.ROW_SET;
         else return null;
     }
 }

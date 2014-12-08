@@ -3,6 +3,8 @@ package com.itworks.jcommands.impl;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ObjectArrays;
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ResettableIterator;
 import com.itworks.snamp.internal.annotations.Internal;
 
@@ -12,7 +14,6 @@ import javax.xml.bind.annotation.*;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -284,14 +285,14 @@ public class XmlParserDefinition {
     }
 
     private static final class ArrayBuilder extends ArrayList<Object> {
-        private Class<?> elementType;
+        private TypeToken<?> elementType;
 
         public ArrayBuilder() {
             super(10);
-            elementType = String.class;
+            elementType = XmlParsingResultType.STRING.underlyingType;
         }
 
-        public void setElementType(final Class<?> value) {
+        public void setElementType(final TypeToken<?> value) {
             this.elementType = value;
         }
 
@@ -302,10 +303,10 @@ public class XmlParserDefinition {
         @SuppressWarnings("NullableProblems")
         @Override
         public Object[] toArray() {
-            final Object result = Array.newInstance(elementType, size());
+            final Object[] result = ObjectArrays.newArray(elementType.getRawType(), size());
             for (int i = 0; i < size(); i++)
-                Array.set(result, i, get(i));
-            return (Object[]) result;
+                result[i] = get(i);
+            return result;
         }
     }
 
@@ -862,7 +863,7 @@ public class XmlParserDefinition {
         return builder.toArray();
     }
 
-    private Map<String, Object> parseDictionary(final ResettableIterator parsingTemplateIter,
+    private Map<String, ?> parseDictionary(final ResettableIterator parsingTemplateIter,
                                                 final ScriptEngine engine) throws ScriptException {
         final Map<String, Object> result = new HashMap<String, Object>(20) { };
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
@@ -880,10 +881,10 @@ public class XmlParserDefinition {
         return result;
     }
 
-    private Collection<Map<String, Object>> parseTable(final ResettableIterator parsingTemplateIter,
+    private List<? extends Map<String, ?>> parseTable(final ResettableIterator parsingTemplateIter,
                                                        final ScriptEngine engine) throws ScriptException{
-        final List<Map<String, Object>> table = new LinkedList<>();
-        Map<String, Object> row = new HashMap<>(20);
+        final List<HashMap<String, ?>> table = new LinkedList<>();
+        HashMap<String, Object> row = new HashMap<>(20);
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){
             final Object templateFragment = parsingTemplateIter.next();
@@ -956,7 +957,7 @@ public class XmlParserDefinition {
         }
     }
 
-    public final void exportTableOrDictionaryType(final ImmutableMap.Builder<String, Class<?>> output) {
+    public final void exportTableOrDictionaryType(final ImmutableMap.Builder<String, TypeToken<?>> output) {
         for (final Object templateFragment : getParsingTemplate())
             if (templateFragment instanceof TableColumnParsingRule) {
                 final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;

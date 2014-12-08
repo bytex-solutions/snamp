@@ -2,16 +2,16 @@ package com.itworks.snamp.adapters.ssh;
 
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.mapping.Table;
-import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityTypeBuilder;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.mapping.*;
 
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
@@ -44,13 +44,12 @@ interface SshAttributeView {
             setter.setValue(ArrayUtils.remove(array, index));
         }
 
-        private void deleteTableRow(final Table<String> table,
+        private void deleteTableRow(final RowSet<?> table,
                                        final int rowIndex,
                                        final AttributeAccessor setter) throws TimeoutException, AttributeSupportException{
             //modifying the same instance of the table is normal,
             //because input table is a conversion result provided by connector
-            table.removeRow(rowIndex);
-            setter.setValue(table);
+            setter.setValue(RecordSetUtils.removeRow(table, rowIndex));
         }
 
         @Override
@@ -58,8 +57,8 @@ interface SshAttributeView {
             final Object value = input.getValue(input.getWellKnownType(), null);
             if(TypeLiterals.isInstance(value, TypeLiterals.OBJECT_ARRAY))
                 deleteArrayElement(TypeLiterals.cast(value, TypeLiterals.OBJECT_ARRAY), index, input);
-            else if(TypeLiterals.isInstance(value, TypeLiterals.STRING_COLUMN_TABLE))
-                deleteTableRow(TypeLiterals.cast(value, TypeLiterals.STRING_COLUMN_TABLE), index, input);
+            else if(TypeLiterals.isInstance(value, TypeLiterals.ROW_SET))
+                deleteTableRow(TypeLiterals.cast(value, TypeLiterals.ROW_SET), index, input);
             return null;
         }
     }
@@ -99,7 +98,8 @@ interface SshAttributeView {
             return true;
         }
 
-        private static boolean updateTableRow(final Table<String> table,
+        @SuppressWarnings("unchecked")
+        private static boolean updateTableRow(RowSet table,
                                               final int index,
                                               final Map<String, Object> row,
                                               final ManagedEntityTabularType type,
@@ -111,25 +111,20 @@ interface SshAttributeView {
                 if(columnJavaType == null) continue;
                 row.put(column, columnType.getProjection(columnJavaType).convertFrom(row.get(column)));
             }
-            if(insert)
-                table.insertRow(index, row);
-            else {
-                final Map<String, Object> source = table.getRow(index);
-                //merge and replace the row
-                source.putAll(row);
-                table.setRow(index, source);
-            }
+            table = insert ?
+                    RecordSetUtils.insertRow(table, RecordSetUtils.fromMap(row), index):
+                    RecordSetUtils.setRow(table, RecordSetUtils.fromMap(row), index);
             output.setValue(table);
             return true;
         }
 
-        private static boolean updateTableRow(final Table<String> table,
+        private static boolean updateTableRow(final RowSet<?> table,
                                               final int index,
                                               final Object element,
                                               final ManagedEntityTabularType type,
                                               final boolean insert,
                                               final AttributeAccessor output) throws TimeoutException, AttributeSupportException{
-            return TypeLiterals.isInstance(element, TypeLiterals.STRING_MAP) && updateTableRow(table, index, TypeLiterals.cast(element, TypeLiterals.STRING_MAP), type, insert, output);
+            return TypeLiterals.isInstance(element, TypeLiterals.NAMED_RECORD_SET) && updateTableRow(table, index, TypeLiterals.cast(element, TypeLiterals.NAMED_RECORD_SET), type, insert, output);
         }
 
         static boolean update(final int index,
@@ -139,9 +134,8 @@ interface SshAttributeView {
             final Object value = input.getValue(input.getWellKnownType(), null);
             if(TypeLiterals.isInstance(value, TypeLiterals.OBJECT_ARRAY))
                 return updateArrayElement(TypeLiterals.cast(value, TypeLiterals.OBJECT_ARRAY), index, row, (ManagedEntityTabularType) input.getType(), insert, input);
-            else if(TypeLiterals.isInstance(value, TypeLiterals.STRING_COLUMN_TABLE))
-                return updateTableRow(TypeLiterals.cast(value, TypeLiterals.STRING_COLUMN_TABLE), index, row, (ManagedEntityTabularType) input.getType(), insert, input);
-            else return false;
+            else
+                return TypeLiterals.isInstance(value, TypeLiterals.ROW_SET) && updateTableRow(TypeLiterals.cast(value, TypeLiterals.ROW_SET), index, row, (ManagedEntityTabularType) input.getType(), insert, input);
         }
 
         @Override
@@ -152,18 +146,36 @@ interface SshAttributeView {
 
     static final class UpdateMapTransformation implements ValueTransformation<Map<String, Object>, Boolean>{
 
-        private static boolean updateMap(final Map<String, Object> from,
+        private static boolean updateMap(final Map<String, ?> from,
                                          final Map<String, Object> to,
                                          final ManagedEntityTabularType type,
                                          final AttributeAccessor output) throws TimeoutException, AttributeSupportException{
-            for(final Map.Entry<String, Object> entry: from.entrySet()) {
+            for(final Map.Entry<String, ?> entry: from.entrySet()) {
                 final ManagedEntityType keyType = type.getColumnType(entry.getKey());
                 final TypeToken<?> keyJavaType = WellKnownTypeSystem.getWellKnownType(keyType);
                 if(keyJavaType == null) return false;
                 to.put(entry.getKey(), keyType.getProjection(keyJavaType).convertFrom(entry.getValue()));
             }
-            output.setValue(to);
+            output.setNamedRecordSet(new KeyedRecordSet<String, Object>() {
+                @Override
+                protected Set<String> getKeys() {
+                    return to.keySet();
+                }
+
+                @Override
+                protected Object getRecord(final String key) {
+                    return to.get(key);
+                }
+            });
             return true;
+        }
+
+        @SuppressWarnings("unchecked")
+        private static boolean updateMap(final Map<String, Object> from,
+                                         final RecordSet<String, ?> to,
+                                         final ManagedEntityTabularType type,
+                                         final AttributeAccessor output) throws TimeoutException, AttributeSupportException{
+            return updateMap(from, RecordSetUtils.toMap((RecordSet<String, Object>)to), type, output);
         }
 
         @Override
@@ -171,7 +183,7 @@ interface SshAttributeView {
             final TypeToken<?> elementJavaType = input.getWellKnownType();
             if(elementJavaType == null) return false;
             final Object map = input.getValue(elementJavaType, null);
-            return TypeLiterals.isInstance(map, TypeLiterals.STRING_MAP) && updateMap(arg, TypeLiterals.cast(map, TypeLiterals.STRING_MAP), (ManagedEntityTabularType) input.getType(), input);
+            return TypeLiterals.isInstance(map, TypeLiterals.NAMED_RECORD_SET) && updateMap(arg, TypeLiterals.cast(map, TypeLiterals.NAMED_RECORD_SET), (ManagedEntityTabularType) input.getType(), input);
         }
     }
 

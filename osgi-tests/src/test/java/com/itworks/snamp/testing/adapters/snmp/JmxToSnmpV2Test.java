@@ -1,14 +1,16 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.mapping.Table;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.notifications.Severity;
+import com.itworks.snamp.testing.Matrix;
+import com.itworks.snamp.testing.MatrixImpl;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
@@ -31,7 +33,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.mapping.TableFactory.INTEGER_TABLE_FACTORY;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
@@ -175,93 +176,86 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public final void testForTableProperty() throws Exception {
-        Table<Integer> table = INTEGER_TABLE_FACTORY.create(new HashMap<Integer, Class<?>>() {{
-            put(2, Variable.class);//bool
-            put(3, Variable.class);//int
-            put(4, Variable.class);//str
-        }});
-        table.addRow(new HashMap<Integer, Object>() {{
-            put(2, new Integer32(0));//false
-            put(3, new Integer32(4230));
-            put(4, new OctetString("Row #1"));
-        }});
-        table.addRow(new HashMap<Integer, Object>() {{
-            put(2, new Integer32(1));//true
-            put(3, new Integer32(4231));
-            put(4, new OctetString("Row #2"));
-        }});
-        table.addRow(new HashMap<Integer, Object>() {{
-            put(2, new Integer32(1));//true
-            put(3, new Integer32(4232));
-            put(4, new OctetString("Row #3"));
-        }});
-        table.addRow(new HashMap<Integer, Object>() {{
-            put(2, new Integer32(1));//true
-            put(3, new Integer32(4233));
-            put(4, new OctetString("Row #4"));
-        }});
+        final Matrix<Variable> table = MatrixImpl.create(ImmutableList.of(
+                new HashMap<Integer, Variable>() {{
+                    put(2, new Integer32(0));//false
+                    put(3, new Integer32(4230));
+                    put(4, new OctetString("Row #1"));
+                }},
+                new HashMap<Integer, Variable>() {{
+                    put(2, new Integer32(1));//true
+                    put(3, new Integer32(4231));
+                    put(4, new OctetString("Row #2"));
+                }},
+                new HashMap<Integer, Variable>() {{
+                    put(2, new Integer32(1));//true
+                    put(3, new Integer32(4232));
+                    put(4, new OctetString("Row #3"));
+                }},
+                new HashMap<Integer, Variable>() {{
+                    put(2, new Integer32(1));//true
+                    put(3, new Integer32(4233));
+                    put(4, new OctetString("Row #4"));
+                }}
+        ));
         client.writeTable("1.1.7.1", table);
-        table = client.readTable(ReadMethod.GETBULK, new OID("1.1.7.1"), new HashMap<Integer, Class<?>>() {{
+        final Matrix<?> result = client.readTable(ReadMethod.GETBULK, new OID("1.1.7.1"), new HashMap<Integer, Class<?>>() {{
             put(2, Boolean.class);//bool
             put(3, Integer.class);//int
             put(4, String.class);//str
         }});
-        assertEquals(4, table.getRowCount());
-        assertEquals(3, table.getColumns().size());
+        assertEquals(4, result.size());
+        final List<? extends Map<Integer, ?>> rows = MatrixImpl.toList(result);
 
-        assertEquals(false, table.getCell(2, 0));
-        assertEquals(4230, table.getCell(3, 0));
-        assertEquals("Row #1", table.getCell(4, 0));
+        assertEquals(false, rows.get(0).get(2));
+        assertEquals(4230, rows.get(0).get(3));
+        assertEquals("Row #1", rows.get(0).get(4));
 
-        assertEquals(true, table.getCell(2, 3));
-        assertEquals(4233, table.getCell(3, 3));
-        assertEquals("Row #4", table.getCell(4, 3));
+        assertEquals(true, rows.get(3).get(2));
+        assertEquals(4233, rows.get(3).get(3));
+        assertEquals("Row #4", rows.get(3).get(4));
     }
 
     @Test
     public final void testForArrayProperty() throws Exception {
-        Table<Integer> array = INTEGER_TABLE_FACTORY.create(new HashMap<Integer, Class<?>>(1) {{
-            put(2, Variable.class);
-        }});
-        array.addRow(new HashMap<Integer, Object>(2) {{
-            put(2, new Integer32(20));
-        }});
-        array.addRow(new HashMap<Integer, Object>(2) {{
-            put(2, new Integer32(30));
-        }});
+        final Matrix<Variable> array = MatrixImpl.create(ImmutableList.of(
+                new HashMap<Integer, Variable>(2) {{
+                    put(2, new Integer32(20));
+                }},
+                new HashMap<Integer, Variable>(2) {{
+                    put(2, new Integer32(30));
+                }}
+        ));
         client.writeTable("1.1.5.1", array);
-        array = client.readTable(ReadMethod.GETBULK, new OID("1.1.5.1"), new HashMap<Integer, Class<?>>() {{
+        final Matrix<?> result = client.readTable(ReadMethod.GETBULK, new OID("1.1.5.1"), new HashMap<Integer, Class<?>>() {{
             put(2, Integer.class);
         }});
-        assertEquals(2, array.getRowCount());
-        assertEquals(1, array.getColumns().size());
-        assertEquals(20, array.getCell(2, 0));
-        assertEquals(30, array.getCell(2, 1));
+        final List<? extends Map<Integer, ?>> rows = MatrixImpl.toList(result);
+        assertEquals(2, result.size());
+        assertEquals(20, rows.get(0).get(2));
+        assertEquals(30, rows.get(1).get(2));
     }
 
     @Test
     public final void testForDictionaryProperty() throws Exception {
-        Table<Integer> dict = INTEGER_TABLE_FACTORY.create(new HashMap<Integer, Class<?>>() {{
-            put(2, Variable.class);
-            put(3, Variable.class);
-            put(4, Variable.class);
-        }});
-        dict.addRow(new HashMap<Integer, Object>() {{
-            put(2, new Integer32(0));//false
-            put(3, new Integer32(4230));
-            put(4, new OctetString("Test for dictionary property"));
-        }});
+        final Matrix<Variable> dict = MatrixImpl.create(ImmutableList.of(
+                new HashMap<Integer, Variable>() {{
+                    put(2, new Integer32(0));//false
+                    put(3, new Integer32(4230));
+                    put(4, new OctetString("Test for dictionary property"));
+                }}
+        ));
         client.writeTable("1.1.6.1", dict);
-        dict = client.readTable(ReadMethod.GETBULK, new OID("1.1.6.1"), new HashMap<Integer, Class<?>>() {{
+        final Matrix<?> result = client.readTable(ReadMethod.GETBULK, new OID("1.1.6.1"), new HashMap<Integer, Class<?>>() {{
             put(2, Boolean.class);
             put(3, Integer.class);
             put(4, String.class);
         }});
-        assertEquals(3, dict.getColumns().size());
-        assertEquals(1, dict.getRowCount());
-        assertEquals(false, dict.getCell(2, 0));
-        assertEquals(4230, dict.getCell(3, 0));
-        assertEquals("Test for dictionary property", dict.getCell(4, 0));
+        assertEquals(1, result.size());
+        final List<? extends Map<Integer, ?>> rows = MatrixImpl.toList(result);
+        assertEquals(false, rows.get(0).get(2));
+        assertEquals(4230, rows.get(0).get(3));
+        assertEquals("Test for dictionary property", rows.get(0).get(4));
 
     }
 

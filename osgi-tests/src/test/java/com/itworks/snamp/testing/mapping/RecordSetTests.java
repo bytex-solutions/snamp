@@ -2,16 +2,14 @@ package com.itworks.snamp.testing.mapping;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.mapping.*;
 import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 
 import java.net.MalformedURLException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 
 /**
@@ -100,7 +98,18 @@ public class RecordSetTests extends AbstractUnitTest<RecordSet> {
         final Map<String, Integer> map = ImmutableMap.of("One", 1,
                 "Two", 2,
                 "Three", 3);
-        final RecordSet<String, Integer> set = RecordSetUtils.fromMap(map);
+        final RecordSet<String, Integer> set = new KeyedRecordSet<String, Integer>() {
+            @Override
+            protected Set<String> getKeys() {
+                return map.keySet();
+            }
+
+            @Override
+            protected Integer getRecord(final String key) {
+                return map.get(key);
+            }
+        };
+        assertTrue(TypeLiterals.isInstance(set, TypeLiterals.NAMED_RECORD_SET));
         assertEquals(map.size(), set.size());
         set.sequential().forEach(new RecordReader<String, Integer, ExceptionPlaceholder>() {
             @Override
@@ -113,5 +122,59 @@ public class RecordSetTests extends AbstractUnitTest<RecordSet> {
             }
         });
         assertNotNull(set.parallel(Executors.newSingleThreadExecutor()));
+    }
+
+    @Test
+    public void addRowTest(){
+        RowSet<String> set = RecordSetUtils.singleRow(Collections.singletonMap("Column 1", "Cell 1"));
+        set = RecordSetUtils.addRow(set, Collections.singletonMap("Column 1", "Cell 2"));
+        assertEquals(2, set.size());
+        assertEquals(1, set.getColumns().size());
+        assertTrue(set.getColumns().contains("Column 1"));
+        final List<? extends Map<String, String>> rows = RecordSetUtils.toList(set);
+        assertEquals(rows.size(), set.size());
+        assertEquals("Cell 2", rows.get(1).get("Column 1"));
+        assertEquals("Cell 1", rows.get(0).get("Column 1"));
+    }
+
+    @Test
+    public void insertRowTest(){
+        RowSet<String> set = RecordSetUtils.singleRow(Collections.singletonMap("Column 1", "Cell 1"));
+        set = RecordSetUtils.insertRow(set, Collections.singletonMap("Column 1", "Cell 2"), 0);
+        set = RecordSetUtils.insertRow(set, Collections.singletonMap("Column 1", "Cell 3"), 2);
+        assertEquals(3, set.size());
+        final List<? extends Map<String, String>> rows = RecordSetUtils.toList(set);
+        assertEquals(set.size(), rows.size());
+        assertEquals("Cell 2", rows.get(0).get("Column 1"));
+        assertEquals("Cell 1", rows.get(1).get("Column 1"));
+        assertEquals("Cell 3", rows.get(2).get("Column 1"));
+    }
+
+    @Test
+    public void removeRowTest() {
+        RowSet<String> set = RecordSetUtils.singleRow(Collections.singletonMap("Column 1", "Dummy"));
+        assertTrue(TypeLiterals.isInstance(set, TypeLiterals.ROW_SET));
+        assertEquals(1, set.size());
+        set = RecordSetUtils.removeRow(set, 0);
+        assertTrue(TypeLiterals.isInstance(set, TypeLiterals.ROW_SET));
+        assertEquals(0, set.size());
+        set = RecordSetUtils.fromRows(ImmutableSet.of("Column 1", "Column 2"),
+                ImmutableList.of(ImmutableMap.of("Column 1", "Cell 1",
+                                "Column 2", "Cell 2",
+                                "Column 3", "Cell 3"),
+                        ImmutableMap.of("Column 1", "Cell 4",
+                                "Column 2", "Cell 5",
+                                "Column 3", "Cell 6"),
+                        ImmutableMap.of("Column 1", "Cell 7",
+                                "Column 2", "Cell 8",
+                                "Column 3", "Cell 9")));
+        final RowSet<String> modifiedSet1 = RecordSetUtils.removeRow(set, 1);
+        assertEquals(set.size() - 1, modifiedSet1.size());
+        final List<? extends Map<String, String>> rows = RecordSetUtils.toList(modifiedSet1);
+        assertEquals(set.size() - 1, rows.size());
+        Map<String, String> row = rows.get(1);
+        assertEquals("Cell 8", row.get("Column 2"));
+        row = rows.get(0);
+        assertEquals("Cell 2", row.get("Column 2"));
     }
 }

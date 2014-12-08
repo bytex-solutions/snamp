@@ -1,7 +1,9 @@
 package com.itworks.snamp.adapters;
 
 import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.*;
+import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.WriteOnceRef;
 import com.itworks.snamp.connectors.*;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
@@ -14,13 +16,14 @@ import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.ServiceReferenceHolder;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
-import com.itworks.snamp.mapping.TypeConverter;
-import com.itworks.snamp.mapping.TypeLiterals;
+import com.itworks.snamp.mapping.*;
 import org.osgi.framework.*;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -233,6 +236,71 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             } catch (final UnknownAttributeException e) {
                 throw new AttributeSupportException(e);
             }
+        }
+
+        public void setRowSet(final RowSet<?> value) throws TimeoutException, AttributeSupportException{
+            //cast is necessary. We should determine whether the RowSet saves the generic actual type
+            setValue(TypeLiterals.cast(value, TypeLiterals.ROW_SET));
+        }
+
+        public <C> void setRowSet(final Set<String> columns,
+                              final List<? extends Map<String, C>> rows) throws TimeoutException, AttributeSupportException {
+            setRowSet(columns, Collections.<String>emptySet(), rows);
+        }
+
+        public <C> void setRowSet(final Set<String> columns,
+                              final Set<String> indexedColumns,
+                              final List<? extends Map<String, C>> rows) throws TimeoutException, AttributeSupportException {
+            setRowSet(RecordSetUtils.fromRows(columns, indexedColumns, rows));
+        }
+
+        public void setNamedRecordSet(final RecordSet<String, ?> value) throws TimeoutException, AttributeSupportException{
+            //cast is necessary. We should determine whether the RecordSet saves the generic actual type
+            setValue(TypeLiterals.cast(value, TypeLiterals.NAMED_RECORD_SET));
+        }
+
+        public void setBoolean(final boolean value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setByte(final byte value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setShort(final short value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setInt(final int value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setLong(final long value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setBigInt(final BigInteger value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setBigDecimal(final BigDecimal value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setFloat(final float value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setDouble(final double value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setDateTime(final Date value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setString(final String value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
         }
 
         /**

@@ -465,8 +465,4 @@ public final class Utils {
         }
         else return defaultValue;
     }
-
-    public static Map<String, Object> createStringHashMap(final int capacity){
-        return new HashMap<String, Object>(capacity){ };
-    }
 }

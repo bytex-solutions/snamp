@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.mapping.RecordSetUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -59,6 +60,7 @@ final class SetTableCommand extends AbstractManagementShellCommand{
         try {
             attr.applyTransformation(SshAttributeView.DeleteRowTransformation.class,
                     Integer.parseInt(index));
+            output.println("Deleted");
         } catch (final Exception e) {
             throw new CommandException(e);
         }
@@ -74,7 +76,7 @@ final class SetTableCommand extends AbstractManagementShellCommand{
             for (final String key : entries.stringPropertyNames())
                 newRow.put(key, fmt != null ? fmt.parseObject(entries.getProperty(key)) : entries.getProperty(key));
             output.println(attr.applyTransformation(SshAttributeView.InsertRowTransformation.class,
-                    new SshAttributeView.Row(Integer.parseInt(index), newRow)) ? "OK" :
+                    new SshAttributeView.Row(Integer.parseInt(index), RecordSetUtils.fromMap(newRow))) ? "OK" :
                     "Unable to insert row");
         }
         catch (final Exception e){
@@ -92,7 +94,7 @@ final class SetTableCommand extends AbstractManagementShellCommand{
             for (final String key : entries.stringPropertyNames())
                 newRow.put(key, fmt != null ? fmt.parseObject(entries.getProperty(key)) : entries.getProperty(key));
             output.println(attr.applyTransformation(SshAttributeView.UpdateRowTransformation.class,
-                    new SshAttributeView.Row(Integer.parseInt(index), newRow)) ? "OK" :
+                    new SshAttributeView.Row(Integer.parseInt(index), RecordSetUtils.fromMap(newRow))) ? "OK" :
                     "Unable to insert row");
         }
         catch (final Exception e){

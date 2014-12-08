@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.*;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -9,7 +10,9 @@ import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.mapping.Table;
+import com.itworks.snamp.mapping.KeyedRecordSet;
+import com.itworks.snamp.mapping.RecordSetUtils;
+import com.itworks.snamp.mapping.RowSet;
 import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
@@ -27,7 +30,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.connectors.notifications.NotificationUtils.SynchronizationListener;
@@ -210,25 +212,21 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public final void testForTableProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
-        final Table<String> table = STRING_TABLE_FACTORY.create(new HashMap<String, Class<?>>(3){{
-            put("col1", Boolean.class);
-            put("col2", Integer.class);
-            put("col3", String.class);
-        }});
-        table.addRow(new HashMap<String, Object>(3){{
+        RowSet<Object> table = RecordSetUtils.emptyRowSet("col1", "col2", "col3");
+        table = RecordSetUtils.addRow(table, new HashMap<String, Object>(3){{
             put("col1", true);
             put("col2", 42);
             put("col3", "Frank Underwood");
         }});
-        table.addRow(new HashMap<String, Object>(3){{
+        table = RecordSetUtils.addRow(table, new HashMap<String, Object>(3){{
             put("col1", true);
             put("col2", 43);
             put("col3", "Peter Russo");
         }});
-        testAttribute("7.1", "table", TypeLiterals.STRING_COLUMN_TABLE, table, new Equator<Table<String>>() {
+        testAttribute("7.1", "table", TypeLiterals.ROW_SET, table, new Equator<RowSet<?>>() {
             @Override
-            public boolean equate(final Table<String> o1, final Table<String> o2) {
-                return o1.getRowCount() == o2.getRowCount() &&
+            public boolean equate(final RowSet<?> o1, final RowSet<?> o2) {
+                return o1.size() == o2.size() &&
                         Utils.isEqualSet(o1.getColumns(), o2.getColumns());
             }
         });
@@ -236,11 +234,20 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public final void testForDictionaryProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
-        final Map<String, Object> dict = Utils.createStringHashMap(3);
-        dict.put("col1", Boolean.TRUE);
-        dict.put("col2", 42);
-        dict.put("col3", "Frank Underwood");
-        testAttribute("6.1", "dictionary", TypeLiterals.STRING_MAP, dict, AbstractResourceConnectorTest.<String, Object>mapEquator());
+        final Map<String, Object> dict = ImmutableMap.<String, Object>of("col1", Boolean.TRUE,
+        "col2", 42,
+        "col3", "Frank Underwood");
+        testAttribute("6.1", "dictionary", TypeLiterals.NAMED_RECORD_SET, new KeyedRecordSet<String, Object>() {
+            @Override
+            protected Set<String> getKeys() {
+                return dict.keySet();
+            }
+
+            @Override
+            protected Object getRecord(final String key) {
+                return dict.get(key);
+            }
+        }, AbstractResourceConnectorTest.namedRecordSetEquator());
     }
 
     @Test

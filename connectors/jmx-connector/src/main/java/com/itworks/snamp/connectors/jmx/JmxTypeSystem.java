@@ -7,10 +7,10 @@ import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
-import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.mapping.*;
 
 import javax.management.InvalidAttributeValueException;
+import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
 import java.lang.reflect.Array;
@@ -21,7 +21,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.connectors.ManagedEntityMetadata.*;
-import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 
 /**
  * Represents JMX type system. This class cannot be inherited.
@@ -38,25 +37,11 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
      * Initializes a new builder of JMX managementAttributes.
      */
     public JmxTypeSystem(){
-        registerConverter(TABULAR_DATA, TypeLiterals.STRING_COLUMN_TABLE,
-                new Function<TabularData, Table<String>>() {
-                    @Override
-                    public Table<String> apply(final TabularData input) {
-                        return convertToTable(input);
-                    }
-                });
         registerConverter(TABULAR_DATA, TypeLiterals.ROW_SET,
                 new Function<TabularData, RowSet<?>>() {
                     @Override
                     public RowSet<?> apply(final TabularData input) {
                         return convertToRowSet(input);
-                    }
-                });
-        registerConverter(COMPOSITE_DATA, TypeLiterals.STRING_MAP,
-                new Function<CompositeData, Map<String,Object>>() {
-                    @Override
-                    public Map<String, Object> apply(final CompositeData input) {
-                        return convertToMap(input);
                     }
                 });
         registerConverter(COMPOSITE_DATA, TypeLiterals.NAMED_RECORD_SET, new Function<CompositeData, RecordSet<String, ?>>() {
@@ -65,41 +50,13 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
                 return convertToRecordSet(input);
             }
         });
-        registerConverter(COMPOSITE_DATA, TypeLiterals.STRING_COLUMN_TABLE,
-                new Function<CompositeData, Table<String>>() {
+        registerConverter(COMPOSITE_DATA, TypeLiterals.ROW_SET,
+                new Function<CompositeData, RowSet<?>>() {
                     @Override
-                    public Table<String> apply(final CompositeData input) {
-                        return convertToTable(input);
+                    public RowSet<?> apply(final CompositeData input) {
+                        return convertToRowSet(input);
                     }
                 });
-    }
-
-    /**
-     * Converts the JMX table into well-known table.
-     * @param value JMX table to convert.
-     * @return Well-known representation of the JMX table.
-     */
-    private static Table<String> convertToTable(final TabularData value){
-        final TabularType tt = value.getTabularType();
-        final InMemoryTable<String> result = STRING_TABLE_FACTORY.create(tt.getRowType().keySet(),
-                Object.class,
-                value.size());
-        for(final Object rowIndex: value.values()){
-            final CompositeData nativeRow = (CompositeData)rowIndex;
-            final Map<String, Object> tableRow = result.newRow();
-            for(final String columnName: tt.getRowType().keySet())
-                tableRow.put(columnName, nativeRow.get(columnName));
-            result.addRow(tableRow);
-        }
-        return result;
-    }
-
-    private static Map<String, Object> convertToMap(final CompositeData value){
-        final CompositeType ct = value.getCompositeType();
-        final Map<String, Object> result = Utils.createStringHashMap(ct.keySet().size());
-        for(final String key: ct.keySet())
-            result.put(key, value.get(key));
-        return result;
     }
 
     private static RecordSet<String, ?> convertToRecordSet(final CompositeData value) {
@@ -116,7 +73,31 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         };
     }
 
-    private static RowSet<Object> convertToRowSet(final TabularData value){
+    private static RowSet<Object> convertToRowSet(final CompositeData value){
+        return new AbstractRowSet<Object>() {
+            @Override
+            protected Object getCell(final String columnName, final int rowIndex) {
+                return value.get(columnName);
+            }
+
+            @Override
+            public Set<String> getColumns() {
+                return value.getCompositeType().keySet();
+            }
+
+            @Override
+            public int size() {
+                return 1;
+            }
+
+            @Override
+            public boolean isIndexed(final String columnName) {
+                return false;
+            }
+        };
+    }
+
+    private static RowSet<?> convertToRowSet(final TabularData value){
         return new AbstractRowSet<Object>() {
             @SuppressWarnings("unchecked")
             private final List<CompositeData> rows = new ArrayList<>((Collection<CompositeData>)value.values());
@@ -136,17 +117,12 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             public int size() {
                 return value.size();
             }
-        };
-    }
 
-    private static Table<String> convertToTable(final CompositeData value) {
-        final CompositeType ct = value.getCompositeType();
-        final InMemoryTable<String> result = STRING_TABLE_FACTORY.create(ct.keySet(), Object.class, 1);
-        final Map<String, Object> row = result.newRow();
-        for (final String columnName : ct.keySet())
-            row.put(columnName, value.get(columnName));
-        result.addRow(row);
-        return result;
+            @Override
+            public boolean isIndexed(final String columnName) {
+                return value.getTabularType().getIndexNames().contains(columnName);
+            }
+        };
     }
 
     private static OpenType<?> getOpenType(final String typeName, final Supplier<OpenType<?>> fallback){
@@ -287,7 +263,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
     }
 
     private static abstract class AbstractJmxEntityTabularType extends AbstractJmxEntityType<TabularData, TabularType> implements JmxManagedEntityOpenType<TabularData>, ManagedEntityTabularType {
-        public static final TypeToken<Table<String>> WELL_KNOWN_TYPE = TypeLiterals.STRING_COLUMN_TABLE;
+        public static final TypeToken<RowSet<?>> WELL_KNOWN_TYPE = TypeLiterals.ROW_SET;
 
         protected AbstractJmxEntityTabularType(final TabularType ttype){
             super(ttype);
@@ -310,7 +286,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          * @return The set of column names.
          */
         @Override
-        public final Collection<String> getColumns() {
+        public final Set<String> getColumns() {
             return getOpenType().getRowType().keySet();
         }
 
@@ -332,24 +308,32 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             super(ttype);
         }
 
-        private TabularData convertToJmxType(final Table<String> value) throws InvalidAttributeValueException{
-            final CompositeData[] rows = new CompositeData[value.getRowCount()];
+        private TabularData convertToJmxType(final RowSet<?> value) throws InvalidAttributeValueException {
+            final CompositeData[] rows = new CompositeData[value.size()];
             final CompositeType columnSchema = getOpenType().getRowType();
-            try{
-                //fills the rows
-                for(int rowIndex = 0; rowIndex < value.getRowCount(); rowIndex++){
-                    final int rowID = rowIndex;
-                    //create each cell in the row
-                    rows[rowIndex] = new CompositeDataSupport(columnSchema, new HashMap<String, Object>(){{
-                        for(final String columnName: columnSchema.keySet()){
-                            final JmxManagedEntityType columnType = createEntityType(columnSchema.getType(columnName));
-                            put(columnName, columnType.convertToJmx(value.getCell(columnName, rowID)));
-                        }
-                    }});
-                }
+            //for each row
+            try {
+                value.sequential().forEach(new RecordReader<Integer, RecordSet<String, ?>, JMException>() {
+                    @Override
+                    public void read(final Integer rowIndex, final RecordSet<String, ?> row) throws JMException {
+                        final Map<String, Object> newRow = new HashMap<>(row.size());
+                        //for each column
+                        row.sequential().forEach(new RecordReader<String, Object, InvalidAttributeValueException>() {
+                            @Override
+                            public void read(final String columnName, final Object cell) throws InvalidAttributeValueException {
+                                final JmxManagedEntityType columnType = createEntityType(columnSchema.getType(columnName));
+                                newRow.put(columnName, columnType.convertToJmx(cell));
+                            }
+                        });
+                        rows[rowIndex] = new CompositeDataSupport(columnSchema, newRow);
+                    }
+                });
             }
-            catch (final OpenDataException e){
-                throw new InvalidAttributeValueException(e.toString());
+            catch (final InvalidAttributeValueException e){
+                throw e;
+            }
+            catch (final JMException e){
+                throw JmxConnectorHelpers.invalidAttributeValueException(e);
             }
             final TabularData result = new TabularDataSupport(getOpenType());
             result.putAll(rows);
@@ -388,13 +372,13 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         @Override
         public final TabularData convertToJmx(final Object value) throws InvalidAttributeValueException{
             if(TypeLiterals.isInstance(value, WELL_KNOWN_TYPE))
-                return convertToJmxType(TypeLiterals.cast(value, WELL_KNOWN_TYPE));
+                    return convertToJmxType(TypeLiterals.cast(value, WELL_KNOWN_TYPE));
             else if(value instanceof TabularData)
                 try {
                     return convertToJmxType((TabularData)value);
                 }
                 catch (final OpenDataException e) {
-                    throw new InvalidAttributeValueException(e.toString());
+                    throw JmxConnectorHelpers.invalidAttributeValueException(e);
                 }
             else throw new InvalidAttributeValueException(String.format("Cannot convert %s to tabular data.", value));
         }
@@ -402,8 +386,8 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
 
     private static abstract class AbstractJmxEntityCompositeType extends AbstractJmxEntityType<CompositeData, CompositeType> implements JmxManagedEntityOpenType<CompositeData>, ManagedEntityTabularType {
         public static final TypeToken<?>[] WELL_KNOWN_TYPES = new TypeToken<?>[]{
-                TypeLiterals.STRING_MAP,
-                TypeLiterals.STRING_COLUMN_TABLE
+                TypeLiterals.ROW_SET,
+                TypeLiterals.NAMED_RECORD_SET
         };
 
         protected AbstractJmxEntityCompositeType(final CompositeType ctype){
@@ -427,7 +411,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          * @return The set of column names.
          */
         @Override
-        public final Collection<String> getColumns() {
+        public final Set<String> getColumns() {
             return getOpenType().keySet();
         }
 
@@ -448,33 +432,47 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             super(ctype);
         }
 
-        private CompositeData convertToJmxType(final Map<String, Object> value) throws InvalidAttributeValueException{
-            final Map<String, Object> convertedValue = Utils.createStringHashMap(value.size());
-            for(final String columnName: value.keySet()){
-                final JmxManagedEntityType columnType = createEntityType(getOpenType().getType(columnName));
-                convertedValue.put(columnName, columnType.convertToJmx(value.get(columnName)));
-            }
+        private CompositeData convertToJmxType(final RecordSet<String, ?> value) throws InvalidAttributeValueException{
+            final Map<String, Object> convertedValue = new HashMap<>(value.size());
+            value.sequential().forEach(new RecordReader<String, Object, InvalidAttributeValueException>() {
+                @Override
+                public void read(final String columnName, final Object value) throws InvalidAttributeValueException {
+                    final JmxManagedEntityType columnType = createEntityType(getOpenType().getType(columnName));
+                    convertedValue.put(columnName, columnType.convertToJmx(value));
+                }
+            });
             try {
                 return new CompositeDataSupport(getOpenType(), convertedValue);
             }
             catch (final OpenDataException e) {
-                throw new InvalidAttributeValueException(e.toString());
+                throw JmxConnectorHelpers.invalidAttributeValueException(e);
             }
         }
 
-        private CompositeData convertToJmxType(final Table<String> value) throws InvalidAttributeValueException{
-            final Map<String, Object> result = Utils.createStringHashMap(value.getColumns().size());
-            if(value.getRowCount() > 0)
-                for(final String columnName: getOpenType().keySet()){
-                    final JmxManagedEntityType columnType = createEntityType(getOpenType().getType(columnName));
-                    result.put(columnName, columnType.convertToJmx(value.getCell(columnName, 0)));
+        private CompositeData convertToJmxType(final RowSet<?> value) throws InvalidAttributeValueException {
+            if (value.size() == 0) throw new InvalidAttributeValueException("Attempt to convert an empty table");
+            final Map<String, Object> result = new HashMap<>(value.size());
+            value.sequential().forEach(new FilteredRowReader<Integer, RecordSet<String, ?>, InvalidAttributeValueException>() {
+                @Override
+                protected boolean isAllowed(final Integer index) {
+                    return index == 0;
                 }
-            else throw new InvalidAttributeValueException(String.format("Cannot convert %s to composite data.", value));
-            try{
+
+                @Override
+                protected void readCore(final Integer index, final RecordSet<String, ?> value) throws InvalidAttributeValueException {
+                    value.sequential().forEach(new RecordReader<String, Object, InvalidAttributeValueException>() {
+                        @Override
+                        public void read(final String columnName, final Object value) throws InvalidAttributeValueException {
+                            final JmxManagedEntityType columnType = createEntityType(getOpenType().getType(columnName));
+                            result.put(columnName, columnType.convertToJmx(value));
+                        }
+                    });
+                }
+            });
+            try {
                 return new CompositeDataSupport(getOpenType(), result);
-            }
-            catch (final OpenDataException e){
-                throw new InvalidAttributeValueException(e.getMessage());
+            } catch (final OpenDataException e) {
+                throw JmxConnectorHelpers.invalidAttributeValueException(e);
             }
         }
 
@@ -493,16 +491,16 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         @SuppressWarnings("unchecked")
         @Override
         public final CompositeData convertToJmx(final Object value) throws InvalidAttributeValueException{
-            if(TypeLiterals.isInstance(value, TypeLiterals.STRING_COLUMN_TABLE))
-                return convertToJmxType(TypeLiterals.cast(value, TypeLiterals.STRING_COLUMN_TABLE));
-            else if(TypeLiterals.isInstance(value, TypeLiterals.STRING_MAP))
-                return convertToJmxType(TypeLiterals.cast(value, TypeLiterals.STRING_MAP));
+            if(TypeLiterals.isInstance(value, TypeLiterals.NAMED_RECORD_SET))
+                return convertToJmxType(TypeLiterals.cast(value, TypeLiterals.NAMED_RECORD_SET));
+            else if(TypeLiterals.isInstance(value, TypeLiterals.ROW_SET))
+                return convertToJmxType(TypeLiterals.cast(value, TypeLiterals.ROW_SET));
             else if(value instanceof CompositeData)
                 try {
                     return convertToJmxType((CompositeData)value);
                 }
                 catch (final OpenDataException e) {
-                    throw new InvalidAttributeValueException(e.toString());
+                    throw JmxConnectorHelpers.invalidAttributeValueException(e);
                 }
             else throw new InvalidAttributeValueException(String.format("Cannot convert %s to composite data.", value));
         }
@@ -554,6 +552,16 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         public abstract JmxManagedEntityType getElementType();
 
         /**
+         * Returns a set of column names.
+         *
+         * @return The set of column names.
+         */
+        @Override
+        public final Set<String> getColumns() {
+            return ManagedEntityArrayType.COLUMNS;
+        }
+
+        /**
          * Determines whether the specified column is indexed.
          *
          * @param column The name of the column.
@@ -601,17 +609,6 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             if(value != null && value.getClass().isArray())
                 return convertToJmxArray(value);
             else return convertToJmxArray(new Object[]{value});
-        }
-
-        /**
-         * Returns a set of column names.
-         *
-         * @return The set of column names.
-         */
-        @Override
-        public final Collection<String> getColumns() {
-            return Arrays.asList(ManagedEntityArrayType.INDEX_COLUMN_NAME,
-                    ManagedEntityArrayType.VALUE_COLUMN_NAME);
         }
 
         /**

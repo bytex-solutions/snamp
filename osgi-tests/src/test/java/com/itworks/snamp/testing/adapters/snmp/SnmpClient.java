@@ -1,9 +1,10 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
 import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.mapping.Table;
+import com.itworks.snamp.testing.Matrix;
 import org.snmp4j.PDU;
 import org.snmp4j.smi.OID;
+import org.snmp4j.smi.Variable;
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,7 +33,7 @@ public interface SnmpClient {
      * @return
      * @throws IOException
      */
-    PDU writeTable(final String tablePrefix, final Table<Integer> table) throws IOException;
+    PDU writeTable(final String tablePrefix, final Matrix<? extends Variable> table) throws IOException;
 
 
     /**
@@ -40,7 +41,7 @@ public interface SnmpClient {
      * @return
      * @throws IOException
      */
-    Table<Integer> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception;
+    Matrix<?> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception;
 
 
     /**

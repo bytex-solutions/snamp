@@ -1,6 +1,6 @@
 package com.itworks.jcommands.impl;
 
-import com.itworks.snamp.mapping.Table;
+import com.google.common.reflect.TypeToken;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -27,13 +27,13 @@ public enum XmlParsingResultType {
      *     Possible string values are 0, 1, true, false, yes, no.
      */
     @XmlEnumValue("boolean")
-    BOOLEAN(true, Boolean.class),
+    BOOLEAN(true, TypeToken.of(Boolean.class)),
 
     /**
      * Represents string value.
      */
     @XmlEnumValue("string")
-    STRING(true, String.class),
+    STRING(true, TypeToken.of(String.class)),
 
     /**
      * Represents an array of bytes.
@@ -41,43 +41,45 @@ public enum XmlParsingResultType {
      *     This type converts hex string into the array of bytes.
      */
     @XmlEnumValue("blob")
-    BLOB(false, Byte[].class),
+    BLOB(false, TypeToken.of(Byte[].class)),
 
     @XmlEnumValue("8bit")
-    BYTE(true, Byte.class),
+    BYTE(true, TypeToken.of(Byte.class)),
 
     @XmlEnumValue("16bit")
-    SHORT(true, Short.class),
+    SHORT(true, TypeToken.of(Short.class)),
 
     @XmlEnumValue("32bit")
-    INTEGER(true, Integer.class),
+    INTEGER(true, TypeToken.of(Integer.class)),
 
     @XmlEnumValue("64bit")
-    LONG(true, Long.class),
+    LONG(true, TypeToken.of(Long.class)),
 
     @XmlEnumValue("integer")
-    BIG_INTEGER(true, BigInteger.class),
+    BIG_INTEGER(true, TypeToken.of(BigInteger.class)),
 
     @XmlEnumValue("decimal")
-    BIG_DECIMAL(true, BigDecimal.class),
+    BIG_DECIMAL(true, TypeToken.of(BigDecimal.class)),
 
     @XmlEnumValue("dictionary")
-    DICTIONARY(false, Map.class),
+    DICTIONARY(false, TypeTokens.DICTIONARY_TYPE_TOKEN),
 
     @XmlEnumValue("array")
-    ARRAY(false, Object[].class),
+    ARRAY(false, TypeToken.of(Object[].class)),
 
     @XmlEnumValue("table")
-    TABLE(false, Table.class),
+    TABLE(false, TypeTokens.TABLE_TYPE_TOKEN),
 
     @XmlEnumValue("date")
-    DATE_TIME(true, Date.class),
+    DATE_TIME(true, TypeToken.of(Date.class)),
 
     @XmlEnumValue("float")
-    FLOAT(true, Float.class),
+    FLOAT(true, TypeToken.of(Float.class)),
 
     @XmlEnumValue("double")
-    DOUBLE(true, Double.class);
+    DOUBLE(true, TypeToken.of(Double.class));
+
+    public static final TypeToken<Map<String, ?>> DICTIONARY_TYPE_TOKEN = new TypeToken<Map<String, ?>>() {};
 
     /**
      * Determines whether this type is scalar.
@@ -87,10 +89,10 @@ public enum XmlParsingResultType {
     /**
      * Represents underying SNAMP-compliant type.
      */
-    public final Class<?> underlyingType;
+    public final TypeToken<?> underlyingType;
 
     private XmlParsingResultType(final boolean scalar,
-                                 final Class<?> type){
+                                 final TypeToken<?> type){
         this.isScalar = scalar;
         this.underlyingType = type;
     }

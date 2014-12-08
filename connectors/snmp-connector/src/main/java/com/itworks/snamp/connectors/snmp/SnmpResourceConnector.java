@@ -12,8 +12,8 @@ import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicensingException;
+import com.itworks.snamp.mapping.KeyedRecordSet;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
@@ -113,14 +113,25 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
                     return new ManagedEntityValue<>(binding,
                             typeSystem.resolveSnmpScalarType(binding, options));
                 default:
-                    final Map<String, Object> attachment = Utils.createStringHashMap(bindings.size());
+                    final Map<String, Object> attachment = new HashMap<>(bindings.size());
                     final Map<String, ManagedEntityType> attachmentType = new HashMap<>(bindings.size());
                     for(final VariableBinding b: bindings){
                         final String key = b.getOid().toDottedString();
                         attachment.put(key, b.getVariable());
                         attachmentType.put(key, typeSystem.resolveSnmpScalarType(b.getVariable(), options));
                     }
-                    return new ManagedEntityValue<>(attachment, typeSystem.createEntityDictionaryType(attachmentType));
+                    return new ManagedEntityValue<>(new KeyedRecordSet<String, Object>() {
+                        @Override
+                        protected Set<String> getKeys() {
+                            return attachment.keySet();
+                        }
+
+                        @Override
+                        protected Object getRecord(final String key) {
+                            return attachment.get(key);
+                        }
+                    },
+                   typeSystem.createEntityDictionaryType(attachmentType));
             }
         }
 

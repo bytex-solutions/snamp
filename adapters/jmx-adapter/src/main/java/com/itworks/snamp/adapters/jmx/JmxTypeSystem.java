@@ -1,20 +1,20 @@
 package com.itworks.snamp.adapters.jmx;
 
+import com.google.common.collect.ObjectArrays;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.mapping.Table;
-import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityValue;
-import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.connectors.MapReader;
+import com.itworks.snamp.internal.annotations.Temporary;
+import com.itworks.snamp.mapping.*;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.util.*;
 
-import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 import static com.itworks.snamp.connectors.ManagedEntityMetadata.*;
 import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME;
 import static com.itworks.snamp.connectors.ManagedEntityTypeBuilder.isArray;
@@ -45,43 +45,63 @@ final class JmxTypeSystem {
         return new InvalidAttributeValueException(String.format("The value %s is not of a type %s", value, expectedType.getClassName()));
     }
 
-    private static Object parseCompositeData(final CompositeData data,
-                                             final ManagedEntityTabularType mapType) throws OpenDataException, InvalidAttributeValueException{
-        final Map<String, Object> map = Utils.createStringHashMap(data.getCompositeType().keySet().size());
-        for(final String key: data.getCompositeType().keySet())
-            map.put(key, parseValue(data.get(key), mapType.getColumnType(key)));
-        return map;
-    }
-
-    private static Object parseTabularData(final TabularData data,
-                                           final ManagedEntityTabularType tabularType) throws OpenDataException, InvalidAttributeValueException {
-        final Table<String> result = STRING_TABLE_FACTORY.create(tabularType.getColumns(), Object.class, data.size());
-        for (final Object row : data.values())
-            if (row instanceof CompositeData) {
-                final CompositeData sourceRow = (CompositeData) row;
-                final Map<String, Object> destRow = new HashMap<>(sourceRow.values().size());
-                for (final String columnName : sourceRow.getCompositeType().keySet())
-                    destRow.put(columnName, parseValue(sourceRow.get(columnName), tabularType.getColumnType(columnName)));
-                result.addRow(destRow);
+    private static RecordSet<String, ?> parseCompositeData(final CompositeData data){
+        return new KeyedRecordSet<String, Object>() {
+            @Override
+            protected Set<String> getKeys() {
+                return data.getCompositeType().keySet();
             }
-        return result;
+
+            @Override
+            protected Object getRecord(final String key) {
+                return data.get(key);
+            }
+        };
     }
 
-    private static Object normalizeArray(final Object array, final ArrayType<?> arrayType) throws OpenDataException{
-        final Object result;
-        if(array.getClass().isArray())
-            try{
+    private static RowSet<?> parseTabularData(final TabularData data) {
+        return new AbstractRowSet<Object>() {
+            @SuppressWarnings("unchecked")
+            private final List<CompositeData> rows = new ArrayList<>((Collection<CompositeData>)data.values());
+
+            @Override
+            protected Object getCell(final String columnName, final int rowIndex) {
+                @Temporary
+                final CompositeData row = rows.get(rowIndex);
+                return row.get(columnName);
+            }
+
+            @Override
+            public Set<String> getColumns() {
+                return data.getTabularType().getRowType().keySet();
+            }
+
+            @Override
+            public boolean isIndexed(final String columnName) {
+                return data.getTabularType().getIndexNames().contains(columnName);
+            }
+
+            @Override
+            public int size() {
+                return data.size();
+            }
+        };
+    }
+
+    private static Object[] normalizeArray(final Object array, final ArrayType<?> arrayType) throws OpenDataException {
+        final Object[] result;
+        if (array.getClass().isArray())
+            try {
                 final Class<?> elementType = Class.forName(arrayType.getElementOpenType().getClassName());
-                result = Array.newInstance(elementType, Array.getLength(array));
-                for(int i = 0; i < Array.getLength(array); i++)
-                    Array.set(result, i, Array.get(array, i));
-            }
-            catch (final ClassNotFoundException e){
+                result = ObjectArrays.newArray(elementType, Array.getLength(array));
+                for (int i = 0; i < Array.getLength(array); i++)
+                    result[i] = Array.get(array, i);
+            } catch (final ClassNotFoundException e) {
                 throw new OpenDataException(String.format("Array %s could not be normalized: class %s not found", array, arrayType.getElementOpenType().getClassName()));
             }
         else {
-            result = Array.newInstance(array.getClass().getComponentType(), 1);
-            Array.set(result, 0, array);
+            result = ObjectArrays.newArray(array.getClass().getComponentType(), 1);
+            result[0] = array;
         }
         return result;
     }
@@ -97,9 +117,9 @@ final class JmxTypeSystem {
             if(openType.isArray() && type instanceof ManagedEntityTabularType)
                 return parseArrayValue(value, (ManagedEntityTabularType) type);
             else if(value instanceof CompositeData && type instanceof ManagedEntityTabularType)
-                return parseCompositeData((CompositeData) value, (ManagedEntityTabularType) type);
+                return parseCompositeData((CompositeData) value);
             else if(value instanceof TabularData && type instanceof ManagedEntityTabularType)
-                return parseTabularData((TabularData) value, (ManagedEntityTabularType) type);
+                return parseTabularData((TabularData) value);
             else if(openType instanceof SimpleType<?>)
                 return value;
         throw createInvalidAttributeValueException(openType, value);
@@ -118,41 +138,49 @@ final class JmxTypeSystem {
                     ArrayUtils.toArray(dict.getCompositeType().keySet(), String.class),
                     dict.values().toArray());
         }
-        final Map<String, Object> m = new HashMap<>(source.type.getColumns().size());
-        for(final Map.Entry<String, ?> entry: source.convertTo(TypeLiterals.STRING_MAP).entrySet()){
-            final String key = entry.getKey();
-            m.put(key, getValue(new ManagedEntityValue<>(entry.getValue(), source.type.getColumnType(key)), Collections.<String, String>emptyMap()));
+        else if(source.canConvertTo(TypeLiterals.NAMED_RECORD_SET)){
+            final Map<String, Object> m = new HashMap<>(source.type.getColumns().size());
+            source.convertTo(TypeLiterals.NAMED_RECORD_SET).sequential().forEach(new MapReader<OpenDataException>(source.type) {
+                @Override
+                protected void read(final String key, final ManagedEntityValue<?> value) throws OpenDataException{
+                    m.put(key, getValue(value, Collections.<String, String>emptyMap()));
+                }
+            });
+            return new CompositeDataSupport(getAttributeMapType(source.type, options), m);
         }
-        return new CompositeDataSupport(getAttributeMapType(source.type, options), m);
+        else throw new OpenDataException(String.format("Unable to convert %s to CompositeData", source.rawValue));
     }
 
     private static TabularData toTabularData(final ManagedEntityValue<ManagedEntityTabularType> source,
-                                             final Map<String, String> options) throws OpenDataException{
-        final TabularData result;
-        if(source.canConvertTo(JmxTypeSystem.TABULAR_DATA)){
+                                             final Map<String, String> options) throws OpenDataException {
+        if (source.canConvertTo(JmxTypeSystem.TABULAR_DATA)) {
             final TabularData data = source.convertTo(JmxTypeSystem.TABULAR_DATA);
-            result = new TabularDataSupport(getAttributeTabularType(source.type, options));
-            for(final Object row: data.values())
-                if(row instanceof CompositeData){
-                    final CompositeData typedRow = (CompositeData)row;
+            final TabularData result = new TabularDataSupport(getAttributeTabularType(source.type, options));
+            for (final Object row : data.values())
+                if (row instanceof CompositeData) {
+                    final CompositeData typedRow = (CompositeData) row;
                     result.put(new CompositeDataSupport(result.getTabularType().getRowType(),
                             ArrayUtils.toArray(typedRow.getCompositeType().keySet(), String.class),
                             typedRow.values().toArray()));
                 }
             return result;
-        }
-        else if(source.canConvertTo(TypeLiterals.STRING_COLUMN_TABLE)) {
-            final Table<String> table = source.convertTo(TypeLiterals.STRING_COLUMN_TABLE);
-            result = new TabularDataSupport(getAttributeTabularType(source.type, options));
-            for (int i = 0; i < table.getRowCount(); i++) {
-                final Map<String, Object> row = new HashMap<>(table.getColumns().size());
-                for (final String columnName : table.getColumns())
-                    row.put(columnName, getValue(new ManagedEntityValue<>(table.getCell(columnName, i), source.type.getColumnType(columnName)), Collections.<String, String>emptyMap()));
-                result.put(new CompositeDataSupport(result.getTabularType().getRowType(), row));
-            }
+        } else if (source.canConvertTo(TypeLiterals.ROW_SET)) {
+            final TabularData result = new TabularDataSupport(getAttributeTabularType(source.type, options));
+            source.convertTo(TypeLiterals.ROW_SET).sequential().forEach(new RecordReader<Integer, RecordSet<String, ?>, OpenDataException>() {
+                @Override
+                public void read(final Integer index, final RecordSet<String, ?> value) throws OpenDataException {
+                    final Map<String, Object> row = new HashMap<>(result.getTabularType().getRowType().keySet().size());
+                    value.sequential().forEach(new MapReader<OpenDataException>(source.type) {
+                        @Override
+                        protected void read(final String columnName, final ManagedEntityValue<?> value) throws OpenDataException {
+                            row.put(columnName, getValue(value, Collections.<String, String>emptyMap()));
+                        }
+                    });
+                    result.put(new CompositeDataSupport(result.getTabularType().getRowType(), row));
+                }
+            });
             return result;
-        }
-        else throw new OpenDataException(String.format("Unsupported table type %s", source.type));
+        } else throw new OpenDataException(String.format("Unsupported table type %s", source.type));
     }
 
     static Object getValue(final ManagedEntityValue<?> source, final Map<String, String> options) throws OpenDataException{

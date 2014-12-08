@@ -1,7 +1,12 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.mapping.Table;
+import com.itworks.snamp.mapping.RecordReader;
+import com.itworks.snamp.mapping.RecordSet;
+import com.itworks.snamp.mapping.RecordSetUtils;
+import com.itworks.snamp.testing.Matrix;
+import com.itworks.snamp.testing.MatrixImpl;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
@@ -14,8 +19,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.logging.Logger;
-
-import static com.itworks.snamp.mapping.TableFactory.INTEGER_TABLE_FACTORY;
 
 /**
  * Represents abstract class for any SNMP client side helper
@@ -260,39 +263,63 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @return
      * @throws Exception
      */
-    public final Table<Integer> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception {
-        final Collection<Variable[]> rows = this.getTable(method, oid, columns.size());
-        final Table<Integer> table = INTEGER_TABLE_FACTORY.create(columns, rows.size());
-        for(final Variable[] row: rows)
-            table.addRow(new HashMap<Integer, Object>(){{
-                for(int i = 0; i < row.length; i++){
-                    final Integer column = i + 2;
-                    put(column, deserialize(row[i], columns.get(column)));
-                }
-            }});
-        return table;
+    @Override
+    public final Matrix<?> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception {
+        return new MatrixImpl<Object>() {
+            private final List<Variable[]> rows = AbstractSnmpClient.this.getTable(method, oid, columns.size());
+
+            @Override
+            protected Integer first() {
+                return 0;
+            }
+
+            @Override
+            protected Integer next(final Integer index) {
+                return index < rows.size() - 1 ? index + 1 : null;
+            }
+
+            @Override
+            protected RecordSet<Integer, Object> getRecord(final Integer index) {
+                final Variable[] row = rows.get(index);
+                return RecordSetUtils.fromMap(new HashMap<Integer, Object>(){{
+                    for(int i = 0; i < row.length; i++){
+                        final Integer column = i + 2;
+                        put(column, deserialize(row[i], columns.get(column)));
+                    }
+                }});
+            }
+
+            @Override
+            public int size() {
+                return rows.size();
+            }
+        };
     }
 
     /**
-     * Attemps to write table, return PDU response as a result of writing
+     * Attempts to write table, return PDU response as a result of writing
      * @param tablePrefix
      * @param table
      * @return
      * @throws IOException
      */
-    public final PDU writeTable(final String tablePrefix, final Table<Integer> table) throws IOException {
+    @Override
+    public final PDU writeTable(final String tablePrefix, final Matrix<? extends Variable> table) throws IOException {
         final PDU pdu = DefaultPDUFactory.createPDU(this.getTarget(), PDU.SET);
         //add rows
-        for(int i = 0; i < table.getRowCount(); i++){
-            //iterate through each column
-            final Integer rowIndex = i;
-            for(final Integer column: table.getColumns()){
-                final OID rowId = new OID(tablePrefix + "." + column + "." + (rowIndex + 1));
-                pdu.add(new VariableBinding(rowId, (Variable)table.getCell(column, rowIndex)));
+        table.sequential().forEach(new RecordReader<Integer, RecordSet<Integer, ? extends Variable>, ExceptionPlaceholder>() {
+            @Override
+            public void read(final Integer rowIndex, final RecordSet<Integer, ? extends Variable> value) {
+                value.sequential().forEach(new RecordReader<Integer, Variable, ExceptionPlaceholder>() {
+                    @Override
+                    public void read(final Integer column, final Variable value) {
+                        final OID rowId = new OID(tablePrefix + "." + column + "." + (rowIndex + 1));
+                        pdu.add(new VariableBinding(rowId, value));
+                    }
+                });
             }
-        }
-        final PDU response = this.set(pdu).getResponse();
-        return response;
+        });
+        return this.set(pdu).getResponse();
         //assertEquals(response.getErrorStatusText(), SnmpConstants.SNMP_ERROR_SUCCESS, response.getErrorStatus());
     }
 

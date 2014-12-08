@@ -1,16 +1,17 @@
 package com.itworks.snamp.connectors.rshell;
 
 import com.itworks.jcommands.CommandExecutionChannel;
+import com.itworks.jcommands.impl.TypeTokens;
 import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
 import com.itworks.snamp.ConversionException;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
+import com.itworks.snamp.mapping.TypeLiterals;
 
 import javax.script.ScriptException;
 import java.io.File;
@@ -48,20 +49,24 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
             attributeOptions = Collections.unmodifiableMap(options);
         }
 
-        @SuppressWarnings("unchecked")
         Object getValue(final CommandExecutionChannel channel) throws IOException, ScriptException {
             final Object value = commandProfile.readFromChannel(channel, this);
             switch (commandProfile.getReaderTemplate().getCommandOutputParser().getParsingResultType()) {
                 case TABLE:
-                    return RShellConnectorTypeSystem.toTable((Collection<Map<String, Object>>) value, commandProfile.getReaderTemplate().getCommandOutputParser());
+                    return RShellConnectorTypeSystem.toRowSet(TypeLiterals.cast(value, TypeTokens.TABLE_TYPE_TOKEN),
+                            commandProfile.getReaderTemplate().getCommandOutputParser());
+                case DICTIONARY:
+                    return RShellConnectorTypeSystem.toNamedRecordSet(TypeLiterals.cast(value, TypeTokens.DICTIONARY_TYPE_TOKEN));
                 default:
                     return value;
             }
         }
 
         boolean setValue(final CommandExecutionChannel channel, final Object value) throws ScriptException, IOException {
-            if (TypeLiterals.isInstance(value, TypeLiterals.STRING_COLUMN_TABLE))
-                return commandProfile.writeToChannel(channel, RShellConnectorTypeSystem.fromTable(TypeLiterals.cast(value, TypeLiterals.STRING_COLUMN_TABLE)));
+            if (TypeLiterals.isInstance(value, TypeLiterals.ROW_SET))
+                return commandProfile.writeToChannel(channel, RShellConnectorTypeSystem.tableFromRowSet(TypeLiterals.cast(value, TypeLiterals.ROW_SET)));
+            else if(TypeLiterals.isInstance(value, TypeLiterals.NAMED_RECORD_SET))
+                return commandProfile.writeToChannel(channel, RShellConnectorTypeSystem.mapFromNamedRecordSet(TypeLiterals.cast(value, TypeLiterals.NAMED_RECORD_SET)));
             else return commandProfile.writeToChannel(channel, value);
         }
 

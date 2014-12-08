@@ -184,7 +184,7 @@ enum SnmpType {
             return NUMBER;
         else if(supportsUnixTime(attributeType))
             return UNIX_TIME;
-        else if(isTable(attributeType))
+        else if(isTable(attributeType) || isMap(attributeType) || isArray(attributeType))
             return TABLE;
         else return TEXT;
     }

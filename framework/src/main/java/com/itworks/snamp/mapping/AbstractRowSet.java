@@ -1,6 +1,7 @@
 package com.itworks.snamp.mapping;
 
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Represents an abstract class for constructing row sets.
@@ -9,6 +10,39 @@ import java.util.Set;
  * @since 1.0
  */
 public abstract class AbstractRowSet<C> extends OrdinalRecordSet<Integer, RecordSet<String, C>> implements RowSet<C> {
+    private static abstract class ProxyRowSet<C> implements RowSet<C>{
+        protected final AbstractRowSet<C> rowSet;
+
+        private ProxyRowSet(final AbstractRowSet<C> parent){
+            this.rowSet = parent;
+        }
+
+        @Override
+        public final int size() {
+            return rowSet.size();
+        }
+
+        @Override
+        public final Set<String> getColumns() {
+            return rowSet.getColumns();
+        }
+
+        @Override
+        public final boolean isIndexed(final String columnName) {
+            return rowSet.isIndexed(columnName);
+        }
+
+        @Override
+        public final RowSet<C> parallel(final ExecutorService executor) {
+            return rowSet.parallel(executor);
+        }
+
+        @Override
+        public final RowSet<C> sequential() {
+            return rowSet.sequential();
+        }
+    }
+
     /**
      * Gets index of the first element.
      *
@@ -52,4 +86,49 @@ public abstract class AbstractRowSet<C> extends OrdinalRecordSet<Integer, Record
             }
         };
     }
+
+    private static <C> ProxyRowSet<C> sequential(final AbstractRowSet<C> parent){
+        return new ProxyRowSet<C>(parent) {
+            @Override
+            public <E extends Exception> void forEach(final RecordReader<? super Integer, ? super RecordSet<String, C>, E> reader) throws E {
+                rowSet.forEachSequential(reader);
+            }
+        };
+    }
+
+    private static <C> ProxyRowSet<C> parallel(final AbstractRowSet<C> parent,
+                                               final ExecutorService executor){
+        return new ProxyRowSet<C>(parent) {
+            @Override
+            public <E extends Exception> void forEach(final RecordReader<? super Integer, ? super RecordSet<String, C>, E> reader) throws E {
+                rowSet.forEachParallel(reader, executor);
+            }
+        };
+    }
+
+    /**
+     * Returns an equivalent object that is sequential.
+     * May return itself, either because the object was already sequential,
+     * or because the underlying object state was modified to be sequential.
+     *
+     * @return An object that supports sequential execution of some methods.
+     */
+    @Override
+    public RowSet<C> sequential() {
+        return sequential(this);
+    }
+
+    /**
+     * Returns an equivalent object that is parallel.
+     * May return itself, either because the object was already parallel,
+     * or because the underlying object state was modified to be parallel.
+     *
+     * @param executor An executor used to execute methods in parallel manner.
+     * @return An object that supports parallel execution of some methods.
+     */
+    @Override
+    public RowSet<C> parallel(final ExecutorService executor) {
+        return parallel(this, executor);
+    }
+
 }

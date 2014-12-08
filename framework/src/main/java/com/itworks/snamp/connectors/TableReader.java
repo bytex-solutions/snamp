@@ -12,15 +12,15 @@ import java.util.concurrent.ExecutorService;
  * @version 1.0
  * @since 1.0
  */
-public abstract class TableReader<E extends Exception> implements RecordReader<Integer, RecordSet<String, Object>, E> {
+public abstract class TableReader<E extends Exception> implements RecordReader<Integer, RecordSet<String, ?>, E> {
     private final ManagedEntityTabularType tabularType;
 
     private final static class CellSet implements RecordSet<String, ManagedEntityValue<?>>{
         private final ManagedEntityTabularType tabularType;
-        private final RecordSet<String, Object> recordSet;
+        private final RecordSet<String, ?> recordSet;
 
         private CellSet(final ManagedEntityTabularType tabularType,
-                        final RecordSet<String, Object> underlyingRecordSet){
+                        final RecordSet<String, ?> underlyingRecordSet){
             this.tabularType = tabularType;
             this.recordSet = underlyingRecordSet;
         }
@@ -63,8 +63,8 @@ public abstract class TableReader<E extends Exception> implements RecordReader<I
      * @throws E Unable to process row.
      */
     @Override
-    public final void read(final Integer rowIndex, final RecordSet<String, Object> row) throws E {
-        read(rowIndex, new CellSet(tabularType, row));
+    public final void read(final Integer rowIndex, final RecordSet<String, ?> row) throws E {
+        read(rowIndex.intValue(), new CellSet(tabularType, row));
     }
 
     /**

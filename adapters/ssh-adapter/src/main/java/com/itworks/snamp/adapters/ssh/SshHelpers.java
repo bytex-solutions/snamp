@@ -20,5 +20,4 @@ final class SshHelpers {
     static Logger getLogger(){
         return AbstractResourceAdapter.getLogger(ADAPTER_NAME);
     }
-
 }

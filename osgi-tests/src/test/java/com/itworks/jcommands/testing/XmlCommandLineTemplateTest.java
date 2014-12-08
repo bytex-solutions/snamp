@@ -4,7 +4,8 @@ import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
-import com.itworks.snamp.mapping.Table;
+import com.itworks.snamp.mapping.RecordSetUtils;
+import com.itworks.snamp.mapping.RowSet;
 import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 
@@ -18,8 +19,6 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.itworks.snamp.mapping.TableFactory.STRING_TABLE_FACTORY;
 
 /**
  * @author Roman Sakno
@@ -54,21 +53,18 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
     public void renderTableTest(){
         final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
         template.setCommandTemplate("{table:{x | {x.column1} = {x.column2}}}");
-        final Table<String> table = STRING_TABLE_FACTORY.create(new HashMap<String, Class<?>>(2){{
-            put("column1", String.class);
-            put("column2", Integer.class);
-        }},
-        3);
-        table.addRow(new HashMap<String, Object>(){{
-            put("column1", "A");
-            put("column2", 42);
-        }});
-        table.addRow(new HashMap<String, Object>(){{
+        RowSet<Object> table = RecordSetUtils.emptyRowSet("column1", "column2");
+        table = RecordSetUtils.addRow(table, new HashMap<String, Object>(){{
+                    put("column1", "A");
+                    put("column2", 42);
+                }});
+        table =  RecordSetUtils.addRow(table, new HashMap<String, Object>(){{
             put("column1", "B");
             put("column2", 43);
         }});
+        final List<? extends Map<String, ?>> tableToRender = RecordSetUtils.toList(table);
         final String result = template.renderCommand(new HashMap<String, Object>(){{
-            put("table", table);
+            put("table", tableToRender);
         }});
         assertEquals("A = 42B = 43", result);
     }
