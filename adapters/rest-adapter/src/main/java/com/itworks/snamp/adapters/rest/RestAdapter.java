@@ -46,7 +46,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
         private final Gson jsonFormatter;
         private final EventBus notificationBus;
 
-        public HttpNotifications(final Gson jsonFormatter){
+        private HttpNotifications(final Gson jsonFormatter){
             this.jsonFormatter = jsonFormatter;
             this.notificationBus = new EventBus();
         }
@@ -65,7 +65,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
          */
         @Override
         protected HttpNotificationMapping createNotificationView(final String resourceName, final String eventName, final NotificationMetadata notifMeta) {
-            return new HttpNotificationMapping(notifMeta);
+            return new HttpNotificationMapping(notifMeta, jsonFormatter);
         }
 
         /**
@@ -76,7 +76,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
          */
         @Override
         protected void handleNotification(final String sender, final Notification notif, final HttpNotificationMapping notificationMetadata) {
-            notificationBus.post(new JsonNotification(notif, notificationMetadata.getCategory()));
+            notificationBus.post(new JsonNotification(notif, notificationMetadata.getCategory(), notificationMetadata));
         }
 
         @Override

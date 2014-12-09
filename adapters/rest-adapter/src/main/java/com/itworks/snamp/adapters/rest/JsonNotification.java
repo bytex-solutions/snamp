@@ -1,6 +1,8 @@
 package com.itworks.snamp.adapters.rest;
 
+import com.google.common.base.Function;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.Severity;
 
@@ -19,6 +21,8 @@ public final class JsonNotification {
     private Severity severity;
     private long sequenceNumber;
     private String category;
+    private String correlationID;
+    private JsonElement attachment;
 
     public JsonNotification(){
         message = "";
@@ -26,61 +30,84 @@ public final class JsonNotification {
         severity = Severity.UNKNOWN;
         sequenceNumber = 0L;
         category = "";
+        correlationID = null;
+        attachment = null;
     }
 
-    public JsonNotification(final Notification n, final String category){
+    JsonNotification(final Notification n,
+                     final String category,
+                     final Function<Object, JsonElement> attachmentConverter) {
         this.message = n.getMessage();
         this.timeStamp = n.getTimeStamp();
         this.severity = n.getSeverity();
         this.sequenceNumber = n.getSequenceNumber();
         this.category = category;
+        this.correlationID = n.getCorrelationID();
+        this.attachment = attachmentConverter != null ? attachmentConverter.apply(n.getAttachment()) :
+                null;
     }
 
-    public static JsonNotification parse(final Gson jsonFormatter, final String notification){
+    public void setAttachment(final JsonElement attachment){
+        this.attachment = attachment;
+    }
+
+    public JsonElement getAttachment(){
+        return attachment;
+    }
+
+    static JsonNotification parse(final Gson jsonFormatter, final String notification){
         return jsonFormatter.fromJson(notification, JsonNotification.class);
     }
 
-    public final String toString(final Gson jsonFormatter){
+    public String toString(final Gson jsonFormatter){
         return jsonFormatter.toJson(this);
     }
 
-    public final String getMessage() {
+    public String getCorrelationID(){
+        return correlationID;
+    }
+
+    public void setCorrelationID(final String value){
+        correlationID = value;
+    }
+
+    public String getMessage() {
         return message;
     }
 
-    public final void setMessage(final String value) {
+    public void setMessage(final String value) {
         this.message = value;
     }
 
-    public final Date getTimeStamp() {
+    public Date getTimeStamp() {
         return timeStamp;
     }
 
-    public final void setTimeStamp(final Date value) {
+    public void setTimeStamp(final Date value) {
         this.timeStamp = value;
     }
 
-    public final Severity getSeverity() {
+    public Severity getSeverity() {
         return severity;
     }
 
-    public final void setSeverity(final Severity value) {
+    public void setSeverity(final Severity value) {
         this.severity = value;
     }
 
-    public final long getSequenceNumber() {
+    public long getSequenceNumber() {
         return sequenceNumber;
     }
 
-    public final void setSequenceNumber(final long value) {
+    public void setSequenceNumber(final long value) {
         this.sequenceNumber = value;
     }
 
-    public final String getCategory() {
+    public String getCategory() {
         return category;
     }
 
-    public final void setCategory(final String value) {
+    public void setCategory(final String value) {
         this.category = value;
     }
 }
