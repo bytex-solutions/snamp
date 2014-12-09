@@ -436,7 +436,7 @@ public final class Utils {
         }
     }
 
-    public static <T> boolean isEqualSet(final Set<T> columns1, final Set<T> columns2) {
+    public static <T> boolean collectionsAreEqual(final Collection<T> columns1, final Collection<T> columns2) {
         if (columns1 == null) return columns2 == null;
         else if (columns2 == null) return false;
         else if (columns1.size() != columns2.size()) return false;

@@ -83,7 +83,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         @Override
         protected void handleNotification(final String sender, final Notification notif, final SshNotificationView notificationMetadata) {
             for(final NotificationListener listener: listeners.values())
-                listener.handle(sender, notificationMetadata.getEventName(), notif);
+                listener.handle(notificationMetadata, notif);
         }
 
         long addNotificationListener(final NotificationListener listener) {
@@ -136,13 +136,9 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                 }
 
                 private void printValue(final RecordSet<String, ?> value, final PrintWriter output){
-                    output.println("MAP");
-                    value.sequential().forEach(new RecordReader<String, Object, ExceptionPlaceholder>() {
-                        @Override
-                        public void read(final String index, final Object value) {
-                            output.println(String.format("%s = %s", index, value));
-                        }
-                    });
+                    output.println("MAP ");
+                    final Map<String, ?> result = RecordSetUtils.toMap(value);
+                    output.println(joinString(result.entrySet(), "%s", ", "));
                 }
 
                 private String joinString(Collection<?> values,
@@ -160,7 +156,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                 private void printValue(final RowSet<?> value,
                                         final boolean columnBasedView,
                                         final PrintWriter output){
-                    output.println("TABLE");
+                    output.println("TABLE ");
                     output.println();
                     if(columnBasedView){
                         final String COLUMN_SEPARATOR = "\t";

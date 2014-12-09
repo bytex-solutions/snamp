@@ -1,8 +1,10 @@
 package com.itworks.snamp.mapping;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
+import com.itworks.snamp.Box;
 import com.itworks.snamp.ExceptionPlaceholder;
 
 import java.util.*;
@@ -52,6 +54,10 @@ public final class RecordSetUtils {
             public <E extends Exception> void forEach(final RecordReader<? super Integer, ? super RecordSet<String, C>, E> reader) throws E {
 
             }
+            @Override
+            public String toString() {
+                return String.format(String.format("EmptyRowSet, columns=%s", Joiner.on(", ").join(getColumns())));
+            }
         };
     }
 
@@ -96,6 +102,11 @@ public final class RecordSetUtils {
            public RecordSet<I, R> sequential() {
                return this;
            }
+
+           @Override
+           public String toString() {
+               return "EmptyRecordSet";
+           }
        };
     }
 
@@ -129,6 +140,11 @@ public final class RecordSetUtils {
                     public int size() {
                         return array.length;
                     }
+
+                    @Override
+                    public String toString() {
+                        return Arrays.toString(array);
+                    }
                 };
     }
 
@@ -154,6 +170,11 @@ public final class RecordSetUtils {
                     @Override
                     public int size() {
                         return array.length;
+                    }
+
+                    @Override
+                    public String toString() {
+                        return Arrays.toString(array);
                     }
                 };
     }
@@ -188,6 +209,11 @@ public final class RecordSetUtils {
                     public int size() {
                         return list.size();
                     }
+
+                    @Override
+                    public String toString() {
+                        return list.toString();
+                    }
                 };
     }
 
@@ -211,6 +237,11 @@ public final class RecordSetUtils {
                     @Override
                     protected V getRecord(final K key) {
                         return map.get(key);
+                    }
+
+                    @Override
+                    public String toString() {
+                        return map.toString();
                     }
                 };
     }
@@ -319,6 +350,11 @@ public final class RecordSetUtils {
             public int size() {
                 return rows.size();
             }
+
+            @Override
+            public String toString() {
+                return String.format("RowSet size=%s, columns={%s}", size(), Joiner.on(", ").join(getColumns()));
+            }
         };
     }
 
@@ -405,5 +441,25 @@ public final class RecordSetUtils {
             }
         });
         return result;
+    }
+
+    /**
+     * Gets the row at the specified index.
+     * @param set The row set.
+     * @param index An index of the row.
+     * @param <C> Type of the cells in the row.
+     * @return The row in the set; or {@literal null} if index is invalid.
+     */
+    public static <C> RecordSet<String, C> getRow(final RowSet<C> set,
+                                                  final int index){
+        final Box<RecordSet<String, C>> result = new Box<>();
+        set.sequential().forEach(new RecordReader<Integer, RecordSet<String, C>, ExceptionPlaceholder>() {
+            @Override
+            public void read(final Integer rowIndex, final RecordSet<String, C> value) {
+                if(rowIndex == index)
+                    result.set(value);
+            }
+        });
+        return result.get();
     }
 }

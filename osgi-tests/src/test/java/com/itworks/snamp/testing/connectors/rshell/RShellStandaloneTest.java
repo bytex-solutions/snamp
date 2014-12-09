@@ -62,10 +62,11 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         for (final FutureThread<Object> thread : tables) {
             final Object table = thread.get();
             assertNotNull(table);
-            assertTrue(table instanceof Map);
-            assertTrue(((Map) table).get("total") instanceof Long);
-            assertTrue(((Map) table).get("used") instanceof Long);
-            assertTrue(((Map) table).get("free") instanceof Long);
+            assertTrue(TypeLiterals.isInstance(table, TypeLiterals.NAMED_RECORD_SET));
+            final Map<String, ?> map = RecordSetUtils.toMap(TypeLiterals.cast(table, TypeLiterals.NAMED_RECORD_SET));
+            assertTrue(map.get("total") instanceof Long);
+            assertTrue(map.get("used") instanceof Long);
+            assertTrue(map.get("free") instanceof Long);
         }
     }
 

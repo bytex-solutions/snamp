@@ -62,6 +62,17 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
     }
 
     /**
+     * Gets the value stored in this box and overwrites this value after.
+     * @param newValue A new value to be stored in this box.
+     * @return An existing value in this box.
+     */
+    public final T getAndSet(final T newValue){
+        final T result = value;
+        value = newValue;
+        return result;
+    }
+
+    /**
      * Retrieves an instance of the stored object or returns alternative value
      * if stored object is {@literal null}.
      * @param defval The alternative value to return.

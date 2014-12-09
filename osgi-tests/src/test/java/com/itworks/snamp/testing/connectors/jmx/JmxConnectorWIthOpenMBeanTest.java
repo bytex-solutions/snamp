@@ -227,7 +227,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
             @Override
             public boolean equate(final RowSet<?> o1, final RowSet<?> o2) {
                 return o1.size() == o2.size() &&
-                        Utils.isEqualSet(o1.getColumns(), o2.getColumns());
+                        Utils.collectionsAreEqual(o1.getColumns(), o2.getColumns());
             }
         });
     }

@@ -15,13 +15,16 @@
  *         <li>{@link java.math.BigDecimal}</li>
  *         <li>{@link java.lang.String}</li>
  *         <li>{@link java.lang.Boolean}</li>
- *         <li>{@link com.itworks.snamp.mapping.RecordSet}&lt;{@link java.lang.String}, {@link java.lang.Object}&gt; as map view</li>
- *         <li>{@link com.itworks.snamp.mapping.RowSet}&lt;{@link java.lang.Object}&gt; as table view</li>
+ *         <li>{@link com.itworks.snamp.mapping.RecordSet}&lt;{@link java.lang.String}, ?&gt; as map view</li>
+ *         <li>{@link com.itworks.snamp.mapping.RowSet}&lt;?&gt; as table view</li>
  *     </ul>
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  * @see com.itworks.snamp.mapping.TypeConverter
  * @see com.itworks.snamp.mapping.TypeConverterProvider
+ * @see com.itworks.snamp.mapping.RecordSet
+ * @see com.itworks.snamp.mapping.RecordReader
+ * @see com.itworks.snamp.mapping.RecordSetUtils
  */
 package com.itworks.snamp.mapping;

@@ -1,6 +1,5 @@
 package com.itworks.snamp.adapters.ssh;
 
-import com.itworks.snamp.mapping.RecordSetUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -23,10 +22,10 @@ final class SetTableCommand extends AbstractManagementShellCommand{
     static final String COMMAND_USAGE = "set-table <attributeID> [OPTIONS]...";
     static final String COMMAND_DESC = "Modifies table";
     static final Options COMMAND_OPTIONS = new Options();
-    private static final String IDX_OPT = "i";
-    private static final String DEL_OPT = "d";
-    private static final String INS_OPT = "a";
-    private static final String ROW_OPT = "r";
+    private static final String IDX_OPT = "i";    //row index
+    private static final String DEL_OPT = "d";    //delete row
+    private static final String INS_OPT = "a";    //insert row
+    private static final String ROW_OPT = "r";    //row content
     private static final String NUM_FMT_OPT = "n"; //number format
     private static final String DT_FMT_OPT = "f"; //date format
 
@@ -72,11 +71,11 @@ final class SetTableCommand extends AbstractManagementShellCommand{
                                        final Format fmt,
                                        final PrintWriter output) throws CommandException {
         try {
-            final Map<String, Object> newRow = new HashMap<>(entries.size());
+            final Map<String, Object> newRow = new HashMap<String, Object>(entries.size()){ };
             for (final String key : entries.stringPropertyNames())
                 newRow.put(key, fmt != null ? fmt.parseObject(entries.getProperty(key)) : entries.getProperty(key));
             output.println(attr.applyTransformation(SshAttributeView.InsertRowTransformation.class,
-                    new SshAttributeView.Row(Integer.parseInt(index), RecordSetUtils.fromMap(newRow))) ? "OK" :
+                    new SshAttributeView.Row(Integer.parseInt(index), newRow)) ? "OK" :
                     "Unable to insert row");
         }
         catch (final Exception e){
@@ -90,11 +89,11 @@ final class SetTableCommand extends AbstractManagementShellCommand{
                                        final Format fmt,
                                        final PrintWriter output) throws CommandException {
         try {
-            final Map<String, Object> newRow = new HashMap<>(entries.size());
+            final Map<String, Object> newRow = new HashMap<String, Object>(entries.size()){};
             for (final String key : entries.stringPropertyNames())
                 newRow.put(key, fmt != null ? fmt.parseObject(entries.getProperty(key)) : entries.getProperty(key));
             output.println(attr.applyTransformation(SshAttributeView.UpdateRowTransformation.class,
-                    new SshAttributeView.Row(Integer.parseInt(index), RecordSetUtils.fromMap(newRow))) ? "OK" :
+                    new SshAttributeView.Row(Integer.parseInt(index), newRow)) ? "OK" :
                     "Unable to insert row");
         }
         catch (final Exception e){

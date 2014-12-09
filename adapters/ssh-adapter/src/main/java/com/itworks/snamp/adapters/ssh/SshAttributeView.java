@@ -7,6 +7,7 @@ import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityTypeBuilder;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.mapping.*;
 
 import java.io.PrintWriter;
@@ -81,6 +82,7 @@ interface SshAttributeView {
     }
 
     static final class UpdateRowTransformation implements ValueTransformation<Row, Boolean>{
+
         private static boolean updateArrayElement(Object[] array,
                                                   final int index,
                                                   final Object element,
@@ -99,12 +101,14 @@ interface SshAttributeView {
         }
 
         @SuppressWarnings("unchecked")
-        private static boolean updateTableRow(RowSet table,
+        private static boolean updateTableRowImpl(RowSet table,
                                               final int index,
                                               final Map<String, Object> row,
                                               final ManagedEntityTabularType type,
                                               final boolean insert,
                                               final AttributeAccessor output) throws TimeoutException, AttributeSupportException{
+            if(!Utils.collectionsAreEqual(table.getColumns(), row.keySet()))
+                return false;
             for(final String column: row.keySet()) {
                 final ManagedEntityType columnType = type.getColumnType(column);
                 final TypeToken<?> columnJavaType = WellKnownTypeSystem.getWellKnownType(columnType);
@@ -124,7 +128,8 @@ interface SshAttributeView {
                                               final ManagedEntityTabularType type,
                                               final boolean insert,
                                               final AttributeAccessor output) throws TimeoutException, AttributeSupportException{
-            return TypeLiterals.isInstance(element, TypeLiterals.NAMED_RECORD_SET) && updateTableRow(table, index, TypeLiterals.cast(element, TypeLiterals.NAMED_RECORD_SET), type, insert, output);
+            return TypeLiterals.isInstance(element, SshHelpers.STRING_MAP_TYPE) &&
+                    updateTableRowImpl(table, index, TypeLiterals.cast(element, SshHelpers.STRING_MAP_TYPE), type, insert, output);
         }
 
         static boolean update(final int index,

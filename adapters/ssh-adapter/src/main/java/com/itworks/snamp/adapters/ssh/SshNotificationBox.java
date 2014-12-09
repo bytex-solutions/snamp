@@ -20,7 +20,7 @@ final class SshNotificationBox extends NotificationBox implements NotificationLi
         public final String eventName;
         public final String resourceName;
 
-        AdditionalNotificationInfo(final String ev, final String res) {
+        private AdditionalNotificationInfo(final String res, final String ev) {
             this.resourceName = res;
             this.eventName = ev;
         }
@@ -33,9 +33,10 @@ final class SshNotificationBox extends NotificationBox implements NotificationLi
     }
 
     @Override
-    public boolean handle(final String resourceName, final String eventName, final Notification notif) {
-        if (filter.isAllowed(resourceName, eventName, notif)) {
-            notif.setUserData(new AdditionalNotificationInfo(eventName, resourceName));
+    public boolean handle(final SshNotificationView metadata,
+                          final Notification notif) {
+        if (filter.isAllowed(metadata.getResourceName(), metadata.getEventName(), notif)) {
+            notif.setUserData(new AdditionalNotificationInfo(metadata.getResourceName(), metadata.getEventName()));
             return offer(notif);
         } else return false;
     }

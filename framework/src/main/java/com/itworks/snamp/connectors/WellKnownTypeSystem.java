@@ -32,13 +32,13 @@ import java.util.*;
  *     For non-scalar data types such as arrays, dictionaries and tables it is recommended to use the
  *     following mapping:
  *     <ul>
- *         <li>Tabular data should be convertible to {@link com.itworks.snamp.mapping.RowSet} type. An implementation
+ *         <li>Tabular data should be convertible to {@link com.itworks.snamp.mapping.RowSet}&lt;?&gt; type. An implementation
  *         for this interface is provided by {@link com.itworks.snamp.mapping.AbstractRowSet} class. Entity data type
  *         should implements {@link ManagedEntityTabularType} interface.</li>
  *         <li>Array data should be convertible to Java array. Attribute
  *         data type should inherits from {@link ManagedEntityTypeBuilder.ManagedEntityArrayType} class.</li>
- *         <li>Map data should be convertible to {@link com.itworks.snamp.mapping.RowSet} type, and, optionally,
- *         to {@link com.itworks.snamp.mapping.RecordSet} type. Map is a special case of tabular data when table has single row
+ *         <li>Map data should be convertible to {@link com.itworks.snamp.mapping.RowSet}&lt;?&gt; type, and, optionally,
+ *         to {@link com.itworks.snamp.mapping.RecordSet}&lt;{@link java.lang.String}, ?&gt; type. Map is a special case of tabular data when table has single row
  *         and multiple columns, where each column represents map key.</li>
  *     </ul>
  * </p>
