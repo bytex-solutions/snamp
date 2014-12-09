@@ -52,14 +52,34 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
     }
 
     /**
-     * Retrieves an instance of the appropriate type. The returned object may or
-     * may not be a new instance, depending on the implementation.
+     * Retrieves an instance of the stored object.
      *
-     * @return an instance of the appropriate type
+     * @return An object stored in this box.
      */
     @Override
     public final T get() {
         return value;
+    }
+
+    /**
+     * Gets the value stored in this box and overwrites this value after.
+     * @param newValue A new value to be stored in this box.
+     * @return An existing value in this box.
+     */
+    public final T getAndSet(final T newValue){
+        final T result = value;
+        value = newValue;
+        return result;
+    }
+
+    /**
+     * Retrieves an instance of the stored object or returns alternative value
+     * if stored object is {@literal null}.
+     * @param defval The alternative value to return.
+     * @return An object stored in this box; or {@code defval} if stored object is {@literal null}.
+     */
+    public final T getOrDefault(final T defval){
+        return value != null ? value : defval;
     }
 
     /**

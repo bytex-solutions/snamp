@@ -4,6 +4,7 @@ import com.google.common.base.Supplier;
 import com.google.common.eventbus.EventBus;
 import com.itworks.snamp.adapters.AbstractConcurrentResourceAdapter;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.itworks.snamp.connectors.ManagedEntityValue;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.internal.annotations.MethodStub;
@@ -33,10 +34,10 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
     private static final class SnmpNotificationMappingImpl implements SnmpNotificationMapping{
         private final NotificationMetadata metadata;
 
-        public SnmpNotificationMappingImpl(final NotificationMetadata metadata) throws IllegalArgumentException{
+        private SnmpNotificationMappingImpl(final NotificationMetadata metadata) throws IllegalArgumentException{
             if(metadata.containsKey(TARGET_ADDRESS_PARAM) && metadata.containsKey(TARGET_NAME_PARAM) && metadata.containsKey(OID_PARAM_NAME))
                 this.metadata = metadata;
-            else throw new IllegalArgumentException("Incompatible event metadata with SNMP infrastructure.");
+            else throw new IllegalArgumentException("Target address, target name and event OID parameters are not specified for SNMP trap");
         }
 
         @Override
@@ -94,7 +95,7 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
     private static final class SnmpNotificationsModel extends AbstractNotificationsModel<SnmpNotificationMapping> implements EventHandler, AutoCloseable{
         private final EventBus notificationBus;
 
-        public SnmpNotificationsModel(){
+        private SnmpNotificationsModel(){
             notificationBus = new EventBus();
         }
 
@@ -133,12 +134,29 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
          */
         @Override
         protected void handleNotification(final String sender, final Notification notif, final SnmpNotificationMapping notificationMetadata) {
-
-            final SnmpNotification wrappedNotification = new SnmpNotification(notificationMetadata.getID(),
-                    notif,
-                    notificationMetadata.getMetadata().getCategory(),
-                    notificationMetadata.getTimestampFormatter());
-            notificationBus.post(wrappedNotification);
+            final Object attachment = notif.getAttachment();
+            final ManagedEntityValue<?> typedAttachment;
+            if(attachment instanceof ManagedEntityValue<?>)
+                typedAttachment = (ManagedEntityValue<?>)attachment;
+            else if(attachment != null && notificationMetadata.getMetadata().getAttachmentType() != null)
+                typedAttachment = new ManagedEntityValue<>(attachment, notificationMetadata.getMetadata().getAttachmentType());
+            else typedAttachment = null;
+            try {
+                final SnmpNotification wrappedNotification = new SnmpNotification(notificationMetadata.getID(),
+                        notif,
+                        notificationMetadata.getMetadata().getCategory(),
+                        typedAttachment,
+                        notificationMetadata.getMetadata());
+                notificationBus.post(wrappedNotification);
+            }
+            catch (final Error e){
+                throw e;
+            }
+            catch (final Throwable e){
+                SnmpHelpers.getLogger().log(Level.WARNING, "Unable to create SNMP Trap", e);
+            }
+            if(notif.getNext() != null)
+                handleNotification(sender, notif.getNext(), notificationMetadata);
         }
 
         @Override
@@ -187,7 +205,7 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
      * @param resources A collection of managed resources to be exposed in protocol-specific manner
      *                  to the outside world.
      */
-    public SnmpResourceAdapter(final int port,
+    SnmpResourceAdapter(final int port,
                                   final String hostName,
                                   final SecurityConfiguration securityOptions,
                                   final int socketTimeout,

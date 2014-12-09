@@ -1,12 +1,14 @@
 package com.itworks.snamp.adapters;
 
 import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.*;
-import com.itworks.snamp.connectors.ManagedEntityType;
-import com.itworks.snamp.connectors.ManagedResourceConnector;
-import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
-import com.itworks.snamp.connectors.WellKnownTypeSystem;
-import com.itworks.snamp.connectors.attributes.*;
+import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.WriteOnceRef;
+import com.itworks.snamp.connectors.*;
+import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
@@ -14,11 +16,14 @@ import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.ServiceReferenceHolder;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
+import com.itworks.snamp.mapping.*;
 import org.osgi.framework.*;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -27,7 +32,6 @@ import java.util.logging.Logger;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.itworks.snamp.connectors.notifications.NotificationUtils.NotificationEvent;
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 import static com.itworks.snamp.internal.Utils.isInstanceOf;
 
@@ -95,7 +99,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         public final void handleEvent(final Event event) {
             final NotificationEvent notif = new NotificationEvent(event);
             if(containsKey(notif.getSubscriptionListID()))
-                handleNotification(notif.getEmitter(), notif, get(notif.getSubscriptionListID()));
+                handleNotification(notif.getSender(), notif, get(notif.getSubscriptionListID()));
         }
 
         private void startListening(final BundleContext context, final Collection<String> topics) {
@@ -197,10 +201,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * @throws TimeoutException Attribute value cannot be obtained during the configured duration.
          * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
          */
-        public AttributeValue<?> getValue() throws TimeoutException, AttributeSupportException {
+        public ManagedEntityValue<?> getValue() throws TimeoutException, AttributeSupportException {
             try {
                 final Object result = attributeSupport.getAttribute(attributeID, readWriteTimeout);
-                return new AttributeValue<>(result, getType());
+                return new ManagedEntityValue<>(result, getType());
             } catch (final UnknownAttributeException e) {
                 throw new AttributeSupportException(e);  //never happens
             }
@@ -232,6 +236,71 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             } catch (final UnknownAttributeException e) {
                 throw new AttributeSupportException(e);
             }
+        }
+
+        public void setRowSet(final RowSet<?> value) throws TimeoutException, AttributeSupportException{
+            //cast is necessary. We should determine whether the RowSet saves the generic actual type
+            setValue(TypeLiterals.cast(value, TypeLiterals.ROW_SET));
+        }
+
+        public <C> void setRowSet(final Set<String> columns,
+                              final List<? extends Map<String, C>> rows) throws TimeoutException, AttributeSupportException {
+            setRowSet(columns, Collections.<String>emptySet(), rows);
+        }
+
+        public <C> void setRowSet(final Set<String> columns,
+                              final Set<String> indexedColumns,
+                              final List<? extends Map<String, C>> rows) throws TimeoutException, AttributeSupportException {
+            setRowSet(RecordSetUtils.fromRows(columns, indexedColumns, rows));
+        }
+
+        public void setNamedRecordSet(final RecordSet<String, ?> value) throws TimeoutException, AttributeSupportException{
+            //cast is necessary. We should determine whether the RecordSet saves the generic actual type
+            setValue(TypeLiterals.cast(value, TypeLiterals.NAMED_RECORD_SET));
+        }
+
+        public void setBoolean(final boolean value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setByte(final byte value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setShort(final short value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setInt(final int value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setLong(final long value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setBigInt(final BigInteger value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setBigDecimal(final BigDecimal value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setFloat(final float value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setDouble(final double value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setDateTime(final Date value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
+        }
+
+        public void setString(final String value) throws TimeoutException, AttributeSupportException{
+            setValue(value);
         }
 
         /**
@@ -525,6 +594,15 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         @Override
         public Set<Entry<String, String>> entrySet() throws IllegalStateException{
             return getMetadataAndCheckState().entrySet();
+        }
+
+        /**
+         * Determines whether this attribute has the type which is a subtype of the specified type.
+         * @param expectedType The expected type.
+         * @return {@literal true}, if this attribute has the type which is a subtype of the specified type; otherwise, {@literal false}.
+         */
+        public boolean hasManagedType(final Class<? extends ManagedEntityType> expectedType) {
+            return expectedType.isInstance(getType());
         }
     }
 

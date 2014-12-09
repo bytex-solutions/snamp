@@ -2,12 +2,12 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.TypeLiterals;
 import org.snmp4j.smi.OctetString;
 
 import java.util.Map;
 
-import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT;
+import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
 
 /**
  * Represents {@link org.snmp4j.smi.OctetString} format type.
@@ -38,8 +38,8 @@ enum OctetStringConversionFormat {
     }
 
     public static OctetStringConversionFormat getFormat(final OctetString value, final Map<String, String> options){
-        if(options.containsKey(SNMP_CONVERSION_FORMAT))
-            return getFormat(options.get(SNMP_CONVERSION_FORMAT));
+        if(options.containsKey(SNMP_CONVERSION_FORMAT_PARAM))
+            return getFormat(options.get(SNMP_CONVERSION_FORMAT_PARAM));
         else if(value.isPrintable()) return TEXT;
         else return BYTE_ARRAY;
     }

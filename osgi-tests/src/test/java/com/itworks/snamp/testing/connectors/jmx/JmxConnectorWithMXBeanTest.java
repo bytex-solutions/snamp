@@ -1,7 +1,8 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.RecordSet;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
@@ -48,9 +49,9 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
     @Test
     public void testForAttributes() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
         testAttribute("1", "ObjectPendingFinalizationCount", TypeLiterals.INTEGER, 0, true);
-        testAttribute("2", "HeapMemoryUsage", TypeLiterals.STRING_MAP, null, new Equator<Map<String, Object>>() {
+        testAttribute("2", "HeapMemoryUsage", TypeLiterals.NAMED_RECORD_SET, null, new Equator<RecordSet<String, ?>>() {
             @Override
-            public boolean equate(final Map o1, final Map o2) {
+            public boolean equate(final RecordSet o1, final RecordSet o2) {
                 return true;
             }
         }, true);

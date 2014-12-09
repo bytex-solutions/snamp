@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.mapping;
 
 import com.google.common.base.Function;
 import com.google.common.reflect.TypeToken;
@@ -72,7 +72,7 @@ public abstract class AbstractTypeConverterProvider implements TypeConverterProv
         registerIdentityConverter(ioType, ioType);
     }
 
-    private static interface InternalTypeConverter<T> extends TypeConverter<T>{
+    private static interface InternalTypeConverter<T> extends TypeConverter<T> {
         T convertFrom(final Object value);
         Function getConverterFrom(final Type source);
     }

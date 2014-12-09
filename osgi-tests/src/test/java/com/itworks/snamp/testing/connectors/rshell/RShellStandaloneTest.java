@@ -7,6 +7,8 @@ import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.mapping.RecordSetUtils;
+import com.itworks.snamp.mapping.TypeLiterals;
 import org.junit.Assume;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -60,10 +62,11 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         for (final FutureThread<Object> thread : tables) {
             final Object table = thread.get();
             assertNotNull(table);
-            assertTrue(table instanceof Map);
-            assertTrue(((Map) table).get("total") instanceof Long);
-            assertTrue(((Map) table).get("used") instanceof Long);
-            assertTrue(((Map) table).get("free") instanceof Long);
+            assertTrue(TypeLiterals.isInstance(table, TypeLiterals.NAMED_RECORD_SET));
+            final Map<String, ?> map = RecordSetUtils.toMap(TypeLiterals.cast(table, TypeLiterals.NAMED_RECORD_SET));
+            assertTrue(map.get("total") instanceof Long);
+            assertTrue(map.get("used") instanceof Long);
+            assertTrue(map.get("free") instanceof Long);
         }
     }
 
@@ -78,12 +81,13 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
             put("commandProfileLocation", "freemem-tool-profile.xml");
             put("format", "-m");
         }}));
-        final Object table = attributes.getAttribute("ms", TimeSpan.INFINITE);
-        assertNotNull(table);
-        assertTrue(table instanceof Map);
-        assertTrue(((Map) table).get("total") instanceof Long);
-        assertTrue(((Map) table).get("used") instanceof Long);
-        assertTrue(((Map) table).get("free") instanceof Long);
+        final Object dict = attributes.getAttribute("ms", TimeSpan.INFINITE);
+        assertNotNull(dict);
+        assertTrue(TypeLiterals.isInstance(dict, TypeLiterals.NAMED_RECORD_SET));
+        final Map<String, ?> m = RecordSetUtils.toMap(TypeLiterals.cast(dict, TypeLiterals.NAMED_RECORD_SET));
+        assertTrue(m.get("total") instanceof Long);
+        assertTrue(m.get("used") instanceof Long);
+        assertTrue(m.get("free") instanceof Long);
     }
 
     @Override

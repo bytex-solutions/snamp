@@ -4,9 +4,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.MapMaker;
-import com.itworks.snamp.InMemoryTable;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.ExceptionPlaceholder;
+import com.itworks.snamp.mapping.*;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.notifications.Notification;
@@ -84,7 +83,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         @Override
         protected void handleNotification(final String sender, final Notification notif, final SshNotificationView notificationMetadata) {
             for(final NotificationListener listener: listeners.values())
-                listener.handle(sender, notificationMetadata.getEventName(), notif);
+                listener.handle(notificationMetadata, notif);
         }
 
         long addNotificationListener(final NotificationListener listener) {
@@ -136,10 +135,10 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                     output.println(String.format("ARRAY = %s", Arrays.toString(value)));
                 }
 
-                private void printValue(final Map<String, Object> value, final PrintWriter output){
-                    output.println("MAP");
-                    for(final Map.Entry<String, Object> pair: value.entrySet())
-                        output.println(String.format("%s = %s", pair.getKey(), pair.getValue()));
+                private void printValue(final RecordSet<String, ?> value, final PrintWriter output){
+                    output.println("MAP ");
+                    final Map<String, ?> result = RecordSetUtils.toMap(value);
+                    output.println(joinString(result.entrySet(), "%s", ", "));
                 }
 
                 private String joinString(Collection<?> values,
@@ -154,29 +153,38 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                     return Joiner.on(separator).join(values);
                 }
 
-                private void printValue(final Table<String> value,
+                private void printValue(final RowSet<?> value,
                                         final boolean columnBasedView,
                                         final PrintWriter output){
-                    output.println("TABLE");
+                    output.println("TABLE ");
                     output.println();
                     if(columnBasedView){
-                        final List<String> columns = InMemoryTable.getOrderedColumns(value);
                         final String COLUMN_SEPARATOR = "\t";
                         final String ITEM_FORMAT = "%-10s";
                         //print columns first
-                        output.println(joinString(columns, ITEM_FORMAT, COLUMN_SEPARATOR));
+                        output.println(joinString(value.getColumns(), ITEM_FORMAT, COLUMN_SEPARATOR));
                         //print rows
-                        for(int row = 0; row < value.getRowCount(); row++){
-                            output.println(joinString(InMemoryTable.getRow(value, columns, row), ITEM_FORMAT, COLUMN_SEPARATOR));
+                        value.forEach(new RecordReader<Integer, RecordSet<String, ?>, ExceptionPlaceholder>() {
+                            @Override
+                            public void read(final Integer index, final RecordSet<String, ?> value) {
+                                final Map<String, ?> row = RecordSetUtils.toMap(value);
+                                output.println(joinString(row.values(), ITEM_FORMAT, COLUMN_SEPARATOR));
+                            }
+                        });
+                    }
+                    else value.sequential().forEach(new RecordReader<Integer, RecordSet<String, ?>, ExceptionPlaceholder>() {
+                        @Override
+                        public void read(final Integer index, final RecordSet<String, ?> value) {
+                            output.println(String.format("ROW #%s:", index));
+                            value.sequential().forEach(new RecordReader<String, Object, ExceptionPlaceholder>() {
+                                @Override
+                                public void read(final String column, final Object value) {
+                                    output.println(String.format("%s = %s", column, value));
+                                }
+                            });
+                            output.println();
                         }
-
-                    }
-                    else for(int i = 0; i < value.getRowCount(); i++){
-                        output.println(String.format("ROW #%s:", i));
-                        for(final String column: value.getColumns())
-                            output.println(String.format("%s = %s", column, value.getCell(column, i)));
-                        output.println();
-                    }
+                    });
                 }
 
                 @Override
@@ -185,10 +193,10 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                     final Object attrValue = accessor.getValue(accessor.getWellKnownType(), null);
                     if(TypeLiterals.isInstance(attrValue, TypeLiterals.OBJECT_ARRAY))
                         printValue(TypeLiterals.cast(attrValue, TypeLiterals.OBJECT_ARRAY), output);
-                    else if(TypeLiterals.isInstance(attrValue, TypeLiterals.STRING_MAP))
-                        printValue(TypeLiterals.cast(attrValue, TypeLiterals.STRING_MAP), output);
-                    else if(TypeLiterals.isInstance(attrValue, TypeLiterals.STRING_COLUMN_TABLE))
-                        printValue(TypeLiterals.cast(attrValue, TypeLiterals.STRING_COLUMN_TABLE),
+                    else if(TypeLiterals.isInstance(attrValue, TypeLiterals.NAMED_RECORD_SET))
+                        printValue(TypeLiterals.cast(attrValue, TypeLiterals.NAMED_RECORD_SET), output);
+                    else if(TypeLiterals.isInstance(attrValue, TypeLiterals.ROW_SET))
+                        printValue(TypeLiterals.cast(attrValue, TypeLiterals.ROW_SET),
                                 accessor.containsKey(SshAdapterConfigurationDescriptor.COLUMN_BASED_OUTPUT_PARAM),
                                 output);
                     else output.println(Objects.toString(attrValue, VALUE_STUB));

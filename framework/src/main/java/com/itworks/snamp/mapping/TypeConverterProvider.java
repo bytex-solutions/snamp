@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.mapping;
 
 import com.google.common.reflect.TypeToken;
 

@@ -1,6 +1,5 @@
 package com.itworks.snamp.adapters.ssh;
 
-import com.itworks.snamp.MapBuilder;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -9,6 +8,7 @@ import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -51,7 +51,7 @@ final class SetMapCommand extends AbstractManagementShellCommand {
                                          final Format fmt,
                                          final PrintWriter output) throws CommandException {
         try {
-            final Map<String, Object> map = MapBuilder.createStringHashMap(entries.size());
+            final Map<String, Object> map = new HashMap<String, Object>(entries.size()){ };
             for (final String key : entries.stringPropertyNames())
                 map.put(key, fmt != null ? fmt.parseObject(entries.getProperty(key)) : entries.getProperty(key));
             output.println(attr.applyTransformation(SshAttributeView.UpdateMapTransformation.class,

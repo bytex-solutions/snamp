@@ -1,8 +1,8 @@
 package com.itworks.snamp.connectors;
 
 import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.TypeConverter;
+import com.itworks.snamp.mapping.TypeLiterals;
 
 import java.util.ArrayList;
 import java.util.Arrays;

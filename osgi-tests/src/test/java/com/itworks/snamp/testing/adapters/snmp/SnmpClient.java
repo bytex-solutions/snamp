@@ -1,9 +1,10 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
 import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.Table;
+import com.itworks.snamp.testing.Matrix;
 import org.snmp4j.PDU;
 import org.snmp4j.smi.OID;
+import org.snmp4j.smi.Variable;
 
 import java.io.IOException;
 import java.util.Map;
@@ -18,21 +19,21 @@ public interface SnmpClient {
      * Returns specific client port for initialised udp connection
      * @return client port
      */
-    public int getClientPort();
+    int getClientPort();
 
     /**
      * Add Notification Listener with specified OID
      * @param notificationID
      * @return
      */
-    public SynchronizationEvent.Awaitor<SnmpNotification> addNotificationListener(final OID notificationID);
+    SynchronizationEvent.Awaitor<SnmpNotification> addNotificationListener(final OID notificationID);
 
     /**
      * Writes table object to certain OID prefix table
      * @return
      * @throws IOException
      */
-    public PDU writeTable(final String tablePrefix, final Table<Integer> table) throws IOException;
+    PDU writeTable(final String tablePrefix, final Matrix<? extends Variable> table) throws IOException;
 
 
     /**
@@ -40,7 +41,7 @@ public interface SnmpClient {
      * @return
      * @throws IOException
      */
-    public Table<Integer> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception;
+    Matrix<?> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception;
 
 
     /**
@@ -52,7 +53,7 @@ public interface SnmpClient {
      * @return
      * @throws IOException
      */
-    public <T>T readAttribute(final ReadMethod method, final OID oid, final Class<T> className) throws IOException;
+    <T> T readAttribute(final ReadMethod method, final OID oid, final Class<T> className) throws IOException;
 
     /**
      * Write attribute connected to the certain OID
@@ -62,6 +63,6 @@ public interface SnmpClient {
      * @param <T>
      * @throws IOException
      */
-    public <T> void writeAttribute(final OID oid, final T value, final Class<T> valueType) throws IOException;
+    <T> void writeAttribute(final OID oid, final T value, final Class<T> valueType) throws IOException;
 
 }

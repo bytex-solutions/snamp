@@ -681,6 +681,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         private final Map<String, SubscribedNotificationListener> listeners;
         private final ReadWriteLock coordinator;
         private String subscriptionList;
+        private volatile ManagedEntityType attachmentType;
 
         /**
          * Initializes a new event metadata.
@@ -691,10 +692,39 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
             this.listeners = new HashMap<>(10);
             this.coordinator = new ReentrantReadWriteLock();
             this.subscriptionList = UNKNOWN_LIST_ID;
+            attachmentType = null;
         }
 
         private void setSubscriptionList(final String value){
             this.subscriptionList = value != null && value.length() > 0 ? value : UNKNOWN_LIST_ID;
+        }
+
+        /**
+         * Detects the attachment type.
+         * <p>
+         *     This method will be called automatically by SNAMP infrastructure
+         *     and once for this instance of notification metadata.
+         * @return The attachment type.
+         */
+        protected abstract ManagedEntityType detectAttachmentType();
+
+        /**
+         * Gets attachment descriptor that can be used to convert notification attachment
+         * into well-known object.
+         *
+         * @return An attachment descriptor; or {@literal null} if attachments are not supported.
+         * @see #detectAttachmentType()
+         */
+        @Override
+        public final ManagedEntityType getAttachmentType() {
+            ManagedEntityType result = attachmentType;
+            if (result == null)
+                synchronized (this) {
+                    result = attachmentType;
+                    if (result == null)
+                        result = attachmentType = detectAttachmentType();
+                }
+            return result;
         }
 
         /**

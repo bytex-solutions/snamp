@@ -96,7 +96,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void testDictionaryProperty() throws BundleException, JMException, IOException {
-        final CompositeType ct = new CompositeType("dict", "dummy",
+        final CompositeType ct = new CompositeType("dictionary", "dummy",
                 new String[]{"col1", "col2", "col3"},
                 new String[]{"col1", "col2", "col3"},
                 new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
@@ -109,11 +109,11 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void testTableProperty() throws BundleException, JMException, IOException {
-        final CompositeType rowType = new CompositeType("table", "dummy",
+        final CompositeType rowType = new CompositeType("SimpleTable", "dummy",
                 new String[]{"col1", "col2", "col3"},
                 new String[]{"col1", "col2", "col3"},
                 new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
-        final TabularData table = new TabularDataSupport(new TabularType("table", "table", rowType,
+        final TabularData table = new TabularDataSupport(new TabularType("SimpleTable", "table", rowType,
                 new String[]{"col3"}));
         table.put(new CompositeDataSupport(rowType,
                 new String[]{"col1", "col2", "col3"},
@@ -137,12 +137,14 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
             assertNotNull(connection.getMBeanInfo(resourceObjectName).getAttributes().length > 0);
             final SynchronizationEvent<Notification> attributeChangedEvent = new SynchronizationEvent<>();
             final SynchronizationEvent<Notification> testEvent = new SynchronizationEvent<>();
+            final SynchronizationEvent<Notification> eventWithAttachmentHolder = new SynchronizationEvent<>();
             connection.addNotificationListener(resourceObjectName, new NotificationListener() {
                 @Override
                 public void handleNotification(final Notification notification, final Object handback) {
                     switch (notification.getType()){
-                        case AttributeChangeNotification.ATTRIBUTE_CHANGE: attributeChangedEvent.fire(notification); return;
-                        case "com.itworks.snamp.connectors.tests.impl.testnotif": testEvent.fire(notification);
+                        case "19.1": attributeChangedEvent.fire(notification); return;
+                        case "21.1": eventWithAttachmentHolder.fire(notification); return;
+                        case "20.1": testEvent.fire(notification);
                     }
                 }
             }, null, null);
@@ -150,6 +152,9 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
             connection.setAttribute(resourceObjectName, attr);
             assertNotNull(attributeChangedEvent.getAwaitor().await(TimeSpan.fromSeconds(10)));
             assertNotNull(testEvent.getAwaitor().await(TimeSpan.fromSeconds(10)));
+            final Notification withAttachment = eventWithAttachmentHolder.getAwaitor().await(TimeSpan.fromSeconds(10));
+            assertNotNull(withAttachment);
+            assertNotNull(withAttachment.getUserData() instanceof TabularData);
         }
         finally {
             AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
@@ -207,6 +212,12 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
         events.put("20.1", event);
+
+        event = eventFactory.get();
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.plainnotif");
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("objectName", BEAN_NAME);
+        events.put("21.1", event);
     }
 
     @Override

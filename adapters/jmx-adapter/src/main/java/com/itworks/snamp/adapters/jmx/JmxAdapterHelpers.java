@@ -11,18 +11,18 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class JmxAdapterHelpers {
-    public static final String ADAPTER_NAME = "jmx";
-    private static final String JMX_ENTITY_OPTION = "jmx-compliant";
+    static final String ADAPTER_NAME = "jmx";
+    static final String JMX_ENTITY_OPTION = "jmx-compliant";
 
     private JmxAdapterHelpers(){
 
     }
 
-    public static Logger getLogger(){
+    static Logger getLogger(){
         return AbstractResourceAdapter.getLogger(ADAPTER_NAME);
     }
 
-    public static boolean isJmxCompliantAttribute(final AttributeMetadata attr){
+    static boolean isJmxCompliantAttribute(final AttributeMetadata attr){
         return attr.containsKey(JMX_ENTITY_OPTION) && Boolean.valueOf(attr.get(JMX_ENTITY_OPTION));
     }
 }

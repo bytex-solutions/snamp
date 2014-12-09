@@ -2,18 +2,16 @@ package com.itworks.snamp.connectors.rshell;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
+import com.itworks.jcommands.impl.TypeTokens;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
-import com.itworks.snamp.InMemoryTable;
-import com.itworks.snamp.SafeConsumer;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TypeLiterals;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
+import com.itworks.snamp.mapping.*;
 
 import java.util.*;
-
-import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
 
 /**
  * Represents managed entity type resolved that convert {@link com.itworks.jcommands.impl.XmlParserDefinition}
@@ -24,14 +22,22 @@ import static com.itworks.snamp.TableFactory.STRING_TABLE_FACTORY;
  */
 final class RShellConnectorTypeSystem extends WellKnownTypeSystem {
     RShellConnectorTypeSystem() {
-        registerIdentityConverter(TypeLiterals.STRING_MAP);
-        registerConverter(TypeLiterals.STRING_MAP, TypeLiterals.STRING_COLUMN_TABLE, new Function<Map<String,Object>, Table<String>>() {
-            @Override
-            public Table<String> apply(final Map<String, Object> input) {
-                return STRING_TABLE_FACTORY.fromSingleRow(input);
-            }
-        });
-        registerIdentityConverter(TypeLiterals.STRING_COLUMN_TABLE);
+        registerConverter(TypeTokens.DICTIONARY_TYPE_TOKEN, TypeLiterals.NAMED_RECORD_SET,
+                new Function<Map<String, ?>, RecordSet<String, ?>>() {
+                    @Override
+                    public RecordSet<String, ?> apply(final Map<String, ?> input) {
+                        return toNamedRecordSet(input);
+                    }
+                });
+        registerConverter(TypeTokens.DICTIONARY_TYPE_TOKEN, TypeLiterals.ROW_SET,
+                new Function<Map<String, ?>, RowSet<?>>() {
+                    @Override
+                    public RowSet<?> apply(final Map<String, ?> input) {
+                        return toRowSet(input);
+                    }
+                });
+        registerIdentityConverter(TypeLiterals.ROW_SET);
+        registerIdentityConverter(TypeLiterals.NAMED_RECORD_SET);
     }
 
     private ManagedEntityType createEntityType(final XmlParsingResultType type){
@@ -94,23 +100,62 @@ final class RShellConnectorTypeSystem extends WellKnownTypeSystem {
         }});
     }
 
-    static Table<String> toTable(final Collection<Map<String, Object>> value, final XmlParserDefinition definition) {
-        final InMemoryTable<String> result = STRING_TABLE_FACTORY.create(new SafeConsumer<ImmutableMap.Builder<String, Class<?>>>() {
+    static RecordSet<String, ?> toNamedRecordSet(final Map<String, ?> value){
+        return new KeyedRecordSet<String, Object>() {
             @Override
-            public void accept(final ImmutableMap.Builder<String, Class<?>> input) {
-                definition.exportTableOrDictionaryType(input);
+            protected Set<String> getKeys() {
+                return value.keySet();
             }
-        },
-                value.size());
-        for (final Map<String, Object> row : value)
-            result.addRow(row);
-        return result;
+
+            @Override
+            protected Object getRecord(final String key) {
+                return value.get(key);
+            }
+        };
     }
 
-    static Collection<Map<String, Object>> fromTable(final Table<String> value) {
-        final Collection<Map<String, Object>> result = new ArrayList<>(value.getRowCount());
-        for (int index = 0; index < value.getRowCount(); index++)
-            result.add(value.getRow(index));
-        return result;
+    static RowSet<?> toRowSet(final Map<String, ?> value){
+        return RecordSetUtils.singleRow(value);
+    }
+
+    static RowSet<?> toRowSet(final List<? extends Map<String, ?>> value, final XmlParserDefinition definition) {
+        return new AbstractRowSet<Object>() {
+            private final ImmutableSet<String> columns;
+
+            {
+                final ImmutableMap.Builder<String, TypeToken<?>> builder = ImmutableMap.builder();
+                definition.exportTableOrDictionaryType(builder);
+                columns = builder.build().keySet();
+            }
+
+            @Override
+            protected Object getCell(final String columnName, final int rowIndex) {
+                final Map<String, ?> row = value.get(rowIndex);
+                return row.get(columnName);
+            }
+
+            @Override
+            public Set<String> getColumns() {
+                return columns;
+            }
+
+            @Override
+            public boolean isIndexed(final String columnName) {
+                return false;
+            }
+
+            @Override
+            public int size() {
+                return value.size();
+            }
+        };
+    }
+
+    static Map<String, ?> mapFromNamedRecordSet(final RecordSet<String, ?> value){
+        return RecordSetUtils.toMap(value);
+    }
+
+    static List<? extends Map<String, ?>> tableFromRowSet(final RowSet<?> value) {
+        return RecordSetUtils.toList(value);
     }
 }

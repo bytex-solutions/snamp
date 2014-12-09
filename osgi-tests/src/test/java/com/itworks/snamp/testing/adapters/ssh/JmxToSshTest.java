@@ -3,6 +3,7 @@ package com.itworks.snamp.testing.adapters.ssh;
 import com.google.common.base.Supplier;
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
 import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import net.schmizz.sshj.SSHClient;
@@ -16,6 +17,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -43,21 +45,128 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
                 SnampArtifact.SSH_ADAPTER.getReference());
     }
 
-    @Test
-    public void getIntegerTest() throws IOException {
+    private void testScalarAttribute(String attributeId,
+                               final String value,
+                               final Equator<String> equator) throws IOException{
         try(final SSHClient client = new SSHClient()){
             client.addHostKeyVerifier(FINGERPRINT);
             client.connect("localhost", PORT);
             client.authPassword(USER_NAME, PASSWORD);
-            final String INT_ATTR = String.format("%s/%s", TEST_RESOURCE_NAME, "3.0");
+            attributeId = String.format("%s/%s", TEST_RESOURCE_NAME, attributeId);
             try(final Session s = client.startSession()) {
-                s.exec(String.format("set " + INT_ATTR + " 42"));
+                s.exec(String.format("set %s %s", attributeId, value));
             }
             try(final Session s = client.startSession()){
-                final String value = IOUtils.readFully(s.exec("get " + INT_ATTR).getInputStream()).toString();
-                assertNotNull(value);
-                assertFalse(value.isEmpty());
-                assertEquals("42", value);
+                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
+                assertNotNull(result);
+                assertFalse(result.isEmpty());
+                assertTrue(equator.equate(result, value));
+            }
+        }
+    }
+
+    @Test
+    public void integerTest() throws IOException {
+        testScalarAttribute("3.0", "42", AbstractResourceConnectorTest.<String>valueEquator());
+    }
+
+    @Test
+    public void stringTest() throws IOException{
+        testScalarAttribute("1.0", "\"Hello, world\"", new Equator<String>() {
+            @Override
+            public boolean equate(final String value1, final String value2) {
+                return Objects.equals(String.format("\"%s\"", value1), value2);
+            }
+        });
+    }
+
+    @Test
+    public void booleanTest() throws IOException{
+        testScalarAttribute("2.0", "true", AbstractResourceConnectorTest.<String>valueEquator());
+    }
+
+    @Test
+    public void bigIntTest() throws IOException{
+        testScalarAttribute("4.0", "10005000", AbstractResourceConnectorTest.<String>valueEquator());
+    }
+
+    @Test
+    public void floatTest() throws IOException{
+        testScalarAttribute("8.0", "3.141", AbstractResourceConnectorTest.<String>valueEquator());
+    }
+
+    @Test
+    public void tableTest() throws IOException{
+        try(final SSHClient client = new SSHClient()){
+            client.addHostKeyVerifier(FINGERPRINT);
+            client.connect("localhost", PORT);
+            client.authPassword(USER_NAME, PASSWORD);
+            final String attributeId = String.format("%s/%s", TEST_RESOURCE_NAME, "7.1");
+            //update dictionary
+            try(final Session s = client.startSession()) {
+                s.exec(String.format("set-table %s -r col1=false -r col2=2 -r col3=pp -i 0", attributeId));
+            }
+            try(final Session s = client.startSession()){
+                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
+                assertNotNull(result);
+                assertFalse(result.isEmpty());
+                assertEquals("TABLE col1\tcol2\tcol3false\tpp\t2false\tCiao, monde!\t42true\tLuke Skywalker\t1", result);
+            }
+        }
+    }
+
+    @Test
+    public void dictionaryTest() throws IOException{
+        try(final SSHClient client = new SSHClient()){
+            client.addHostKeyVerifier(FINGERPRINT);
+            client.connect("localhost", PORT);
+            client.authPassword(USER_NAME, PASSWORD);
+            final String attributeId = String.format("%s/%s", TEST_RESOURCE_NAME, "6.1");
+            //update dictionary
+            try(final Session s = client.startSession()) {
+                s.exec(String.format("set-map %s -p col1=false -p col2=42", attributeId));
+            }
+            try(final Session s = client.startSession()){
+                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
+                assertNotNull(result);
+                assertFalse(result.isEmpty());
+                assertTrue(result.startsWith("MAP "));
+                assertTrue(result.contains("col1=false"));
+                assertTrue(result.contains("col2=42"));
+            }
+        }
+    }
+
+    @Test
+    public void arrayTest() throws IOException{
+        try(final SSHClient client = new SSHClient()){
+            client.addHostKeyVerifier(FINGERPRINT);
+            client.connect("localhost", PORT);
+            client.authPassword(USER_NAME, PASSWORD);
+            final String attributeId = String.format("%s/%s", TEST_RESOURCE_NAME, "5.1");
+            //update array element
+            try(final Session s = client.startSession()) {
+                s.exec(String.format("set-array %s -i 2 -v 332", attributeId));
+            }
+            try(final Session s = client.startSession()){
+                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
+                assertEquals("ARRAY = [42, 100, 332, 99]", result);
+            }
+            //delete array element
+            try(final Session s = client.startSession()) {
+                s.exec(String.format("set-array %s -i 2 -d", attributeId));
+            }
+            try(final Session s = client.startSession()){
+                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
+                assertEquals("ARRAY = [42, 100, 99]", result);
+            }
+            //insert array element
+            try(final Session s = client.startSession()) {
+                s.exec(String.format("set-array %s -i 1 -v 456 -a", attributeId));
+            }
+            try(final Session s = client.startSession()){
+                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
+                assertEquals("ARRAY = [42, 456, 100, 99]", result);
             }
         }
     }

@@ -1,5 +1,7 @@
 package com.itworks.snamp.connectors.notifications;
 
+import com.itworks.snamp.views.View;
+
 import java.util.*;
 
 /**
@@ -12,7 +14,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public interface NotificationSupport {
+public interface NotificationSupport extends View {
 
     /**
      * Enables event listening for the specified category of events.

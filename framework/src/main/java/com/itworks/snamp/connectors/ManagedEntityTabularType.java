@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors;
 
-import java.util.Collection;
+import java.util.Set;
 
 /**
  * Represents a table type of the management entity.
@@ -17,7 +17,7 @@ public interface ManagedEntityTabularType extends ManagedEntityType {
      * Returns a set of column names.
      * @return The set of column names.
      */
-    public Collection<String> getColumns();
+    public Set<String> getColumns();
 
     /**
      * Determines whether the specified column is indexed.

@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT;
+import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
 
 /**
  * Represents SNMP discovery service.
@@ -38,7 +38,7 @@ final class SnmpDiscoveryService {
 
     private static void setupAttributeOptions(final Variable v, final Map<String, String> options){
         if(v instanceof OctetString)
-            options.put(SNMP_CONVERSION_FORMAT, OctetStringConversionFormat.adviceFormat((OctetString)v).toString());
+            options.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString)v).toString());
     }
 
     private static Collection<AttributeConfiguration> discoverAttributes(final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {

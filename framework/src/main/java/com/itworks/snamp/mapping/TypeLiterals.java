@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.mapping;
 
 import com.google.common.reflect.TypeToken;
 
@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Map;
 
 /**
  * Represents a set of predefined literals.
@@ -100,22 +99,19 @@ public final class TypeLiterals {
     public static final TypeToken<Object[]> OBJECT_ARRAY = TypeToken.of(Object[].class);
 
     /**
-     * Represents wrapped {@link com.google.common.collect.Table}&lt;{@link java.lang.Integer}, {@link java.lang.String}, {@link java.lang.Object}&gt;
-     * @see com.itworks.snamp.TableFactory#STRING_TABLE_FACTORY
-     */
-    public static final TypeToken<Table<String>> STRING_COLUMN_TABLE = new TypeToken<Table<String>>() {};
-
-    /**
-     * Represents wrapped {@link java.util.Map}&lt;{@link java.lang.String}, {@link java.lang.Object}&gt;
-     * @see com.itworks.snamp.MapBuilder#createStringHashMap(int)
-     */
-    public static final TypeToken<Map<String, Object>> STRING_MAP = new TypeToken<Map<String, Object>>() {};
-
-    /**
      * Represents wrapped {@link java.util.Calendar}.
      */
     public static final TypeToken<Calendar> CALENDAR = TypeToken.of(Calendar.class);
 
+    /**
+     * Represents a record set in which each record is identified by name.
+     */
+    public static final TypeToken<RecordSet<String, ?>> NAMED_RECORD_SET = new TypeToken<RecordSet<String, ?>>() {};
+
+    /**
+     * Represents read-only set of rows.
+     */
+    public static final TypeToken<RowSet<?>> ROW_SET = new TypeToken<RowSet<?>>() { };
 
     @SuppressWarnings("unchecked")
     public static <T> T cast(final Object value, final TypeToken<T> target) throws ClassCastException {
@@ -131,6 +127,10 @@ public final class TypeLiterals {
 
     public static boolean isInstance(final Object value, final TypeToken<?> target) {
         return value != null && target.isAssignableFrom(value.getClass());
+    }
+
+    static boolean isInstance(final Object value, final Type t){
+        return isAssignable(value.getClass(), t);
     }
 
     public static boolean isAssignable(final Type from, final Type to) {

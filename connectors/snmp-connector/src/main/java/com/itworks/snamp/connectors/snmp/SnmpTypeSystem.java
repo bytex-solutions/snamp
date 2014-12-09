@@ -4,7 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import org.snmp4j.smi.*;
 

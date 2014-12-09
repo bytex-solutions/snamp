@@ -1,10 +1,12 @@
 package com.itworks.snamp.testing.connectors.snmp;
 
 import com.itworks.snamp.*;
+import com.itworks.snamp.connectors.ManagedEntityValue;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -251,7 +253,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
             assertNotNull(notifications);
             final String LIST_ID = "snmp-notif";
             final NotificationMetadata metadata = notifications.enableNotifications(LIST_ID, "1.7.1", new HashMap<String, String>(1){{
-                put("messageTemplate", "{1.0} - {2.0}");
+                put("messageOID", "1.0");
             }});
             assertNotNull(metadata);
             final SynchronizationEvent<Notification> trap = new SynchronizationEvent<>(false);
@@ -269,9 +271,12 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
             try {
                 final Notification n = trap.getAwaitor().await(TimeSpan.fromSeconds(6));
                 assertNotNull(n);
-                assertEquals("Hello, world! - 42", n.getMessage());
+                assertEquals("Hello, world!", n.getMessage());
                 assertEquals(0L, n.getSequenceNumber());
-                assertEquals(2, n.size());
+                assertTrue(n.getAttachment() instanceof ManagedEntityValue);
+                final ManagedEntityValue attachment = (ManagedEntityValue)n.getAttachment();
+                assertTrue(attachment.canConvertTo(TypeLiterals.INTEGER));
+                assertEquals(42, attachment.convertTo(TypeLiterals.INTEGER));
             }
             finally {
                 assertTrue(notifications.unsubscribe("123"));

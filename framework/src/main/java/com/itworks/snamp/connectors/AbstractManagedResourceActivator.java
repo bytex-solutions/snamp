@@ -34,7 +34,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.itworks.snamp.connectors.notifications.NotificationUtils.NotificationEvent;
+
+import com.itworks.snamp.connectors.notifications.NotificationEvent;
 
 /**
  * Represents a base class for management connector bundle.

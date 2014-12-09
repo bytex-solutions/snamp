@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.jmx;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.ConversionException;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
@@ -9,20 +10,19 @@ import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
+import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationListener;
 import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.LicensingException;
 
 import javax.management.*;
+import javax.management.monitor.MonitorNotification;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
+import javax.management.timer.TimerNotification;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
@@ -45,42 +45,65 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     public static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
     private static final Logger logger = JmxConnectorHelpers.getLogger();
     private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
-    private static final String JMX_ENTITY_OPTION = "jmx-compliant";
+    private static final String JMX_COMPLIANT = "jmx-compliant";
+
 
     private final static class JmxNotificationMetadata extends GenericNotificationMetadata{
         private final Map<String, String> options;
         private final ExecutorService executor;
+        private AttachmentResolver attachmentResolution;
+        private final Descriptor advancedMetadata;
 
         /**
          * Represents owner of this notification metadata.
          */
         public final ObjectName eventOwner;
 
-
         public JmxNotificationMetadata(final String notifType,
+                                       final String notificationClassName,
+                                       final Descriptor notificationDescriptor,
                                        final ObjectName eventOwner,
                                        final Map<String, String> options){
             super(notifType);
-            options.put(JMX_ENTITY_OPTION, Boolean.toString(true));
-            this.options = Collections.unmodifiableMap(options);
+            this.options = new HashMap<>(options);
+            options.put(JMX_COMPLIANT, Boolean.toString(true));
             this.eventOwner = eventOwner;
             this.executor = Executors.newSingleThreadExecutor();
+            this.advancedMetadata = notificationDescriptor;
+            this.attachmentResolution = AttachmentResolverFactory.createResolver(notificationClassName,
+                    notificationDescriptor);
+            attachmentResolution.exposeTypeInfo(options);
+        }
+
+        private static Severity parseSeverity(final String value){
+            switch (value.toLowerCase()){
+                case "1": //jmx severity level
+                case "panic": return Severity.PANIC;
+                case "2": //jmx severity level
+                case "alert": return Severity.ALERT;
+                case "3": //jmx severity level
+                case "critical": return Severity.CRITICAL;
+                case "4": //jmx severity level
+                case "error": return Severity.ERROR;
+                case "5": //jmx severity level
+                case "warning": return Severity.WARNING;
+                case "6": //jmx severity level
+                case "notice": return Severity.NOTICE;
+                case "7": //jmx severity level
+                case "info": return Severity.INFO;
+                case "8": //jmx severity level
+                case "debug": return Severity.DEBUG;
+                case "0": //jmx severity level
+                default: return Severity.UNKNOWN;
+            }
         }
 
         public final Severity getSeverity(){
+            final String JMX_SEVERITY = "severity";
             if(options.containsKey(SEVERITY_PARAM))
-                switch (options.get(SEVERITY_PARAM)){
-                    case "panic": return Severity.PANIC;
-                    case "alert": return Severity.ALERT;
-                    case "critical": return Severity.CRITICAL;
-                    case "error": return Severity.ERROR;
-                    case "warning": return Severity.WARNING;
-                    case "notice": return Severity.NOTICE;
-                    case "info": return Severity.INFO;
-                    case "debug": return Severity.DEBUG;
-                    default: return Severity.UNKNOWN;
-
-                }
+                return parseSeverity(options.get(SEVERITY_PARAM));
+            else if(advancedMetadata != null && ArrayUtils.contains(advancedMetadata.getFieldNames(), JMX_SEVERITY))
+                return parseSeverity(Objects.toString(advancedMetadata.getFieldValue(JMX_SEVERITY)));
             else return Severity.UNKNOWN;
         }
 
@@ -88,8 +111,8 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * Raises the notification associated with this descriptor.
          * @param n A notification to emit.
          */
-        public final void fire(final javax.management.Notification n){
-            fire(new JmxNotificationWrapper(getSeverity(), n), NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
+        private void fire(final javax.management.Notification n){
+            fire(new JmxNotificationWrapper(getSeverity(), attachmentResolution, n), NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
                 @Override
                 public final void handle(final Throwable e, final NotificationListener source) {
                     logger.log(Level.SEVERE, "Unable to process JMX notification.", e);
@@ -108,16 +131,16 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         }
 
         /**
-         * Returns the attachment type descriptor.
-         * @param attachment The notification attachment.
-         * @return The attachment type descriptor for the specified attachment; or {@literal null} if
-         * attachment is not supported.
+         * Detects the attachment type.
+         * <p/>
+         * This method will be called automatically by SNAMP infrastructure
+         * and once for this instance of notification metadata.
+         *
+         * @return The attachment type.
          */
         @Override
-        public final ManagedEntityType getAttachmentType(final Object attachment) {
-            return attachment != null ?
-                    typeSystem.createEntityType(JmxTypeSystem.getOpenTypeFromValue(attachment)) :
-                    null;
+        protected ManagedEntityType detectAttachmentType() {
+            return attachmentResolution.resolveType(typeSystem);
         }
 
         @Override
@@ -237,7 +260,9 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             else return new JmxAttributeProvider(connectionManager, targetAttr.getName(), namespace, options){
                 @Override
                 protected final JmxManagedEntityType detectAttributeType() {
-                    return typeSystem.createAttributeType(targetAttr, createTypeDetectionFallback(this));
+                    final OpenType<?> ot = JmxTypeSystem.getOpenType(targetAttr, createTypeDetectionFallback(this));
+                    exposeTypeInfo(ot);
+                    return typeSystem.createEntityType(ot);
                 }
 
                 /**
@@ -334,8 +359,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
 
                 @Override
                 protected final JmxManagedEntityType detectAttributeType() {
-                    final OpenType<?> compositeType = JmxTypeSystem.getOpenType(targetAttr, createTypeDetectionFallback(this));
-                    return typeSystem.createEntityType(navigator.getType(compositeType));
+                    OpenType<?> type = JmxTypeSystem.getOpenType(targetAttr, createTypeDetectionFallback(this));
+                    type = navigator.getType(type);
+                    exposeTypeInfo(type);
+                    return typeSystem.createEntityType(type);
                 }
             };
         }
@@ -564,7 +591,11 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                         for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(on).getNotifications())
                             for (final String notifType : notificationInfo.getNotifTypes())
                                 if (Objects.equals(notifType, category))
-                                    return new JmxNotificationMetadata(notifType, on, options);
+                                    return new JmxNotificationMetadata(notifType,
+                                            notificationInfo.getName(),
+                                            notificationInfo.getDescriptor(),
+                                            on,
+                                            options);
                         return null;
                     } else return null;
                 }
@@ -730,15 +761,19 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             super(attributeName);
             this.connectionManager = manager;
             this.namespace = namespace;
-            options.put(JMX_ENTITY_OPTION, Boolean.toString(true));
-            this.options = Collections.unmodifiableMap(options);
+            options.put(JMX_COMPLIANT, Boolean.toString(true));
+            this.options = new HashMap<>(options);
+        }
+
+        protected final void exposeTypeInfo(final OpenType<?> tinfo){
+            JmxTypeSystem.exposeTypeInfo(tinfo, options);
         }
 
         protected final OpenType<?> getTypeFromAttributeValue() throws Exception {
             return connectionManager.handleConnection(new MBeanServerConnectionHandler<OpenType<?>>() {
                 @Override
                 public OpenType<?> handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    return JmxTypeSystem.getOpenTypeFromValue(connection.getAttribute(namespace, getName()));
+                    return JmxTypeSystem.getOpenTypeFromValue(connection.getAttribute(namespace, getName()), null);
                 }
             });
         }
@@ -838,24 +873,42 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         }
     }
 
-    private final static class JmxNotificationWrapper extends HashMap<String, Object> implements com.itworks.snamp.connectors.notifications.Notification {
+    private final static class JmxNotificationWrapper implements com.itworks.snamp.connectors.notifications.Notification {
         private final javax.management.Notification jmxNotification;
         private final Severity notificationSeverity;
+        private final AttachmentResolver attachmentResolver;
         private transient volatile Object userData;
 
-        public JmxNotificationWrapper(final Severity severity, final javax.management.Notification jmxNotification){
+        private JmxNotificationWrapper(final Severity severity,
+                                       final AttachmentResolver resolver,
+                                       final javax.management.Notification jmxNotification){
             userData = null;
             this.jmxNotification = jmxNotification;
             notificationSeverity = severity != null ? severity : Severity.UNKNOWN;
-            //loads notification as Java Bean and explore each JB property as attachment
-            try {
-                final BeanInfo descriptor = Introspector.getBeanInfo(jmxNotification.getClass(), javax.management.Notification.class);
-                for(final PropertyDescriptor property: descriptor.getPropertyDescriptors())
-                    put(property.getName(), Utils.getProperty(jmxNotification, descriptor, property.getName()));
-            }
-            catch (final java.beans.IntrospectionException | ReflectiveOperationException e) {
-                logger.log(Level.WARNING, "Unable to wrap MBean notification into map.", e);
-            }
+            this.attachmentResolver = resolver;
+        }
+
+        private static String getCorrelationID(final TimerNotification notif){
+            return Integer.toString(notif.getNotificationID());
+        }
+
+        private static String getCorrelationID(final MonitorNotification notif){
+            return String.format("%s/%s", notif.getObservedObject(), notif.getObservedAttribute());
+        }
+
+        @Override
+        public String getCorrelationID() {
+            if(jmxNotification instanceof TimerNotification)
+                return getCorrelationID((TimerNotification)jmxNotification);
+            else if(jmxNotification instanceof MonitorNotification)
+                return getCorrelationID((MonitorNotification)jmxNotification);
+            else return null;
+        }
+
+        //JMX connector doesn't support correlation analysis
+        @Override
+        public Notification getNext() {
+            return null;
         }
 
         /**
@@ -916,6 +969,17 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         @Override
         public final String getMessage() {
             return jmxNotification.getMessage();
+        }
+
+        /**
+         * Gets attachment associated with this notification.
+         * <p/>
+         *
+         * @return An attachment associated with this notification; or {@literal null} if no attachment present.
+         */
+        @Override
+        public Object getAttachment() {
+            return attachmentResolver.extractAttachment(jmxNotification, typeSystem);
         }
     }
 

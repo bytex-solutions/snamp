@@ -1,10 +1,11 @@
 package com.itworks.snamp.connectors;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.AbstractTypeConverterProvider;
-import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.mapping.AbstractTypeConverterProvider;
+import com.itworks.snamp.mapping.TypeConverter;
+import com.itworks.snamp.mapping.TypeLiterals;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -154,7 +155,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
         /**
          * Represents read-only collection of columns.
          */
-        public static final Collection<String> COLUMNS = Collections.unmodifiableList(Arrays.asList(INDEX_COLUMN_NAME, VALUE_COLUMN_NAME));
+        public static final Set<String> COLUMNS = ImmutableSet.of(INDEX_COLUMN_NAME, VALUE_COLUMN_NAME);
 
         /**
          * Gets a set of dictionary keys (items).
@@ -162,7 +163,7 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
          * @return A set of dictionary keys (items).
          */
         @Override
-        public final Collection<String> getColumns() {
+        public final Set<String> getColumns() {
             return COLUMNS;
         }
 
@@ -336,13 +337,22 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
     /**
      * Determines whether the specified management type is table.
      * <p>
-     *  Invocation of this method is equal to {@code entityType instanceof ManagementEntityTabularType}.
+     *  Implementation of this method is equal to:
+     *  <pre>
+     *      <code>
+     *          public static boolean isTable(final ManagedEntityType entityType){
+     *              return entityType instanceof ManagedEntityTabularType &&
+     *                  entityType.getProjection(TypeLiterals.ROW_SET) != null;
+     *          }
+     *      </code>
+     *  </pre>
      * </p>
      * @param entityType An entity type to check,
      * @return {@literal true}, if the specified management entity type is table; otherwise, {@literal false}.
      */
     public static boolean isTable(final ManagedEntityType entityType){
-        return entityType instanceof ManagedEntityTabularType;
+        return entityType instanceof ManagedEntityTabularType &&
+                entityType.getProjection(TypeLiterals.ROW_SET) != null;
     }
 
     private static boolean isArray(final ManagedEntityTabularType entityType){
@@ -370,27 +380,20 @@ public abstract class ManagedEntityTypeBuilder extends AbstractTypeConverterProv
     }
 
     /**
-     * Creates a new simple management entity type that can convert any value to {@link String}.
-     * @return A new simple management entity type that can convert any value to {@link String}.
-     */
-    public final ManagedEntityType createFallbackEntityType(){
-        return createEntitySimpleType(TypeLiterals.STRING);
-    }
-
-    /**
      * Determines whether the specified entity represents a map.
      * <p>
      *     Implementation of this method is equal to:
      *     <pre><code>
      *     return entityType instanceof ManagementEntityTabularType &&
-     *          entityType.getProjection(TypeLiterals.STRING_MAP) != null;
+     *          entityType.getProjection(TypeLiterals.NAMED_RECORD_SET) != null;
      *     </code></pre>
      * </p>
      * @param entityType An entity type to check.
      * @return {@literal true} if the specified entity can be converted into {@link Map}; {@literal false}.
+     * @see com.itworks.snamp.mapping.TypeLiterals#NAMED_RECORD_SET
      */
     public static boolean isMap(final ManagedEntityType entityType){
         return entityType instanceof ManagedEntityTabularType &&
-                entityType.getProjection(TypeLiterals.STRING_MAP) != null;
+                entityType.getProjection(TypeLiterals.NAMED_RECORD_SET) != null;
     }
 }

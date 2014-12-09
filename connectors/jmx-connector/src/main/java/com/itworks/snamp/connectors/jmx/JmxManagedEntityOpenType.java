@@ -15,5 +15,5 @@ interface JmxManagedEntityOpenType<T> extends JmxManagedEntityType {
      * @return JMX-compliant representation of the well-known type.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public OpenType<T> getOpenType();
+    OpenType<T> getOpenType();
 }

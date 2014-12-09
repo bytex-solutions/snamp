@@ -1,7 +1,13 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.StringAppender;
+import com.itworks.snamp.connectors.ManagedEntityValue;
 import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.mapping.RecordReader;
+import com.itworks.snamp.mapping.RecordSet;
+import com.itworks.snamp.mapping.RowSet;
+import com.itworks.snamp.mapping.TypeLiterals;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -10,6 +16,7 @@ import org.apache.sshd.common.Session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.Objects;
 
 /**
  * @author Roman Sakno
@@ -103,6 +110,45 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
                     .flush(output);
     }
 
+    private static void printAttachment(final RecordSet<String, ?> attachment,
+                                        final StringAppender output){
+        attachment.sequential().forEach(new RecordReader<String, Object, ExceptionPlaceholder>() {
+            @Override
+            public void read(final String name, final Object value) {
+                output.appendln("%s = %s", name, value);
+            }
+        });
+    }
+
+    private static void printAttachment(final RowSet<?> attachment,
+                                        final StringAppender output){
+        attachment.sequential().forEach(new RecordReader<Integer, RecordSet<String, ?>, ExceptionPlaceholder>() {
+            @Override
+            public void read(final Integer index, final RecordSet<String, ?> value) {
+                output.appendln("Entry #%s", index);
+                value.sequential().forEach(new RecordReader<String, Object, ExceptionPlaceholder>() {
+                    @Override
+                    public void read(final String name, final Object value) {
+                        output.appendln("\t%s = %s", name, value);
+                    }
+                });
+                output.newLine();
+            }
+        });
+    }
+
+    private static void printAttachment(Object attachment,
+                                        final StringAppender output){
+        if(attachment instanceof ManagedEntityValue<?>)
+            attachment = ((ManagedEntityValue<?>)attachment).rawValue;
+        if(TypeLiterals.isInstance(attachment, TypeLiterals.NAMED_RECORD_SET))
+            printAttachment(TypeLiterals.cast(attachment, TypeLiterals.NAMED_RECORD_SET), output);
+        else if(TypeLiterals.isInstance(attachment, TypeLiterals.ROW_SET))
+            printAttachment(TypeLiterals.cast(attachment, TypeLiterals.ROW_SET), output);
+        else
+            output.appendln(Objects.toString(attachment));
+    }
+
     private void pendingNotifications(final NotificationManager manager,
                                       final int capacity,
                                       final PrintWriter output) throws CommandException {
@@ -127,9 +173,12 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
                         .appendln("Sequence #%s", notif.getSequenceNumber())
                         .appendln("Timestamp: %s", notif.getTimeStamp())
                         .appendln("Severity %s", notif.getSeverity())
-                        .appendln(notif.getMessage())
-                        .newLine()
-                        .flush(output);
+                        .appendln("Correlation ID %s", notif.getCorrelationID())
+                        .appendln(notif.getMessage());
+                final Object attachment = notif.getAttachment();
+                if(attachment != null)
+                    printAttachment(attachment, appender.appendln("== Additional notification payload =="));
+                appender.newLine().flush(output);
             }
         } catch (final IOException | InterruptedException e) {
             throw new CommandException(e);

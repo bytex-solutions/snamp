@@ -30,6 +30,7 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -192,11 +193,23 @@ public final class RestAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
             //forces attribute changing
             testJsonAttribute(new JsonPrimitive(1234), "3.0");
             int counter = 0;
-            while (notificationBox.size() < 2) {
+            while (notificationBox.size() < 3) {
                 Thread.sleep(100);
                 if (counter++ > 50) break;
             }
-            assertEquals(2, notificationBox.size());
+            assertEquals(3, notificationBox.size());
+            for(final JsonElement element: notificationBox){
+                assertTrue(element.isJsonObject());
+                final JsonObject notif = element.getAsJsonObject();
+                if(Objects.equals(notif.get("category"), new JsonPrimitive("com.itworks.snamp.connectors.tests.impl.plainnotif"))){
+                    assertTrue(notif.has("attachment"));
+                    final JsonArray attachment = notif.getAsJsonArray("attachment");
+                    assertEquals(3, attachment.size());
+                    assertTrue(attachment.get(0).isJsonObject());
+                    assertTrue(attachment.get(1).isJsonObject());
+                    assertTrue(attachment.get(2).isJsonObject());
+                }
+            }
         } finally {
             webSocketClient.stop();
         }
@@ -276,6 +289,11 @@ public final class RestAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
         events.put("20.1", event);
+
+        event = eventFactory.get();
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.plainnotif");
+        event.getParameters().put("objectName", BEAN_NAME);
+        events.put("21.1", event);
     }
 
     @Override

@@ -6,7 +6,7 @@ import org.snmp4j.security.SecurityLevel;
  * Represent factory providing instancing of SnmpClient Interface realization
  * @author Evgeniy Kirichenko
  */
-final public class SnmpClientFactory {
+public final class SnmpClientFactory {
     private SnmpClientFactory(){};
 
     public static SnmpClient createSnmpV2(final String address){

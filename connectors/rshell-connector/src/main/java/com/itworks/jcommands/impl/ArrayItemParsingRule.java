@@ -1,8 +1,6 @@
 package com.itworks.jcommands.impl;
 
 import javax.xml.bind.annotation.*;
-import java.lang.reflect.Array;
-import java.util.List;
 
 /**
 * @author Roman Sakno
@@ -40,10 +38,5 @@ public final class ArrayItemParsingRule extends ParsingRule{
 
     public void setItemParsingRule(final String value){
         itemParsingRule = value != null ? value : "";
-    }
-
-    private static Class<?> getNativeType(final List parsingTemplate) {
-        final ArrayItemParsingRule rule = findRule(parsingTemplate, ArrayItemParsingRule.class);
-        return rule != null ? Array.newInstance(rule.getElementType().underlyingType, 0).getClass() : null;
     }
 }

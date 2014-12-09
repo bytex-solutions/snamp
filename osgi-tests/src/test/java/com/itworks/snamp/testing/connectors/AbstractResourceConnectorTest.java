@@ -3,7 +3,6 @@ package com.itworks.snamp.testing.connectors;
 import com.google.common.base.Supplier;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.TypeConverter;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
@@ -13,6 +12,9 @@ import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
+import com.itworks.snamp.mapping.RecordSet;
+import com.itworks.snamp.mapping.RecordSetUtils;
+import com.itworks.snamp.mapping.TypeConverter;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
@@ -55,18 +57,27 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         };
     }
 
-    protected static <K, V> Equator<Map<K, V>> mapEquator(){
-        return new Equator<Map<K, V>>() {
+    private static <K, V> boolean areEqual(final Map<K, V> value1, final Map<K, V> value2) {
+        if(value1.size() == value2.size())
+            for(final K key: value1.keySet()) {
+                if (!value2.containsKey(key)) return false;
+                if(!Objects.equals(value1.get(key), value2.get(key)))
+                    return false;
+            }
+        else return false;
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected static Equator<RecordSet<String, ?>> namedRecordSetEquator(){
+        return (Equator)recordSetEquator();
+    }
+
+    protected static <K, V> Equator<RecordSet<K, V>> recordSetEquator(){
+        return new Equator<RecordSet<K, V>>() {
             @Override
-            public boolean equate(final Map<K, V> value1, final Map<K, V> value2) {
-                if(value1.size() == value2.size())
-                    for(final K key: value1.keySet()) {
-                        if (!value2.containsKey(key)) return false;
-                        if(!Objects.equals(value1.get(key), value2.get(key)))
-                            return false;
-                    }
-                else return false;
-                return true;
+            public boolean equate(final RecordSet<K, V> value1, final RecordSet<K, V> value2) {
+                return areEqual(RecordSetUtils.toMap(value1), RecordSetUtils.toMap(value2));
             }
         };
     }

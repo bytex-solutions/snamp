@@ -108,6 +108,12 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
             "Occurs when timer is changed"
     );
 
+    private static final MBeanNotificationInfo PLAIN_EVENT = new MBeanNotificationInfo(
+            new String[]{"com.itworks.snamp.connectors.tests.impl.plainnotif"},
+            Notification.class.getName(),
+            "Notification with attachment"
+    );
+
     private static final MBeanInfo BEAN_INFO = new MBeanInfo(TestOpenMBean.class.getName(),
             "Test MBean",
             new MBeanAttributeInfo[]{STRING_PROPERTY,
@@ -122,7 +128,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
             },
             new MBeanConstructorInfo[0],
             new MBeanOperationInfo[0],
-            new MBeanNotificationInfo[]{PROPERTY_CHANGED_EVENT, TIMER_EVENT});
+            new MBeanNotificationInfo[]{PROPERTY_CHANGED_EVENT, TIMER_EVENT, PLAIN_EVENT});
 
     private String chosenString;
     private boolean aBoolean;
@@ -285,12 +291,19 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
                 attributeType,
                 oldValue,
                 newValue));
-        sendNotification(new TimerNotification("com.itworks.snamp.connectors.tests.impl.testnotif",
+        sendNotification(new TimerNotification(TIMER_EVENT.getNotifTypes()[0],
                 this,
                 sequenceCounter.getAndIncrement(),
                 System.currentTimeMillis(),
                 "Property changed",
                 32));
+        final Notification notif = new Notification(PLAIN_EVENT.getNotifTypes()[0],
+                this,
+                sequenceCounter.getAndIncrement(),
+                System.currentTimeMillis(),
+                "Message");
+        notif.setUserData(table);
+        sendNotification(notif);
     }
 
     /**

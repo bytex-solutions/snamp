@@ -28,19 +28,20 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
     static final String ENCRYPTION_KEY_PARAM = "encryptionKey";
     static final String LOCAL_ADDRESS_PARAM = "localAddress";
     static final String SECURITY_CONTEXT_PARAM = "securityContext";
-    static final String SOCKET_TIMEOUT = "socketTimeout";
+    static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
     static final int DEFAULT_SOCKET_TIMEOUT = 3000;
     //attribute related parameters
-    static final String SNMP_CONVERSION_FORMAT = "snmpConversionFormat";
+    static final String SNMP_CONVERSION_FORMAT_PARAM = "snmpConversionFormat";
     //event related parameters
     static final String SEVERITY_PARAM = "severity";
-    static final String MESSAGE_TEMPLATE = "messageTemplate";
+    static final String MESSAGE_TEMPLATE_PARAM = "messageTemplate";
+    static final String MESSAGE_OID_PARAM = "messageOID";
 
     private static final class EventConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
         private static final String RESOURCE_NAME = "EventOptions";
 
         public EventConfigurationDescriptor(){
-            super(EventConfiguration.class, SEVERITY_PARAM, MESSAGE_TEMPLATE);
+            super(EventConfiguration.class, SEVERITY_PARAM, MESSAGE_TEMPLATE_PARAM);
         }
 
         @Override
@@ -55,7 +56,7 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
         private static final String RESOURCE_NAME = "AttributeOptions";
 
         public AttributeConfigurationDescriptor(){
-            super(AttributeConfiguration.class, SNMP_CONVERSION_FORMAT);
+            super(AttributeConfiguration.class, SNMP_CONVERSION_FORMAT_PARAM);
         }
 
         @Override

@@ -53,12 +53,12 @@ class MONamedColumn<V extends Variable> extends MOMutableColumn<V> {
         return false;
     }
 
-    public Object parseCellValue(final V value, final ManagedEntityType ct, final Map<String, String> conversionOptions) {
+    Object parseCellValue(final V value, final ManagedEntityType ct, final Map<String, String> conversionOptions) throws Throwable {
         return columnType.convert(value, ct, conversionOptions);
     }
 
     @SuppressWarnings("unchecked")
-    public V createCellValue(final Object cell, final ManagedEntityType ct, final Map<String, String> conversionOptions) {
+    V createCellValue(final Object cell, final ManagedEntityType ct, final Map<String, String> conversionOptions) throws Throwable {
         return (V)columnType.convert(cell, ct, conversionOptions);
     }
 }

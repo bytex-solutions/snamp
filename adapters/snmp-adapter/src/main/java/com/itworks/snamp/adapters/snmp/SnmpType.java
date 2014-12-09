@@ -1,11 +1,12 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.connectors.ManagedEntityType;
-import org.snmp4j.smi.Null;
+import com.itworks.snamp.internal.Utils;
 import org.snmp4j.smi.Variable;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
@@ -60,9 +61,10 @@ enum SnmpType {
     TABLE(SnmpTableObject.class);
 
     private final Class<? extends SnmpAttributeMapping> mapping;
+    private static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
     private final MOSyntax syntax;
-    private Method toVariableConverter;
-    private Method fromVariableConverter;
+    private volatile MethodHandle toVariableConverter;
+    private volatile MethodHandle fromVariableConverter;
 
     private SnmpType(final Class<? extends SnmpAttributeMapping> mapping){
         this.mapping = mapping;
@@ -71,18 +73,22 @@ enum SnmpType {
         this.fromVariableConverter = null;
     }
 
+    boolean isScalar(){
+        return SnmpScalarObject.class.isAssignableFrom(mapping);
+    }
+
     /**
      * Creates a new instance of the SNMP managed object.
      * @param oid OID of the managed object.
      * @param accessor An object that provides access to the individual management attribute.
      * @return A new mapping between resource attribute and its SNMP representation.
      */
-    public SnmpAttributeMapping createManagedObject(final String oid, final AttributeAccessor accessor){
+    SnmpAttributeMapping createManagedObject(final String oid, final AttributeAccessor accessor){
         try {
-            final Constructor<? extends SnmpAttributeMapping> ctor = mapping.getConstructor(String.class, AttributeAccessor.class);
-            return ctor.newInstance(oid, accessor);
+            final MethodHandle ctor = METHOD_LOOKUP.findConstructor(mapping, MethodType.methodType(void.class, String.class, AttributeAccessor.class));
+            return (SnmpAttributeMapping)ctor.invoke(oid, accessor);
         }
-        catch (final ReflectiveOperationException e) {
+        catch (final Throwable e) {
             SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
             return null;
         }
@@ -92,34 +98,32 @@ enum SnmpType {
      * Returns a value from {@link org.snmp4j.smi.SMIConstants} that represents value syntax type.
      * @return The value syntax type.
      */
-    public int getSyntax(){
+    int getSyntax(){
         return syntax != null ? syntax.value() : EXCEPTION_NO_SUCH_OBJECT;
     }
 
-    public Variable convert(final Object value, final ManagedEntityType valueType, final Map<String, String> options){
-        if(toVariableConverter == null)
-            try {
-                toVariableConverter = mapping.getMethod("convert", Object.class, ManagedEntityType.class);
+    private MethodHandle getToVariableConverter() throws ReflectiveOperationException{
+        MethodHandle converter = toVariableConverter;
+        if(converter == null)
+            synchronized (this){
+                converter = toVariableConverter;
+                if(converter == null)
+                    try {
+                        converter = toVariableConverter = METHOD_LOOKUP.unreflect(mapping.getMethod("convert", Object.class, ManagedEntityType.class));
+                    }
+                    catch (final ReflectiveOperationException e) {
+                        converter = toVariableConverter = METHOD_LOOKUP.unreflect(mapping.getMethod("convert", Object.class, ManagedEntityType.class, Map.class));
+                    }
             }
-            catch (final NoSuchMethodException e) {
-                try {
-                    toVariableConverter = mapping.getMethod("convert", Object.class, ManagedEntityType.class, Map.class);
-                } catch (NoSuchMethodException e1) {
-                    SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
-                    return new Null();
-                }
-            }
-        //attempts to invoke the converter.
-        try {
-            switch (toVariableConverter.getParameterTypes().length){
-                case 2: return (Variable)toVariableConverter.invoke(null, value, valueType);
-                case 3: return (Variable)toVariableConverter.invoke(null, value, valueType, options);
-                default: throw new ReflectiveOperationException("SnmpAgent: java-to-snmp converter not found.");
-            }
-        }
-        catch (final ReflectiveOperationException e) {
-            SnmpAttributeMapping.log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-            return new Null();
+        return converter;
+    }
+
+    Variable convert(final Object value, final ManagedEntityType valueType, final Map<String, String> options) throws Throwable {
+        final MethodHandle converter = getToVariableConverter();
+        switch (converter.type().parameterCount()){
+            case 2: return Utils.safeCast(converter.invoke(value, valueType), Variable.class);
+            case 3: return Utils.safeCast(converter.invoke(value, valueType, options), Variable.class);
+            default: throw new ReflectiveOperationException("SnmpAgent: java-to-snmp converter not found.");
         }
     }
 
@@ -129,55 +133,37 @@ enum SnmpType {
      * @param valueType The value type.
      * @return SNMP-compliant value.
      */
-    public Variable convert(final Object value, final ManagedEntityType valueType){
+    Variable convert(final Object value, final ManagedEntityType valueType) throws Throwable {
         return convert(value, valueType, Collections.<String, String>emptyMap());
     }
 
-    public Object convert(final Variable value, final ManagedEntityType valueType, final Map<String, String> options){
-        if(fromVariableConverter == null)
-            try {
-                fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagedEntityType.class);
+    private MethodHandle getFromVariableConverter() throws ReflectiveOperationException {
+        MethodHandle converter = fromVariableConverter;
+        if (converter == null)
+            synchronized (this) {
+                converter = fromVariableConverter;
+                if (converter == null)
+                    try {
+                        converter = fromVariableConverter =
+                                METHOD_LOOKUP.unreflect(mapping.getMethod("convert", Variable.class, ManagedEntityType.class));
+                    } catch (final ReflectiveOperationException e) {
+                        converter = fromVariableConverter = METHOD_LOOKUP.unreflect(mapping.getMethod("convert", Variable.class, ManagedEntityType.class, Map.class));
+                    }
             }
-            catch (final NoSuchMethodException e) {
-                try {
-                    fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagedEntityType.class);
-                } catch (final NoSuchMethodException e1) {
-                    SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
-                    return null;
-                }
+        return converter;
+    }
 
-            }
-        //attempts to invoke the converter.
-        try {
-            switch (fromVariableConverter.getParameterTypes().length){
-                case 2: return fromVariableConverter.invoke(null, value, valueType);
-                case 3: return fromVariableConverter.invoke(null, value, valueType, options);
-                default: throw new ReflectiveOperationException("java-to-snmp converter not found.");
-            }
-        }
-        catch (final ReflectiveOperationException e) {
-            SnmpAttributeMapping.log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-            return null;
+    Object convert(final Variable value, final ManagedEntityType valueType, final Map<String, String> options) throws Throwable {
+        final MethodHandle converter = getFromVariableConverter();
+        switch (converter.type().parameterCount()){
+            case 2: return converter.invoke(value, valueType);
+            case 3: return converter.invoke(value, valueType, options);
+            default: throw new ReflectiveOperationException("java-to-snmp converter not found.");
         }
     }
 
-    public Object convert(final Variable value, final ManagedEntityType valueType){
-        if(fromVariableConverter == null)
-            try {
-                fromVariableConverter = mapping.getMethod("convert", Variable.class, ManagedEntityType.class);
-            }
-            catch (final NoSuchMethodException e) {
-                SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
-                return null;
-            }
-        //attempts to invoke the converter.
-        try {
-            return fromVariableConverter.invoke(null, value, valueType);
-        }
-        catch (final ReflectiveOperationException e) {
-            SnmpAttributeMapping.log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-            return null;
-        }
+    Object convert(final Variable value, final ManagedEntityType valueType) throws Throwable {
+        return convert(value, valueType, Collections.<String, String>emptyMap());
     }
 
     /**
@@ -185,7 +171,7 @@ enum SnmpType {
      * @param attributeType Resource-specific type of the attribute.
      * @return SNMP-compliant projection of the attribute type.
      */
-    public static SnmpType map(final ManagedEntityType attributeType){
+    static SnmpType map(final ManagedEntityType attributeType){
         if(supportsBoolean(attributeType))
             return BOOLEAN;
         else if(supportsInt8(attributeType) || supportsInt16(attributeType) || supportsInt32(attributeType))
@@ -198,7 +184,7 @@ enum SnmpType {
             return NUMBER;
         else if(supportsUnixTime(attributeType))
             return UNIX_TIME;
-        else if(isTable(attributeType))
+        else if(isTable(attributeType) || isMap(attributeType) || isArray(attributeType))
             return TABLE;
         else return TEXT;
     }

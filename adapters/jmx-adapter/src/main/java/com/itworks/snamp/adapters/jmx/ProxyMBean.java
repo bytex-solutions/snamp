@@ -25,7 +25,7 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
     private final AtomicLong sequenceCounter;
     private ServiceRegistration<DynamicMBean> registration;
 
-    public ProxyMBean(final String resourceName,
+    ProxyMBean(final String resourceName,
                       final Map<String, JmxAttributeMapping> attributes,
                       final Map<String, JmxNotificationMapping> notifications){
         this.attributes = Collections.unmodifiableMap(attributes);
@@ -33,18 +33,20 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
         this.resourceName = resourceName;
         this.sequenceCounter = new AtomicLong(0L);
         registration = null;
+
     }
 
-    public void registerAsService(final BundleContext context, final ObjectName beanName){
+    void registerAsService(final BundleContext context, final ObjectName beanName){
         context.registerService(DynamicMBean.class, this, OpenMBeanProvider.createIdentity(beanName));
     }
 
-    public void unregister(){
+    void unregister(){
         if(registration != null) registration.unregister();
     }
 
     @Subscribe
-    public void processNotification(final JmxNotification notification) {
+    public void processNotification(final JmxNotificationSurrogate notification) {
+
         if (Objects.equals(notification.getSource(), resourceName))
             super.sendNotification(notification.toWellKnownNotification(this, sequenceCounter.getAndIncrement()));
     }
