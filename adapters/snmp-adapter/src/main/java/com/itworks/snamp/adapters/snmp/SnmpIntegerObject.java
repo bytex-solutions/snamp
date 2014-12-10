@@ -1,8 +1,8 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.connectors.ManagedEntityType;
+import com.itworks.snamp.mapping.TypeLiterals;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
 
@@ -21,8 +21,14 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
         super(oid, connector, new Integer32(defaultValue));
     }
 
-    public static Integer32 convert(final Object value, final ManagedEntityType attributeTypeInfo){
-        final Number convertedValue = convertFrom(attributeTypeInfo, value, TypeLiterals.NUMBER, TypeLiterals.BYTE, TypeLiterals.SHORT, TypeLiterals.INTEGER);
+    public static Integer32 convert(final Object value, final ManagedEntityType attributeTypeInfo) {
+        if (supportsProjection(attributeTypeInfo, TypeLiterals.CHAR))
+            return new Integer32(attributeTypeInfo.getProjection(TypeLiterals.CHAR).convertFrom(value));
+        final Number convertedValue = convertFrom(attributeTypeInfo, value, TypeLiterals.NUMBER,
+                TypeLiterals.BYTE,
+                TypeLiterals.SHORT,
+                TypeLiterals.INTEGER,
+                TypeLiterals.LONG);
         return new Integer32(convertedValue.intValue());
     }
 
@@ -30,7 +36,8 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
         if(supportsProjection(attributeTypeInfo, TypeLiterals.LONG)) return value.toLong();
         else if(supportsProjection(attributeTypeInfo, TypeLiterals.SHORT)) return (short) value.toLong();
         else if(supportsProjection(attributeTypeInfo, TypeLiterals.INTEGER)) return value.toInt();
-        else if(supportsProjection(attributeTypeInfo, TypeLiterals.LONG)) return (byte) value.toLong();
+        else if(supportsProjection(attributeTypeInfo, TypeLiterals.BYTE)) return (byte) value.toLong();
+        else if(supportsProjection(attributeTypeInfo, TypeLiterals.CHAR)) return (char)value.toInt();
         else if(supportsProjection(attributeTypeInfo, TypeLiterals.STRING)) return value.toString();
         else return logAndReturnDefaultValue(defaultValue, value, attributeTypeInfo);
     }

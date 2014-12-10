@@ -774,6 +774,19 @@ public class XmlParserDefinition {
                 Boolean.FALSE);
     }
 
+    private static Character parseChar(final List parsingTemplate,
+                                       final ScriptEngine engine) throws ScriptException{
+        return parseScalar(parsingTemplate,
+                engine,
+                new Converter<Character>() {
+                    @Override
+                    public Character apply(final String input) {
+                        return input.isEmpty() ? '\0' : input.charAt(0);
+                    }
+                },
+                '\0');
+    }
+
     private static Float parseFloat(final List parsingTemplate,
                                     final NumberParser parser,
                                     final ScriptEngine engine) throws ScriptException {
@@ -911,6 +924,8 @@ public class XmlParserDefinition {
                          final List parsingTemplate,
                          final ScriptEngine engine) throws ScriptException {
         switch (retType) {
+            case CHARACTER:
+                return parseChar(parsingTemplate, engine);
             case BYTE:
                 return parseByte(parsingTemplate, numberFormatter, engine);
             case SHORT:

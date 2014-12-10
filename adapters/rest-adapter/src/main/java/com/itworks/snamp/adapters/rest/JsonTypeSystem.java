@@ -100,6 +100,8 @@ final class JsonTypeSystem {
             return new JsonPrimitive(value.convertTo(TypeLiterals.FLOAT));
         else if(supportsDouble(value.type))
             return new JsonPrimitive(value.convertTo(TypeLiterals.DOUBLE));
+        else if(supportsCharacter(value.type))
+            return new JsonPrimitive(value.convertTo(TypeLiterals.CHAR));
         else if(isArray(value.type))
             return toJsonArray(value.cast(ManagedEntityTabularType.class), jsonFormatter);
         else if(isMap(value.type))
@@ -237,6 +239,8 @@ final class JsonTypeSystem {
             return jsonFormatter.fromJson(attributeValue, Float.class);
         else if(supportsUnixTime(attributeType))
             return jsonFormatter.fromJson(attributeValue, Date.class);
+        else if(supportsCharacter(attributeType))
+            return jsonFormatter.fromJson(attributeValue, Character.class);
         else if(isArray(attributeType))
             return fromArrayJson(attributeValue, (ManagedEntityTabularType) attributeType, jsonFormatter);
         else if(isMap(attributeType))

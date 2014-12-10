@@ -22,6 +22,7 @@ import java.util.*;
  *         <li>Int32 - wrapper for {@link Integer} class.</li>
  *         <li>Int64 - wrapper for {@link Long} class.</li>
  *         <li>String - wrapper for {@link String} class.</li>
+ *         <li>Character - wrapper for {@link java.lang.Character}</li>
  *         <li>Integer - wrapper for {@link BigInteger} class.</li>
  *         <li>Decimal - wrapper for {@link BigDecimal} class.</li>
  *         <li>Boolean - wrapper for {@link Boolean} class.</li>
@@ -81,6 +82,67 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      * Initializes a new type system.
      */
     public WellKnownTypeSystem(){
+        registerConverter(TypeLiterals.CHAR, TypeLiterals.STRING, new Function<Character, String>() {
+            @Override
+            public String apply(final Character input) {
+                return input == '\0' ? "" : new String(new char[]{input});
+            }
+        });
+        registerConverter(TypeLiterals.CHAR, TypeLiterals.BOOLEAN, new Function<Character, Boolean>() {
+            @Override
+            public Boolean apply(final Character input) {
+                return input == '\0';
+            }
+        });
+        registerConverter(TypeLiterals.CHAR, TypeLiterals.SHORT, new Function<Character, Short>() {
+            @Override
+            public Short apply(final Character input) {
+                return (short)input.charValue();
+            }
+        });
+        registerConverter(TypeLiterals.CHAR, TypeLiterals.INTEGER, new Function<Character, Integer>() {
+            @Override
+            public Integer apply(final Character input) {
+                return (int) input;
+            }
+        });
+        registerConverter(TypeLiterals.CHAR, TypeLiterals.LONG, new Function<Character, Long>() {
+            @Override
+            public Long apply(final Character input) {
+                return (long)input;
+            }
+        });
+        registerConverter(TypeLiterals.CHAR, TypeLiterals.FLOAT, new Function<Character, Float>() {
+            @Override
+            public Float apply(final Character input) {
+                return (float)input;
+            }
+        });
+        registerConverter(TypeLiterals.CHAR, TypeLiterals.DOUBLE, new Function<Character, Double>() {
+            @Override
+            public Double apply(final Character input) {
+                return (double)input;
+            }
+        });
+        registerConverter(TypeLiterals.CHAR, TypeLiterals.BIG_INTEGER, new Function<Character, BigInteger>() {
+            @Override
+            public BigInteger apply(final Character input) {
+                return BigInteger.valueOf((long)input);
+            }
+        });
+        registerConverter(TypeLiterals.CHAR, TypeLiterals.BIG_DECIMAL, new Function<Character, BigDecimal>() {
+            @Override
+            public BigDecimal apply(final Character input) {
+                return BigDecimal.valueOf((double)input);
+            }
+        });
+        registerConverter(TypeLiterals.STRING, TypeLiterals.CHAR,
+                new Function<String, Character>() {
+                    @Override
+                    public Character apply(final String input) {
+                        return input.isEmpty() ? '\0' : input.charAt(0);
+                    }
+                });
         registerConverter(TypeLiterals.STRING, TypeLiterals.BYTE,
                 new Function<String, Byte>() {
                     @Override
@@ -234,6 +296,12 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                         else return input.longValue() != 0;
                     }
                 });
+        registerConverter(TypeLiterals.NUMBER, TypeLiterals.CHAR, new Function<Number, Character>() {
+            @Override
+            public Character apply(final Number input) {
+                return (char) input.shortValue();
+            }
+        });
         registerConverter(TypeLiterals.CALENDAR, TypeLiterals.LONG,
                 new Function<Calendar, Long>() {
                     @Override
@@ -299,13 +367,12 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
                         return input ? BigDecimal.ONE : BigDecimal.ZERO;
                     }
                 });
-        registerConverter(TypeLiterals.STRING, TypeLiterals.CHAR,
-                new Function<String, Character>() {
-                    @Override
-                    public Character apply(final String input) {
-                        return input.isEmpty() ? '\0' : input.charAt(0);
-                    }
-                });
+        registerConverter(TypeLiterals.BOOLEAN, TypeLiterals.CHAR, new Function<Boolean, Character>() {
+            @Override
+            public Character apply(final Boolean input) {
+                return input ? (char)1 : '\0';
+            }
+        });
         registerConverter(TypeLiterals.DATE, TypeLiterals.LONG,
                 new Function<Date, Long>() {
                     @Override
@@ -433,6 +500,26 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
      */
     public final ManagedEntityType createDecimalType(){
         return createEntitySimpleType(TypeLiterals.BIG_DECIMAL);
+    }
+
+    /**
+     * Determines whether the specified management entity can be converted
+     * into {@link java.lang.Character}.
+     * @param entityType The management entity type.
+     * @return {@literal true}, if the specified management entity can be converted
+     * into {@link java.lang.Character}.
+     */
+    public static boolean supportsCharacter(final ManagedEntityType entityType){
+        return supportsProjection(entityType, TypeLiterals.CHAR);
+    }
+
+    /**
+     * Constructs a new type converter for the management entity which value is represented
+     * by {@link java.lang.Character}.
+     * @return A new type converter.
+     */
+    public final ManagedEntityType createCharacterType(){
+        return createEntitySimpleType(TypeLiterals.CHAR);
     }
 
     /**
@@ -756,6 +843,8 @@ public class WellKnownTypeSystem extends ManagedEntityTypeBuilder {
             return TypeLiterals.DATE;
         else if(supportsString(type))
             return TypeLiterals.STRING;
+        else if(supportsCharacter(type))
+            return TypeLiterals.CHAR;
         else if(isArray(type))
             return TypeLiterals.OBJECT_ARRAY;
         else if(isMap(type))

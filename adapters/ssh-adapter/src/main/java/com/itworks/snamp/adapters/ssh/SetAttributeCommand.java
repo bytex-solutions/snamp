@@ -51,6 +51,7 @@ final class SetAttributeCommand extends AbstractManagementShellCommand {
         if (attr == null) throw new CommandException("Attribute %s doesn't exist.", attributeID);
         try {
             attr.setValue(fmt != null ? fmt.parseObject(value) : value);
+            output.println("OK");
         } catch (final Exception e) {
             throw new CommandException(e);
         }

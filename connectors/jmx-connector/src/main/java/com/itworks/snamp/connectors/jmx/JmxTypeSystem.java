@@ -243,10 +243,6 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             };
         }
 
-        private static Character convertToJmxType(final String value){
-            return value != null && value.length() > 0 ? value.charAt(0) : '\0';
-        }
-
         /**
          * Converts well-known management entity value into JMX-specific value.
          *
@@ -255,10 +251,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          */
         @Override
         public final Object convertToJmx(final Object value) {
-            //BANANA: character is represented as string and should be converted into native Character from its string representation
-            return getOpenType() == SimpleType.CHARACTER && value instanceof String ?
-                    convertToJmxType(Objects.toString(value, "")):
-                    value;
+            return value;
         }
     }
 
@@ -488,7 +481,6 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
          * @param value The value to convert into JMX composite data.
          * @return JMX-compliant dictionary representation of the specified object.
          */
-        @SuppressWarnings("unchecked")
         @Override
         public final CompositeData convertToJmx(final Object value) throws InvalidAttributeValueException{
             if(TypeLiterals.isInstance(value, TypeLiterals.NAMED_RECORD_SET))
@@ -548,7 +540,6 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
             super(atype, new ArrayConverter());
         }
 
-        @SuppressWarnings("UnusedDeclaration")
         public abstract JmxManagedEntityType getElementType();
 
         /**
@@ -654,7 +645,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         else if(attributeType == SimpleType.INTEGER)
             return createEntitySimpleType(SimpleType.INTEGER, TypeLiterals.INTEGER);
         else if(attributeType == SimpleType.CHARACTER)
-            return createEntityType(JmxSimpleEntityType.createActivator(SimpleType.CHARACTER), TypeLiterals.STRING);
+            return createEntitySimpleType(SimpleType.CHARACTER, TypeLiterals.CHAR);
         else if(attributeType == SimpleType.STRING)
             return createEntitySimpleType(SimpleType.STRING, TypeLiterals.STRING);
         else if(attributeType == SimpleType.DATE)

@@ -15,6 +15,8 @@
  *         <li>{@link java.math.BigDecimal}</li>
  *         <li>{@link java.lang.String}</li>
  *         <li>{@link java.lang.Boolean}</li>
+ *         <li>{@link java.lang.Character}</li>
+ *         <li>{@link java.util.Date}</li>
  *         <li>{@link com.itworks.snamp.mapping.RecordSet}&lt;{@link java.lang.String}, ?&gt; as map view</li>
  *         <li>{@link com.itworks.snamp.mapping.RowSet}&lt;?&gt; as table view</li>
  *     </ul>
