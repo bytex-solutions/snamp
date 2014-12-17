@@ -17,7 +17,7 @@ final class RShellConnectionOptions {
     private final String connectionString;
     private final Map<String, String> connectionParams;
 
-    public RShellConnectionOptions(final String connectionString, final Map<String, String> params){
+    RShellConnectionOptions(final String connectionString, final Map<String, String> params){
         this.connectionParams = params;
         this.connectionString = connectionString;
     }
@@ -27,7 +27,7 @@ final class RShellConnectionOptions {
      * @return A new instance of the execution channel.
      * @throws Exception Unable to instantiate the channel.
      */
-    public CommandExecutionChannel createExecutionChannel() throws Exception {
+    CommandExecutionChannel createExecutionChannel() throws Exception {
         try {
             final URI u = new URI(connectionString);
             return CommandExecutionChannels.createChannel(u, connectionParams);

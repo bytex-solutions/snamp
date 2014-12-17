@@ -29,8 +29,7 @@ public final class JmxResourceAdapterActivator extends AbstractResourceAdapterAc
      * Initializes a new instance of the resource adapter lifetime manager.
      */
     public JmxResourceAdapterActivator() {
-        super(JmxAdapterHelpers.ADAPTER_NAME,
-                JmxAdapterHelpers.getLogger(),
+        super(JmxResourceAdapter.NAME,
                 new JmxConfigurationDescriptor());
     }
 

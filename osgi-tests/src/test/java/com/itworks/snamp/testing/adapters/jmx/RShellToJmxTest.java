@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
 
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-
 /**
  * @author Roman Sakno
  * @version 1.0
@@ -44,8 +42,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
                 PORT,
                 CERTIFICATE_FILE,
                 FINGERPRINT,
-                SnampArtifact.JMX_ADAPTER.getReference(),
-                mavenBundle("net.engio", "mbassador", "1.1.10"));
+                SnampArtifact.JMX_ADAPTER.getReference());
     }
 
     private static ObjectName createObjectName() throws MalformedObjectNameException {

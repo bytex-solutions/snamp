@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents an abstract configuration manager which persistence is based on streams.
@@ -16,11 +15,8 @@ import java.util.logging.Logger;
 public abstract class StreamedConfigurationManager<T extends AgentConfiguration> extends AbstractConfigurationManager {
     /**
      * Initializes a new persistent configuration manager.
-     * @param serviceLogger OSGi logging service wrapped into {@link Logger} instance. Can be obtained
-     *                      from {@link com.itworks.snamp.core.AbstractLoggableServiceLibrary.LoggableProvidedService#getLogger()} method.
      */
-    protected StreamedConfigurationManager(final Logger serviceLogger){
-        super(serviceLogger);
+    protected StreamedConfigurationManager(){
     }
 
     /**

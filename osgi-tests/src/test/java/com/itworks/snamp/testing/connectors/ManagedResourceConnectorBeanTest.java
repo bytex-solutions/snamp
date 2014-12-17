@@ -37,6 +37,16 @@ public final class ManagedResourceConnectorBeanTest extends AbstractUnitTest<Man
             super(new WellKnownTypeSystem(), Logger.getAnonymousLogger());
         }
 
+        /**
+         * Gets a logger associated with this platform service.
+         *
+         * @return A logger associated with this platform service.
+         */
+        @Override
+        public Logger getLogger() {
+            return Logger.getAnonymousLogger();
+        }
+
         public final String getProperty1() {
             assertEquals("property1", getAttributeContext().getMetadata().getName());
             assertNotNull(getAttributeContext().getOperationTimeout());
@@ -116,23 +126,5 @@ public final class ManagedResourceConnectorBeanTest extends AbstractUnitTest<Man
         assertTrue(md.canWrite());
         assertEquals("property1", md.getName());
         assertNotNull(md.getType().getProjection(TypeLiterals.STRING));
-    }
-
-    @Test
-    public final void testAnonymousBean() throws IntrospectionException, TimeoutException, AttributeSupportException, UnknownAttributeException {
-        final ManagedResourceConnectorBean mc = ManagedResourceConnectorBean.wrap(new Object() {
-            private int simpleField;
-
-            public final int getProperty() {
-                return simpleField;
-            }
-
-            public final void setProperty(int value) {
-                simpleField = value;
-            }
-        }, new WellKnownTypeSystem());
-        assertNotNull(mc.connectAttribute("1", "property", new HashMap<String, String>()));
-        mc.setAttribute("1", TimeSpan.INFINITE, 42);
-        assertEquals(42, mc.getAttribute("1", TimeSpan.INFINITE));
     }
 }

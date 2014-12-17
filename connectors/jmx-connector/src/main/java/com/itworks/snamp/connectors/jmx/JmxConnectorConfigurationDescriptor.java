@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -130,15 +129,5 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
 
     JmxConnectorConfigurationDescriptor(){
         super(new AttributeConfigurationInfo(), new ConnectorConfigurationInfo(), new EventConfigurationInfo());
-    }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    public Logger getLogger() {
-        return JmxConnectorHelpers.getLogger();
     }
 }

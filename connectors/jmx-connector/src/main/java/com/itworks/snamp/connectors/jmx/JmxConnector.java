@@ -3,6 +3,7 @@ package com.itworks.snamp.connectors.jmx;
 import com.google.common.base.Supplier;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.ConversionException;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedEntityType;
@@ -26,7 +27,6 @@ import javax.management.timer.TimerNotification;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -43,16 +43,15 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      * Represents JMX connector name.
      */
     public static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
-    private static final Logger logger = JmxConnectorHelpers.getLogger();
-    private static final JmxTypeSystem typeSystem = new JmxTypeSystem();
     private static final String JMX_COMPLIANT = "jmx-compliant";
 
 
     private final static class JmxNotificationMetadata extends GenericNotificationMetadata{
         private final Map<String, String> options;
-        private final ExecutorService executor;
         private AttachmentResolver attachmentResolution;
         private final Descriptor advancedMetadata;
+        private final JmxTypeSystem typeSystem;
+        private final NotificationListenerInvoker listenerInvoker;
 
         /**
          * Represents owner of this notification metadata.
@@ -63,16 +62,23 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                                        final String notificationClassName,
                                        final Descriptor notificationDescriptor,
                                        final ObjectName eventOwner,
-                                       final Map<String, String> options){
+                                       final Map<String, String> options,
+                                       final JmxTypeSystem typeSystem){
             super(notifType);
+            this.typeSystem = typeSystem;
             this.options = new HashMap<>(options);
             options.put(JMX_COMPLIANT, Boolean.toString(true));
             this.eventOwner = eventOwner;
-            this.executor = Executors.newSingleThreadExecutor();
             this.advancedMetadata = notificationDescriptor;
             this.attachmentResolution = AttachmentResolverFactory.createResolver(notificationClassName,
                     notificationDescriptor);
             attachmentResolution.exposeTypeInfo(options);
+            listenerInvoker = NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(Executors.newSingleThreadExecutor(), new NotificationListenerInvokerFactory.ExceptionHandler() {
+                @Override
+                public final void handle(final Throwable e, final NotificationListener source) {
+                    JmxConnectorHelpers.log(Level.SEVERE, "Unable to process JMX notification.", e);
+                }
+            });
         }
 
         private static Severity parseSeverity(final String value){
@@ -112,12 +118,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * @param n A notification to emit.
          */
         private void fire(final javax.management.Notification n){
-            fire(new JmxNotificationWrapper(getSeverity(), attachmentResolution, n), NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
-                @Override
-                public final void handle(final Throwable e, final NotificationListener source) {
-                    logger.log(Level.SEVERE, "Unable to process JMX notification.", e);
-                }
-            }));
+            fire(new JmxNotificationWrapper(getSeverity(), attachmentResolution, n, typeSystem), listenerInvoker);
         }
 
         /**
@@ -189,9 +190,12 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
 
     private static final class JmxAttributeSupport extends AbstractAttributeSupport{
         private final JmxConnectionManager connectionManager;
+        private final JmxTypeSystem typeSystem;
 
-        public JmxAttributeSupport(final JmxConnectionManager connectionManager){
+        private JmxAttributeSupport(final JmxConnectionManager connectionManager,
+                                    final JmxTypeSystem typeSystem){
             this.connectionManager = connectionManager;
+            this.typeSystem = typeSystem;
         }
 
         /**
@@ -204,7 +208,12 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          */
         @Override
         protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
+            JmxConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
+                }
+            });
         }
 
         /**
@@ -216,7 +225,12 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          */
         @Override
         protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
+            JmxConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    failedToGetAttribute(logger, Level.WARNING, attributeID, e);
+                }
+            });
         }
 
         /**
@@ -229,7 +243,12 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          */
         @Override
         protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
+            JmxConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
+                }
+            });
         }
 
         private static Supplier<OpenType<?>> createTypeDetectionFallback(final JmxAttributeProvider provider){
@@ -239,14 +258,16 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                     try {
                         return provider.getTypeFromAttributeValue();
                     } catch (final Exception e) {
-                        logger.log(Level.SEVERE, String.format("Failed to detect type of attribute %s", provider.getName()), e);
+                        JmxConnectorHelpers.log(Level.SEVERE, "Failed to detect type of attribute %s", provider.getName(), e);
                         return SimpleType.STRING;
                     }
                 }
             };
         }
 
-        private JmxAttributeProvider createPlainAttribute(final ObjectName namespace, final String attributeName, final Map<String, String> options) throws Exception{
+        private JmxAttributeProvider createPlainAttribute(final ObjectName namespace,
+                                                          final String attributeName,
+                                                          final Map<String, String> options) throws Exception{
             //extracts JMX attribute metadata
             final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
                 @Override
@@ -412,10 +433,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                 return connectAttribute(new ObjectName(namespace), attributeName, options);
             }
             catch (final MalformedObjectNameException e) {
-                logger.log(Level.SEVERE, String.format("Unsupported JMX object name: %s", namespace), e);
+                JmxConnectorHelpers.log(Level.SEVERE, "Unsupported JMX object name: %s", namespace, e);
             }
             catch (final LicensingException e){
-                logger.log(Level.INFO, String.format("Maximum count of attributes is reached: %s. Unable to connect %s attribute", attributesCount(), attributeName), e);
+                JmxConnectorHelpers.log(Level.INFO, "Maximum count of attributes is reached: %s. Unable to connect %s attribute", attributesCount(), attributeName, e);
             }
             return null;
         }
@@ -452,10 +473,13 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
 
     private static final class JmxNotificationSupport extends AbstractNotificationSupport implements javax.management.NotificationListener, ConnectionEstablishedEventHandler {
         private final JmxConnectionManager connectionManager;
+        private final JmxTypeSystem typeSystem;
 
-        public JmxNotificationSupport(final JmxConnectionManager connectionManager) {
+        private JmxNotificationSupport(final JmxConnectionManager connectionManager,
+                                       final JmxTypeSystem typeSystem) {
             this.connectionManager = connectionManager;
             this.connectionManager.addReconnectionHandler(this);
+            this.typeSystem = typeSystem;
         }
 
         /**
@@ -468,7 +492,12 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          */
         @Override
         protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
+            JmxConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
+                }
+            });
         }
 
         /**
@@ -480,7 +509,12 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          */
         @Override
         protected void failedToDisableNotifications(final String listID, final Exception e) {
-            failedToDisableNotifications(logger, Level.WARNING, listID, e);
+            JmxConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    failedToDisableNotifications(logger, Level.WARNING, listID, e);
+                }
+            });
         }
 
         /**
@@ -492,7 +526,12 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          */
         @Override
         protected void failedToSubscribe(final String listenerID, final Exception e) {
-            failedToSubscribe(logger, Level.WARNING, listenerID, e);
+            JmxConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    failedToSubscribe(logger, Level.WARNING, listenerID, e);
+                }
+            });
         }
 
         private Set<ObjectName> getNotificationTargets() {
@@ -595,7 +634,8 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                                             notificationInfo.getName(),
                                             notificationInfo.getDescriptor(),
                                             on,
-                                            options);
+                                            options,
+                                            typeSystem);
                         return null;
                     } else return null;
                 }
@@ -621,7 +661,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             if (notification.getSource() instanceof ObjectName)
                 handleNotification((ObjectName) notification.getSource(), notification);
             else
-                logger.warning(String.format("Unable to handle notification %s because source is unknown", notification));
+                JmxConnectorHelpers.log(Level.WARNING, "Unable to handle notification %s because source is unknown", notification, null);
         }
 
         public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
@@ -878,14 +918,17 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         private final Severity notificationSeverity;
         private final AttachmentResolver attachmentResolver;
         private transient volatile Object userData;
+        private final JmxTypeSystem typeSystem;
 
         private JmxNotificationWrapper(final Severity severity,
                                        final AttachmentResolver resolver,
-                                       final javax.management.Notification jmxNotification){
+                                       final javax.management.Notification jmxNotification,
+                                       final JmxTypeSystem typeSystem){
             userData = null;
             this.jmxNotification = jmxNotification;
             notificationSeverity = severity != null ? severity : Severity.UNKNOWN;
             this.attachmentResolver = resolver;
+            this.typeSystem = typeSystem;
         }
 
         private static String getCorrelationID(final TimerNotification notif){
@@ -988,16 +1031,17 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     private final JmxAttributeSupport attributes;
     private final JmxConnectionManager connectionManager;
 
-    public JmxConnector(final JmxConnectionOptions connectionOptions) {
-        super(connectionOptions, logger);
+    JmxConnector(final JmxConnectionOptions connectionOptions) {
+        super(connectionOptions);
         this.connectionManager = connectionOptions.createConnectionManager();
         //attempts to establish connection immediately
         connectionManager.connect();
-        this.notifications = new JmxNotificationSupport(connectionManager);
-        this.attributes = new JmxAttributeSupport(connectionManager);
+        final JmxTypeSystem typeSystem = new JmxTypeSystem();
+        this.notifications = new JmxNotificationSupport(connectionManager, typeSystem);
+        this.attributes = new JmxAttributeSupport(connectionManager, typeSystem);
     }
 
-    public JmxConnector(final String connectionString, final Map<String, String> connectionOptions) throws MalformedURLException {
+    JmxConnector(final String connectionString, final Map<String, String> connectionOptions) throws MalformedURLException {
         this(new JmxConnectionOptions(connectionString, connectionOptions));
     }
 
@@ -1205,6 +1249,20 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
         if(Objects.equals(JmxConnectionManager.class, objectType))
             return objectType.cast(connectionManager);
         else return super.queryObject(objectType);
+    }
+
+    /**
+     * Gets a logger associated with this platform service.
+     *
+     * @return A logger associated with this platform service.
+     */
+    @Override
+    public Logger getLogger() {
+        return getLoggerImpl();
+    }
+
+    static Logger getLoggerImpl(){
+        return getLogger(NAME);
     }
 
     /**

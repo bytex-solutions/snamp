@@ -108,12 +108,11 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
     @Override
     public AttributeList getAttributes(final String[] attributes) {
         final AttributeList result = new AttributeList();
-        for(final String attributeName: attributes)
+        for (final String attributeName : attributes)
             try {
                 result.add(new Attribute(attributeName, getAttribute(attributeName)));
-            }
-            catch (final JMException e) {
-                JmxAdapterHelpers.getLogger().log(Level.WARNING, String.format("Unable to get value of %s attribute", attributeName));
+            } catch (final JMException e) {
+                JmxAdapterHelpers.log(Level.WARNING, "Unable to get value of %s attribute", attributeName, e);
             }
         return result;
     }
@@ -136,7 +135,10 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
                     result.add(entry);
                 }
                 catch (final JMException e) {
-                    JmxAdapterHelpers.getLogger().log(Level.WARNING, String.format("Unable to set attribute %s", entry), e);
+                    JmxAdapterHelpers.log(Level.WARNING,
+                            "Unable to set attribute %s",
+                            entry,
+                            e);
                 }
         return result;
     }
@@ -166,7 +168,7 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
                 result.add(attributes.get(attributeName).createFeature(attributeName));
             }
             catch (final OpenDataException e) {
-                JmxAdapterHelpers.getLogger().log(Level.WARNING, String.format("Unable to expose attribute %s", attributeName), e);
+                JmxAdapterHelpers.log(Level.WARNING, "Unable to expose attribute %s", attributeName, e);
             }
         return result.toArray(new OpenMBeanAttributeInfoSupport[result.size()]);
     }

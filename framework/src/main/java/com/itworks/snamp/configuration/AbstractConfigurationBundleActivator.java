@@ -1,6 +1,6 @@
 package com.itworks.snamp.configuration;
 
-import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
+import com.itworks.snamp.core.AbstractServiceLibrary;
 
 /**
  * Represents an abstract class for SNAMP configuration bundle activator.
@@ -8,7 +8,7 @@ import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractConfigurationBundleActivator extends AbstractLoggableServiceLibrary {
+public abstract class AbstractConfigurationBundleActivator extends AbstractServiceLibrary {
 
     /**
      * Represents an abstract class for {@link ConfigurationManager} factory.
@@ -17,7 +17,7 @@ public abstract class AbstractConfigurationBundleActivator extends AbstractLogga
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class ConfigurationManagerProvider<T extends ConfigurationManager> extends LoggableProvidedService<ConfigurationManager, T>{
+    protected static abstract class ConfigurationManagerProvider<T extends ConfigurationManager> extends ProvidedService<ConfigurationManager, T>{
         /**
          * Initializes a new holder for the configuration manager service.
          *
@@ -30,10 +30,8 @@ public abstract class AbstractConfigurationBundleActivator extends AbstractLogga
 
     /**
      * Initializes a new SNAMP-specific bundle.
-     *
-     * @param loggerName The name of the logger that is used by all services published by the bundle.
      */
-    protected AbstractConfigurationBundleActivator(final String loggerName, final ConfigurationManagerProvider<?> configManagerProvider) {
-        super(loggerName, configManagerProvider);
+    protected AbstractConfigurationBundleActivator(final ConfigurationManagerProvider<?> configManagerProvider) {
+        super(configManagerProvider);
     }
 }

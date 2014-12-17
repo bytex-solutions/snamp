@@ -67,7 +67,6 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.rmi", "1.0.0"),
                 mavenBundle("org.apache.aries", "org.apache.aries.util", "1.0.0"),
                 mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy.api", "1.0.0"),
-                mavenBundle("net.engio", "mbassador", "1.1.10"),
                 wrappedBundle(maven("org.apache.directory.server", "apacheds-all", "2.0.0-M16")).exports("org.apache.directory.*; version=2.0.0.16"));
     }
 

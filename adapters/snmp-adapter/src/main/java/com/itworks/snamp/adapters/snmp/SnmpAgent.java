@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents SNMP Agent.
@@ -34,7 +33,6 @@ import java.util.logging.Logger;
  */
 final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
     private static final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
-    private static final Logger logger = SnmpHelpers.getLogger();
 
 	private final String hostName;
     private final int port;
@@ -85,7 +83,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
                     server.register(mo, null);
                 }
                 catch (final DuplicateRegistrationException e) {
-                    logger.log(Level.WARNING, "SNMP Internal Error. Call for SNMP developers.", e);
+                    SnmpHelpers.log(Level.WARNING, "SNMP Internal Error. Call for SNMP developers.", e);
                 }
         }
 	}
@@ -241,7 +239,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
                 coldStart = false;
             return true;
             default:
-                logger.log(Level.SEVERE, String.format("SNMP agent already started (state %s).", agentState));
+                SnmpHelpers.log(Level.SEVERE, "SNMP agent already started (state %s).", agentState, null);
             return false;
         }
 	}

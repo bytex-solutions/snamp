@@ -30,7 +30,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     }
 
     protected static <T> T logAndReturnDefaultValue(final T defaultValue, final Variable originalValue, final ManagedEntityType attributeType){
-        log.log(Level.WARNING, String.format("Cannot convert '%s' value to '%s' attribute type.", originalValue, attributeType));
+        SnmpHelpers.log(Level.WARNING, "Cannot convert '%s' value to '%s' attribute type.", originalValue, attributeType, null);
         return defaultValue;
     }
 
@@ -68,7 +68,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
             result = attribute.getRawValue();
         }
         catch (final TimeoutException | AttributeSupportException e){
-            log.log(Level.WARNING, String.format("Read operation failed for %s attribute", attribute.getName()), e);
+            SnmpHelpers.log(Level.WARNING, "Read operation failed for %s attribute", attribute.getName(), e);
             result = defaultValue;
         }
         return result == null ? defaultValue : convert(result);
@@ -87,7 +87,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
             attribute.setValue(convert(value));
             result = SnmpConstants.SNMP_ERROR_SUCCESS;
         } catch (final TimeoutException | AttributeSupportException e) {
-            log.log(Level.WARNING, e.getLocalizedMessage(), e);
+            SnmpHelpers.log(Level.WARNING, e.getLocalizedMessage(), e);
             result = SnmpConstants.SNMP_ERROR_RESOURCE_UNAVAILABLE;
         }
         return result;

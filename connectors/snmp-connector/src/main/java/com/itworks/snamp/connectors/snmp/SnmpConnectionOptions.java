@@ -34,7 +34,7 @@ final class SnmpConnectionOptions {
     private final int socketTimeout;
     private final Supplier<ExecutorService> threadPoolConfig;
 
-    public SnmpConnectionOptions(final String connectionString,
+    SnmpConnectionOptions(final String connectionString,
                                  final Map<String, String> parameters) {
         connectionAddress = GenericAddress.parse(connectionString);
         threadPoolConfig = new SnmpThreadPoolConfig(parameters, connectionString);
@@ -104,14 +104,14 @@ final class SnmpConnectionOptions {
      * @return A new instance of SNMP client.
      * @throws IOException Unable to instantiate SNMP client.
      */
-    public SnmpClient createSnmpClient() throws IOException{
+    SnmpClient createSnmpClient() throws IOException{
 
         return userName == null ?
                 SnmpClient.create(connectionAddress, community, localAddress, socketTimeout, threadPoolConfig):
                 SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress, socketTimeout, threadPoolConfig);
     }
 
-    public static boolean authenticationRequred(final Map<String, String> connectionOptions) {
+    static boolean authenticationRequred(final Map<String, String> connectionOptions) {
         return connectionOptions.containsKey(ENGINE_ID_PARAM) ||
                 connectionOptions.containsKey(USER_NAME_PARAM) ||
                 connectionOptions.containsKey(PASSWORD_PARAM) ||

@@ -61,7 +61,6 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.rmi", "1.0.0"),
                 mavenBundle("org.apache.aries", "org.apache.aries.util", "1.0.0"),
                 mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy.api", "1.0.0"),
-                mavenBundle("net.engio", "mbassador", "1.1.10"),
                 SnampArtifact.SNMP4J.getReference(),
                 SnampArtifact.SNMP_ADAPTER.getReference());
     }

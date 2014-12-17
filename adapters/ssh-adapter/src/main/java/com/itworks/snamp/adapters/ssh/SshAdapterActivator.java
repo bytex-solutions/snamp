@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.security.PublicKey;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.itworks.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*;
 
@@ -37,7 +36,7 @@ public final class SshAdapterActivator extends AbstractResourceAdapterActivator<
     }
 
     public SshAdapterActivator() {
-        super(SshAdapter.NAME, SshHelpers.getLogger(), new ConfigurationDescriptorServiceManager());
+        super(SshAdapter.NAME, new ConfigurationDescriptorServiceManager());
     }
 
     /**
@@ -65,11 +64,11 @@ public final class SshAdapterActivator extends AbstractResourceAdapterActivator<
         return new SshAdapter(host,
                 port,
                 certificateFile,
-                createSecuritySettings(parameters, getLogger()),
+                createSecuritySettings(parameters),
                 resources);
     }
 
-    private static SshSecuritySettings createSecuritySettings(final Map<String, String> parameters, final Logger logger){
+    private static SshSecuritySettings createSecuritySettings(final Map<String, String> parameters){
         return new SshSecuritySettings() {
             @Override
             public String getUserName() {
@@ -125,7 +124,7 @@ public final class SshAdapterActivator extends AbstractResourceAdapterActivator<
                     provider.init(keyFile);
                     return provider.getPublic();
                 } catch (final IOException e) {
-                    logger.log(Level.WARNING, "Invalid SSH public key file.", e);
+                    SshHelpers.log(Level.WARNING, "Invalid SSH public key file.", e);
                 }
                 return null;
             }

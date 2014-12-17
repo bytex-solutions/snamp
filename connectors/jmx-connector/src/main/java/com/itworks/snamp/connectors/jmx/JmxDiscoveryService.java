@@ -1,5 +1,7 @@
 package com.itworks.snamp.connectors.jmx;
 
+import com.itworks.snamp.configuration.SerializableAgentConfiguration;
+
 import javax.management.*;
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
@@ -9,8 +11,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
-import static com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration.InMemoryAttributeConfiguration;
-import static com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration.InMemoryEventConfiguration;
 import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.OBJECT_NAME_PROPERTY;
 
 /**
@@ -28,7 +28,7 @@ final class JmxDiscoveryService{
         final List<AttributeConfiguration> result = new ArrayList<>(40);
         for (final ObjectName objectName : connection.queryNames(null, null))
             for (final MBeanAttributeInfo attr : connection.getMBeanInfo(objectName).getAttributes()) {
-                final InMemoryAttributeConfiguration config = new InMemoryAttributeConfiguration();
+                final SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration config = new SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration();
                 config.getParameters().put(OBJECT_NAME_PROPERTY, objectName.toString());
                 config.setAttributeName(attr.getName());
                 config.getParameters().put("description", attr.getDescription());
@@ -42,7 +42,7 @@ final class JmxDiscoveryService{
         for (final ObjectName objectName : connection.queryNames(null, null))
             for (final MBeanNotificationInfo notif : connection.getMBeanInfo(objectName).getNotifications())
                 for (final String category : notif.getNotifTypes()) {
-                    final InMemoryEventConfiguration config = new InMemoryEventConfiguration();
+                    final SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration config = new SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration();
                     config.setCategory(category);
                     config.getParameters().put(OBJECT_NAME_PROPERTY, objectName.toString());
                     config.getParameters().put("description", notif.getDescription());

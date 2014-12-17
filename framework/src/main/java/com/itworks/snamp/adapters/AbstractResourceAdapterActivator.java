@@ -6,7 +6,7 @@ import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.ConfigurationManager;
-import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
+import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
@@ -38,7 +38,7 @@ import static java.util.Map.Entry;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> extends AbstractLoggableServiceLibrary {
+public abstract class AbstractResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> extends AbstractServiceLibrary {
     /**
      * Represents name of the bundle manifest header that contains system name of the adapter.
      */
@@ -59,7 +59,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @see com.itworks.snamp.adapters.AbstractResourceAdapterActivator.ConfigurationEntityDescriptionManager
      * @see com.itworks.snamp.adapters.AbstractResourceAdapterActivator.LicensingDescriptionServiceManager
      */
-    protected abstract static class SupportAdapterServiceManager<S extends FrameworkService, T extends S> extends LoggableProvidedService<S, T>{
+    protected abstract static class SupportAdapterServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T>{
 
         private SupportAdapterServiceManager(final Class<S> contract, final RequiredService<?>... dependencies) {
             super(contract, dependencies);
@@ -104,24 +104,21 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     }
 
     private static final class AdapterLicensingDescriptorService<L extends LicenseLimitations> extends AbstractAggregator implements LicensingDescriptionService {
-        private final Logger logger;
         private final LicenseReader licenseReader;
         private final Class<L> descriptor;
         private final Supplier<L> fallbackFactory;
 
         public AdapterLicensingDescriptorService(final LicenseReader reader,
                                                  final Class<L> descriptor,
-                                                 final Supplier<L> fallbackFactory,
-                                                 final Logger l){
+                                                 final Supplier<L> fallbackFactory){
             this.licenseReader = reader;
             this.descriptor = descriptor;
             this.fallbackFactory = fallbackFactory;
-            this.logger = l;
         }
 
         @Override
         public Logger getLogger() {
-            return logger;
+            return licenseReader.getLogger();
         }
 
         /**
@@ -176,8 +173,7 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
             identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getAdapterName());
             return new AdapterLicensingDescriptorService(getDependency(SimpleDependency.class, LicenseReader.class, dependencies),
                     descriptor,
-                    fallbackFactory,
-                    getLogger());
+                    fallbackFactory);
         }
     }
 
@@ -232,21 +228,10 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @param adapterName The name of the adapter.
      * @param optionalServices Additional services exposed by adapter.
      */
-    @SuppressWarnings("UnusedDeclaration")
     protected AbstractResourceAdapterActivator(final String adapterName, final SupportAdapterServiceManager<?, ?>... optionalServices){
-        this(adapterName, AbstractResourceAdapter.getLogger(adapterName), optionalServices);
-    }
-
-    /**
-     * Initializes a new instance of the resource adapter lifetime manager.
-     * @param adapterName The name of the adapter.
-     * @param loggerInstance The logger associated with the adapter.
-     * @param optionalServices Additional services exposed by adapter.
-     */
-    protected AbstractResourceAdapterActivator(final String adapterName, final Logger loggerInstance, final SupportAdapterServiceManager<?, ?>... optionalServices){
-        super(loggerInstance != null ? loggerInstance : AbstractResourceAdapter.getLogger(adapterName), optionalServices);
+        super(optionalServices);
         this.adapterName = adapterName;
-        adapters = new HashMap<>(4);
+        this.adapters = new HashMap<>(10);
     }
 
     /**
@@ -327,6 +312,14 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
 
         for(final TAdapter adapter: adapters.values())
             adapter.close();
+    }
+
+    /**
+     * Gets logger associated with this activator.
+     * @return A logger associated with this activator.
+     */
+    protected Logger getLogger(){
+        return AbstractResourceAdapter.getLogger(adapterName);
     }
 
     /**

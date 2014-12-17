@@ -4,7 +4,9 @@ import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.itworks.snamp.ConcurrentResourceAccess;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.core.AbstractFrameworkService;
+import com.itworks.snamp.core.OsgiLoggingContext;
 import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import org.w3c.dom.Document;
@@ -44,6 +46,7 @@ import static com.itworks.snamp.AbstractConcurrentResourceAccess.ConsistentActio
  * @version 1.0
  */
 final class XmlLicenseReader extends AbstractFrameworkService implements LicenseReader {
+    private static final String LOGGER_NAME = "com.itworks.snamp.licensing";
 
     /**
      * Represents licensing context.
@@ -62,11 +65,8 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
 
     /**
      * Initializes a new instance of the license reader service.
-     *
-     * @param loggerInstance A logger associated with this service.
      */
-    public XmlLicenseReader(final Logger loggerInstance) {
-        super(loggerInstance);
+    public XmlLicenseReader() {
         licensingContext = new ConcurrentResourceAccess<>(new LicensingContext());
     }
 
@@ -155,7 +155,12 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
                 throw new XMLSignatureException("Invalid license file signature.");
             return xmlLicense;
         } catch (final IOException | ParserConfigurationException | SAXException | MarshalException | XMLSignatureException e) {
-            getLogger().log(Level.SEVERE, "Unable to load license file.", e);
+            OsgiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    logger.log(Level.SEVERE, "Unable to load license file.", e);
+                }
+            });
             return null;
         }
     }
@@ -221,9 +226,24 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
                 });
             } else result = fallback.get();
         } catch (final JAXBException e) {
-            getLogger().warning(e.getLocalizedMessage());
+            OsgiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    logger.warning(e.getLocalizedMessage());
+                }
+            });
             result = fallback.get();
         }
         return result;
+    }
+
+    /**
+     * Gets a logger associated with this platform service.
+     *
+     * @return A logger associated with this platform service.
+     */
+    @Override
+    public Logger getLogger() {
+        return Logger.getLogger(LOGGER_NAME);
     }
 }

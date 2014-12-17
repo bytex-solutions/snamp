@@ -1,9 +1,13 @@
 package com.itworks.snamp.configuration;
 
+import com.google.common.collect.ForwardingMap;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.mapping.RecordReader;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents in-memory agent configuration that can be stored as serialized Java object.
@@ -11,7 +15,186 @@ import java.util.*;
  * @since 1.0
  * @version 1.0
  */
-public class InMemoryAgentConfiguration extends AbstractAgentConfiguration implements Serializable {
+public class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Serializable {
+
+    private static abstract class Resettable{
+        abstract void reset();
+    }
+
+    /**
+     * Represents serializable configuration entity.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static interface SerializableConfigurationEntity extends ConfigurationEntity, Modifiable, Serializable{
+        /**
+         * Determines whether this configuration entity is modified after deserialization.
+         * @return {@literal true}, if this configuration entity is modified; otherwise, {@literal false}.
+         */
+        @Override
+        boolean isModified();
+    }
+
+    @SuppressWarnings("NullableProblems")
+    private static abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Serializable, Modifiable{
+        private transient boolean modified = false;
+
+        @Override
+        public boolean isModified() {
+            return modified;
+        }
+
+        @Override
+        public final V remove(final Object key) {
+            modified = containsKey(key);
+            return super.remove(key);
+        }
+
+        @Override
+        public final void clear() {
+            modified = true;
+            super.clear();
+        }
+
+        @Override
+        public final V put(final K key, final V value) {
+            modified = true;
+            return super.put(key, value);
+        }
+
+        @Override
+        public final void putAll(final Map<? extends K, ? extends V> map) {
+            modified = true;
+            super.putAll(map);
+        }
+
+        void reset() {
+            modified = false;
+        }
+    }
+
+
+    private static final class ModifiableParameters extends ModifiableMap<String, String> implements Serializable, Modifiable{
+        private final HashMap<String, String> parameters;
+
+        private ModifiableParameters(){
+            parameters = new HashMap<>(10);
+        }
+
+        @Override
+        protected HashMap<String, String> delegate() {
+            return parameters;
+        }
+    }
+
+    private static abstract class ConfigurationEntityRegistry<E extends ConfigurationEntity> extends ModifiableMap<String, E>{
+        private final HashMap<String, E> entities;
+
+        private ConfigurationEntityRegistry(){
+            entities = new HashMap<>(10);
+        }
+
+        private <ERROR extends Exception> void modifiedResources(final RecordReader<String, ? super E, ERROR> reader) throws ERROR{
+            for(final Entry<String, E> e: entrySet()){
+                final E entity = e.getValue();
+                final String name = e.getKey();
+                if(entity instanceof Modifiable && ((Modifiable)entity).isModified())
+                    reader.read(name, entity);
+            }
+        }
+
+        @Override
+        protected final HashMap<String, E> delegate() {
+            return entities;
+        }
+
+        @Override
+        public final boolean isModified() {
+            if(super.isModified()) return true;
+            else for(final ConfigurationEntity entity: values())
+                if(entity instanceof Modifiable && ((Modifiable)entity).isModified()) return true;
+            return false;
+        }
+
+        @Override
+        public final void reset() {
+            super.reset();
+            for(final ConfigurationEntity entity: values())
+                if(entity instanceof Resettable)
+                    ((Resettable)entity).reset();
+        }
+    }
+
+    private static final class AdapterRegistry extends ConfigurationEntityRegistry<ResourceAdapterConfiguration>{
+
+    }
+
+    private static final class ResourceRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration>{
+
+    }
+
+    private static final class AttributeRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration.AttributeConfiguration>{
+
+    }
+
+    private static final class EventRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration.EventConfiguration>{
+
+    }
+
+    private abstract static class AbstractConfigurationEntity extends Resettable implements SerializableConfigurationEntity{
+        private transient boolean modified;
+        private final ModifiableParameters parameters;
+
+        protected AbstractConfigurationEntity(){
+            parameters = new ModifiableParameters();
+            modified = false;
+        }
+
+        @Override
+        final void reset() {
+            modified = false;
+            parameters.reset();
+            resetAdditionally();
+        }
+
+        void resetAdditionally(){
+
+        }
+
+        protected final void markAsModified(){
+            modified = true;
+        }
+
+        /**
+         * Determines whether this configuration entity is modified after deserialization.
+         *
+         * @return {@literal true}, if this configuration entity is modified; otherwise, {@literal false}.
+         */
+        @Override
+        public boolean isModified() {
+            return modified || parameters.isModified();
+        }
+
+        /**
+         * Gets serializable configuration parameters of this entity.
+         *
+         * @return A map of configuration parameters.
+         */
+        @Override
+        public final Map<String, String> getParameters() {
+            return parameters;
+        }
+
+        /**
+         * Overwrites a set of parameters.
+         * @param parameters A new set of parameters
+         */
+        public final void setParameters(final Map<String, String> parameters){
+            this.parameters.clear();
+            this.parameters.putAll(parameters);
+        }
+    }
 
     /**
      * Represents adapter settings. This class cannot be inherited.
@@ -19,16 +202,14 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
      * @since 1.0
      * @version 1.0
      */
-    public static final class InMemoryResourceAdapterConfiguration implements ResourceAdapterConfiguration, Serializable{
+    public static final class SerializableResourceAdapterConfiguration extends AbstractConfigurationEntity implements ResourceAdapterConfiguration{
         private String adapterName;
-        private final Map<String, String> additionalElements;
 
         /**
          * Initializes a new empty adapter settings.
          */
-        public InMemoryResourceAdapterConfiguration(){
+        public SerializableResourceAdapterConfiguration(){
             adapterName = "";
-            additionalElements = new HashMap<>(10);
         }
 
         /**
@@ -48,17 +229,8 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          */
         @Override
         public final void setAdapterName(final String adapterName) {
+            markAsModified();
             this.adapterName = adapterName != null ? adapterName : "";
-        }
-
-        /**
-         * Returns a dictionary of hosting parameters, such as port and hosting address.
-         *
-         * @return The map of additional hosting parameters.
-         */
-        @Override
-        public Map<String, String> getParameters() {
-            return additionalElements;
         }
 
         public boolean equals(final ResourceAdapterConfiguration other){
@@ -78,7 +250,10 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
      * @since 1.0
      * @version 1.0
      */
-    public static final class InMemoryManagedResourceConfiguration implements ManagedResourceConfiguration, Serializable{
+    public static final class SerializableManagedResourceConfiguration extends AbstractConfigurationEntity implements ManagedResourceConfiguration{
+        private static abstract class AbstractManagedEntity extends AbstractConfigurationEntity implements ManagedEntity{
+
+        }
 
         /**
          * Represents configuration of the event source. This class cannot be inherited.
@@ -86,22 +261,21 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          * @since 1.0
          * @version 1.0
          */
-        public static final class InMemoryEventConfiguration implements EventConfiguration, Serializable{
-            private final Map<String, String> additionalElements = new HashMap<>();
+        public static final class SerializableEventConfiguration extends AbstractManagedEntity implements EventConfiguration{
             private String eventCategory;
 
             /**
              * Initializes a event configuration with predefined category.
              * @param category The event category.
              */
-            public InMemoryEventConfiguration(final String category){
+            public SerializableEventConfiguration(final String category){
                 this.eventCategory = category != null ? category : "";
             }
 
             /**
              * Initializes a new empty configuration of the event.
              */
-            public InMemoryEventConfiguration(){
+            public SerializableEventConfiguration(){
                 this("");
             }
 
@@ -122,17 +296,8 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
              */
             @Override
             public final void setCategory(final String eventCategory) {
+                markAsModified();
                 this.eventCategory = eventCategory != null ? eventCategory : "";
-            }
-
-            /**
-             * Gets a map of event options.
-             *
-             * @return The map of event options.
-             */
-            @Override
-            public final Map<String, String> getParameters() {
-                return additionalElements;
             }
 
             @Override
@@ -146,7 +311,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
              */
             @Override
             public int hashCode() {
-                return eventCategory.hashCode() ^ additionalElements.hashCode();
+                return eventCategory.hashCode() ^ getParameters().hashCode();
             }
         }
 
@@ -155,26 +320,23 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          * @since 1.0
          * @version 1.0
          */
-        public static final class InMemoryAttributeConfiguration implements AttributeConfiguration, Serializable{
+        public static final class SerializableAttributeConfiguration extends AbstractManagedEntity implements AttributeConfiguration{
             private TimeSpan readWriteTimeout;
             private String attributeName;
-            private final Map<String, String> additionalElements;
 
             /**
              * Initializes a new configuration of the management attribute.
              */
-            public InMemoryAttributeConfiguration(){
+            public SerializableAttributeConfiguration(){
                 readWriteTimeout = TimeSpan.INFINITE;
                 attributeName = "";
-                additionalElements = new HashMap<>();
             }
 
             /**
              * Initializes a new configuration of the management attribute.
              * @param attributeName The name of the management attribute.
              */
-            @SuppressWarnings("UnusedDeclaration")
-            public InMemoryAttributeConfiguration(final String attributeName){
+            public SerializableAttributeConfiguration(final String attributeName){
                 this();
                 this.attributeName = attributeName;
             }
@@ -195,6 +357,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
              */
             @Override
             public final void setReadWriteTimeout(final TimeSpan timeout) {
+                markAsModified();
                 this.readWriteTimeout = timeout;
             }
 
@@ -215,34 +378,47 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
              */
             @Override
             public final void setAttributeName(final String attributeName) {
+                markAsModified();
                 this.attributeName = attributeName != null ? attributeName : "";
-            }
-
-            /**
-             * Returns the additional configuration elements.
-             *
-             * @return Additional options associated with the management attribute configuration.
-             */
-            @Override
-            public final Map<String, String> getParameters() {
-                return additionalElements;
             }
         }
 
         private String connectionString;
-        private final Map<String, AttributeConfiguration> attributes;
+        private final ConfigurationEntityRegistry<AttributeConfiguration> attributes;
         private String connectionType;
-        private final Map<String, String> additionalElements;
-        private final Map<String, EventConfiguration> events;
+        private final ConfigurationEntityRegistry<EventConfiguration> events;
 
         /**
          * Initializes a new empty configuration of the management information source.
          */
-        public InMemoryManagedResourceConfiguration(){
+        public SerializableManagedResourceConfiguration(){
             connectionString = connectionType = "";
-            attributes = new HashMap<>(10);
-            additionalElements = new HashMap<>(10);
-            this.events = new HashMap<>(10);
+            this.attributes = new AttributeRegistry();
+            this.events = new EventRegistry();
+        }
+
+        /**
+         * Overwrites a set of attributes.
+         * @param attributes A new set of attributes.
+         */
+        public void setAttributes(final Map<String, AttributeConfiguration> attributes) {
+            this.attributes.clear();
+            this.attributes.putAll(attributes);
+        }
+
+        /**
+         * Overwrites a set of events.
+         * @param events A new set of events.
+         */
+        public void setEvents(final Map<String, EventConfiguration> events){
+            this.events.clear();
+            this.events.putAll(events);
+        }
+
+        @Override
+        void resetAdditionally() {
+            attributes.reset();
+            events.reset();
         }
 
         /**
@@ -262,6 +438,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          */
         @Override
         public final void setConnectionString(final String connectionString) {
+            markAsModified();
             this.connectionString = connectionString != null ? connectionString : "";
         }
 
@@ -284,6 +461,7 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          */
         @Override
         public final void setConnectionType(final String connectorType) {
+            markAsModified();
             this.connectionType = connectionType != null ? connectorType : "";
         }
 
@@ -316,9 +494,9 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
         @Override
         public <T extends ManagedEntity> T newElement(final Class<T> elementType) {
             if(elementType == null) return null;
-            else if(elementType.isAssignableFrom(InMemoryAttributeConfiguration.class))
+            else if(elementType.isAssignableFrom(SerializableAttributeConfiguration.class))
                 return elementType.cast(newAttributeConfiguration());
-            else if(elementType.isAssignableFrom(InMemoryEventConfiguration.class))
+            else if(elementType.isAssignableFrom(SerializableEventConfiguration.class))
                 return elementType.cast(newEventConfiguration());
             else return null;
         }
@@ -342,22 +520,12 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
         }
 
         /**
-         * Returns the dictionary of additional configuration elements.
-         *
-         * @return The dictionary of additional configuration elements.
-         */
-        @Override
-        public final Map<String, String> getParameters() {
-            return additionalElements;
-        }
-
-        /**
          * Empty implementation of AttributeConfiguration interface
          *
          * @return implementation of AttributeConfiguration interface
          */
-        public final InMemoryAttributeConfiguration newAttributeConfiguration() {
-            return new InMemoryAttributeConfiguration();
+        public final SerializableAttributeConfiguration newAttributeConfiguration() {
+            return new SerializableAttributeConfiguration();
         }
 
         /**
@@ -369,8 +537,18 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
          *
          * @return An empty event configuration.
          */
-        public InMemoryEventConfiguration newEventConfiguration() {
-            return new InMemoryEventConfiguration();
+        public SerializableEventConfiguration newEventConfiguration() {
+            return new SerializableEventConfiguration();
+        }
+
+        /**
+         * Determines whether this configuration entity is modified after deserialization.
+         *
+         * @return {@literal true}, if this configuration entity is modified; otherwise, {@literal false}.
+         */
+        @Override
+        public boolean isModified() {
+            return super.isModified() || attributes.isModified() || events.isModified();
         }
 
         public boolean equals(final ManagedResourceConfiguration other){
@@ -383,28 +561,61 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
         }
     }
 
-    private final Map<String, ManagedResourceConfiguration> resources;
-    private final Map<String, ResourceAdapterConfiguration> adapters;
+    private final ConfigurationEntityRegistry<ManagedResourceConfiguration> resources;
+    private final ConfigurationEntityRegistry<ResourceAdapterConfiguration> adapters;
 
     /**
      * Initializes a new empty agent configuration.
      */
-    public InMemoryAgentConfiguration(){
-        adapters = new HashMap<>(3);
-        resources = new HashMap<>(10);
+    public SerializableAgentConfiguration(){
+        adapters = new AdapterRegistry();
+        resources = new ResourceRegistry();
     }
 
     /**
      * Clones this instance of agent configuration.
      *
-     * @return A new cloned instance of the {@link InMemoryAgentConfiguration}.
+     * @return A new cloned instance of the {@link SerializableAgentConfiguration}.
      */
     @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
-    public InMemoryAgentConfiguration clone() {
-        final InMemoryAgentConfiguration clonedConfig = new InMemoryAgentConfiguration();
+    public SerializableAgentConfiguration clone() {
+        final SerializableAgentConfiguration clonedConfig = new SerializableAgentConfiguration();
         clonedConfig.load(this);
+        clonedConfig.reset();
         return clonedConfig;
+    }
+
+    void reset(){
+        adapters.reset();
+        resources.reset();
+    }
+
+    /**
+     * Determines whether this configuration is modified.
+     * @return {@literal true}, if some part of this configuration is modified; otherwise, {@literal false}.
+     */
+    public boolean isModified(){
+        return adapters.isModified() || resources.isModified();
+    }
+
+    /**
+     * Enumerates all modified configuration entities.
+     * @param handler A handle which will be called for each modified entity.
+     * @param <E> Type of the exception that may be produced by handler.
+     * @throws E Unable to process modified configuration entity.
+     */
+    public <E extends Exception> void modifiedEntities(final RecordReader<String, ? super ConfigurationEntity, E> handler) throws E {
+        modifiedResources(handler);
+        modifiedAdapters(handler);
+    }
+
+    public <E extends Exception> void modifiedResources(final RecordReader<String, ? super ManagedResourceConfiguration, E> handler) throws E{
+        resources.modifiedResources(handler);
+    }
+
+    public <E extends Exception> void modifiedAdapters(final RecordReader<String, ? super ResourceAdapterConfiguration, E> handler) throws E{
+        adapters.modifiedResources(handler);
     }
 
     /**
@@ -439,10 +650,10 @@ public class InMemoryAgentConfiguration extends AbstractAgentConfiguration imple
     @Override
     public <T extends ConfigurationEntity> T newConfigurationEntity(final Class<T> entityType) {
         if(entityType == null) return null;
-        else if(entityType.isAssignableFrom(InMemoryManagedResourceConfiguration.class))
-            return entityType.cast(new InMemoryManagedResourceConfiguration());
-        else if(entityType.isAssignableFrom(InMemoryResourceAdapterConfiguration.class))
-            return entityType.cast(new InMemoryResourceAdapterConfiguration());
+        else if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
+            return entityType.cast(new SerializableManagedResourceConfiguration());
+        else if(entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
+            return entityType.cast(new SerializableResourceAdapterConfiguration());
         else return null;
     }
 

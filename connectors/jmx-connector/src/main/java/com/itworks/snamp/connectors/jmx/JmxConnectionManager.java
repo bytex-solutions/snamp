@@ -5,7 +5,10 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
-import javax.management.*;
+import javax.management.JMException;
+import javax.management.MBeanServerConnection;
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import javax.management.remote.JMXConnectionNotification;
 import javax.management.remote.JMXConnector;
 import java.io.Closeable;
@@ -17,7 +20,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents JMX connectionHolder manager that provides reliable access to
@@ -28,7 +30,6 @@ import java.util.logging.Logger;
  */
 @Internal
 final class JmxConnectionManager implements AutoCloseable {
-    private static final Logger logger = JmxConnectorHelpers.getLogger();
 
     private static class ConnectionHolder implements Closeable {
         private final JmxConnectionFactory factory;
@@ -104,7 +105,7 @@ final class JmxConnectionManager implements AutoCloseable {
                 try {
                     handler.handle(server);
                 } catch (final JMException e) {
-                    logger.log(Level.WARNING, String.format("Unable to handle JMX reconnection %s", connectionHolder.factory), e);
+                    JmxConnectorHelpers.log(Level.WARNING, "Unable to handle JMX reconnection %s", connectionHolder.factory, e);
                 }
         }
 
@@ -139,7 +140,7 @@ final class JmxConnectionManager implements AutoCloseable {
                 onReconnection(server);
                 this.problem.set(null);//erase the problem
             } catch (final IOException e) {
-                logger.log(Level.SEVERE, String.format("Failed to restore JMX connectionHolder %s", connectionHolder.factory), e);
+                JmxConnectorHelpers.log(Level.SEVERE, String.format("Failed to restore JMX connectionHolder %s", connectionHolder.factory), e);
                 //save a problem
                 reportProblem(e);
             } finally {

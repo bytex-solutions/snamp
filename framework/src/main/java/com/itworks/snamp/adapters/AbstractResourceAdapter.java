@@ -11,9 +11,10 @@ import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.FrameworkService;
+import com.itworks.snamp.core.OsgiLoggingContext;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
-import com.itworks.snamp.internal.ServiceReferenceHolder;
+import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.itworks.snamp.mapping.*;
@@ -734,7 +735,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * Determines whether the resource connector is referenced.
          * @return {@literal true}, if the resource connector is referenced; otherwise, {@literal false}.
          */
-        private final boolean isReferenced(){
+        private boolean isReferenced(){
             return resourceConnector != null;
         }
 
@@ -837,7 +838,9 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     try {
                         accessor = new AttributeAccessor(attributeID, entry.getValue(), support);
                     } catch (final AttributeSupportException e) {
-                        getLogger().log(Level.WARNING, String.format("Failed to discover attribute %s", attributeID), e.getCause());
+                        try(final OsgiLoggingContext context = getLoggingContext()) {
+                            context.log(Level.WARNING, String.format("Failed to discover attribute %s", attributeID), e.getCause());
+                        }
                         accessor = null;
                     }
                     final TAttributeView view = accessor != null ? attributesModel.createAttributeView(consumer.resourceName,
@@ -847,10 +850,11 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                         attributesModel.put(attributeID, view);
                     else support.disconnectAttribute(attributeID);
                 }
-            } else
-                getLogger().log(Level.INFO, String.format("Managed resource connector %s (connection string %s) doesn't support attributes.",
+            } else try (final OsgiLoggingContext context = getLoggingContext()) {
+                context.log(Level.INFO, String.format("Managed resource connector %s (connection string %s) doesn't support attributes.",
                         consumer.resourceConfiguration.getConnectionType(),
                         consumer.resourceConfiguration.getConnectionString()));
+            }
     }
 
     /**
@@ -907,7 +911,9 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     try {
                         metadata = support.enableNotifications(listID, eventConfig.getCategory(), eventConfig.getParameters());
                     } catch (final NotificationSupportException e) {
-                        getLogger().log(Level.WARNING, String.format("Failed to enable notifications for %s topic", listID), e.getCause());
+                        try(final OsgiLoggingContext context = getLoggingContext()) {
+                            context.log(Level.WARNING, String.format("Failed to enable notifications for %s topic", listID), e.getCause());
+                        }
                         metadata = null;
                     }
                     if (metadata != null) {
@@ -916,8 +922,9 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                             notificationsModel.put(listID, view);
                             topics.add(NotificationUtils.getTopicName(consumer.resourceConfiguration.getConnectionType(), metadata.getCategory(), listID));
                         }
-                    } else
-                        getLogger().log(Level.WARNING, String.format("Event %s cannot be enabled for %s resource.", eventConfig.getCategory(), consumer.resourceConfiguration.getConnectionString()));
+                    } else try (final OsgiLoggingContext context = getLoggingContext()) {
+                        context.log(Level.WARNING, String.format("Event %s cannot be enabled for %s resource.", eventConfig.getCategory(), consumer.resourceConfiguration.getConnectionString()));
+                    }
                 }
             }
         //starts listening for events received through EventAdmin
@@ -945,7 +952,9 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                             support.disableNotifications(listID);
                         }
                         catch (final NotificationSupportException e) {
-                            getLogger().log(Level.WARNING, String.format("Failed to disable notifications at %s topic", listID), e.getCause());
+                            try (final OsgiLoggingContext context = getLoggingContext()) {
+                                context.log(Level.WARNING, String.format("Failed to disable notifications at %s topic", listID), e.getCause());
+                            }
                         }
                 }
             notificationsModel.clear();
@@ -1060,7 +1069,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @return The name of the logger.
      */
     public static String getLoggerName(final String adapterName){
-        return String.format("itworks.snamp.adapters.%s", adapterName);
+        return String.format("com.itworks.snamp.adapters.%s", adapterName);
     }
 
     /**
@@ -1090,13 +1099,19 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
     }
 
+    private OsgiLoggingContext getLoggingContext(){
+        return OsgiLoggingContext.get(getLogger(), Utils.getBundleContextByObject(this));
+    }
+
     /**
      * Reports an error when starting adapter.
      * @param logLevel Logging level.
      * @param e The failure reason.
      */
-    protected void failedToStartAdapter(final Level logLevel, final Exception e){
-        getLogger().log(logLevel, String.format("%s: Failed to start resource adapter.", adapterInstanceName.get()), e);
+    protected void failedToStartAdapter(final Level logLevel, final Exception e) {
+        try (final OsgiLoggingContext context = getLoggingContext()) {
+            context.log(logLevel, String.format("%s: Failed to start resource adapter.", adapterInstanceName.get()), e);
+        }
     }
 
     /**
@@ -1105,7 +1120,9 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param e The failure reason.
      */
     protected void failedToStopAdapter(final Level logLevel, final Exception e){
-        getLogger().log(logLevel, String.format("%s: Failed to stop resource adapter.", adapterInstanceName.get()), e);
+        try(final OsgiLoggingContext context = OsgiLoggingContext.get(getLogger(), Utils.getBundleContextByObject(this))) {
+            context.log(logLevel, String.format("%s: Failed to stop resource adapter.", adapterInstanceName.get()), e);
+        }
     }
 
     /**

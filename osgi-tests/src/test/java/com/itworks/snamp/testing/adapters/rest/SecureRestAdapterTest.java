@@ -71,8 +71,7 @@ public final class SecureRestAdapterTest extends AbstractJmxConnectorTest<TestOp
                 mavenBundle("com.sun.jersey", "jersey-servlet", "1.17.1"),
                 mavenBundle("com.sun.jersey", "jersey-client", "1.17.1"),
                 mavenBundle("com.google.code.gson", "gson", "2.2.4"),
-                mavenBundle("org.eclipse.jetty", "jetty-jaas", "9.1.1.v20140108"),
-                mavenBundle("net.engio", "mbassador", "1.1.10"));
+                mavenBundle("org.eclipse.jetty", "jetty-jaas", "9.1.1.v20140108"));
         jsonFormatter = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").create();
         jsonParser = new JsonParser();
     }

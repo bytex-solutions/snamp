@@ -47,6 +47,9 @@ public interface AgentConfiguration extends PersistentObject, Cloneable {
 
     /**
      * Represents hosting configuration (front-end configuration).
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
     public static interface ResourceAdapterConfiguration extends ConfigurationEntity {
         /**
@@ -71,6 +74,9 @@ public interface AgentConfiguration extends PersistentObject, Cloneable {
 
     /**
      * Represents management target configuration (back-end management information providers).
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
     public static interface ManagedResourceConfiguration extends ConfigurationEntity {
 
@@ -220,7 +226,6 @@ public interface AgentConfiguration extends PersistentObject, Cloneable {
      * Imports the state of specified object into this object.
      * @param input The import source.
      */
-    @SuppressWarnings("UnusedDeclaration")
     void load(final AgentConfiguration input);
 
     /**

@@ -1,8 +1,8 @@
 package com.itworks.snamp.mapping;
 
 import com.itworks.snamp.internal.annotations.ThreadSafe;
-import com.itworks.snamp.views.ParallelViewSupport;
-import com.itworks.snamp.views.SequentialViewSupport;
+import com.itworks.snamp.views.ParallelView;
+import com.itworks.snamp.views.SequentialView;
 import com.itworks.snamp.views.ViewSpecific;
 
 /**
@@ -17,7 +17,7 @@ import com.itworks.snamp.views.ViewSpecific;
  * @since 1.0
  */
 @ThreadSafe
-public interface RecordSet<I, R> extends SequentialViewSupport<RecordSet<I, R>>, ParallelViewSupport<RecordSet<I, R>> {
+public interface RecordSet<I, R> extends SequentialView<RecordSet<I, R>>, ParallelView<RecordSet<I, R>> {
     /**
      * Executes reader through all records in this set.
      * <p>
@@ -27,7 +27,7 @@ public interface RecordSet<I, R> extends SequentialViewSupport<RecordSet<I, R>>,
      * @param reader An object that accepts the record. Cannot be {@literal null}.
      * @throws E Unable to process record.
      */
-    @ViewSpecific({SequentialViewSupport.class, ParallelViewSupport.class})
+    @ViewSpecific({SequentialView.class, ParallelView.class})
     <E extends Exception> void forEach(final RecordReader<? super I, ? super R, E> reader) throws E;
 
     /**

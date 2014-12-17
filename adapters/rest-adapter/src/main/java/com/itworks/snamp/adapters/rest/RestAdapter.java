@@ -41,6 +41,7 @@ import java.util.logging.Logger;
  */
 final class RestAdapter extends AbstractConcurrentResourceAdapter {
     private static final String REALM_NAME = "SNAMP_REST_ADAPTER";
+    static final String NAME = RestAdapterHelpers.ADAPTER_NAME;
 
     private static final class HttpNotifications extends AbstractNotificationsModel<HttpNotificationMapping> implements EventHandler, HttpNotificationsModel, AutoCloseable{
         private final Gson jsonFormatter;
@@ -296,7 +297,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
      */
     @Override
     public Logger getLogger() {
-        return RestAdapterHelpers.getLogger();
+        return getLogger(NAME);
     }
 
     /**

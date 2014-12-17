@@ -35,7 +35,7 @@ public final class RShellResourceConnectorActivator extends AbstractManagedResou
          */
         @Override
         protected RShellResourceConnector createConnector(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {
-            return new RShellResourceConnector(connectionString, connectionOptions, getLogger());
+            return new RShellResourceConnector(connectionString, connectionOptions);
         }
     }
 
@@ -81,7 +81,6 @@ public final class RShellResourceConnectorActivator extends AbstractManagedResou
      * Initializes a new instance of the connector activator.
      */
     public RShellResourceConnectorActivator() {
-        super(RShellResourceConnector.NAME, new RShellResourceConnectorFactory(),
-                RShellConnectorHelpers.getLogger());
+        super(RShellResourceConnector.NAME, new RShellResourceConnectorFactory());
     }
 }

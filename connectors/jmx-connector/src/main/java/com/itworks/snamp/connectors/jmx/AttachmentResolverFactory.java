@@ -42,7 +42,7 @@ final class AttachmentResolverFactory {
 
     private static void unableToReflectNotificationType(final Class<? extends Notification> notifType,
                                                         final Exception e){
-        JmxConnectorHelpers.getLogger().log(Level.WARNING, String.format("Unable to reflect notification type %s", notifType), e);
+        JmxConnectorHelpers.log(Level.WARNING, "Unable to reflect notification type %s", notifType, e);
     }
 
     private static final class DynamicAttachmentResolver implements AttachmentResolver {

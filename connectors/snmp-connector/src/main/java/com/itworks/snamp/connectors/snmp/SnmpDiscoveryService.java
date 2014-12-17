@@ -5,7 +5,7 @@ import com.google.common.collect.Collections2;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
-import com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration.InMemoryAttributeConfiguration;
+import com.itworks.snamp.configuration.SerializableAgentConfiguration;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 import org.snmp4j.smi.VariableBinding;
@@ -45,7 +45,7 @@ final class SnmpDiscoveryService {
         return Collections2.transform(client.walk(getDiscoveryTimeout()), new Function<VariableBinding, AttributeConfiguration>() {
             @Override
             public AttributeConfiguration apply(final VariableBinding input) {
-                final InMemoryAttributeConfiguration config = new InMemoryAttributeConfiguration();
+                final SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration config = new SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration();
                 config.setAttributeName(input.getOid().toDottedString());
                 setupAttributeOptions(input.getVariable(), config.getParameters());
                 return config;

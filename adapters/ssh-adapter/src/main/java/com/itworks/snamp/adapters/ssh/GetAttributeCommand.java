@@ -17,7 +17,7 @@ final class GetAttributeCommand extends AbstractManagementShellCommand {
     static final Options COMMAND_OPTIONS = EMPTY_OPTIONS;
     static final String COMMAND_DESC = "Display attribute value";
 
-    public GetAttributeCommand(final CommandExecutionContext context){
+    GetAttributeCommand(final CommandExecutionContext context){
         super(context);
     }
 

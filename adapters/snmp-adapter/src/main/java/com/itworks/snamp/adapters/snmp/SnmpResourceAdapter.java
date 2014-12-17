@@ -30,6 +30,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
  * @since 1.0
  */
 final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
+    static final String NAME = SnmpHelpers.ADAPTER_NAME;
 
     private static final class SnmpNotificationMappingImpl implements SnmpNotificationMapping{
         private final NotificationMetadata metadata;
@@ -121,7 +122,7 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
                 return new SnmpNotificationMappingImpl(notifMeta);
             }
             catch (final IllegalArgumentException e){
-                SnmpHelpers.getLogger().log(Level.WARNING, String.format("Event %s is not compatible with SNMP infratructure", eventName));
+                SnmpHelpers.log(Level.WARNING, "Event %s is not compatible with SNMP infratructure", eventName, e);
                 return null;
             }
         }
@@ -153,7 +154,7 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
                 throw e;
             }
             catch (final Throwable e){
-                SnmpHelpers.getLogger().log(Level.WARNING, "Unable to create SNMP Trap", e);
+                SnmpHelpers.log(Level.WARNING, "Unable to create SNMP Trap", e);
             }
             if(notif.getNext() != null)
                 handleNotification(sender, notif.getNext(), notificationMetadata);
@@ -184,12 +185,12 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
                     return type.createManagedObject(accessor.get(OID_PARAM_NAME), accessor);
                 }
                 else {
-                    SnmpHelpers.getLogger().log(Level.WARNING, String.format("Attribute %s has no SNMP-compliant type projection.", userDefinedAttributeName));
+                    SnmpHelpers.log(Level.WARNING, "Attribute %s has no SNMP-compliant type projection.", userDefinedAttributeName, null);
                     return null;
                 }
             }
             else {
-                SnmpHelpers.getLogger().log(Level.WARNING, String.format("Attribute %s has no OID parameter.", userDefinedAttributeName));
+                SnmpHelpers.log(Level.WARNING, "Attribute %s has no OID parameter.", userDefinedAttributeName, null);
                 return null;
             }
         }
@@ -215,16 +216,6 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
         agent = new SnmpAgent(port, hostName, securityOptions, socketTimeout);
         attributes = new SnmpAttributesModel();
         notifications = new SnmpNotificationsModel();
-    }
-
-    /**
-     * Gets logger associated with this adapter.
-     *
-     * @return The logger associated with this adapter.
-     */
-    @Override
-    public Logger getLogger() {
-        return SnmpHelpers.getLogger();
     }
 
     /**
@@ -268,5 +259,15 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
             notifications.close();
         }
         System.gc();
+    }
+
+    /**
+     * Gets logger associated with this service.
+     *
+     * @return The logger associated with this service.
+     */
+    @Override
+    public Logger getLogger() {
+        return getLogger(NAME);
     }
 }

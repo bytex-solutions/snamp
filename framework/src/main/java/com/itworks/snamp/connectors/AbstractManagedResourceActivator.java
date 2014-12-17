@@ -5,15 +5,14 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.configuration.*;
 import com.itworks.snamp.connectors.discovery.AbstractDiscoveryService;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
-import com.itworks.snamp.connectors.notifications.Notification;
-import com.itworks.snamp.connectors.notifications.NotificationListener;
-import com.itworks.snamp.connectors.notifications.NotificationMetadata;
-import com.itworks.snamp.connectors.notifications.NotificationSupport;
-import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
+import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.core.FrameworkService;
+import com.itworks.snamp.core.OsgiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.MethodStub;
@@ -21,10 +20,7 @@ import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.ServiceReference;
+import org.osgi.framework.*;
 import org.osgi.service.event.EventAdmin;
 
 import java.lang.ref.Reference;
@@ -34,8 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-
-import com.itworks.snamp.connectors.notifications.NotificationEvent;
 
 /**
  * Represents a base class for management connector bundle.
@@ -48,7 +42,7 @@ import com.itworks.snamp.connectors.notifications.NotificationEvent;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractManagedResourceActivator<TConnector extends ManagedResourceConnector<?>> extends AbstractLoggableServiceLibrary {
+public abstract class AbstractManagedResourceActivator<TConnector extends ManagedResourceConnector<?>> extends AbstractServiceLibrary {
     /**
      * Represents name of the manifest header which contains the name of the management connector.
      * <p>
@@ -99,7 +93,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * @see com.itworks.snamp.connectors.AbstractManagedResourceActivator.DiscoveryServiceManager
      * @see com.itworks.snamp.connectors.AbstractManagedResourceActivator.LicensingDescriptionServiceManager
      */
-    protected static abstract class SupportConnectorServiceManager<S extends FrameworkService, T extends S> extends LoggableProvidedService<S, T>{
+    protected static abstract class SupportConnectorServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T>{
 
         private SupportConnectorServiceManager(final Class<S> contract, final RequiredService<?>... dependencies) {
             super(contract, dependencies);
@@ -144,24 +138,26 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     }
 
     private static final class ConnectorLicensingDescriptorService<L extends LicenseLimitations> extends AbstractAggregator implements LicensingDescriptionService {
-        private final Logger logger;
         private final LicenseReader licenseReader;
         private final Class<L> descriptor;
         private final Supplier<L> fallbackFactory;
 
         public ConnectorLicensingDescriptorService(final LicenseReader reader,
                                                    final Class<L> descriptor,
-                                                   final Supplier<L> fallbackFactory,
-                                                   final Logger l){
+                                                   final Supplier<L> fallbackFactory){
             this.licenseReader = reader;
             this.descriptor = descriptor;
             this.fallbackFactory = fallbackFactory;
-            this.logger = l;
         }
 
+        /**
+         * Gets logger associated with this service.
+         *
+         * @return The logger associated with this service.
+         */
         @Override
         public Logger getLogger() {
-            return logger;
+            return licenseReader.getLogger();
         }
 
         /**
@@ -216,8 +212,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
             identity.put(CONNECTOR_TYPE_IDENTITY_PROPERTY, getConnectorName());
             return new ConnectorLicensingDescriptorService(getDependency(SimpleDependency.class, LicenseReader.class, dependencies),
                     descriptor,
-                    fallbackFactory,
-                    getLogger());
+                    fallbackFactory);
         }
     }
 
@@ -267,6 +262,12 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
         protected abstract <T extends ManagedResourceConfiguration.ManagedEntity> Collection<T> getManagementInformation(final Class<T> entityType,
                                                                                                                          final TProvider provider,
                                                                                                                          final RequiredService<?>... dependencies) throws Exception;
+
+        /**
+         * Gets logger associated with discovery service.
+         * @return The logger associated with discovery service.
+         */
+        protected abstract Logger getLogger();
 
         /**
          * Creates a new instance of the discovery service.
@@ -507,6 +508,19 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
             return null;
         }
 
+        private void forEachAdditionalService(final SafeConsumer<ProvidedService<?, ?>> handler,
+                                              final ActivationPropertyReader activationProperties,
+                                              final RequiredService<?>... bundleLevelDependencies){
+            ProvidedService<?, ?> advancedService = createDescriptionServiceManager(activationProperties, bundleLevelDependencies);
+            if(advancedService != null) handler.accept(advancedService);
+            advancedService = createDiscoveryServiceManager(activationProperties, bundleLevelDependencies);
+            if(advancedService != null) handler.accept(advancedService);
+            advancedService = createLicenseServiceManager();
+            if(advancedService != null) handler.accept(advancedService);
+            advancedService = createMaintenanceServiceManager(bundleLevelDependencies);
+            if(advancedService != null) handler.accept(advancedService);
+        }
+
         /**
          * Exposes all provided services via the input collection.
          *
@@ -518,22 +532,20 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
         public final void provide(final Collection<ProvidedService<?, ?>> services,
                                   final ActivationPropertyReader activationProperties,
                                   final RequiredService<?>... bundleLevelDependencies) {
-            //iterates through each compliant target and instantiate factory for the management connector
-            final Map<String, ManagedResourceConfiguration> targets = activationProperties.getValue(COMPLIANT_RESOURCES_HOLDER);
+            //iterates through each compliant target and instantiate manager for each resource connector
+            final Map<String, ManagedResourceConfiguration> resources = activationProperties.getValue(COMPLIANT_RESOURCES_HOLDER);
             int instanceCount = 0;
-            for(final String targetName: targets != null ? targets.keySet() : Collections.<String>emptySet()) {
+            for(final String targetName: resources != null ? resources.keySet() : Collections.<String>emptySet()) {
                 final ManagedResourceConnectorManager<TConnectorImpl> provider = createConnectorManager(targetName, instanceCount, Arrays.asList(bundleLevelDependencies), activationProperties);
                 if(provider != null)
                     services.add(provider);
             }
-            ProvidedService<?, ?> advancedService = createDescriptionServiceManager(activationProperties, bundleLevelDependencies);
-            if(advancedService != null) services.add(advancedService);
-            advancedService = createDiscoveryServiceManager(activationProperties, bundleLevelDependencies);
-            if(advancedService != null) services.add(advancedService);
-            advancedService = createLicenseServiceManager();
-            if(advancedService != null) services.add(advancedService);
-            advancedService = createMaintenanceServiceManager(bundleLevelDependencies);
-            if(advancedService != null) services.add(advancedService);
+            forEachAdditionalService(new SafeConsumer<ProvidedService<?, ?>>() {
+                @Override
+                public void accept(final ProvidedService<?, ?> service) {
+                    services.add(service);
+                }
+            }, activationProperties, bundleLevelDependencies);
         }
     }
 
@@ -544,7 +556,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * @since 1.0
      * @version 1.0
      */
-    protected abstract static class ManagedResourceConnectorManager<TConnectorImpl extends ManagedResourceConnector<?>> extends LoggableProvidedService<ManagedResourceConnector, TConnectorImpl>{
+    protected abstract static class ManagedResourceConnectorManager<TConnectorImpl extends ManagedResourceConnector<?>> extends ProvidedService<ManagedResourceConnector, TConnectorImpl>{
         /**
          * Represents name of the managed resource bounded to this resource connector factory.
          */
@@ -740,21 +752,8 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * @param connectorFactory A factory that exposes collection of management connector factories.
      * @throws IllegalArgumentException connectorName is {@literal null}.
      */
-    @SuppressWarnings("UnusedDeclaration")
     protected AbstractManagedResourceActivator(final String connectorName, final ServiceFactories<TConnector> connectorFactory){
-        this(connectorName, connectorFactory, null);
-    }
-
-    /**
-     * Initializes a new connector factory.
-     * @param connectorName The name of the connector.
-     * @param connectorFactory A factory that exposes collection of management connector factories.
-     * @param explicitLogger An instance of the logger associated with the all management connector instances.
-     * @throws IllegalArgumentException connectorName is {@literal null}.
-     */
-    protected AbstractManagedResourceActivator(final String connectorName, final ServiceFactories<TConnector> connectorFactory, final Logger explicitLogger){
-        super(explicitLogger != null ? explicitLogger : AbstractManagedResourceConnector.getLogger(connectorName),
-                connectorFactory);
+        super(connectorFactory);
         this.connectorName = connectorName;
     }
 
@@ -770,6 +769,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
         identity.put(MGMT_MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
         identity.put(CONNECTOR_TYPE_IDENTITY_PROPERTY, config.getConnectionType());
         identity.put(CONNECTOR_STRING_IDENTITY_PROPERTY, config.getConnectionString());
+        identity.put(Constants.SERVICE_PID, PersistentConfigurationManager.getResourcePersistentID(resourceName));
         for(final Map.Entry<String, String> option: config.getParameters().entrySet())
             identity.put(option.getKey(), option.getValue());
     }
@@ -794,7 +794,6 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      */
     @Override
     protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-        super.start(bundleLevelDependencies);
         bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationManager.class));
         addDependencies(bundleLevelDependencies);
     }
@@ -807,10 +806,21 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      */
     @Override
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
-        super.activate(activationProperties, dependencies);
         final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
         activationProperties.publish(COMPLIANT_RESOURCES_HOLDER, new CompliantResources(connectorName, configManager.getCurrentConfiguration()));
         activationProperties.publish(CONNECTOR_NAME_HOLDER, connectorName);
+    }
+
+    /**
+     * Gets logger associated with this activator.
+     * @return The logger associated with this activator.
+     */
+    protected Logger getLogger(){
+        return AbstractManagedResourceConnector.getLogger(connectorName);
+    }
+
+    private OsgiLoggingContext getLoggingContext(){
+        return OsgiLoggingContext.get(getLogger(), Utils.getBundleContextByObject(this));
     }
 
     /**
@@ -821,7 +831,9 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      */
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to instantiate %s connector", connectorName), e);
+        try (final OsgiLoggingContext context = getLoggingContext()) {
+            context.log(Level.SEVERE, String.format("Unable to instantiate %s connector", connectorName), e);
+        }
     }
 
     /**
@@ -833,7 +845,9 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to release %s connector instance", connectorName), e);
+        try (final OsgiLoggingContext context = getLoggingContext()) {
+            context.log(Level.SEVERE, String.format("Unable to release %s connector instance", connectorName), e);
+        }
     }
 
     /**

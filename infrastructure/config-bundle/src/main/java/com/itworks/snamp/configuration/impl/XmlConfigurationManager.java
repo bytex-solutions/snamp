@@ -12,14 +12,15 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class XmlConfigurationManager extends StreamedConfigurationManager<XmlAgentConfiguration> {
+    /**
+     * Represents name of the logger for the configuration service.
+     */
+    private static final String LOGGER_NAME = "com.itworks.snamp.configuration";
 
     /**
      * Initializes a new XML-based configuration manager.
-     *
-     * @param serviceLogger OSGi logging service wrapped into {@link java.util.logging.Logger} instance.
      */
-    public XmlConfigurationManager(final Logger serviceLogger) {
-        super(serviceLogger);
+    XmlConfigurationManager() {
     }
 
     public String getConfigurationFileName(){
@@ -54,5 +55,15 @@ final class XmlConfigurationManager extends StreamedConfigurationManager<XmlAgen
     @Override
     protected OutputStream openOutputStream() throws IOException{
         return new FileOutputStream(getConfigurationFileName());
+    }
+
+    /**
+     * Gets a logger associated with this platform service.
+     *
+     * @return A logger associated with this platform service.
+     */
+    @Override
+    public Logger getLogger() {
+        return Logger.getLogger(LOGGER_NAME);
     }
 }

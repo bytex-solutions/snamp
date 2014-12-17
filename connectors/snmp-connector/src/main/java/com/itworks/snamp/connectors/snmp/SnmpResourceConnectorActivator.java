@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents SNMP connector activator.
@@ -45,7 +46,7 @@ public final class SnmpResourceConnectorActivator extends AbstractManagedResourc
                 };
             }
             catch (final LicensingException e){
-                SnmpConnectorHelpers.getLogger().log(Level.SEVERE, String.format("The limit of instances is reached: %s. Unable to connect %s managed resource.", instances, resourceName), e);
+                SnmpConnectorHelpers.log(Level.SEVERE, "The limit of instances is reached: %s. Unable to connect %s managed resource.", instances, resourceName, e);
             }
             return result;
         }
@@ -98,6 +99,16 @@ public final class SnmpResourceConnectorActivator extends AbstractManagedResourc
                 @Override
                 protected <T extends ManagedEntity> Collection<T> getManagementInformation(final Class<T> entityType, final SnmpClient client, final RequiredService<?>... dependencies) throws Exception {
                     return SnmpDiscoveryService.discover(entityType, client);
+                }
+
+                /**
+                 * Gets logger associated with discovery service.
+                 *
+                 * @return The logger associated with discovery service.
+                 */
+                @Override
+                protected Logger getLogger() {
+                    return SnmpResourceConnector.getLoggerImpl();
                 }
             };
         }

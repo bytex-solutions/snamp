@@ -1,14 +1,12 @@
 package com.itworks.snamp.management.impl;
 
 import com.itworks.snamp.SafeConsumer;
-import com.itworks.snamp.core.AbstractLoggableServiceLibrary;
 import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.management.SnampManager;
 import com.itworks.snamp.management.jmx.FrameworkMBean;
 import com.itworks.snamp.management.jmx.OpenMBeanProvider;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
@@ -149,7 +147,7 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
                         });
             }
             catch (final Exception e) {
-                MonitoringUtils.getLogger().log(Level.SEVERE,
+                MonitoringUtils.log(Level.SEVERE,
                         "Invalid filter for selecting SnampCoreMBean. Call for SNAMP developers.",
                         e);
             }
@@ -167,12 +165,10 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
      * Starts the service library.
      *
      * @param bundleLevelDependencies A collection of library-level dependencies to be required for this library.
-     * @throws Exception Unable to start service library.
      */
     @Override
-    protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
+    protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
         bundleLevelDependencies.add(new LogReaderServiceDependency(listener));
-        bundleLevelDependencies.add(new AbstractLoggableServiceLibrary.LoggerServiceDependency(MonitoringUtils.getLogger()));
     }
 
     /**

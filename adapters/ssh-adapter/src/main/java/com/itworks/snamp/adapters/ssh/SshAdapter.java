@@ -318,14 +318,14 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      */
     @Override
     protected boolean start() {
-        server.setShellFactory(ManagementShell.createFactory(this, commandExecutors, getLogger()));
+        server.setShellFactory(ManagementShell.createFactory(this, commandExecutors));
         server.setCommandFactory(new CommandFactory() {
             private final AdapterController controller = SshAdapter.this;
 
             @Override
             public Command createCommand(final String commandLine) {
                 return commandLine != null && commandLine.length() > 0 ?
-                        ManagementShell.createSshCommand(commandLine, controller, commandExecutors, getLogger()) :
+                        ManagementShell.createSshCommand(commandLine, controller, commandExecutors) :
                         null;
             }
         });
@@ -367,7 +367,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      */
     @Override
     public Logger getLogger() {
-        return SshHelpers.getLogger();
+        return getLogger(NAME);
     }
 
     @Override

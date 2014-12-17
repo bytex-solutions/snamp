@@ -5,12 +5,12 @@ import java.util.concurrent.ExecutorService;
 /**
  * Represents an object that can produce a view of itself which supports
  * parallel execution of some methods.
- * @param <T> Type of the object implementing {@link ParallelViewSupport}.
+ * @param <T> Type of the object implementing {@link ParallelView}.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public interface ParallelViewSupport<T extends ParallelViewSupport<T>> extends View {
+public interface ParallelView<T extends ParallelView<T>> extends View {
     /**
      * Returns an equivalent object that is parallel.
      * May return itself, either because the object was already parallel,

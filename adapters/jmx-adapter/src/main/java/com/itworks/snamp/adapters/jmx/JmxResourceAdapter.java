@@ -28,15 +28,14 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class JmxResourceAdapter extends AbstractResourceAdapter {
+    static final String NAME = JmxAdapterHelpers.ADAPTER_NAME;
 
     private static final class JmxNotifications extends AbstractNotificationsModel<JmxNotificationMapping> {
         private final EventBus notificationBus;
         private static final String ID_SEPARATOR = "::";
-        private final Logger logger;
 
-        private JmxNotifications(final Logger logger) {
+        private JmxNotifications() {
             notificationBus = new EventBus();
-            this.logger = logger;
         }
 
         /**
@@ -65,14 +64,15 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             try {
                 attachment = notificationMetadata.convertAttachment(attachment);
             } catch (final OpenDataException e) {
-                logger.log(Level.WARNING,
-                        String.format("Unable to parse attachment %s from notification %s",
-                                attachment, notificationMetadata.getCategory()), e);
+                JmxAdapterHelpers.log(Level.WARNING, "Unable to parse attachment %s from notification %s",
+                        attachment,
+                        notificationMetadata.getCategory(),
+                        e);
                 attachment = null;
             }
             notificationBus.post(new JmxNotificationSurrogate(notificationMetadata.getCategory(), sender, notif.getMessage(), notif.getTimeStamp(), attachment));
             notif = notif.getNext();
-            if(notif != null) handleNotification(sender, notif, notificationMetadata);
+            if (notif != null) handleNotification(sender, notif, notificationMetadata);
         }
 
         /**
@@ -163,7 +163,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         this.usePlatformMBean = usePlatformMBean;
         this.attributes = new JmxAttributes();
         this.exposedBeans = new HashMap<>(10);
-        this.notifications = new JmxNotifications(getLogger());
+        this.notifications = new JmxNotifications();
     }
 
     void usePureSerialization(){
@@ -205,18 +205,16 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         try {
             JmxAdapterLicenseLimitations.current().verifyJmxNotificationsFeature();
             populateModel(notifications);
-        }
-        catch (final LicensingException e){
-            getLogger().log(Level.INFO, "JMX notifications are not allowed by your SNAMP license", e);
+        } catch (final LicensingException e) {
+            JmxAdapterHelpers.log(Level.INFO, "JMX notifications are not allowed by your SNAMP license", e);
         }
         for (final String resourceName : getHostedResources())
             try {
                 final ProxyMBean bean = new ProxyMBean(resourceName, attributes.get(resourceName), notifications.get(resourceName));
                 registerMBean(createObjectName(rootObjectName, resourceName), bean);
                 notifications.addListener(bean);
-            }
-            catch (final JMException e) {
-                getLogger().log(Level.SEVERE, String.format("Unable to register MBean for resource %s", resourceName), e);
+            } catch (final JMException e) {
+                JmxAdapterHelpers.log(Level.SEVERE, "Unable to register MBean for resource %s", resourceName, e);
             }
         return true;
     }
@@ -231,24 +229,23 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     protected void stop() {
         clearModel(attributes);
         clearModel(notifications);
-        for(final ObjectName name: exposedBeans.keySet())
+        for (final ObjectName name : exposedBeans.keySet())
             try {
                 unregisterMBean(name, exposedBeans.get(name));
-            }
-            catch (final JMException e) {
-                getLogger().log(Level.SEVERE, String.format("Unable to unregister MBean %s", name), e);
+            } catch (final JMException e) {
+                JmxAdapterHelpers.log(Level.SEVERE, "Unable to unregister MBean %s", name, e);
             }
         exposedBeans.clear();
         System.gc();
     }
 
     /**
-     * Gets logger associated with this service.
+     * Gets withLogger associated with this service.
      *
-     * @return The logger associated with this service.
+     * @return The withLogger associated with this service.
      */
     @Override
     public Logger getLogger() {
-        return JmxAdapterHelpers.getLogger();
+        return getLogger(NAME);
     }
 }

@@ -1,4 +1,4 @@
-package com.itworks.snamp.internal;
+package com.itworks.snamp;
 
 import org.osgi.framework.*;
 
@@ -24,6 +24,15 @@ public class ServiceReferenceHolder<S> implements ServiceReference<S> {
         if(context == null) throw new IllegalArgumentException("context is null.");
         else if(serviceRef == null) throw new IllegalArgumentException("serviceRef is null.");
         else serviceImpl = context.getService(this.serviceRef = serviceRef);
+    }
+
+    /**
+     * Initializes a new service reference holder.
+     * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
+     * @param serviceType The requested service type. Cannot be {@literal null}.
+     */
+    public ServiceReferenceHolder(final BundleContext context, final Class<S> serviceType){
+        this(context, context.getServiceReference(serviceType));
     }
 
     /**

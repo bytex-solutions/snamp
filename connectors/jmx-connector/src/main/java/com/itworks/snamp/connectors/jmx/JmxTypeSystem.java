@@ -18,7 +18,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.itworks.snamp.connectors.ManagedEntityMetadata.*;
 
@@ -31,12 +30,10 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
     static final TypeToken<TabularData> TABULAR_DATA = TypeToken.of(TabularData.class);
     static final TypeToken<CompositeData> COMPOSITE_DATA = TypeToken.of(CompositeData.class);
 
-    private static final Logger log = JmxConnectorHelpers.getLogger();
-
     /**
      * Initializes a new builder of JMX managementAttributes.
      */
-    public JmxTypeSystem(){
+    JmxTypeSystem(){
         registerConverter(TABULAR_DATA, TypeLiterals.ROW_SET,
                 new Function<TabularData, RowSet<?>>() {
                     @Override
@@ -584,7 +581,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
                 return result;
             }
             catch (final ClassNotFoundException e) {
-                log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+                JmxConnectorHelpers.log(Level.SEVERE, e.getLocalizedMessage(), e);
                 return value;
             }
         }
@@ -669,7 +666,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
                     return new JmxManagedEntityArrayType<>(attributeType);
                 }
                 catch (final OpenDataException e) {
-                    log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+                    JmxConnectorHelpers.log(Level.SEVERE, e.getLocalizedMessage(), e);
                     return null;
                 }
             }

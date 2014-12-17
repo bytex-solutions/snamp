@@ -4,6 +4,7 @@ import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.jcommands.impl.TypeTokens;
 import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
 import com.itworks.snamp.ConversionException;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedEntityType;
@@ -34,12 +35,12 @@ import static com.itworks.snamp.connectors.rshell.RShellConnectorConfigurationDe
  * @since 1.0
  */
 final class RShellResourceConnector extends AbstractManagedResourceConnector<RShellConnectionOptions> implements AttributeSupport {
-    static String NAME = RShellConnectorHelpers.CONNECTOR_NAME;
-    private static final RShellConnectorTypeSystem typeSystem = new RShellConnectorTypeSystem();
+    final static String NAME = RShellConnectorHelpers.CONNECTOR_NAME;
 
     private static final class RShellAttributeMetadata extends GenericAttributeMetadata<ManagedEntityType>{
         private final XmlCommandLineToolProfile commandProfile;
         private final Map<String, String> attributeOptions;
+        private final RShellConnectorTypeSystem typeSystem;
 
         private RShellAttributeMetadata(final String attributeName,
                                         final XmlCommandLineToolProfile profile,
@@ -47,6 +48,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
             super(attributeName);
             commandProfile = profile;
             attributeOptions = Collections.unmodifiableMap(options);
+            typeSystem = new RShellConnectorTypeSystem();
         }
 
         Object getValue(final CommandExecutionChannel channel) throws IOException, ScriptException {
@@ -255,11 +257,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
     private static final class RShellAttributes extends AbstractAttributeSupport {
 
         private final CommandExecutionChannel executionChannel;
-        private final Logger logger;
 
-        private RShellAttributes(final CommandExecutionChannel channel, final Logger logger) {
+        private RShellAttributes(final CommandExecutionChannel channel) {
             this.executionChannel = channel;
-            this.logger = logger;
         }
 
         /**
@@ -272,7 +272,12 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
          */
         @Override
         protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
+            RShellConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
+                }
+            });
         }
 
         /**
@@ -284,7 +289,12 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
          */
         @Override
         protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
+            RShellConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    failedToGetAttribute(logger, Level.WARNING, attributeID, e);
+                }
+            });
         }
 
         /**
@@ -297,7 +307,12 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
          */
         @Override
         protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
+            RShellConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
+                }
+            });
         }
 
         /**
@@ -360,18 +375,16 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
      * Initializes a new management connector.
      *
      * @param connectionOptions Management connector initialization options.
-     * @param logger                  A logger for this management connector.
      */
-    RShellResourceConnector(final RShellConnectionOptions connectionOptions, final Logger logger) throws Exception {
-        super(connectionOptions, logger);
+    RShellResourceConnector(final RShellConnectionOptions connectionOptions) throws Exception {
+        super(connectionOptions);
         executionChannel = connectionOptions.createExecutionChannel();
-        attributes = new RShellAttributes(executionChannel, logger);
+        attributes = new RShellAttributes(executionChannel);
     }
 
     RShellResourceConnector(final String connectionString,
-                                   final Map<String, String> connectionOptions,
-                                   final Logger logger) throws Exception{
-        this(new RShellConnectionOptions(connectionString, connectionOptions), logger);
+                                   final Map<String, String> connectionOptions) throws Exception{
+        this(new RShellConnectionOptions(connectionString, connectionOptions));
     }
 
     /**
@@ -481,6 +494,16 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
     @Override
     public Collection<String> getConnectedAttributes() {
         return attributes.getConnectedAttributes();
+    }
+
+    /**
+     * Gets a logger associated with this platform service.
+     *
+     * @return A logger associated with this platform service.
+     */
+    @Override
+    public Logger getLogger() {
+        return getLogger(NAME);
     }
 
     /**

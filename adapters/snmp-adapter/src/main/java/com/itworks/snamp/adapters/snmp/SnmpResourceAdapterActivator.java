@@ -22,11 +22,6 @@ import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor
  * @since 1.0
  */
 public final class SnmpResourceAdapterActivator extends AbstractResourceAdapterActivator<SnmpResourceAdapter> {
-    /**
-     * Represents name of this resource adapter.
-     */
-    static final String ADAPTER_NAME = SnmpHelpers.ADAPTER_NAME;
-
     private static final class SnmpAdapterConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<SnmpAdapterConfigurationDescriptor> {
 
         /**
@@ -45,7 +40,7 @@ public final class SnmpResourceAdapterActivator extends AbstractResourceAdapterA
      * Initializes a new instance of the resource adapter lifetime manager.
      */
     public SnmpResourceAdapterActivator() {
-        super(ADAPTER_NAME, SnmpHelpers.getLogger(), new SnmpAdapterConfigurationEntityDescriptionManager(),
+        super(SnmpResourceAdapter.NAME, new SnmpAdapterConfigurationEntityDescriptionManager(),
                 new LicensingDescriptionServiceManager<>(SnmpAdapterLimitations.class, SnmpAdapterLimitations.fallbackFactory));
     }
 
@@ -84,7 +79,7 @@ public final class SnmpResourceAdapterActivator extends AbstractResourceAdapterA
             else return new SnmpResourceAdapter(Integer.valueOf(port), address, null, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, adapterInstanceName), resources);
         }
         catch (final LicensingException e){
-            getLogger().log(Level.SEVERE, "Unable to instatiate SNMP adapter due its license limitations.", e);
+            SnmpHelpers.log(Level.SEVERE, "Unable to instatiate SNMP adapter due its license limitations.", e);
             return null;
         }
     }

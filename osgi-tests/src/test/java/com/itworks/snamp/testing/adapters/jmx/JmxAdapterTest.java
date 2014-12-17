@@ -29,7 +29,6 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * @author Roman Sakno
@@ -42,8 +41,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     public JmxAdapterTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME),
-                SnampArtifact.JMX_ADAPTER.getReference(),
-                mavenBundle("net.engio", "mbassador", "1.1.10"));
+                SnampArtifact.JMX_ADAPTER.getReference());
     }
 
     private static ObjectName createObjectName() throws MalformedObjectNameException {

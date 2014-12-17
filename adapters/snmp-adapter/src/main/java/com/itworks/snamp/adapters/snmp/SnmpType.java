@@ -89,7 +89,7 @@ enum SnmpType {
             return (SnmpAttributeMapping)ctor.invoke(oid, accessor);
         }
         catch (final Throwable e) {
-            SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
+            SnmpHelpers.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
             return null;
         }
     }

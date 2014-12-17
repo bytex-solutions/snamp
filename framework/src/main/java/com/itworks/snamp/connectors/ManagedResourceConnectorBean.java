@@ -6,8 +6,7 @@ import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.*;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration.InMemoryAttributeConfiguration;
-import com.itworks.snamp.configuration.InMemoryAgentConfiguration.InMemoryManagedResourceConfiguration.InMemoryEventConfiguration;
+import com.itworks.snamp.configuration.SerializableAgentConfiguration;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
@@ -80,7 +79,7 @@ import static com.itworks.snamp.internal.Utils.safeCast;
  *         <li>{@link java.math.BigInteger}</li>
  *         <li>{@link java.math.BigDecimal}</li>
  *     </ul>
- *     To support custom type (such as {@link com.itworks.snamp.mapping.Table}, {@link Map} or array) you apply do the following steps:
+ *     To support custom type (such as {@link com.itworks.snamp.mapping.RecordSet}, {@link com.itworks.snamp.mapping.RowSet} or array) you apply do the following steps:
  *     <ul>
  *      <li>Creates your own type system provider that derives from {@link WellKnownTypeSystem}.</li>
  *      <li>Declares public instance parameterless method that have {@link ManagedEntityType} return type in custom type system provider.</li>
@@ -92,7 +91,7 @@ import static com.itworks.snamp.internal.Utils.safeCast;
  * @since 1.0
  * @version 1.0
  */
-public class ManagedResourceConnectorBean extends AbstractManagedResourceConnector<ManagedResourceConnectorBean.ManagedBeanDescriptor<?>>
+public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector<ManagedResourceConnectorBean.ManagedBeanDescriptor<?>>
         implements NotificationSupport, AttributeSupport {
 
     /**
@@ -962,40 +961,36 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
     private final JavaBeanAttributeSupport attributes;
 
     private ManagedResourceConnectorBean(final WellKnownTypeSystem typeBuilder,
-                                         final Collection<? extends ManagementEvent<?>> wellKnownEvents,
-                                         final Logger logger) throws IntrospectionException{
-        super(new SelfDescriptor(), logger);
+                                         final Collection<? extends ManagementEvent<?>> wellKnownEvents) throws IntrospectionException{
+        super(new SelfDescriptor());
         //creates weak reference to this object
         safeCast(getConnectionOptions(), SelfDescriptor.class).setSelfReference(this);
         if (typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
-        this.attributes = new JavaBeanAttributeSupport(getConnectionOptions(), typeBuilder, logger);
-        this.notifications = new JavaBeanNotificationSupport(wellKnownEvents, logger);
+        this.attributes = new JavaBeanAttributeSupport(getConnectionOptions(), typeBuilder, getLogger());
+        this.notifications = new JavaBeanNotificationSupport(wellKnownEvents, getLogger());
     }
 
     /**
      * Initializes a new management connector that reflects properties of this class as
      * connector managementAttributes.
      * @param typeBuilder Type information provider that provides property type converter.
-     * @param logger A logger for this management connector.
      * @throws IllegalArgumentException typeBuilder is {@literal null}.
      */
     protected ManagedResourceConnectorBean(final WellKnownTypeSystem typeBuilder,
                                            final Logger logger) throws IntrospectionException {
-        this(typeBuilder, Collections.<ManagementEvent<?>>emptyList(), logger);
+        this(typeBuilder, Collections.<ManagementEvent<?>>emptyList());
     }
 
     /**
      * Initializes a new management connector that reflects properties of this class as
      * connector managementAttributes.
      * @param typeBuilder Type information provider that provides property type converter.
-     * @param logger A logger for this management connector.
      * @param wellKnownEvents A set of well-known events (notifications).
      * @throws IllegalArgumentException typeBuilder is {@literal null}.
      */
     protected <E extends Enum<E> & ManagementEvent<E>> ManagedResourceConnectorBean(final WellKnownTypeSystem typeBuilder,
-                                                                                    final Set<E> wellKnownEvents,
-                                                                                    final Logger logger) throws IntrospectionException {
-        this(typeBuilder, (Collection<? extends ManagementEvent<?>>) wellKnownEvents, logger);
+                                                                                    final Set<E> wellKnownEvents) throws IntrospectionException {
+        this(typeBuilder, (Collection<? extends ManagementEvent<?>>) wellKnownEvents);
     }
 
     /**
@@ -1009,24 +1004,32 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      */
     protected ManagedResourceConnectorBean(final Object beanInstance,
                                                final BeanIntrospector introspector,
-                                               final WellKnownTypeSystem typeBuilder,
-                                               final Logger logger) throws IntrospectionException {
-        super(new BeanDescriptor<>(beanInstance, introspector), logger);
+                                               final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
+        super(new BeanDescriptor<>(beanInstance, introspector));
         if (typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
-        this.attributes = new JavaBeanAttributeSupport(getConnectionOptions(), typeBuilder, logger);
-        this.notifications = new JavaBeanNotificationSupport(Collections.<ManagementEvent<?>>emptyList(), logger);
+        this.attributes = new JavaBeanAttributeSupport(getConnectionOptions(), typeBuilder, getLogger());
+        this.notifications = new JavaBeanNotificationSupport(Collections.<ManagementEvent<?>>emptyList(), getLogger());
     }
 
     /**
      * Creates SNAMP management connector from the specified Java Bean.
+     * @param connectorName The name of the managed resource connector.
      * @param beanInstance An instance of the Java Bean to wrap.
      * @param typeBuilder Bean property type converter.
      * @param <T> Type of the Java Bean to wrap.
      * @return A new instance of the management connector that wraps the Java Bean.
      * @throws IntrospectionException Cannot reflect the specified instance.
      */
-    public static <T> ManagedResourceConnectorBean wrap(final T beanInstance, final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
-        return new ManagedResourceConnectorBean(beanInstance, new StandardBeanIntrospector(), typeBuilder, Logger.getLogger(getLoggerName("javabean")));
+    public static <T> ManagedResourceConnectorBean wrap(final String connectorName,
+                                                        final T beanInstance,
+                                                        final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
+        return new ManagedResourceConnectorBean(beanInstance, new StandardBeanIntrospector(), typeBuilder){
+
+            @Override
+            public Logger getLogger() {
+                return getLogger(connectorName);
+            }
+        };
     }
 
     /**
@@ -1318,7 +1321,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         final Collection<AttributeConfiguration> config = new ArrayList<>(attributes.length);
         for (final PropertyDescriptor attr : attributes)
             if (JavaBeanPropertyMetadata.isAttribute(attr))
-                config.add(new InMemoryAttributeConfiguration(attr.getName()));
+                config.add(new SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration(attr.getName()));
         return config;
     }
 
@@ -1349,7 +1352,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
     private static <E extends Enum<E> & ManagementEvent<E>> Collection<EventConfiguration> discoverEvents(final Set<E> notificationTypes){
         final Collection<EventConfiguration> result = new ArrayList<>(notificationTypes.size());
         for(final E notif: notificationTypes)
-            result.add(new InMemoryEventConfiguration(notif.getCategory()));
+            result.add(new SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration(notif.getCategory()));
         return result;
     }
 

@@ -2,8 +2,6 @@ package com.itworks.snamp.configuration;
 
 import com.itworks.snamp.core.AbstractFrameworkService;
 
-import java.util.logging.Logger;
-
 /**
  * Represents a base class for constructing configuration manager services.
  * @param <T> Type of the configuration object model implementer.
@@ -16,11 +14,8 @@ public abstract class AbstractConfigurationManager<T extends AgentConfiguration>
 
     /**
      * Initializes a new configuration management service.
-     * @param serviceLogger OSGi logging service wrapped into {@link Logger} instance. Can be obtained
-     *                      from {@link com.itworks.snamp.core.AbstractLoggableServiceLibrary.LoggableProvidedService#getLogger()} method.
      */
-    protected AbstractConfigurationManager(final Logger serviceLogger){
-        super(serviceLogger);
+    protected AbstractConfigurationManager(){
         currentConfiguration = null;
     }
 

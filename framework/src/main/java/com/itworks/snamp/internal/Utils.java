@@ -293,9 +293,17 @@ public final class Utils {
                                        final Class<V> propertyType,
                                        final Supplier<V> defaultValue){
         if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, Suppliers.<V>ofInstance(null));
-        else if(dict == null) return null;
+        else if(dict == null) return defaultValue.get();
         final Object value = dict.get(propertyKey);
         return value != null && propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();
+    }
+
+    public static <K, V> boolean setProperty(final Dictionary<K, ? super V> dict,
+                                     final K propertyKey,
+                                     final V value) {
+        if (dict == null) return false;
+        dict.put(propertyKey, value);
+        return true;
     }
 
     /**
@@ -364,14 +372,15 @@ public final class Utils {
      * @param serviceInvoker The object that implements procession logic.
      * @param <S> The contract of the exposed service.
      * @param <E> Type of the exception that may be occurred in service invoker.
+     * @return {@literal true}, if requested service resolved; otherwise, {@literal false}.
      * @throws InvalidSyntaxException Invalid service selector.
      * @throws E Service invoker internal error.
      */
-    public static <S, E extends Throwable> void processExposedService(final Class<?> caller,
+    public static <S, E extends Throwable> boolean processExposedService(final Class<?> caller,
                                                  final Class<S> serviceType,
                                                  final String filter,
                                                  final Consumer<S, E> serviceInvoker) throws InvalidSyntaxException, E {
-        processExposedService(caller, serviceType, filter == null || filter.isEmpty() ? null : FrameworkUtil.createFilter(filter), serviceInvoker);
+        return processExposedService(caller, serviceType, filter == null || filter.isEmpty() ? null : FrameworkUtil.createFilter(filter), serviceInvoker);
     }
 
     /**
@@ -382,9 +391,10 @@ public final class Utils {
      * @param serviceInvoker The object that implements procession logic.
      * @param <S> The contract of the exposed service.
      * @param <E> Type of the exception that can be thrown by service invoker.
+     * @return {@literal true}, if requested service resolved; otherwise, {@literal false}.
      * @throws E Service invoker internal error.
      */
-    public static <S, E extends Throwable> void processExposedService(final Class<?> caller,
+    public static <S, E extends Throwable> boolean processExposedService(final Class<?> caller,
                                                  final Class<S> serviceType,
                                                  final Filter filter,
                                                  final Consumer<S, E> serviceInvoker) throws E {
@@ -394,9 +404,11 @@ public final class Utils {
             if ((filter == null || filter.match(ref)) && isInstanceOf(ref, serviceType))
                 try {
                     serviceInvoker.accept(serviceType.cast(owner.getBundleContext().getService(ref)));
+                    return true;
                 } finally {
                     owner.getBundleContext().ungetService(ref);
                 }
+        return false;
     }
 
     /**

@@ -13,7 +13,6 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.itworks.snamp.EventBusManager.SubscriptionManager;
 
@@ -39,7 +38,6 @@ final class NotificationSenderServlet extends WebSocketServlet {
     @Internal
     private static final class NotificationSender implements WebSocketListener, JsonNotificationListener{
         private final Gson jsonFormatter;
-        private static final Logger log = RestAdapterHelpers.getLogger();
         private volatile Reference<Session> currentSession;
 
         public NotificationSender(final Gson jsonFormatter){
@@ -88,7 +86,7 @@ final class NotificationSenderServlet extends WebSocketServlet {
          */
         @Override
         public final void onWebSocketError(final Throwable cause) {
-            log.log(Level.WARNING, "WebSocket error occured", cause);
+            RestAdapterHelpers.log(Level.WARNING, "WebSocket error occured", cause);
             onWebSocketClose(StatusCode.SERVER_ERROR, cause.getMessage());
         }
 
@@ -99,7 +97,7 @@ final class NotificationSenderServlet extends WebSocketServlet {
          */
         @Override
         public final void onWebSocketText(final String message) {
-            log.info(String.format("Input text message %s is ignored", message));
+            RestAdapterHelpers.log(Level.INFO, "Input text message %s is ignored", message, null);
         }
 
         /**
@@ -111,7 +109,7 @@ final class NotificationSenderServlet extends WebSocketServlet {
          */
         @Override
         public void onWebSocketBinary(final byte[] payload, final int offset, final int len) {
-            log.info(String.format("Input binary message %s is ignored", Arrays.toString(payload)));
+            RestAdapterHelpers.log(Level.INFO, "Input binary message %s is ignored", Arrays.toString(payload), null);
         }
 
         private static void processNotification(final Session webSocket,

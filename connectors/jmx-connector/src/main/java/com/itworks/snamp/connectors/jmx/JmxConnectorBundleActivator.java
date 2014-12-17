@@ -36,10 +36,8 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 public final class JmxConnectorBundleActivator extends AbstractManagedResourceActivator<JmxConnector> {
 
     private static final class JmxMaintenanceService extends AbstractAggregator implements Maintainable{
-        private final Logger logger;
 
-        public JmxMaintenanceService(final Logger l){
-            this.logger = l;
+        private JmxMaintenanceService(){
         }
 
         /**
@@ -107,9 +105,8 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
          * @return The logger associated with this service.
          */
         @Override
-        @Aggregation
         public Logger getLogger() {
-            return logger;
+            return JmxConnector.getLoggerImpl();
         }
     }
 
@@ -117,7 +114,7 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
 
         @Override
         protected JmxMaintenanceService createMaintenanceService(final RequiredService<?>... dependencies) throws Exception {
-            return new JmxMaintenanceService(getLogger());
+            return new JmxMaintenanceService();
         }
     }
 
@@ -177,6 +174,16 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
                                                                                            final RequiredService<?>... dependencies) throws JMException, IOException {
                     return JmxDiscoveryService.discover(connection, entityType);
                 }
+
+                /**
+                 * Gets logger associated with discovery service.
+                 *
+                 * @return The logger associated with discovery service.
+                 */
+                @Override
+                protected Logger getLogger() {
+                    return JmxConnector.getLoggerImpl();
+                }
             };
         }
 
@@ -204,7 +211,7 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
                 result = new JmxConnectorManager(resourceName);
             }
             catch (final LicensingException e){
-                JmxConnectorHelpers.getLogger().log(Level.SEVERE, String.format("The limit of instances is reached: %s. Unable to connect %s managed resource.", instances, resourceName), e);
+                JmxConnectorHelpers.log(Level.SEVERE, "The limit of instances is reached: %s. Unable to connect %s managed resource.", instances, resourceName, e);
             }
             return result;
         }
@@ -216,8 +223,7 @@ public final class JmxConnectorBundleActivator extends AbstractManagedResourceAc
     @SuppressWarnings("UnusedDeclaration")
     public JmxConnectorBundleActivator() {
         super(JmxConnector.NAME,
-                new ProvidedJmxConnectors(),
-                JmxConnectorHelpers.getLogger());
+                new ProvidedJmxConnectors());
     }
 
     /**
