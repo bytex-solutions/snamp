@@ -1,10 +1,16 @@
 package com.itworks.snamp.configuration;
 
+import com.itworks.snamp.Consumer;
+import com.itworks.snamp.SafeConsumer;
+import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.internal.Utils;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents an abstract configuration manager which persistence is based on streams.
@@ -37,6 +43,12 @@ public abstract class StreamedConfigurationManager<T extends AgentConfiguration>
      */
     protected abstract OutputStream openOutputStream() throws IOException;
 
+    private <E extends Exception> void withLogger(final Consumer<Logger, E> consumer) throws E {
+        try (final OsgiLoggingContext logger = OsgiLoggingContext.get(getLogger(), Utils.getBundleContextByObject(this))) {
+            consumer.accept(logger);
+        }
+    }
+
     /**
      * Creates a new instance of the agent configuration and initializes its state
      * from the underlying persistent storage.
@@ -50,11 +62,21 @@ public abstract class StreamedConfigurationManager<T extends AgentConfiguration>
             newInstance.load(is);
         }
         catch(final FileNotFoundException e){ //just re-create stream with empty config
-            getLogger().log(Level.INFO, "SNAMP configuration is missing. Blank configuration is created.", e);
+            withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    logger.log(Level.INFO, "SNAMP configuration is missing. Blank configuration is created.", e);
+                }
+            });
             save(newInstance);
         }
         catch (final IOException e){
-            getLogger().log(Level.SEVERE, "Unable to read SNAMP configuration", e);
+            withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    logger.log(Level.SEVERE, "Unable to read SNAMP configuration", e);
+                }
+            });
         }
         return newInstance;
     }
@@ -70,7 +92,12 @@ public abstract class StreamedConfigurationManager<T extends AgentConfiguration>
             currentConfig.save(os);
         }
         catch(final IOException e){
-            getLogger().log(Level.SEVERE, "Unable to store SNAMP configuration", e);
+            withLogger(new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    logger.log(Level.SEVERE, "Unable to store SNAMP configuration", e);
+                }
+            });
         }
     }
 

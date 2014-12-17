@@ -263,7 +263,8 @@ public class OsgiLoggingContext extends Logger implements AutoCloseable {
     @Override
     public final void log(final LogRecord record) {
         logger.log(record);
-        if (getFilter().isLoggable(record) && isLoggable(record.getLevel()))
+        final Filter theFilter = getFilter();
+        if (theFilter == null || theFilter.isLoggable(record) && isLoggable(record.getLevel()))
             service.log(transformLogLevel(record.getLevel()),
                     transformRecord(record),
                     record.getThrown());
@@ -361,6 +362,18 @@ public class OsgiLoggingContext extends Logger implements AutoCloseable {
 
     public static <E extends Exception> void within(final String loggerName,
                                                     final Consumer<Logger, E> contextBody) throws E{
-        within(Logger.getLogger(loggerName), contextBody);
+        within(getLogger(loggerName), contextBody);
+    }
+
+    public static OsgiLoggingContext getAnonymousLogger(final BundleContext context){
+        return get(getAnonymousLogger(), context);
+    }
+
+    public static OsgiLoggingContext getLogger(final String loggerName, final BundleContext context){
+        return get(getLogger(loggerName), context);
+    }
+
+    public static OsgiLoggingContext getGlobal(final BundleContext context){
+        return get(getGlobal(), context);
     }
 }
