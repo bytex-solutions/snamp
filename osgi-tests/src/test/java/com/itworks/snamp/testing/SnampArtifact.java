@@ -11,7 +11,6 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  */
 public enum SnampArtifact {
     CORLIB("framework", "1.0.0"),
-    CONFIG_BUNDLE("config-bundle", "1.0.0"),
     LICENSING_BUNDLE("licensing-bundle", "1.0.0"),
     JMX_CONNECTOR("jmx-connector", "1.0.0"),
     SNMP4J("snmp4j", "2.2.3"),
@@ -38,7 +37,6 @@ public enum SnampArtifact {
 
     public static final SnampArtifact[] BASIC_SET = new SnampArtifact[]{
         CORLIB,
-        CONFIG_BUNDLE,
         LICENSING_BUNDLE
     };
 

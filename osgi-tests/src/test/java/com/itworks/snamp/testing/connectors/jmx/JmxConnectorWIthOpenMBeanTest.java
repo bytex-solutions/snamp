@@ -2,8 +2,10 @@ package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
-import com.itworks.snamp.*;
+import com.itworks.snamp.SynchronizationEvent;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
+import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
@@ -17,12 +19,14 @@ import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -44,6 +48,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     public JmxConnectorWIthOpenMBeanTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
+
 
     @Override
     protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
@@ -211,7 +216,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void testForTableProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public final void testForTableProperty() throws Exception {
         RowSet<Object> table = RecordSetUtils.emptyRowSet("col1", "col2", "col3");
         table = RecordSetUtils.addRow(table, new HashMap<String, Object>(3){{
             put("col1", true);
@@ -233,7 +238,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void testForDictionaryProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public final void testForDictionaryProperty() throws Exception {
         final Map<String, Object> dict = ImmutableMap.<String, Object>of("col1", Boolean.TRUE,
         "col2", 42,
         "col3", "Frank Underwood");
@@ -251,39 +256,63 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void testForArrayProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public final void testForArrayProperty() throws Exception {
         final Object[] array = new Short[]{10, 20, 30, 40, 50};
         testAttribute("5.1", "array", TypeLiterals.OBJECT_ARRAY, array, arrayEquator());
     }
 
     @Test
-    public final void testForDateProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public final void testForDateProperty() throws Exception {
         testAttribute("9.0", "date", TypeLiterals.DATE, new Date());
     }
 
     @Test
-    public final void testForFloatProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public final void testForFloatProperty() throws Exception {
         testAttribute("8.0", "float", TypeLiterals.FLOAT, 3.14F);
     }
 
     @Test
-    public final void testForBigIntProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public final void testForBigIntProperty() throws Exception {
         testAttribute("4.0", "bigint", TypeLiterals.BIG_INTEGER, BigInteger.valueOf(100500));
     }
 
     @Test
-    public final void testForInt32Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public final void testForInt32Property() throws Exception {
         testAttribute("3.0", "int32", TypeLiterals.INTEGER, 42);
     }
 
     @Test
-    public final void testForBooleanProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public final void testForBooleanProperty() throws Exception {
         testAttribute("2.0", "boolean", TypeLiterals.BOOLEAN, Boolean.TRUE);
     }
 
     @Test
-    public final void testForStringProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public final void testForStringProperty() throws Exception {
         testAttribute("1.0", "string", TypeLiterals.STRING, "Frank Underwood");
+    }
+
+    @Test
+    public void testForResourceConnectorListener() throws BundleException, TimeoutException, InterruptedException {
+        final BundleContext context = getTestBundleContext();
+        final SynchronizationEvent<Boolean> unregistered = new SynchronizationEvent<>(false);
+        final SynchronizationEvent<Boolean> registered = new SynchronizationEvent<>(false);
+        ManagedResourceConnectorClient.addResourceListener(context, new ServiceListener() {
+            @Override
+            public void serviceChanged(final ServiceEvent event) {
+                switch (event.getType()){
+                    case ServiceEvent.UNREGISTERING:
+                        unregistered.fire(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
+                        return;
+                    case ServiceEvent.REGISTERED:
+                        registered.fire(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
+                        return;
+                }
+            }
+        });
+        stopResourceConnector(context);
+        startResourceConnector(context);
+        assertTrue(unregistered.getAwaitor().await(TimeSpan.fromSeconds(2)));
+        assertTrue(registered.getAwaitor().await(TimeSpan.fromSeconds(2)));
     }
 
     @Test

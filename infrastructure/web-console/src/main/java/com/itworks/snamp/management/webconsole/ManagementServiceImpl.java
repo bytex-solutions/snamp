@@ -12,10 +12,10 @@ import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfigu
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.itworks.snamp.configuration.ConfigurationManager;
+import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
-import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
+import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.internal.TransformerClosure;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicenseReader;
@@ -43,15 +43,15 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 public final class ManagementServiceImpl {
     private static final String CONNECTION_STRING_QUERY_PARAM = "connectionString";
     private static final String LOCALE_QUERY_PARAM = "locale";
-    private final ConfigurationManager configManager;
+    private final PersistentConfigurationManager configManager;
     private final SnampManager snampManager;
     private final Gson jsonFormatter;
     private final JsonParser jsonParser;
 
-    public ManagementServiceImpl(final ConfigurationManager configManager,
+    ManagementServiceImpl(final PersistentConfigurationManager configManager,
                                  final SnampManager snampManager){
-        this.configManager = configManager;
-        this.snampManager = snampManager;
+        this.configManager = Objects.requireNonNull(configManager);
+        this.snampManager = Objects.requireNonNull(snampManager);
         jsonFormatter = new Gson();
         jsonParser = new JsonParser();
     }
@@ -63,7 +63,13 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/configuration")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getConfiguration() {
+    public String getConfiguration() throws WebApplicationException{
+        try {
+            configManager.load();
+        }
+        catch (final IOException e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
         return jsonFormatter.toJson(JsonAgentConfiguration.read(configManager.getCurrentConfiguration()));
     }
 
@@ -75,10 +81,15 @@ public final class ManagementServiceImpl {
     @POST
     @Path("/configuration")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void setConfiguration(final String value, @Context final SecurityContext context) {
+    public void setConfiguration(final String value,
+                                 @Context final SecurityContext context) throws WebApplicationException{
         SecurityUtils.adminRequired(context);
         JsonAgentConfiguration.write(jsonParser.parse(value), configManager.getCurrentConfiguration());
-        configManager.sync();
+        try {
+            configManager.save();
+        } catch (final IOException e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
     }
 
     private static void restart(final BundleContext context) throws BundleException {
@@ -111,7 +122,7 @@ public final class ManagementServiceImpl {
      * Gets path to the SNAMP license file.
      * @return A path to the SNAMP license file.
      */
-    public static String getLicenseFile(){
+    static String getLicenseFile(){
         return System.getProperty(LicenseReader.LICENSE_FILE_PROPERTY, "./snamp.lic");
     }
 

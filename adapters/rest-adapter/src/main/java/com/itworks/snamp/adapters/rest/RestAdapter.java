@@ -4,10 +4,9 @@ import com.google.common.base.Supplier;
 import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.itworks.snamp.Box;
 import com.itworks.snamp.EventBusManager;
+import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.adapters.AbstractConcurrentResourceAdapter;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.configuration.ThreadPoolConfig;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
@@ -29,9 +28,7 @@ import org.eclipse.jetty.util.thread.ExecutorThreadPool;
 import org.osgi.service.event.EventHandler;
 
 import java.text.DateFormat;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -198,14 +195,14 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
     private final int webSocketTimeout;
     private final HttpNotifications notifications;
 
-    public RestAdapter(final int port,
+    RestAdapter(final String adapterInstance,
+                    final int port,
                        final String host,
                        final String loginModuleName,
                        final String dateFormat,
                        final int webSocketTimeout,
-                       final ThreadPoolConfig threadPoolConfig,
-                       final Map<String, ManagedResourceConfiguration> resources){
-        super(threadPoolConfig, resources);
+                       final ThreadPoolConfig threadPoolConfig){
+        super(adapterInstance, threadPoolConfig);
         this.serverFactory = new JettyServerBuilder(host, port);
         this.loginModuleName = loginModuleName;
         this.webSocketTimeout = webSocketTimeout;
@@ -237,7 +234,7 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
      * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
      */
     @Override
-    protected boolean start(final ExecutorService threadPool) {
+    protected void start(final ExecutorService threadPool) throws Exception{
         serverFactory.setThreadPool(threadPool);
         jettyServer = serverFactory.get();
         final boolean securityEnabled = loginModuleName != null && loginModuleName.length() > 0;
@@ -274,20 +271,13 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
         jettyServer.setHandler(resourcesHandler);
         populateModel(attributes);
         populateModel(notifications);
-        final Box<Boolean> result = new Box<>(false);
-        Utils.withContextClassLoader(getClass().getClassLoader(),  new Runnable() {
+        Utils.withContextClassLoader(getClass().getClassLoader(), new ExceptionalCallable<Void, Exception>() {
             @Override
-            public void run() {
-                try {
-                    jettyServer.start();
-                    result.set(true);
-                }
-                catch (final Exception e) {
-                    failedToStartAdapter(Level.SEVERE, e);
-                }
+            public Void call() throws Exception {
+                jettyServer.start();
+                return null;
             }
         });
-        return result.get();
     }
 
     /**
@@ -305,15 +295,11 @@ final class RestAdapter extends AbstractConcurrentResourceAdapter {
      * @param threadPool The thread pool used by Web server.
      */
     @Override
-    protected void stop(final ExecutorService threadPool) {
+    protected void stop(final ExecutorService threadPool) throws Exception{
         try {
             jettyServer.stop();
         }
-        catch (final Exception e) {
-            failedToStopAdapter(Level.SEVERE, e);
-        }
         finally {
-            threadPool.shutdownNow();
             jettyServer.setHandler(null);
             serverFactory.setThreadPool(null);
             clearModel(attributes);

@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.ssh;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
-import com.itworks.snamp.configuration.AgentConfiguration;
 import net.schmizz.sshj.userauth.keyprovider.*;
 
 import java.io.File;
@@ -43,7 +42,6 @@ public final class SshAdapterActivator extends AbstractResourceAdapterActivator<
      * Initializes a new instance of the resource adapter.
      *
      * @param parameters   A collection of initialization parameters.
-     * @param resources    A collection of managed resources to be exposed via adapter.
      * @param dependencies A collection of dependencies used by adapter.
      * @return A new instance of the adapter.
      * @throws Exception Unable to instantiate resource adapter.
@@ -51,7 +49,7 @@ public final class SshAdapterActivator extends AbstractResourceAdapterActivator<
     @Override
     protected SshAdapter createAdapter(final String adapterInstanceName,
                                         final Map<String, String> parameters,
-                                       final Map<String, AgentConfiguration.ManagedResourceConfiguration> resources, final RequiredService<?>... dependencies) throws Exception {
+                                        final RequiredService<?>... dependencies) throws Exception {
         final String host = parameters.containsKey(HOST_PARAM) ?
                 parameters.get(HOST_PARAM) :
                 DEFAULT_HOST;
@@ -61,11 +59,12 @@ public final class SshAdapterActivator extends AbstractResourceAdapterActivator<
         final String certificateFile = parameters.containsKey(CERTIFICATE_FILE_PARAM) ?
                 parameters.get(CERTIFICATE_FILE_PARAM) :
                 DEFAULT_CERTIFICATE;
-        return new SshAdapter(host,
+        return new SshAdapter(
+                adapterInstanceName,
+                host,
                 port,
                 certificateFile,
-                createSecuritySettings(parameters),
-                resources);
+                createSecuritySettings(parameters));
     }
 
     private static SshSecuritySettings createSecuritySettings(final Map<String, String> parameters){

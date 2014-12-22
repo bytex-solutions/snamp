@@ -3,7 +3,6 @@ package com.itworks.snamp.adapters.snmp;
 import com.google.common.base.Supplier;
 import com.google.common.eventbus.EventBus;
 import com.itworks.snamp.adapters.AbstractConcurrentResourceAdapter;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.ManagedEntityValue;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
@@ -16,7 +15,6 @@ import org.snmp4j.smi.TransportIpAddress;
 import org.snmp4j.smi.UdpAddress;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -200,19 +198,13 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
     private final SnmpAttributesModel attributes;
     private final SnmpNotificationsModel notifications;
 
-    /**
-     * Initializes a new resource adapter.
-     *
-     * @param resources A collection of managed resources to be exposed in protocol-specific manner
-     *                  to the outside world.
-     */
-    SnmpResourceAdapter(final int port,
+    SnmpResourceAdapter(    final String adapterInstanceName,
+                            final int port,
                                   final String hostName,
                                   final SecurityConfiguration securityOptions,
                                   final int socketTimeout,
-                                  final Supplier<ExecutorService> threadPoolFactory,
-                                  final Map<String, ManagedResourceConfiguration> resources) throws IOException {
-        super(threadPoolFactory, resources);
+                                  final Supplier<ExecutorService> threadPoolFactory) throws IOException {
+        super(adapterInstanceName, threadPoolFactory);
         agent = new SnmpAgent(port, hostName, securityOptions, socketTimeout);
         attributes = new SnmpAttributesModel();
         notifications = new SnmpNotificationsModel();
@@ -223,20 +215,14 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
      * <p>
      * This method will be called by SNAMP infrastructure automatically.
      * </p>
-     *
-     * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
+     * @throws java.lang.Exception Internal adapter error.
      */
     @Override
-    protected boolean start(final ExecutorService threadPool) {
-        try {
-            populateModel(attributes);
-            populateModel(notifications);
-            notifications.subscribe(agent);
-            return agent.start(attributes.values(), notifications.values(), threadPool);
-        } catch (final IOException e) {
-            failedToStartAdapter(Level.SEVERE, e);
-            return false;
-        }
+    protected void start(final ExecutorService threadPool) throws Exception {
+        populateModel(attributes);
+        populateModel(notifications);
+        notifications.subscribe(agent);
+        agent.start(attributes.values(), notifications.values(), threadPool);
     }
 
     /**
@@ -246,16 +232,13 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
      * </p>
      */
     @Override
-    protected void stop(final ExecutorService threadPool) {
+    protected void stop(final ExecutorService threadPool) throws Exception {
+        notifications.unsubscribe(agent);
         try {
-            notifications.unsubscribe(agent);
             agent.stop();
+        } finally {
             clearModel(attributes);
             clearModel(notifications);
-        } catch (final Exception e) {
-            failedToStopAdapter(Level.SEVERE, e);
-        } finally {
-            threadPool.shutdownNow();
             notifications.close();
         }
         System.gc();

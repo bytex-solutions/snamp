@@ -7,6 +7,7 @@ package com.itworks.snamp.management.webconsole;
  */
 
 import com.itworks.snamp.configuration.ConfigurationManager;
+import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.management.SnampManager;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
@@ -28,7 +29,7 @@ final class ManagementServlet extends ServletContainer {
     /**
      * Initializes a new instance of the rest service.
      */
-    public ManagementServlet(final ConfigurationManager configManager,
+    public ManagementServlet(final PersistentConfigurationManager configManager,
                              final SnampManager snampManager){
         super(createResourceConfig(new ManagementServiceImpl(configManager, snampManager)));
     }

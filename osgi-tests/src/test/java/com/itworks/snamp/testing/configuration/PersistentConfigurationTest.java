@@ -1,10 +1,9 @@
 package com.itworks.snamp.testing.configuration;
 
 import com.itworks.snamp.ExceptionPlaceholder;
-import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.configuration.ConfigurationManager;
-import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.ServiceReferenceHolder;
+import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.mapping.RecordReader;
 import com.itworks.snamp.testing.AbstractIntegrationTest;
 import com.itworks.snamp.testing.SnampArtifact;
@@ -31,8 +30,8 @@ public class PersistentConfigurationTest extends AbstractIntegrationTest {
     public void configurationTest() throws Exception {
         final ServiceReferenceHolder<ConfigurationAdmin> admin = new ServiceReferenceHolder<>(getTestBundleContext(), ConfigurationAdmin.class);
         try{
-            final ConfigurationManager manager = new PersistentConfigurationManager(admin);
-            manager.reload();
+            final PersistentConfigurationManager manager = new PersistentConfigurationManager(admin);
+            manager.load();
             AgentConfiguration currentConfig = manager.getCurrentConfiguration();
             assertNotNull(currentConfig);
             assertEquals(0, currentConfig.getResourceAdapters().size());
@@ -53,8 +52,8 @@ public class PersistentConfigurationTest extends AbstractIntegrationTest {
             resource.getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class).put("attr1", attr);
             currentConfig.getManagedResources().put("resource1", resource);
             //save and reload again
-            manager.sync();
-            manager.reload();
+            manager.save();
+            manager.load();
             currentConfig = manager.getCurrentConfiguration();
             assertEquals(1, currentConfig.getResourceAdapters().size());
             assertEquals(1, currentConfig.getManagedResources().size());
@@ -62,11 +61,12 @@ public class PersistentConfigurationTest extends AbstractIntegrationTest {
             assertTrue(currentConfig.getManagedResources().containsKey("resource1"));
             assertEquals("value", currentConfig.getResourceAdapters().get("adapter1").getParameters().get("param1"));
             assertEquals("value2", currentConfig.getManagedResources().get("resource1").getParameters().get("param2"));
+            assertNotNull(currentConfig.getManagedResources().get("resource1").getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class).get("attr1"));
             //delete managed resource
             currentConfig.getManagedResources().remove("resource1");
             assertEquals(0, currentConfig.getManagedResources().size());
-            manager.sync();
-            manager.reload();
+            manager.save();
+            manager.load();
             currentConfig = manager.getCurrentConfiguration();
             assertEquals(1, currentConfig.getResourceAdapters().size());
             assertEquals(0, currentConfig.getManagedResources().size());

@@ -2,9 +2,11 @@ package com.itworks.snamp.connectors;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.configuration.*;
 import com.itworks.snamp.connectors.discovery.AbstractDiscoveryService;
@@ -20,7 +22,9 @@ import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
+import com.itworks.snamp.mapping.RecordReader;
 import org.osgi.framework.*;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.event.EventAdmin;
 
 import java.lang.ref.Reference;
@@ -54,30 +58,21 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      * </p>
      */
     public static final String CONNECTOR_NAME_MANIFEST_HEADER = "SNAMP-Resource-Connector";
-    private static final String MGMT_MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY = "managedResource";
+    private static final String MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY = "managedResource";
     private static final String CONNECTOR_STRING_IDENTITY_PROPERTY = "connectionString";
     private static final String CONNECTOR_TYPE_IDENTITY_PROPERTY = CONNECTOR_NAME_MANIFEST_HEADER;
 
-    private static final ActivationProperty<CompliantResources> COMPLIANT_RESOURCES_HOLDER = defineActivationProperty(CompliantResources.class, CompliantResources.EMPTY);
+    private static final ActivationProperty<CompliantResources> COMPLIANT_RESOURCES_HOLDER = defineActivationProperty(CompliantResources.class);
     private static final ActivationProperty<String> CONNECTOR_NAME_HOLDER = defineActivationProperty(String.class);
 
     private static final class CompliantResources extends HashMap<String, ManagedResourceConfiguration>{
-
-        private CompliantResources(){
-
-        }
-
-        public static final CompliantResources EMPTY = new CompliantResources();
-
-        public CompliantResources(final String connectorName, final AgentConfiguration configuration){
-            this(connectorName, configuration.getManagedResources());
-        }
-
-        public CompliantResources(final String connectorName, final Map<String, AgentConfiguration.ManagedResourceConfiguration> targets){
-            super(targets.size());
-            for(final Map.Entry<String, ManagedResourceConfiguration> entry: targets.entrySet())
-                if(Objects.equals(connectorName, entry.getValue().getConnectionType()))
-                    put(entry.getKey(), entry.getValue());
+        private CompliantResources(final ConfigurationAdmin admin, final String connectorType) throws Exception{
+            PersistentConfigurationManager.findResourcesByType(admin, connectorType, new RecordReader<String, ManagedResourceConfiguration, ExceptionPlaceholder>() {
+                @Override
+                public void read(final String resource, final ManagedResourceConfiguration config) {
+                    put(resource, config);
+                }
+            });
         }
     }
 
@@ -307,7 +302,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
          */
         @Override
         @MethodStub
-        protected final void cleanupService(final AbstractDiscoveryService<TProvider> serviceInstance, final boolean stopBundle) throws Exception {
+        protected final void cleanupService(final AbstractDiscoveryService<TProvider> serviceInstance, final boolean stopBundle) {
             //do nothing
         }
     }
@@ -535,8 +530,8 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
             //iterates through each compliant target and instantiate manager for each resource connector
             final Map<String, ManagedResourceConfiguration> resources = activationProperties.getValue(COMPLIANT_RESOURCES_HOLDER);
             int instanceCount = 0;
-            for(final String targetName: resources != null ? resources.keySet() : Collections.<String>emptySet()) {
-                final ManagedResourceConnectorManager<TConnectorImpl> provider = createConnectorManager(targetName, instanceCount, Arrays.asList(bundleLevelDependencies), activationProperties);
+            for(final String resourceName: resources != null ? resources.keySet() : Collections.<String>emptySet()) {
+                final ManagedResourceConnectorManager<TConnectorImpl> provider = createConnectorManager(resourceName, instanceCount, ImmutableList.copyOf(bundleLevelDependencies), activationProperties);
                 if(provider != null)
                     services.add(provider);
             }
@@ -766,7 +761,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     public static void createIdentity(final String resourceName,
                                       final ManagedResourceConfiguration config,
                                       final Map<String, Object> identity){
-        identity.put(MGMT_MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
+        identity.put(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
         identity.put(CONNECTOR_TYPE_IDENTITY_PROPERTY, config.getConnectionType());
         identity.put(CONNECTOR_STRING_IDENTITY_PROPERTY, config.getConnectionString());
         identity.put(Constants.SERVICE_PID, PersistentConfigurationManager.getResourcePersistentID(resourceName));
@@ -790,11 +785,10 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     /**
      * Initializes the library.
      * @param bundleLevelDependencies A collection of library-level dependencies to fill.
-     * @throws Exception An error occurred during bundle initialization.
      */
     @Override
-    protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-        bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationManager.class));
+    protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
+        bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
         addDependencies(bundleLevelDependencies);
     }
 
@@ -806,8 +800,8 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      */
     @Override
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
-        final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
-        activationProperties.publish(COMPLIANT_RESOURCES_HOLDER, new CompliantResources(connectorName, configManager.getCurrentConfiguration()));
+        final ConfigurationAdmin configManager = getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies);
+        activationProperties.publish(COMPLIANT_RESOURCES_HOLDER, new CompliantResources(configManager, connectorName));
         activationProperties.publish(CONNECTOR_NAME_HOLDER, connectorName);
     }
 
@@ -831,8 +825,8 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      */
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try (final OsgiLoggingContext context = getLoggingContext()) {
-            context.log(Level.SEVERE, String.format("Unable to instantiate %s connector", connectorName), e);
+        try (final OsgiLoggingContext logger = getLoggingContext()) {
+            logger.log(Level.SEVERE, String.format("Unable to instantiate %s connector", connectorName), e);
         }
     }
 
@@ -845,8 +839,8 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try (final OsgiLoggingContext context = getLoggingContext()) {
-            context.log(Level.SEVERE, String.format("Unable to release %s connector instance", connectorName), e);
+        try (final OsgiLoggingContext logger = getLoggingContext()) {
+            logger.log(Level.SEVERE, String.format("Unable to release %s connector instance", connectorName), e);
         }
     }
 
@@ -907,7 +901,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
 
     static String getManagedResourceName(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
         return connectorRef != null ?
-                Objects.toString(connectorRef.getProperty(MGMT_MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY), ""):
+                Objects.toString(connectorRef.getProperty(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY), ""):
                 "";
     }
 
@@ -1007,4 +1001,10 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
                 String.format("(%s=%s)", CONNECTOR_TYPE_IDENTITY_PROPERTY, connectorType):
                 String.format("(&(%s=%s)%s)", CONNECTOR_TYPE_IDENTITY_PROPERTY, connectorType, filter);
     }
+
+    static String createFilter(final String resourceName){
+        return String.format("(%s=%s)", MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
+    }
+
+
 }

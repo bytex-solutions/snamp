@@ -168,9 +168,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         }
     }
 
-    private static <E extends Exception> void forEachAdapter(final ConfigurationAdmin admin,
-                                                             final String filter,
-                                                             final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
+    private static <E extends Exception> void forEachAdapterImpl(final ConfigurationAdmin admin,
+                                                                 final String filter,
+                                                                 final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
         final Configuration[] configs = admin.listConfigurations(filter);
         if(configs != null && configs.length > 0)
             for(final Configuration config: configs) {
@@ -181,14 +181,14 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             }
     }
 
-    private static <E extends Exception> void forEachAdapter(final ConfigurationAdmin admin,
-                                                             final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
-        forEachAdapter(admin, ALL_ADAPTERS_QUERY, reader);
+    private static <E extends Exception> void forEachAdapterImpl(final ConfigurationAdmin admin,
+                                                                 final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
+        forEachAdapterImpl(admin, ALL_ADAPTERS_QUERY, reader);
     }
 
     private static void readAdapters(final ConfigurationAdmin admin,
                                      final Map<String, ResourceAdapterConfiguration> output) throws IOException, InvalidSyntaxException {
-        forEachAdapter(admin, new RecordReader<String, Configuration, IOException>() {
+        forEachAdapterImpl(admin, new RecordReader<String, Configuration, IOException>() {
             @Override
             public void read(final String adapterInstance, final Configuration config) throws IOException {
                 output.put(adapterInstance, readAdapterConfiguration(config));
@@ -224,6 +224,18 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             catch (final ClassNotFoundException e){
                 throw new IOException(e);
             }
+        //deserialize parameters
+        content = Utils.getProperty(config, PARAMS_PROPERTY, byte[].class, (byte[])null);
+        if(content != null && content.length > 0)
+            try(final ByteArrayInputStream stream = new ByteArrayInputStream(content);
+                final ObjectInputStream deserializer = new ObjectInputStream(stream)){
+                final Map<String, String> params = TypeLiterals.safeCast(deserializer.readObject(), PARAMS_MAP_TYPE);
+                if(params != null)
+                    result.setParameters(params);
+            }
+            catch (final ClassNotFoundException e){
+                throw new IOException(e);
+            }
         result.reset();
         return result;
     }
@@ -236,9 +248,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         }
     }
 
-    private static <E extends Exception> void forEachResource(final ConfigurationAdmin admin,
-                                                              final String resourceFilter,
-                                                              final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
+    private static <E extends Exception> void forEachResourceImpl(final ConfigurationAdmin admin,
+                                                                  final String resourceFilter,
+                                                                  final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
         final Configuration[] configs = admin.listConfigurations(resourceFilter);
         if (configs != null && configs.length > 0)
             for (final Configuration config : configs) {
@@ -249,14 +261,24 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             }
     }
 
-    private static <E extends Exception> void forEachResource(final ConfigurationAdmin admin,
-                                                             final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
-        forEachResource(admin, ALL_CONNECTORS_QUERY, reader);
+    private static <E extends Exception> void forEachResourceImpl(final ConfigurationAdmin admin,
+                                                                  final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
+        forEachResourceImpl(admin, ALL_CONNECTORS_QUERY, reader);
+    }
+
+    public static void forEachResource(final ConfigurationAdmin admin,
+                                     final RecordReader<String, ManagedResourceConfiguration, ? extends Exception> reader) throws Exception{
+        forEachResourceImpl(admin, new RecordReader<String, Configuration, Exception>() {
+            @Override
+            public void read(final String index, final Configuration value) throws Exception {
+                reader.read(index, readResourceConfiguration(value));
+            }
+        });
     }
 
     private static void readResources(final ConfigurationAdmin admin,
                                       final Map<String, ManagedResourceConfiguration> output) throws IOException, InvalidSyntaxException {
-        forEachResource(admin, new RecordReader<String, Configuration, IOException>() {
+        forEachResourceImpl(admin, new RecordReader<String, Configuration, IOException>() {
             @Override
             public void read(final String resourceName, final Configuration config) throws IOException {
                 output.put(resourceName, readResourceConfiguration(config));
@@ -312,6 +334,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         Utils.setProperty(result, CONNECTOR_TYPE_PROPERTY, resource.getConnectionType());
         Utils.setProperty(result, CONNECTION_STRING_PROPERTY, resource.getConnectionString());
         final Map<String, AttributeConfiguration> attributes = resource.getElements(AttributeConfiguration.class);
+        //serialize attributes
         if (attributes != null)
             try (final ByteArrayOutputStream os = new ByteArrayOutputStream(1024);
                  final ObjectOutputStream serializer = new ObjectOutputStream(os)) {
@@ -320,13 +343,20 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                 Utils.setProperty(result, ATTRIBUTES_PROPERTY, os.toByteArray());
             }
         final Map<String, EventConfiguration> events = resource.getElements(EventConfiguration.class);
+        //serialize events
         if (events != null)
             try (final ByteArrayOutputStream os = new ByteArrayOutputStream(1024);
                  final ObjectOutputStream serializer = new ObjectOutputStream(os)) {
-                serializer.writeObject(attributes);
+                serializer.writeObject(events);
                 serializer.flush();
                 Utils.setProperty(result, EVENTS_PROPERTY, os.toByteArray());
             }
+        try(final ByteArrayOutputStream os = new ByteArrayOutputStream(1024);
+            final ObjectOutputStream serializer = new ObjectOutputStream(os)){
+            serializer.writeObject(resource.getParameters());
+            serializer.flush();
+            Utils.setProperty(result, PARAMS_PROPERTY, os.toByteArray());
+        }
         return result;
     }
 
@@ -346,7 +376,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     public static void save(final SerializableAgentConfiguration config, final ConfigurationAdmin output) throws IOException{
         try {
             //remove all unnecessary resources
-            forEachResource(output, new RecordReader<String, Configuration, IOException>() {
+            forEachResourceImpl(output, new RecordReader<String, Configuration, IOException>() {
                 private final Map<String, ManagedResourceConfiguration> resources = config.getManagedResources();
 
                 @Override
@@ -356,12 +386,12 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                 }
             });
             //remove all unnecessary adapters
-            forEachAdapter(output, new RecordReader<String, Configuration, IOException>() {
+            forEachAdapterImpl(output, new RecordReader<String, Configuration, IOException>() {
                 private final Map<String, ResourceAdapterConfiguration> adapters = config.getResourceAdapters();
 
                 @Override
                 public void read(final String adapterInstance, final Configuration config) throws IOException {
-                    if(!adapters.containsKey(adapterInstance))
+                    if (!adapters.containsKey(adapterInstance))
                         config.delete();
                 }
             });
@@ -396,7 +426,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     public static void findResourcesByType(final ConfigurationAdmin admin,
                                            final String connectorType,
                                            final RecordReader<String, ManagedResourceConfiguration, ? extends Exception> reader) throws Exception {
-        forEachResource(admin, String.format("(&(%s=%s)(%s=%s))", CONNECTOR_TYPE_PROPERTY, connectorType,
+        forEachResourceImpl(admin, String.format("(&(%s=%s)(%s=%s))", CONNECTOR_TYPE_PROPERTY, connectorType,
                         Constants.SERVICE_PID, String.format(CONNECTOR_PID_TEMPLATE, "*")),
                 new RecordReader<String, Configuration, Exception>() {
                     @Override
@@ -416,7 +446,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     public static void findAdaptersByName(final ConfigurationAdmin admin,
                                           final String adapterName,
                                           final RecordReader<String, ResourceAdapterConfiguration, ? extends Exception> reader) throws Exception {
-        forEachAdapter(admin, String.format("(&(%s=%s)(%s=%s))", ADAPTER_NAME_PROPERTY, adapterName,
+        forEachAdapterImpl(admin, String.format("(&(%s=%s)(%s=%s))", ADAPTER_NAME_PROPERTY, adapterName,
                         Constants.SERVICE_PID, String.format(ADAPTER_PID_TEMPLATE, "*")),
                 new RecordReader<String, Configuration, Exception>() {
                     @Override

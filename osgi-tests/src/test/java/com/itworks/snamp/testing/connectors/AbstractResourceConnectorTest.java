@@ -228,7 +228,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final TypeToken<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator,
-                                           final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+                                           final boolean readOnlyTest) throws Exception {
         final Map<String, String> attributeOptions = readSnampConfiguration().
                 getManagedResources().
                 get(TEST_RESOURCE_NAME).getElements(AttributeConfiguration.class).get(attributeID).getParameters();
@@ -240,14 +240,14 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final String attributeName,
                                            final TypeToken<T> attributeType,
                                            final T attributeValue,
-                                           final Equator<T> comparator) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+                                           final Equator<T> comparator) throws Exception {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, comparator, false);
     }
 
     protected final <T> void testAttribute(final String attributeID,
                                        final String attributeName,
                                        final TypeToken<T> attributeType,
-                                       final T attributeValue) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+                                       final T attributeValue) throws Exception {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, false);
     }
 
@@ -255,7 +255,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final String attributeName,
                                            final TypeToken<T> attributeType,
                                            final T attributeValue,
-                                           final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+                                           final boolean readOnlyTest) throws Exception {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, AbstractResourceConnectorTest.<T>valueEquator(), readOnlyTest);
     }
 }

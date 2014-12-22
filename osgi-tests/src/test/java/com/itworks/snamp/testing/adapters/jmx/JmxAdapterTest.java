@@ -154,23 +154,15 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
             assertNotNull(withAttachment);
             assertNotNull(withAttachment.getUserData() instanceof TabularData);
         }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
     }
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        try {
-            final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
-            assertNotNull(desc);
-            final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("usePlatformMBean");
-            assertNotNull(param);
-            assertFalse(param.getDescription(null).isEmpty());
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+        final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+        assertNotNull(desc);
+        final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("usePlatformMBean");
+        assertNotNull(param);
+        assertFalse(param.getDescription(null).isEmpty());
     }
 
     @Override

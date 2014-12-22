@@ -2,7 +2,7 @@ package com.itworks.snamp.testing;
 
 import com.google.common.base.Supplier;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.configuration.ConfigurationManager;
+import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingException;
@@ -12,12 +12,12 @@ import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
-import static com.itworks.snamp.configuration.ConfigurationManager.CONFIGURATION_FILE_PROPERTY;
 import static com.itworks.snamp.licensing.LicenseReader.LICENSE_FILE_PROPERTY;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
@@ -35,17 +35,14 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
      */
     private static final String TEST_LICENCE_FILE = "unlimited.lic";
 
-    @Inject
-    private ConfigurationManager configManager = null;
+    private PersistentConfigurationManager configManager = null;
     @Inject
     private LicenseReader licenseReader = null;
+    @Inject
+    private ConfigurationAdmin configAdmin = null;
 
     static {
         try {
-            final File configFile = File.createTempFile("snamp-config", ".xml");
-            //noinspection ResultOfMethodCallIgnored
-            configFile.delete();
-            System.setProperty(CONFIGURATION_FILE_PROPERTY, configFile.getAbsolutePath());
             final File licenseFile = new File(System.getProperty(LICENSE_FILE_PROPERTY, TEST_LICENCE_FILE));
             if(!licenseFile.exists())
                 throw new IOException("License file for tests is missed.");
@@ -68,20 +65,28 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         super(buildDependencies(deps));
     }
 
+    private PersistentConfigurationManager getTestConfigurationManager() throws Exception{
+        if(configManager == null){
+            configManager = new PersistentConfigurationManager(configAdmin);
+            configManager.load();
+        }
+        return configManager;
+    }
+
     /**
      * Creates a new configuration for running this test.
      * @param config The configuration to set.
      */
     protected abstract void setupTestConfiguration(final AgentConfiguration config);
 
+
     /**
      * Reads SNAMP configuration from temporary storage.
      * @return Deserialized SNAMP configuration.
      * @throws IOException
      */
-    protected final AgentConfiguration readSnampConfiguration() throws IOException{
-        assertNotNull(configManager);
-        return configManager.getCurrentConfiguration();
+    protected final AgentConfiguration readSnampConfiguration() throws Exception{
+        return getTestConfigurationManager().getCurrentConfiguration();
     }
 
     protected void beforeStartTest(final BundleContext context) throws Exception{
@@ -100,8 +105,8 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     public final void prepare() throws Exception{
         beforeStartTest(getTestBundleContext());
         //read SNAMP configuration
-        assertNotNull(configManager);
-        setupTestConfiguration(configManager.getCurrentConfiguration());
+        setupTestConfiguration(getTestConfigurationManager().getCurrentConfiguration());
+        getTestConfigurationManager().save();
         //verify licensing engine
         assertNotNull(licenseReader);
         afterStartTest(getTestBundleContext());
@@ -118,7 +123,8 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     @After
     public final void cleanup() throws Exception{
         beforeCleanupTest(getTestBundleContext());
-        configManager.getCurrentConfiguration().clear();
+        getTestConfigurationManager().getCurrentConfiguration().clear();
+        getTestConfigurationManager().save();
         afterCleanupTest(getTestBundleContext());
     }
 

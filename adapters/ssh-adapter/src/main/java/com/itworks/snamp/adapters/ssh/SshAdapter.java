@@ -5,11 +5,11 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.MapMaker;
 import com.itworks.snamp.ExceptionPlaceholder;
-import com.itworks.snamp.mapping.*;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
+import com.itworks.snamp.mapping.*;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
@@ -20,7 +20,6 @@ import org.apache.sshd.server.jaas.JaasPasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.PublicKey;
 import java.util.*;
@@ -28,10 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 
 /**
  * Represents SSH resource adapter.
@@ -265,12 +261,12 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     private final SshAttributesModel attributes;
     private final SshNotificationsModel notifications;
 
-    SshAdapter(final String host,
+    SshAdapter(final String adapterInstanceName,
+                final String host,
                final int port,
                final String serverCertificateFile,
-               final SshSecuritySettings security,
-               final Map<String, ManagedResourceConfiguration> resources) {
-        super(resources);
+               final SshSecuritySettings security) {
+        super(adapterInstanceName);
         server = SshServer.setUpDefaultServer();
         server.setHost(host);
         server.setPort(port);
@@ -313,11 +309,9 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      * <p>
      * This method will be called by SNAMP infrastructure automatically.
      * </p>
-     *
-     * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
      */
     @Override
-    protected boolean start() {
+    protected void start() throws Exception {
         server.setShellFactory(ManagementShell.createFactory(this, commandExecutors));
         server.setCommandFactory(new CommandFactory() {
             private final AdapterController controller = SshAdapter.this;
@@ -331,13 +325,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         });
         populateModel(attributes);
         populateModel(notifications);
-        try {
-            server.start();
-            return true;
-        } catch (final IOException e) {
-            failedToStartAdapter(Level.SEVERE, e);
-            return false;
-        }
+        server.start();
     }
 
     /**
@@ -347,12 +335,9 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      * </p>
      */
     @Override
-    protected void stop() {
+    protected void stop() throws Exception{
         try {
             server.stop();
-        }
-        catch (final InterruptedException e) {
-            failedToStopAdapter(Level.SEVERE, e);
         }
         finally {
             clearModel(attributes);

@@ -39,7 +39,6 @@
     <module>connectors</module>
     <module>adapters</module>
     <module>license-generator</module>
-     <module>infrastructure/config-bundle</module>
      <module>infrastructure/licensing-bundle</module>
      <module>osgi-tests</module>
      <!--<module>html</module>-->

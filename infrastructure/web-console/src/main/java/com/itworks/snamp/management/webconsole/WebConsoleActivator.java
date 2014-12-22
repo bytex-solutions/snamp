@@ -1,6 +1,6 @@
 package com.itworks.snamp.management.webconsole;
 
-import com.itworks.snamp.configuration.ConfigurationManager;
+import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.core.AbstractBundleActivator;
 import com.itworks.snamp.management.SnampManager;
 import org.eclipse.jetty.jaas.JAASLoginService;
@@ -18,6 +18,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.security.Constraint;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.util.Collection;
 
@@ -68,7 +69,7 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         connector.setHost(host);
         jettyServer.setConnectors(new Connector[]{connector});
         //add dependencies
-        bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationManager.class));
+        bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
         bundleLevelDependencies.add(new SimpleDependency<>(SnampManager.class));
     }
 
@@ -104,9 +105,11 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         security.setLoginService(createLoginService(getClass()));
         security.setAuthenticator(new DigestAuthenticator());
         //Setup REST service
+        final PersistentConfigurationManager manager = new PersistentConfigurationManager(getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies));
+        manager.load();
         resourcesHandler.addServlet(new ServletHolder(
                 new ManagementServlet(
-                        getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies),
+                        manager,
                         getDependency(RequiredServiceAccessor.class, SnampManager.class, dependencies))),
                 "/management/api/*");
         //Setup static pages

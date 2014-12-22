@@ -2,7 +2,6 @@ package com.itworks.snamp.adapters.jmx;
 
 import com.google.common.eventbus.EventBus;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.internal.Utils;
@@ -155,10 +154,10 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     private final JmxNotifications notifications;
     private final Map<ObjectName, ProxyMBean> exposedBeans;
 
-    public JmxResourceAdapter(final ObjectName rootObjectName,
-                              final boolean usePlatformMBean,
-                              final Map<String, ManagedResourceConfiguration> resources) throws MalformedObjectNameException {
-        super(resources);
+    JmxResourceAdapter(final String adapterInstanceName,
+                              final ObjectName rootObjectName,
+                              final boolean usePlatformMBean) throws MalformedObjectNameException {
+        super(adapterInstanceName);
         this.rootObjectName = rootObjectName;
         this.usePlatformMBean = usePlatformMBean;
         this.attributes = new JmxAttributes();
@@ -196,11 +195,10 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
      * <p>
      * This method will be called by SNAMP infrastructure automatically.
      * </p>
-     *
-     * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
+     * @throws java.lang.Exception Internal adapter error.
      */
     @Override
-    protected boolean start() {
+    protected void start() throws Exception {
         populateModel(attributes);
         try {
             JmxAdapterLicenseLimitations.current().verifyJmxNotificationsFeature();
@@ -211,12 +209,13 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         for (final String resourceName : getHostedResources())
             try {
                 final ProxyMBean bean = new ProxyMBean(resourceName, attributes.get(resourceName), notifications.get(resourceName));
-                registerMBean(createObjectName(rootObjectName, resourceName), bean);
+                final ObjectName beanName = createObjectName(rootObjectName, resourceName);
+                registerMBean(beanName, bean);
                 notifications.addListener(bean);
+                JmxAdapterHelpers.log(Level.FINE, "Bean %s is registered by %s adapter", beanName, getInstanceName(), null);
             } catch (final JMException e) {
                 JmxAdapterHelpers.log(Level.SEVERE, "Unable to register MBean for resource %s", resourceName, e);
             }
-        return true;
     }
 
     /**

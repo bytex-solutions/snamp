@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.rest;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 
 import java.util.Collection;
 import java.util.Map;
@@ -35,14 +34,13 @@ public final class RestAdapterActivator extends AbstractResourceAdapterActivator
      *
      * @param adapterInstanceName The name of the adapter instance.
      * @param parameters   A collection of initialization parameters.
-     * @param resources    A collection of managed resources to be exposed via adapter.
      * @param dependencies A collection of dependencies used by adapter.
      * @return A new instance of the adapter.
      */
     @Override
     protected RestAdapter createAdapter(final String adapterInstanceName,
                                         final Map<String, String> parameters,
-                                        final Map<String, ManagedResourceConfiguration> resources, final RequiredService<?>... dependencies) {
+                                        final RequiredService<?>... dependencies) {
         RestAdapterLimitations.current().verifyServiceVersion(RestAdapter.class);
         final String port = parameters.containsKey(PORT_PARAM_NAME) ?
                 parameters.get(PORT_PARAM_NAME) : Integer.toString(DEFAULT_PORT);
@@ -52,13 +50,14 @@ public final class RestAdapterActivator extends AbstractResourceAdapterActivator
         final String socketTimeout = parameters.containsKey(WEB_SOCKET_TIMEOUT_PARAM_NAME) ?
                 parameters.get(WEB_SOCKET_TIMEOUT_PARAM_NAME) :
                 Integer.toString(DEFAULT_TIMEOUT);
-        return new RestAdapter(Integer.valueOf(port),
+        return new RestAdapter(
+                adapterInstanceName,
+                Integer.valueOf(port),
                 host,
                 parameters.get(LOGIN_MODULE_NAME),
                 parameters.get(DATE_FORMAT_PARAM_NAME),
                 Integer.valueOf(socketTimeout),
-                new JettyThreadPoolConfig(parameters, adapterInstanceName),
-                resources);
+                new JettyThreadPoolConfig(parameters, adapterInstanceName));
     }
 
     /**

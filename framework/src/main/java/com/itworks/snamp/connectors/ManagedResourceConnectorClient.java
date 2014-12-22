@@ -1,17 +1,20 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.collect.Iterables;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.core.FrameworkService;
+import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.SupportService;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
-import com.itworks.snamp.core.SupportService;
 import org.osgi.framework.*;
 
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
 
@@ -324,5 +327,43 @@ public final class ManagedResourceConnectorClient {
      */
     public static String getManagedResourceName(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
         return AbstractManagedResourceActivator.getManagedResourceName(connectorRef);
+    }
+
+    /**
+     * Gets a reference to the managed resource connector.
+     * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @param resourceName The name of the managed resource.
+     * @return A reference to the managed resource connector that serves the specified resource; or {@literal null}, if connector doesn't exist.
+     */
+    @SuppressWarnings("unchecked")
+    public static ServiceReference<ManagedResourceConnector<?>> getResourceConnector(final BundleContext context,
+                                                                          final String resourceName) {
+        try {
+            return Iterables.<ServiceReference>getFirst(context.getServiceReferences(ManagedResourceConnector.class, AbstractManagedResourceActivator.createFilter(resourceName)), null);
+        }
+        catch (final InvalidSyntaxException e) {
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(context.getBundle().getSymbolicName(), context)){
+                logger.log(Level.SEVERE, String.format("Unable to find resource connector %s", resourceName), e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Exposes a new object that listen for the managed resource connector service.
+     * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @param listener The managed resource listener. Cannot be {@literal null}.
+     * @return {@literal true}, if listener is registered successfully; otherwise, {@literal false}.
+     */
+    public static boolean addResourceListener(final BundleContext context, final ServiceListener listener){
+        try {
+            context.addServiceListener(listener, AbstractManagedResourceActivator.createFilter("*", String.format("(%s=%s)", Constants.OBJECTCLASS, ManagedResourceConnector.class.getName())));
+            return true;
+        } catch (final InvalidSyntaxException e) {
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(context.getBundle().getSymbolicName(), context)){
+                logger.log(Level.SEVERE, "Unable to bind resource listener", e);
+            }
+            return false;
+        }
     }
 }

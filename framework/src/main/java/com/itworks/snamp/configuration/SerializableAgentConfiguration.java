@@ -2,6 +2,7 @@ package com.itworks.snamp.configuration;
 
 import com.google.common.collect.ForwardingMap;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.mapping.RecordReader;
 
 import java.io.*;
@@ -15,9 +16,10 @@ import java.util.Objects;
  * @since 1.0
  * @version 1.0
  */
-public class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Serializable {
+public class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable {
+    private final static byte FORMAT_VERSION = 1;
 
-    private static abstract class Resettable{
+    static abstract class Resettable{
         abstract void reset();
     }
 
@@ -27,7 +29,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * @since 1.0
      * @version 1.0
      */
-    public static interface SerializableConfigurationEntity extends ConfigurationEntity, Modifiable, Serializable{
+    public static interface SerializableConfigurationEntity extends ConfigurationEntity, Modifiable, Externalizable{
         /**
          * Determines whether this configuration entity is modified after deserialization.
          * @return {@literal true}, if this configuration entity is modified; otherwise, {@literal false}.
@@ -37,7 +39,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     }
 
     @SuppressWarnings("NullableProblems")
-    private static abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Serializable, Modifiable{
+    private static abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Externalizable, Modifiable{
         private transient boolean modified = false;
 
         @Override
@@ -72,19 +74,67 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         void reset() {
             modified = false;
         }
+
+        protected abstract void writeKey(final K key, final ObjectOutput out) throws IOException;
+
+        protected abstract void writeValue(final V value, final ObjectOutput out) throws IOException;
+
+        protected abstract K readKey(final ObjectInput out) throws IOException;
+
+        protected abstract V readValue(final ObjectInput out) throws IOException, ClassNotFoundException;
+
+        @Override
+        public final void writeExternal(final ObjectOutput out) throws IOException {
+            out.writeInt(size());
+            for(final Entry<K, V> entry: entrySet()){
+                writeKey(entry.getKey(), out);
+                writeValue(entry.getValue(), out);
+            }
+        }
+
+        @Override
+        public final void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+            final int size = in.readInt();
+            for(int i = 0; i < size; i++){
+                final K key = readKey(in);
+                final V value = readValue(in);
+                if(key != null && value != null)
+                    put(key, value);
+            }
+        }
     }
 
 
     private static final class ModifiableParameters extends ModifiableMap<String, String> implements Serializable, Modifiable{
         private final HashMap<String, String> parameters;
 
-        private ModifiableParameters(){
+        public ModifiableParameters(){
             parameters = new HashMap<>(10);
         }
 
         @Override
         protected HashMap<String, String> delegate() {
             return parameters;
+        }
+
+        @Override
+        protected final void writeKey(final String key, final ObjectOutput out) throws IOException {
+            out.writeUTF(key);
+        }
+
+        @Override
+        protected final void writeValue(final String value, final ObjectOutput out) throws IOException {
+            out.writeUTF(value);
+        }
+
+        @Override
+        protected final String readKey(final ObjectInput out) throws IOException {
+            return out.readUTF();
+        }
+
+        @Override
+        protected final String readValue(final ObjectInput out) throws IOException {
+            return out.readUTF();
         }
     }
 
@@ -124,22 +174,77 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
                 if(entity instanceof Resettable)
                     ((Resettable)entity).reset();
         }
+
+        @Override
+        protected final void writeKey(final String key, final ObjectOutput out) throws IOException {
+            out.writeUTF(key);
+        }
+
+        @Override
+        protected final String readKey(final ObjectInput out) throws IOException {
+            return out.readUTF();
+        }
     }
 
     private static final class AdapterRegistry extends ConfigurationEntityRegistry<ResourceAdapterConfiguration>{
 
+        public AdapterRegistry() {
+        }
+
+        @Override
+        protected void writeValue(final ResourceAdapterConfiguration value, final ObjectOutput out) throws IOException {
+            out.writeObject(value);
+        }
+
+        @Override
+        protected ResourceAdapterConfiguration readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
+            return Utils.safeCast(out.readObject(), ResourceAdapterConfiguration.class);
+        }
     }
 
     private static final class ResourceRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration>{
+        public ResourceRegistry() {
+        }
 
+        @Override
+        protected void writeValue(final ManagedResourceConfiguration value, final ObjectOutput out) throws IOException {
+            out.writeObject(value);
+        }
+
+        @Override
+        protected ManagedResourceConfiguration readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
+            return Utils.safeCast(out.readObject(), ManagedResourceConfiguration.class);
+        }
     }
 
     private static final class AttributeRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration.AttributeConfiguration>{
+        public AttributeRegistry() {
+        }
 
+        @Override
+        protected void writeValue(final ManagedResourceConfiguration.AttributeConfiguration value, final ObjectOutput out) throws IOException {
+            out.writeObject(value);
+        }
+
+        @Override
+        protected ManagedResourceConfiguration.AttributeConfiguration readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
+            return Utils.safeCast(out.readObject(), ManagedResourceConfiguration.AttributeConfiguration.class);
+        }
     }
 
     private static final class EventRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration.EventConfiguration>{
+        public EventRegistry() {
+        }
 
+        @Override
+        protected void writeValue(final ManagedResourceConfiguration.EventConfiguration value, final ObjectOutput out) throws IOException {
+            out.writeObject(value);
+        }
+
+        @Override
+        protected ManagedResourceConfiguration.EventConfiguration readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
+            return Utils.safeCast(out.readObject(), ManagedResourceConfiguration.EventConfiguration.class);
+        }
     }
 
     private abstract static class AbstractConfigurationEntity extends Resettable implements SerializableConfigurationEntity{
@@ -149,6 +254,14 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         protected AbstractConfigurationEntity(){
             parameters = new ModifiableParameters();
             modified = false;
+        }
+
+        protected final void writeParameters(final ObjectOutput out) throws IOException {
+            parameters.writeExternal(out);
+        }
+
+        protected final void readParameters(final ObjectInput in) throws IOException, ClassNotFoundException {
+            parameters.readExternal(in);
         }
 
         @Override
@@ -203,6 +316,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * @version 1.0
      */
     public static final class SerializableResourceAdapterConfiguration extends AbstractConfigurationEntity implements ResourceAdapterConfiguration{
+        private static final byte FORMAT_VERSION = 1;
         private String adapterName;
 
         /**
@@ -242,6 +356,48 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             return other instanceof ResourceAdapterConfiguration &&
                     equals((ResourceAdapterConfiguration)other);
         }
+
+        /**
+         * The object implements the writeExternal method to save its contents
+         * by calling the methods of DataOutput for its primitive values or
+         * calling the writeObject method of ObjectOutput for objects, strings,
+         * and arrays.
+         *
+         * @param out the stream to write the object to
+         * @throws java.io.IOException Includes any I/O exceptions that may occur
+         * @serialData Overriding methods should use this tag to describe
+         * the data layout of this Externalizable object.
+         * List the sequence of element types and, if possible,
+         * relate the element to a public/protected field and/or
+         * method of this Externalizable class.
+         */
+        @Override
+        public void writeExternal(final ObjectOutput out) throws IOException {
+            out.writeByte(FORMAT_VERSION);
+            out.writeUTF(adapterName != null ? adapterName : "");
+            writeParameters(out);
+        }
+
+        /**
+         * The object implements the readExternal method to restore its
+         * contents by calling the methods of DataInput for primitive
+         * types and readObject for objects, strings and arrays.  The
+         * readExternal method must read the values in the same sequence
+         * and with the same types as were written by writeExternal.
+         *
+         * @param in the stream to read data from in order to restore the object
+         * @throws java.io.IOException    if I/O errors occur
+         * @throws ClassNotFoundException If the class for an object being
+         *                                restored cannot be found.
+         */
+        @Override
+        public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+            final byte version = in.readByte();
+            if(version != FORMAT_VERSION)
+                throw new IOException(String.format("Adapter configuration has invalid binary format version. Expected %s but actual %s", FORMAT_VERSION, version));
+            adapterName = in.readUTF();
+            readParameters(in);
+        }
     }
 
     /**
@@ -270,6 +426,44 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              */
             public SerializableEventConfiguration(final String category){
                 this.eventCategory = category != null ? category : "";
+            }
+
+            /**
+             * The object implements the writeExternal method to save its contents
+             * by calling the methods of DataOutput for its primitive values or
+             * calling the writeObject method of ObjectOutput for objects, strings,
+             * and arrays.
+             *
+             * @param out the stream to write the object to
+             * @throws java.io.IOException Includes any I/O exceptions that may occur
+             * @serialData Overriding methods should use this tag to describe
+             * the data layout of this Externalizable object.
+             * List the sequence of element types and, if possible,
+             * relate the element to a public/protected field and/or
+             * method of this Externalizable class.
+             */
+            @Override
+            public void writeExternal(final ObjectOutput out) throws IOException {
+                out.writeUTF(eventCategory != null ? eventCategory : "");
+                writeParameters(out);
+            }
+
+            /**
+             * The object implements the readExternal method to restore its
+             * contents by calling the methods of DataInput for primitive
+             * types and readObject for objects, strings and arrays.  The
+             * readExternal method must read the values in the same sequence
+             * and with the same types as were written by writeExternal.
+             *
+             * @param in the stream to read data from in order to restore the object
+             * @throws java.io.IOException    if I/O errors occur
+             * @throws ClassNotFoundException If the class for an object being
+             *                                restored cannot be found.
+             */
+            @Override
+            public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+                eventCategory = in.readUTF();
+                readParameters(in);
             }
 
             /**
@@ -333,6 +527,47 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             }
 
             /**
+             * The object implements the writeExternal method to save its contents
+             * by calling the methods of DataOutput for its primitive values or
+             * calling the writeObject method of ObjectOutput for objects, strings,
+             * and arrays.
+             *
+             * @param out the stream to write the object to
+             * @throws java.io.IOException Includes any I/O exceptions that may occur
+             * @serialData Overriding methods should use this tag to describe
+             * the data layout of this Externalizable object.
+             * List the sequence of element types and, if possible,
+             * relate the element to a public/protected field and/or
+             * method of this Externalizable class.
+             */
+            @Override
+            public void writeExternal(final ObjectOutput out) throws IOException {
+                out.writeUTF(attributeName != null ? attributeName : "");
+                out.writeLong(readWriteTimeout != null ? readWriteTimeout.toMillis() : -1L);
+                writeParameters(out);
+            }
+
+            /**
+             * The object implements the readExternal method to restore its
+             * contents by calling the methods of DataInput for primitive
+             * types and readObject for objects, strings and arrays.  The
+             * readExternal method must read the values in the same sequence
+             * and with the same types as were written by writeExternal.
+             *
+             * @param in the stream to read data from in order to restore the object
+             * @throws java.io.IOException    if I/O errors occur
+             * @throws ClassNotFoundException If the class for an object being
+             *                                restored cannot be found.
+             */
+            @Override
+            public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+                attributeName = in.readUTF();
+                final long timeout = in.readLong();
+                readWriteTimeout = timeout < 0L ? TimeSpan.INFINITE : new TimeSpan(timeout);
+                readParameters(in);
+            }
+
+            /**
              * Initializes a new configuration of the management attribute.
              * @param attributeName The name of the management attribute.
              */
@@ -383,6 +618,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             }
         }
 
+        private static final byte FORMAT_VERSION = 1;
         private String connectionString;
         private final ConfigurationEntityRegistry<AttributeConfiguration> attributes;
         private String connectionType;
@@ -395,6 +631,54 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             connectionString = connectionType = "";
             this.attributes = new AttributeRegistry();
             this.events = new EventRegistry();
+        }
+
+        /**
+         * The object implements the writeExternal method to save its contents
+         * by calling the methods of DataOutput for its primitive values or
+         * calling the writeObject method of ObjectOutput for objects, strings,
+         * and arrays.
+         *
+         * @param out the stream to write the object to
+         * @throws java.io.IOException Includes any I/O exceptions that may occur
+         * @serialData Overriding methods should use this tag to describe
+         * the data layout of this Externalizable object.
+         * List the sequence of element types and, if possible,
+         * relate the element to a public/protected field and/or
+         * method of this Externalizable class.
+         */
+        @Override
+        public void writeExternal(final ObjectOutput out) throws IOException {
+            out.writeByte(FORMAT_VERSION);
+            out.writeUTF(connectionType != null ? connectionType : "");
+            out.writeUTF(connectionString != null ? connectionString : "");
+            writeParameters(out);
+            attributes.writeExternal(out);
+            events.writeExternal(out);
+        }
+
+        /**
+         * The object implements the readExternal method to restore its
+         * contents by calling the methods of DataInput for primitive
+         * types and readObject for objects, strings and arrays.  The
+         * readExternal method must read the values in the same sequence
+         * and with the same types as were written by writeExternal.
+         *
+         * @param in the stream to read data from in order to restore the object
+         * @throws java.io.IOException    if I/O errors occur
+         * @throws ClassNotFoundException If the class for an object being
+         *                                restored cannot be found.
+         */
+        @Override
+        public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+            final byte version = in.readByte();
+            if(version != FORMAT_VERSION)
+                throw new IOException(String.format("Managed resource configuration has invalid binary version. Expected %s but actual %s", FORMAT_VERSION, version));
+            connectionType = in.readUTF();
+            connectionString = in.readUTF();
+            readParameters(in);
+            attributes.readExternal(in);
+            events.readExternal(in);
         }
 
         /**
@@ -658,31 +942,49 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     }
 
     /**
-     * Serializes this object into the specified stream.
+     * The object implements the writeExternal method to save its contents
+     * by calling the methods of DataOutput for its primitive values or
+     * calling the writeObject method of ObjectOutput for objects, strings,
+     * and arrays.
      *
-     * @param output An output stream to receive configuration data.
-     * @throws java.io.IOException           Some I/O error occurs.
+     * @param out the stream to write the object to
+     * @throws java.io.IOException Includes any I/O exceptions that may occur
+     * @serialData Overriding methods should use this tag to describe
+     * the data layout of this Externalizable object.
+     * List the sequence of element types and, if possible,
+     * relate the element to a public/protected field and/or
+     * method of this Externalizable class.
      */
     @Override
-    public final void save(final OutputStream output) throws IOException {
-        try(final ObjectOutputStream serializer = new ObjectOutputStream(output)){
-            serializer.writeObject(this);
-        }
+    public final void writeExternal(final ObjectOutput out) throws IOException {
+        out.writeByte(FORMAT_VERSION);
+        //write adapters
+        adapters.writeExternal(out);
+        //write connectors
+        resources.writeExternal(out);
     }
 
     /**
-     * Reads the file and fills the current instance.
+     * The object implements the readExternal method to restore its
+     * contents by calling the methods of DataInput for primitive
+     * types and readObject for objects, strings and arrays.  The
+     * readExternal method must read the values in the same sequence
+     * and with the same types as were written by writeExternal.
      *
-     * @param input Configuration content source.
-     * @throws java.io.IOException           Cannot invoke from the specified stream.
+     * @param in the stream to read data from in order to restore the object
+     * @throws java.io.IOException    if I/O errors occur
+     * @throws ClassNotFoundException If the class for an object being
+     *                                restored cannot be found.
      */
     @Override
-    public final void load(final InputStream input) throws IOException {
-        try(final ObjectInputStream deserializer = new ObjectInputStream(input)){
-            load((AgentConfiguration)deserializer.readObject());
-        }
-        catch (final ClassNotFoundException e) {
-            throw new IOException(e);
-        }
+    public final void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+        final byte version = in.readByte();
+        //check version
+        if(version != FORMAT_VERSION)
+            throw new IOException(String.format("Unknown version of configuration format. Expected %s but actual %s", FORMAT_VERSION, version));
+        //read adapters
+        adapters.readExternal(in);
+        //read connectors
+        resources.readExternal(in);
     }
 }

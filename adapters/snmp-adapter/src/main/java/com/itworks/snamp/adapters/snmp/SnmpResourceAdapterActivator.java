@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.licensing.LicensingException;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.mp.MPv3;
@@ -62,7 +61,6 @@ public final class SnmpResourceAdapterActivator extends AbstractResourceAdapterA
     @Override
     protected SnmpResourceAdapter createAdapter(final String adapterInstanceName,
                                                 final Map<String, String> parameters,
-                                                final Map<String, ManagedResourceConfiguration> resources,
                                                 final RequiredService<?>... dependencies) throws IOException{
         try{
             SnmpAdapterLimitations.current().verifyServiceVersion(SnmpResourceAdapter.class);
@@ -74,12 +72,12 @@ public final class SnmpResourceAdapterActivator extends AbstractResourceAdapterA
                 final JNDIContextManager contextManager = getDependency(RequiredServiceAccessor.class, JNDIContextManager.class, dependencies);
                 final SecurityConfiguration security = new SecurityConfiguration(MPv3.createLocalEngineID(), toFactory(contextManager));
                 security.read(parameters);
-                return new SnmpResourceAdapter(Integer.valueOf(port), address, security, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, adapterInstanceName), resources);
+                return new SnmpResourceAdapter(adapterInstanceName, Integer.valueOf(port), address, security, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, adapterInstanceName));
             }
-            else return new SnmpResourceAdapter(Integer.valueOf(port), address, null, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, adapterInstanceName), resources);
+            else return new SnmpResourceAdapter(adapterInstanceName, Integer.valueOf(port), address, null, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, adapterInstanceName));
         }
         catch (final LicensingException e){
-            SnmpHelpers.log(Level.SEVERE, "Unable to instatiate SNMP adapter due its license limitations.", e);
+            SnmpHelpers.log(Level.SEVERE, "Unable to instantiate SNMP adapter due its license limitations.", e);
             return null;
         }
     }

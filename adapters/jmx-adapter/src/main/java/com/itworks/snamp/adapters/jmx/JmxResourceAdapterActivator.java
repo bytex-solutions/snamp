@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.jmx;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 
 import javax.management.ObjectName;
 import java.net.MalformedURLException;
@@ -51,7 +50,6 @@ public final class JmxResourceAdapterActivator extends AbstractResourceAdapterAc
      *
      * @param adapterInstanceName The name of the adapter instance.
      * @param parameters   A collection of initialization parameters.
-     * @param resources    A collection of managed resources to be exposed via adapter.
      * @param dependencies A collection of dependencies used by adapter.
      * @return A new instance of the adapter.
      * @throws Exception Unable to instantiate resource adapter.
@@ -59,12 +57,11 @@ public final class JmxResourceAdapterActivator extends AbstractResourceAdapterAc
     @Override
     protected JmxResourceAdapter createAdapter(final String adapterInstanceName,
                                                final Map<String, String> parameters,
-                                               final Map<String, ManagedResourceConfiguration> resources, final RequiredService<?>... dependencies) throws Exception {
+                                               final RequiredService<?>... dependencies) throws Exception {
         if (parameters.containsKey(OBJECT_NAME_PARAM)) {
             JmxAdapterLicenseLimitations.current().verifyServiceVersion(JmxResourceAdapter.class);
-            final JmxResourceAdapter adapter = new JmxResourceAdapter(new ObjectName(parameters.get(OBJECT_NAME_PARAM)),
-                    parameters.containsKey(USE_PLATFORM_MBEAN_PARAM) && Boolean.valueOf(parameters.get(USE_PLATFORM_MBEAN_PARAM)),
-                    resources);
+            final JmxResourceAdapter adapter = new JmxResourceAdapter(adapterInstanceName, new ObjectName(parameters.get(OBJECT_NAME_PARAM)),
+                    parameters.containsKey(USE_PLATFORM_MBEAN_PARAM) && Boolean.valueOf(parameters.get(USE_PLATFORM_MBEAN_PARAM)));
             if (parameters.containsKey(DEBUG_USE_PURE_SERIALIZATION_PARAM) && Boolean.valueOf(parameters.get(DEBUG_USE_PURE_SERIALIZATION_PARAM)))
                 adapter.usePureSerialization();
             return adapter;
