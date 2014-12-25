@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.configuration.*;
@@ -30,6 +31,7 @@ import org.osgi.service.event.EventAdmin;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -64,17 +66,6 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
 
     private static final ActivationProperty<CompliantResources> COMPLIANT_RESOURCES_HOLDER = defineActivationProperty(CompliantResources.class);
     private static final ActivationProperty<String> CONNECTOR_NAME_HOLDER = defineActivationProperty(String.class);
-
-    private static final class CompliantResources extends HashMap<String, ManagedResourceConfiguration>{
-        private CompliantResources(final ConfigurationAdmin admin, final String connectorType) throws Exception{
-            PersistentConfigurationManager.findResourcesByType(admin, connectorType, new RecordReader<String, ManagedResourceConfiguration, ExceptionPlaceholder>() {
-                @Override
-                public void read(final String resource, final ManagedResourceConfiguration config) {
-                    put(resource, config);
-                }
-            });
-        }
-    }
 
     /**
      * Represents superclass for all-optional resource connector service providers.
@@ -1006,5 +997,26 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
         return String.format("(%s=%s)", MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
     }
 
+    static boolean isResourceConnector(final ServiceReference<?> ref){
+        return Utils.isInstanceOf(ref, ManagedResourceConnector.class) &&
+                ArrayUtils.contains(ref.getPropertyKeys(), CONNECTOR_TYPE_IDENTITY_PROPERTY) &&
+                ArrayUtils.contains(ref.getPropertyKeys(), MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY);
+    }
 
+    /**
+     * Represents a map of resources associated with the same resource connector.
+     * @author Roman Sakno
+     * @version 1.0
+     * @since 1.0
+    */
+    private static final class CompliantResources extends ConcurrentHashMap<String, ManagedResourceConfiguration> {
+        private CompliantResources(final ConfigurationAdmin admin, final String connectorType) throws Exception{
+            PersistentConfigurationManager.findResourcesByType(admin, connectorType, new RecordReader<String, ManagedResourceConfiguration, ExceptionPlaceholder>() {
+                @Override
+                public void read(final String resource, final ManagedResourceConfiguration config) {
+                    put(resource, config);
+                }
+            });
+        }
+    }
 }

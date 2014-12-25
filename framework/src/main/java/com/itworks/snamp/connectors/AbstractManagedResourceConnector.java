@@ -2,7 +2,6 @@ package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.ThreadSafeObject;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
@@ -14,10 +13,7 @@ import com.itworks.snamp.internal.CountdownTimer;
 import com.itworks.snamp.internal.IllegalStateFlag;
 import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
-import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.cm.ManagedService;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -40,7 +36,7 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractManagedResourceConnector<TConnectionOptions> extends AbstractFrameworkService implements ManagedResourceConnector<TConnectionOptions>, ManagedService {
+public abstract class AbstractManagedResourceConnector<TConnectionOptions> extends AbstractFrameworkService implements ManagedResourceConnector<TConnectionOptions> {
 
     /**
      * Represents default implementation of the attribute descriptor.
@@ -1299,15 +1295,6 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         return connectionOptions;
     }
 
-
-    @Override
-    public final void updated(final Dictionary<String, ?> properties) throws ConfigurationException {
-        try {
-            PersistentConfigurationManager.readResourceConfiguration(properties);
-        } catch (final IOException e) {
-            throw new ConfigurationException("prop", e.getMessage(), e);
-        }
-    }
 
     /**
      *  Throws an {@link IllegalStateException} if the connector is not initialized.

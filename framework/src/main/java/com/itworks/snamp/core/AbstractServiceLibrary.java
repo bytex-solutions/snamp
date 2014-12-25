@@ -185,6 +185,15 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             }
         }
 
+        private Dictionary<String, ?> getServiceRegistrationParameters(){
+            final ServiceRegistration<?> reg = registration;
+            if(reg != null){
+                final ServiceReference<?> ref = reg.getReference();
+                return ref != null ? getProperties(ref) : null;
+            }
+            else return null;
+        }
+
         /**
          * Provides service cleanup operations.
          * <p>
@@ -285,7 +294,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @return {@literal true}, if the specified service of the specified contract is published
      *          by this bundle.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public final boolean isServiceExposed(final Class<? extends FrameworkService> serviceType){
         for(final ProvidedService<?, ?> providedService: providedServices)
             if(Objects.equals(serviceType, providedService.serviceContract)) return true;

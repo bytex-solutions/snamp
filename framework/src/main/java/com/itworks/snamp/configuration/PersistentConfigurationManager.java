@@ -143,7 +143,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      * @return An instance of the resource adapter configuration.
      * @throws IOException Unable to restore adapter configuration.
      */
-    public static ResourceAdapterConfiguration readAdapterConfiguration(final Dictionary<String, ?> config) throws IOException {
+    private static ResourceAdapterConfiguration readAdapterConfiguration(final Dictionary<String, ?> config) throws IOException {
         final SerializableResourceAdapterConfiguration result = new SerializableResourceAdapterConfiguration();
         result.setAdapterName(Utils.getProperty(config, ADAPTER_NAME_PROPERTY, String.class, ""));
         final byte[] serializedParams = Utils.getProperty(config, PARAMS_PROPERTY, byte[].class, (byte[])null);
@@ -196,7 +196,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         });
     }
 
-    public static ManagedResourceConfiguration readResourceConfiguration(final Dictionary<String, ?> config) throws IOException {
+    private static ManagedResourceConfiguration readResourceConfiguration(final Dictionary<String, ?> config) throws IOException {
         final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
         result.setConnectionString(Utils.getProperty(config, CONNECTION_STRING_PROPERTY, String.class, ""));
         result.setConnectionType(Utils.getProperty(config, CONNECTOR_TYPE_PROPERTY, String.class, ""));
@@ -246,6 +246,18 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         } catch (final IOException e) {
             throw new PersistentConfigurationException(config.getPid(), SerializableManagedResourceConfiguration.class, e);
         }
+    }
+
+    /**
+     * Reads resource configuration.
+     * @param admin The configuration admin used to read the whole SNAMP configuration. Cannot be {@literal null}.
+     * @param resourceName The name of the managed resource.
+     * @return A new managed resource configuration.
+     * @throws IOException Unable to read resource configuration.
+     */
+    public static ManagedResourceConfiguration readResourceConfiguration(final ConfigurationAdmin admin,
+                                                                         final String resourceName) throws IOException{
+        return readResourceConfiguration(admin.getConfiguration(getResourcePersistentID(resourceName)));
     }
 
     private static <E extends Exception> void forEachResourceImpl(final ConfigurationAdmin admin,

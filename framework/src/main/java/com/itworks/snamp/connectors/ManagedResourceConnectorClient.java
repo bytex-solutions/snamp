@@ -1,9 +1,12 @@
 package com.itworks.snamp.connectors;
 
 import com.google.common.collect.Iterables;
+import com.itworks.snamp.ServiceReferenceHolder;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.core.OsgiLoggingContext;
@@ -11,7 +14,9 @@ import com.itworks.snamp.core.SupportService;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.*;
+import org.osgi.service.cm.ConfigurationAdmin;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -364,6 +369,31 @@ public final class ManagedResourceConnectorClient {
                 logger.log(Level.SEVERE, "Unable to bind resource listener", e);
             }
             return false;
+        }
+    }
+
+    /**
+     * Determines whether the specified reference is a reference to {@link com.itworks.snamp.connectors.ManagedResourceConnector} service.
+     * @param ref A reference to check.
+     * @return {@literal true}, if the specified object is a reference to the {@link com.itworks.snamp.connectors.ManagedResourceConnector} service; otherwise, {@literal false}.
+     */
+    public static boolean isResourceConnector(final ServiceReference<?> ref){
+        return AbstractManagedResourceActivator.isResourceConnector(ref);
+    }
+
+    public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,
+                                                                        final ServiceReference<ManagedResourceConnector<?>> connectorRef) throws IOException{
+        return getResourceConfiguration(context, getManagedResourceName(connectorRef));
+    }
+
+    public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,
+                                                                        final String resourceName) throws IOException {
+        final ServiceReferenceHolder<ConfigurationAdmin> admin = new ServiceReferenceHolder<>(context,
+                ConfigurationAdmin.class);
+        try {
+            return PersistentConfigurationManager.readResourceConfiguration(admin.getService(), resourceName);
+        } finally {
+            admin.clear(context);
         }
     }
 }

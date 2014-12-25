@@ -1,9 +1,6 @@
 package com.itworks.snamp.internal;
 
-import com.google.common.base.Function;
-import com.google.common.base.StandardSystemProperty;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
+import com.google.common.base.*;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
@@ -21,6 +18,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.*;
+import java.util.Objects;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -476,5 +474,13 @@ public final class Utils {
             return propertyType.isInstance(result) ? propertyType.cast(result) : defaultValue;
         }
         else return defaultValue;
+    }
+
+    /**
+     * Gets the stack trace in the form of the single string.
+     * @return The current stack trace.
+     */
+    public static String getStackTrace(){
+        return Joiner.on(System.lineSeparator()).join(Thread.currentThread().getStackTrace());
     }
 }
