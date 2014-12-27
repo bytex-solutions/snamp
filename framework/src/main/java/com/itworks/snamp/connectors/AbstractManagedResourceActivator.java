@@ -64,8 +64,81 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     private static final String CONNECTOR_STRING_IDENTITY_PROPERTY = "connectionString";
     private static final String CONNECTOR_TYPE_IDENTITY_PROPERTY = CONNECTOR_NAME_MANIFEST_HEADER;
 
-    private static final ActivationProperty<CompliantResources> COMPLIANT_RESOURCES_HOLDER = defineActivationProperty(CompliantResources.class);
+    private static final ActivationProperty<BootConfiguration> COMPLIANT_RESOURCES_HOLDER = defineActivationProperty(BootConfiguration.class);
     private static final ActivationProperty<String> CONNECTOR_NAME_HOLDER = defineActivationProperty(String.class);
+
+    protected static interface ManagedResourceConnectorController<TConnectorImpl extends ManagedResourceConnector<?>>{
+        TConnectorImpl create(final ManagedResourceConfiguration configuration,
+                              final RequiredService<?>... dependencies);
+
+        TConnectorImpl update(final TConnectorImpl connector, final ManagedResourceConfiguration configuration) throws Exception;
+
+        void release(final TConnectorImpl connector) throws Exception;
+    }
+
+    private static final class ManagedResourceConnectorManagerNew<TConnectorImpl extends ManagedResourceConnector<?>> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnectorImpl>{
+
+        private ManagedResourceConnectorManagerNew(final String connectorType, final RequiredService<?>... dependencies){
+            super(ManagedResourceConnector.class, connectorType, dependencies);
+        }
+
+        /**
+         * Updates the service with a new configuration.
+         *
+         * @param service       The service to update.
+         * @param configuration A new configuration of the service.
+         * @return The updated service.
+         * @throws Exception                                  Unable to update service.
+         * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
+         */
+        @Override
+        protected TConnectorImpl update(final TConnectorImpl service, final Dictionary<String, ?> configuration) throws Exception {
+            return null;
+        }
+
+        /**
+         * Creates a new service.
+         *
+         * @param identity      The registration properties to fill.
+         * @param configuration A new configuration of the service.
+         * @param dependencies  The dependencies required for the service.
+         * @return A new instance of the service.
+         * @throws Exception                                  Unable to instantiate a new service.
+         * @throws org.osgi.service.cm.ConfigurationException Invalid configuration exception.
+         */
+        @Override
+        protected TConnectorImpl createService(final Map<String, Object> identity, final Dictionary<String, ?> configuration, final RequiredService<?>... dependencies) throws Exception {
+            return null;
+        }
+
+        /**
+         * Releases all resources associated with the service instance.
+         *
+         * @param service A service to dispose.
+         * @throws Exception Unable to dispose service.
+         */
+        @Override
+        protected void cleanupService(final TConnectorImpl service) throws Exception {
+
+        }
+    }
+
+    /**
+     * Represents a map of resources associated with the same resource connector.
+     * @author Roman Sakno
+     * @version 1.0
+     * @since 1.0
+     */
+    private static final class BootConfiguration extends ConcurrentHashMap<String, ManagedResourceConfiguration> {
+        private BootConfiguration(final ConfigurationAdmin admin, final String connectorType) throws Exception{
+            PersistentConfigurationManager.findResourcesByType(admin, connectorType, new RecordReader<String, ManagedResourceConfiguration, ExceptionPlaceholder>() {
+                @Override
+                public void read(final String resource, final ManagedResourceConfiguration config) {
+                    put(resource, config);
+                }
+            });
+        }
+    }
 
     /**
      * Represents superclass for all-optional resource connector service providers.
@@ -792,7 +865,7 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
     @Override
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         final ConfigurationAdmin configManager = getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies);
-        activationProperties.publish(COMPLIANT_RESOURCES_HOLDER, new CompliantResources(configManager, connectorName));
+        activationProperties.publish(COMPLIANT_RESOURCES_HOLDER, new BootConfiguration(configManager, connectorName));
         activationProperties.publish(CONNECTOR_NAME_HOLDER, connectorName);
     }
 
@@ -1001,22 +1074,5 @@ public abstract class AbstractManagedResourceActivator<TConnector extends Manage
         return Utils.isInstanceOf(ref, ManagedResourceConnector.class) &&
                 ArrayUtils.contains(ref.getPropertyKeys(), CONNECTOR_TYPE_IDENTITY_PROPERTY) &&
                 ArrayUtils.contains(ref.getPropertyKeys(), MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY);
-    }
-
-    /**
-     * Represents a map of resources associated with the same resource connector.
-     * @author Roman Sakno
-     * @version 1.0
-     * @since 1.0
-    */
-    private static final class CompliantResources extends ConcurrentHashMap<String, ManagedResourceConfiguration> {
-        private CompliantResources(final ConfigurationAdmin admin, final String connectorType) throws Exception{
-            PersistentConfigurationManager.findResourcesByType(admin, connectorType, new RecordReader<String, ManagedResourceConfiguration, ExceptionPlaceholder>() {
-                @Override
-                public void read(final String resource, final ManagedResourceConfiguration config) {
-                    put(resource, config);
-                }
-            });
-        }
     }
 }
