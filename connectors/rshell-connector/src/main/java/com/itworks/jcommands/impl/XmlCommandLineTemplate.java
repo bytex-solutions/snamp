@@ -91,7 +91,7 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, 
      *
      * @param channelParameters The channel initialization parameters. Cannot be {@literal null}.
      * @param input Additional template formatting parameters.
-     * @return The command to execute.
+     * @return The command to apply.
      */
     @Override
     @ThreadSafe(true)
@@ -114,7 +114,7 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, 
      * Creates a textual command to be executed through the channel.
      *
      * @param channelParameters The channel initialization parameters. Cannot be {@literal null}.
-     * @return The command to execute.
+     * @return The command to apply.
      * @throws java.lang.IllegalStateException The command template is not specified.
      */
     @ThreadSafe(true)

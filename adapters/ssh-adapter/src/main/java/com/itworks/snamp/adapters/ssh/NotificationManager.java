@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.ssh;
 
-import com.itworks.snamp.ThreadSafeObject;
+import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationFilter;
 import org.apache.sshd.common.Session;

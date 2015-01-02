@@ -1,5 +1,6 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
 
+import com.itworks.snamp.concurrent.ConcurrentResourceAccess;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 /**
@@ -95,7 +96,7 @@ public abstract class ReferenceCountedObject<R> extends ConcurrentResourceAccess
      * Increments reference to the resource and reads some object from it.
      * <p>
      *     This method increments reference to the underlying resource and
-     *     call {@link #read(com.itworks.snamp.AbstractConcurrentResourceAccess.Action)} method.
+     *     call {@link #read(com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.Action)} method.
      *     If this method fails then {@link #decref()} will be called.
      * </p>
      * @param reader The resource reader.

@@ -2,7 +2,6 @@ package com.itworks.snamp;
 
 import com.google.common.collect.ObjectArrays;
 
-import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -36,21 +35,20 @@ public final class ArrayUtils {
      * at the specified position.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T[] remove(final T[] array, final int index){
-        return (T[]) remove((Object) array, index);
+    public static <T> T[] remove(final T[] array, final int index) {
+        return (T[]) removeImpl(array, index);
     }
 
     private static IndexOutOfBoundsException createIndexOutOfBoundsException(final int index, final int length){
         return new IndexOutOfBoundsException(String.format("Index: %s, Length: %s", index, length));
     }
 
-    @SuppressWarnings("SuspiciousSystemArraycopy")
-    private static Object remove(final Object array, final int index) throws IndexOutOfBoundsException{
-        if(array == null) return null;
-        final int length = Array.getLength(array);
+    private static Object[] removeImpl(final Object[] array, final int index) throws IndexOutOfBoundsException {
+        if (array == null) return null;
+        final int length = array.length;
         if (index < 0 || index >= length)
             throw createIndexOutOfBoundsException(index, length);
-        final Object result = Array.newInstance(array.getClass().getComponentType(), length - 1);
+        final Object[] result = ObjectArrays.newArray(array.getClass().getComponentType(), length - 1);
         System.arraycopy(array, 0, result, 0, index);
         if (index < length - 1)
             System.arraycopy(array, index + 1, result, index, length - index - 1);
@@ -61,11 +59,12 @@ public final class ArrayUtils {
      * Adds an element to the end of the array.
      * @param array An array to add element.
      * @param element An element to insert.
+     * @param componentType Type of the resulting array. Cannot be {@literal null}.
      * @param <T> Type of the array component.
      * @return A newly created array.
      */
-    public static <T> T[] addToEnd(final T[] array, final T element){
-        return add(array, array.length, element);
+    public static <T> T[] addToEnd(final T[] array, final T element, final Class<T> componentType){
+        return add(array, array.length, element, componentType);
     }
 
     /**
@@ -73,36 +72,25 @@ public final class ArrayUtils {
      * @param array An array to add the element.
      * @param index An index of the element to add.
      * @param element An element to insert.
+     * @param componentType Type of the resulting array. Cannot be {@literal null}.
      * @param <T> Type of the array elements.
      * @return A new array that contains inserted element.
      */
-    @SuppressWarnings("unchecked")
-    public static <T> T[] add(final T[] array, final int index, final T element) {
-        final Class<?> componentType;
-        if (array != null)
-            componentType = array.getClass().getComponentType();
-        else if (element != null)
-            componentType = element.getClass();
-        else
-            throw new IllegalArgumentException("Array and element cannot both be null");
-        return  (T[]) add(array, index, element, componentType);
-    }
-
-    @SuppressWarnings("SuspiciousSystemArraycopy")
-    private static Object add(final Object array, final int index, final Object element, final Class<?> clss) {
+    public static <T> T[] add(final T[] array, final int index, final T element,
+                              final Class<T> componentType) {
         if (array == null) {
             if (index != 0)
                 throw createIndexOutOfBoundsException(index, 0);
-            final Object joinedArray = Array.newInstance(clss, 1);
-            Array.set(joinedArray, 0, element);
+            final T[] joinedArray = ObjectArrays.newArray(componentType, 1);
+            joinedArray[0] = element;
             return joinedArray;
         }
-        final int length = Array.getLength(array);
+        final int length = array.length;
         if (index > length || index < 0)
             throw createIndexOutOfBoundsException(index, length);
-        final Object result = Array.newInstance(clss, length + 1);
+        final T[] result = ObjectArrays.newArray(componentType, length + 1);
         System.arraycopy(array, 0, result, 0, index);
-        Array.set(result, index, element);
+        result[index] = element;
         if (index < length)
             System.arraycopy(array, index, result, index + 1, length - index);
         return result;

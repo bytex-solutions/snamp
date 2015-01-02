@@ -2,7 +2,7 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Joiner;
 import com.itworks.snamp.ConversionException;
-import com.itworks.snamp.ReferenceCountedObject;
+import com.itworks.snamp.concurrent.ReferenceCountedObject;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
@@ -30,8 +30,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.Action;
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.ConsistentAction;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.Action;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.ConsistentAction;
 import static com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory.ExceptionHandler;
 import static com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker;
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.*;

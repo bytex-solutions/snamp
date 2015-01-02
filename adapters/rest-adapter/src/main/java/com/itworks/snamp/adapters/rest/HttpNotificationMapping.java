@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.rest;
 
 import com.google.common.base.Function;
+import com.google.common.base.Supplier;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -17,10 +18,10 @@ import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 final class HttpNotificationMapping implements Function<Object, JsonElement> {
     private final String eventCategory;
     private final ManagedEntityType attachmentType;
-    private final Gson jsonFormatter;
+    private final Supplier<Gson> jsonFormatter;
 
     HttpNotificationMapping(final NotificationMetadata metadata,
-                            final Gson formatter){
+                            final Supplier<Gson> formatter){
         this.eventCategory = metadata.getCategory();
         this.attachmentType = metadata.getAttachmentType();
         this.jsonFormatter = formatter;
@@ -29,9 +30,9 @@ final class HttpNotificationMapping implements Function<Object, JsonElement> {
     JsonElement getAttachment(final Object attachment){
         if(attachment == null) return JsonNull.INSTANCE;
         else if(attachment instanceof ManagedEntityValue<?>)
-            return JsonTypeSystem.toJson((ManagedEntityValue<?>)attachment, jsonFormatter);
+            return JsonTypeSystem.toJson((ManagedEntityValue<?>)attachment, jsonFormatter.get());
         else if(attachmentType != null)
-            return JsonTypeSystem.toJson(new ManagedEntityValue<>(attachment, attachmentType), jsonFormatter);
+            return JsonTypeSystem.toJson(new ManagedEntityValue<>(attachment, attachmentType), jsonFormatter.get());
         else return JsonNull.INSTANCE;
     }
 

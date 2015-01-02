@@ -1,7 +1,8 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
 
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
+import com.itworks.snamp.Wrapper;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import java.util.Objects;

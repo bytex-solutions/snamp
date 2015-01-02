@@ -4,6 +4,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.*;
+import com.itworks.snamp.concurrent.WriteOnceRef;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import com.itworks.snamp.configuration.SerializableAgentConfiguration;

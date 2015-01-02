@@ -1,7 +1,9 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
 
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
+import com.itworks.snamp.SafeConsumer;
+import com.itworks.snamp.Wrapper;
 
 import java.util.concurrent.atomic.AtomicReference;
 

@@ -5,7 +5,7 @@ import com.google.gson.*;
 import com.itworks.snamp.Box;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
@@ -13,9 +13,10 @@ import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfigu
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
-import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
+import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
+import com.itworks.snamp.core.OsgiLoggingContext;
 import com.itworks.snamp.internal.TransformerClosure;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicenseReader;
@@ -41,6 +42,7 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 @Path("/")
 @Singleton
 public final class ManagementServiceImpl {
+    private static final String LOGGER_NAME = "com.itworks.snamp.management";
     private static final String CONNECTION_STRING_QUERY_PARAM = "connectionString";
     private static final String LOCALE_QUERY_PARAM = "locale";
     private final PersistentConfigurationManager configManager;
@@ -94,13 +96,13 @@ public final class ManagementServiceImpl {
 
     private static void restart(final BundleContext context) throws BundleException {
         //first, stop all adapters
-        AbstractResourceAdapterActivator.stopResourceAdapters(context);
+        ResourceAdapterActivator.stopResourceAdapters(context);
         //second, stop all connectors
-        AbstractManagedResourceActivator.stopResourceConnectors(context);
+        ManagedResourceActivator.stopResourceConnectors(context);
         //third, start all connectors
-        AbstractManagedResourceActivator.startResourceConnectors(context);
+        ManagedResourceActivator.startResourceConnectors(context);
         //fourth, start all adapters
-        AbstractResourceAdapterActivator.startResourceAdapters(context);
+        ResourceAdapterActivator.startResourceAdapters(context);
     }
 
     /**
@@ -223,9 +225,9 @@ public final class ManagementServiceImpl {
 
      */
     @GET
-    @Path("/connectors/{connectorName}/configurationSchema")
+    @Path("/connectors/{connectorType}/configurationSchema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getConnectorConfigurationSchema(@PathParam("connectorName") final String connectorName,
+    public String getConnectorConfigurationSchema(@PathParam("connectorType") final String connectorName,
                                                   @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                                   @Context final SecurityContext context) throws WebApplicationException {
         SecurityUtils.adminRequired(context);
@@ -266,14 +268,14 @@ public final class ManagementServiceImpl {
     public String getInstalledConnectors(@Context final SecurityContext context){
         SecurityUtils.wellKnownRoleRequired(context);
         final JsonArray result = new JsonArray();
-        for(final String connector: AbstractManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this)))
+        for(final String connector: ManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this)))
             result.add(new JsonPrimitive(connector));
         return jsonFormatter.toJson(result);
     }
 
     @GET
-    @Path("/connectors/{connectorName}")
-    public String getConnectorInfo(@PathParam("connectorName")final String connectorName,
+    @Path("/connectors/{connectorType}")
+    public String getConnectorInfo(@PathParam("connectorType")final String connectorName,
                                    @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                    @Context final SecurityContext context) throws WebApplicationException {
         SecurityUtils.wellKnownRoleRequired(context);
@@ -309,7 +311,7 @@ public final class ManagementServiceImpl {
     public String getInstalledAdapters(@Context SecurityContext context){
         SecurityUtils.wellKnownRoleRequired(context);
         final JsonArray result = new JsonArray();
-        for(final String adapter: AbstractResourceAdapterActivator.getInstalledResourceAdapters(Utils.getBundleContextByObject(this)))
+        for(final String adapter: ResourceAdapterActivator.getInstalledResourceAdapters(Utils.getBundleContextByObject(this)))
             result.add(new JsonPrimitive(adapter));
         return jsonFormatter.toJson(result);
     }
@@ -367,9 +369,9 @@ public final class ManagementServiceImpl {
     }
 
     @GET
-    @Path("/connectors/{connectorName}/configurationSchema/attribute/{parameterName}")
+    @Path("/connectors/{connectorType}/configurationSchema/attribute/{parameterName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String suggestConnectorAttributeParameterValues(@PathParam("connectorName")final String connectorName,
+    public String suggestConnectorAttributeParameterValues(@PathParam("connectorType")final String connectorName,
                                                             @PathParam("parameterName")final String parameterName,
                                                             @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                                             @QueryParam(CONNECTION_STRING_QUERY_PARAM) final String connectionString,
@@ -385,9 +387,9 @@ public final class ManagementServiceImpl {
     }
 
     @GET
-    @Path("/connectors/{connectorName}/configurationSchema/event/{parameterName}")
+    @Path("/connectors/{connectorType}/configurationSchema/event/{parameterName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String suggestConnectorEventParameterValues(@PathParam("connectorName")final String connectorName,
+    public String suggestConnectorEventParameterValues(@PathParam("connectorType")final String connectorName,
                                                        @PathParam("parameterName")final String parameterName,
                                                        @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                                        @QueryParam(CONNECTION_STRING_QUERY_PARAM)final String connectionString,
@@ -445,9 +447,9 @@ public final class ManagementServiceImpl {
     }
 
     @GET
-    @Path("/connectors/{connectorName}/configurationSchema/{parameterName}")
+    @Path("/connectors/{connectorType}/configurationSchema/{parameterName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String suggestConnectorParameterValues(@PathParam("connectorName")final String connectorName,
+    public String suggestConnectorParameterValues(@PathParam("connectorType")final String connectorName,
                                                   @PathParam("parameterName")final String parameterName,
                                                   @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                                   @QueryParam(CONNECTION_STRING_QUERY_PARAM)final String connectionString,
@@ -463,9 +465,9 @@ public final class ManagementServiceImpl {
     }
 
     @GET
-    @Path("/connectors/{connectorName}/availableMetadata")
+    @Path("/connectors/{connectorType}/availableMetadata")
     @Produces(MediaType.APPLICATION_JSON)
-    public String discoverManagementMetadata(@PathParam("connectorName")final String connectorName,
+    public String discoverManagementMetadata(@PathParam("connectorType")final String connectorName,
                                              @QueryParam(CONNECTION_STRING_QUERY_PARAM)final String connectionString,
                                              @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                              @Context final UriInfo url,
@@ -554,5 +556,77 @@ public final class ManagementServiceImpl {
             throw new WebApplicationException(e);
         }
         return jsonFormatter.toJson(result);
+    }
+
+    @Path("/connectors/{connectorType}/start")
+    @POST
+    public void startConnector(@PathParam("connectorType")final String connectorType,
+                               final String reason,
+                               @Context final SecurityContext context) throws WebApplicationException{
+        SecurityUtils.adminRequired(context);
+        try(final OsgiLoggingContext logger = getLoggingContext()) {
+            ManagedResourceActivator.startResourceConnector(getBundleContextByObject(this), connectorType);
+                logger.info(String.format("User %s starts the %s connectors. Reason: %s",
+                        context.getUserPrincipal().getName(),
+                        connectorType,
+                        reason));
+        } catch (BundleException e) {
+            throw new WebApplicationException(e);
+        }
+    }
+
+    @Path("/connectors/{connectorType}/stop")
+    @POST
+    public void stopConnector(@PathParam("connectorType")final String connectorType,
+                              final String reason,
+                              @Context final SecurityContext context) throws WebApplicationException{
+        SecurityUtils.adminRequired(context);
+        try(final OsgiLoggingContext logger = getLoggingContext()) {
+            ManagedResourceActivator.stopResourceConnector(getBundleContextByObject(this), connectorType);
+            logger.info(String.format("User %s stops the %s connectors. Reason: %s",
+                        context.getUserPrincipal().getName(),
+                        connectorType,
+                        reason));
+        } catch (final BundleException e) {
+            throw new WebApplicationException(e);
+        }
+    }
+
+    @Path("/adapters/{adapterName}/start")
+    @POST
+    public void startAdapter(@PathParam("adapterName")final String adapterName,
+                             final String reason,
+                             @Context final SecurityContext context) throws WebApplicationException{
+        SecurityUtils.adminRequired(context);
+        try(final OsgiLoggingContext logger = getLoggingContext()) {
+            ResourceAdapterActivator.startResourceAdapter(getBundleContextByObject(this), adapterName);
+            logger.info(String.format("User %s starts the %s adapter. Reason: %s",
+                    context.getUserPrincipal().getName(),
+                    adapterName,
+                    reason));
+        } catch (final BundleException e) {
+            throw new WebApplicationException(e);
+        }
+    }
+
+    @Path("/adapters/{adapterName}/stop")
+    @POST
+    public void stopAdapter(@PathParam("adapterName")final String adapterName,
+                            final String reason,
+                            @Context final SecurityContext context){
+        SecurityUtils.adminRequired(context);
+        try(final OsgiLoggingContext logger = getLoggingContext()) {
+            ResourceAdapterActivator.stopResourceAdapter(getBundleContextByObject(this), adapterName);
+            logger.info(String.format("User %s stops the %s adapter. Reason: %s",
+                    context.getUserPrincipal().getName(),
+                    adapterName,
+                    reason));
+        } catch (final BundleException e) {
+            throw new WebApplicationException(e);
+        }
+    }
+
+    private OsgiLoggingContext getLoggingContext(){
+        return OsgiLoggingContext.getLogger(LOGGER_NAME, getBundleContextByObject(this));
     }
 }

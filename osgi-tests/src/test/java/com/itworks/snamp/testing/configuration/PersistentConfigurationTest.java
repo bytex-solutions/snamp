@@ -1,10 +1,8 @@
 package com.itworks.snamp.testing.configuration;
 
-import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
-import com.itworks.snamp.mapping.RecordReader;
 import com.itworks.snamp.testing.AbstractIntegrationTest;
 import com.itworks.snamp.testing.SnampArtifact;
 import org.junit.Test;
@@ -72,13 +70,6 @@ public class PersistentConfigurationTest extends AbstractIntegrationTest {
             assertEquals(0, currentConfig.getManagedResources().size());
             assertTrue(currentConfig.getResourceAdapters().containsKey("adapter1"));
             assertEquals("value", currentConfig.getResourceAdapters().get("adapter1").getParameters().get("param1"));
-            PersistentConfigurationManager.findAdaptersByName(admin.getService(), "snmp", new RecordReader<String, AgentConfiguration.ResourceAdapterConfiguration, ExceptionPlaceholder>() {
-                @Override
-                public void read(final String adapterInstance, final AgentConfiguration.ResourceAdapterConfiguration config) {
-                    assertEquals("adapter1", adapterInstance);
-                    assertEquals("value", config.getParameters().get("param1"));
-                }
-            });
         }
         finally {
             admin.clear(getTestBundleContext());

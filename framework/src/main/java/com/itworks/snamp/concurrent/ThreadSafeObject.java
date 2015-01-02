@@ -1,4 +1,6 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
+
+import com.itworks.snamp.TimeSpan;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -127,7 +129,7 @@ public abstract class ThreadSafeObject {
      * Acquires write lock for the singleton resource group.
      *
      * @throws java.lang.IllegalArgumentException This class is not instantiated with {@link #ThreadSafeObject()} constructor.
-     * @see com.itworks.snamp.ThreadSafeObject.SingleResourceGroup
+     * @see ThreadSafeObject.SingleResourceGroup
      */
     protected final void beginWrite() {
         beginWrite(SingleResourceGroup.INSTANCE);

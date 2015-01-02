@@ -4,8 +4,9 @@ import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.Attribute;
 import com.itworks.snamp.AttributeReader;
-import com.itworks.snamp.mapping.TypeLiterals;
+import com.itworks.snamp.StringAppender;
 import com.itworks.snamp.internal.annotations.MethodStub;
+import com.itworks.snamp.mapping.TypeLiterals;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -19,7 +20,7 @@ import static com.itworks.snamp.internal.Utils.isInstanceOf;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractBundleActivator implements BundleActivator, AllServiceListener {
+public abstract class AbstractBundleActivator implements BundleActivator, ServiceListener {
 
     /**
      * Represents bundle activation property.
@@ -274,7 +275,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
             else return false;
         }
 
-        boolean unbind(final BundleContext context){
+        final boolean unbind(final BundleContext context){
             return unbind(context, this.reference);
         }
 
@@ -286,7 +287,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
             return false;
         }
 
-        synchronized void processServiceEvent(final BundleContext context,
+        final synchronized void processServiceEvent(final BundleContext context,
                                               final ServiceReference<?> reference,
                                               final int eventType) {
             switch (eventType){
@@ -312,6 +313,32 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
                 refs = null;
             }
             return refs != null ? refs : new ServiceReference<?>[0];
+        }
+    }
+
+    static final class DependencyListeningFilter extends StringAppender {
+        private int appendCalledTimes = 0;
+
+        void append(final RequiredService<?> dependency){
+            super.append(String.format("(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName()));
+            appendCalledTimes += 1;
+        }
+
+        void applyServiceListener(final BundleContext context, final ServiceListener listener) throws InvalidSyntaxException {
+            final String filter = toString();
+            if(filter.isEmpty())
+                context.addServiceListener(listener);
+            else context.addServiceListener(listener, filter);
+        }
+
+        @Override
+        public String toString() {
+            switch (appendCalledTimes){
+                case 0: return "";
+                case 1: return super.toString();
+                default:
+                    return String.format("(|%s)", super.toString());
+            }
         }
     }
 
@@ -549,9 +576,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
             public boolean equals(final Object obj) {
                 if(obj instanceof NamedActivationProperty<?>)
                     return Objects.equals(propertyName, ((NamedActivationProperty<?>)obj).getName());
-                else if(obj instanceof String)
-                    return Objects.equals(propertyName, obj);
-                else return false;
+                else return Objects.equals(propertyName, obj);
             }
         };
     }
@@ -563,7 +588,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @param <T> Type of the property.
      * @return Named activation property definition.
      */
-    @SuppressWarnings("UnusedDeclaration")
     protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType){
         return defineActivationProperty(propertyName, propertyType, null);
     }
@@ -575,7 +599,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @param <S> Type of the service contract.
      * @return Search result; or {@literal null} if dependency not found.
      */
-    @SuppressWarnings({"UnusedDeclaration", "unchecked"})
+    @SuppressWarnings("unchecked")
     public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final RequiredService<?>... dependencies){
         return findDependency(serviceContract, Arrays.asList(dependencies));
     }
@@ -587,7 +611,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @param <S> Type of the service contract.
      * @return Search result; or {@literal null} if dependency not found.
      */
-    @SuppressWarnings({"UnusedDeclaration", "unchecked"})
+    @SuppressWarnings("unchecked")
     public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final Iterable<RequiredService<?>> dependencies){
         return findDependency(RequiredService.class, serviceContract, dependencies);
     }
@@ -618,6 +642,11 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
         final D found = findDependency(descriptor, serviceContract, dependencies);
         return found != null ? found.getService() : null;
     }
+
+    /**
+     * Represents an empty array of required services.
+     */
+    protected static final RequiredService<?>[] EMTPY_REQUIRED_SERVICES = new RequiredService<?>[0];
 
     private final List<RequiredService<?>> bundleLevelDependencies;
     private final ActivationProperties properties;
@@ -697,14 +726,15 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
     public final void start(final BundleContext context) throws Exception {
         start(context, bundleLevelDependencies);
         //try to resolve bundle-level dependencies immediately
-        for(final RequiredService<?> dependency: bundleLevelDependencies)
-            for(final ServiceReference<?> serviceRef: dependency.getCandidates(context))
+        final DependencyListeningFilter filter = new DependencyListeningFilter();
+        for(final RequiredService<?> dependency: bundleLevelDependencies) {
+            filter.append(dependency);
+            for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))
                 serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
+        }
         //attach bundle-level dependencies as service listeners
-        context.addServiceListener(this);
+        filter.applyServiceListener(context, this);
     }
-
-
 
     private static void unregister(final BundleContext context, final Collection<RequiredService<?>> dependencies){
         for(final RequiredService<?> dependency: dependencies)

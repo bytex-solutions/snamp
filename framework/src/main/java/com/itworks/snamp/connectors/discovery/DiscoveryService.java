@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Additional service that can be exposed by {@link com.itworks.snamp.connectors.AbstractManagedResourceActivator}
+ * Additional service that can be exposed by {@link com.itworks.snamp.connectors.ManagedResourceActivator}
  * class that provides discovery method for management attributes or notifications.
  * @author Roman Sakno
  * @version 1.0

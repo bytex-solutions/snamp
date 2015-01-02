@@ -1,8 +1,10 @@
 package com.itworks.snamp.adapters;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.*;
+import com.itworks.snamp.concurrent.ConcurrentResourceAccess;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.*;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
@@ -14,6 +16,7 @@ import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.core.OsgiLoggingContext;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.itworks.snamp.mapping.*;
 import org.osgi.framework.*;
@@ -30,8 +33,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.Action;
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.ConsistentAction;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.Action;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.ConsistentAction;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -705,13 +708,6 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
 
         private <T> T queryWeakObject(final Class<T> queryObject){
-            //This code affecting the performance
-            /*if(resourceConnector != null){
-                final T obj = resourceConnector.getService().queryObject(queryObject);
-                if(obj == null) return null;
-                return Utils.weakReference(obj, queryObject);
-            }
-            else return null;*/
             return resourceConnector != null ?
                     resourceConnector.getService().queryObject(queryObject):
                     null;
@@ -781,12 +777,15 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                         event.getType());
         }
 
-        private void connect() {
+        private boolean connect() {
             final ServiceReference<ManagedResourceConnector<?>> connectorRef = ManagedResourceConnectorClient.getResourceConnector(context, resourceName);
-            if (connectorRef != null)
+            if (connectorRef != null) {
                 processResourceConnector(
                         connectorRef,
                         ServiceEvent.REGISTERED);
+                return true;
+            }
+            else return false;
         }
 
         /**
@@ -800,7 +799,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     private final ConcurrentResourceAccess<KeyedObjects<String, ManagedResourceConnectorConsumer>> connectors;
-    private volatile AdapterState state;
+    private AdapterState state;
+    private ImmutableMap<String, String> parameters;
     private final String adapterInstanceName;
 
     /**
@@ -816,6 +816,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             }
         });
         state = AdapterState.CREATED;
+        parameters = null;
     }
 
     /**
@@ -849,12 +850,14 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                             if (connectors.containsKey(resourceName))
                                 consumer = connectors.get(resourceName);
                             else connectors.put(consumer = new ManagedResourceConnectorConsumer(context, resourceName, resourceConfig));
-                            return consumer;
+                            if(consumer.isReferenced() || consumer.connect()) return consumer;
+                            else {
+                                connectors.remove(consumer.resourceName);
+                                return null;
+                            }
                         }
                     });
-                    if (!consumer.isReferenced())
-                        consumer.connect();
-                    configHandler.accept(consumer);
+                    if(consumer != null) configHandler.accept(consumer);
                 }
             });
         } finally {
@@ -869,7 +872,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *     and put them into the model. If managed resource connector doesn't support
      *     {@link com.itworks.snamp.connectors.attributes.AttributeSupport} interface
      *     then it will be ignore and management attributes will not be added into the model.
-     *     It is recommended to call this method inside of {@link #start()} method.
+     *     It is recommended to call this method inside of {@link #start(java.util.Map)} method.
      * </p>
      * @param <TAttributeView> Type of the attribute metadata representation.
      * @param attributesModel The model to be populated. Cannot be {@literal null}.
@@ -898,7 +901,6 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     else logConnectorNotExposed(consumer.resourceConfiguration.getConnectionType(), consumer.resourceName);
                 }
             });
-
     }
 
     private void logConnectorNotExposed(final String connectorType, final String resourceName){
@@ -917,7 +919,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *     put notification metadata into the model. If managed resource connector
      *     doesn't support {@link com.itworks.snamp.connectors.notifications.NotificationSupport} interface
      *     then it will be ignored and notifications will not be added into the model.
-     *     It is recommended to call this method inside {@link #start()} method.
+     *     It is recommended to call this method inside {@link #start(java.util.Map)} method.
      * </p>
      * @param notificationsModel The model to populate. Cannot be {@literal null}.
      * @param <TNotificationView> Type of the notification metadata.
@@ -1023,25 +1025,81 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * <p>
      *     This method will be called by SNAMP infrastructure automatically.
      * </p>
+     * @param parameters Adapter startup parameters.
      * @throws java.lang.Exception Unable to start adapter.
      * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
      * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)
      */
-    protected abstract void start() throws Exception;
+    protected abstract void start(final Map<String, String> parameters) throws Exception;
 
     /**
-     * Attempts to execute adapter.
+     * Updates this adapter with a new configuration parameters.
+     * <p>
+     *     In the default implementation this method causes restarting
+     *     of this adapter that affects availability of the adapter.
+     *     You should override this method if custom resource adapter
+     *     supports soft update (without affecting availability).
+     * </p>
+     * @param current The current configuration parameters.
+     * @param newParameters A new configuration parameters.
+     * @throws Exception
+     */
+    protected void update(final Map<String, String> current,
+                          final Map<String, String> newParameters) throws Exception{
+        if(!Utils.mapsAreEqual(current, newParameters)) {
+            tryStop();
+            tryStart(newParameters);
+        }
+    }
+
+    final boolean tryUpdate(final Map<String, String> newParameters) throws Exception{
+        switch (state){
+            case STARTED:
+                final ImmutableMap<String, String> current = parameters;
+                final ImmutableMap<String, String> newParams = ImmutableMap.copyOf(newParameters);
+                update(current, newParams);
+                this.parameters = newParams;
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Attempts to apply adapter.
      * <p>
      *     This method may change the state ({@link #getState()} of this adapter.
+     * @param params Adapter startup parameters.
      * @return {@literal true}, if adapter is executed successfully; otherwise, {@literal false}.
-     * @throws Exception Unable to execute adapter.
+     * @throws Exception {@link #start(java.util.Map)} is failed.
      */
-    final boolean tryStart() throws Exception{
+    final boolean tryStart(final Map<String, String> params) throws Exception{
         switch (state){
             case CREATED:
             case STOPPED:
-                start();
+                start(this.parameters = ImmutableMap.copyOf(params));
                 state = AdapterState.STARTED;
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Attempts to stop but not release adapter.
+     * @return {@literal true}, if this adapter is in right state for stopping; otherwise, {@literal false}.
+     * @throws Exception {@link #stop()} is failed.
+     */
+    final boolean tryStop() throws Exception{
+        switch (state){
+            case STARTED:
+                try {
+                    stop();
+                }
+                finally {
+                    disconnect();
+                    state = AdapterState.STOPPED;
+                }
                 return true;
             default:
                 return false;
@@ -1060,29 +1118,16 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     protected abstract void stop() throws Exception;
 
     private synchronized void restart() {
-        switch (state) {
-            case CREATED:
-            case STOPPED:
-                //starts the adapter if all resources are connected
-                disconnect();
-                state = AdapterState.STARTED;
-                try {
-                    start();
-                } catch (final Exception e) {
-                    state = AdapterState.STOPPED;
-                    disconnect();
-                    failedToStartAdapter(Level.SEVERE, e);
-                }
-                return;
-            case STARTED:
-                try {
-                    stop();
-                } catch (final Exception e) {
-                    failedToStopAdapter(Level.SEVERE, e);
-                } finally {
-                    state = AdapterState.STOPPED;
-                    disconnect();
-                }
+        try {
+            tryStop();
+        } catch (final Exception e) {
+            failedToStopAdapter(Level.SEVERE, e);
+        }
+        try {
+            tryStart(parameters);
+        } catch (final Exception e) {
+            disconnect();
+            failedToStartAdapter(Level.SEVERE, e);
         }
     }
 
@@ -1349,7 +1394,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     boolean restartRequired = false;
                     if (consumer == null) {
                         final ManagedResourceConfiguration config = ManagedResourceConnectorClient.getResourceConfiguration(context, connectorRef);
-                        if (config == null) return null;
+                        if (config == null) return false;
                         consumer = new ManagedResourceConnectorConsumer(context, resourceName, config);
                         consumer.connect();
                         connectors.put(consumer);
@@ -1360,8 +1405,17 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                         catch (final UnsupportedResourceAddedOperation ignored){
                             restartRequired = true;
                         }
-                    } else if (!consumer.isReferenced())
+                    } else if (!consumer.isReferenced()) {
                         consumer.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, connectorRef));
+                        if (consumer.isReferenced())
+                            try {
+                                resourceAdded(consumer.resourceName);
+                                restartRequired = false;
+                            } catch (final UnsupportedResourceAddedOperation ignored) {
+                                restartRequired = true;
+                            }
+                        else restartRequired = false;
+                    }
                     return restartRequired;
                 }
             });
@@ -1443,6 +1497,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 stop();
         }
         finally {
+            parameters = null;
             disconnect();
             state = AdapterState.CLOSED;
         }

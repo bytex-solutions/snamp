@@ -2,8 +2,8 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Supplier;
 import com.google.common.util.concurrent.AbstractFuture;
-import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.internal.CountdownTimer;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
@@ -237,7 +237,7 @@ abstract class SnmpClient extends Snmp implements Closeable {
     protected abstract Target createTarget(final TimeSpan timeout);
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-    private static ResponseEvent waitForResponseEvent(final SynchronizationEvent.Awaitor<ResponseEvent> awaitor, final TimeSpan timeout) throws TimeoutException, IOException, InterruptedException {
+    private static ResponseEvent waitForResponseEvent(final SynchronizationEvent.EventAwaitor<ResponseEvent> awaitor, final TimeSpan timeout) throws TimeoutException, IOException, InterruptedException {
         final ResponseEvent response = awaitor.await(timeout);
         if(response == null || response.getResponse() == null) throw new TimeoutException(String.format("PDU sending timeout."));
         else if(response.getError() != null)

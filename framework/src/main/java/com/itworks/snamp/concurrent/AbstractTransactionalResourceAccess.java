@@ -1,6 +1,7 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.Box;
 
 import java.util.concurrent.locks.Lock;
 

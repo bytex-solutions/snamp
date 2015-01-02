@@ -1,6 +1,9 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
 
 import com.google.common.base.Function;
+import com.itworks.snamp.ExceptionPlaceholder;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.Wrapper;
 
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.*;

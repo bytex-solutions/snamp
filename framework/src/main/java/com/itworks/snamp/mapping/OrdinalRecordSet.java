@@ -1,7 +1,7 @@
 package com.itworks.snamp.mapping;
 
 import com.google.common.base.Function;
-import com.itworks.snamp.WriteOnceRef;
+import com.itworks.snamp.concurrent.WriteOnceRef;
 
 import java.util.ArrayList;
 import java.util.Collection;

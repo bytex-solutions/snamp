@@ -99,7 +99,7 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
     /**
      * Executes the specified action in the channel context.
      *
-     * @param command The command to execute in channel context.
+     * @param command The command to apply in channel context.
      * @param obj Additional input for the command renderer.
      * @return The execution result.
      * @throws java.io.IOException Some I/O error occurs in the channel.

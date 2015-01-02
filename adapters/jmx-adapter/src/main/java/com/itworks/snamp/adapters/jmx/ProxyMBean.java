@@ -36,11 +36,11 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
 
     }
 
-    void registerAsService(final BundleContext context, final ObjectName beanName){
+    final void registerAsService(final BundleContext context, final ObjectName beanName){
         context.registerService(DynamicMBean.class, this, OpenMBeanProvider.createIdentity(beanName));
     }
 
-    void unregister(){
+    final void unregister(){
         if(registration != null) registration.unregister();
     }
 

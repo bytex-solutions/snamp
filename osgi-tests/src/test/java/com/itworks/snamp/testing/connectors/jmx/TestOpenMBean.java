@@ -1,7 +1,7 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 
-import com.itworks.snamp.Repeater;
+import com.itworks.snamp.concurrent.Repeater;
 import com.itworks.snamp.TimeSpan;
 
 import javax.management.*;

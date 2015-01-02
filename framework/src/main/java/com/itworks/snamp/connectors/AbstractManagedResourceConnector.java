@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors;
 
-import com.itworks.snamp.ThreadSafeObject;
+import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;

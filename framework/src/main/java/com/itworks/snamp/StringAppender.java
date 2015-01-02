@@ -13,33 +13,23 @@ import java.util.Objects;
 
 /**
  * Represents advanced version of {@link java.lang.StringBuilder} class.
- * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class StringAppender implements Appendable, CharSequence, Serializable {
+public class StringAppender implements Appendable, CharSequence, Serializable {
     private final StringBuilder builder;
 
     private StringAppender(final StringBuilder builder) {
         this.builder = Objects.requireNonNull(builder, "builder is null");
     }
 
-    /**
-     * Creates a new empty string appender.
-     * @return A new empty string appender.
-     */
-    public static StringAppender init(){
-        return new StringAppender(new StringBuilder());
+    public StringAppender(){
+        this(16);
     }
 
-    /**
-     * Creates a new empty string appender with predefined capacity.
-     * @param capacity The initial capacity of the appender.
-     * @return A new empty string appender.
-     */
-    public static StringAppender init(final int capacity){
-        return new StringAppender(new StringBuilder(capacity));
+    public StringAppender(final int capacity){
+        this(new StringBuilder(capacity));
     }
 
     /**
@@ -204,7 +194,7 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      * @return the number of <code>char</code>s in this sequence
      */
     @Override
-    public int length() {
+    public final int length() {
         return builder.length();
     }
 
@@ -224,7 +214,7 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      *                                   <tt>length()</tt>
      */
     @Override
-    public char charAt(final int index) {
+    public final char charAt(final int index) {
         return builder.charAt(index);
     }
 
@@ -244,7 +234,7 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      *                                   or if <tt>start</tt> is greater than <tt>end</tt>
      */
     @Override
-    public CharSequence subSequence(final int start, final int end) {
+    public final CharSequence subSequence(final int start, final int end) {
         return builder.subSequence(start, end);
     }
 

@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
 
 import java.util.concurrent.ThreadFactory;
 

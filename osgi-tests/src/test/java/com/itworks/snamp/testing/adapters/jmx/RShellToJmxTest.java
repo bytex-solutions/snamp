@@ -1,7 +1,7 @@
 package com.itworks.snamp.testing.adapters.jmx;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.testing.SnampArtifact;
@@ -54,14 +54,14 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         super.afterStartTest(context);
-        AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
     }
 
     @Override
     protected void afterCleanupTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(context);
         super.afterCleanupTest(context);
     }

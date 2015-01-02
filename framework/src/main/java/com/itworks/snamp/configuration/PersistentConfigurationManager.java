@@ -1,8 +1,7 @@
 package com.itworks.snamp.configuration;
 
 import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.AbstractAggregator;
-import com.itworks.snamp.ServiceReferenceHolder;
+import com.itworks.snamp.*;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.itworks.snamp.mapping.RecordReader;
@@ -13,10 +12,7 @@ import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.*;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,21 +32,19 @@ import static com.itworks.snamp.configuration.SerializableAgentConfiguration.Ser
  */
 @ThreadSafe
 public final class PersistentConfigurationManager extends AbstractAggregator implements ConfigurationManager {
-    private static final String PARAMS_PROPERTY = "parameters";
-    private static final TypeToken<Map<String, String>> PARAMS_MAP_TYPE = new TypeToken<Map<String, String>>() {};
     private static final TypeToken<Map<String, AttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<Map<String, AttributeConfiguration>>() {};
     private static final TypeToken<Map<String, EventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<Map<String, EventConfiguration>>() {};
 
     private static final String ADAPTER_PID_TEMPLATE = "com.itworks.snamp.adapters.%s";
-    private static final String ADAPTER_NAME_PROPERTY = "adapterName";
+    private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "$adapterInstanceName$";
     private static final String ALL_ADAPTERS_QUERY = String.format("(%s=%s)", Constants.SERVICE_PID, String.format(ADAPTER_PID_TEMPLATE, "*"));
 
     private static final String CONNECTOR_PID_TEMPLATE = "com.itworks.snamp.connectors.%s";
-    private static final String CONNECTOR_TYPE_PROPERTY = "connectorType";
+    private static final String RESOURCE_NAME_PROPERTY = "$resourceName$";
     private static final String ALL_CONNECTORS_QUERY = String.format("(%s=%s)", Constants.SERVICE_PID, String.format(CONNECTOR_PID_TEMPLATE, "*"));
-    private static final String CONNECTION_STRING_PROPERTY = "connectionString";
-    private static final String ATTRIBUTES_PROPERTY = "attributes";
-    private static final String EVENTS_PROPERTY = "events";
+    private static final String CONNECTION_STRING_PROPERTY = "$connectionString$";
+    private static final String ATTRIBUTES_PROPERTY = "$attributes$";
+    private static final String EVENTS_PROPERTY = "$events$";
 
     /**
      * Represents an exception happens when persistent configuration manager cannot
@@ -79,6 +73,31 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         }
     }
 
+    private static final class ConfigurationEntry<V extends ConfigurationEntity> implements Map.Entry<String, V>{
+        private final String entryName;
+        private final V entry;
+
+        private ConfigurationEntry(final String name, final V content){
+            entryName = name;
+            entry = content;
+        }
+
+        @Override
+        public String getKey() {
+            return entryName;
+        }
+
+        @Override
+        public V getValue() {
+            return entry;
+        }
+
+        @Override
+        public V setValue(final V value) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
 
     private final ConfigurationAdmin admin;
     private SerializableAgentConfiguration configuration;
@@ -103,197 +122,244 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
 
     /**
      * Returns persistent identifier of the specified resource adapter.
-     * @param adapterInstance The name of the adapter instance.
+     * @param adapterType The name of the adapter instance.
      * @return Persistent identifier.
      */
-    public static String getAdapterPersistentID(final String adapterInstance){
-        return String.format(ADAPTER_PID_TEMPLATE, adapterInstance);
+    public static String getAdapterFactoryPersistentID(final String adapterType){
+        return String.format(ADAPTER_PID_TEMPLATE, adapterType);
     }
 
     /**
-     * Returns managed resource persistent identifier.
-     * @param resourceName The name of the managed resource.
+     * Returns managed connector persistent identifier.
+     * @param connectorType The type of the managed resource connector.
      * @return The persistent identifier.
      */
-    public static String getResourcePersistentID(final String resourceName){
-        return String.format(CONNECTOR_PID_TEMPLATE, resourceName);
+    public static String getConnectorFactoryPersistentID(final String connectorType){
+        return String.format(CONNECTOR_PID_TEMPLATE, connectorType);
     }
 
     /**
      * Returns name of the resource adapter instance by its persistent identifier.
-     * @param pid Resource adapter persistent identifier.
+     * @param factoryPID Resource adapter persistent identifier.
      * @return The name of the resource adapter.
      */
-    public static String getAdapterInstanceName(final String pid){
-        return pid.replaceFirst(String.format(ADAPTER_PID_TEMPLATE, ""), "");
+    private static String getAdapterType(final String factoryPID){
+        return factoryPID.replaceFirst(String.format(ADAPTER_PID_TEMPLATE, ""), "");
     }
 
     /**
      * Returns managed resource name by its persistent identifier.
-     * @param pid Managed resource persistent identifier.
+     * @param factoryPID Managed resource persistent identifier.
      * @return The name of the managed resource.
      */
-    public static String getResourceName(final String pid){
-        return pid.replaceFirst(String.format(CONNECTOR_PID_TEMPLATE, ""), "");
+    private static String getConnectorType(final String factoryPID){
+        return factoryPID.replaceFirst(String.format(CONNECTOR_PID_TEMPLATE, ""), "");
     }
 
     /**
-     * Reads configuration of the resource adapter.
-     * @param config OSGi persistent configuration used as a SNAMP configuration source. Cannot be {@literal null}.
-     * @return An instance of the resource adapter configuration.
-     * @throws IOException Unable to restore adapter configuration.
+     * Extracts the name of the adapter instance from its configuration.
+     * @param adapterConfig The adapter instance configuration supplied by {@link org.osgi.service.cm.Configuration} object.
+     * @return Adapter instance name.
      */
-    private static ResourceAdapterConfiguration readAdapterConfiguration(final Dictionary<String, ?> config) throws IOException {
-        final SerializableResourceAdapterConfiguration result = new SerializableResourceAdapterConfiguration();
-        result.setAdapterName(Utils.getProperty(config, ADAPTER_NAME_PROPERTY, String.class, ""));
-        final byte[] serializedParams = Utils.getProperty(config, PARAMS_PROPERTY, byte[].class, (byte[])null);
-        if(serializedParams != null && serializedParams.length > 0)
-                try(final ByteArrayInputStream stream = new ByteArrayInputStream(serializedParams);
-                    final ObjectInputStream deserializer = new ObjectInputStream(stream)){
-                    final Map<String, String> parameters = TypeLiterals.safeCast(deserializer.readObject(), PARAMS_MAP_TYPE);
-                    if(parameters != null) result.setParameters(parameters);
-                }
-                catch (final ClassNotFoundException e){
-                    throw new IOException(e);
-                }
-        result.reset();
-        return result;
+    public static String getAdapterInstanceName(final Dictionary<String, ?> adapterConfig){
+        return Utils.getProperty(adapterConfig, ADAPTER_INSTANCE_NAME_PROPERTY, String.class, "");
     }
 
-    private static ResourceAdapterConfiguration readAdapterConfiguration(final Configuration config) throws PersistentConfigurationException {
-        try {
-            return readAdapterConfiguration(config.getProperties());
-        } catch (final IOException e) {
-            throw new PersistentConfigurationException(config.getPid(), SerializableResourceAdapterConfiguration.class, e);
+    private static void fillAdapterParameters(final Dictionary<String, ?> adapterConfig,
+                                             final Map<String, String> output){
+        final Enumeration<String> names = adapterConfig.keys();
+        while (names.hasMoreElements()){
+            final String name = names.nextElement();
+            switch (name){
+                case ADAPTER_INSTANCE_NAME_PROPERTY: continue;
+                default:
+                    final Object value = adapterConfig.get(name);
+                    if(value != null)
+                        output.put(name, value.toString());
+            }
         }
     }
 
-    private static <E extends Exception> void forEachAdapterImpl(final ConfigurationAdmin admin,
-                                                                 final String filter,
-                                                                 final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
-        final Configuration[] configs = admin.listConfigurations(filter);
-        if(configs != null && configs.length > 0)
-            for(final Configuration config: configs) {
-                final String adapterInstance = getAdapterInstanceName(config.getPid());
-                if (adapterInstance == null || adapterInstance.isEmpty())
-                    config.delete();
-                else reader.read(adapterInstance, config);
-            }
+    public static Map<String, String> getAdapterParameters(final Dictionary<String, ?> adapterConfig){
+        final Map<String, String> result = new HashMap<>(adapterConfig.size());
+        fillAdapterParameters(adapterConfig, result);
+        return result;
     }
 
-    private static <E extends Exception> void forEachAdapterImpl(final ConfigurationAdmin admin,
-                                                                 final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
-        forEachAdapterImpl(admin, ALL_ADAPTERS_QUERY, reader);
+    private static ConfigurationEntry<ResourceAdapterConfiguration> readAdapterConfiguration(
+            final String factoryPID,
+            final Dictionary<String, ?> config) {
+        final SerializableResourceAdapterConfiguration result = new SerializableResourceAdapterConfiguration();
+        result.setAdapterName(getAdapterType(factoryPID));
+        //deserialize parameters
+        fillAdapterParameters(config, result.getParameters());
+        result.reset();
+        return new ConfigurationEntry<ResourceAdapterConfiguration>(getAdapterInstanceName(config), result);
+    }
+
+    private static ConfigurationEntry<ResourceAdapterConfiguration> readAdapterConfiguration(final Configuration config) {
+        return readAdapterConfiguration(config.getFactoryPid(), config.getProperties());
+    }
+
+    private static <E extends Exception> void forEachAdapter(final ConfigurationAdmin admin,
+                                                             final String filter,
+                                                             final Consumer<Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
+        final Configuration[] configs = admin.listConfigurations(filter);
+        if(configs != null && configs.length > 0)
+            for(final Configuration config: configs)
+                reader.accept(config);
+    }
+
+    private static <E extends Exception> void forEachAdapter(final ConfigurationAdmin admin,
+                                                             final Consumer<Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
+        forEachAdapter(admin, ALL_ADAPTERS_QUERY, reader);
     }
 
     private static void readAdapters(final ConfigurationAdmin admin,
                                      final Map<String, ResourceAdapterConfiguration> output) throws IOException, InvalidSyntaxException {
-        forEachAdapterImpl(admin, new RecordReader<String, Configuration, IOException>() {
+        forEachAdapter(admin, new Consumer<Configuration, IOException>() {
             @Override
-            public void read(final String adapterInstance, final Configuration config) throws IOException {
-                output.put(adapterInstance, readAdapterConfiguration(config));
+            public void accept(final Configuration config) throws IOException {
+                final ConfigurationEntry<ResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
+                output.put(entry.getKey(), entry.getValue());
             }
         });
     }
 
-    private static ManagedResourceConfiguration readResourceConfiguration(final Dictionary<String, ?> config) throws IOException {
-        final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
-        result.setConnectionString(Utils.getProperty(config, CONNECTION_STRING_PROPERTY, String.class, ""));
-        result.setConnectionType(Utils.getProperty(config, CONNECTOR_TYPE_PROPERTY, String.class, ""));
-        //deserialize attributes
-        byte[] content = Utils.getProperty(config, ATTRIBUTES_PROPERTY, byte[].class, (byte[])null);
-        if(content != null && content.length > 0)
-            try(final ByteArrayInputStream stream = new ByteArrayInputStream(content);
-                final ObjectInputStream deserializer = new ObjectInputStream(stream)){
-                final Map<String, AttributeConfiguration> attributes = TypeLiterals.safeCast(deserializer.readObject(), ATTRS_MAP_TYPE);
-                if(attributes != null)
-                    result.setAttributes(attributes);
+    /**
+     * Extracts resource connection string from the managed resource configuration.
+     * @param resourceConfig A dictionary that represents managed resource configuration.
+     * @return Resource connection string.
+     */
+    public static String getConnectionString(final Dictionary<String, ?> resourceConfig){
+        return Utils.getProperty(resourceConfig, CONNECTION_STRING_PROPERTY, String.class, "");
+    }
+
+    /**
+     * Extracts resource name from the managed resource configuration.
+     * @param resourceConfig A dictionary that represents managed resource configuration.
+     * @return The resource name.
+     */
+    public static String getResourceName(final Dictionary<String, ?> resourceConfig){
+        return Utils.getProperty(resourceConfig, RESOURCE_NAME_PROPERTY, String.class, "");
+    }
+
+    private static void fillConnectionOptions(final Dictionary<String, ?> resourceConfig,
+                                              final Map<String, String> parameters){
+        final Enumeration<String> propertyNames = resourceConfig.keys();
+        while (propertyNames.hasMoreElements()) {
+            final String name = propertyNames.nextElement();
+            switch (name) {
+                case CONNECTION_STRING_PROPERTY:
+                case ATTRIBUTES_PROPERTY:
+                case EVENTS_PROPERTY:
+                case RESOURCE_NAME_PROPERTY:
+                    continue;
+                default:
+                    final Object value = resourceConfig.get(name);
+                    if (value != null)
+                        parameters.put(name, value.toString());
             }
-            catch (final ClassNotFoundException e){
-                throw new IOException(e);
-            }
-        //deserialize events
-        content = Utils.getProperty(config, EVENTS_PROPERTY, byte[].class, (byte[])null);
-        if(content != null && content.length > 0)
-            try(final ByteArrayInputStream stream = new ByteArrayInputStream(content);
-                final ObjectInputStream deserializer = new ObjectInputStream(stream)){
-                final Map<String, EventConfiguration> events = TypeLiterals.safeCast(deserializer.readObject(), EVENTS_MAP_TYPE);
-                if(events != null)
-                    result.setEvents(events);
-            }
-            catch (final ClassNotFoundException e){
-                throw new IOException(e);
-            }
-        //deserialize parameters
-        content = Utils.getProperty(config, PARAMS_PROPERTY, byte[].class, (byte[])null);
-        if(content != null && content.length > 0)
-            try(final ByteArrayInputStream stream = new ByteArrayInputStream(content);
-                final ObjectInputStream deserializer = new ObjectInputStream(stream)){
-                final Map<String, String> params = TypeLiterals.safeCast(deserializer.readObject(), PARAMS_MAP_TYPE);
-                if(params != null)
-                    result.setParameters(params);
-            }
-            catch (final ClassNotFoundException e){
-                throw new IOException(e);
-            }
-        result.reset();
+        }
+    }
+
+    public static Map<String, String> getResourceConnectorParameters(final Dictionary<String, ?> resourceConfig){
+        final Map<String, String> result = new HashMap<>(resourceConfig.size());
+        fillConnectionOptions(resourceConfig, result);
         return result;
     }
 
-    private static ManagedResourceConfiguration readResourceConfiguration(final Configuration config) throws PersistentConfigurationException {
+    private static ConfigurationEntry<ManagedResourceConfiguration> readResourceConfiguration(
+            final String factoryPID,
+            final Dictionary<String, ?> config) throws IOException {
+        final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
+        result.setConnectionString(getConnectionString(config));
+        result.setConnectionType(getConnectorType(factoryPID));
+        //deserialize attributes
+        byte[] content = Utils.getProperty(config, ATTRIBUTES_PROPERTY, byte[].class, (byte[]) null);
+        if (content != null && content.length > 0)
+            try (final ByteArrayInputStream stream = new ByteArrayInputStream(content);
+                 final ObjectInputStream deserializer = new ObjectInputStream(stream)) {
+                final Map<String, AttributeConfiguration> attributes = TypeLiterals.safeCast(deserializer.readObject(), ATTRS_MAP_TYPE);
+                if (attributes != null)
+                    result.setAttributes(attributes);
+            } catch (final ClassNotFoundException e) {
+                throw new IOException(e);
+            }
+        //deserialize events
+        content = Utils.getProperty(config, EVENTS_PROPERTY, byte[].class, (byte[]) null);
+        if (content != null && content.length > 0)
+            try (final ByteArrayInputStream stream = new ByteArrayInputStream(content);
+                 final ObjectInputStream deserializer = new ObjectInputStream(stream)) {
+                final Map<String, EventConfiguration> events = TypeLiterals.safeCast(deserializer.readObject(), EVENTS_MAP_TYPE);
+                if (events != null)
+                    result.setEvents(events);
+            } catch (final ClassNotFoundException e) {
+                throw new IOException(e);
+            }
+        //deserialize parameters
+        fillConnectionOptions(config, result.getParameters());
+        result.reset();
+        return new ConfigurationEntry<ManagedResourceConfiguration>(getResourceName(config),
+                result);
+    }
+
+    private static ConfigurationEntry<ManagedResourceConfiguration> readResourceConfiguration(final Configuration config) throws PersistentConfigurationException {
         try {
-            return readResourceConfiguration(config.getProperties());
+            return readResourceConfiguration(config.getFactoryPid(), config.getProperties());
         } catch (final IOException e) {
             throw new PersistentConfigurationException(config.getPid(), SerializableManagedResourceConfiguration.class, e);
         }
     }
 
-    /**
-     * Reads resource configuration.
-     * @param admin The configuration admin used to read the whole SNAMP configuration. Cannot be {@literal null}.
-     * @param resourceName The name of the managed resource.
-     * @return A new managed resource configuration.
-     * @throws IOException Unable to read resource configuration.
-     */
-    public static ManagedResourceConfiguration readResourceConfiguration(final ConfigurationAdmin admin,
-                                                                         final String resourceName) throws IOException{
-        return readResourceConfiguration(admin.getConfiguration(getResourcePersistentID(resourceName)));
-    }
-
-    private static <E extends Exception> void forEachResourceImpl(final ConfigurationAdmin admin,
-                                                                  final String resourceFilter,
-                                                                  final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
+    private static <E extends Exception> void forEachResource(final ConfigurationAdmin admin,
+                                                              final String resourceFilter,
+                                                              final Consumer<Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
         final Configuration[] configs = admin.listConfigurations(resourceFilter);
         if (configs != null && configs.length > 0)
-            for (final Configuration config : configs) {
-                final String resourceName = getResourceName(config.getPid());
-                if (resourceName == null || resourceName.isEmpty())
-                    config.delete();
-                else reader.read(resourceName, config);
-            }
+            for (final Configuration config : configs)
+                reader.accept(config);
     }
 
-    private static <E extends Exception> void forEachResourceImpl(final ConfigurationAdmin admin,
-                                                                  final RecordReader<String, Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
-        forEachResourceImpl(admin, ALL_CONNECTORS_QUERY, reader);
+    public static ManagedResourceConfiguration readResourceConfiguration(final ConfigurationAdmin admin,
+                                                                         final String resourceName) throws IOException {
+        final Box<ManagedResourceConfiguration> result = new Box<>();
+        try {
+            forEachResource(admin, String.format("(%s=%s)", RESOURCE_NAME_PROPERTY, resourceName), new Consumer<Configuration, PersistentConfigurationException>() {
+                @Override
+                public void accept(final Configuration config) throws PersistentConfigurationException {
+                    final ConfigurationEntry<ManagedResourceConfiguration> entry = readResourceConfiguration(config);
+                    result.set(entry.getValue());
+                }
+            });
+        } catch (final InvalidSyntaxException ignored) {
+            result.set(null);
+        }
+        return result.get();
+    }
+
+    private static <E extends Exception> void forEachResource(final ConfigurationAdmin admin,
+                                                              final Consumer<Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
+        forEachResource(admin, ALL_CONNECTORS_QUERY, reader);
     }
 
     public static void forEachResource(final ConfigurationAdmin admin,
                                      final RecordReader<String, ManagedResourceConfiguration, ? extends Exception> reader) throws Exception{
-        forEachResourceImpl(admin, new RecordReader<String, Configuration, Exception>() {
+        forEachResource(admin, new Consumer<Configuration, Exception>() {
             @Override
-            public void read(final String index, final Configuration value) throws Exception {
-                reader.read(index, readResourceConfiguration(value));
+            public void accept(final Configuration config) throws Exception {
+                final ConfigurationEntry<ManagedResourceConfiguration> entry = readResourceConfiguration(config);
+                reader.read(entry.getKey(), entry.getValue());
             }
         });
     }
 
     private static void readResources(final ConfigurationAdmin admin,
-                                      final Map<String, ManagedResourceConfiguration> output) throws IOException, InvalidSyntaxException {
-        forEachResourceImpl(admin, new RecordReader<String, Configuration, IOException>() {
+                                      final Map<String, ManagedResourceConfiguration> output) throws Exception {
+        forEachResource(admin, new RecordReader<String, ManagedResourceConfiguration, ExceptionPlaceholder>() {
             @Override
-            public void read(final String resourceName, final Configuration config) throws IOException {
-                output.put(resourceName, readResourceConfiguration(config));
+            public void read(final String resourceName, final ManagedResourceConfiguration config) {
+                output.put(resourceName, config);
             }
         });
     }
@@ -309,42 +375,57 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         try {
             readAdapters(admin, result.getResourceAdapters());
             readResources(admin, result.getManagedResources());
-        } catch (final InvalidSyntaxException e) {
+        }
+        catch (final IOException e){
+            throw e;
+        }
+        catch (final Exception e) {
             throw new IOException(e);
         }
         result.reset();
         return result;
     }
 
-    private static Dictionary<String, Object> toDictionary(final ResourceAdapterConfiguration adapter) throws IOException{
-        final Dictionary<String, Object> result = new Hashtable<>(2);
-        Utils.setProperty(result, ADAPTER_NAME_PROPERTY, adapter.getAdapterName());
-        try(final ByteArrayOutputStream os = new ByteArrayOutputStream(1024);
-            final ObjectOutputStream serializer = new ObjectOutputStream(os)){
-            serializer.writeObject(adapter.getParameters());
-            serializer.flush();
-            Utils.setProperty(result, PARAMS_PROPERTY, os.toByteArray());
-        }
-        return result;
+    private static void save(final String adapterInstanceName,
+                             final ResourceAdapterConfiguration adapter,
+                             final Configuration output) throws IOException{
+        final Dictionary<String, String> result = new Hashtable<>(2);
+        Utils.setProperty(result, ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName);
+        for(final Map.Entry<String, String> entry: adapter.getParameters().entrySet())
+            result.put(entry.getKey(), entry.getValue());
+        output.update(result);
     }
 
-    private static void save(final ResourceAdapterConfiguration adapter, final Configuration output) throws IOException{
-        output.update(toDictionary(adapter));
-    }
-
-    private static void save(final String adapterInstance, final ResourceAdapterConfiguration config, final ConfigurationAdmin admin) throws PersistentConfigurationException {
-        final String pid = getAdapterPersistentID(adapterInstance);
+    private static void save(final String adapterInstance,
+                             final ResourceAdapterConfiguration adapter,
+                             final ConfigurationAdmin admin) throws PersistentConfigurationException {
         try {
-            save(config, admin.getConfiguration(pid));
-        } catch (final IOException e) {
-            throw new PersistentConfigurationException(pid, ResourceAdapterConfiguration.class, e);
+            //find existing configuration of adapters
+            final Box<Boolean> updated = new Box<>(Boolean.FALSE);
+            forEachAdapter(admin, String.format("(%s=%s)", ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstance), new Consumer<Configuration, IOException>() {
+                @Override
+                public void accept(final Configuration config) throws IOException {
+                    save(adapterInstance, adapter, config);
+                    updated.set(Boolean.TRUE);
+                }
+            });
+            //no existing configuration, creates a new configuration
+            if(!updated.get())
+                save(adapterInstance,
+                        adapter,
+                        admin.createFactoryConfiguration(getAdapterFactoryPersistentID(adapter.getAdapterName()), null));
+        }
+        catch (final IOException | InvalidSyntaxException e) {
+            throw new PersistentConfigurationException(adapterInstance, ResourceAdapterConfiguration.class, e);
         }
     }
 
-    private static Dictionary<String, Object> toDictionary(final ManagedResourceConfiguration resource) throws IOException {
+    private static void save(final String resourceName,
+                             final ManagedResourceConfiguration resource,
+                             final Configuration output) throws IOException{
         final Dictionary<String, Object> result = new Hashtable<>(4);
-        Utils.setProperty(result, CONNECTOR_TYPE_PROPERTY, resource.getConnectionType());
         Utils.setProperty(result, CONNECTION_STRING_PROPERTY, resource.getConnectionString());
+        Utils.setProperty(result, RESOURCE_NAME_PROPERTY, resourceName);
         final Map<String, AttributeConfiguration> attributes = resource.getElements(AttributeConfiguration.class);
         //serialize attributes
         if (attributes != null)
@@ -363,47 +444,54 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                 serializer.flush();
                 Utils.setProperty(result, EVENTS_PROPERTY, os.toByteArray());
             }
-        try(final ByteArrayOutputStream os = new ByteArrayOutputStream(1024);
-            final ObjectOutputStream serializer = new ObjectOutputStream(os)){
-            serializer.writeObject(resource.getParameters());
-            serializer.flush();
-            Utils.setProperty(result, PARAMS_PROPERTY, os.toByteArray());
-        }
-        return result;
+        //serialize properties
+        for(final Map.Entry<String, String> entry: resource.getParameters().entrySet())
+            result.put(entry.getKey(), entry.getValue());
+        output.update(result);
     }
 
-    private static void save(final ManagedResourceConfiguration resource, final Configuration output) throws IOException{
-        output.update(toDictionary(resource));
-    }
-
-    private static void save(final String resourceName, final ManagedResourceConfiguration config, final ConfigurationAdmin admin) throws PersistentConfigurationException{
-        final String pid = getResourcePersistentID(resourceName);
+    private static void save(final String resourceName,
+                             final ManagedResourceConfiguration resource,
+                             final ConfigurationAdmin admin) throws PersistentConfigurationException{
         try {
-            save(config, admin.getConfiguration(pid));
-        } catch (final IOException e) {
-            throw new PersistentConfigurationException(pid, ManagedResourceConfiguration.class, e);
+            final Box<Boolean> updated = new Box<>(Boolean.FALSE);
+            //find existing configuration of resources
+            forEachResource(admin, String.format("(%s=%s)", RESOURCE_NAME_PROPERTY, resourceName), new Consumer<Configuration, IOException>() {
+                @Override
+                public void accept(final Configuration config) throws IOException {
+                    save(resourceName, resource, config);
+                    updated.set(Boolean.TRUE);
+                }
+            });
+            //no existing configuration, creates a new configuration
+            if(!updated.get())
+                save(resourceName, resource, admin.createFactoryConfiguration(getConnectorFactoryPersistentID(resource.getConnectionType()), null));
+        } catch (final IOException | InvalidSyntaxException e) {
+            throw new PersistentConfigurationException(resourceName, ManagedResourceConfiguration.class, e);
         }
     }
 
     public static void save(final SerializableAgentConfiguration config, final ConfigurationAdmin output) throws IOException{
         try {
             //remove all unnecessary resources
-            forEachResourceImpl(output, new RecordReader<String, Configuration, IOException>() {
+            forEachResource(output, new Consumer<Configuration, IOException>() {
                 private final Map<String, ManagedResourceConfiguration> resources = config.getManagedResources();
 
                 @Override
-                public void read(final String resourceName, final Configuration config) throws IOException {
-                    if (!resources.containsKey(resourceName))
+                public void accept(final Configuration config) throws IOException {
+                    final String resourceName = Utils.getProperty(config.getProperties(), RESOURCE_NAME_PROPERTY, String.class, "");
+                    if(!resources.containsKey(resourceName))
                         config.delete();
                 }
             });
             //remove all unnecessary adapters
-            forEachAdapterImpl(output, new RecordReader<String, Configuration, IOException>() {
+            forEachAdapter(output, new Consumer<Configuration, IOException>() {
                 private final Map<String, ResourceAdapterConfiguration> adapters = config.getResourceAdapters();
 
                 @Override
-                public void read(final String adapterInstance, final Configuration config) throws IOException {
-                    if (!adapters.containsKey(adapterInstance))
+                public void accept(final Configuration config) throws IOException {
+                    final String adapterInstance = Utils.getProperty(config.getProperties(), ADAPTER_INSTANCE_NAME_PROPERTY, String.class, "");
+                    if(!adapters.containsKey(adapterInstance))
                         config.delete();
                 }
             });
@@ -426,46 +514,6 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                     save(resourceName, config, output);
             }
         });
-    }
-
-    /**
-     * Extracts managed resources filtered by connector type.
-     * @param admin The configuration admin used to read the whole SNAMP configuration. Cannot be {@literal null}.
-     * @param connectorType Resource connector type.
-     * @param reader Managed resource reader.
-     * @throws Exception Unable to read SNAMP configuration.
-     */
-    public static void findResourcesByType(final ConfigurationAdmin admin,
-                                           final String connectorType,
-                                           final RecordReader<String, ManagedResourceConfiguration, ? extends Exception> reader) throws Exception {
-        forEachResourceImpl(admin, String.format("(&(%s=%s)(%s=%s))", CONNECTOR_TYPE_PROPERTY, connectorType,
-                        Constants.SERVICE_PID, String.format(CONNECTOR_PID_TEMPLATE, "*")),
-                new RecordReader<String, Configuration, Exception>() {
-                    @Override
-                    public void read(final String resourceName, final Configuration config) throws Exception {
-                        reader.read(resourceName, readResourceConfiguration(config));
-                    }
-                });
-    }
-
-    /**
-     * Extracts resource adapters filtered by adapter name.
-     * @param admin The configuration admin used to read the whole SNAMP configuration. Cannot be {@literal null}.
-     * @param adapterName The name of the resource adapter.
-     * @param reader Resource adapter reader.
-     * @throws Exception Unable to read SNAMP configuration.
-     */
-    public static void findAdaptersByName(final ConfigurationAdmin admin,
-                                          final String adapterName,
-                                          final RecordReader<String, ResourceAdapterConfiguration, ? extends Exception> reader) throws Exception {
-        forEachAdapterImpl(admin, String.format("(&(%s=%s)(%s=%s))", ADAPTER_NAME_PROPERTY, adapterName,
-                        Constants.SERVICE_PID, String.format(ADAPTER_PID_TEMPLATE, "*")),
-                new RecordReader<String, Configuration, Exception>() {
-                    @Override
-                    public void read(final String adapterInstance, final Configuration config) throws Exception {
-                        reader.read(adapterInstance, readAdapterConfiguration(config));
-                    }
-                });
     }
 
     /**

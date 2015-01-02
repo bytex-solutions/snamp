@@ -3,31 +3,28 @@ package com.itworks.snamp.adapters;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.core.OsgiLoggingContext;
-import com.itworks.snamp.internal.AbstractKeyedObjects;
-import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
-import com.itworks.snamp.mapping.RecordReader;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceListener;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 
 /**
  * Represents lifetime manager for managed resource adapter.
@@ -41,7 +38,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapter
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> extends AbstractServiceLibrary {
+public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> extends AbstractServiceLibrary {
     /**
      * Represents name of the bundle manifest header that contains system name of the adapter.
      */
@@ -50,6 +47,145 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
 
     private static final String ADAPTER_NAME_IDENTITY_PROPERTY = ADAPTER_NAME_MANIFEST_HEADER;
     private static final ActivationProperty<String> ADAPTER_NAME_HOLDER = defineActivationProperty(String.class);
+    private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
+
+    /**
+     * Represents a factory responsible for creating instances of resource adapters.
+     * @param <TAdapter> Type of the adapter implementation.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static interface ResourceAdapterFactory<TAdapter extends FrameworkService & ServiceListener & AutoCloseable>{
+        TAdapter createAdapter(final String adapterInstance,
+                               final RequiredService<?>... dependencies) throws Exception;
+    }
+
+    private static final class ResourceAdapterRegistry<TAdapter extends AbstractResourceAdapter> extends DynamicServiceManager<TAdapter>{
+        private final ResourceAdapterFactory<TAdapter> adapterFactory;
+        /**
+         * Represents name of the resource adapter.
+         */
+        protected final String adapterName;
+
+        private ResourceAdapterRegistry(final String adapterName,
+                                        final ResourceAdapterFactory<TAdapter> factory,
+                                        final RequiredService<?>... dependencies){
+            super(PersistentConfigurationManager.getAdapterFactoryPersistentID(adapterName), dependencies);
+            this.adapterFactory = Objects.requireNonNull(factory, "factory is null.");
+            this.adapterName = adapterName;
+        }
+
+        private BundleContext getBundleContext(){
+            return Utils.getBundleContextByObject(adapterFactory);
+        }
+
+        private OsgiLoggingContext getLoggingContext() {
+            Logger logger = getActivationPropertyValue(LOGGER_HOLDER);
+            if (logger == null)
+                logger = AbstractResourceAdapter.getLogger(adapterName);
+            return OsgiLoggingContext.get(logger, getBundleContext());
+        }
+
+        /**
+         * Automatically invokes by SNAMP when the dynamic service should be updated with
+         * a new configuration.
+         *
+         * @param adapter      The service to be updated.
+         * @param configuration A new configuration of the service.
+         * @param dependencies  A collection of dependencies required for the service.
+         * @return An updated service.
+         * @throws Exception                                  Unable to create new service or update the existing service.
+         * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
+         */
+        @Override
+        protected TAdapter updateService(final TAdapter adapter, final Dictionary<String, ?> configuration, final RequiredService<?>... dependencies) throws Exception {
+            adapter.tryUpdate(PersistentConfigurationManager.getAdapterParameters(configuration));
+            return adapter;
+        }
+
+        /**
+         * Automatically invokes by SNAMP when the new dynamic service should be created.
+         *
+         * @param servicePID    The persistent identifier associated with a newly created service.
+         * @param configuration A new configuration of the service.
+         * @param dependencies  A collection of dependencies required for the newly created service.
+         * @return A new instance of the service.
+         * @throws Exception                                  Unable to instantiate the service.
+         * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
+         */
+        @Override
+        protected TAdapter activateService(final String servicePID,
+                                           final Dictionary<String, ?> configuration,
+                                           final RequiredService<?>... dependencies) throws Exception {
+            final TAdapter resourceAdapter = adapterFactory.createAdapter(PersistentConfigurationManager.getAdapterInstanceName(configuration),
+                    dependencies);
+            if (resourceAdapter != null && resourceAdapter.tryStart(PersistentConfigurationManager.getAdapterParameters(configuration)))
+                ManagedResourceConnectorClient.addResourceListener(getBundleContext(),
+                        resourceAdapter);
+            return resourceAdapter;
+        }
+
+        /**
+         * Automatically invokes by SNAMP when service is disposing.
+         *
+         * @param adapter   A service to dispose.
+         * @param bundleStop {@literal true}, if disposing is initiated by bundle stop operation; otherwise, {@literal false}.
+         * @throws Exception Unable to dispose the service.
+         */
+        @Override
+        protected void dispose(final TAdapter adapter, final boolean bundleStop) throws Exception {
+            getBundleContext().removeServiceListener(adapter);
+            adapter.close();
+        }
+
+        /**
+         * Logs error details when {@link #activateService(String, java.util.Dictionary, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
+         *
+         * @param servicePID    The persistent identifier associated with a newly created service.
+         * @param configuration The configuration of the service.
+         * @param e             An exception occurred when instantiating service.
+         */
+        @Override
+        protected void failedToActivateService(final String servicePID, final Dictionary<String, ?> configuration, final Exception e) {
+            try(final OsgiLoggingContext logger = getLoggingContext()){
+                logger.log(Level.SEVERE, String.format("Unable to instantiate adapter. Name: %s, instance: %s",
+                                adapterName,
+                                PersistentConfigurationManager.getAdapterInstanceName(configuration)),
+                        e);
+            }
+        }
+
+        /**
+         * Log error details when {@link #updateService(Object, java.util.Dictionary, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
+         *
+         * @param servicePID    The persistent identifier associated with the service.
+         * @param configuration The configuration of the service.
+         * @param e             An exception occurred when updating service.
+         */
+        @Override
+        protected void failedToUpdateService(final String servicePID, final Dictionary<String, ?> configuration, final Exception e) {
+            try(final OsgiLoggingContext logger = getLoggingContext()){
+                logger.log(Level.SEVERE, String.format("Unable to update adapter. Name: %s, instance: %s",
+                        adapterName,
+                        PersistentConfigurationManager.getAdapterInstanceName(configuration)), e);
+            }
+        }
+
+        /**
+         * Logs error details when {@link #dispose(Object, boolean)} failed.
+         *
+         * @param servicePID The persistent identifier of the service to dispose.
+         * @param e          An exception occurred when disposing service.
+         */
+        @Override
+        protected void failedToCleanupService(final String servicePID, final Exception e) {
+            try(final OsgiLoggingContext logger = getLoggingContext()){
+                logger.log(Level.SEVERE, String.format("Unable to release adapter. Name: %s",
+                        adapterName), e);
+            }
+        }
+    }
 
     /**
      * Represents superclass for all optional adapter-related service factories.
@@ -59,8 +195,8 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
-     * @see com.itworks.snamp.adapters.AbstractResourceAdapterActivator.ConfigurationEntityDescriptionManager
-     * @see com.itworks.snamp.adapters.AbstractResourceAdapterActivator.LicensingDescriptionServiceManager
+     * @see ResourceAdapterActivator.ConfigurationEntityDescriptionManager
+     * @see ResourceAdapterActivator.LicensingDescriptionServiceManager
      */
     protected abstract static class SupportAdapterServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T>{
 
@@ -224,22 +360,32 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      * Represents name of the adapter.
      */
     public final String adapterName;
-    private final KeyedObjects<String, TAdapter> adapters;
 
     /**
-     * Initializes a new instance of the resource adapter lifetime manager.
+     * Initializes a new instance of the resource adapter activator.
      * @param adapterName The name of the adapter.
+     * @param factory Resource adapter factory. Cannot be {@literal null}.
      * @param optionalServices Additional services exposed by adapter.
      */
-    protected AbstractResourceAdapterActivator(final String adapterName, final SupportAdapterServiceManager<?, ?>... optionalServices){
-        super(optionalServices);
+    protected ResourceAdapterActivator(final String adapterName,
+                                       final ResourceAdapterFactory<TAdapter> factory,
+                                       final SupportAdapterServiceManager<?, ?>... optionalServices){
+        this(adapterName, factory, EMTPY_REQUIRED_SERVICES, optionalServices);
+    }
+
+    /**
+     * Initializes a new instance of the resource adapter activator.
+     * @param adapterName The name of the adapter.
+     * @param factory Resource adapter factory. Cannot be {@literal null}.
+     * @param adapterDependencies Adapter-level dependencies.
+     * @param optionalServices Additional services exposed by adapter.
+     */
+    protected ResourceAdapterActivator(final String adapterName,
+                                       final ResourceAdapterFactory<TAdapter> factory,
+                                       final RequiredService<?>[] adapterDependencies,
+                                       final SupportAdapterServiceManager<?, ?>[] optionalServices) {
+        super(ArrayUtils.addToEnd(optionalServices, new ResourceAdapterRegistry<>(adapterName, factory, adapterDependencies), ProvidedService.class));
         this.adapterName = adapterName;
-        this.adapters = new AbstractKeyedObjects<String, TAdapter>(10) {
-            @Override
-            public String getKey(final TAdapter item) {
-                return item.getInstanceName();
-            }
-        };
     }
 
     /**
@@ -267,18 +413,6 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     }
 
     /**
-     * Initializes a new instance of the resource adapter.
-     * @param adapterInstance The name of the adapter instance.
-     * @param parameters A collection of initialization parameters.
-     * @param dependencies A collection of dependencies used by adapter.
-     * @return A new instance of the adapter.
-     * @throws java.lang.Exception Unable to instantiate resource adapter.
-     */
-    protected abstract TAdapter createAdapter(final String adapterInstance,
-                                              final Map<String, String> parameters,
-                                              final RequiredService<?>... dependencies) throws Exception;
-
-    /**
      * Activates this service library.
      * <p>
      * You should override this method and call this implementation at the first line using
@@ -292,41 +426,16 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
     @Override
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         activationProperties.publish(ADAPTER_NAME_HOLDER, adapterName);
-        final ConfigurationAdmin configManager =
-                getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies);
-
-        final BundleContext context = getAdapterContext();
-        PersistentConfigurationManager.findAdaptersByName(configManager, adapterName, new RecordReader<String, ResourceAdapterConfiguration, Exception>() {
-            @Override
-            public void read(final String adapterInstanceName, final ResourceAdapterConfiguration adapterInstance) throws Exception {
-                final TAdapter resourceAdapter = createAdapter(adapterInstanceName, adapterInstance.getParameters(), dependencies);
-                if (resourceAdapter != null) {
-                    adapters.put(resourceAdapter);
-                    if (resourceAdapter.tryStart())
-                        ManagedResourceConnectorClient.addResourceListener(context, resourceAdapter);
-                }
-            }
-        });
+        activationProperties.publish(LOGGER_HOLDER, getLogger());
+        try(final OsgiLoggingContext logger = getLoggingContext()){
+            logger.info(String.format("Activating resource adapters of type %s", adapterName));
+        }
     }
 
     private BundleContext getAdapterContext(){
         return Utils.getBundleContextByObject(this);
     }
 
-    private void deactivate() throws Exception{
-        final BundleContext context = getAdapterContext();
-        //unsubscription from the resource connector listening should be guaranteed
-        for (final TAdapter adapter : adapters.values())
-            context.removeServiceListener(adapter);
-        //and now we can close each adapter unsafely
-        try {
-            for (final TAdapter adapter : adapters.values())
-                adapter.close();
-        }
-        finally {
-            adapters.clear();
-        }
-    }
 
     /**
      * Gets logger associated with this activator.
@@ -344,7 +453,9 @@ public abstract class AbstractResourceAdapterActivator<TAdapter extends Abstract
      */
     @Override
     protected final void deactivate(final ActivationPropertyReader activationProperties) throws Exception {
-        deactivate();
+        try(final OsgiLoggingContext logger = getLoggingContext()){
+            logger.info(String.format("Unloading adapters of type %s", adapterName));
+        }
     }
 
     private OsgiLoggingContext getLoggingContext(){

@@ -2,9 +2,9 @@ package com.itworks.snamp.testing.adapters.snmp;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
-import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.connectors.notifications.Severity;
 import com.itworks.snamp.testing.Matrix;
@@ -67,14 +67,14 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         super.afterStartTest(context);
-        AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
     }
 
     @Override
     protected void afterCleanupTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(context);
         super.afterCleanupTest(context);
     }
@@ -248,8 +248,8 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
 
     @Test
     public final void notificationTest() throws IOException, TimeoutException, InterruptedException, BundleException {
-            final SynchronizationEvent.Awaitor<SnmpNotification> awaitor1 = client.addNotificationListener(new OID("1.1.19.1"));
-            final SynchronizationEvent.Awaitor<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
+            final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor1 = client.addNotificationListener(new OID("1.1.19.1"));
+            final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
             client.writeAttribute(new OID("1.1.1.0"), "NOTIFICATION TEST", String.class);
             final SnmpNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
             final SnmpNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.MINUTES));

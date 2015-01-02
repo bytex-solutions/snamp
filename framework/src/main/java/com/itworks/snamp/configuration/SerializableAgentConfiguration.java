@@ -307,6 +307,15 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             this.parameters.clear();
             this.parameters.putAll(parameters);
         }
+
+        /**
+         * Puts the parameter value.
+         * @param name The name of the parameter.
+         * @param value The value of the parameter.
+         */
+        public final void setParameter(final String name, final String value){
+            parameters.put(name, value);
+        }
     }
 
     /**

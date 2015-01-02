@@ -1,9 +1,12 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
 
-import java.util.concurrent.*;
+import com.itworks.snamp.ExceptionPlaceholder;
+import com.itworks.snamp.TimeSpan;
+
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.*;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.ConsistentAction;
 
 /**
  * Represents synchronization event that is used to synchronize with some
@@ -14,25 +17,22 @@ import static com.itworks.snamp.AbstractConcurrentResourceAccess.*;
  */
 public class SynchronizationEvent<T> {
     /**
-     * Represents awaitor of the synchronization event.
-     * <p>
-     * This interface should be used by event consumer.
-     * </p>
-     *
-     * @param <T> Type of the event result.
+     * Represents synchronization event awaitor.
+     * @param <T> Type of the event.
      * @author Roman Sakno
-     * @version 1.0
      * @since 1.0
+     * @version 1.0
      */
-    public static interface Awaitor<T> {
+    public static interface EventAwaitor<T> extends Awaitor<T, ExceptionPlaceholder>{
         /**
          * Blocks the caller thread until the event will not be raised.
          *
          * @param timeout Event waiting timeout.
          * @return The event data.
-         * @throws TimeoutException     timeout parameter too small for waiting.
-         * @throws InterruptedException Waiting thread is aborted.
+         * @throws java.util.concurrent.TimeoutException timeout parameter too small for waiting.
+         * @throws InterruptedException                  Waiting thread is aborted.
          */
+        @Override
         T await(final TimeSpan timeout) throws TimeoutException, InterruptedException;
 
         /**
@@ -41,6 +41,7 @@ public class SynchronizationEvent<T> {
          * @return The event data.
          * @throws InterruptedException Waiting thread is aborted.
          */
+        @Override
         T await() throws InterruptedException;
     }
 
@@ -50,7 +51,7 @@ public class SynchronizationEvent<T> {
      *
      * @param <T> Type of the event object.
      */
-    private static final class EventState<T> extends AbstractQueuedSynchronizer implements Awaitor<T> {
+    private static final class EventState<T> extends AbstractQueuedSynchronizer implements EventAwaitor<T> {
         private T eventObj;
 
         public EventState() {
@@ -177,7 +178,7 @@ public class SynchronizationEvent<T> {
      *
      * @return A new awaitor for this event.
      */
-    public final Awaitor<T> getAwaitor() {
+    public final EventAwaitor<T> getAwaitor() {
         return state.getResource();
     }
 }

@@ -1,7 +1,8 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.itworks.snamp.Wrapper;
 
 /**
  * Provides thread-safe access to the thread-unsafe resource.

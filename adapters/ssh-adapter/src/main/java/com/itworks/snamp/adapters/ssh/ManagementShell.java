@@ -1,9 +1,8 @@
 package com.itworks.snamp.adapters.ssh;
 
-import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Switch;
-import com.itworks.snamp.WriteOnceRef;
+import com.itworks.snamp.concurrent.WriteOnceRef;
 import jline.console.ConsoleReader;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.Session;
@@ -34,41 +33,28 @@ import java.util.regex.Pattern;
 final class ManagementShell implements Command, SessionAware {
     private static final Pattern COMMAND_DELIMITIER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 
-    private static final class CommandExecutionContextImpl extends AbstractAggregator implements CommandExecutionContext{
-        private final AdapterController controller;
-        private final ExecutorService executor;
-        private final Session session;
-        private final InputStream reader;
+    private static final class CommandExecutionContextImpl extends Switch<Class<?>, Object> implements CommandExecutionContext{
 
+        @SuppressWarnings("ResultOfMethodCallIgnored")
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor){
-            this(controller, executor, null, null);
+            super.equals(CONTROLLER, controller)
+                    .equals(EXECUTOR, executor);
         }
 
+        @SuppressWarnings("ResultOfMethodCallIgnored")
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor,
                                             final Session session,
-                                            final InputStream reader){
-            this.controller = Objects.requireNonNull(controller, "controller is null.");
-            this.executor = Objects.requireNonNull(executor, "executor is null.");
-            this.session = session;
-            this.reader = reader;
+                                            final InputStream reader) {
+            this(controller, executor);
+            super.equals(SESSION, session)
+                    .equals(INPUT_STREAM, reader);
         }
 
-        /**
-         * Retrieves the aggregated object.
-         *
-         * @param objectType Type of the aggregated object.
-         * @return An instance of the requested object; or {@literal null} if object is not available.
-         */
         @Override
         public <T> T queryObject(final Class<T> objectType) {
-            return Switch.<Class<?>, Object>init()
-                    .equals(EXECUTOR, this.executor)
-                    .equals(CONTROLLER, this.controller)
-                    .equals(SESSION, this.session)
-                    .equals(INPUT_STREAM, this.reader)
-                    .execute(objectType, objectType);
+            return apply(objectType, objectType);
         }
     }
 

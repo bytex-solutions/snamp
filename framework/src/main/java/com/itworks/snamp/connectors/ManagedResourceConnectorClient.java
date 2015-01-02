@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors;
 
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.Futures;
 import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
@@ -31,6 +32,8 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * @since 1.0
  */
 public final class ManagedResourceConnectorClient {
+    private static final String LOGGER_NAME = "com.itworks.snamp.connectors.ManagedResourceConnectorClient";
+
     private ManagedResourceConnectorClient(){
 
     }
@@ -44,7 +47,7 @@ public final class ManagedResourceConnectorClient {
                                                    final String connectorType,
                                                    final String header,
                                                    final Locale loc){
-        final List<Bundle> candidates = AbstractManagedResourceActivator.getResourceConnectorBundles(context, connectorType);
+        final List<Bundle> candidates = ManagedResourceActivator.getResourceConnectorBundles(context, connectorType);
         return candidates.isEmpty() ? null : candidates.get(0).getHeaders(loc != null ? loc.toString() : null).get(header);
     }
 
@@ -62,7 +65,7 @@ public final class ManagedResourceConnectorClient {
                                                                                 final String connectorType,
                                                                                 String filter,
                                                                                 final Class<S> serviceType) throws InvalidSyntaxException {
-        filter = AbstractManagedResourceActivator.createFilter(connectorType, filter);
+        filter = ManagedResourceActivator.createFilter(connectorType, filter);
         final Collection<ServiceReference<S>> refs = context.getServiceReferences(serviceType, filter);
         return refs.isEmpty() ? null : refs.iterator().next();
     }
@@ -74,7 +77,7 @@ public final class ManagedResourceConnectorClient {
      * @return The state of the bundle.
      */
     public static int getState(final BundleContext context, final String connectorType){
-        final List<Bundle> bnds = AbstractManagedResourceActivator.getResourceConnectorBundles(context, connectorType);
+        final List<Bundle> bnds = ManagedResourceActivator.getResourceConnectorBundles(context, connectorType);
         return bnds.isEmpty() ? Bundle.UNINSTALLED : bnds.get(0).getState();
     }
 
@@ -137,7 +140,11 @@ public final class ManagedResourceConnectorClient {
                 result.put(limName, lims.getDescription(limName, loc));
             return result;
         }
-        catch (final InvalidSyntaxException ignored) {
+        catch (final InvalidSyntaxException e) {
+            ref = null;
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+                logger.log(Level.SEVERE, String.format("Unable to discover license limitations of %s connector", connectorType), e);
+            }
             return Collections.emptyMap();
         }
         finally {
@@ -170,8 +177,11 @@ public final class ManagedResourceConnectorClient {
             final ConfigurationEntityDescriptionProvider provider = context.getService(ref);
             return provider.getDescription(configurationEntity);
         }
-        catch (final InvalidSyntaxException ignored) {
+        catch (final InvalidSyntaxException e) {
             ref = null;
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+                logger.log(Level.SEVERE, String.format("Unable to discover configuration schema of %s connector", connectorType), e);
+            }
             return null;
         }
         finally {
@@ -206,7 +216,12 @@ public final class ManagedResourceConnectorClient {
             final DiscoveryService service = context.getService(ref);
             return service.discover(connectionString, connectionOptions, entityType);
         }
-        catch (final InvalidSyntaxException ignored) {
+        catch (final InvalidSyntaxException e) {
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+                logger.log(Level.SEVERE, String.format("Unable to discover entities of %s connector with %s connection string",
+                        connectorType,
+                        connectionString), e);
+            }
             return Collections.emptyList();
         }
         finally {
@@ -241,6 +256,9 @@ public final class ManagedResourceConnectorClient {
         }
         catch (final InvalidSyntaxException e) {
             ref = null;
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+                logger.log(Level.SEVERE, String.format("Unable to enumerate maintenance actions of %s connector", connectorType), e);
+            }
             return Collections.emptyMap();
         }
         finally {
@@ -274,8 +292,7 @@ public final class ManagedResourceConnectorClient {
             return context.getService(ref).doAction(actionName, arguments, resultLocale);
         }
         catch (final InvalidSyntaxException e) {
-            ref = null;
-            return null;
+            return Futures.immediateFailedCheckedFuture(e);
         }
         finally {
             if(ref != null) context.ungetService(ref);
@@ -297,11 +314,14 @@ public final class ManagedResourceConnectorClient {
             for(final ServiceReference<?> serviceRef: connectors) {
                 @SuppressWarnings("unchecked")
                 final ServiceReference<ManagedResourceConnector<?>> connectorRef = (ServiceReference<ManagedResourceConnector<?>>)serviceRef;
-                result.put(AbstractManagedResourceActivator.getManagedResourceName(connectorRef), connectorRef);
+                result.put(getManagedResourceName(connectorRef), connectorRef);
             }
             return result;
         }
         catch (final InvalidSyntaxException e) {
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+                logger.log(Level.SEVERE, "Unable to enumerate all available connectors", e);
+            }
             return Collections.emptyMap();
         }
     }
@@ -312,7 +332,7 @@ public final class ManagedResourceConnectorClient {
      * @return The type of the management connector.
      */
     public static String getConnectorType(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
-        return AbstractManagedResourceActivator.getConnectorType(connectorRef);
+        return ManagedResourceActivator.getConnectorType(connectorRef);
     }
 
     /**
@@ -321,7 +341,7 @@ public final class ManagedResourceConnectorClient {
      * @return The connection string used by management connector.
      */
     public static String getConnectionString(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
-        return AbstractManagedResourceActivator.getConnectionString(connectorRef);
+        return ManagedResourceActivator.getConnectionString(connectorRef);
     }
 
     /**
@@ -331,7 +351,7 @@ public final class ManagedResourceConnectorClient {
      * @return The name of the management target.
      */
     public static String getManagedResourceName(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
-        return AbstractManagedResourceActivator.getManagedResourceName(connectorRef);
+        return ManagedResourceActivator.getManagedResourceName(connectorRef);
     }
 
     /**
@@ -344,10 +364,10 @@ public final class ManagedResourceConnectorClient {
     public static ServiceReference<ManagedResourceConnector<?>> getResourceConnector(final BundleContext context,
                                                                           final String resourceName) {
         try {
-            return Iterables.<ServiceReference>getFirst(context.getServiceReferences(ManagedResourceConnector.class, AbstractManagedResourceActivator.createFilter(resourceName)), null);
+            return Iterables.<ServiceReference>getFirst(context.getServiceReferences(ManagedResourceConnector.class, ManagedResourceActivator.createFilter(resourceName)), null);
         }
         catch (final InvalidSyntaxException e) {
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(context.getBundle().getSymbolicName(), context)){
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, String.format("Unable to find resource connector %s", resourceName), e);
             }
         }
@@ -362,10 +382,10 @@ public final class ManagedResourceConnectorClient {
      */
     public static boolean addResourceListener(final BundleContext context, final ServiceListener listener){
         try {
-            context.addServiceListener(listener, AbstractManagedResourceActivator.createFilter("*", String.format("(%s=%s)", Constants.OBJECTCLASS, ManagedResourceConnector.class.getName())));
+            context.addServiceListener(listener, ManagedResourceActivator.createFilter("*", String.format("(%s=%s)", Constants.OBJECTCLASS, ManagedResourceConnector.class.getName())));
             return true;
         } catch (final InvalidSyntaxException e) {
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(context.getBundle().getSymbolicName(), context)){
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, "Unable to bind resource listener", e);
             }
             return false;
@@ -378,7 +398,7 @@ public final class ManagedResourceConnectorClient {
      * @return {@literal true}, if the specified object is a reference to the {@link com.itworks.snamp.connectors.ManagedResourceConnector} service; otherwise, {@literal false}.
      */
     public static boolean isResourceConnector(final ServiceReference<?> ref){
-        return AbstractManagedResourceActivator.isResourceConnector(ref);
+        return ManagedResourceActivator.isResourceConnector(ref);
     }
 
     public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,

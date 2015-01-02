@@ -69,7 +69,7 @@ public final class NotificationListenerInvokerFactory {
 
     /**
      * Creates an invoker that invokes each listener using {@link ExecutorService#execute(Runnable)} method.
-     * @param executor An executor that is used to execute each listener.
+     * @param executor An executor that is used to apply each listener.
      * @return A new instance of the listener invoker that uses {@link ExecutorService} for listener invocation.
      */
     public static NotificationListenerInvoker createParallelInvoker(final ExecutorService executor){

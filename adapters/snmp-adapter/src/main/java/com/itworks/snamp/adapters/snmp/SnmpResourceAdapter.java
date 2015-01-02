@@ -2,19 +2,24 @@ package com.itworks.snamp.adapters.snmp;
 
 import com.google.common.base.Supplier;
 import com.google.common.eventbus.EventBus;
-import com.itworks.snamp.adapters.AbstractConcurrentResourceAdapter;
+import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.connectors.ManagedEntityValue;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.osgi.service.event.EventHandler;
+import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.agent.mo.snmp.TransportDomains;
+import org.snmp4j.mp.MPv3;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.TransportIpAddress;
 import org.snmp4j.smi.UdpAddress;
 
-import java.io.IOException;
+import javax.naming.NamingException;
+import javax.naming.directory.DirContext;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +32,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
  * @version 1.0
  * @since 1.0
  */
-final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
+final class SnmpResourceAdapter extends AbstractResourceAdapter {
     static final String NAME = SnmpHelpers.ADAPTER_NAME;
 
     private static final class SnmpNotificationMappingImpl implements SnmpNotificationMapping{
@@ -194,20 +199,33 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
         }
     }
 
-    private final SnmpAgent agent;
+    private SnmpAgent agent;
     private final SnmpAttributesModel attributes;
     private final SnmpNotificationsModel notifications;
+    private final DirContextFactory contextFactory;
 
-    SnmpResourceAdapter(    final String adapterInstanceName,
-                            final int port,
-                                  final String hostName,
-                                  final SecurityConfiguration securityOptions,
-                                  final int socketTimeout,
-                                  final Supplier<ExecutorService> threadPoolFactory) throws IOException {
-        super(adapterInstanceName, threadPoolFactory);
-        agent = new SnmpAgent(port, hostName, securityOptions, socketTimeout);
+    SnmpResourceAdapter(final String adapterInstanceName, final JNDIContextManager contextManager) {
+        super(adapterInstanceName);
         attributes = new SnmpAttributesModel();
         notifications = new SnmpNotificationsModel();
+        contextFactory = new DirContextFactory() {
+            @Override
+            public DirContext create(final Hashtable<?, ?> env) throws NamingException {
+                return contextManager.newInitialDirContext(env);
+            }
+        };
+    }
+
+    private void start(final int port,
+                       final String address,
+                       final SecurityConfiguration security,
+                       final int socketTimeout,
+                       final Supplier<ExecutorService> threadPoolFactory) throws Exception {
+        populateModel(attributes);
+        populateModel(notifications);
+        agent = new SnmpAgent(port, address, security, socketTimeout);
+        notifications.subscribe(agent);
+        agent.start(attributes.values(), notifications.values(), threadPoolFactory.get());
     }
 
     /**
@@ -215,14 +233,25 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
      * <p>
      * This method will be called by SNAMP infrastructure automatically.
      * </p>
-     * @throws java.lang.Exception Internal adapter error.
+     *
+     * @param parameters Adapter startup parameters.
+     * @throws java.lang.Exception Unable to start adapter.
+     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
+     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)
      */
     @Override
-    protected void start(final ExecutorService threadPool) throws Exception {
-        populateModel(attributes);
-        populateModel(notifications);
-        notifications.subscribe(agent);
-        agent.start(attributes.values(), notifications.values(), threadPool);
+    protected void start(final Map<String, String> parameters) throws Exception {
+        SnmpAdapterLimitations.current().verifyServiceVersion(SnmpResourceAdapter.class);
+        final String port = parameters.containsKey(PORT_PARAM_NAME) ? parameters.get(PORT_PARAM_NAME) : "161";
+        final String address = parameters.containsKey(HOST_PARAM_NAME) ? parameters.get(HOST_PARAM_NAME) : "127.0.0.1";
+        final String socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ? parameters.get(SOCKET_TIMEOUT_PARAM) : "0";
+        if (parameters.containsKey(SNMPv3_GROUPS_PARAM) || parameters.containsKey(LDAP_GROUPS_PARAM)) {
+            SnmpAdapterLimitations.current().verifyAuthenticationFeature();
+            final SecurityConfiguration security = new SecurityConfiguration(MPv3.createLocalEngineID(), contextFactory);
+            security.read(parameters);
+            start(Integer.valueOf(port), address, security, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, getInstanceName()));
+        } else
+            start(Integer.valueOf(port), address, null, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, getInstanceName()));
     }
 
     /**
@@ -232,7 +261,7 @@ final class SnmpResourceAdapter extends AbstractConcurrentResourceAdapter {
      * </p>
      */
     @Override
-    protected void stop(final ExecutorService threadPool) throws Exception {
+    protected void stop() throws Exception {
         notifications.unsubscribe(agent);
         try {
             agent.stop();

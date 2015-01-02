@@ -12,10 +12,10 @@ public final class SwitchTest extends AbstractUnitTest<Switch> {
 
     @Test
     public void simpleTest(){
-        final Boolean result = Switch.<Long, Boolean>init()
+        final Boolean result = new Switch<Long, Boolean>()
                 .equals(42L, Boolean.FALSE)
                 .equals(43L, Boolean.TRUE)
-                .execute(43L);
+                .apply(43L);
         assertTrue(result);
     }
 }

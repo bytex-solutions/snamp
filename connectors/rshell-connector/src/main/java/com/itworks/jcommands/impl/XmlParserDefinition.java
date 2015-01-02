@@ -585,7 +585,7 @@ public class XmlParserDefinition {
     /**
      * Parses the input string using this parser.
      * @param input The input string to parse.
-     * @param scriptManager The script manager used to execute parsing script.
+     * @param scriptManager The script manager used to apply parsing script.
      * @return Parsed SNAMP-compliant value.
      * @throws java.lang.IllegalArgumentException Input string is {@literal null} or empty.
      * @throws java.lang.NullPointerException scriptManager is {@literal null}.

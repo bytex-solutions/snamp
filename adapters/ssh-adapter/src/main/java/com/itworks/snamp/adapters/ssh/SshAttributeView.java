@@ -94,7 +94,10 @@ interface SshAttributeView {
             if (elementJavaType == null)
                 return false;
             else if (insert)
-                array = ArrayUtils.add(array, index, elementType.getProjection(elementJavaType).convertFrom(element));
+                array = ArrayUtils.add(array,
+                        index,
+                        elementType.getProjection(elementJavaType).convertFrom(element),
+                        Object.class);
             else array[index] = elementType.getProjection(elementJavaType).convertFrom(element);
             output.setValue(array);
             return true;

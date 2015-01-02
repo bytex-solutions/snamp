@@ -42,7 +42,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     /**
      * Represents JMX connector name.
      */
-    public static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
+    static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
     private static final String JMX_COMPLIANT = "jmx-compliant";
 
 

@@ -2,8 +2,8 @@ package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
-import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -145,8 +145,8 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
         notificationSupport.subscribe(TEST_LISTENER1_ID, listener1, false);
         notificationSupport.subscribe(TEST_LISTENER2_ID, listener2, false);
-        final SynchronizationEvent.Awaitor<Notification> awaitor1 = listener1.getAwaitor();
-        final SynchronizationEvent.Awaitor<Notification> awaitor2 = listener2.getAwaitor();
+        final SynchronizationEvent.EventAwaitor<Notification> awaitor1 = listener1.getAwaitor();
+        final SynchronizationEvent.EventAwaitor<Notification> awaitor2 = listener2.getAwaitor();
         //force property changing
         attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood");
         final Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
@@ -195,8 +195,8 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
         notificationSupport.subscribe(TEST_LISTENER1_ID, listener1, false);
         notificationSupport.subscribe(TEST_LISTENER2_ID, listener2, false);
-        final SynchronizationEvent.Awaitor<Notification> awaitor1 = listener1.getAwaitor();
-        final SynchronizationEvent.Awaitor<Notification> awaitor2 = listener2.getAwaitor();
+        final SynchronizationEvent.EventAwaitor<Notification> awaitor1 = listener1.getAwaitor();
+        final SynchronizationEvent.EventAwaitor<Notification> awaitor2 = listener2.getAwaitor();
         //simulate connection abort
         assertEquals("OK", ManagedResourceConnectorClient.invokeMaintenanceAction(getTestBundleContext(), CONNECTOR_NAME, "simulateConnectionAbort", null, null).get(3, TimeUnit.SECONDS));
         //force property changing

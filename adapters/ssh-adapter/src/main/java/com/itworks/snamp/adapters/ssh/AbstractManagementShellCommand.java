@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.ssh;
 
-import com.itworks.snamp.WriteOnceRef;
+import com.itworks.snamp.concurrent.WriteOnceRef;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;

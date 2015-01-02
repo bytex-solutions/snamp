@@ -2,10 +2,13 @@ package com.itworks.snamp.testing.connectors;
 
 import com.google.common.base.Supplier;
 import com.google.common.reflect.TypeToken;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.Awaitor;
+import com.itworks.snamp.concurrent.SpinWait;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
+import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
@@ -106,6 +109,26 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         this.connectorParameters = parameters;
     }
 
+    private void waitForConnector(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+        final Awaitor<ServiceReference<ManagedResourceConnector<?>>, ExceptionPlaceholder> awaitor = new SpinWait<ServiceReference<ManagedResourceConnector<?>>, ExceptionPlaceholder>() {
+            @Override
+            protected ServiceReference<ManagedResourceConnector<?>> get() {
+                return ManagedResourceConnectorClient.getResourceConnector(getTestBundleContext(), TEST_RESOURCE_NAME);
+            }
+        };
+        awaitor.await(timeout);
+    }
+
+    private void waitForNoConnector(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+        final Awaitor<Object, ExceptionPlaceholder> awaitor = new SpinWait<Object, ExceptionPlaceholder>() {
+            @Override
+            protected Object get() {
+                return ManagedResourceConnectorClient.getResourceConnector(getTestBundleContext(), TEST_RESOURCE_NAME) != null ? null : new Object();
+            }
+        };
+        awaitor.await(timeout);
+    }
+
     protected final ManagedResourceConnector<?> getManagementConnector(final BundleContext context){
         final ServiceReference<ManagedResourceConnector<?>> connectorRef =
                 ManagedResourceConnectorClient.getConnectors(context).get(TEST_RESOURCE_NAME);
@@ -136,12 +159,14 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     }
 
-    protected final void stopResourceConnector(final BundleContext context) throws BundleException{
-        AbstractManagedResourceActivator.stopResourceConnector(context, connectorType);
+    protected final void stopResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        ManagedResourceActivator.stopResourceConnector(context, connectorType);
+        waitForNoConnector(TimeSpan.fromSeconds(1));
     }
 
-    protected final void startResourceConnector(final BundleContext context) throws BundleException{
-        AbstractManagedResourceActivator.startResourceConnector(context, connectorType);
+    protected final void startResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        ManagedResourceActivator.startResourceConnector(context, connectorType);
+        waitForConnector(TimeSpan.fromSeconds(1));
     }
 
     @Override

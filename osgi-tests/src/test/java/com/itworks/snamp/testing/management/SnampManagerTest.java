@@ -2,9 +2,9 @@ package com.itworks.snamp.testing.management;
 
 import com.google.common.base.Supplier;
 import com.itworks.snamp.SafeConsumer;
-import com.itworks.snamp.SynchronizationEvent;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
@@ -235,14 +235,14 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         super.afterStartTest(context);
-        AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
     }
 
     @Override
     protected void afterCleanupTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(context);
         super.afterCleanupTest(context);
     }

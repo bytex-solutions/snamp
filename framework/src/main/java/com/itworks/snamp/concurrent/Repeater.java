@@ -1,5 +1,6 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
 
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.internal.annotations.MethodStub;
 
 import java.util.concurrent.TimeUnit;

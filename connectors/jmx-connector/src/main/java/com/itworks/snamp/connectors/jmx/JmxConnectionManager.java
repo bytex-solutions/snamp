@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.jmx;
 
-import com.itworks.snamp.Repeater;
+import com.itworks.snamp.concurrent.Repeater;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.ThreadSafe;

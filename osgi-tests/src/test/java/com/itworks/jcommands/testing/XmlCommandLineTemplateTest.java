@@ -1,5 +1,6 @@
 package com.itworks.jcommands.testing;
 
+import com.google.common.collect.ImmutableSet;
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
 import com.itworks.jcommands.impl.XmlParserDefinition;

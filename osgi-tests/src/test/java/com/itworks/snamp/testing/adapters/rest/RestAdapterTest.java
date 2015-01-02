@@ -4,7 +4,7 @@ import com.google.common.base.Supplier;
 import com.google.gson.*;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
@@ -263,14 +263,14 @@ public final class RestAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         super.afterStartTest(context);
-        AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
     }
 
     @Override
     protected void afterCleanupTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(context);
         super.afterCleanupTest(context);
     }

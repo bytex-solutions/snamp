@@ -2,8 +2,8 @@ package com.itworks.snamp.internal;
 
 import com.google.common.base.*;
 import com.itworks.snamp.Consumer;
-import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.Wrapper;
 import com.itworks.snamp.internal.annotations.Internal;
 import org.osgi.framework.*;
 import org.osgi.service.event.Event;
@@ -12,12 +12,15 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.*;
+import java.util.Collection;
+import java.util.Dictionary;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
@@ -33,6 +36,65 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
+    private static final class WeakInvocationHandler<T> extends WeakReference<T> implements InvocationHandler, Wrapper<T>{
+        private WeakInvocationHandler(final T obj){
+            super(obj);
+        }
+
+        @Override
+        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+            return method.invoke(get(), args);
+        }
+
+        @Override
+        public <R> R handle(final Function<T, R> handler) {
+            return handler.apply(get());
+        }
+    }
+
+    private static final class SoftInvocationHandler<T> extends SoftReference<T> implements InvocationHandler, Wrapper<T>{
+        private SoftInvocationHandler(final T obj){
+            super(obj);
+        }
+
+        @Override
+        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+            return method.invoke(get(), args);
+        }
+
+        @Override
+        public <R> R handle(final Function<T, R> handler) {
+            return handler.apply(get());
+        }
+    }
+
+    private static final class FinalizeDelegator<T> implements InvocationHandler, Wrapper<T> {
+        private final T obj;
+        private final Consumer<T, ?> finalizer;
+
+        private FinalizeDelegator(final T obj,
+                                  final Consumer<T, ?> finalizer) {
+            this.obj = Objects.requireNonNull(obj);
+            this.finalizer = Objects.requireNonNull(finalizer);
+        }
+
+        @SuppressWarnings("FinalizeDoesntCallSuperFinalize")
+        @Override
+        protected void finalize() throws Throwable {
+            finalizer.accept(obj);
+        }
+
+        @Override
+        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+            return method.invoke(obj, args);
+        }
+
+        @Override
+        public <R> R handle(final Function<T, R> handler) {
+            return handler.apply(obj);
+        }
+    }
+
     /**
      * Determines whether the underlying OS is Linux.
      */
@@ -100,37 +162,24 @@ public final class Utils {
         return isolate(obj, iface, false);
     }
 
-    /**
-     * Wraps the reference to an object into the specified interface.
-     * @param obj A reference to wrap.
-     * @param iface An information about wrapper type.
-     * @param <I> Method return type.
-     * @param <T> Type of the referenced object.
-     * @return A strong reference wrapper for the specified reference (soft, weak, phantom).
-     */
-    public static <I, T extends I> I wrapReference(final Reference<T> obj, final Class<I> iface){
-        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
-            @Override
-            public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                return method.invoke(obj.get(), args);
-            }
-        }));
+    private static <I, T extends I, R extends Reference<T> & InvocationHandler> I wrapReference(final R obj, final Class<I> iface){
+        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, obj));
     }
 
-    /**
-     * Creates transparent weak reference to the specified object.
-     * @param obj An object to be referenced.
-     * @param iface Superclass or interface implemented by the specified object.
-     * @param <I>
-     * @param <T>
-     * @return Transparent proxy that holds weak reference to the wrapped object.
-     */
-    public static <I, T extends I> I weakReference(final T obj, final Class<I> iface){
-        return wrapReference(new WeakReference<>(obj), iface);
+    public static <I, T extends I> I weakReference(final T obj, final Class<I> iface) {
+        return wrapReference(new WeakInvocationHandler<>(obj), iface);
     }
 
-    public static <I, T extends I> I weakReference(final Supplier<T> activator, final Class<I> iface){
-        return weakReference(activator.get(), iface);
+    public static <I, T extends I> I softReference(final T obj, final Class<I> iface){
+        return wrapReference(new SoftInvocationHandler<>(obj), iface);
+    }
+
+    public static <I, T extends I> I overrideFinalize(final T obj,
+                                                      final Class<I> iface,
+                                                      final Consumer<T, ?> finalizer){
+        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(),
+                new Class<?>[]{iface},
+                new FinalizeDelegator<>(obj, finalizer)));
     }
 
     /**
@@ -178,8 +227,10 @@ public final class Utils {
      * @return A bundle context associated with bundle which owns the specified object; or {@literal null}
      * if bundle context cannot be resolved.
      */
-    public static BundleContext getBundleContextByObject(final Object obj){
-        return obj != null ? FrameworkUtil.getBundle(obj.getClass()).getBundleContext() : null;
+    public static BundleContext getBundleContextByObject(final Object obj) {
+        return obj != null ?
+                FrameworkUtil.getBundle(obj.getClass()).getBundleContext():
+                null;
     }
 
     /**
@@ -424,16 +475,6 @@ public final class Utils {
         return bundle.getBundleContext().getServiceReferences(serviceType, filter).size() > 0;
     }
 
-    public static void withContextClassLoader(final ClassLoader loader, final Runnable action) {
-        withContextClassLoader(loader, new ExceptionalCallable<Void, ExceptionPlaceholder>() {
-            @Override
-            public Void call() {
-                action.run();
-                return null;
-            }
-        });
-    }
-
     public static <V, E extends Exception> V withContextClassLoader(final ClassLoader loader, final ExceptionalCallable<V, E> action) throws E{
         final Thread currentThread = Thread.currentThread();
         final ClassLoader previous = currentThread.getContextClassLoader();
@@ -446,13 +487,17 @@ public final class Utils {
         }
     }
 
-    public static <T> boolean collectionsAreEqual(final Collection<T> columns1, final Collection<T> columns2) {
-        if (columns1 == null) return columns2 == null;
-        else if (columns2 == null) return false;
-        else if (columns1.size() != columns2.size()) return false;
-        else for (final T element : columns1)
-                if (!columns2.contains(element)) return false;
-        return true;
+    public static <T> boolean collectionsAreEqual(final Collection<T> collection1, final Collection<T> collection2) {
+        if (collection1 == null) return collection2 == null;
+        else
+            return collection2 != null && collection1.size() == collection2.size() && collection1.containsAll(collection2);
+    }
+
+    public static <K, V> boolean mapsAreEqual(final Map<K, V> map1,
+                                              final Map<K, V> map2){
+        if(map1 == null) return map2 == null;
+        else
+            return map2 != null && map1.size() == map2.size() && map1.entrySet().containsAll(map2.entrySet());
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
 
 import java.util.concurrent.*;
 
@@ -66,7 +66,7 @@ public class FutureThread<V> extends Thread implements Future<V> {
 
     /**
      * Executes a new task in the separated thread.
-     * @param task The task to execute in the separated thread.
+     * @param task The task to apply in the separated thread.
      * @param <V> Type of the asynchronous computation result.
      * @return An object that represents the state of asynchronous computation.
      */

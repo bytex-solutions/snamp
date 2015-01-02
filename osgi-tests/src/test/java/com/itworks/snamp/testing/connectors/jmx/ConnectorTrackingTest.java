@@ -1,7 +1,9 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.ResourceConnectorException;
 import com.itworks.snamp.connectors.notifications.Notification;
@@ -14,6 +16,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -27,6 +30,8 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  */
 public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final class TestAdapter extends AbstractResourceAdapter{
+        private final SynchronizationEvent<Void> restartEvent = new SynchronizationEvent<>(true);
+
         private final AbstractAttributesModel<AttributeAccessor> attributesModel = new AbstractAttributesModel<AttributeAccessor>() {
             @Override
             protected AttributeAccessor createAttributeView(final String resourceName, final String userDefinedAttributeName, final AttributeAccessor accessor) {
@@ -62,9 +67,10 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         }
 
         @Override
-        protected void start() throws Exception {
+        protected void start(final Map<String, String> parameters) throws Exception {
             populateModel(attributesModel);
             populateModel(notificationsModel);
+            restartEvent.fire(null);
         }
 
         @Override
@@ -99,11 +105,16 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             if(enableTracking)try{
                 enlargeModel(resourceName, notificationsModel);
                 enlargeModel(resourceName, attributesModel);
+                restartEvent.fire(null);
             }
             catch (final ResourceConnectorException e){
                 fail(e.getMessage());
             }
-            else super.resourceRemoved(resourceName);
+            else super.resourceAdded(resourceName);
+        }
+
+        private SynchronizationEvent.EventAwaitor<Void> getAwaitor(){
+            return restartEvent.getAwaitor();
         }
 
         @Override
@@ -116,10 +127,11 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
-    private static boolean tryStart(final AbstractResourceAdapter adapter) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        final Method tryStartMethod = AbstractResourceAdapter.class.getDeclaredMethod("tryStart");
+    private static boolean tryStart(final AbstractResourceAdapter adapter,
+                                    final Map<String, String> parameters) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        final Method tryStartMethod = AbstractResourceAdapter.class.getDeclaredMethod("tryStart", Map.class);
         tryStartMethod.setAccessible(true);
-        return (Boolean)tryStartMethod.invoke(adapter);
+        return (Boolean)tryStartMethod.invoke(adapter, parameters);
     }
 
     @Test
@@ -127,7 +139,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         final TestAdapter adapter = new TestAdapter(true);
         ManagedResourceConnectorClient.addResourceListener(getTestBundleContext(), adapter);
         try{
-            tryStart(adapter);
+            tryStart(adapter, Collections.<String, String>emptyMap());
             assertEquals(9, adapter.getAttributes().size());
             assertEquals(2, adapter.getNotifications().size());
             //now deactivate the resource connector. This action causes restarting the adapter
@@ -136,6 +148,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             assertTrue(adapter.getNotifications().isEmpty());
             //activate resource connector. This action causes restarting the adapter and populating models
             startResourceConnector(getTestBundleContext());
+            adapter.getAwaitor().await(TimeSpan.fromSeconds(2));
             assertEquals(9, adapter.getAttributes().size());
             assertEquals(2, adapter.getNotifications().size());
         }
@@ -150,7 +163,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         final TestAdapter adapter = new TestAdapter(false);
         ManagedResourceConnectorClient.addResourceListener(getTestBundleContext(), adapter);
         try{
-            tryStart(adapter);
+            tryStart(adapter, Collections.<String, String>emptyMap());
             assertEquals(9, adapter.getAttributes().size());
             assertEquals(2, adapter.getNotifications().size());
             //now deactivate the resource connector. This action causes restarting the adapter
@@ -159,6 +172,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             assertTrue(adapter.getNotifications().isEmpty());
             //activate resource connector. This action causes restarting the adapter and populating models
             startResourceConnector(getTestBundleContext());
+            adapter.getAwaitor().await(TimeSpan.fromSeconds(2));
             assertEquals(9, adapter.getAttributes().size());
             assertEquals(2, adapter.getNotifications().size());
         }

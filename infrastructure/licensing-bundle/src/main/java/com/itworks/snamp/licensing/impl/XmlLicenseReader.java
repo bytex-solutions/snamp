@@ -3,7 +3,7 @@ package com.itworks.snamp.licensing.impl;
 import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.itworks.snamp.ConcurrentResourceAccess;
+import com.itworks.snamp.concurrent.ConcurrentResourceAccess;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.core.OsgiLoggingContext;
@@ -35,8 +35,8 @@ import java.security.interfaces.DSAPublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.Action;
-import static com.itworks.snamp.AbstractConcurrentResourceAccess.ConsistentAction;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.Action;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.ConsistentAction;
 
 /**
  * Represents license reader for SNAMP license consumers. This class cannot be inherited

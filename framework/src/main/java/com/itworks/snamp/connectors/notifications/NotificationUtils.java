@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.notifications;
 
-import com.itworks.snamp.SynchronizationEvent;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 
 import java.util.Objects;
 

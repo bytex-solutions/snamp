@@ -34,7 +34,7 @@ public interface CommandExecutionChannel extends Closeable {
 
     /**
      * Executes the specified action in the channel context.
-     * @param command The command to execute in channel context.
+     * @param command The command to apply in channel context.
      * @param input The additional input for command renderer.
      * @param <I> Type of the user-defined input for the command renderer.
      * @param <O> Type of the execution result.

@@ -1,6 +1,9 @@
 package com.itworks.snamp.testing.connectors.snmp;
 
-import com.itworks.snamp.*;
+import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.Repeater;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -14,7 +17,6 @@ import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
@@ -462,7 +464,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Override
-    protected void afterCleanupTest(final BundleContext context) throws BundleException {
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
         stopResourceConnector(context);
         agent.stop();
     }
