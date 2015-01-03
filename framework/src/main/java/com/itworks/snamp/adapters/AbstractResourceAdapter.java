@@ -1,10 +1,16 @@
 package com.itworks.snamp.adapters;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.*;
+import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.Consumer;
+import com.itworks.snamp.ServiceReferenceHolder;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.ConcurrentResourceAccess;
+import com.itworks.snamp.concurrent.WriteOnceRef;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.*;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
@@ -12,11 +18,11 @@ import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.core.OsgiLoggingContext;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.internal.WeakMultimap;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.itworks.snamp.mapping.*;
 import org.osgi.framework.*;
@@ -26,6 +32,7 @@ import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
@@ -51,7 +58,10 @@ import static com.itworks.snamp.internal.Utils.getStackTrace;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractResourceAdapter extends AbstractAggregator implements FrameworkService, ServiceListener, AutoCloseable{
+public abstract class AbstractResourceAdapter extends AbstractAggregator implements ResourceAdapter{
+    private static final Multimap<String, WeakReference<ResourceAdapterEventListener>> listeners = HashMultimap.create(10, 3);
+    //private static final ExecutorService eventExecutor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("ADAPTER_EVENTS"));
+
     private static abstract class UnsupportedInternalOperation extends UnsupportedOperationException{
         private UnsupportedInternalOperation(final String message){
             super(message);
@@ -798,10 +808,36 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
     }
 
+    private static final class InternalState{
+        private final ImmutableMap<String, String> parameters;
+        private final AdapterState state;
+
+        private InternalState(final AdapterState state, final ImmutableMap<String, String> params){
+            this.state = state;
+            this.parameters = params;
+        }
+
+        private static InternalState initialState(){
+            return new InternalState(AdapterState.CREATED, ImmutableMap.<String, String>of());
+        }
+
+        private InternalState setParameters(final Map<String, String> value){
+            return new InternalState(state, ImmutableMap.copyOf(value));
+        }
+
+        private InternalState setAdapterState(final AdapterState value){
+            return new InternalState(value, parameters);
+        }
+
+        private static InternalState finalState(){
+            return new InternalState(AdapterState.CLOSED, ImmutableMap.<String, String>of());
+        }
+    }
+
     private final ConcurrentResourceAccess<KeyedObjects<String, ManagedResourceConnectorConsumer>> connectors;
-    private AdapterState state;
-    private ImmutableMap<String, String> parameters;
+    private InternalState mutableState;
     private final String adapterInstanceName;
+    private final WriteOnceRef<ResourceAdapterEventListener> listener;
 
     /**
      * Initializes a new resource adapter.
@@ -815,15 +851,16 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 return item.resourceName;
             }
         });
-        state = AdapterState.CREATED;
-        parameters = null;
+        mutableState = InternalState.initialState();
+        listener = new WriteOnceRef<>();
     }
 
     /**
      * Gets name of this adapter instance.
      * @return The name of the adapter instance.
      */
-    protected final String getInstanceName(){
+    @Override
+    public final String getInstanceName(){
         return adapterInstanceName;
     }
 
@@ -831,8 +868,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * Gets state of this adapter.
      * @return The state of this adapter.
      */
+    @Override
     public final AdapterState getState(){
-        return state;
+        final InternalState current = mutableState;
+        return current != null ? current.state : AdapterState.CLOSED;
     }
 
     private void populateResources(final BundleContext context,
@@ -1053,53 +1092,75 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     final boolean tryUpdate(final Map<String, String> newParameters) throws Exception{
-        switch (state){
+        final InternalState currentState = mutableState;
+        switch (currentState.state){
             case STARTED:
-                final ImmutableMap<String, String> current = parameters;
-                final ImmutableMap<String, String> newParams = ImmutableMap.copyOf(newParameters);
-                update(current, newParams);
-                this.parameters = newParams;
+                final InternalState newState = currentState.setParameters(newParameters);
+                update(currentState.parameters, newState.parameters);
+                mutableState = newState;
                 return true;
             default:
                 return false;
         }
     }
 
-    /**
-     * Attempts to apply adapter.
-     * <p>
-     *     This method may change the state ({@link #getState()} of this adapter.
-     * @param params Adapter startup parameters.
-     * @return {@literal true}, if adapter is executed successfully; otherwise, {@literal false}.
-     * @throws Exception {@link #start(java.util.Map)} is failed.
-     */
-    final boolean tryStart(final Map<String, String> params) throws Exception{
-        switch (state){
+    private void adapterStarted(){
+        final ResourceAdapterEventListener listener = this.listener.get();
+        if(listener != null)
+            listener.adapterStarted(new ResourceAdapterEvent(this));
+    }
+
+    private void adapterStopped(){
+        final ResourceAdapterEventListener listener = this.listener.get();
+        if(listener != null)
+            listener.adapterStopped(new ResourceAdapterEvent(this));
+    }
+
+    private static ResourceAdapterEventListener createListener(final String adapterName){
+        return new ResourceAdapterEventListener() {
+            @Override
+            public void adapterStarted(final ResourceAdapterEvent e) {
+                AbstractResourceAdapter.adapterStarted(adapterName, e);
+            }
+
+            @Override
+            public void adapterStopped(final ResourceAdapterEvent e) {
+                AbstractResourceAdapter.adapterStopped(adapterName, e);
+            }
+        };
+    }
+
+    final boolean tryStart(final String adapterName, final Map<String, String> params) throws Exception {
+        return this.listener.set(createListener(adapterName)) && tryStart(params);
+    }
+
+    private boolean tryStart(final Map<String, String> params) throws Exception{
+        final InternalState currentState = mutableState;
+        switch (currentState.state){
             case CREATED:
             case STOPPED:
-                start(this.parameters = ImmutableMap.copyOf(params));
-                state = AdapterState.STARTED;
+                InternalState newState = currentState.setParameters(params);
+                start(newState.parameters);
+                mutableState = newState.setAdapterState(AdapterState.STARTED);
+                adapterStarted();
                 return true;
             default:
                 return false;
         }
     }
 
-    /**
-     * Attempts to stop but not release adapter.
-     * @return {@literal true}, if this adapter is in right state for stopping; otherwise, {@literal false}.
-     * @throws Exception {@link #stop()} is failed.
-     */
-    final boolean tryStop() throws Exception{
-        switch (state){
+    private boolean tryStop() throws Exception{
+        final InternalState currentState = mutableState;
+        switch (currentState.state){
             case STARTED:
                 try {
                     stop();
                 }
                 finally {
                     disconnect();
-                    state = AdapterState.STOPPED;
+                    mutableState = currentState.setAdapterState(AdapterState.STOPPED);
                 }
+                adapterStopped();
                 return true;
             default:
                 return false;
@@ -1124,7 +1185,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             failedToStopAdapter(Level.SEVERE, e);
         }
         try {
-            tryStart(parameters);
+            tryStart(mutableState.parameters);
         } catch (final Exception e) {
             disconnect();
             failedToStartAdapter(Level.SEVERE, e);
@@ -1491,15 +1552,13 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @throws Exception An exception occurred during adapter releasing.
      */
     @Override
-    public final void close() throws Exception{
-        try{
-            if(state == AdapterState.STARTED)
+    public final void close() throws Exception {
+        try {
+            if (mutableState.state == AdapterState.STARTED)
                 stop();
-        }
-        finally {
-            parameters = null;
+        } finally {
             disconnect();
-            state = AdapterState.CLOSED;
+            mutableState = InternalState.finalState();
         }
     }
 
@@ -1558,5 +1617,43 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     @Override
     public String toString() {
         return adapterInstanceName;
+    }
+
+    private static void adapterStarted(final String adapterName,
+                               final ResourceAdapterEvent event){
+        synchronized (listeners){
+            WeakMultimap.removeUnused(listeners);
+            for(final WeakReference<ResourceAdapterEventListener> listenerRef: listeners.get(adapterName)) {
+                final ResourceAdapterEventListener listener = listenerRef.get();
+                if (listener != null) listener.adapterStarted(event);
+            }
+        }
+    }
+
+    private static void adapterStopped(final String adapterName,
+                                       final ResourceAdapterEvent event){
+        synchronized (listeners){
+            WeakMultimap.removeUnused(listeners);
+            for(final WeakReference<ResourceAdapterEventListener> listenerRef: listeners.get(adapterName)){
+                final ResourceAdapterEventListener listener = listenerRef.get();
+                if(listener != null) listener.adapterStopped(event);
+            }
+        }
+    }
+
+    static boolean addEventListener(final String adapterName,
+                                           final ResourceAdapterEventListener listener){
+        if(adapterName == null || adapterName.isEmpty() || listener == null) return false;
+        synchronized (listeners){
+            return WeakMultimap.put(listeners, adapterName, listener);
+        }
+    }
+
+    static boolean removeEventListener(final String adapterName,
+                                              final ResourceAdapterEventListener listener){
+        if(adapterName == null || listener == null) return false;
+        synchronized (listeners){
+            return WeakMultimap.remove(listeners, adapterName, listener) > 0;
+        }
     }
 }

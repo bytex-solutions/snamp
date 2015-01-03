@@ -1,6 +1,8 @@
 package com.itworks.snamp.internal;
 
 import com.google.common.base.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.Wrapper;
@@ -18,9 +20,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.Map;
+import java.util.*;
 import java.util.Objects;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;

@@ -1,7 +1,7 @@
 package com.itworks.snamp.core;
 
 import com.google.common.collect.ImmutableList;
-import com.itworks.snamp.Consumer;
+import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationException;
@@ -42,7 +42,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         PUBLISHED
     }
-
 
     /**
      * Represents a holder for the provided service.
@@ -139,6 +138,22 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         /**
+         * Invokes some action on this service if it is exposed in the thread-safe manner.
+         * @param handler The custom action that will be invoked in thread-safe manner.
+         * @param defval The default value returned from this method if this service is in unregistered state.
+         * @param <V> Type of the value returned by customer action.
+         * @param <E> Type of the error that may be produced by custom action.
+         * @return A value returned by custom action.
+         * @throws E An error occurred in the custom action.
+         */
+        protected final synchronized <V, E extends Exception> V synchronizedInvoke(final ExceptionalCallable<V, E> handler,
+                                                                                   final V defval) throws E{
+            return registration != null && registration.serviceInstance != null ?
+                    handler.call():
+                    defval;
+        }
+
+        /**
          * Gets state of this service provider.
          * @return The state of this service provider.[
          */
@@ -177,14 +192,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         private void unregister(final BundleContext context) throws Exception {
             if (!ownDependencies.isEmpty()) context.removeServiceListener(this);
-            final ServiceRegistrationHolder<S, T> registration = this.registration;
             //cancels registration
             try {
                 if (registration != null) registration.unregister();
             } catch (final IllegalStateException ignored) {
                 //unregister can throws this exception and it must be suppressed
-            } finally {
-                this.registration = null;
             }
             //release service instance
             try {
@@ -192,6 +204,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                         registration.serviceInstance != null)
                     cleanupService(registration.serviceInstance, true);
             } finally {
+                registration = null;
                 //releases all dependencies
                 for (final RequiredService<?> dependency : ownDependencies)
                     dependency.unbind(context);
@@ -223,9 +236,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     }
 
     private static abstract class ManagedServiceFactoryImpl<TService> extends HashMap<String, TService> implements ManagedServiceFactory{
-        private synchronized <E extends Throwable> void synchronizedInvoke(final Consumer<ManagedServiceFactoryImpl<TService>, E> handler) throws E{
-            handler.accept(this);
-        }
     }
 
     /**
@@ -289,20 +299,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected abstract void dispose(final TService service, final boolean bundleStop) throws Exception;
 
         /**
-         * Logs error details when {@link #activateService(String, java.util.Dictionary, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
-         * @param servicePID The persistent identifier associated with a newly created service.
-         * @param configuration The configuration of the service.
-         * @param e An exception occurred when instantiating service.
-         */
-        protected void failedToActivateService(final String servicePID,
-                                                        final Dictionary<String, ?> configuration,
-                                                        final Exception e){
-            try(final OsgiLoggingContext logger = getLoggingContext()){
-                logger.log(Level.SEVERE, String.format("Unable to activate service with PID %s and %s configuration", servicePID, configuration), e);
-            }
-        }
-
-        /**
          * Log error details when {@link #updateService(Object, java.util.Dictionary, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
          * @param servicePID The persistent identifier associated with the service.
          * @param configuration The configuration of the service.
@@ -349,37 +345,40 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                 }
 
                 @Override
-                public synchronized void updated(final String pid, final Dictionary<String, ?> properties) throws ConfigurationException {
-                    if(containsKey(pid))
-                        try{
-                            put(pid, updateService(get(pid), properties, dependencies));
-                        }
-                        catch (final ConfigurationException e){
-                            throw e;
-                        }
-                        catch (final Exception e){
-                            failedToUpdateService(pid, properties, e);
-                        }
-                    else try{
-                        put(pid, activateService(pid, properties, dependencies));
+                public void updated(final String pid, final Dictionary<String, ?> properties) throws ConfigurationException {
+                    try {
+                        synchronizedInvoke(new ExceptionalCallable<Void, Exception>() {
+                            @Override
+                            public Void call() throws Exception {
+                                if (containsKey(pid))
+                                    put(pid, updateService(get(pid), properties, dependencies));
+                                else put(pid, activateService(pid, properties, dependencies));
+                                return null;
+                            }
+                        }, null);
                     }
                     catch (final ConfigurationException e){
                         throw e;
                     }
                     catch (final Exception e){
-                        failedToActivateService(pid, properties, e);
+                        failedToUpdateService(pid, properties, e);
                     }
                 }
 
                 @Override
                 public synchronized void deleted(final String pid) {
-                    if(containsKey(pid))
-                        try{
-                            dispose(remove(pid), false);
-                        }
-                        catch (final Exception e){
-                            failedToCleanupService(pid, e);
-                        }
+                    try {
+                        synchronizedInvoke(new ExceptionalCallable<Void, Exception>() {
+                            @Override
+                            public Void call() throws Exception {
+                                if (containsKey(pid))
+                                    dispose(remove(pid), false);
+                                return null;
+                            }
+                        }, null);
+                    } catch (final Exception e) {
+                        failedToCleanupService(pid, e);
+                    }
                 }
             };
         }
@@ -396,17 +395,18 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final void cleanupService(final ManagedServiceFactoryImpl<TService> serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.synchronizedInvoke(new Consumer<ManagedServiceFactoryImpl<TService>, Exception>() {
+            synchronizedInvoke(new ExceptionalCallable<Void, Exception>() {
                 @Override
-                public void accept(final ManagedServiceFactoryImpl<TService> serviceInstance) throws Exception {
+                public Void call() throws Exception {
                     try {
                         for (final TService service : serviceInstance.values())
                             dispose(service, stopBundle);
+                        return null;
                     } finally {
                         serviceInstance.clear();
                     }
                 }
-            });
+            }, null);
         }
     }
 
@@ -698,7 +698,15 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      */
     @Override
     protected final void shutdown(final BundleContext context) throws Exception{
-        if(getState() == ActivationState.ACTIVATED)
-            deactivate(context, getActivationProperties());
+        shutdown();
+    }
+
+    /**
+     * Releases all resources associated with this library.
+     * @throws Exception Abnormal library termination.
+     */
+    @MethodStub
+    protected void shutdown() throws Exception{
+
     }
 }

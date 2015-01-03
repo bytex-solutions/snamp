@@ -2,8 +2,6 @@ package com.itworks.snamp.adapters.jmx;
 
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 
-import java.util.Collection;
-
 /**
  * Represents JMX resource adapter activator.
  * @author Roman Sakno
@@ -34,19 +32,10 @@ public final class JmxResourceAdapterActivator extends ResourceAdapterActivator<
     public JmxResourceAdapterActivator() {
         super(JmxResourceAdapter.NAME,
                 new JmxAdapterFactory(),
-                new JmxConfigurationDescriptor());
-    }
-
-    /**
-     * Exposes additional adapter dependencies.
-     * <p>
-     * In the default implementation this method does nothing.
-     * </p>
-     *
-     * @param dependencies A collection of dependencies to fill.
-     */
-    @Override
-    protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
-        dependencies.add(JmxAdapterLicenseLimitations.licenseReader);
+                new RequiredService<?>[]{JmxAdapterLicenseLimitations.licenseReader},
+                new SupportAdapterServiceManager<?, ?>[]{
+                        new JmxConfigurationDescriptor(),
+                        new LicensingDescriptionServiceManager<>(JmxAdapterLicenseLimitations.class, JmxAdapterLicenseLimitations.fallbackFactory)
+                });
     }
 }

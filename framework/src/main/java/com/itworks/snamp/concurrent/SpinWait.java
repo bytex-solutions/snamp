@@ -1,8 +1,9 @@
 package com.itworks.snamp.concurrent;
 
+import com.google.common.base.Stopwatch;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.internal.CountdownTimer;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -52,10 +53,10 @@ public abstract class SpinWait<T, E extends Throwable> implements Awaitor<T, E> 
     @Override
     public final T await(final TimeSpan timeout) throws TimeoutException, InterruptedException, E {
         if(timeout == null) return await();
-        final CountdownTimer timer = CountdownTimer.start(timeout);
+        final Stopwatch timer = Stopwatch.createStarted();
         T result;
         while ((result = get()) == null)
-            if(timer.isEmpty()) throw new TimeoutException();
+            if(timer.elapsed(TimeUnit.MILLISECONDS) > timeout.toMillis()) throw new TimeoutException();
             else if(Thread.interrupted()) throw spinWaitInterrupted();
             else if(delay != null) Thread.sleep(delay.toMillis());
         return result;

@@ -25,6 +25,15 @@ public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory {
     }
 
     /**
+     * Initializes a new thread factory that uses {@link java.lang.Thread#NORM_PRIORITY}
+     * as a priority for all created threads.
+     * @param groupName The name of the thread group.
+     */
+    public GroupedThreadFactory(final String groupName){
+        this(groupName, Thread.NORM_PRIORITY);
+    }
+
+    /**
      * Constructs a new {@code Thread}.  Implementations may also initialize
      * priority, name, daemon status, {@code ThreadGroup}, etc.
      *

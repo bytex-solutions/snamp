@@ -161,12 +161,12 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected final void stopResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
         ManagedResourceActivator.stopResourceConnector(context, connectorType);
-        waitForNoConnector(TimeSpan.fromSeconds(1));
+        waitForNoConnector(TimeSpan.fromSeconds(2));
     }
 
     protected final void startResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
         ManagedResourceActivator.startResourceConnector(context, connectorType);
-        waitForConnector(TimeSpan.fromSeconds(1));
+        waitForConnector(TimeSpan.fromSeconds(2));
     }
 
     @Override

@@ -1,10 +1,11 @@
 package com.itworks.snamp.testing.adapters.jmx;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.concurrent.SynchronizationEvent;
+import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
@@ -179,7 +180,13 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     protected void afterStartTest(final BundleContext context) throws Exception {
         ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         super.afterStartTest(context);
-        ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
+            @Override
+            public Void call() throws BundleException {
+                ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+                return null;
+            }
+        }, TimeSpan.fromSeconds(2));
     }
 
     @Override

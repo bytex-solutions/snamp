@@ -5,9 +5,9 @@ import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.SupportService;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
-import com.itworks.snamp.core.SupportService;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -26,6 +26,34 @@ public final class ResourceAdapterClient {
 
     private ResourceAdapterClient(){
 
+    }
+
+    /**
+     * Adds a new listener for events related to resource adapter lifecycle.
+     * <p>
+     *     Event listeners are stored as a weak references therefore
+     *     you should hold the strong reference to the listener in the calling code.
+     * </p>
+     * @param adapterName The system name of the adapter.
+     * @param listener The listener for events related to resource adapter with the specified name.
+     * @return {@literal true}, if listener is added successfully; {@literal false}, if the specified listener
+     * was added previously.
+     */
+    public static boolean addEventListener(final String adapterName,
+                                        final ResourceAdapterEventListener listener){
+        return AbstractResourceAdapter.addEventListener(adapterName, listener);
+    }
+
+    /**
+     * Removes the listener for events related to resource adapter lifecycle.
+     * @param adapterName The system name of the adapter.
+     * @param listener The listener to remove.
+     * @return {@literal true}, if the specified listener is removed successfully; {@literal false},
+     * if the specified listener was not added previously using {@link #addEventListener(String, ResourceAdapterEventListener)} method.
+     */
+    public static boolean removeEventListener(final String adapterName,
+                                           final ResourceAdapterEventListener listener){
+        return AbstractResourceAdapter.removeEventListener(adapterName, listener);
     }
 
     private static UnsupportedOperationException unsupportedServiceRequest(final String connectorType,

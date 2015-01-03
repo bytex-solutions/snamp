@@ -754,8 +754,10 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     @Override
     public final void stop(final BundleContext context) throws Exception {
         context.removeServiceListener(this);
-        if(state == ActivationState.ACTIVATED)
+        if(state == ActivationState.ACTIVATED) {
+            state = ActivationState.DEACTIVATING;
             deactivateInternal(context, getActivationProperties());
+        }
         try {
             shutdown(context);
         }
@@ -808,7 +810,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
 
     }
 
-    ActivationPropertyReader getActivationProperties(){
+    final ActivationPropertyReader getActivationProperties(){
         return properties;
     }
 

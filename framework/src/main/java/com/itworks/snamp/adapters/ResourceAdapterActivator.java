@@ -19,7 +19,6 @@ import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.ServiceListener;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.util.*;
@@ -56,7 +55,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ResourceAdapterFactory<TAdapter extends FrameworkService & ServiceListener & AutoCloseable>{
+    protected static interface ResourceAdapterFactory<TAdapter extends ResourceAdapter>{
         TAdapter createAdapter(final String adapterInstance,
                                final RequiredService<?>... dependencies) throws Exception;
     }
@@ -120,7 +119,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
                                            final RequiredService<?>... dependencies) throws Exception {
             final TAdapter resourceAdapter = adapterFactory.createAdapter(PersistentConfigurationManager.getAdapterInstanceName(configuration),
                     dependencies);
-            if (resourceAdapter != null && resourceAdapter.tryStart(PersistentConfigurationManager.getAdapterParameters(configuration)))
+            if (resourceAdapter != null && resourceAdapter.tryStart(adapterName, PersistentConfigurationManager.getAdapterParameters(configuration)))
                 ManagedResourceConnectorClient.addResourceListener(getBundleContext(),
                         resourceAdapter);
             return resourceAdapter;
@@ -137,23 +136,6 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         protected void dispose(final TAdapter adapter, final boolean bundleStop) throws Exception {
             getBundleContext().removeServiceListener(adapter);
             adapter.close();
-        }
-
-        /**
-         * Logs error details when {@link #activateService(String, java.util.Dictionary, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
-         *
-         * @param servicePID    The persistent identifier associated with a newly created service.
-         * @param configuration The configuration of the service.
-         * @param e             An exception occurred when instantiating service.
-         */
-        @Override
-        protected void failedToActivateService(final String servicePID, final Dictionary<String, ?> configuration, final Exception e) {
-            try(final OsgiLoggingContext logger = getLoggingContext()){
-                logger.log(Level.SEVERE, String.format("Unable to instantiate adapter. Name: %s, instance: %s",
-                                adapterName,
-                                PersistentConfigurationManager.getAdapterInstanceName(configuration)),
-                        e);
-            }
         }
 
         /**

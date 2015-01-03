@@ -237,22 +237,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         /**
-         * Logs error details when {@link #activateService(String, java.util.Dictionary, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
-         *
-         * @param servicePID    The persistent identifier associated with a newly created service.
-         * @param configuration The configuration of the service.
-         * @param e             An exception occurred when instantiating service.
-         */
-        @Override
-        protected void failedToActivateService(final String servicePID, final Dictionary<String, ?> configuration, final Exception e) {
-            try(final OsgiLoggingContext logger = getLoggingContext()){
-                logger.log(Level.SEVERE, String.format("Unable to instantiate connector. Connection string: %s, connection parameters: %s",
-                        PersistentConfigurationManager.getConnectionString(configuration),
-                        PersistentConfigurationManager.getResourceConnectorParameters(configuration)), e);
-            }
-        }
-
-        /**
          * Log error details when {@link #updateService(Object, java.util.Dictionary, com.itworks.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
          *
          * @param servicePID    The persistent identifier associated with the service.
