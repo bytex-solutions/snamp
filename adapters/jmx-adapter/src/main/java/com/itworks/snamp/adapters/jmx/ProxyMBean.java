@@ -1,6 +1,9 @@
 package com.itworks.snamp.adapters.jmx;
 
 import com.google.common.eventbus.Subscribe;
+import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
+import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
+import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.management.jmx.OpenMBeanProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -36,11 +39,11 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
 
     }
 
-    void registerAsService(final BundleContext context, final ObjectName beanName){
+    final void registerAsService(final BundleContext context, final ObjectName beanName){
         context.registerService(DynamicMBean.class, this, OpenMBeanProvider.createIdentity(beanName));
     }
 
-    void unregister(){
+    final void unregister(){
         if(registration != null) registration.unregister();
     }
 
@@ -63,16 +66,14 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
      */
     @Override
     public Object getAttribute(final String attributeName) throws AttributeNotFoundException, ReflectionException {
-        if(attributes.containsKey(attributeName)){
+        if (attributes.containsKey(attributeName)) {
             final JmxAttributeMapping attribute = attributes.get(attributeName);
-            try {
+            try (final LogicalOperation ignored = new ReadAttributeLogicalOperation(attribute.getOriginalName(), attributeName)) {
                 return attribute.getValue();
-            }
-            catch (final Exception e) {
+            } catch (final Exception e) {
                 throw new ReflectionException(e);
             }
-        }
-        else throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist", attributeName));
+        } else throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist", attributeName));
     }
 
     /**
@@ -86,16 +87,15 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
      */
     @Override
     public void setAttribute(final Attribute attributeHolder) throws AttributeNotFoundException, ReflectionException {
-        if(attributes.containsKey(attributeHolder.getName())){
+        if (attributes.containsKey(attributeHolder.getName())) {
             final JmxAttributeMapping attribute = attributes.get(attributeHolder.getName());
-            try {
+            try (final LogicalOperation ignored = new WriteAttributeLogicalOperation(attribute.getOriginalName(), attributeHolder.getName())) {
                 attribute.setValue(attributeHolder.getValue());
-            }
-            catch (final Exception e) {
+            } catch (final Exception e) {
                 throw new ReflectionException(e);
             }
-        }
-        else throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist", attributeHolder.getName()));
+        } else
+            throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist", attributeHolder.getName()));
     }
 
     /**
@@ -108,12 +108,11 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
     @Override
     public AttributeList getAttributes(final String[] attributes) {
         final AttributeList result = new AttributeList();
-        for(final String attributeName: attributes)
+        for (final String attributeName : attributes)
             try {
                 result.add(new Attribute(attributeName, getAttribute(attributeName)));
-            }
-            catch (final JMException e) {
-                JmxAdapterHelpers.getLogger().log(Level.WARNING, String.format("Unable to get value of %s attribute", attributeName));
+            } catch (final JMException e) {
+                JmxAdapterHelpers.log(Level.WARNING, "Unable to get value of %s attribute", attributeName, e);
             }
         return result;
     }
@@ -136,7 +135,10 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
                     result.add(entry);
                 }
                 catch (final JMException e) {
-                    JmxAdapterHelpers.getLogger().log(Level.WARNING, String.format("Unable to set attribute %s", entry), e);
+                    JmxAdapterHelpers.log(Level.WARNING,
+                            "Unable to set attribute %s",
+                            entry,
+                            e);
                 }
         return result;
     }
@@ -166,7 +168,7 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
                 result.add(attributes.get(attributeName).createFeature(attributeName));
             }
             catch (final OpenDataException e) {
-                JmxAdapterHelpers.getLogger().log(Level.WARNING, String.format("Unable to expose attribute %s", attributeName), e);
+                JmxAdapterHelpers.log(Level.WARNING, "Unable to expose attribute %s", attributeName, e);
             }
         return result.toArray(new OpenMBeanAttributeInfoSupport[result.size()]);
     }

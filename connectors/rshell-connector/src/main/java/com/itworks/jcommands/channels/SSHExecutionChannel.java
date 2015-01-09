@@ -192,7 +192,7 @@ final class SSHExecutionChannel extends SSHClient implements CommandExecutionCha
     /**
      * Executes the specified action in the channel context.
      *
-     * @param command The command to execute in channel context.
+     * @param command The command to apply in channel context.
      * @return The execution result.
      * @throws java.io.IOException Some I/O error occurs in the channel.
      * @throws E                   Non-I/O exception raised by the command.

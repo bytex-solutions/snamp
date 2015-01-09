@@ -2,8 +2,8 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Supplier;
 import com.google.common.util.concurrent.AbstractFuture;
-import com.itworks.snamp.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.internal.CountdownTimer;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
@@ -168,16 +168,6 @@ abstract class SnmpClient extends Snmp implements Closeable {
                     result.setContextName(contextName);
                 return result;
             }
-
-            @Override
-            public void close() throws IOException {
-                try{
-                    super.close();
-                }
-                finally {
-                    threadPool.shutdown();
-                }
-            }
         };
     }
 
@@ -210,16 +200,6 @@ abstract class SnmpClient extends Snmp implements Closeable {
                 result.setType(pduType);
                 return result;
             }
-
-            @Override
-            public void close() throws IOException {
-                try {
-                    super.close();
-                }
-                finally {
-                    threadPool.shutdown();
-                }
-            }
         };
     }
 
@@ -237,7 +217,7 @@ abstract class SnmpClient extends Snmp implements Closeable {
     protected abstract Target createTarget(final TimeSpan timeout);
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-    private static ResponseEvent waitForResponseEvent(final SynchronizationEvent.Awaitor<ResponseEvent> awaitor, final TimeSpan timeout) throws TimeoutException, IOException, InterruptedException {
+    private static ResponseEvent waitForResponseEvent(final SynchronizationEvent.EventAwaitor<ResponseEvent> awaitor, final TimeSpan timeout) throws TimeoutException, IOException, InterruptedException {
         final ResponseEvent response = awaitor.await(timeout);
         if(response == null || response.getResponse() == null) throw new TimeoutException(String.format("PDU sending timeout."));
         else if(response.getError() != null)
@@ -324,5 +304,26 @@ abstract class SnmpClient extends Snmp implements Closeable {
         for(final OID key: variables.keySet())
             bindings.add(new VariableBinding(key, variables.get(key)));
         set(bindings.toArray(new VariableBinding[bindings.size()]), timeout);
+    }
+
+    /**
+     * Returns the message dispatcher associated with this SNMP session.
+     *
+     * @return a <code>MessageDispatcher</code> instance.
+     * @since 1.1
+     */
+    @Override
+    public final ConcurrentMessageDispatcher getMessageDispatcher() {
+        return (ConcurrentMessageDispatcher)super.getMessageDispatcher();
+    }
+
+    @Override
+    public final void close() throws IOException {
+        try {
+            super.close();
+        }
+        finally {
+            getMessageDispatcher().close();
+        }
     }
 }

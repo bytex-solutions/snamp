@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.rest;
 
+import com.google.common.base.Supplier;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
@@ -18,25 +19,27 @@ import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccess
  */
 final class HttpAttributeMapping {
     private final AttributeAccessor accessor;
-    private final Gson jsonFormatter;
+    private final Supplier<Gson> jsonFormatter;
 
 
-    HttpAttributeMapping(final AttributeAccessor accessor, final Gson jsonFormatter){
+    HttpAttributeMapping(final AttributeAccessor accessor, final Supplier<Gson> jsonFormatter) {
         this.accessor = accessor;
         this.jsonFormatter = jsonFormatter;
     }
 
-    public JsonElement getValueAsJson() throws TimeoutException, AttributeSupportException{
-        return JsonTypeSystem.toJson(accessor.getValue(), jsonFormatter);
+    String getName(){
+        return accessor.getName();
     }
 
-    public String getValue() throws TimeoutException, AttributeSupportException {
-        return jsonFormatter.toJson(getValueAsJson());
+    JsonElement getValueAsJson() throws TimeoutException, AttributeSupportException {
+        return JsonTypeSystem.toJson(accessor.getValue(), jsonFormatter.get());
     }
 
+    String getValue() throws TimeoutException, AttributeSupportException {
+        return jsonFormatter.get().toJson(getValueAsJson());
+    }
 
-
-    public void setValue(final String value) throws TimeoutException, IllegalArgumentException, JsonSyntaxException, AttributeSupportException {
-        accessor.setValue(JsonTypeSystem.fromJson(value, accessor.getType(), jsonFormatter));
+    void setValue(final String value) throws TimeoutException, IllegalArgumentException, JsonSyntaxException, AttributeSupportException {
+        accessor.setValue(JsonTypeSystem.fromJson(value, accessor.getType(), jsonFormatter.get()));
     }
 }

@@ -13,7 +13,6 @@ import javax.naming.NamingException;
 import javax.naming.directory.*;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
 
@@ -335,7 +334,6 @@ final class SecurityConfiguration {
                                               final Map<String, UserGroup> groups) {
         final String ldapUserName = adapterSettings.get(LDAP_ADMINDN_PARAM);
         final String ldapUserPassword = adapterSettings.get(LDAP_ADMIN_PASSWORD_PARAM);
-        final Logger logger = SnmpHelpers.getLogger();
         String jndiLdapFactory = adapterSettings.get(JNDI_LDAP_FACTORY_PARAM);
         if(jndiLdapFactory == null || jndiLdapFactory.isEmpty())
             jndiLdapFactory = "com.sun.jndi.ldap.LdapCtxFactory";
@@ -357,7 +355,7 @@ final class SecurityConfiguration {
         //env.put("com.sun.jndi.ldap.trace.ber", System.err);
         try {
             final DirContext ctx = contextFactory.create(env);
-            logger.fine(String.format("User %s is authenticated successfully on LDAP %s", ldapUserName, ldapUri));
+            SnmpHelpers.log(Level.FINE, "User %s is authenticated successfully on LDAP %s", ldapUserName, ldapUri, null);
             final String ldapGroups = adapterSettings.get(LDAP_GROUPS_PARAM);
             final String userSearchFilter = adapterSettings.get(LDAP_USER_SEARCH_FILTER_PARAM);
             final String baseDn = adapterSettings.get(LDAP_BASE_DN_PARAM);
@@ -367,13 +365,13 @@ final class SecurityConfiguration {
             return true;
         }
         catch (final AuthenticationException e){
-            logger.log(Level.SEVERE,
-                    String.format("Failed to authenticate %s user on LDAP %s", ldapUserName, ldapUri),
+            SnmpHelpers.log(Level.SEVERE,
+                    "Failed to authenticate %s user on LDAP %s", ldapUserName, ldapUri,
                     e);
             return false;
         }
         catch (final NamingException e) {
-            logger.log(Level.SEVERE, "Failed to process LDAP response ",
+            SnmpHelpers.log(Level.SEVERE, "Failed to process LDAP response",
                     e);
             return false;
         }

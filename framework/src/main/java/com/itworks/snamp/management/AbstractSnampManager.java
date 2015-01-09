@@ -3,9 +3,9 @@ package com.itworks.snamp.management;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.Aggregator;
 import com.itworks.snamp.Consumer;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
-import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
+import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.core.SupportService;
 import com.itworks.snamp.internal.Utils;
@@ -362,7 +362,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      */
     @Override
     public final Collection<SnampComponentDescriptor> getInstalledResourceConnectors() {
-        final Collection<String> systemNames = AbstractManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this));
+        final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this));
         final Collection<SnampComponentDescriptor> result = new ArrayList<>(systemNames.size());
         for(final String systemName: systemNames)
             result.add(createResourceConnectorDescriptor(systemName));
@@ -383,7 +383,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      */
     @Override
     public final Collection<SnampComponentDescriptor> getInstalledResourceAdapters() {
-        final Collection<String> systemNames = AbstractResourceAdapterActivator.getInstalledResourceAdapters(Utils.getBundleContextByObject(this));
+        final Collection<String> systemNames = ResourceAdapterActivator.getInstalledResourceAdapters(Utils.getBundleContextByObject(this));
         final Collection<SnampComponentDescriptor> result = new ArrayList<>(systemNames.size());
         for(final String systemName: systemNames)
             result.add(createResourceAdapterDescriptor(systemName));
@@ -396,8 +396,8 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @return {@literal true}, if the specified bundle is a part of SNAMP; otherwise, {@literal false}.
      */
     public static boolean isSnampComponent(final Bundle bnd){
-        if(AbstractResourceAdapterActivator.isResourceAdapterBundle(bnd) ||
-                AbstractManagedResourceActivator.isResourceConnectorBundle(bnd)) return false;
+        if(ResourceAdapterActivator.isResourceAdapterBundle(bnd) ||
+                ManagedResourceActivator.isResourceConnectorBundle(bnd)) return false;
         final String importPackages = bnd.getHeaders().get(Constants.IMPORT_PACKAGE);
         if(importPackages == null) return false;
         final String snampPackageNameRoot = Aggregator.class.getPackage().getName();

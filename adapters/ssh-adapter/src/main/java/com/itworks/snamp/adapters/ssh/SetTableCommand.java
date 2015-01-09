@@ -1,5 +1,7 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
+import com.itworks.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -107,24 +109,26 @@ final class SetTableCommand extends AbstractManagementShellCommand{
         if(arguments.length == 1 && input.hasOption(IDX_OPT)){
             final SshAttributeView attr = getAdapterController().getAttribute(arguments[0]);
             if(attr == null) throw new CommandException("Attribute %s doesn't exist", arguments[0]);
-            final String index = input.getOptionValue(IDX_OPT);
-            final Format fmt;
-            if(input.hasOption(DT_FMT_OPT))
-                fmt = new SimpleDateFormat(input.getOptionValue(DT_FMT_OPT));
-            else if(input.hasOption(NUM_FMT_OPT))
-                fmt = new DecimalFormat(input.getOptionValue(NUM_FMT_OPT));
-            else fmt = null;
-            //delete row
-            if(input.hasOption(DEL_OPT)){
-                deleteTableRow(attr, index, output);
-                return;
-            }
-            //update or insert row
-            else if(input.hasOption(ROW_OPT)){
-                if(input.hasOption(INS_OPT))
-                    insertTableRow(attr, index, input.getOptionProperties(ROW_OPT), fmt, output);
-                else updateTableRow(attr, index, input.getOptionProperties(ROW_OPT), fmt, output);
-                return;
+            else try(final LogicalOperation ignored = new WriteAttributeLogicalOperation(attr.getName(), arguments[0])) {
+                final String index = input.getOptionValue(IDX_OPT);
+                final Format fmt;
+                if (input.hasOption(DT_FMT_OPT))
+                    fmt = new SimpleDateFormat(input.getOptionValue(DT_FMT_OPT));
+                else if (input.hasOption(NUM_FMT_OPT))
+                    fmt = new DecimalFormat(input.getOptionValue(NUM_FMT_OPT));
+                else fmt = null;
+                //delete row
+                if (input.hasOption(DEL_OPT)) {
+                    deleteTableRow(attr, index, output);
+                    return;
+                }
+                //update or insert row
+                else if (input.hasOption(ROW_OPT)) {
+                    if (input.hasOption(INS_OPT))
+                        insertTableRow(attr, index, input.getOptionProperties(ROW_OPT), fmt, output);
+                    else updateTableRow(attr, index, input.getOptionProperties(ROW_OPT), fmt, output);
+                    return;
+                }
             }
         }
         throw invalidCommandFormat();

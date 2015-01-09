@@ -100,13 +100,16 @@ public final class ManagedEntityTypeHelper {
      * @return Well-known representation of the management entity value.
      * @throws IllegalArgumentException {@code entityType} is {@literal null}.
      */
-    @SuppressWarnings("unchecked")
     @SafeVarargs
-    public static <T> T convertFrom(final ManagedEntityType entityType, final Object value, final TypeToken<T> baseType, final ConversionFallback<T> fallback, final TypeToken<? extends T>... projections){
+    public static <T> T convertFrom(final ManagedEntityType entityType,
+                                    final Object value,
+                                    final TypeToken<T> baseType,
+                                    final ConversionFallback<T> fallback,
+                                    final TypeToken<? extends T>... projections){
         if(entityType == null) throw new IllegalArgumentException("entityType is null.");
         else if(projections == null || projections.length == 0) return convertFrom(entityType, value, baseType);
         else for(final TypeToken<? extends T> proj: projections)
-            if(TypeLiterals.isInstance(value, proj)) return (T)value;
+            if(TypeLiterals.isInstance(value, proj)) return TypeLiterals.cast(value, proj);
             else {
                 final TypeConverter<? extends T> converter = entityType.getProjection(proj);
                 if(converter != null) return converter.convertFrom(value);

@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.ssh;
 
-import com.itworks.snamp.ThreadSafeObject;
+import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationFilter;
 import org.apache.sshd.common.Session;
@@ -57,16 +57,6 @@ final class NotificationManager extends ThreadSafeObject implements Notification
         }
     }
 
-    void disableNotificationsByResource(final String resourceName){
-        beginWrite();
-        try{
-            disabledResources.add(resourceName);
-        }
-        finally {
-            endWrite();
-        }
-    }
-
     void enableNotificationsByResource(final String resourceName){
         beginWrite();
         try{
@@ -81,16 +71,6 @@ final class NotificationManager extends ThreadSafeObject implements Notification
         beginWrite();
         try{
             disabledNotifs.remove(eventName);
-        }
-        finally {
-            endWrite();
-        }
-    }
-
-    void disableNotificationsByEvent(final String eventName){
-        beginWrite();
-        try{
-            disabledNotifs.add(eventName);
         }
         finally {
             endWrite();
@@ -135,16 +115,8 @@ final class NotificationManager extends ThreadSafeObject implements Notification
         return isAllowed(resourceName, eventName);
     }
 
-    static boolean hasNotificationListenerID(final Session s){
-        return s.getAttribute(LISTENER_ID) != null;
-    }
-
     static long getNotificationListenerID(final Session s){
         return s.getAttribute(LISTENER_ID);
-    }
-
-    static void setNotificationListenerID(final Session s, final long listenerID){
-        s.setAttribute(LISTENER_ID, listenerID);
     }
 
     static NotificationManager getNotificationManager(final Session s){

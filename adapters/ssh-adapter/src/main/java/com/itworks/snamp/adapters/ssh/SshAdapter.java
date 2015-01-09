@@ -2,14 +2,18 @@ package com.itworks.snamp.adapters.ssh;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.MapMaker;
 import com.itworks.snamp.ExceptionPlaceholder;
-import com.itworks.snamp.mapping.*;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
+import com.itworks.snamp.core.LogicalOperation;
+import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.mapping.*;
+import net.schmizz.sshj.userauth.keyprovider.*;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
@@ -20,18 +24,18 @@ import org.apache.sshd.server.jaas.JaasPasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.itworks.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*;
 
 /**
  * Represents SSH resource adapter.
@@ -86,14 +90,14 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                 listener.handle(notificationMetadata, notif);
         }
 
-        long addNotificationListener(final NotificationListener listener) {
+        private long addNotificationListener(final NotificationListener listener) {
             final long listenerID;
             listeners.put(listenerID = idCounter.incrementAndGet(),
                     Objects.requireNonNull(listener));
             return listenerID;
         }
 
-        void removeNotificationListener(final long listenerID) {
+        private void removeNotificationListener(final long listenerID) {
             listeners.remove(listenerID);
         }
 
@@ -109,7 +113,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             return String.format("%s/%s", resourceName, eventName);
         }
 
-        Set<String> getNotifications(final String resourceName) {
+        private Set<String> getNotifications(final String resourceName) {
             final Set<String> notifs = new HashSet<>(size());
             for (final String notifID : keySet())
                 if (notifID.startsWith(resourceName))
@@ -200,6 +204,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                                 accessor.containsKey(SshAdapterConfigurationDescriptor.COLUMN_BASED_OUTPUT_PARAM),
                                 output);
                     else output.println(Objects.toString(attrValue, VALUE_STUB));
+                    output.flush();
                 }
 
                 @Override
@@ -211,6 +216,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                 public void printOptions(final PrintWriter output) {
                     for(final Map.Entry<String, String> option: accessor.entrySet())
                         output.println(String.format("%s = %s", option.getKey(), option.getValue()));
+                    output.flush();
                 }
 
                 @Override
@@ -260,23 +266,13 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
     }
 
-    private final SshServer server;
-    private final ExecutorService commandExecutors;
+    private SshServer server;
+    private ExecutorService threadPool;
     private final SshAttributesModel attributes;
     private final SshNotificationsModel notifications;
 
-    SshAdapter(final String host,
-               final int port,
-               final String serverCertificateFile,
-               final SshSecuritySettings security,
-               final Map<String, ManagedResourceConfiguration> resources) {
-        super(resources);
-        server = SshServer.setUpDefaultServer();
-        server.setHost(host);
-        server.setPort(port);
-        server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(serverCertificateFile));
-        setupSecurity(server, security);
-        commandExecutors = Executors.newCachedThreadPool();
+    SshAdapter(final String adapterInstanceName) {
+        super(adapterInstanceName);
         attributes = new SshAttributesModel();
         notifications = new SshNotificationsModel();
     }
@@ -308,36 +304,139 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
     }
 
+    private static SshSecuritySettings createSecuritySettings(final Map<String, String> parameters){
+        return new SshSecuritySettings() {
+            @Override
+            public String getUserName() {
+                return parameters.get(USER_NAME_PARAM);
+            }
+
+            @Override
+            public String getPassword() {
+                return parameters.get(PASSWORD_PARAM);
+            }
+
+            @Override
+            public boolean hasUserCredentials() {
+                return parameters.containsKey(USER_NAME_PARAM) && parameters.containsKey(PASSWORD_PARAM);
+            }
+
+            @Override
+            public String getJaasDomain() {
+                return parameters.get(JAAS_DOMAIN_PARAM);
+            }
+
+            @Override
+            public boolean hasJaasDomain() {
+                return parameters.containsKey(JAAS_DOMAIN_PARAM);
+            }
+
+            @Override
+            public boolean hasClientPublicKey() {
+                return parameters.containsKey(PUBLIC_KEY_FILE_PARAM);
+            }
+
+            @Override
+            public PublicKey getClientPublicKey() {
+                final File keyFile = new File(parameters.get(PUBLIC_KEY_FILE_PARAM));
+                KeyFormat format = getClientPublicKeyFormat();
+                try {
+                    if (format == KeyFormat.Unknown)
+                        format = KeyProviderUtil.detectKeyFileFormat(keyFile);
+                    final FileKeyProvider provider;
+                    switch (format) {
+                        case PKCS8:
+                            provider = new PKCS8KeyFile();
+                            break;
+                        case OpenSSH:
+                            provider = new OpenSSHKeyFile();
+                            break;
+                        case PuTTY:
+                            provider = new PuTTYKeyFile();
+                            break;
+                        default:
+                            throw new IOException("Unknown public key format.");
+                    }
+                    provider.init(keyFile);
+                    return provider.getPublic();
+                } catch (final IOException e) {
+                    SshHelpers.log(Level.WARNING, "Invalid SSH public key file.", e);
+                }
+                return null;
+            }
+
+            @Override
+            public KeyFormat getClientPublicKeyFormat() {
+                if (parameters.containsKey(PUBLIC_KEY_FILE_FORMAT_PARAM))
+                    switch (parameters.get(PUBLIC_KEY_FILE_FORMAT_PARAM).toLowerCase()) {
+                        case "pkcs8":
+                            return KeyFormat.PKCS8;
+                        case "openssh":
+                            return KeyFormat.OpenSSH;
+                        case "putty":
+                            return KeyFormat.PuTTY;
+                    }
+                return KeyFormat.Unknown;
+            }
+        };
+    }
+
+    private void start(final String host,
+                       final int port,
+                       final String serverCertificateFile,
+                       final SshSecuritySettings security,
+                       final Supplier<ExecutorService> threadPoolFactory) throws Exception{
+        final SshServer server = SshServer.setUpDefaultServer();
+        final ExecutorService commandExecutors = threadPoolFactory.get();
+        server.setHost(host);
+        server.setPort(port);
+        server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(serverCertificateFile));
+        setupSecurity(server, security);
+        server.setShellFactory(ManagementShell.createFactory(this, commandExecutors));
+        server.setCommandFactory(new CommandFactory() {
+            private final AdapterController controller = Utils.weakReference(SshAdapter.this, AdapterController.class);
+
+            @Override
+            public Command createCommand(final String commandLine) {
+                return commandLine != null && commandLine.length() > 0 ?
+                        ManagementShell.createSshCommand(commandLine, controller, commandExecutors) :
+                        null;
+            }
+        });
+        populateModel(attributes);
+        populateModel(notifications);
+        server.start();
+        this.server = server;
+        this.threadPool = commandExecutors;
+    }
+
     /**
      * Starts the adapter.
      * <p>
      * This method will be called by SNAMP infrastructure automatically.
      * </p>
      *
-     * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
+     * @param parameters Adapter startup parameters.
+     * @throws Exception Unable to start adapter.
+     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
+     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)
      */
     @Override
-    protected boolean start() {
-        server.setShellFactory(ManagementShell.createFactory(this, commandExecutors, getLogger()));
-        server.setCommandFactory(new CommandFactory() {
-            private final AdapterController controller = SshAdapter.this;
-
-            @Override
-            public Command createCommand(final String commandLine) {
-                return commandLine != null && commandLine.length() > 0 ?
-                        ManagementShell.createSshCommand(commandLine, controller, commandExecutors, getLogger()) :
-                        null;
-            }
-        });
-        populateModel(attributes);
-        populateModel(notifications);
-        try {
-            server.start();
-            return true;
-        } catch (final IOException e) {
-            failedToStartAdapter(Level.SEVERE, e);
-            return false;
-        }
+    protected void start(final Map<String, String> parameters) throws Exception {
+        final String host = parameters.containsKey(HOST_PARAM) ?
+                parameters.get(HOST_PARAM) :
+                DEFAULT_HOST;
+        final int port = parameters.containsKey(PORT_PARAM) ?
+                Integer.parseInt(parameters.get(PORT_PARAM)) :
+                DEFAULT_PORT;
+        final String certificateFile = parameters.containsKey(CERTIFICATE_FILE_PARAM) ?
+                parameters.get(CERTIFICATE_FILE_PARAM) :
+                DEFAULT_CERTIFICATE;
+        start(host,
+                port,
+                certificateFile,
+                createSecuritySettings(parameters),
+                new SshThreadPoolConfig(getInstanceName(), parameters));
     }
 
     /**
@@ -347,17 +446,18 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      * </p>
      */
     @Override
-    protected void stop() {
+    protected void stop() throws Exception{
         try {
             server.stop();
-        }
-        catch (final InterruptedException e) {
-            failedToStopAdapter(Level.SEVERE, e);
+            threadPool.shutdownNow();
         }
         finally {
             clearModel(attributes);
             clearModel(notifications);
+            server = null;
+            threadPool = null;
         }
+        System.gc();
     }
 
     /**
@@ -365,9 +465,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      *
      * @return The logger associated with this service.
      */
-    @Override
     public Logger getLogger() {
-        return SshHelpers.getLogger();
+        return getLogger(NAME);
     }
 
     @Override
@@ -405,6 +504,55 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     @Override
     public void removeNotificationListener(final long listenerID) {
         notifications.removeNotificationListener(listenerID);
+    }
+
+    /**
+     * Invokes when a new resource connector is activated or new resource configuration is added.
+     * <p/>
+     * This method will be called automatically by SNAMP infrastructure.
+     * In the default implementation this method throws internal exception
+     * derived from {@link UnsupportedOperationException} indicating
+     * that the adapter should be restarted.
+     * </p
+     *
+     * @param resourceName The name of the resource to be added.
+     * @see #enlargeModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
+     */
+    @Override
+    protected void resourceAdded(final String resourceName) {
+        try {
+            enlargeModel(resourceName, attributes);
+            enlargeModel(resourceName, notifications);
+        }
+        catch (final Exception e){
+            SshHelpers.log(Level.SEVERE, String.format("Unable to process new resource %s. Restarting adapter %s. Context: %s",
+                    resourceName,
+                    NAME,
+                    LogicalOperation.current()), e);
+            super.resourceAdded(resourceName);
+        }
+    }
+
+    /**
+     * Invokes when resource connector is in stopping state or resource configuration was removed.
+     * <p>
+     * This method will be called automatically by SNAMP infrastructure.
+     * In the default implementation this method throws internal exception
+     * derived from {@link UnsupportedOperationException} indicating
+     * that the adapter should be restarted.
+     * It is recommended to use {@link #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)}
+     * and/or {@link #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)} to
+     * update your underlying models.
+     * </p>
+     *
+     * @param resourceName The name of the resource to be removed.
+     * @see #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
+     * @see #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)
+     */
+    @Override
+    protected void resourceRemoved(final String resourceName) {
+        clearModel(resourceName, attributes);
+        clearModel(resourceName, notifications);
     }
 
     /**

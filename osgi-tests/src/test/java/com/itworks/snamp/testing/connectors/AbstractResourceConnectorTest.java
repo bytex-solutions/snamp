@@ -2,20 +2,25 @@ package com.itworks.snamp.testing.connectors;
 
 import com.google.common.base.Supplier;
 import com.google.common.reflect.TypeToken;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.Awaitor;
+import com.itworks.snamp.concurrent.SpinWait;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
+import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
+import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.mapping.RecordSet;
 import com.itworks.snamp.mapping.RecordSetUtils;
 import com.itworks.snamp.mapping.TypeConverter;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
+import org.junit.rules.TestName;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -35,6 +40,27 @@ import java.util.concurrent.TimeoutException;
  * @since 1.0
  */
 public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegrationTest {
+    private static final String CONNECTOR_TYPE_PROPERTY = "connectorType";
+
+
+    private static final class ConnectorTestLogicalOperation extends TestLogicalOperation{
+
+
+        private ConnectorTestLogicalOperation(final String operationName,
+                                     final String connectorType,
+                                     final TestName testName){
+            super(operationName, testName, CONNECTOR_TYPE_PROPERTY, connectorType);
+        }
+
+        private static ConnectorTestLogicalOperation startResourceConnector(final String connectorType, final TestName name){
+            return new ConnectorTestLogicalOperation("startResourceConnector", connectorType, name);
+        }
+
+        private static ConnectorTestLogicalOperation stopResourceConnector(final String connectorType, final TestName name){
+            return new ConnectorTestLogicalOperation("stopResourceConnector", connectorType, name);
+        }
+    }
+
     protected static interface Equator<V>{
         boolean equate(final V value1, final V value2);
     }
@@ -106,6 +132,26 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         this.connectorParameters = parameters;
     }
 
+    private void waitForConnector(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+        final Awaitor<ServiceReference<ManagedResourceConnector<?>>, ExceptionPlaceholder> awaitor = new SpinWait<ServiceReference<ManagedResourceConnector<?>>, ExceptionPlaceholder>() {
+            @Override
+            protected ServiceReference<ManagedResourceConnector<?>> get() {
+                return ManagedResourceConnectorClient.getResourceConnector(getTestBundleContext(), TEST_RESOURCE_NAME);
+            }
+        };
+        awaitor.await(timeout);
+    }
+
+    private void waitForNoConnector(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+        final Awaitor<Object, ExceptionPlaceholder> awaitor = new SpinWait<Object, ExceptionPlaceholder>() {
+            @Override
+            protected Object get() {
+                return ManagedResourceConnectorClient.getResourceConnector(getTestBundleContext(), TEST_RESOURCE_NAME) != null ? null : new Object();
+            }
+        };
+        awaitor.await(timeout);
+    }
+
     protected final ManagedResourceConnector<?> getManagementConnector(final BundleContext context){
         final ServiceReference<ManagedResourceConnector<?>> connectorRef =
                 ManagedResourceConnectorClient.getConnectors(context).get(TEST_RESOURCE_NAME);
@@ -136,12 +182,18 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     }
 
-    protected final void stopResourceConnector(final BundleContext context) throws BundleException{
-        AbstractManagedResourceActivator.stopResourceConnector(context, connectorType);
+    protected final void stopResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        try(final LogicalOperation ignored = ConnectorTestLogicalOperation.stopResourceConnector(connectorType, testName)) {
+            ManagedResourceActivator.stopResourceConnector(context, connectorType);
+            waitForNoConnector(TimeSpan.fromSeconds(10));
+        }
     }
 
-    protected final void startResourceConnector(final BundleContext context) throws BundleException{
-        AbstractManagedResourceActivator.startResourceConnector(context, connectorType);
+    protected final void startResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        try (final LogicalOperation ignored = ConnectorTestLogicalOperation.startResourceConnector(connectorType, testName)) {
+            ManagedResourceActivator.startResourceConnector(context, connectorType);
+            waitForConnector(TimeSpan.fromSeconds(10));
+        }
     }
 
     @Override
@@ -228,7 +280,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final TypeToken<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator,
-                                           final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+                                           final boolean readOnlyTest) throws Exception {
         final Map<String, String> attributeOptions = readSnampConfiguration().
                 getManagedResources().
                 get(TEST_RESOURCE_NAME).getElements(AttributeConfiguration.class).get(attributeID).getParameters();
@@ -240,14 +292,14 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final String attributeName,
                                            final TypeToken<T> attributeType,
                                            final T attributeValue,
-                                           final Equator<T> comparator) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+                                           final Equator<T> comparator) throws Exception {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, comparator, false);
     }
 
     protected final <T> void testAttribute(final String attributeID,
                                        final String attributeName,
                                        final TypeToken<T> attributeType,
-                                       final T attributeValue) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+                                       final T attributeValue) throws Exception {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, false);
     }
 
@@ -255,7 +307,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final String attributeName,
                                            final TypeToken<T> attributeType,
                                            final T attributeValue,
-                                           final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+                                           final boolean readOnlyTest) throws Exception {
         testAttribute(attributeID, attributeName, attributeType, attributeValue, AbstractResourceConnectorTest.<T>valueEquator(), readOnlyTest);
     }
 }

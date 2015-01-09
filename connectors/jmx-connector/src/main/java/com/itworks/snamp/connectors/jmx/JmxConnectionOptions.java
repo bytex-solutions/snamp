@@ -33,11 +33,11 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
      * @throws MalformedURLException The specified URL is not JMX-compliant.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public JmxConnectionOptions(final String connectionString) throws MalformedURLException {
+    JmxConnectionOptions(final String connectionString) throws MalformedURLException {
         this(connectionString, Collections.<String, String>emptyMap());
     }
 
-    public JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException{
+    JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException{
         super(connectionString);
         if(options.containsKey(JMX_LOGIN) && options.containsKey(JMX_PASSWORD)){
             login = options.get(JMX_LOGIN);

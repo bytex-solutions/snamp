@@ -1,5 +1,7 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
+import com.itworks.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -49,8 +51,9 @@ final class SetAttributeCommand extends AbstractManagementShellCommand {
                                 final PrintWriter output) throws CommandException {
         final SshAttributeView attr = getAdapterController().getAttribute(attributeID);
         if (attr == null) throw new CommandException("Attribute %s doesn't exist.", attributeID);
-        try {
+        try (final LogicalOperation ignored = new WriteAttributeLogicalOperation(attr.getName(), attributeID)) {
             attr.setValue(fmt != null ? fmt.parseObject(value) : value);
+            output.println("OK");
         } catch (final Exception e) {
             throw new CommandException(e);
         }

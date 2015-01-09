@@ -15,7 +15,7 @@ final class ExitCommand extends AbstractManagementShellCommand {
     static final String COMMAND_NAME = "exit";
     static final String COMMAND_DESC = "Close the current terminal session";
 
-    public ExitCommand(final CommandExecutionContext context) {
+    ExitCommand(final CommandExecutionContext context) {
         super(context);
     }
 

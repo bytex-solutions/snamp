@@ -1,7 +1,7 @@
 package com.itworks.snamp.configuration;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.GroupedThreadFactory;
+import com.itworks.snamp.concurrent.GroupedThreadFactory;
 
 import java.util.Map;
 import java.util.concurrent.*;

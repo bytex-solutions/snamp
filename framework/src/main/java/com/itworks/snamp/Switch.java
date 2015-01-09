@@ -13,8 +13,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-@ThreadSafe(false)
-public final class Switch<I, O> {
+public class Switch<I, O> implements Function<I, O> {
     private static final class SwitchNode<I, O> {
         private final Predicate<I> predicate;
         private final Function<I, O> transformer;
@@ -36,19 +35,12 @@ public final class Switch<I, O> {
     private SwitchNode<I, O> last;
     private Function<I, O> defaultCase;
 
-    private Switch(){
+    /**
+     * Initializes a new empty switch-block.
+     */
+    public Switch(){
         first = last = null;
         defaultCase = null;
-    }
-
-    /**
-     * Initializes a new switch.
-     * @param <I> The input value to compare.
-     * @param <O> The result of the switch operation.
-     * @return A new switch controller.
-     */
-    public static <I, O> Switch<I, O> init() {
-        return new Switch<>();
     }
 
     /**
@@ -57,7 +49,8 @@ public final class Switch<I, O> {
      * @param action The action performed on input value.
      * @return This object.
      */
-    public Switch<I, O> addCase(final Predicate<I> condition,
+    @ThreadSafe(false)
+    public final Switch<I, O> addCase(final Predicate<I> condition,
                         final Function<I, O> action){
         if(first == null)
             first = last = new SwitchNode<>(condition, action);
@@ -74,17 +67,20 @@ public final class Switch<I, O> {
         };
     }
 
-    public Switch<I, O> equals(final I value,
+    @ThreadSafe(false)
+    public final Switch<I, O> equals(final I value,
                                final Function<I, O> action) {
         return addCase(Predicates.equalTo(value), action);
     }
 
-    public Switch<I, O> equals(final I value,
+    @ThreadSafe(false)
+    public final Switch<I, O> equals(final I value,
                                final O output) {
         return equals(value, Switch.<I, O>valueProvider(output));
     }
 
-    public Switch<I, O> theSame(final I value,
+    @ThreadSafe(false)
+    public final Switch<I, O> theSame(final I value,
                                 final Function<I, O> action){
         return addCase(new Predicate<I>() {
             @Override
@@ -94,7 +90,8 @@ public final class Switch<I, O> {
         }, action);
     }
 
-    public Switch<I, O> theSame(final I value,
+    @ThreadSafe(false)
+    public final Switch<I, O> theSame(final I value,
                                 final O output) {
         return theSame(value, Switch.<I, O>valueProvider(output));
     }
@@ -104,12 +101,14 @@ public final class Switch<I, O> {
      * @param action The action performed on input value.
      * @return This object.
      */
-    public Switch<I, O> defaultCase(final Function<I, O> action){
+    @ThreadSafe(false)
+    public final Switch<I, O> defaultCase(final Function<I, O> action){
         this.defaultCase = action;
         return this;
     }
 
-    public Switch<I, O> defaultCase(final O output) {
+    @ThreadSafe(false)
+    public final Switch<I, O> defaultCase(final O output) {
         return defaultCase(new Function<I, O>() {
             @Override
             public O apply(final I input) {
@@ -123,7 +122,9 @@ public final class Switch<I, O> {
      * @param value The value to process.
      * @return Execution result.
      */
-    public O execute(final I value){
+    @ThreadSafe
+    @Override
+    public final O apply(final I value){
         SwitchNode<I, O> lookup = first;
         while (lookup != null){
             if(lookup.predicate.apply(value))
@@ -133,7 +134,8 @@ public final class Switch<I, O> {
         return defaultCase != null ? defaultCase.apply(value) : null;
     }
 
-    public <S extends O> S execute(final I value, final Class<S> resultType) {
-        return resultType.cast(execute(value));
+    @ThreadSafe
+    public final <S extends O> S apply(final I value, final Class<S> resultType) {
+        return resultType.cast(apply(value));
     }
 }

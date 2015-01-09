@@ -3,6 +3,7 @@ package com.itworks.jcommands.impl;
 import javax.xml.bind.annotation.XmlTransient;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents parsing rule. This class cannot be inherited directly from your code.
@@ -12,7 +13,7 @@ import java.util.List;
  */
 @XmlTransient
 public abstract class ParsingRule {
-    private EnumSet<XmlParsingResultType> related;
+    private Set<XmlParsingResultType> related;
 
     ParsingRule() {
         this(EnumSet.allOf(XmlParsingResultType.class));
@@ -23,7 +24,7 @@ public abstract class ParsingRule {
         this(EnumSet.of(first, other));
     }
 
-    ParsingRule(final EnumSet<XmlParsingResultType> related){
+    ParsingRule(final Set<XmlParsingResultType> related){
         this.related = related;
     }
 

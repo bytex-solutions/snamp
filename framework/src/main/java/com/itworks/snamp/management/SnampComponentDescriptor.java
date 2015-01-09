@@ -17,7 +17,7 @@ public interface SnampComponentDescriptor extends Descriptive, Map<String, Strin
     /**
      * Represents name of the property that contains connector name.
      */
-    String CONNECTOR_SYSTEM_NAME_PROPERTY = "connectorName";
+    String CONNECTOR_SYSTEM_NAME_PROPERTY = "connectorType";
     /**
      * Represents name of the property that contains adapter name.
      */

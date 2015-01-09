@@ -33,7 +33,7 @@ enum SnmpType {
     /**
      * Represents Long SNMP type mapping.
      */
-    LONG(SnmpIntegerObject.class),
+    LONG(SnmpLongObject.class),
 
     /**
      * Represents Integer SNMP type mapping.
@@ -89,7 +89,7 @@ enum SnmpType {
             return (SnmpAttributeMapping)ctor.invoke(oid, accessor);
         }
         catch (final Throwable e) {
-            SnmpAttributeMapping.log.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
+            SnmpHelpers.log(Level.SEVERE, "Internal error. Call for SNAMP developers.", e);
             return null;
         }
     }
@@ -174,7 +174,7 @@ enum SnmpType {
     static SnmpType map(final ManagedEntityType attributeType){
         if(supportsBoolean(attributeType))
             return BOOLEAN;
-        else if(supportsInt8(attributeType) || supportsInt16(attributeType) || supportsInt32(attributeType))
+        else if(supportsInt8(attributeType) || supportsInt16(attributeType) || supportsInt32(attributeType) || supportsCharacter(attributeType))
             return INTEGER;
         else if(supportsInt64(attributeType))
             return LONG;

@@ -2,9 +2,10 @@ package com.itworks.snamp.testing.adapters.snmp;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
-import com.itworks.snamp.SynchronizationEvent;
+import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.connectors.notifications.Severity;
 import com.itworks.snamp.testing.Matrix;
@@ -61,23 +62,32 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.rmi", "1.0.0"),
                 mavenBundle("org.apache.aries", "org.apache.aries.util", "1.0.0"),
                 mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy.api", "1.0.0"),
-                mavenBundle("net.engio", "mbassador", "1.1.10"),
                 SnampArtifact.SNMP4J.getReference(),
                 SnampArtifact.SNMP_ADAPTER.getReference());
     }
 
     @Override
-    protected void afterStartTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        super.afterStartTest(context);
-        AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        super.beforeStartTest(context);
+        beforeCleanupTest(context);
     }
 
     @Override
-    protected void afterCleanupTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    protected void afterStartTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        startResourceConnector(context);
+        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
+            @Override
+            public Void call() throws BundleException {
+                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                return null;
+            }
+        }, TimeSpan.fromSeconds(4));
+    }
+
+    @Override
+    protected void beforeCleanupTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
-        super.afterCleanupTest(context);
     }
 
     @Test
@@ -249,8 +259,8 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
 
     @Test
     public final void notificationTest() throws IOException, TimeoutException, InterruptedException, BundleException {
-            final SynchronizationEvent.Awaitor<SnmpNotification> awaitor1 = client.addNotificationListener(new OID("1.1.19.1"));
-            final SynchronizationEvent.Awaitor<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
+            final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor1 = client.addNotificationListener(new OID("1.1.19.1"));
+            final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
             client.writeAttribute(new OID("1.1.1.0"), "NOTIFICATION TEST", String.class);
             final SnmpNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
             final SnmpNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.MINUTES));

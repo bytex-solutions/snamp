@@ -5,7 +5,7 @@
  *     with unified management object model and protocol-specific representation
  *     of the managed resource (for example, SNMP).
  * </p>
- * @see com.itworks.snamp.adapters.AbstractResourceAdapterActivator
+ * @see com.itworks.snamp.adapters.ResourceAdapterActivator
  * @see com.itworks.snamp.adapters.AbstractResourceAdapter
  * @since 1.0
  */

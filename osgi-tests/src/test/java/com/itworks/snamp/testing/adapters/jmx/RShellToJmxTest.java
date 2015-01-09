@@ -1,7 +1,9 @@
 package com.itworks.snamp.testing.adapters.jmx;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.testing.SnampArtifact;
@@ -21,8 +23,6 @@ import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
-
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * @author Roman Sakno
@@ -44,8 +44,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
                 PORT,
                 CERTIFICATE_FILE,
                 FINGERPRINT,
-                SnampArtifact.JMX_ADAPTER.getReference(),
-                mavenBundle("net.engio", "mbassador", "1.1.10"));
+                SnampArtifact.JMX_ADAPTER.getReference());
     }
 
     private static ObjectName createObjectName() throws MalformedObjectNameException {
@@ -56,17 +55,27 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     }
 
     @Override
-    protected void afterStartTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        super.afterStartTest(context);
-        AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        super.beforeStartTest(context);
+        beforeCleanupTest(context);
     }
 
     @Override
-    protected void afterCleanupTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    protected void afterStartTest(final BundleContext context) throws Exception {
+        startResourceConnector(context);
+        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
+            @Override
+            public Void call() throws BundleException {
+                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                return null;
+            }
+        }, TimeSpan.fromSeconds(20));
+    }
+
+    @Override
+    protected void beforeCleanupTest(final BundleContext context) throws Exception {
+        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
-        super.afterCleanupTest(context);
     }
 
     @Override

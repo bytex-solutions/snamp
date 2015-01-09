@@ -2,6 +2,9 @@ package com.itworks.snamp.adapters.rest;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
+import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
+import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
+import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.sun.jersey.spi.resource.Singleton;
 
@@ -34,7 +37,7 @@ public final class RestAdapterService {
         if(securityEnabled) RestAdapterHelpers.wellKnownRoleRequired(context);
         final HttpAttributeMapping attr = attributes.get(resourceName, attributeName);
         if(attr != null)
-            try{
+            try(final LogicalOperation ignored = new ReadAttributeLogicalOperation(attr.getName(), attributeName)){
                 return attr.getValue();
             }
             catch (final Exception e){
@@ -69,7 +72,7 @@ public final class RestAdapterService {
         if (securityEnabled) RestAdapterHelpers.maintainerRequired(context);
         final HttpAttributeMapping attr = attributes.get(resourceName, attributeName);
         if (attr != null)
-            try {
+            try(final LogicalOperation ignored = new WriteAttributeLogicalOperation(attr.getName(), attributeName)) {
                 attr.setValue(attributeValue);
                 return attributes.getJsonFormatter().toJson(new JsonPrimitive(true));
             } catch (final Exception e) {

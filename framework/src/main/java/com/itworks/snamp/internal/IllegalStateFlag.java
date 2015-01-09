@@ -1,6 +1,6 @@
 package com.itworks.snamp.internal;
 
-import com.itworks.snamp.WriteOnceRef;
+import com.itworks.snamp.concurrent.WriteOnceRef;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 

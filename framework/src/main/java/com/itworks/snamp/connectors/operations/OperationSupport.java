@@ -17,7 +17,7 @@ import java.util.*;
 public interface OperationSupport extends View {
 
     /**
-     * Creates a new invocation queue that is used to execute the specified operations.
+     * Creates a new invocation queue that is used to apply the specified operations.
      *
      * @param operations A map of operations, where key is a name of the operation and value
      *                   is a map of operation options. Cannot be {@literal null} or empty.

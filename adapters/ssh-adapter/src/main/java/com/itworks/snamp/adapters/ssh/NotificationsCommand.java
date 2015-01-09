@@ -50,7 +50,7 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
     private static void displayNotifications(final AdapterController controller,
                                              final PrintWriter output) throws IOException{
         for (final String resourceName : controller.getConnectedResources())
-            StringAppender.init()
+            new StringAppender()
                     .appendln("%s available notifications:", resourceName)
                     .appendln(controller.getNotifications(resourceName))
                     .newLine()
@@ -101,7 +101,7 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
 
     private static void notificationsStatus(final NotificationManager manager,
                                             final PrintWriter output) throws IOException {
-            StringAppender.init()
+            new StringAppender()
                     .appendln("Disabled notifications from resources:")
                     .appendln(manager.getDisabledResources())
                     .newLine()
@@ -165,7 +165,7 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
                     continue;
                 }
                 final SshNotificationBox.AdditionalNotificationInfo info = SshNotificationBox.getAdditionalInfo(notif);
-                final StringAppender appender = StringAppender.init();
+                final StringAppender appender = new StringAppender();
                 if (info != null) {
                     appender.appendln("Event %s from resource %s", info.eventName, info.resourceName);
                 }

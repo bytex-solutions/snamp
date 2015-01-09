@@ -395,7 +395,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
         else if(supportsProjection(connector.getType(), TypeLiterals.OBJECT_ARRAY) && ManagedEntityTypeBuilder.isArray(connector.getType()))
             fill(convertFrom(connector.getType(), lastUpdateSource = connector.getRawValue(), TypeLiterals.OBJECT_ARRAY), table, (ManagedEntityTabularType)connector.getType(), connector);
         else {
-            log.warning(String.format("Source attribute table %s is not supported", table.getOID()));
+            SnmpHelpers.log(Level.WARNING, "Source attribute table %s is not supported", table.getOID(), null);
             lastUpdateSource = null;
         }
         return lastUpdateSource;
@@ -475,7 +475,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             fillTableIfNecessary();
         }
         catch (final TimeoutException | AttributeSupportException e) {
-            log.log(Level.SEVERE, "Unable to update SNMP table.", e);
+            SnmpHelpers.log(Level.SEVERE, "Unable to update SNMP table.", e);
         }
     }
 
@@ -486,7 +486,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
         for(int i = 0; i < model.getRowCount(); i++){
             final MOMutableTableRow row = model.getRow(makeRowID(i));
             if(row == null){ //cancels row sending
-                log.severe(String.format("Row %s is null. Sending array is cancelled", makeRowID(i)));
+                SnmpHelpers.log(Level.SEVERE, "Row %s is null. Sending array is cancelled", makeRowID(i), null);
                 return Collections.emptySet();
             }
             else if(rowStatusIndex >= 0)
@@ -499,7 +499,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
                         rowsToDelete.add(row.getIndex());
                         continue;
                     default:
-                        log.warning(String.format("Unsupported row status %s detected at row %s in table %s. Row is ignored.", row.getValue(rowStatusIndex), row.getIndex(), getOID()));
+                        SnmpHelpers.log(Level.WARNING, "Unsupported row status %s detected at row %s in table %s. Row is ignored.", row.getValue(rowStatusIndex), row.getIndex(), getOID(), null);
                     continue;
                 }
             array[i] = getColumn(0).parseCellValue(row.getValue(0), elementType, _connector);
@@ -532,7 +532,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             for(int r = 0; r < model.getRowCount(); r++){
                 final MOMutableTableRow row = model.getRow(makeRowID(r));
                 if(row == null){ //cancels row sending
-                    log.severe(String.format("Row %s is null. Sending table %s is cancelled", makeRowID(r), getOID()));
+                    SnmpHelpers.log(Level.SEVERE, "Row %s is null. Sending table %s is cancelled", makeRowID(r), getOID(), null);
                     return;
                 }
                 final Map<String, Object> cells = new HashMap<>(getColumnCount());
@@ -552,7 +552,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
                                     allowToAddRow = false;
                                     break;
                                 default:
-                                    log.warning(String.format("Unsupported row status %s detected at row %s in table %s. Row is ignored.", row.getValue(c), row.getIndex(), getOID()));
+                                    SnmpHelpers.log(Level.WARNING, "Unsupported row status %s detected at row %s in table %s. Row is ignored.", row.getValue(c), row.getIndex(), getOID(), null);
                                     allowToAddRow = true;
                                     break;
                             }
@@ -587,7 +587,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             TransactionInfo.pendingState(request, TransactionState.PREPARE);
         }
         catch (final Exception e){
-            log.log(Level.SEVERE, String.format("Unable to prepare transaction for %s table", getOID()), e);
+            SnmpHelpers.log(Level.SEVERE, "Unable to prepare transaction for %s table", getOID(), e);
         }
         finally {
             super.prepare(request);
@@ -600,7 +600,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             TransactionInfo.pendingState(request, TransactionState.COMMIT);
         }
         catch (final Exception e){
-            log.log(Level.SEVERE, String.format("Unable to commit %s table", getOID()), e);
+            SnmpHelpers.log(Level.SEVERE, "Unable to commit %s table", getOID(), e);
         }
         finally {
             super.commit(request);
@@ -613,7 +613,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             TransactionInfo.pendingState(request, TransactionState.ROLLBACK);
         }
         catch (final Exception e){
-            log.log(Level.SEVERE, String.format("Unable to undo changes in %s table", getOID()), e);
+            SnmpHelpers.log(Level.SEVERE, "Unable to undo changes in %s table", getOID(), e);
         }
         finally {
             super.undo(request);
@@ -629,12 +629,12 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
                         dumpTable();
                     break;
                 case ROLLED_BACK:
-                    log.severe(String.format("Transaction for table %s aborted.", getOID()));
+                    SnmpHelpers.log(Level.WARNING, "Transaction for table %s aborted.", getOID(), null);
                     break;
             }
         }
         catch (final Exception e){
-            log.log(Level.SEVERE, String.format("Unable to clean table %s", getOID()), e);
+            SnmpHelpers.log(Level.SEVERE, "Unable to clean table %s", getOID(), e);
             request.setErrorStatus(SnmpConstants.SNMP_ERROR_COMMIT_FAILED);
             request.completed();
         }

@@ -26,20 +26,22 @@ final class JmxAttributeMapping implements JmxFeature<MBeanAttributeInfo> {
         this.pureSerialization = pureSerialization;
     }
 
+    String getOriginalName(){
+        return accessor.getName();
+    }
 
-
-    public Object getValue() throws TimeoutException, OpenDataException, AttributeSupportException {
+    Object getValue() throws TimeoutException, OpenDataException, AttributeSupportException {
         return JmxTypeSystem.getValue(accessor.getValue(), accessor);
     }
 
 
-    public void setValue(final Object value) throws TimeoutException, OpenDataException, InvalidAttributeValueException, AttributeSupportException{
+    void setValue(final Object value) throws TimeoutException, OpenDataException, InvalidAttributeValueException, AttributeSupportException{
         if(!pureSerialization && JmxAdapterHelpers.isJmxCompliantAttribute(accessor))
             accessor.setValue(value);
         else accessor.setValue(JmxTypeSystem.parseValue(value, accessor.getType(), getAttributeType()));
     }
 
-    public OpenType<?> getAttributeType() throws OpenDataException{
+    OpenType<?> getAttributeType() throws OpenDataException{
         OpenType<?> type = attributeType;
         if(type == null)
             synchronized (this){

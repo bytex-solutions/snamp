@@ -9,7 +9,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.FutureThread;
+import com.itworks.snamp.concurrent.FutureThread;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -92,7 +92,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
          */
         public String doAction(Object[] args, final Locale loc) throws Exception {
             if (localeSpecific)
-                args = ArrayUtils.addToEnd(args, loc);
+                args = ArrayUtils.addToEnd(args, loc, Object.class);
             try {
                 return Objects.toString(handle.invokeWithArguments(args));
             } catch (final Exception | Error e) {

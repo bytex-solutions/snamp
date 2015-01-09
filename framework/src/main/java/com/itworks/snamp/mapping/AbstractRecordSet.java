@@ -1,7 +1,7 @@
 package com.itworks.snamp.mapping;
 
 import com.google.common.base.Function;
-import com.itworks.snamp.WriteOnceRef;
+import com.itworks.snamp.concurrent.WriteOnceRef;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -170,7 +170,7 @@ public abstract class AbstractRecordSet<I, R> implements RecordSet<I, R> {
      * May return itself, either because the object was already parallel,
      * or because the underlying object state was modified to be parallel.
      *
-     * @param executor An executor used to execute methods in parallel manner.
+     * @param executor An executor used to apply methods in parallel manner.
      * @return An object that supports parallel execution of some methods.
      */
     @Override

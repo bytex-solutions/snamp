@@ -1,6 +1,9 @@
 package com.itworks.snamp.testing.connectors.snmp;
 
-import com.itworks.snamp.*;
+import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.Repeater;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.connectors.ManagedEntityValue;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
@@ -10,7 +13,6 @@ import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
@@ -50,9 +52,9 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     private static final String ENC_PROTOCOL = "aes128";
     private static final String ENC_KEY = "samplekey";
 
-    private static Map<String, String> getParameters(){
-        final Map<String, String> params = new HashMap<>(1);
-        params.put("localAddress", "udp://127.0.0.1/" + LOCAL_PORT);
+    private static Map<String, String> getParameters(final int localPort){
+        final Map<String, String> params = new HashMap<>(7);
+        params.put("localAddress", "udp://127.0.0.1/" + localPort);
         params.put("engineID", ENGINE_ID);
         params.put("userName", USER_NAME);
         params.put("password", PASSWORD);
@@ -60,6 +62,10 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         params.put("encryptionProtocol", ENC_PROTOCOL);
         params.put("encryptionKey", ENC_KEY);
         return params;
+    }
+
+    private static Map<String, String> getParameters() {
+        return getParameters(LOCAL_PORT);
     }
 
     private final BaseAgent agent;
@@ -446,7 +452,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Override
-    protected void afterCleanupTest(final BundleContext context) throws BundleException {
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
         stopResourceConnector(context);
         agent.stop();
     }

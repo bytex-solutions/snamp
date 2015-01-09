@@ -73,7 +73,7 @@ final class RExecExecutionChannel extends HashMap<String, String> implements Com
     /**
      * Executes the specified action in the channel context.
      *
-     * @param command The command to execute in channel context.
+     * @param command The command to apply in channel context.
      * @param input The additional input for command renderer.
      * @return The execution result.
      * @throws java.io.IOException Some I/O error occurs in the channel.

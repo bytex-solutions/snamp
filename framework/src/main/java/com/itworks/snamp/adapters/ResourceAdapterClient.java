@@ -1,15 +1,18 @@
 package com.itworks.snamp.adapters;
 
+import com.google.common.util.concurrent.Futures;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.core.FrameworkService;
+import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.SupportService;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
-import com.itworks.snamp.core.SupportService;
 import org.osgi.framework.*;
 
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
 
@@ -19,8 +22,38 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * @since 1.0
  */
 public final class ResourceAdapterClient {
+    private static final String LOGGER_NAME = "com.itworks.snamp.adapters.ResourceAdapterClient";
+
     private ResourceAdapterClient(){
 
+    }
+
+    /**
+     * Adds a new listener for events related to resource adapter lifecycle.
+     * <p>
+     *     Event listeners are stored as a weak references therefore
+     *     you should hold the strong reference to the listener in the calling code.
+     * </p>
+     * @param adapterName The system name of the adapter.
+     * @param listener The listener for events related to resource adapter with the specified name.
+     * @return {@literal true}, if listener is added successfully; {@literal false}, if the specified listener
+     * was added previously.
+     */
+    public static boolean addEventListener(final String adapterName,
+                                        final ResourceAdapterEventListener listener){
+        return AbstractResourceAdapter.addEventListener(adapterName, listener);
+    }
+
+    /**
+     * Removes the listener for events related to resource adapter lifecycle.
+     * @param adapterName The system name of the adapter.
+     * @param listener The listener to remove.
+     * @return {@literal true}, if the specified listener is removed successfully; {@literal false},
+     * if the specified listener was not added previously using {@link #addEventListener(String, ResourceAdapterEventListener)} method.
+     */
+    public static boolean removeEventListener(final String adapterName,
+                                           final ResourceAdapterEventListener listener){
+        return AbstractResourceAdapter.removeEventListener(adapterName, listener);
     }
 
     private static UnsupportedOperationException unsupportedServiceRequest(final String connectorType,
@@ -32,7 +65,7 @@ public final class ResourceAdapterClient {
                                                    final String adapterName,
                                                    final String header,
                                                    final Locale loc){
-        final List<Bundle> candidates = AbstractResourceAdapterActivator.getResourceAdapterBundles(context, adapterName);
+        final List<Bundle> candidates = ResourceAdapterActivator.getResourceAdapterBundles(context, adapterName);
         return candidates.isEmpty() ? null : candidates.get(0).getHeaders(loc != null ? loc.toString() : null).get(header);
     }
 
@@ -50,7 +83,7 @@ public final class ResourceAdapterClient {
                                                                                        final String adapterName,
                                                                                        String filter,
                                                                                        final Class<S> serviceType) throws InvalidSyntaxException {
-        filter = AbstractResourceAdapterActivator.createFilter(adapterName, filter);
+        filter = ResourceAdapterActivator.createFilter(adapterName, filter);
         final Collection<ServiceReference<S>> refs = context.getServiceReferences(serviceType, filter);
         return refs.isEmpty() ? null : refs.iterator().next();
     }
@@ -62,8 +95,6 @@ public final class ResourceAdapterClient {
      * @param configurationEntity Type of the configuration entity.
      * @param <T> Type of the configuration entity.
      * @return Configuration entity descriptor; or {@literal null}, if configuration description is not supported.
-     * @throws java.lang.UnsupportedOperationException The specified adapter doesn't provide
-     *          configuration description.
      */
     public static <T extends ConfigurationEntity> ConfigurationEntityDescription<T> getConfigurationEntityDescriptor(final BundleContext context,
                                                                                                                      final String adapterName,
@@ -78,7 +109,11 @@ public final class ResourceAdapterClient {
             return provider.getDescription(configurationEntity);
         }
         catch (final InvalidSyntaxException e) {
-            throw new UnsupportedOperationException(e);
+            ref = null;
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+                logger.log(Level.SEVERE, String.format("Unable to discover configuration schema of %s adapter", adapterName), e);
+            }
+            return null;
         }
         finally {
             if(ref != null) context.ungetService(ref);
@@ -91,8 +126,6 @@ public final class ResourceAdapterClient {
      * @param adapterName The name of the adapter.
      * @param loc The locale of the description. May be {@literal null}.
      * @return A map of license limitations with its human-readable description.
-     * @throws java.lang.UnsupportedOperationException The specified adapter doesn't
-     *      provide licensing restrictions.
      */
     public static Map<String, String> getLicenseLimitations(final BundleContext context,
                                                             final String adapterName,
@@ -110,7 +143,11 @@ public final class ResourceAdapterClient {
             return result;
         }
         catch (final InvalidSyntaxException e) {
-            throw new UnsupportedOperationException(e);
+            ref = null;
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+                logger.log(Level.SEVERE, String.format("Unable to discover license limitations of %s adapter", adapterName), e);
+            }
+            return null;
         }
         finally {
             if(ref != null) context.ungetService(ref);
@@ -126,7 +163,6 @@ public final class ResourceAdapterClient {
      * @param adapterName The system name of the adapter.
      * @param loc The locale of the description. May be {@literal null}.
      * @return A map of supported actions and its description.
-     * @throws UnsupportedOperationException Resource adapter doesn't support maintenance.
      */
     public static Map<String, String> getMaintenanceActions(final BundleContext context,
                                                             final String adapterName,
@@ -143,7 +179,11 @@ public final class ResourceAdapterClient {
             return result;
         }
         catch (final InvalidSyntaxException e) {
-            throw new UnsupportedOperationException(e);
+            ref = null;
+            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+                logger.log(Level.SEVERE, String.format("Unable to enumerate maintenance actions of %s adapter", adapterName), e);
+            }
+            return Collections.emptyMap();
         }
         finally {
             if(ref != null) context.ungetService(ref);
@@ -161,25 +201,22 @@ public final class ResourceAdapterClient {
      * @param arguments Invocation arguments.
      * @param resultLocale The locale of the input arguments and result.
      * @return An object that represents asynchronous state of the action invocation.
-     * @throws UnsupportedOperationException The adapter doesn't support maintenance.
      */
     public static Future<String> invokeMaintenanceAction(final BundleContext context,
                                                          final String adapterName,
                                                          final String actionName,
                                                          final String arguments,
-                                                         final Locale resultLocale) throws UnsupportedOperationException{
-        if(context == null) return null;
+                                                         final Locale resultLocale) throws UnsupportedOperationException {
+        if (context == null) return null;
         ServiceReference<Maintainable> ref = null;
         try {
             ref = getServiceReference(context, adapterName, null, Maintainable.class);
-            if(ref == null) throw unsupportedServiceRequest(adapterName, Maintainable.class);
+            if (ref == null) throw unsupportedServiceRequest(adapterName, Maintainable.class);
             return context.getService(ref).doAction(actionName, arguments, resultLocale);
-        }
-        catch (final InvalidSyntaxException e) {
-            throw new UnsupportedOperationException(e);
-        }
-        finally {
-            if(ref != null) context.ungetService(ref);
+        } catch (final InvalidSyntaxException e) {
+            return Futures.immediateFailedCheckedFuture(e);
+        } finally {
+            if (ref != null) context.ungetService(ref);
         }
     }
 
@@ -190,7 +227,7 @@ public final class ResourceAdapterClient {
      * @return The state of the bundle.
      */
     public static int getState(final BundleContext context, final String adapterName){
-        final List<Bundle> bnds = AbstractResourceAdapterActivator.getResourceAdapterBundles(context, adapterName);
+        final List<Bundle> bnds = ResourceAdapterActivator.getResourceAdapterBundles(context, adapterName);
         return bnds.isEmpty() ? Bundle.UNINSTALLED : bnds.get(0).getState();
     }
 

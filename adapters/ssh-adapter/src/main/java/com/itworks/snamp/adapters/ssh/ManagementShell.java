@@ -1,9 +1,8 @@
 package com.itworks.snamp.adapters.ssh;
 
-import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Switch;
-import com.itworks.snamp.WriteOnceRef;
+import com.itworks.snamp.concurrent.WriteOnceRef;
 import jline.console.ConsoleReader;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.Session;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,46 +33,28 @@ import java.util.regex.Pattern;
 final class ManagementShell implements Command, SessionAware {
     private static final Pattern COMMAND_DELIMITIER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 
-    private static final class CommandExecutionContextImpl extends AbstractAggregator implements CommandExecutionContext{
-        private final AdapterController controller;
-        private final ExecutorService executor;
-        private final Logger logger;
-        private final Session session;
-        private final InputStream reader;
+    private static final class CommandExecutionContextImpl extends Switch<Class<?>, Object> implements CommandExecutionContext{
 
+        @SuppressWarnings("ResultOfMethodCallIgnored")
         private CommandExecutionContextImpl(final AdapterController controller,
-                                            final ExecutorService executor,
-                                            final Logger logger){
-            this(controller, executor, null, null, logger);
+                                            final ExecutorService executor){
+            super.equals(CONTROLLER, controller)
+                    .equals(EXECUTOR, executor);
         }
 
+        @SuppressWarnings("ResultOfMethodCallIgnored")
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor,
                                             final Session session,
-                                            final InputStream reader,
-                                            final Logger logger){
-            this.controller = Objects.requireNonNull(controller, "controller is null.");
-            this.executor = Objects.requireNonNull(executor, "executor is null.");
-            this.logger = Objects.requireNonNull(logger, "logger is null.");
-            this.session = session;
-            this.reader = reader;
+                                            final InputStream reader) {
+            this(controller, executor);
+            super.equals(SESSION, session)
+                    .equals(INPUT_STREAM, reader);
         }
 
-        /**
-         * Retrieves the aggregated object.
-         *
-         * @param objectType Type of the aggregated object.
-         * @return An instance of the requested object; or {@literal null} if object is not available.
-         */
         @Override
         public <T> T queryObject(final Class<T> objectType) {
-            return Switch.<Class<?>, Object>init()
-                    .equals(EXECUTOR, this.executor)
-                    .equals(CONTROLLER, this.controller)
-                    .equals(LOGGER, this.logger)
-                    .equals(SESSION, this.session)
-                    .equals(INPUT_STREAM, this.reader)
-                    .execute(objectType, objectType);
+            return apply(objectType, objectType);
         }
     }
 
@@ -84,7 +64,6 @@ final class ManagementShell implements Command, SessionAware {
         private final InputStream inStream;
         private final OutputStream outStream;
         private final ExitCallback callback;
-        private final Logger logger;
         private final ExecutorService executor;
         private final Session session;
 
@@ -94,8 +73,7 @@ final class ManagementShell implements Command, SessionAware {
                            final OutputStream es,
                            final ExitCallback callback,
                            final ExecutorService executor,
-                           final Session session,
-                           final Logger l) throws IOException {
+                           final Session session) throws IOException {
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             if (TtyOutputStream.needToApply()) {
                 this.outStream = new TtyOutputStream(os);
@@ -105,7 +83,6 @@ final class ManagementShell implements Command, SessionAware {
                 this.outStream = os;
             }
             this.inStream = is;
-            this.logger = Objects.requireNonNull(l, "l is null.");
             this.session = Objects.requireNonNull(session, "session is null.");
             this.callback = callback;
             this.executor = Objects.requireNonNull(executor, "executor is null.");
@@ -135,13 +112,13 @@ final class ManagementShell implements Command, SessionAware {
                 while (!Objects.equals(command = reader.readLine(), ExitCommand.COMMAND_NAME))
                     if (command != null && command.length() > 0) {
                         doCommand(command,
-                                new CommandExecutionContextImpl(controller, executor, session, inStream, logger),
+                                new CommandExecutionContextImpl(controller, executor, session, inStream),
                                 output, error);
                         output.flush();
                     }
                 if (callback != null) callback.onExit(0);
             } catch (final IOException e) {
-                logger.log(Level.SEVERE, "Network I/O problems detected.", e);
+                SshHelpers.log(Level.SEVERE, "Network I/O problems detected.", e);
                 if (callback != null) callback.onExit(-1, e.getMessage());
             }
         }
@@ -154,14 +131,11 @@ final class ManagementShell implements Command, SessionAware {
     private final WriteOnceRef<ExitCallback> exitCallback;
     private final WriteOnceRef<Interpreter> interpreter;
     private final WriteOnceRef<Session> session;
-    private final Logger logger;
     private final ExecutorService executor;
 
     private ManagementShell(final AdapterController controller,
-                            final ExecutorService executor,
-                            final Logger l) {
+                            final ExecutorService executor) {
         this.controller = Objects.requireNonNull(controller, "controller is null.");
-        this.logger = Objects.requireNonNull(l, "l is null.");
         inStream = new WriteOnceRef<>();
         outStream = new WriteOnceRef<>();
         errStream = new WriteOnceRef<>();
@@ -172,12 +146,11 @@ final class ManagementShell implements Command, SessionAware {
     }
 
     public static Factory<Command> createFactory(final AdapterController controller,
-                                                 final ExecutorService executor,
-                                                 final Logger l) {
+                                                 final ExecutorService executor) {
         return new Factory<Command>() {
             @Override
             public Command create() {
-                return new ManagementShell(controller, executor, l);
+                return new ManagementShell(controller, executor);
             }
         };
     }
@@ -245,13 +218,12 @@ final class ManagementShell implements Command, SessionAware {
                     errStream.get(),
                     exitCallback.get(),
                     executor,
-                    serverSession,
-                    logger);
+                    serverSession);
             i.start();
             interpreter.set(i);
         }
         catch (final IOException e){
-            logger.log(Level.SEVERE, "Unable to start SNAMP shell", e);
+            SshHelpers.log(Level.SEVERE, "Unable to start SNAMP shell", e);
         }
     }
 
@@ -304,10 +276,9 @@ final class ManagementShell implements Command, SessionAware {
 
     static Command createSshCommand(final String commandLine,
                                     final AdapterController controller,
-                                    final ExecutorService executor,
-                                    final Logger logger){
+                                    final ExecutorService executor){
         return createSshCommand(commandLine,
-                new CommandExecutionContextImpl(controller, executor, logger));
+                new CommandExecutionContextImpl(controller, executor));
     }
 
     static void doCommand(final String commandLine,

@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * @since 1.0
  */
-public final class TimeSpan {
+public final class TimeSpan  {
     /**
      * Represents infinite time interval.
      */

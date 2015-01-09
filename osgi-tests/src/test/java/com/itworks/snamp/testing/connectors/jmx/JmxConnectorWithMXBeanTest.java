@@ -1,21 +1,17 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.mapping.RecordSet;
 import com.itworks.snamp.mapping.TypeLiterals;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
@@ -47,7 +43,7 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
     }
 
     @Test
-    public void testForAttributes() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public void testForAttributes() throws Exception {
         testAttribute("1", "ObjectPendingFinalizationCount", TypeLiterals.INTEGER, 0, true);
         testAttribute("2", "HeapMemoryUsage", TypeLiterals.NAMED_RECORD_SET, null, new Equator<RecordSet<String, ?>>() {
             @Override

@@ -12,7 +12,6 @@ import org.apache.sshd.server.shell.ProcessShellFactory;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -73,7 +72,7 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
     }
 
     @Override
-    protected void beforeStartTest(final BundleContext context) throws IOException {
+    protected void beforeStartTest(final BundleContext context) throws Exception {
         server.start();
     }
 

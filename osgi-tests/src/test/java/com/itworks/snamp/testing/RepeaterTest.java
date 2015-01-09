@@ -1,6 +1,6 @@
 package com.itworks.snamp.testing;
 
-import com.itworks.snamp.Repeater;
+import com.itworks.snamp.concurrent.Repeater;
 import com.itworks.snamp.TimeSpan;
 import org.junit.Test;
 

@@ -39,7 +39,7 @@ final class ListOfResourcesCommand extends AbstractManagementShellCommand {
     /**
      * Executes command synchronously.
      *
-     * @param input  The command to execute.
+     * @param input  The command to apply.
      * @param output Output stream for the command execution result.
      */
     @Override

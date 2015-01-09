@@ -1,7 +1,10 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.itworks.snamp.Consumer;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.core.OsgiLoggingContext;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOColumn;
@@ -13,6 +16,7 @@ import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,6 +26,7 @@ import java.util.regex.Pattern;
  */
 final class SnmpHelpers {
     static final String ADAPTER_NAME = "snmp";
+    private static final String LOGGER_NAME = AbstractResourceAdapter.getLoggerName(ADAPTER_NAME);
     private static final TimeZone ZERO_TIME_ZONE = new SimpleTimeZone(0, "UTC");
 
     private SnmpHelpers(){
@@ -30,10 +35,6 @@ final class SnmpHelpers {
 
     private static Calendar createCalendar() {
         return Calendar.getInstance(ZERO_TIME_ZONE, Locale.ROOT);
-    }
-
-    public static Logger getLogger() {
-        return AbstractResourceAdapter.getLogger(ADAPTER_NAME);
     }
 
     /**
@@ -85,8 +86,7 @@ final class SnmpHelpers {
                 dataStream.writeByte(value.get(Calendar.DAY_OF_MONTH));
                 dataStream.writeByte(value.get(Calendar.HOUR_OF_DAY));
                 dataStream.writeByte(value.get(Calendar.MINUTE));
-                int second = value.get(Calendar.SECOND);
-                dataStream.writeByte(second == 0 ? 60 : second);
+                dataStream.writeByte(value.get(Calendar.SECOND));
                 dataStream.writeByte(value.get(Calendar.MILLISECOND) / 100);
 
                 int offsetInMillis = value.getTimeZone().getRawOffset();
@@ -217,10 +217,6 @@ final class SnmpHelpers {
             else return value;
         }
 
-        private static <T extends Comparable<T>> T replace(final T actual, final T check, final T replacement){
-            return actual.compareTo(check) == 0 ? replacement : actual;
-        }
-
         private static String convert(final Calendar value){
             final String RFC1903_FORMAT = "%s-%s-%s,%s:%s:%s.%s,%s%s:%s";
             //parse components of RFC1903
@@ -229,7 +225,7 @@ final class SnmpHelpers {
             final String dayOfMonth = Integer.toString(value.get(Calendar.DAY_OF_MONTH));
             final String hourOfDay = addLeadingZeroes(Integer.toString(value.get(Calendar.HOUR_OF_DAY)), 2);
             final String minute = addLeadingZeroes(Integer.toString(value.get(Calendar.MINUTE)), 2);
-            final String second = addLeadingZeroes(Integer.toString(replace(value.get(Calendar.SECOND), 0, 60)), 2);
+            final String second = addLeadingZeroes(Integer.toString(value.get(Calendar.SECOND)), 2);
             final String deciseconds = Integer.toString(value.get(Calendar.MILLISECOND) / 100);
             int offsetInMillis = value.getTimeZone().getRawOffset();
             char directionFromUTC = '+';
@@ -279,7 +275,7 @@ final class SnmpHelpers {
         }
     }
 
-    public static DateTimeFormatter createDateTimeFormatter(final String formatterName){
+    static DateTimeFormatter createDateTimeFormatter(final String formatterName){
         if(formatterName == null || formatterName.isEmpty()) return new Rfc1903BinaryDateTimeFormatter();
         else switch (formatterName){
             case CustomDateTimeFormatter.FORMATTER_NAME: return new CustomDateTimeFormatter();
@@ -289,7 +285,7 @@ final class SnmpHelpers {
         }
     }
 
-    public static MOAccess getAccessRestrictions(final AttributeMetadata metadata, final boolean mayCreate){
+    static MOAccess getAccessRestrictions(final AttributeMetadata metadata, final boolean mayCreate){
         switch ((metadata.canWrite() ? 1 : 0) << 1 | (metadata.canRead() ? 1 : 0)){
             //case 0: case 1:
             default: return MOAccessImpl.ACCESS_READ_ONLY;
@@ -298,17 +294,17 @@ final class SnmpHelpers {
         }
     }
 
-    public static MOAccess getAccessRestrictions(final AttributeMetadata metadata){
+    static MOAccess getAccessRestrictions(final AttributeMetadata metadata){
         return getAccessRestrictions(metadata, false);
     }
 
-    public static <COLUMN extends MOColumn<? extends Variable>> COLUMN findColumn(final MOTable<?, ? extends MOColumn<? extends Variable>, ?> table, final Class<COLUMN> columnType){
+    static <COLUMN extends MOColumn<? extends Variable>> COLUMN findColumn(final MOTable<?, ? extends MOColumn<? extends Variable>, ?> table, final Class<COLUMN> columnType){
         for(final MOColumn<? extends Variable> column: table.getColumns())
             if(columnType.isInstance(column)) return columnType.cast(column);
         return null;
     }
 
-    public static int findColumnIndex(final MOTable<?, ? extends MOColumn<? extends Variable>, ?> table, final Class<? extends MOColumn<? extends Variable>> columnType){
+    static int findColumnIndex(final MOTable<?, ? extends MOColumn<? extends Variable>, ?> table, final Class<? extends MOColumn<? extends Variable>> columnType){
         final MOColumn<? extends Variable> column = findColumn(table, columnType);
         return column != null ? column.getColumnID() : -1;
     }
@@ -319,7 +315,7 @@ final class SnmpHelpers {
         return result;
     }
 
-    public static Set<OID> getPrefixes(final Collection<? extends SnmpEntity> objects){
+    static Set<OID> getPrefixes(final Collection<? extends SnmpEntity> objects){
         //first two numbers of OID are identified as prefix
         final Set<OID> result = new HashSet<>(objects.size());
         for(final SnmpEntity obj: objects)
@@ -327,11 +323,40 @@ final class SnmpHelpers {
         return result;
     }
 
-    public static <T extends SnmpEntity> Collection<T> getObjectsByPrefix(final OID prefix, final Collection<T> objects){
+    static <T extends SnmpEntity> Collection<T> getObjectsByPrefix(final OID prefix, final Collection<T> objects){
         final Collection<T> result = new ArrayList<>(objects.size());
         for(final T obj: objects)
             if(Objects.equals(getPrefix(obj.getID()), prefix))
                 result.add(obj);
         return result;
+    }
+
+    static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
+        OsgiLoggingContext.within(LOGGER_NAME, contextBody);
+    }
+
+    private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
+        withLogger(new SafeConsumer<Logger>() {
+            @Override
+            public void accept(final Logger logger) {
+                logger.log(lvl, String.format(message, args), e);
+            }
+        });
+    }
+
+    static void log(final Level lvl, final String message, final Throwable e){
+        log(lvl, message, new Object[0], e);
+    }
+
+    static void log(final Level lvl, final String message, final Object arg0, final Throwable e){
+        log(lvl, message, new Object[]{arg0}, e);
+    }
+
+    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Throwable e){
+        log(lvl, message, new Object[]{arg0, arg1}, e);
+    }
+
+    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Object arg2, final Throwable e){
+        log(lvl, message, new Object[]{arg0, arg1, arg2}, e);
     }
 }

@@ -1,6 +1,7 @@
 package com.itworks.snamp.mapping;
 
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
@@ -461,5 +462,32 @@ public final class RecordSetUtils {
             }
         });
         return result.get();
+    }
+
+    /**
+     * Transforms each record in the record set.
+     * @param set The record set to transform.
+     * @param transformation Record transformation.
+     * @param <I> Type of the record index.
+     * @param <V1> Type of the input record.
+     * @param <V2> Type of the output record.
+     * @return A new record set with transformed record values.
+     */
+    public static <I, V1, V2> RecordSet<I, V2> transformRecords(final RecordSet<I, V1> set,
+                                                         final Function<V1, V2> transformation) {
+        return transform(set, Functions.<I>identity(), transformation);
+    }
+
+    public static <I1, I2, V> RecordSet<I2, V> transformIndexes(final RecordSet<I1, V> set,
+                                                                final Function<I1, I2> transformation){
+        return transform(set, transformation, Functions.<V>identity());
+    }
+
+    public static <I1, I2, V1, V2> RecordSet<I2, V2> transform(final RecordSet<I1, V1> set,
+                                                               final Function<I1, I2> indexTransf,
+                                                               final Function<V1, V2> recordTransf){
+        if(set == null) return null;
+        else if(set.size() == 0) return emptySet();
+        else return new TransformedRecordSet<>(set, indexTransf, recordTransf);
     }
 }

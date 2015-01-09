@@ -38,7 +38,7 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
         try {
             return formatter.convert(value.toByteArray());
         } catch (final ParseException e) {
-            log.log(Level.WARNING, String.format("Invalid date/time string %s", e));
+            SnmpHelpers.log(Level.WARNING, "Invalid date/time string: %s", value, e);
             return null;
         }
     }

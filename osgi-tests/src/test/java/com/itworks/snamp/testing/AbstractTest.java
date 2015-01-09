@@ -1,6 +1,9 @@
 package com.itworks.snamp.testing;
 
+import com.itworks.snamp.core.RichLogicalOperation;
 import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 
 import java.lang.reflect.Array;
 
@@ -12,6 +15,18 @@ import java.lang.reflect.Array;
  */
 public abstract class AbstractTest extends Assert {
 
+    protected static class TestLogicalOperation extends RichLogicalOperation {
+        private static final String TEST_NAME_PROPERTY = "testName";
+
+        protected TestLogicalOperation(final String operationName,
+                                     final TestName testName,
+                                     final String propertyName,
+                                     final Object propertyValue){
+            super(operationName,
+                    TEST_NAME_PROPERTY, testName.getMethodName(),
+                    propertyName, propertyValue);
+        }
+    }
 
     @SafeVarargs
     protected static <T> T[] concat(final T[] array1, final T... array2){
@@ -27,4 +42,7 @@ public abstract class AbstractTest extends Assert {
         for(int i = 0; i < Array.getLength(expected); i++)
             assertEquals(Array.get(expected, i), Array.get(actual, i));
     }
+
+    @Rule
+    public final TestName testName = new TestName();
 }

@@ -206,6 +206,8 @@ final class JmxTypeSystem {
             return source.convertTo(TypeLiterals.BIG_INTEGER);
         else if(supportsString(source.type))
             return source.convertTo(TypeLiterals.STRING);
+        else if(supportsCharacter(source.type))
+            return source.convertTo(TypeLiterals.CHAR);
         else if(isArray(source.type))
             return source.rawValue;
         else if(isMap(source.type))
@@ -238,6 +240,8 @@ final class JmxTypeSystem {
             return SimpleType.BIGINTEGER;
         else if(supportsString(entityType))
             return SimpleType.STRING;
+        else if(supportsCharacter(entityType))
+            return SimpleType.CHARACTER;
         else if(isArray(entityType))
             return getAttributeArrayType((ManagedEntityTabularType)entityType);
         else if(isMap(entityType))

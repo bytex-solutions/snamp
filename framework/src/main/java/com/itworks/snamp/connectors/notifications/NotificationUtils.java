@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.notifications;
 
-import com.itworks.snamp.SynchronizationEvent;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 
 import java.util.Objects;
 
@@ -91,28 +91,28 @@ public final class NotificationUtils {
 
     /**
      * Constructs topic name for the {@link org.osgi.service.event.Event} that represents SNAMP notification.
-     * @param connectorName The management connector name.
+     * @param connectorType The management connector name.
      * @param notificationCategory The notification category.
      * @param subscriptionList The subscription list identifier.
      * @return The event topic name.
      */
-    public static String getTopicName(final String connectorName,
+    public static String getTopicName(final String connectorType,
                                       final String notificationCategory,
                                       final String subscriptionList){
-        return prepareTopicName(String.format("com/itworks/snamp/%s/%s/%s", connectorName, notificationCategory, subscriptionList));
+        return prepareTopicName(String.format("com/itworks/snamp/%s/%s/%s", connectorType, notificationCategory, subscriptionList));
     }
 
     /**
      * Constructs topic name for the {@link org.osgi.service.event.Event} that represents SNAMP notification.
-     * @param connectorName The management connector name.
+     * @param connectorType The management connector name.
      * @param metadata The notification descriptor.
      * @param subscriptionList The subscription list identifier.
      * @return The event topic name.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public static String getTopicName(final String connectorName,
+    public static String getTopicName(final String connectorType,
                                       final NotificationMetadata metadata,
                                       final String subscriptionList){
-        return getTopicName(connectorName, metadata.getCategory(), subscriptionList);
+        return getTopicName(connectorType, metadata.getCategory(), subscriptionList);
     }
 }

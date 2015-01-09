@@ -1,14 +1,17 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ThreadPoolConfigurationDescriptor;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * Represents SNMP connector configuration descriptor.
@@ -30,6 +33,8 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
     static final String SECURITY_CONTEXT_PARAM = "securityContext";
     static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
     static final int DEFAULT_SOCKET_TIMEOUT = 3000;
+    static final String RESPONSE_TIMEOUT_PARAM = "responseTimeout";
+    private static final TimeSpan DEFAULT_RESPONSE_TIMEOUT = TimeSpan.fromSeconds(6);
     //attribute related parameters
     static final String SNMP_CONVERSION_FORMAT_PARAM = "snmpConversionFormat";
     //event related parameters
@@ -56,7 +61,7 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
         private static final String RESOURCE_NAME = "AttributeOptions";
 
         public AttributeConfigurationDescriptor(){
-            super(AttributeConfiguration.class, SNMP_CONVERSION_FORMAT_PARAM);
+            super(AttributeConfiguration.class, SNMP_CONVERSION_FORMAT_PARAM, RESPONSE_TIMEOUT_PARAM);
         }
 
         @Override
@@ -100,5 +105,11 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
         super(new ConnectorConfigurationDescriptor(),
                 new AttributeConfigurationDescriptor(),
                 new EventConfigurationDescriptor());
+    }
+
+    static TimeSpan getResponseTimeout(final Map<String, String> attributeParams){
+        return attributeParams.containsKey(RESPONSE_TIMEOUT_PARAM) ?
+                new TimeSpan(Integer.parseInt(attributeParams.get(RESPONSE_TIMEOUT_PARAM))):
+                DEFAULT_RESPONSE_TIMEOUT;
     }
 }

@@ -1,5 +1,7 @@
 package com.itworks.jcommands.impl;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 
 import javax.xml.bind.annotation.XmlEnum;
@@ -9,7 +11,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents SNAMP-compliant return type of the command-line tool.
@@ -34,6 +36,12 @@ public enum XmlParsingResultType {
      */
     @XmlEnumValue("string")
     STRING(true, TypeToken.of(String.class)),
+
+    /**
+     * Represents single character.
+     */
+    @XmlEnumValue("char")
+    CHARACTER(true, TypeToken.of(Character.class)),
 
     /**
      * Represents an array of bytes.
@@ -79,8 +87,6 @@ public enum XmlParsingResultType {
     @XmlEnumValue("double")
     DOUBLE(true, TypeToken.of(Double.class));
 
-    public static final TypeToken<Map<String, ?>> DICTIONARY_TYPE_TOKEN = new TypeToken<Map<String, ?>>() {};
-
     /**
      * Determines whether this type is scalar.
      */
@@ -101,17 +107,12 @@ public enum XmlParsingResultType {
      * Gets all scalar types.
      * @return The all scalar types.
      */
-    public static EnumSet<XmlParsingResultType> getScalarTypes(){
-        return EnumSet.of(BYTE,
-                SHORT,
-                INTEGER,
-                LONG,
-                BOOLEAN,
-                STRING,
-                BIG_INTEGER,
-                BIG_DECIMAL,
-                DATE_TIME,
-                FLOAT,
-                DOUBLE);
+    public static Set<XmlParsingResultType> getScalarTypes() {
+        return Sets.filter(EnumSet.allOf(XmlParsingResultType.class), new Predicate<XmlParsingResultType>() {
+            @Override
+            public boolean apply(final XmlParsingResultType input) {
+                return input.isScalar;
+            }
+        });
     }
 }

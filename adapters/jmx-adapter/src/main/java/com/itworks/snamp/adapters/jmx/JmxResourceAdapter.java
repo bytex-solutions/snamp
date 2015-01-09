@@ -2,7 +2,6 @@ package com.itworks.snamp.adapters.jmx;
 
 import com.google.common.eventbus.EventBus;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.internal.Utils;
@@ -14,12 +13,17 @@ import javax.management.NotificationEmitter;
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import java.lang.management.ManagementFactory;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.adapters.jmx.JmxAdapterConfigurationProvider.DEBUG_USE_PURE_SERIALIZATION_PARAM;
+import static com.itworks.snamp.adapters.jmx.JmxAdapterConfigurationProvider.OBJECT_NAME_PARAM;
+import static com.itworks.snamp.adapters.jmx.JmxAdapterConfigurationProvider.USE_PLATFORM_MBEAN_PARAM;
 
 /**
  * Represents JMX adapter. This class cannot be inherited.
@@ -28,15 +32,14 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class JmxResourceAdapter extends AbstractResourceAdapter {
+    static final String NAME = JmxAdapterHelpers.ADAPTER_NAME;
 
     private static final class JmxNotifications extends AbstractNotificationsModel<JmxNotificationMapping> {
         private final EventBus notificationBus;
         private static final String ID_SEPARATOR = "::";
-        private final Logger logger;
 
-        private JmxNotifications(final Logger logger) {
+        private JmxNotifications() {
             notificationBus = new EventBus();
-            this.logger = logger;
         }
 
         /**
@@ -65,14 +68,15 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             try {
                 attachment = notificationMetadata.convertAttachment(attachment);
             } catch (final OpenDataException e) {
-                logger.log(Level.WARNING,
-                        String.format("Unable to parse attachment %s from notification %s",
-                                attachment, notificationMetadata.getCategory()), e);
+                JmxAdapterHelpers.log(Level.WARNING, "Unable to parse attachment %s from notification %s",
+                        attachment,
+                        notificationMetadata.getCategory(),
+                        e);
                 attachment = null;
             }
             notificationBus.post(new JmxNotificationSurrogate(notificationMetadata.getCategory(), sender, notif.getMessage(), notif.getTimeStamp(), attachment));
             notif = notif.getNext();
-            if(notif != null) handleNotification(sender, notif, notificationMetadata);
+            if (notif != null) handleNotification(sender, notif, notificationMetadata);
         }
 
         /**
@@ -134,7 +138,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             return String.format("%s" + ID_SEPARATOR + "%s", resourceName, userDefinedAttributeName);
         }
 
-        public Map<String, JmxAttributeMapping> get(final String resourceName){
+        private Map<String, JmxAttributeMapping> get(final String resourceName){
             final Map<String, JmxAttributeMapping> attributes = new HashMap<>(10);
             for(final String id: keySet()){
                 final String[] parts = id.split(ID_SEPARATOR);
@@ -143,31 +147,19 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             }
             return attributes;
         }
-
-        public void usePureSerialization() {
-            pureSerialization = true;
-        }
     }
 
-    private final ObjectName rootObjectName;
-    private final boolean usePlatformMBean;
     private final JmxAttributes attributes;
     private final JmxNotifications notifications;
     private final Map<ObjectName, ProxyMBean> exposedBeans;
+    private boolean usePlatformMBean;
 
-    public JmxResourceAdapter(final ObjectName rootObjectName,
-                              final boolean usePlatformMBean,
-                              final Map<String, ManagedResourceConfiguration> resources) throws MalformedObjectNameException {
-        super(resources);
-        this.rootObjectName = rootObjectName;
-        this.usePlatformMBean = usePlatformMBean;
+    JmxResourceAdapter(final String adapterInstanceName) {
+        super(adapterInstanceName);
         this.attributes = new JmxAttributes();
         this.exposedBeans = new HashMap<>(10);
-        this.notifications = new JmxNotifications(getLogger());
-    }
-
-    void usePureSerialization(){
-        attributes.usePureSerialization();
+        this.notifications = new JmxNotifications();
+        this.usePlatformMBean = true;
     }
 
     private static ObjectName createObjectName(final ObjectName rootObjectName, final String resourceName) throws MalformedObjectNameException {
@@ -176,49 +168,49 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         return new ObjectName(rootObjectName.getDomain(), attrs);
     }
 
-    private void registerMBean(final ObjectName name, final ProxyMBean mbean) throws JMException{
-        if(usePlatformMBean)
-            ManagementFactory.getPlatformMBeanServer().registerMBean(mbean, name);
-        else
-            mbean.registerAsService(Utils.getBundleContextByObject(this), name);
-        exposedBeans.put(name, mbean);
-    }
-
-    private void unregisterMBean(final ObjectName name, final ProxyMBean bean) throws JMException {
-        if (usePlatformMBean)
-            ManagementFactory.getPlatformMBeanServer().unregisterMBean(name);
-        else
-            bean.unregister();
-    }
-
-    /**
-     * Starts the adapter.
-     * <p>
-     * This method will be called by SNAMP infrastructure automatically.
-     * </p>
-     *
-     * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
-     */
-    @Override
-    protected boolean start() {
+    private void start(final ObjectName rootObjectName,
+                       final boolean usePureSerialization) throws Exception{
+        attributes.clear();
+        notifications.clear();
+        attributes.pureSerialization = usePureSerialization;
         populateModel(attributes);
         try {
             JmxAdapterLicenseLimitations.current().verifyJmxNotificationsFeature();
             populateModel(notifications);
-        }
-        catch (final LicensingException e){
-            getLogger().log(Level.INFO, "JMX notifications are not allowed by your SNAMP license", e);
+        } catch (final LicensingException e) {
+            JmxAdapterHelpers.log(Level.INFO, "JMX notifications are not allowed by your SNAMP license", e);
+            notifications.clear();
         }
         for (final String resourceName : getHostedResources())
             try {
                 final ProxyMBean bean = new ProxyMBean(resourceName, attributes.get(resourceName), notifications.get(resourceName));
-                registerMBean(createObjectName(rootObjectName, resourceName), bean);
+                final ObjectName beanName = createObjectName(rootObjectName, resourceName);
+                //register bean
+                if(usePlatformMBean)
+                    ManagementFactory.getPlatformMBeanServer().registerMBean(bean, beanName);
+                else
+                    bean.registerAsService(Utils.getBundleContextByObject(this), beanName);
+                exposedBeans.put(beanName, bean);
+                //notification listener setup
                 notifications.addListener(bean);
+                JmxAdapterHelpers.log(Level.FINE, "Bean %s is registered by %s adapter", beanName, getInstanceName(), null);
+            } catch (final JMException e) {
+                JmxAdapterHelpers.log(Level.SEVERE, "Unable to register MBean for resource %s", resourceName, e);
             }
-            catch (final JMException e) {
-                getLogger().log(Level.SEVERE, String.format("Unable to register MBean for resource %s", resourceName), e);
-            }
-        return true;
+    }
+
+    @Override
+    protected void start(final Map<String, String> parameters) throws Exception{
+        if (parameters.containsKey(OBJECT_NAME_PARAM)) {
+            JmxAdapterLicenseLimitations.current().verifyServiceVersion(JmxResourceAdapter.class);
+            final ObjectName rootObjectName = new ObjectName(parameters.get(OBJECT_NAME_PARAM));
+            usePlatformMBean = parameters.containsKey(USE_PLATFORM_MBEAN_PARAM) &&
+                    Boolean.valueOf(parameters.get(USE_PLATFORM_MBEAN_PARAM));
+            final boolean usePureSerialization = parameters.containsKey(DEBUG_USE_PURE_SERIALIZATION_PARAM) &&
+                    Boolean.valueOf(parameters.get(DEBUG_USE_PURE_SERIALIZATION_PARAM));
+            start(rootObjectName, usePureSerialization);
+        }
+        else throw new MalformedURLException(String.format("Adapter configuration has no %s entry", OBJECT_NAME_PARAM));
     }
 
     /**
@@ -228,27 +220,29 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
      * </p>
      */
     @Override
-    protected void stop() {
+    protected void stop(){
         clearModel(attributes);
         clearModel(notifications);
-        for(final ObjectName name: exposedBeans.keySet())
+        for (final ObjectName name : exposedBeans.keySet())
             try {
-                unregisterMBean(name, exposedBeans.get(name));
-            }
-            catch (final JMException e) {
-                getLogger().log(Level.SEVERE, String.format("Unable to unregister MBean %s", name), e);
+                if (usePlatformMBean)
+                    ManagementFactory.getPlatformMBeanServer().unregisterMBean(name);
+                else
+                    exposedBeans.get(name).unregister();
+            } catch (final JMException e) {
+                JmxAdapterHelpers.log(Level.SEVERE, "Unable to unregister MBean %s", name, e);
             }
         exposedBeans.clear();
         System.gc();
     }
 
     /**
-     * Gets logger associated with this service.
+     * Gets withLogger associated with this service.
      *
-     * @return The logger associated with this service.
+     * @return The withLogger associated with this service.
      */
     @Override
     public Logger getLogger() {
-        return JmxAdapterHelpers.getLogger();
+        return getLogger(NAME);
     }
 }

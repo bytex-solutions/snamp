@@ -1,6 +1,6 @@
 package com.itworks.snamp.testing.connectors.rshell;
 
-import com.itworks.snamp.FutureThread;
+import com.itworks.snamp.concurrent.FutureThread;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;

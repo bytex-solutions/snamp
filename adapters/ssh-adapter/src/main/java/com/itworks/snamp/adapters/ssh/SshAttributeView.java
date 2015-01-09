@@ -23,7 +23,7 @@ import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccess
  * @version 1.0
  * @since 1.0
  */
-interface SshAttributeView {
+public interface SshAttributeView {
     /**
      * Represents common interface for all transformations that can be applied to
      * attribute value.
@@ -94,7 +94,10 @@ interface SshAttributeView {
             if (elementJavaType == null)
                 return false;
             else if (insert)
-                array = ArrayUtils.add(array, index, elementType.getProjection(elementJavaType).convertFrom(element));
+                array = ArrayUtils.add(array,
+                        index,
+                        elementType.getProjection(elementJavaType).convertFrom(element),
+                        Object.class);
             else array[index] = elementType.getProjection(elementJavaType).convertFrom(element);
             output.setValue(array);
             return true;

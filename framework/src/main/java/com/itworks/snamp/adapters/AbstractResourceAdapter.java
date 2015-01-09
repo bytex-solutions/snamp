@@ -1,30 +1,47 @@
 package com.itworks.snamp.adapters;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.Consumer;
+import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.WriteOnceRef;
+import com.itworks.snamp.concurrent.AsyncEventListener;
+import com.itworks.snamp.concurrent.GroupedThreadFactory;
+import com.itworks.snamp.concurrent.WriteOnceRef;
+import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.*;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.core.FrameworkService;
+import com.itworks.snamp.core.LogicalOperation;
+import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.RichLogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
-import com.itworks.snamp.internal.ServiceReferenceHolder;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.internal.WeakMultimap;
+import com.itworks.snamp.internal.annotations.Temporary;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.itworks.snamp.mapping.*;
 import org.osgi.framework.*;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,7 +50,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
-import static com.itworks.snamp.internal.Utils.isInstanceOf;
+import static com.itworks.snamp.internal.Utils.getStackTrace;
 
 /**
  * Represents a base class for constructing custom resource adapters.
@@ -45,7 +62,49 @@ import static com.itworks.snamp.internal.Utils.isInstanceOf;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractResourceAdapter extends AbstractAggregator implements FrameworkService, AllServiceListener, AutoCloseable{
+public abstract class AbstractResourceAdapter extends AbstractAggregator implements ResourceAdapter{
+    private static final Multimap<String, WeakReference<ResourceAdapterEventListener>> listeners = HashMultimap.create(10, 3);
+    private static final ExecutorService eventExecutor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("ADAPTER_EVENTS"));
+
+    private static final class AdapterLogicalOperation extends RichLogicalOperation {
+        private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "adapterInstanceName";
+
+        private AdapterLogicalOperation(final String operationName,
+                                        final String adapterInstanceName){
+            super(operationName, ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName);
+        }
+
+        private String getAdapterInstanceName(){
+            return getProperty(ADAPTER_INSTANCE_NAME_PROPERTY, String.class, "");
+        }
+
+        private static AdapterLogicalOperation restarting(final String adapterInstanceName){
+            return new AdapterLogicalOperation("restart", adapterInstanceName);
+        }
+
+        private static AdapterLogicalOperation connectorChangesDetected(final String adapterInstanceName){
+            return new AdapterLogicalOperation("processResourceConnectorChanges", adapterInstanceName);
+        }
+    }
+
+    private static abstract class UnsupportedInternalOperation extends UnsupportedOperationException{
+        private UnsupportedInternalOperation(final String message){
+            super(message);
+        }
+    }
+
+    private static final class UnsupportedResourceRemovedOperation extends UnsupportedInternalOperation{
+        private UnsupportedResourceRemovedOperation(final String resourceName){
+            super(String.format("resourceRemoved for %s is not supported", resourceName));
+        }
+    }
+
+    private static final class UnsupportedResourceAddedOperation extends UnsupportedInternalOperation{
+        private UnsupportedResourceAddedOperation(final String resourceName){
+            super(String.format("resourceRemoved for %s is not supported", resourceName));
+        }
+    }
+
     /**
      * Represents resource management model based on notifications.
      * @param <TNotificationView> Type of the notification metadata.
@@ -71,7 +130,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * @return A new unique subscription list ID.
          */
         protected String makeSubscriptionListID(final String resourceName, final String eventName){
-            return String.format("%s-%s-%s", hashCode(), resourceName, eventName);
+            return String.format("%s-%s-%s", System.identityHashCode(this), resourceName, eventName);
         }
 
         /**
@@ -100,6 +159,18 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             final NotificationEvent notif = new NotificationEvent(event);
             if(containsKey(notif.getSubscriptionListID()))
                 handleNotification(notif.getSender(), notif, get(notif.getSubscriptionListID()));
+        }
+
+        private Set<String> getTopics(){
+            if(registration != null){
+                final Object topics = registration.getReference().getProperty(EventConstants.EVENT_TOPIC);
+                if(topics instanceof String[])
+                    return ImmutableSet.copyOf((String[])topics);
+                else if(topics instanceof String)
+                    return ImmutableSet.of((String)topics);
+                else return ImmutableSet.of();
+            }
+            else return Collections.emptySet();
         }
 
         private void startListening(final BundleContext context, final Collection<String> topics) {
@@ -604,28 +675,15 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         public boolean hasManagedType(final Class<? extends ManagedEntityType> expectedType) {
             return expectedType.isInstance(getType());
         }
-    }
-
-    /**
-     * Extension interface that can be used by {@link com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel}
-     * and {@link com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel} implementers
-     * to extend model with POPULATE and CLEAR event hooks.
-     * @param <TPopulateEventArgs>
-     * @param <TClearEventArgs>
-     */
-    protected static interface ModelEventsSupport<TPopulateEventArgs, TClearEventArgs>{
-        /**
-         * Called by SNAMP infrastructure after filling of this model.
-         * @param e Additional event arguments.
-         * @see com.itworks.snamp.adapters.AbstractResourceAdapter#populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel, Object)
-         */
-        void onPopulate(final TPopulateEventArgs e);
 
         /**
-         * Called by SNAMP infrastructure after clearing of this model.
-         * @param e Additional event arguments.
+         * Gets identifier of this attribute.
+         * @return The identifier of this attribute.
          */
-        void onClear(final TClearEventArgs e);
+        @Override
+        public String toString() {
+            return attributeID;
+        }
     }
 
     /**
@@ -659,7 +717,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          */
         @ThreadSafe
         protected String makeAttributeID(final String resourceName, final String userDefinedAttributeName){
-            return String.format("%s-%s-%s", hashCode(), resourceName, userDefinedAttributeName);
+            return String.format("%s-%s-%s", System.identityHashCode(this), resourceName, userDefinedAttributeName);
         }
 
         /**
@@ -674,33 +732,26 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
 
-    private static final class ManagedResourceConnectorConsumer implements AllServiceListener, AutoCloseable{
-        public final ManagedResourceConfiguration resourceConfiguration;
+    private static final class ManagedResourceConnectorConsumer implements ServiceListener, AutoCloseable{
+        private final ManagedResourceConfiguration resourceConfiguration;
         private ServiceReferenceHolder<ManagedResourceConnector<?>> resourceConnector;
+        private final BundleContext context;
+
         /**
          * The name of the managed resource.
          */
-        public final String resourceName;
+        private final String resourceName;
 
-        /**
-         * Initializes a new resource connector consumer.
-         * @param resourceName User-defined name of the managed resource.
-         * @param config The configuration of the managed resource. Cannot be {@literal null}.
-         */
-        public ManagedResourceConnectorConsumer(final String resourceName, final ManagedResourceConfiguration config){
+        private ManagedResourceConnectorConsumer(final BundleContext context,
+                                                 final String resourceName,
+                                                 final ManagedResourceConfiguration config){
             this.resourceConfiguration = config;
             this.resourceConnector = null;
             this.resourceName = resourceName;
+            this.context = context;
         }
 
         private <T> T queryWeakObject(final Class<T> queryObject){
-            //This code affecting the performance
-            /*if(resourceConnector != null){
-                final T obj = resourceConnector.getService().queryObject(queryObject);
-                if(obj == null) return null;
-                return Utils.weakReference(obj, queryObject);
-            }
-            else return null;*/
             return resourceConnector != null ?
                     resourceConnector.getService().queryObject(queryObject):
                     null;
@@ -734,21 +785,24 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * Determines whether the resource connector is referenced.
          * @return {@literal true}, if the resource connector is referenced; otherwise, {@literal false}.
          */
-        private final boolean isReferenced(){
+        private boolean isReferenced(){
             return resourceConnector != null;
         }
 
-        private synchronized void processResourceConnector(final ServiceReference<ManagedResourceConnector<?>> connectorRef, final int eventType){
+        private synchronized void processResourceConnector(final ServiceReference<ManagedResourceConnector<?>> connectorRef,
+                                                           final int eventType){
             if(Objects.equals(ManagedResourceConnectorClient.getManagedResourceName(connectorRef), resourceName))
                 switch (eventType){
                     case ServiceEvent.REGISTERED:
-                        if(resourceConnector == null)
-                            resourceConnector = new ServiceReferenceHolder<>(getBundleContextByObject(this), connectorRef);
+                        if(resourceConnector != null){
+                            resourceConnector.clear(context);
+                        }
+                        resourceConnector = new ServiceReferenceHolder<>(context, connectorRef);
                         break;
                     case ServiceEvent.UNREGISTERING:
                     case ServiceEvent.MODIFIED_ENDMATCH:
                         if(resourceConnector != null)
-                            resourceConnector.clear(getBundleContextByObject(this));
+                            resourceConnector.clear(context);
                         resourceConnector = null;
                 }
         }
@@ -761,8 +815,21 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         @SuppressWarnings("unchecked")
         @Override
         public void serviceChanged(final ServiceEvent event) {
-            if(isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class))
-                processResourceConnector((ServiceReference<ManagedResourceConnector<?>>)event.getServiceReference(), event.getType());
+            if(ManagedResourceConnectorClient.isResourceConnector(event.getServiceReference()))
+                processResourceConnector(
+                        (ServiceReference<ManagedResourceConnector<?>>)event.getServiceReference(),
+                        event.getType());
+        }
+
+        private boolean connect() {
+            final ServiceReference<ManagedResourceConnector<?>> connectorRef = ManagedResourceConnectorClient.getResourceConnector(context, resourceName);
+            if (connectorRef != null) {
+                processResourceConnector(
+                        connectorRef,
+                        ServiceEvent.REGISTERED);
+                return true;
+            }
+            else return false;
         }
 
         /**
@@ -770,44 +837,99 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          */
         public void close(){
             if(resourceConnector != null)
-                resourceConnector.clear(getBundleContextByObject(this));
+                resourceConnector.clear(context);
             resourceConnector = null;
         }
     }
 
+    private static final class InternalState{
+        private final ImmutableMap<String, String> parameters;
+        private final AdapterState state;
+
+        private InternalState(final AdapterState state, final ImmutableMap<String, String> params){
+            this.state = state;
+            this.parameters = params;
+        }
+
+        private static InternalState initialState(){
+            return new InternalState(AdapterState.CREATED, ImmutableMap.<String, String>of());
+        }
+
+        private InternalState setParameters(final Map<String, String> value){
+            return new InternalState(state, ImmutableMap.copyOf(value));
+        }
+
+        private InternalState setAdapterState(final AdapterState value){
+            return new InternalState(value, parameters);
+        }
+
+        private static InternalState finalState(){
+            return new InternalState(AdapterState.CLOSED, ImmutableMap.<String, String>of());
+        }
+    }
+
     private final KeyedObjects<String, ManagedResourceConnectorConsumer> connectors;
-    private volatile AdapterState state;
-    private final WriteOnceRef<String> adapterInstanceName;
+    private InternalState mutableState;
+    private final String adapterInstanceName;
+    private final WriteOnceRef<ResourceAdapterEventListener> listener;
 
     /**
      * Initializes a new resource adapter.
-     * @param resources A collection of managed resources to be exposed in protocol-specific manner
-     *                  to the outside world.
+     * @param instanceName The name of the adapter instance.
      */
-    protected AbstractResourceAdapter(final Map<String, ManagedResourceConfiguration> resources){
-        adapterInstanceName = new WriteOnceRef<>();
-        connectors = new AbstractKeyedObjects<String, ManagedResourceConnectorConsumer>(resources.size()){
+    protected AbstractResourceAdapter(final String instanceName) {
+        this.adapterInstanceName = instanceName;
+        connectors = new AbstractKeyedObjects<String, ManagedResourceConnectorConsumer>(10) {
             @Override
             public String getKey(final ManagedResourceConnectorConsumer item) {
                 return item.resourceName;
             }
         };
-        for(final Map.Entry<String, ManagedResourceConfiguration> resourceConfig: resources.entrySet())
-            connectors.put(new ManagedResourceConnectorConsumer(resourceConfig.getKey(), resourceConfig.getValue()));
-        state = AdapterState.CREATED;
-
+        mutableState = InternalState.initialState();
+        listener = new WriteOnceRef<>();
     }
 
-    void setAdapterInstanceName(final String value){
-        adapterInstanceName.set(value);
+    /**
+     * Gets name of this adapter instance.
+     * @return The name of the adapter instance.
+     */
+    @Override
+    public final String getInstanceName(){
+        return adapterInstanceName;
     }
 
     /**
      * Gets state of this adapter.
      * @return The state of this adapter.
      */
+    @Override
     public final AdapterState getState(){
-        return state;
+        final InternalState current = mutableState;
+        return current != null ? current.state : AdapterState.CLOSED;
+    }
+
+    private void populateResources(final BundleContext context,
+                                   final Consumer<ManagedResourceConnectorConsumer, ? extends Exception> configHandler) throws Exception {
+        final ServiceReferenceHolder<ConfigurationAdmin> configAdmin = new ServiceReferenceHolder<>(context,
+                ConfigurationAdmin.class);
+        try {
+            PersistentConfigurationManager.forEachResource(configAdmin.getService(), new RecordReader<String, ManagedResourceConfiguration, Exception>() {
+                @Override
+                public void read(final String resourceName, final ManagedResourceConfiguration resourceConfig) throws Exception {
+                    final ManagedResourceConnectorConsumer consumer;
+                    if (connectors.containsKey(resourceName))
+                        consumer = connectors.get(resourceName);
+                    else
+                        connectors.put(consumer = new ManagedResourceConnectorConsumer(context, resourceName, resourceConfig));
+                    if (consumer.isReferenced() || consumer.connect())
+                        configHandler.accept(consumer);
+                    else
+                        connectors.remove(consumer.resourceName);
+                }
+            });
+        } finally {
+            configAdmin.clear(context);
+        }
     }
 
     /**
@@ -817,65 +939,46 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *     and put them into the model. If managed resource connector doesn't support
      *     {@link com.itworks.snamp.connectors.attributes.AttributeSupport} interface
      *     then it will be ignore and management attributes will not be added into the model.
-     *     It is recommended to call this method inside of {@link #start()} method.
+     *     It is recommended to call this method inside of {@link #start(java.util.Map)} method.
      * </p>
      * @param <TAttributeView> Type of the attribute metadata representation.
      * @param attributesModel The model to be populated. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
+     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal resource connector error.
+     * @throws java.lang.Exception Internal adapter error
      */
-    protected final <TAttributeView> void populateModel(final AbstractAttributesModel<TAttributeView> attributesModel) {
+    @ThreadSafe(true)
+    protected final <TAttributeView> void populateModel(final AbstractAttributesModel<TAttributeView> attributesModel) throws Exception {
         if (attributesModel == null) throw new IllegalArgumentException("attributesModel is null.");
-        for (final ManagedResourceConnectorConsumer consumer : connectors.values())
-            if (consumer.isAttributesSupported()) {
-                final AttributeSupport support = consumer.getWeakAttributeSupport();
-                final Map<String, AttributeConfiguration> attributes = consumer.resourceConfiguration.getElements(AttributeConfiguration.class);
-                if (attributes == null) continue;
-                for (final Map.Entry<String, AttributeConfiguration> entry : attributes.entrySet()) {
-                    final String attributeID = attributesModel.makeAttributeID(consumer.resourceName,
-                            entry.getKey());
-                    AttributeAccessor accessor;
-                    try {
-                        accessor = new AttributeAccessor(attributeID, entry.getValue(), support);
-                    } catch (final AttributeSupportException e) {
-                        getLogger().log(Level.WARNING, String.format("Failed to discover attribute %s", attributeID), e.getCause());
-                        accessor = null;
+        else
+            populateResources(getBundleContextByObject(this), new Consumer<ManagedResourceConnectorConsumer, AttributeSupportException>() {
+                @Override
+                public void accept(final ManagedResourceConnectorConsumer consumer) throws AttributeSupportException{
+                    if (consumer.isAttributesSupported()) {
+                        final AttributeSupport support = consumer.getWeakAttributeSupport();
+                        final Map<String, AttributeConfiguration> attributes = consumer.resourceConfiguration.getElements(AttributeConfiguration.class);
+                        if (attributes == null) return;
+                        enlargeModel(consumer.resourceName, attributes, attributesModel, support);
                     }
-                    final TAttributeView view = accessor != null ? attributesModel.createAttributeView(consumer.resourceName,
-                            entry.getKey(),
-                            accessor) : null;
-                    if (view != null)
-                        attributesModel.put(attributeID, view);
-                    else support.disconnectAttribute(attributeID);
+                    else if(consumer.isReferenced()) try (final OsgiLoggingContext logger = getLoggingContext()) {
+                        logger.info(String.format("Managed resource connector %s (connection string %s) doesn't support attributes. Context: %s",
+                                consumer.resourceConfiguration.getConnectionType(),
+                                consumer.resourceConfiguration.getConnectionString(),
+                                LogicalOperation.current()));
+                    }
+                    else logConnectorNotExposed(consumer.resourceConfiguration.getConnectionType(), consumer.resourceName);
                 }
-            } else
-                getLogger().log(Level.INFO, String.format("Managed resource connector %s (connection string %s) doesn't support attributes.",
-                        consumer.resourceConfiguration.getConnectionType(),
-                        consumer.resourceConfiguration.getConnectionString()));
+            });
     }
 
-    /**
-     * Populates model with management attributes.
-     * @param attributesModel The model to be populated. Cannot be {@literal null}.
-     * @param eventArgs Additional argument to be passed into {@link com.itworks.snamp.adapters.AbstractResourceAdapter.ModelEventsSupport#onPopulate(Object)} method.
-     * @param <TModel> Type of the management attributes model.
-     * @param <TPopulateEventArgs> Type of the POPULATE event argument.
-     * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
-     */
-    protected final <TAttributeView, TPopulateEventArgs, TModel extends AbstractAttributesModel<TAttributeView> & ModelEventsSupport<TPopulateEventArgs, ?>> void populateModel(final TModel attributesModel, final TPopulateEventArgs eventArgs){
-        populateModel(attributesModel);
-        attributesModel.onPopulate(eventArgs);
-    }
-
-    /**
-     * Populates model with notification descriptors.
-     * @param notificationsModel The model to be populated. Cannot be {@literal null}.
-     * @param eventArgs Additional argument to be passed into {@link com.itworks.snamp.adapters.AbstractResourceAdapter.ModelEventsSupport#onPopulate(Object)} method.
-     * @param <TPopulateEventArgs> Type of the POPULATE event argument.
-     * @param <TModel> Type of the notifications model.
-     */
-    protected final <TNotificationView, TPopulateEventArgs, TModel extends AbstractNotificationsModel<TNotificationView> & ModelEventsSupport<TPopulateEventArgs, ?>> void populateModel(final TModel notificationsModel, final TPopulateEventArgs eventArgs){
-        populateModel(notificationsModel);
-        notificationsModel.onPopulate(eventArgs);
+    private void logConnectorNotExposed(final String connectorType, final String resourceName){
+        try(final OsgiLoggingContext logger = getLoggingContext()){
+            logger.log(Level.WARNING, String.format("Managed resource connector %s:%s is not exposed into OSGi environment. Context: %s. Stack trace: %s",
+                    connectorType,
+                    resourceName,
+                    LogicalOperation.current(),
+                    getStackTrace()));
+        }
     }
 
     /**
@@ -885,44 +988,45 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *     put notification metadata into the model. If managed resource connector
      *     doesn't support {@link com.itworks.snamp.connectors.notifications.NotificationSupport} interface
      *     then it will be ignored and notifications will not be added into the model.
-     *     It is recommended to call this method inside {@link #start()} method.
+     *     It is recommended to call this method inside {@link #start(java.util.Map)} method.
      * </p>
      * @param notificationsModel The model to populate. Cannot be {@literal null}.
      * @param <TNotificationView> Type of the notification metadata.
      * @throws java.lang.IllegalArgumentException notificationsModel is {@literal null}.
+     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal resource connector error.
+     * @throws java.lang.Exception Internal adapter error.
      */
-    protected final <TNotificationView> void populateModel(final AbstractNotificationsModel<TNotificationView> notificationsModel) {
+    protected final <TNotificationView> void populateModel(final AbstractNotificationsModel<TNotificationView> notificationsModel) throws Exception{
         if (notificationsModel == null) throw new IllegalArgumentException("notificationsModel is null.");
-        final Collection<String> topics = new HashSet<>(10);
-        for (final ManagedResourceConnectorConsumer consumer : connectors.values())
-            if (consumer.isNotificationsSupported()) {
-                final NotificationSupport support = consumer.getWeakNotificationSupport();
-
-                final Map<String, EventConfiguration> events = consumer.resourceConfiguration.getElements(EventConfiguration.class);
-                if (events == null) continue;
-                for (final Map.Entry<String, EventConfiguration> entry : events.entrySet()) {
-                    final String listID = notificationsModel.makeSubscriptionListID(consumer.resourceName, entry.getKey());
-                    final EventConfiguration eventConfig = entry.getValue();
-                    NotificationMetadata metadata;
-                    try {
-                        metadata = support.enableNotifications(listID, eventConfig.getCategory(), eventConfig.getParameters());
-                    } catch (final NotificationSupportException e) {
-                        getLogger().log(Level.WARNING, String.format("Failed to enable notifications for %s topic", listID), e.getCause());
-                        metadata = null;
-                    }
-                    if (metadata != null) {
-                        final TNotificationView view = notificationsModel.createNotificationView(consumer.resourceName, entry.getKey(), metadata);
-                        if (view != null) {
-                            notificationsModel.put(listID, view);
-                            topics.add(NotificationUtils.getTopicName(consumer.resourceConfiguration.getConnectionType(), metadata.getCategory(), listID));
-                        }
-                    } else
-                        getLogger().log(Level.WARNING, String.format("Event %s cannot be enabled for %s resource.", eventConfig.getCategory(), consumer.resourceConfiguration.getConnectionString()));
+        final Set<String> topics = new HashSet<>(10);
+        populateResources(getBundleContextByObject(this), new Consumer<ManagedResourceConnectorConsumer, NotificationSupportException>() {
+            @Override
+            public void accept(final ManagedResourceConnectorConsumer consumer) throws NotificationSupportException{
+                if (consumer.isNotificationsSupported()) {
+                    final NotificationSupport support = consumer.getWeakNotificationSupport();
+                    final Map<String, EventConfiguration> events = consumer.resourceConfiguration.getElements(EventConfiguration.class);
+                    if (events == null) return;
+                    enlargeModel(consumer.resourceName,
+                            consumer.resourceConfiguration.getConnectionType(),
+                            consumer.resourceConfiguration.getConnectionString(),
+                            events,
+                            notificationsModel,
+                            topics,
+                            support);
                 }
+                else if(consumer.isReferenced())
+                    try(final OsgiLoggingContext logger = getLoggingContext()){
+                        logger.info(String.format("Managed resource connector %s (connection string %s) doesn't support notifications. Context: %s",
+                                consumer.resourceConfiguration.getConnectionType(),
+                                consumer.resourceConfiguration.getConnectionString(),
+                                LogicalOperation.current()));
+                    }
+                else logConnectorNotExposed(consumer.resourceConfiguration.getConnectionType(), consumer.resourceName);
             }
+        });
         //starts listening for events received through EventAdmin
         if (notificationsModel.size() > 0)
-            notificationsModel.startListening(Utils.getBundleContextByObject(notificationsModel), topics);
+            notificationsModel.startListening(getBundleContextByObject(this), topics);
     }
 
     /**
@@ -935,48 +1039,23 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      */
     protected final void clearModel(final AbstractNotificationsModel<?> notificationsModel){
         if(notificationsModel == null) throw new IllegalArgumentException("notificationsModel is null.");
-        else if(notificationsModel.size() > 0) {
+        else if(!notificationsModel.isEmpty()) {
             notificationsModel.stopListening();
             for (final ManagedResourceConnectorConsumer consumer : connectors.values())
-                if (consumer.isReferenced() && consumer.isNotificationsSupported()) {
+                if (consumer.isNotificationsSupported()) {
                     final NotificationSupport support = consumer.getWeakNotificationSupport();
                     for (final String listID : notificationsModel.keySet())
                         try {
                             support.disableNotifications(listID);
                         }
                         catch (final NotificationSupportException e) {
-                            getLogger().log(Level.WARNING, String.format("Failed to disable notifications at %s topic", listID), e.getCause());
+                            try (final OsgiLoggingContext context = getLoggingContext()) {
+                                context.log(Level.WARNING, String.format("Failed to disable notifications at %s topic", listID), e.getCause());
+                            }
                         }
                 }
             notificationsModel.clear();
         }
-    }
-
-    /**
-     * Removes all attribute descriptors from the model.
-     * @param attributesModel The model to clear. Cannot be {@literal null}.
-     * @param eventArgs Additional argument to be passed into {@link com.itworks.snamp.adapters.AbstractResourceAdapter.ModelEventsSupport#onClear(Object)} method.
-     * @param <TAttributeView> Type of the attribute metadata.
-     * @param <TClearEventArgs> Type of the CLEAR event argument.
-     * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
-     */
-    protected final <TAttributeView, TClearEventArgs, TModel extends AbstractAttributesModel<TAttributeView> & ModelEventsSupport<?, TClearEventArgs>> void clearModel(final TModel attributesModel, final TClearEventArgs eventArgs){
-        clearModel(attributesModel);
-        attributesModel.onClear(eventArgs);
-    }
-
-    /**
-     * Removes all notification descriptors from the model.
-     * @param notificationsModel The model to clear. Cannot be {@literal null}.
-     * @param eventArgs Additional argument to be passed into {@link com.itworks.snamp.adapters.AbstractResourceAdapter.ModelEventsSupport#onClear(Object)}
-     * @param <TNotificationView> Type of the notification metadata.
-     * @param <TClearEventArgs> Type of the CLEAR event arguments.
-     * @param <TModel> Type of the notifications model.
-     * @throws java.lang.IllegalArgumentException notificationsModel is {@literal null}.
-     */
-    protected final <TNotificationView, TClearEventArgs, TModel extends AbstractNotificationsModel<TNotificationView> & ModelEventsSupport<?, TClearEventArgs>> void clearModel(final TModel notificationsModel, final TClearEventArgs eventArgs){
-        clearModel(notificationsModel);
-        notificationsModel.onClear(eventArgs);
     }
 
     /**
@@ -988,22 +1067,15 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param attributesModel The model to clear. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
      */
-    protected final void clearModel(final AbstractAttributesModel<?> attributesModel){
-        if(attributesModel == null) throw new IllegalArgumentException("attributesModel is null.");
-        for(final ManagedResourceConnectorConsumer consumer: connectors.values())
-            if(consumer.isReferenced() && consumer.isAttributesSupported()) {
+    protected final void clearModel(final AbstractAttributesModel<?> attributesModel) {
+        if (attributesModel == null) throw new IllegalArgumentException("attributesModel is null.");
+        for (final ManagedResourceConnectorConsumer consumer : connectors.values())
+            if (consumer.isAttributesSupported()) {
                 final AttributeSupport attributeProvider = consumer.getWeakAttributeSupport();
-                for(final String attributeID: attributesModel.keySet())
+                for (final String attributeID : attributesModel.keySet())
                     attributeProvider.disconnectAttribute(attributeID);
             }
         attributesModel.clear();
-    }
-
-    void update(final BundleContext context) throws InvalidSyntaxException {
-        ServiceReference<?>[] refs = context.getAllServiceReferences(ManagedResourceConnector.class.getName(), null);
-        if(refs == null) refs = new ServiceReference<?>[0];
-        for(final ServiceReference<?> r: refs)
-            serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, r));
     }
 
     /**
@@ -1011,17 +1083,410 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * <p>
      *     This method will be called by SNAMP infrastructure automatically.
      * </p>
-     * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
+     * @param parameters Adapter startup parameters.
+     * @throws java.lang.Exception Unable to start adapter.
+     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
+     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)
      */
-    protected abstract boolean start();
+    protected abstract void start(final Map<String, String> parameters) throws Exception;
+
+    /**
+     * Updates this adapter with a new configuration parameters.
+     * <p>
+     *     In the default implementation this method causes restarting
+     *     of this adapter that affects availability of the adapter.
+     *     You should override this method if custom resource adapter
+     *     supports soft update (without affecting availability).
+     * </p>
+     * @param current The current configuration parameters.
+     * @param newParameters A new configuration parameters.
+     * @throws Exception
+     */
+    protected void update(final Map<String, String> current,
+                          final Map<String, String> newParameters) throws Exception{
+        if(!Utils.mapsAreEqual(current, newParameters)) {
+            tryStop();
+            tryStart(newParameters);
+        }
+    }
+
+    final synchronized boolean tryUpdate(final Map<String, String> newParameters) throws Exception{
+        final InternalState currentState = mutableState;
+        switch (currentState.state){
+            case STARTED:
+                final InternalState newState = currentState.setParameters(newParameters);
+                update(currentState.parameters, newState.parameters);
+                mutableState = newState;
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private void adapterStarted(){
+        final ResourceAdapterEventListener listener = this.listener.get();
+        if(listener != null)
+            listener.adapterStarted(new ResourceAdapterEvent(this));
+        try(final OsgiLoggingContext logger = getLoggingContext()){
+            logger.info(String.format("Adapter %s is started. Context: %s",
+                    adapterInstanceName,
+                    LogicalOperation.current()));
+        }
+    }
+
+    private void adapterStopped(){
+        final ResourceAdapterEventListener listener = this.listener.get();
+        if(listener != null)
+            listener.adapterStopped(new ResourceAdapterEvent(this));
+        try(final OsgiLoggingContext logger = getLoggingContext()){
+            logger.info(String.format("Adapter %s is stopped. Context: %s",
+                    adapterInstanceName,
+                    LogicalOperation.current()));
+        }
+    }
+
+    private static ResourceAdapterEventListener createListener(final String adapterName){
+        return new ResourceAdapterEventListener() {
+            @Override
+            public void adapterStarted(final ResourceAdapterEvent e) {
+                AbstractResourceAdapter.adapterStarted(adapterName, e);
+            }
+
+            @Override
+            public void adapterStopped(final ResourceAdapterEvent e) {
+                AbstractResourceAdapter.adapterStopped(adapterName, e);
+            }
+        };
+    }
+
+    final synchronized boolean tryStart(final String adapterName, final Map<String, String> params) throws Exception {
+        return this.listener.set(createListener(adapterName)) && tryStart(params);
+    }
+
+    private boolean tryStart(final Map<String, String> params) throws Exception{
+        final InternalState currentState = mutableState;
+        switch (currentState.state){
+            case CREATED:
+            case STOPPED:
+                InternalState newState = currentState.setParameters(params);
+                start(newState.parameters);
+                mutableState = newState.setAdapterState(AdapterState.STARTED);
+                adapterStarted();
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private boolean tryStop() throws Exception{
+        final InternalState currentState = mutableState;
+        switch (currentState.state){
+            case STARTED:
+                try {
+                    stop();
+                }
+                finally {
+                    disconnect();
+                    mutableState = currentState.setAdapterState(AdapterState.STOPPED);
+                }
+                adapterStopped();
+                return true;
+            default:
+                return false;
+        }
+    }
 
     /**
      * Stops the adapter.
      * <p>
      *     This method will be called by SNAMP infrastructure automatically.
      * </p>
+     * @throws java.lang.Exception Unable to stop adapter.
+     * @see #clearModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
+     * @see #clearModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)
      */
-    protected abstract void stop();
+    protected abstract void stop() throws Exception;
+
+    private void restart() {
+        try (@Temporary final LogicalOperation ignored =
+                     AdapterLogicalOperation.restarting(adapterInstanceName)) {
+            try {
+                tryStop();
+            } catch (final Exception e) {
+                failedToStopAdapter(Level.SEVERE, e);
+            }
+            try {
+                tryStart(mutableState.parameters);
+            } catch (final Exception e) {
+                disconnect();
+                failedToStartAdapter(Level.SEVERE, e);
+            }
+        }
+    }
+
+    private <TAttributeView> void enlargeModel(final String resourceName,
+                                               final Map<String, AttributeConfiguration> newAttributes,
+                                               final AbstractAttributesModel<TAttributeView> model,
+                                               final AttributeSupport attributeSupport) throws AttributeSupportException{
+        for (final Map.Entry<String, AttributeConfiguration> entry : newAttributes.entrySet()) {
+            final String attributeID = model.makeAttributeID(resourceName,
+                    entry.getKey());
+            final TAttributeView view = model.createAttributeView(resourceName,
+                    entry.getKey(),
+                    new AttributeAccessor(attributeID, entry.getValue(), attributeSupport));
+            if (view != null)
+                model.put(attributeID, view);
+            else attributeSupport.disconnectAttribute(attributeID);
+        }
+    }
+
+    /**
+     * Propagates the attributes of newly connected resource to the model.
+     * <p>
+     *     It is recommended to call this method inside of overridden {@link #resourceAdded(String)} method.
+     * </p>
+     * @param resourceName The name of newly connected resource.
+     * @param model The model to enlarge.
+     * @param <TAttributeView> Type of the attribute metadata.
+     * @throws AttributeSupportException Internal resouce connector error.
+     */
+    protected final <TAttributeView> void enlargeModel(final String resourceName,
+                                                      final AbstractAttributesModel<TAttributeView> model) throws AttributeSupportException {
+        final ManagedResourceConnectorConsumer consumer = connectors.get(resourceName);
+        if (consumer != null) {
+            final Map<String, AttributeConfiguration> attributes = consumer.resourceConfiguration.getElements(AttributeConfiguration.class);
+            if (consumer.isAttributesSupported())
+                enlargeModel(consumer.resourceName,
+                        attributes != null ? attributes : Collections.<String, AttributeConfiguration>emptyMap(),
+                        model,
+                        consumer.getWeakAttributeSupport());
+        }
+    }
+
+    private <TNotificationView> void enlargeModel(
+            final String resourceName,
+            final String connectorType,
+            final String connectionString,
+            final Map<String, EventConfiguration> events,
+            final AbstractNotificationsModel<TNotificationView> model,
+            final Set<String> topics,
+            final NotificationSupport support) throws NotificationSupportException{
+        for (final Map.Entry<String, EventConfiguration> entry : events.entrySet()) {
+            final String listID = model.makeSubscriptionListID(resourceName, entry.getKey());
+            final EventConfiguration eventConfig = entry.getValue();
+            final NotificationMetadata metadata = support.enableNotifications(listID, eventConfig.getCategory(), eventConfig.getParameters());
+            final TNotificationView view = metadata != null ?
+                    model.createNotificationView(resourceName, entry.getKey(), metadata):
+                    null;
+            if (view != null) {
+                model.put(listID, view);
+                topics.add(NotificationUtils.getTopicName(connectorType,
+                        metadata.getCategory(),
+                        listID));
+            } else try (final OsgiLoggingContext context = getLoggingContext()) {
+                context.warning(String.format("Event %s cannot be enabled for %s resource.", eventConfig.getCategory(), connectionString));
+            }
+        }
+    }
+
+    protected final <TNotificationView> void enlargeModel(final String resourceName,
+                                                          final AbstractNotificationsModel<TNotificationView> model) throws NotificationSupportException{
+        final ManagedResourceConnectorConsumer consumer = connectors.get(resourceName);
+        if(consumer != null){
+            final Map<String, EventConfiguration> events = consumer.resourceConfiguration.getElements(EventConfiguration.class);
+            if(consumer.isNotificationsSupported()) {
+                final Set<String> topics = new HashSet<>(model.getTopics());
+                try {
+                    model.stopListening();
+                    enlargeModel(consumer.resourceName,
+                            consumer.resourceConfiguration.getConnectionType(),
+                            consumer.resourceConfiguration.getConnectionString(),
+                            events,
+                            model,
+                            topics,
+                            consumer.getWeakNotificationSupport());
+                } finally {
+                    model.startListening(consumer.context, topics);
+                }
+            }
+        }
+    }
+
+    private void clearModel(final String resourceName,
+                            final Set<String> disconnectedAttributes,
+                            final AbstractAttributesModel<?> model,
+                            final AttributeSupport attributeSupport) {
+        if (attributeSupport != null)
+            for (final String userDefinedName : disconnectedAttributes) {
+                final String attributeID = model.makeAttributeID(resourceName, userDefinedName);
+                if(model.containsKey(attributeID)) {
+                    model.remove(attributeID);
+                    if (!attributeSupport.disconnectAttribute(attributeID))
+                        try (final OsgiLoggingContext logger = getLoggingContext()) {
+                            logger.info(String.format("Unable to disconnect attribute %s of resource %s. Context: %s",
+                                    attributeID,
+                                    resourceName,
+                                    LogicalOperation.current()));
+                        }
+                }
+            }
+    }
+
+    /**
+     * Disconnects attributes from model.
+     * @param resourceName The name of the managed resource which attributes should be disconnected.
+     * @param model The model to update. Cannot be {@literal null}.
+     * @see #resourceRemoved(String)
+     */
+    protected final void clearModel(final String resourceName, final AbstractAttributesModel<?> model){
+        final ManagedResourceConnectorConsumer consumer = connectors.get(resourceName);
+        if(consumer != null) {
+            final Map<String, AttributeConfiguration> disconnectedAttrs = consumer.resourceConfiguration.getElements(AttributeConfiguration.class);
+            clearModel(consumer.resourceName, disconnectedAttrs != null ? disconnectedAttrs.keySet() : Collections.<String>emptySet(), model, consumer.getWeakAttributeSupport());
+        }
+    }
+
+    private void clearModel(final String resourceName,
+                            final String connectorType,
+                            final Map<String, EventConfiguration> disconnectedEvents,
+                            final AbstractNotificationsModel<?> model,
+                            final NotificationSupport notificationSupport) {
+        if (notificationSupport != null) {
+            final Set<String> topics = new HashSet<>(model.getTopics());
+            model.stopListening();
+            for (final String userDefinedName : disconnectedEvents.keySet()) {
+                final String listID = model.makeSubscriptionListID(resourceName, userDefinedName);
+                final EventConfiguration eventConf = disconnectedEvents.get(userDefinedName);
+                //disable receiving notifications
+                topics.remove(NotificationUtils.getTopicName(connectorType, eventConf.getCategory(), listID));
+                if(model.containsKey(listID)) {
+                    try {
+                        //remove event from the model
+                        model.remove(listID);
+                        //disable notification in the connector
+                        notificationSupport.disableNotifications(listID);
+                    } catch (NotificationSupportException e) {
+                        try (final OsgiLoggingContext logger = getLoggingContext()) {
+                            logger.info(String.format("Unable to disable event subscription %s of resource %s. Context: %s",
+                                    listID,
+                                    resourceName,
+                                    LogicalOperation.current()));
+                        }
+                    }
+                }
+            }
+            model.startListening(getBundleContextByObject(this), topics);
+        }
+    }
+
+    /**
+     * Disables events in the model.
+     * @param resourceName The name of the managed resource which events should be disabled.
+     * @param model The model to update. Cannot be {@literal null}.
+     * @see #resourceRemoved(String)
+     */
+    protected final void clearModel(final String resourceName, final AbstractNotificationsModel<?> model){
+        final ManagedResourceConnectorConsumer consumer = connectors.get(resourceName);
+        if(consumer != null){
+            final Map<String, EventConfiguration> disconnectedEvents = consumer.resourceConfiguration.getElements(EventConfiguration.class);
+            clearModel(consumer.resourceName,
+                    consumer.resourceConfiguration.getConnectionType(),
+                    disconnectedEvents != null ? disconnectedEvents : Collections.<String, EventConfiguration>emptyMap(),
+                    model,
+                    consumer.getWeakNotificationSupport());
+        }
+    }
+
+    /**
+     * Invokes when resource connector is in stopping state or resource configuration was removed.
+     * <p>
+     *     This method will be called automatically by SNAMP infrastructure.
+     *     In the default implementation this method throws internal exception
+     *     derived from {@link java.lang.UnsupportedOperationException} indicating
+     *     that the adapter should be restarted.
+     *     It is recommended to use {@link #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)}
+     *     and/or {@link #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)} to
+     *     update your underlying models.
+     * </p>
+     * @param resourceName The name of the resource to be removed.
+     * @see #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
+     * @see #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)
+     */
+    protected void resourceRemoved(final String resourceName){
+        throw new UnsupportedResourceRemovedOperation(resourceName);
+    }
+
+    /**
+     * Invokes when a new resource connector is activated or new resource configuration is added.
+     * <p>
+     *     This method will be called automatically by SNAMP infrastructure.
+     *     In the default implementation this method throws internal exception
+     *     derived from {@link java.lang.UnsupportedOperationException} indicating
+     *     that the adapter should be restarted.
+     * </p
+     * @param resourceName The name of the resource to be added.
+     * @see #enlargeModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
+     */
+    protected void resourceAdded(final String resourceName){
+        throw new UnsupportedResourceAddedOperation(resourceName);
+    }
+
+    private void resourceRemovedImpl(final String resourceName) {
+        final ManagedResourceConnectorConsumer consumer = connectors.get(resourceName);
+        boolean restartRequired = false;
+        if (consumer != null)
+            try {
+                resourceRemoved(consumer.resourceName);
+            } catch (final UnsupportedResourceRemovedOperation ignored) {
+                restartRequired = true;
+            } finally {
+                consumer.close();
+                connectors.remove(consumer.resourceName);
+            }
+        if (restartRequired)
+            restart();
+    }
+
+    private void resourceAddedImpl(final String resourceName,
+                                   final ServiceReference<ManagedResourceConnector<?>> connectorRef) {
+        boolean restartRequired = true;
+        ManagedResourceConnectorConsumer consumer = connectors.get(resourceName);
+        if (consumer == null) try{
+            final ManagedResourceConfiguration config = ManagedResourceConnectorClient.getResourceConfiguration(getBundleContextByObject(this), connectorRef);
+            if (config != null) {
+                consumer = new ManagedResourceConnectorConsumer(getBundleContextByObject(this),
+                        resourceName, config);
+                consumer.connect();
+                connectors.put(consumer);
+                try {
+                    resourceAdded(consumer.resourceName);
+                    restartRequired = false;
+                } catch (final UnsupportedResourceAddedOperation ignored) {
+                    restartRequired = true;
+                }
+            } else restartRequired = false;
+        }
+        catch (final IOException e){
+            try (final OsgiLoggingContext logger = getLoggingContext()) {
+                logger.log(Level.WARNING, String.format("Unable to read configuration of newly added resource %s. Context: %s",
+                        resourceName,
+                        LogicalOperation.current()), e);
+            }
+        }
+        else if (!consumer.isReferenced()) {
+            consumer.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, connectorRef));
+            if (consumer.isReferenced())
+                try {
+                    resourceAdded(consumer.resourceName);
+                    restartRequired = false;
+                } catch (final UnsupportedResourceAddedOperation ignored) {
+                    restartRequired = true;
+                }
+            else restartRequired = false;
+        }
+        if (restartRequired)
+            restart();
+    }
 
     /**
      * Captures reference to the managed resource connectors.
@@ -1029,29 +1494,29 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param event The {@code ServiceEvent} object.
      */
     @Override
-    public final void serviceChanged(final ServiceEvent event) {
-        int referencedConnectors = 0;
-        for(final ManagedResourceConnectorConsumer consumer: connectors.values()) {
-            consumer.serviceChanged(event);
-            if(consumer.isReferenced()) referencedConnectors += 1;
-        }
-        switch (state){
-            case CREATED:
-            case STOPPED:
-                //starts the adapter if all resources are connected
-                state = referencedConnectors == connectors.size() && start() ?
-                        AdapterState.STARTED:
-                        AdapterState.STOPPED;
-            return;
-            case STARTED:
-                if(referencedConnectors != connectors.size())
-                    try{
-                        stop();
-                    }
-                    finally {
-                        state = AdapterState.STOPPED;
-                    }
-        }
+    public final synchronized void serviceChanged(final ServiceEvent event) {
+        if (ManagedResourceConnectorClient.isResourceConnector(event.getServiceReference()))
+            try (final LogicalOperation ignored = AdapterLogicalOperation.connectorChangesDetected(adapterInstanceName)) {
+                @SuppressWarnings("unchecked")
+                final ServiceReference<ManagedResourceConnector<?>> connectorRef = (ServiceReference<ManagedResourceConnector<?>>) event.getServiceReference();
+                final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(connectorRef);
+                switch (event.getType()) {
+                    case ServiceEvent.UNREGISTERING:
+                        resourceRemovedImpl(resourceName);
+                        return;
+                    case ServiceEvent.REGISTERED:
+                        resourceAddedImpl(resourceName, connectorRef);
+                        return;
+                    default:
+                        try (final OsgiLoggingContext logger = getLoggingContext()) {
+                            logger.info(String.format("Unexpected event %s captured by adapter %s for resource %s. Context: %s",
+                                    event.getType(),
+                                    adapterInstanceName,
+                                    resourceName,
+                                    LogicalOperation.current()));
+                        }
+                }
+            }
     }
 
     /**
@@ -1060,7 +1525,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @return The name of the logger.
      */
     public static String getLoggerName(final String adapterName){
-        return String.format("itworks.snamp.adapters.%s", adapterName);
+        return String.format("com.itworks.snamp.adapters.%s", adapterName);
     }
 
     /**
@@ -1072,31 +1537,47 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         return Logger.getLogger(getLoggerName(adapterName));
     }
 
+    private void disconnect() {
+        for (final ManagedResourceConnectorConsumer consumer : connectors.values())
+            consumer.close();
+        connectors.clear();
+    }
+
     /**
      * Releases all resources associated with this adapter.
      * @throws Exception An exception occurred during adapter releasing.
      */
     @Override
-    public final void close() throws Exception{
-        try{
-            if(state == AdapterState.STARTED)
-                stop();
-        }
-        finally {
-            for(final ManagedResourceConnectorConsumer consumer: connectors.values())
-                consumer.close();
-            connectors.clear();
-            state = AdapterState.CLOSED;
+    public final void close() throws Exception {
+        try {
+            tryStop();
+        } finally {
+            mutableState = InternalState.finalState();
         }
     }
+
+    private OsgiLoggingContext getLoggingContext(){
+        return OsgiLoggingContext.get(getLogger(), getBundleContextByObject(this));
+    }
+
+    /**
+     * Gets logger associated with this service.
+     *
+     * @return The logger associated with this service.
+     */
+    @Override
+    @Aggregation
+    public abstract Logger getLogger();
 
     /**
      * Reports an error when starting adapter.
      * @param logLevel Logging level.
      * @param e The failure reason.
      */
-    protected void failedToStartAdapter(final Level logLevel, final Exception e){
-        getLogger().log(logLevel, String.format("%s: Failed to start resource adapter.", adapterInstanceName.get()), e);
+    protected void failedToStartAdapter(final Level logLevel, final Exception e) {
+        try (final OsgiLoggingContext context = getLoggingContext()) {
+            context.log(logLevel, String.format("Failed to start resource adapter %s.", adapterInstanceName), e);
+        }
     }
 
     /**
@@ -1105,14 +1586,16 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param e The failure reason.
      */
     protected void failedToStopAdapter(final Level logLevel, final Exception e){
-        getLogger().log(logLevel, String.format("%s: Failed to stop resource adapter.", adapterInstanceName.get()), e);
+        try(final OsgiLoggingContext context = getLoggingContext()) {
+            context.log(logLevel, String.format("Failed to stop resource adapter %s.", adapterInstanceName), e);
+        }
     }
 
     /**
      * Gets set of hosted resources.
      * @return A set of hosted resources.
      */
-    protected final Set<String> getHostedResources(){
+    protected final Set<String> getHostedResources() {
         return connectors.keySet();
     }
 
@@ -1122,6 +1605,59 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      */
     @Override
     public String toString() {
-        return adapterInstanceName.isLocked() ? adapterInstanceName.get() : super.toString();
+        return adapterInstanceName;
+    }
+
+    private static void adapterStarted(final String adapterName,
+                               final ResourceAdapterEvent event){
+        synchronized (listeners){
+            WeakMultimap.removeUnused(listeners);
+            for(final WeakReference<ResourceAdapterEventListener> listenerRef: listeners.get(adapterName)) {
+                final ResourceAdapterEventListener listener = listenerRef.get();
+                if (listener instanceof AsyncEventListener)
+                    eventExecutor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.adapterStarted(event);
+                        }
+                    });
+                else if(listener != null)
+                    listener.adapterStarted(event);
+            }
+        }
+    }
+
+    private static void adapterStopped(final String adapterName,
+                                       final ResourceAdapterEvent event){
+        synchronized (listeners){
+            WeakMultimap.removeUnused(listeners);
+            for(final WeakReference<ResourceAdapterEventListener> listenerRef: listeners.get(adapterName)){
+                final ResourceAdapterEventListener listener = listenerRef.get();
+                if(listener instanceof AsyncEventListener)
+                    eventExecutor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.adapterStopped(event);
+                        }
+                    });
+                else if(listener != null) listener.adapterStopped(event);
+            }
+        }
+    }
+
+    static boolean addEventListener(final String adapterName,
+                                           final ResourceAdapterEventListener listener){
+        if(adapterName == null || adapterName.isEmpty() || listener == null) return false;
+        synchronized (listeners){
+            return WeakMultimap.put(listeners, adapterName, listener);
+        }
+    }
+
+    static boolean removeEventListener(final String adapterName,
+                                              final ResourceAdapterEventListener listener){
+        if(adapterName == null || listener == null) return false;
+        synchronized (listeners){
+            return WeakMultimap.remove(listeners, adapterName, listener) > 0;
+        }
     }
 }

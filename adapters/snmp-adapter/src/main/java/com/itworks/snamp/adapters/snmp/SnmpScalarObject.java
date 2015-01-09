@@ -1,9 +1,12 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
+import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
+import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.core.LogicalOperation;
 import org.snmp4j.agent.mo.MOScalar;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.OID;
@@ -20,6 +23,22 @@ import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.ConversionFal
  * @param <T> Type of the ASN notation.
  */
 abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implements SnmpAttributeMapping {
+    private static final String OID_PARAMETER = "OID";
+
+    private static final class SnmpWriteAttributeLogicalOperation extends WriteAttributeLogicalOperation{
+        private SnmpWriteAttributeLogicalOperation(final AttributeAccessor accessor,
+                                                   final OID oid){
+            super(accessor.getName(), accessor.toString(), OID_PARAMETER, oid);
+        }
+    }
+
+    private static final class SnmpReadAttributeLogicalOperation extends ReadAttributeLogicalOperation{
+        private SnmpReadAttributeLogicalOperation(final AttributeAccessor accessor,
+                                                  final OID oid){
+            super(accessor.getName(), accessor.toString(), OID_PARAMETER, oid);
+        }
+    }
+
     private final T defaultValue;
     private final AttributeAccessor attribute;
 
@@ -30,7 +49,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     }
 
     protected static <T> T logAndReturnDefaultValue(final T defaultValue, final Variable originalValue, final ManagedEntityType attributeType){
-        log.log(Level.WARNING, String.format("Cannot convert '%s' value to '%s' attribute type.", originalValue, attributeType));
+        SnmpHelpers.log(Level.WARNING, "Cannot convert '%s' value to '%s' attribute type.", originalValue, attributeType, null);
         return defaultValue;
     }
 
@@ -64,11 +83,12 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     @Override
     public final T getValue() {
         Object result;
-        try{
+        try(final LogicalOperation ignored = new SnmpReadAttributeLogicalOperation(attribute, getOid())) {
             result = attribute.getRawValue();
         }
-        catch (final TimeoutException | AttributeSupportException e){
-            log.log(Level.WARNING, String.format("Read operation failed for %s attribute", attribute.getName()), e);
+        catch (final TimeoutException | AttributeSupportException e) {
+            SnmpHelpers.log(Level.WARNING, "Read operation failed for %s attribute. Context: %s",
+                    attribute, LogicalOperation.current(), e);
             result = defaultValue;
         }
         return result == null ? defaultValue : convert(result);
@@ -83,11 +103,14 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     @Override
     public final int setValue(final T value) {
         int result;
-        try {
+        try(final LogicalOperation ignored = new SnmpWriteAttributeLogicalOperation(attribute, getOid())) {
             attribute.setValue(convert(value));
             result = SnmpConstants.SNMP_ERROR_SUCCESS;
         } catch (final TimeoutException | AttributeSupportException e) {
-            log.log(Level.WARNING, e.getLocalizedMessage(), e);
+            SnmpHelpers.log(Level.WARNING, "Writing operation failed for %s attribute. Context: %s",
+                    attribute,
+                    LogicalOperation.current(),
+                    e);
             result = SnmpConstants.SNMP_ERROR_RESOURCE_UNAVAILABLE;
         }
         return result;

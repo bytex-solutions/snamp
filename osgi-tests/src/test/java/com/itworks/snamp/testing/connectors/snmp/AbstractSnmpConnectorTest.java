@@ -1,8 +1,6 @@
 package com.itworks.snamp.testing.connectors.snmp;
 
 import com.itworks.snamp.testing.SnampArtifact;
-import com.itworks.snamp.testing.adapters.snmp.SnmpClient;
-import com.itworks.snamp.testing.adapters.snmp.SnmpClientFactory;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
 
@@ -22,9 +20,5 @@ public abstract class AbstractSnmpConnectorTest extends AbstractResourceConnecto
                                         final Map<String, String> parameters,
                                         final AbstractProvisionOption<?>... deps){
         super(CONNECTOR_NAME, "udp:" + host + "/" + port, parameters, concat(deps, SnampArtifact.SNMP_CONNECTOR.getReference(), SnampArtifact.SNMP4J.getReference()));
-    }
-
-    protected final SnmpClient createClientV2(){
-        return SnmpClientFactory.createSnmpV2(connectionString);
     }
 }

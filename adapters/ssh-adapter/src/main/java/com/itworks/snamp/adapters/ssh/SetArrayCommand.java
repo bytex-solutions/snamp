@@ -1,5 +1,7 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
+import com.itworks.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -92,24 +94,26 @@ final class SetArrayCommand extends AbstractManagementShellCommand {
         if (arguments.length == 1 && input.hasOption(IDX_OPT)) {
             final SshAttributeView attr = getAdapterController().getAttribute(arguments[0]);
             if (attr == null) throw new CommandException("Attribute %s doesn't exist", arguments[0]);
-            final Format fmt;
-            if (input.hasOption(DT_FMT_OPT))
-                fmt = new SimpleDateFormat(input.getOptionValue(DT_FMT_OPT));
-            else if (input.hasOption(NUM_FMT_OPT))
-                fmt = new DecimalFormat(input.getOptionValue(NUM_FMT_OPT));
-            else fmt = null;
-            //delete element
-            if (input.hasOption(DEL_OPT)) {
-                deleteArrayElement(attr, input.getOptionValue(IDX_OPT), output);
-                return;
-            }
-            //update or insert element
-            else if (input.hasOption(VAL_OPT)) {
-                if (input.hasOption(INS_OPT))
-                    insertArrayElement(attr, input.getOptionValue(IDX_OPT), input.getOptionValue(VAL_OPT), fmt, output);
-                else
-                    updateArrayElement(attr, input.getOptionValue(IDX_OPT), input.getOptionValue(VAL_OPT), fmt, output);
-                return;
+            else try(final LogicalOperation ignored = new WriteAttributeLogicalOperation(attr.getName(), arguments[0])) {
+                final Format fmt;
+                if (input.hasOption(DT_FMT_OPT))
+                    fmt = new SimpleDateFormat(input.getOptionValue(DT_FMT_OPT));
+                else if (input.hasOption(NUM_FMT_OPT))
+                    fmt = new DecimalFormat(input.getOptionValue(NUM_FMT_OPT));
+                else fmt = null;
+                //delete element
+                if (input.hasOption(DEL_OPT)) {
+                    deleteArrayElement(attr, input.getOptionValue(IDX_OPT), output);
+                    return;
+                }
+                //update or insert element
+                else if (input.hasOption(VAL_OPT)) {
+                    if (input.hasOption(INS_OPT))
+                        insertArrayElement(attr, input.getOptionValue(IDX_OPT), input.getOptionValue(VAL_OPT), fmt, output);
+                    else
+                        updateArrayElement(attr, input.getOptionValue(IDX_OPT), input.getOptionValue(VAL_OPT), fmt, output);
+                    return;
+                }
             }
         }
         throw invalidCommandFormat();

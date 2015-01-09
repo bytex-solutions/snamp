@@ -56,7 +56,7 @@ final class HelpCommand extends AbstractManagementShellCommand {
 
     /**
      * Executes command synchronously.
-     * @param input A command to execute.
+     * @param input A command to apply.
      * @param output Output stream for the command execution result.
      */
     @Override

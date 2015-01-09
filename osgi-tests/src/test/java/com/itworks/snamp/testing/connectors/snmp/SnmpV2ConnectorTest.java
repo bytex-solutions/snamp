@@ -1,6 +1,10 @@
 package com.itworks.snamp.testing.connectors.snmp;
 
-import com.itworks.snamp.*;
+import com.google.common.collect.ImmutableMap;
+import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.Repeater;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -14,7 +18,6 @@ import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
@@ -52,11 +55,13 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     private static final int REMOTE_PORT = 1161;
     private static final int LOCAL_PORT = 44495;
 
+    private static Map<String, String> getParameters(final int localPort) {
+        return ImmutableMap.of("community", "public",
+                "localAddress", "udp://127.0.0.1/" + localPort);
+    }
+
     private static Map<String, String> getParameters() {
-        final Map<String, String> params = new HashMap<>(1);
-        params.put("community", "public");
-        params.put("localAddress", "udp://127.0.0.1/" + LOCAL_PORT);
-        return params;
+        return getParameters(LOCAL_PORT);
     }
 
     private final BaseAgent agent;
@@ -436,7 +441,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         final Collection<AttributeConfiguration> attributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
                 connectionString,
-                getParameters(),
+                getParameters(LOCAL_PORT + 1),
                 AttributeConfiguration.class);
         assertNotNull(attributes);
         assertFalse(attributes.isEmpty());
@@ -462,7 +467,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Override
-    protected void afterCleanupTest(final BundleContext context) throws BundleException {
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
         stopResourceConnector(context);
         agent.stop();
     }

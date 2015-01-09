@@ -1,7 +1,7 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
 import com.itworks.snamp.ExceptionPlaceholder;
-import com.itworks.snamp.SynchronizationEvent;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.mapping.RecordReader;
 import com.itworks.snamp.mapping.RecordSet;
 import com.itworks.snamp.mapping.RecordSetUtils;
@@ -121,7 +121,7 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @param notificationID
      * @return
      */
-    public final SynchronizationEvent.Awaitor<SnmpNotification> addNotificationListener(final OID notificationID){
+    public final SynchronizationEvent.EventAwaitor<SnmpNotification> addNotificationListener(final OID notificationID){
         final SynchronizationEvent<SnmpNotification> signaller = new SynchronizationEvent<>();
         snmp.addCommandResponder(new CommandResponder() {
             @Override
