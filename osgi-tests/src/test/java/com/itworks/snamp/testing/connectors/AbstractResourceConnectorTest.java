@@ -15,10 +15,12 @@ import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
+import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.mapping.RecordSet;
 import com.itworks.snamp.mapping.RecordSetUtils;
 import com.itworks.snamp.mapping.TypeConverter;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
+import org.junit.rules.TestName;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -38,6 +40,27 @@ import java.util.concurrent.TimeoutException;
  * @since 1.0
  */
 public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegrationTest {
+    private static final String CONNECTOR_TYPE_PROPERTY = "connectorType";
+
+
+    private static final class ConnectorTestLogicalOperation extends TestLogicalOperation{
+
+
+        private ConnectorTestLogicalOperation(final String operationName,
+                                     final String connectorType,
+                                     final TestName testName){
+            super(operationName, testName, CONNECTOR_TYPE_PROPERTY, connectorType);
+        }
+
+        private static ConnectorTestLogicalOperation startResourceConnector(final String connectorType, final TestName name){
+            return new ConnectorTestLogicalOperation("startResourceConnector", connectorType, name);
+        }
+
+        private static ConnectorTestLogicalOperation stopResourceConnector(final String connectorType, final TestName name){
+            return new ConnectorTestLogicalOperation("stopResourceConnector", connectorType, name);
+        }
+    }
+
     protected static interface Equator<V>{
         boolean equate(final V value1, final V value2);
     }
@@ -160,13 +183,17 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     }
 
     protected final void stopResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
-        ManagedResourceActivator.stopResourceConnector(context, connectorType);
-        waitForNoConnector(TimeSpan.fromSeconds(2));
+        try(final LogicalOperation ignored = ConnectorTestLogicalOperation.stopResourceConnector(connectorType, testName)) {
+            ManagedResourceActivator.stopResourceConnector(context, connectorType);
+            waitForNoConnector(TimeSpan.fromSeconds(10));
+        }
     }
 
     protected final void startResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
-        ManagedResourceActivator.startResourceConnector(context, connectorType);
-        waitForConnector(TimeSpan.fromSeconds(2));
+        try (final LogicalOperation ignored = ConnectorTestLogicalOperation.startResourceConnector(connectorType, testName)) {
+            ManagedResourceActivator.startResourceConnector(context, connectorType);
+            waitForConnector(TimeSpan.fromSeconds(10));
+        }
     }
 
     @Override

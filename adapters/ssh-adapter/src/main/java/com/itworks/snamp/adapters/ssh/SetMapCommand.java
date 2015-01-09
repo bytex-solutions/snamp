@@ -1,5 +1,7 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
+import com.itworks.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -72,7 +74,10 @@ final class SetMapCommand extends AbstractManagementShellCommand {
                 fmt = new SimpleDateFormat(input.getOptionValue(DT_FMT_OPT));
             else fmt = null;
             final SshAttributeView attr = getAdapterController().getAttribute(arguments[0]);
-            updateMapEntries(attr, input.getOptionProperties(PAIR_OPT), fmt, output);
+            if(attr == null) throw new CommandException(String.format("Attribute %s doesn't exist", arguments[0]));
+            else try(final LogicalOperation ignored = new WriteAttributeLogicalOperation(attr.getName(), arguments[0])) {
+                updateMapEntries(attr, input.getOptionProperties(PAIR_OPT), fmt, output);
+            }
         }
         else throw invalidCommandFormat();
     }

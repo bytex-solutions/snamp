@@ -22,6 +22,31 @@ import static com.itworks.snamp.internal.Utils.isInstanceOf;
  */
 public abstract class AbstractBundleActivator implements BundleActivator, ServiceListener {
 
+    final static class BundleLogicalOperation extends RichLogicalOperation {
+        static final String BUNDLE_NAME_PROPERTY = "bundleName";
+
+        private BundleLogicalOperation(final String operationName,
+                                       final String bundleName){
+            super(operationName, BUNDLE_NAME_PROPERTY, bundleName);
+        }
+
+        private String getBundleName(){
+            return getProperty(BUNDLE_NAME_PROPERTY, String.class, "");
+        }
+
+        private static BundleLogicalOperation startBundle(final BundleContext context){
+            return new BundleLogicalOperation("startBundle", context.getBundle().getSymbolicName());
+        }
+
+        private static BundleLogicalOperation stopBundle(final BundleContext context){
+            return new BundleLogicalOperation("stopBundle", context.getBundle().getSymbolicName());
+        }
+
+        private static BundleLogicalOperation processServiceChanged(final BundleContext context){
+            return new BundleLogicalOperation("bundleServiceChanged", context.getBundle().getSymbolicName());
+        }
+    }
+
     /**
      * Represents bundle activation property.
      * @param <T> Type of the activation property.
@@ -714,7 +739,10 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void serviceChanged(final ServiceEvent event) {
-        serviceChanged(getBundleContextByObject(this), event);
+        final BundleContext context = getBundleContextByObject(this);
+        try(final LogicalOperation ignored = BundleLogicalOperation.processServiceChanged(context)) {
+            serviceChanged(context, event);
+        }
     }
 
     /**
@@ -724,16 +752,18 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void start(final BundleContext context) throws Exception {
-        start(context, bundleLevelDependencies);
-        //try to resolve bundle-level dependencies immediately
-        final DependencyListeningFilter filter = new DependencyListeningFilter();
-        for(final RequiredService<?> dependency: bundleLevelDependencies) {
-            filter.append(dependency);
-            for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))
-                serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
+        try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(context)) {
+            start(context, bundleLevelDependencies);
+            //try to resolve bundle-level dependencies immediately
+            final DependencyListeningFilter filter = new DependencyListeningFilter();
+            for (final RequiredService<?> dependency : bundleLevelDependencies) {
+                filter.append(dependency);
+                for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))
+                    serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
+            }
+            //attach bundle-level dependencies as service listeners
+            filter.applyServiceListener(context, this);
         }
-        //attach bundle-level dependencies as service listeners
-        filter.applyServiceListener(context, this);
     }
 
     private static void unregister(final BundleContext context, final Collection<RequiredService<?>> dependencies){
@@ -753,18 +783,19 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void stop(final BundleContext context) throws Exception {
-        context.removeServiceListener(this);
-        if(state == ActivationState.ACTIVATED) {
-            state = ActivationState.DEACTIVATING;
-            deactivateInternal(context, getActivationProperties());
-        }
-        try {
-            shutdown(context);
-        }
-        finally {
-            //unbind all dependencies
-            bundleLevelDependencies.clear();
-            properties.clear();
+        try (final LogicalOperation ignored = BundleLogicalOperation.stopBundle(context)) {
+            context.removeServiceListener(this);
+            if (state == ActivationState.ACTIVATED) {
+                state = ActivationState.DEACTIVATING;
+                deactivateInternal(context, getActivationProperties());
+            }
+            try {
+                shutdown(context);
+            } finally {
+                //unbind all dependencies
+                bundleLevelDependencies.clear();
+                properties.clear();
+            }
         }
     }
 

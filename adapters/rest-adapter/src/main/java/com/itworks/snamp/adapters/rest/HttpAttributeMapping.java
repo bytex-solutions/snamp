@@ -27,15 +27,19 @@ final class HttpAttributeMapping {
         this.jsonFormatter = jsonFormatter;
     }
 
-    public JsonElement getValueAsJson() throws TimeoutException, AttributeSupportException {
+    String getName(){
+        return accessor.getName();
+    }
+
+    JsonElement getValueAsJson() throws TimeoutException, AttributeSupportException {
         return JsonTypeSystem.toJson(accessor.getValue(), jsonFormatter.get());
     }
 
-    public String getValue() throws TimeoutException, AttributeSupportException {
+    String getValue() throws TimeoutException, AttributeSupportException {
         return jsonFormatter.get().toJson(getValueAsJson());
     }
 
-    public void setValue(final String value) throws TimeoutException, IllegalArgumentException, JsonSyntaxException, AttributeSupportException {
+    void setValue(final String value) throws TimeoutException, IllegalArgumentException, JsonSyntaxException, AttributeSupportException {
         accessor.setValue(JsonTypeSystem.fromJson(value, accessor.getType(), jsonFormatter.get()));
     }
 }

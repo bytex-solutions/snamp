@@ -1,8 +1,7 @@
 package com.itworks.snamp.internal;
 
 import com.google.common.base.*;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.Wrapper;
@@ -14,13 +13,14 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.*;
+import java.util.Collection;
+import java.util.Dictionary;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
@@ -52,49 +52,6 @@ public final class Utils {
         }
     }
 
-    private static final class SoftInvocationHandler<T> extends SoftReference<T> implements InvocationHandler, Wrapper<T>{
-        private SoftInvocationHandler(final T obj){
-            super(obj);
-        }
-
-        @Override
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            return method.invoke(get(), args);
-        }
-
-        @Override
-        public <R> R handle(final Function<T, R> handler) {
-            return handler.apply(get());
-        }
-    }
-
-    private static final class FinalizeDelegator<T> implements InvocationHandler, Wrapper<T> {
-        private final T obj;
-        private final Consumer<T, ?> finalizer;
-
-        private FinalizeDelegator(final T obj,
-                                  final Consumer<T, ?> finalizer) {
-            this.obj = Objects.requireNonNull(obj);
-            this.finalizer = Objects.requireNonNull(finalizer);
-        }
-
-        @SuppressWarnings("FinalizeDoesntCallSuperFinalize")
-        @Override
-        protected void finalize() throws Throwable {
-            finalizer.accept(obj);
-        }
-
-        @Override
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            return method.invoke(obj, args);
-        }
-
-        @Override
-        public <R> R handle(final Function<T, R> handler) {
-            return handler.apply(obj);
-        }
-    }
-
     /**
      * Determines whether the underlying OS is Linux.
      */
@@ -118,48 +75,23 @@ public final class Utils {
         return StandardSystemProperty.OS_NAME.value();
     }
 
+
     /**
      * Isolates the interface reference from the implementation class.
      * @param obj An implementation of the interface.
      * @param iface An interface to isolate.
-     * @param weakIsolation {@literal true}, if returned interface reference has weak reference to its implementer;
-     * {@literal false}, if returned interface reference has strong reference to its implementer.
      * @param <I> Type of the interface to isolate.
      * @param <T> The class that implements the interface to isolate.
      * @return A reference to the implemented interface that cannot be casted to implementer.
      * @throws java.lang.IllegalArgumentException iface is not an interface.
      */
-    public static  <I, T extends I> I isolate(final T obj, final Class<I> iface, final boolean weakIsolation){
-
-        if(obj == null) return null;
-        else if(weakIsolation){
-            final Reference<T> weakObj = new WeakReference<>(obj);
-            return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
-                @Override
-                public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                    return method.invoke(weakObj.get(), args);
-                }
-            }));
-        }
-        else return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
+    public static  <I, T extends I> I isolate(final T obj, final Class<I> iface) {
+        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
             @Override
             public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
                 return method.invoke(obj, args);
             }
         }));
-    }
-
-    /**
-     * Isolates the interface reference from the implementation class.
-     * @param obj An implementation of the interface.
-     * @param iface An interface to isolate.
-     * @param <I> Type of the interface to isolate.
-     * @param <T> The class that implements the interface to isolate.
-     * @return A reference to the implemented interface that cannot be casted to implementer.
-     * @throws java.lang.IllegalArgumentException iface is not an interface.
-     */
-    public static  <I, T extends I> I isolate(final T obj, final Class<I> iface){
-        return isolate(obj, iface, false);
     }
 
     private static <I, T extends I, R extends Reference<T> & InvocationHandler> I wrapReference(final R obj, final Class<I> iface){
@@ -168,32 +100,6 @@ public final class Utils {
 
     public static <I, T extends I> I weakReference(final T obj, final Class<I> iface) {
         return wrapReference(new WeakInvocationHandler<>(obj), iface);
-    }
-
-    public static <I, T extends I> I softReference(final T obj, final Class<I> iface){
-        return wrapReference(new SoftInvocationHandler<>(obj), iface);
-    }
-
-    public static <I, T extends I> I overrideFinalize(final T obj,
-                                                      final Class<I> iface,
-                                                      final Consumer<T, ?> finalizer){
-        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(),
-                new Class<?>[]{iface},
-                new FinalizeDelegator<>(obj, finalizer)));
-    }
-
-    /**
-     * Casts the specified object to a another class and isolates interface
-     * from the conversion result.
-     * @param obj An object to cast. Cannot be {@literal null}.
-     * @param castResult Type of the conversion result.
-     * @param iface An interface to isolate.
-     * @param <I> Type of the interface to isolate.
-     * @param <T> Type of the conversion result.
-     * @return Isolated reference to an interface.
-     */
-    public static <I, T extends I> I castAndIsolate(final Object obj, final Class<T> castResult, final Class<I> iface){
-        return isolate(castResult.cast(obj), iface);
     }
 
     public static String getFullyQualifiedResourceName(Class<?> locator, String name){
@@ -233,12 +139,6 @@ public final class Utils {
                 null;
     }
 
-    /**
-     * Determines whether the service implements the specified interface.
-     * @param serviceRef The service reference to check.
-     * @param serviceType The name of the interface.
-     * @return
-     */
     public static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType){
         final Object names = serviceRef.getProperty(OBJECTCLASS);
         if(names != null && names.getClass().isArray())
@@ -247,12 +147,6 @@ public final class Utils {
         return false;
     }
 
-    /**
-     * Determines whether the service implements the specified interface.
-     * @param serviceRef
-     * @param serviceType
-     * @return
-     */
     public static boolean isInstanceOf(final ServiceReference<?> serviceRef, final Class<?> serviceType){
         return isInstanceOf(serviceRef, serviceType.getName());
     }
@@ -396,24 +290,6 @@ public final class Utils {
     }
 
     /**
-     * Converts functional interface with input and output parameter into functional interface
-     * with input parameter only.
-     * @param transformer The functional interface to convert.
-     * @param <I> Type of the value to be transformed.
-     * @param <O> Type of the transformation result.
-     * @return {@link com.google.common.base.Function} representation of the transformer.
-     */
-    public static <I, O> TransformerClosure<I, O> toClosure(final Function<I, O> transformer) {
-        return transformer != null ?
-                new TransformerClosure<I, O>() {
-                    @Override
-                    public O apply(final I input) {
-                        return transformer.apply(input);
-                    }
-                } : null;
-    }
-
-    /**
      * Processes a service provided by the calling bundle.
      * @param caller The caller class.
      * @param serviceType The contract of the exposed service.
@@ -458,21 +334,6 @@ public final class Utils {
                     owner.getBundleContext().ungetService(ref);
                 }
         return false;
-    }
-
-    /**
-     * Determines whether the specified service is registered in OSGI service registry.
-     * @param callerClass The caller class.
-     * @param serviceType The service contract.
-     * @param filter The service filter. May be {@literal null}.
-     * @return {@literal true}, if the specified service is registered in OSGI service registry.
-     * @throws org.osgi.framework.InvalidSyntaxException Incorrect filter.
-     */
-    public static boolean isServiceRegistered(final Class<?> callerClass,
-                                       final Class<?> serviceType,
-                                       final String filter) throws InvalidSyntaxException {
-        final Bundle bundle = FrameworkUtil.getBundle(callerClass);
-        return bundle.getBundleContext().getServiceReferences(serviceType, filter).size() > 0;
     }
 
     public static <V, E extends Exception> V withContextClassLoader(final ClassLoader loader, final ExceptionalCallable<V, E> action) throws E{
@@ -526,6 +387,9 @@ public final class Utils {
      * @return The current stack trace.
      */
     public static String getStackTrace(){
-        return Joiner.on(System.lineSeparator()).join(Thread.currentThread().getStackTrace());
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        if(stackTrace.length > 0)
+            stackTrace = ArrayUtils.remove(stackTrace, 0);
+        return Joiner.on(System.lineSeparator()).join(stackTrace);
     }
 }

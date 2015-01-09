@@ -1,5 +1,6 @@
 package com.itworks.snamp.testing.connectors.snmp;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.Repeater;
@@ -54,11 +55,13 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     private static final int REMOTE_PORT = 1161;
     private static final int LOCAL_PORT = 44495;
 
+    private static Map<String, String> getParameters(final int localPort) {
+        return ImmutableMap.of("community", "public",
+                "localAddress", "udp://127.0.0.1/" + localPort);
+    }
+
     private static Map<String, String> getParameters() {
-        final Map<String, String> params = new HashMap<>(1);
-        params.put("community", "public");
-        params.put("localAddress", "udp://127.0.0.1/" + LOCAL_PORT);
-        return params;
+        return getParameters(LOCAL_PORT);
     }
 
     private final BaseAgent agent;
@@ -438,7 +441,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
         final Collection<AttributeConfiguration> attributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
                 connectionString,
-                getParameters(),
+                getParameters(LOCAL_PORT + 1),
                 AttributeConfiguration.class);
         assertNotNull(attributes);
         assertFalse(attributes.isEmpty());

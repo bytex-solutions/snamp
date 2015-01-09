@@ -2,9 +2,10 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Joiner;
 import com.itworks.snamp.ConversionException;
-import com.itworks.snamp.concurrent.ReferenceCountedObject;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess;
+import com.itworks.snamp.concurrent.ConcurrentResourceAccess;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityValue;
@@ -13,6 +14,7 @@ import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.licensing.LicensingException;
 import com.itworks.snamp.mapping.KeyedRecordSet;
 import org.snmp4j.CommandResponder;
@@ -81,7 +83,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
             return createParallelExceptionResistantInvoker(Executors.newSingleThreadExecutor(), new ExceptionHandler() {
                 @Override
                 public final void handle(final Throwable e, final NotificationListener source) {
-                    SnmpConnectorHelpers.log(Level.SEVERE, "Unable to process SNMP notification.", e);
+                    SnmpConnectorHelpers.log(Level.SEVERE, "Unable to process SNMP notification. Context: null",
+                            LogicalOperation.current(), e);
                 }
             });
         }
@@ -256,10 +259,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
     }
 
     private static final class SnmpNotificationSupport extends AbstractNotificationSupport{
-        private final ReferenceCountedObject<SnmpClient> client;
+        private final AbstractConcurrentResourceAccess<SnmpClient> client;
         private final SnmpTypeSystem typeSystem;
 
-        private SnmpNotificationSupport(final ReferenceCountedObject<SnmpClient> client,
+        private SnmpNotificationSupport(final AbstractConcurrentResourceAccess<SnmpClient> client,
                                         final SnmpTypeSystem typeSystem){
             this.client = client;
             this.typeSystem = typeSystem;
@@ -330,7 +333,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         @Override
         protected SnmpNotificationMetadata enableNotifications(final String category, final Map<String, String> options) {
             try {
-                return client.increfAndWrite(new Action<SnmpClient, SnmpNotificationMetadata, ParseException>() {
+                return client.write(new Action<SnmpClient, SnmpNotificationMetadata, ParseException>() {
                     @Override
                     public SnmpNotificationMetadata invoke(final SnmpClient client) throws ParseException {
                         final SnmpNotificationMetadata listener = new SnmpNotificationMetadata(new OID(SNMP4JSettings.getOIDTextFormat().parse(category)), options, typeSystem);
@@ -340,12 +343,13 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
                 });
             }
             catch (final Exception e) {
-                SnmpConnectorHelpers.log(Level.WARNING, "Subscription to SNMP event %s failed.", category, e);
+                SnmpConnectorHelpers.log(Level.WARNING, "Subscription to SNMP event %s failed. Context: %s",
+                        category, LogicalOperation.current(), e);
                 return null;
             }
         }
 
-        private void disableNotifications(final SnmpNotificationMetadata notifMeta){
+        private void disableNotifications(final SnmpNotificationMetadata notifMeta) {
             try {
                 client.write(new ConsistentAction<SnmpClient, Void>() {
                     @Override
@@ -354,10 +358,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
                         return null;
                     }
                 });
-                client.decref();
-            }
-            catch (final Exception e){
-                SnmpConnectorHelpers.log(Level.WARNING, "Problem occurs when unsubscribing event %s.", notifMeta.getCategory(), e);
+            } catch (final Exception e) {
+                SnmpConnectorHelpers.log(Level.WARNING, "Problem occurs when unsubscribing event %s. Context: %s",
+                        notifMeta.getCategory(), LogicalOperation.current(), e);
             }
         }
 
@@ -467,10 +470,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
     }
 
     private static final class SnmpAttributeSupport extends AbstractAttributeSupport{
-        private final ReferenceCountedObject<SnmpClient> client;
+        private final AbstractConcurrentResourceAccess<SnmpClient> client;
         private final SnmpTypeSystem typeSystem;
 
-        private SnmpAttributeSupport(final ReferenceCountedObject<SnmpClient> client,
+        private SnmpAttributeSupport(final AbstractConcurrentResourceAccess<SnmpClient> client,
                                      final SnmpTypeSystem typeSystem){
             this.client = client;
             this.typeSystem = typeSystem;
@@ -529,7 +532,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
             });
         }
 
-        public Address[] getClientAddresses(){
+        private Address[] getClientAddresses(){
             return client.read(new ConsistentAction<SnmpClient, Address[]>() {
                 @Override
                 public Address[] invoke(final SnmpClient client) {
@@ -539,10 +542,12 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         }
 
         private SnmpAttributeMetadata connectAttribute(final OID attributeID, final Map<String, String> options) throws Exception{
-            final Variable value = client.increfAndRead(new Action<SnmpClient, Variable, Exception>() {
+            final Variable value = client.read(new Action<SnmpClient, Variable, Exception>() {
+                private final TimeSpan responseTimeout = SnmpConnectorConfigurationProvider.getResponseTimeout(options);
+
                 @Override
-                public Variable invoke(final SnmpClient client) throws IOException, TimeoutException, InterruptedException{
-                    return client.get(attributeID, TimeSpan.fromSeconds(5));
+                public Variable invoke(final SnmpClient client) throws IOException, TimeoutException, InterruptedException {
+                    return client.get(attributeID, responseTimeout);
                 }
             });
             if(value == null) throw new IOException(String.format("Attribute %s doesn't exist on SNMP agent", attributeID));
@@ -565,10 +570,12 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
                 return connectAttribute(new OID(attributeName), options);
             }
             catch (final LicensingException e){
-                SnmpConnectorHelpers.log(Level.INFO, "Maximum count of attributes is reached: %s. Unable to connect %s attribute", attributesCount(), attributeName, e);
+                SnmpConnectorHelpers.log(Level.INFO, "Maximum count of attributes is reached: %s. Unable to connect %s attribute. Context: %s",
+                        attributesCount(), attributeName, LogicalOperation.current(), e);
             }
             catch (final Exception e) {
-                SnmpConnectorHelpers.log(Level.SEVERE, "Unable to connect attribute %s", attributeName, e);
+                SnmpConnectorHelpers.log(Level.SEVERE, "Unable to connect attribute %s. Context: %s",
+                        attributeName, LogicalOperation.current(), e);
             }
             return null;
         }
@@ -582,13 +589,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
          */
         @Override
         protected boolean disconnectAttribute(final String id, final GenericAttributeMetadata<?> attributeInfo) {
-            try {
-                client.decref();
-                return true;
-            } catch (final Exception e) {
-                SnmpConnectorHelpers.log(Level.SEVERE, "Some problems occurred during disconnection of attribute %s", id, e);
-                return false;
-            }
+            return true;
         }
 
         private Variable getAttributeValue(final SnmpAttributeMetadata metadata, final TimeSpan readTimeout) throws Exception{
@@ -631,9 +632,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
         }
 
         private void setAttributeValue(final SnmpAttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws Exception {
-            client.write(new Action<SnmpClient, Void, Exception>() {
+            client.read(new Action<SnmpClient, Void, Exception>() {
                 @Override
-                public Void invoke(final SnmpClient client) throws Exception {
+                public Void invoke(final SnmpClient client) throws IOException, InvalidSnmpValueException, TimeoutException, InterruptedException {
                     client.set(Collections.singletonMap(attribute.getAttributeID(),
                             attribute.getType().convertToSnmp(value).get(new OID())), writeTimeout);
                     return null;
@@ -644,7 +645,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
 
     private final SnmpAttributeSupport attributes;
     private final SnmpNotificationSupport notifications;
-    private final ReferenceCountedObject<SnmpClient> client;
+    private final AbstractConcurrentResourceAccess<SnmpClient> client;
 
     /**
      * Initializes a new management connector.
@@ -653,19 +654,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      */
     SnmpResourceConnector(final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
         super(snmpConnectionOptions);
-        client = new ReferenceCountedObject<SnmpClient>() {
-            @Override
-            protected SnmpClient createResource() throws IOException {
-                final SnmpClient client = snmpConnectionOptions.createSnmpClient();
-                client.listen();
-                return client;
-            }
-
-            @Override
-            protected void cleanupResource(final SnmpClient resource) throws IOException {
-                resource.close();
-            }
-        };
+        client = new ConcurrentResourceAccess<>(snmpConnectionOptions.createSnmpClient());
         final SnmpTypeSystem typeSystem = new SnmpTypeSystem();
         attributes = new SnmpAttributeSupport(client, typeSystem);
         notifications = new SnmpNotificationSupport(client, typeSystem);
@@ -674,6 +663,16 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
     SnmpResourceConnector(final String connectionString,
                                  final Map<String, String> parameters) throws IOException {
         this(new SnmpConnectionOptions(connectionString, parameters));
+    }
+
+    void listen() throws IOException{
+        client.write(new Action<SnmpClient, Void, IOException>() {
+            @Override
+            public Void invoke(final SnmpClient client) throws IOException{
+                client.listen();
+                return null;
+            }
+        });
     }
 
     /**
@@ -887,12 +886,18 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
     /**
      * Releases all resources associated with this connector.
      *
-     * @throws Exception
+     * @throws IOException Unable to close SNMP client.
      */
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         try {
-            client.close();
+            client.write(new Action<SnmpClient, Void, IOException>() {
+                @Override
+                public Void invoke(final SnmpClient client) throws IOException {
+                    client.close();
+                    return null;
+                }
+            });
         } finally {
             attributes.clear();
             notifications.clear();

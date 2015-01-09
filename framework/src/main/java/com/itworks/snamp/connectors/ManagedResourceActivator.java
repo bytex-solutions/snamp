@@ -13,6 +13,7 @@ import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.core.FrameworkService;
+import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.core.OsgiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
@@ -227,7 +228,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 connector.subscribe(NOTIF_TRANSPORT_LISTENER_ID, new EventAdminTransport(connectorType, resourceName, eventAdmin, connector), true);
             }
             else try(final OsgiLoggingContext logger = getLoggingContext()){
-                logger.info(String.format("Resource %s doesn't support notifications", resourceName));
+                logger.info(String.format("Resource %s doesn't support notifications. Context: %s",
+                        resourceName, LogicalOperation.current()));
             }
         }
 
@@ -246,9 +248,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         @Override
         protected void failedToUpdateService(final String servicePID, final Dictionary<String, ?> configuration, final Exception e) {
             try(final OsgiLoggingContext logger = getLoggingContext()){
-                logger.log(Level.SEVERE, String.format("Unable to update connector. Connection string: %s, connection parameters: %s",
+                logger.log(Level.SEVERE, String.format("Unable to update connector. Connection string: %s, connection parameters: %s. Context: %s",
                         PersistentConfigurationManager.getConnectionString(configuration),
-                        PersistentConfigurationManager.getResourceConnectorParameters(configuration)),
+                        PersistentConfigurationManager.getResourceConnectorParameters(configuration),
+                                LogicalOperation.current()),
                         e);
             }
         }
@@ -262,7 +265,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         @Override
         protected void failedToCleanupService(final String servicePID, final Exception e) {
             try(final OsgiLoggingContext logger = getLoggingContext()){
-                logger.log(Level.SEVERE, "Unable to dispose connector", e);
+                logger.log(Level.SEVERE, String.format("Unable to dispose connector. Context: %s",
+                        LogicalOperation.current()), e);
             }
         }
 
@@ -805,7 +809,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, connectorType);
         try(final OsgiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Activating resource connectors of type %s", connectorType));
+            logger.info(String.format("Activating resource connectors of type %s. Context: %s",
+                    connectorType,
+                    LogicalOperation.current()));
         }
     }
 
@@ -830,7 +836,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
         try (final OsgiLoggingContext logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, String.format("Unable to instantiate %s connector", connectorType), e);
+            logger.log(Level.SEVERE, String.format("Unable to instantiate %s connector. Context: %s",
+                    connectorType,
+                    LogicalOperation.current()), e);
         }
     }
 
@@ -844,7 +852,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
         try (final OsgiLoggingContext logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, String.format("Unable to release %s connector instance", connectorType), e);
+            logger.log(Level.SEVERE, String.format("Unable to release %s connector instance. Context: %s",
+                    connectorType,
+                    LogicalOperation.current()), e);
         }
     }
 
@@ -857,7 +867,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @MethodStub
     protected final void deactivate(final ActivationPropertyReader activationProperties) {
         try(final OsgiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Unloading connectors of type %s", connectorType));
+            logger.info(String.format("Unloading connectors of type %s. Context: %s",
+                    connectorType,
+                    LogicalOperation.current()));
         }
     }
 

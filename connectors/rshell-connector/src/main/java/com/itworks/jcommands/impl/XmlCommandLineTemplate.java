@@ -106,7 +106,8 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, 
         //fill template attributes from custom input
         if (input != null)
             for (final Map.Entry<String, ?> pair : input.entrySet())
-                template.add(pair.getKey(), pair.getValue());
+                if(pair.getKey().indexOf('.') < 0)   //attribute name cannot be null or contain '.'
+                    template.add(pair.getKey(), pair.getValue());
         return template.render();
     }
 

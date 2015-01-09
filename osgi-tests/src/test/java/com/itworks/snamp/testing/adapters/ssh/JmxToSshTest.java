@@ -1,6 +1,8 @@
 package com.itworks.snamp.testing.adapters.ssh;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.testing.SnampArtifact;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
@@ -11,6 +13,7 @@ import net.schmizz.sshj.common.IOUtils;
 import net.schmizz.sshj.connection.channel.direct.Session;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
@@ -18,6 +21,7 @@ import javax.management.ObjectName;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -57,10 +61,14 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
                 s.exec(String.format("set %s %s", attributeId, value));
             }
             try(final Session s = client.startSession()){
-                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
-                assertNotNull(result);
-                assertFalse(result.isEmpty());
-                assertTrue(equator.equate(result, value));
+                final Session.Command result = s.exec(String.format("get %s", attributeId));
+                final String output = IOUtils.readFully(result.getInputStream()).toString();
+                final String error = IOUtils.readFully(result.getErrorStream()).toString();
+                if(error != null && error.length() > 0)
+                    fail(error);
+                assertNotNull(output);
+                assertFalse(output.isEmpty());
+                assertTrue(equator.equate(output, value));
             }
         }
     }
@@ -171,23 +179,28 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         }
     }
 
-    /*@Test
-    public void simpleHostTest() throws InterruptedException {
-        Thread.sleep(10000000);
-    }*/
-
     @Override
-    protected void afterStartTest(final BundleContext context) throws Exception {
-        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        super.afterStartTest(context);
-        ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        super.beforeStartTest(context);
+        beforeCleanupTest(context);
     }
 
     @Override
-    protected void afterCleanupTest(final BundleContext context) throws Exception {
-        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    protected void afterStartTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        startResourceConnector(context);
+        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
+            @Override
+            public Void call() throws BundleException {
+                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                return null;
+            }
+        }, TimeSpan.fromSeconds(60));
+    }
+
+    @Override
+    protected void beforeCleanupTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
-        super.afterCleanupTest(context);
     }
 
     @Override

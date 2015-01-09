@@ -23,7 +23,7 @@ import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccess
  * @version 1.0
  * @since 1.0
  */
-interface SshAttributeView {
+public interface SshAttributeView {
     /**
      * Represents common interface for all transformations that can be applied to
      * attribute value.

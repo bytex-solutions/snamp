@@ -8,6 +8,7 @@ import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.AbstractFrameworkService;
+import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.CountdownTimer;
 import com.itworks.snamp.internal.IllegalStateFlag;
@@ -319,7 +320,8 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                                                        final String attributeID,
                                                        final String attributeName,
                                                        final Exception e){
-            logger.log(logLevel, String.format("Failed to connect attribute %s with ID %s", attributeName, attributeID), e);
+            logger.log(logLevel, String.format("Failed to connect attribute %s with ID %s. Context: %s",
+                    attributeName, attributeID, LogicalOperation.current()), e);
         }
 
         /**
@@ -386,7 +388,8 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                                                    final Level logLevel,
                                                    final String attributeID,
                                                    final Exception e){
-            logger.log(logLevel, String.format("Failed to get attribute %s", attributeID), e);
+            logger.log(logLevel, String.format("Failed to get attribute %s. Context: %s",
+                    attributeID, LogicalOperation.current()), e);
         }
 
         /**
@@ -490,7 +493,8 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                                                    final String attributeID,
                                                    final Object value,
                                                    final Exception e){
-            logger.log(logLevel, String.format("Failed to update attribute %s with %s value", attributeID, value), e);
+            logger.log(logLevel, String.format("Failed to update attribute %s with %s value. Context: %s",
+                    attributeID, value, LogicalOperation.current()), e);
         }
 
         /**
@@ -1050,7 +1054,8 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                                                           final String listID,
                                                           final String category,
                                                           final Exception e){
-            logger.log(logLevel, String.format("Failed to enable notifications %s for %s subscription list", category, listID), e);
+            logger.log(logLevel, String.format("Failed to enable notifications %s for %s subscription list. Context: %s",
+                    category, listID, LogicalOperation.current()), e);
         }
 
         /**
@@ -1112,7 +1117,8 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                                                            final Level logLevel,
                                                            final String listID,
                                                            final Exception e){
-            logger.log(logLevel, String.format("Failed to disable notifications at %s topic", listID), e);
+            logger.log(logLevel, String.format("Failed to disable notifications at %s topic. Context: %s",
+                    listID, LogicalOperation.current()), e);
         }
 
         /**
@@ -1200,7 +1206,8 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                                                 final Level logLevel,
                                                 final String listenerID,
                                                 final Exception e){
-            logger.log(logLevel, String.format("Failed to subscribe on %s topic", listenerID), e);
+            logger.log(logLevel, String.format("Failed to subscribe on %s topic. Context: %s",
+                    listenerID, LogicalOperation.current()), e);
         }
 
         /**

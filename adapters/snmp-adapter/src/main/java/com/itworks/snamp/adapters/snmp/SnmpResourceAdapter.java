@@ -103,11 +103,11 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             notificationBus = new EventBus();
         }
 
-        public void subscribe(final SnmpNoitificationListener listener){
+        private void subscribe(final SnmpNoitificationListener listener){
             notificationBus.register(listener);
         }
 
-        public void unsubscribe(final SnmpNoitificationListener listener){
+        private void unsubscribe(final SnmpNoitificationListener listener){
             notificationBus.unregister(listener);
         }
 
@@ -166,7 +166,6 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
         @Override
         @MethodStub
         public void close() {
-
         }
     }
 
@@ -223,9 +222,10 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
                        final Supplier<ExecutorService> threadPoolFactory) throws Exception {
         populateModel(attributes);
         populateModel(notifications);
-        agent = new SnmpAgent(port, address, security, socketTimeout);
+        final SnmpAgent agent = new SnmpAgent(port, address, security, socketTimeout);
         notifications.subscribe(agent);
         agent.start(attributes.values(), notifications.values(), threadPoolFactory.get());
+        this.agent = agent;
     }
 
     /**
@@ -262,13 +262,14 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
      */
     @Override
     protected void stop() throws Exception {
-        notifications.unsubscribe(agent);
         try {
             agent.stop();
+            notifications.unsubscribe(agent);
         } finally {
             clearModel(attributes);
             clearModel(notifications);
             notifications.close();
+            agent = null;
         }
         System.gc();
     }

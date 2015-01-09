@@ -163,41 +163,30 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
     public JmxConnectorBundleActivator() {
         super(JmxConnector.NAME,
                 new JmxConnectorFactory(),
-                new ConfigurationEntityDescriptionManager<JmxConnectorConfigurationDescriptor>() {
-                    @Override
-                    protected JmxConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-                        return new JmxConnectorConfigurationDescriptor();
-                    }
-                },
-                new JmxMaintenanceServiceManager(),
-                new LicensingDescriptionServiceManager<>(JmxConnectorLimitations.class, JmxConnectorLimitations.fallbackFactory),
-                new SimpleDiscoveryServiceManager<JMXConnector>() {
+                new RequiredService<?>[]{JmxConnectorLimitations.licenseReader},
+                new SupportConnectorServiceManager<?, ?>[]{
+                        new ConfigurationEntityDescriptionManager<JmxConnectorConfigurationDescriptor>() {
+                            @Override
+                            protected JmxConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+                                return new JmxConnectorConfigurationDescriptor();
+                            }
+                        },
+                        new JmxMaintenanceServiceManager(),
+                        new LicensingDescriptionServiceManager<>(JmxConnectorLimitations.class, JmxConnectorLimitations.fallbackFactory),
+                        new SimpleDiscoveryServiceManager<JMXConnector>() {
 
-                    @Override
-                    protected JMXConnector createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws IOException {
-                        return new JmxConnectionOptions(connectionString, connectionOptions).createConnection();
-                    }
+                            @Override
+                            protected JMXConnector createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws IOException {
+                                return new JmxConnectionOptions(connectionString, connectionOptions).createConnection();
+                            }
 
-                    @Override
-                    protected <T extends ManagedEntity> Collection<T> getManagementInformation(final Class<T> entityType,
-                                                                                               final JMXConnector connection,
-                                                                                               final RequiredService<?>... dependencies) throws JMException, IOException {
-                        return JmxDiscoveryService.discover(connection, entityType);
-                    }
-                }
-                );
-    }
-
-    /**
-     * Adds global dependencies.
-     * <p>
-     * In the default implementation this method does nothing.
-     * </p>
-     *
-     * @param dependencies A collection of connector's global dependencies.
-     */
-    @Override
-    protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
-        dependencies.add(JmxConnectorLimitations.licenseReader);
+                            @Override
+                            protected <T extends ManagedEntity> Collection<T> getManagementInformation(final Class<T> entityType,
+                                                                                                       final JMXConnector connection,
+                                                                                                       final RequiredService<?>... dependencies) throws JMException, IOException {
+                                return JmxDiscoveryService.discover(connection, entityType);
+                            }
+                        }
+                });
     }
 }

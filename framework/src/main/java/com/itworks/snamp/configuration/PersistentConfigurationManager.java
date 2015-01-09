@@ -46,6 +46,13 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private static final String ATTRIBUTES_PROPERTY = "$attributes$";
     private static final String EVENTS_PROPERTY = "$events$";
 
+    private static final Consumer<Configuration, IOException> clearAllConsumer = new Consumer<Configuration, IOException>() {
+        @Override
+        public void accept(final Configuration config) throws IOException {
+            config.delete();
+        }
+    };
+
     /**
      * Represents an exception happens when persistent configuration manager cannot
      * restore SNAMP configuration entity from OSGi persistent configuration store.
@@ -472,48 +479,56 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     }
 
     public static void save(final SerializableAgentConfiguration config, final ConfigurationAdmin output) throws IOException{
-        try {
-            //remove all unnecessary resources
-            forEachResource(output, new Consumer<Configuration, IOException>() {
-                private final Map<String, ManagedResourceConfiguration> resources = config.getManagedResources();
-
-                @Override
-                public void accept(final Configuration config) throws IOException {
-                    final String resourceName = Utils.getProperty(config.getProperties(), RESOURCE_NAME_PROPERTY, String.class, "");
-                    if(!resources.containsKey(resourceName))
-                        config.delete();
-                }
-            });
-            //remove all unnecessary adapters
-            forEachAdapter(output, new Consumer<Configuration, IOException>() {
-                private final Map<String, ResourceAdapterConfiguration> adapters = config.getResourceAdapters();
-
-                @Override
-                public void accept(final Configuration config) throws IOException {
-                    final String adapterInstance = Utils.getProperty(config.getProperties(), ADAPTER_INSTANCE_NAME_PROPERTY, String.class, "");
-                    if(!adapters.containsKey(adapterInstance))
-                        config.delete();
-                }
-            });
+        if(config.isEmpty())try{
+            forEachResource(output, clearAllConsumer);
+            forEachAdapter(output, clearAllConsumer);
         }
         catch (final InvalidSyntaxException e){
             throw new IOException(e);
         }
-        //save each modified resource or adapter
-        config.modifiedAdapters(new RecordReader<String, ResourceAdapterConfiguration, IOException>() {
-            @Override
-            public void read(final String adapterInstance, final ResourceAdapterConfiguration config) throws IOException {
-                if (config instanceof Modifiable && ((Modifiable) config).isModified())
-                    save(adapterInstance, config, output);
+        else {
+            try {
+                //remove all unnecessary resources
+                forEachResource(output, new Consumer<Configuration, IOException>() {
+                    private final Map<String, ManagedResourceConfiguration> resources = config.getManagedResources();
+
+                    @Override
+                    public void accept(final Configuration config) throws IOException {
+                        final String resourceName = Utils.getProperty(config.getProperties(), RESOURCE_NAME_PROPERTY, String.class, "");
+                        if (!resources.containsKey(resourceName))
+                            config.delete();
+                    }
+                });
+                //remove all unnecessary adapters
+                forEachAdapter(output, new Consumer<Configuration, IOException>() {
+                    private final Map<String, ResourceAdapterConfiguration> adapters = config.getResourceAdapters();
+
+                    @Override
+                    public void accept(final Configuration config) throws IOException {
+                        final String adapterInstance = Utils.getProperty(config.getProperties(), ADAPTER_INSTANCE_NAME_PROPERTY, String.class, "");
+                        if (!adapters.containsKey(adapterInstance))
+                            config.delete();
+                    }
+                });
+            } catch (final InvalidSyntaxException e) {
+                throw new IOException(e);
             }
-        });
-        config.modifiedResources(new RecordReader<String, ManagedResourceConfiguration, IOException>() {
-            @Override
-            public void read(final String resourceName, final ManagedResourceConfiguration config) throws IOException {
-                if (config instanceof Modifiable && ((Modifiable) config).isModified())
-                    save(resourceName, config, output);
-            }
-        });
+            //save each modified resource or adapter
+            config.modifiedAdapters(new RecordReader<String, ResourceAdapterConfiguration, IOException>() {
+                @Override
+                public void read(final String adapterInstance, final ResourceAdapterConfiguration config) throws IOException {
+                    if (config instanceof Modifiable && ((Modifiable) config).isModified())
+                        save(adapterInstance, config, output);
+                }
+            });
+            config.modifiedResources(new RecordReader<String, ManagedResourceConfiguration, IOException>() {
+                @Override
+                public void read(final String resourceName, final ManagedResourceConfiguration config) throws IOException {
+                    if (config instanceof Modifiable && ((Modifiable) config).isModified())
+                        save(resourceName, config, output);
+                }
+            });
+        }
     }
 
     /**

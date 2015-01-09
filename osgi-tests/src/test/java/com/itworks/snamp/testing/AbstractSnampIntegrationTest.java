@@ -195,7 +195,8 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
             final V result = handler.call();
             synchronizer.getAwaitor().await(timeout);
             return result;
-        } finally {
+        }
+        finally {
             ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
         }
     }

@@ -168,16 +168,6 @@ abstract class SnmpClient extends Snmp implements Closeable {
                     result.setContextName(contextName);
                 return result;
             }
-
-            @Override
-            public void close() throws IOException {
-                try{
-                    super.close();
-                }
-                finally {
-                    threadPool.shutdown();
-                }
-            }
         };
     }
 
@@ -209,16 +199,6 @@ abstract class SnmpClient extends Snmp implements Closeable {
                 final PDU result = new PDU();
                 result.setType(pduType);
                 return result;
-            }
-
-            @Override
-            public void close() throws IOException {
-                try {
-                    super.close();
-                }
-                finally {
-                    threadPool.shutdown();
-                }
             }
         };
     }
@@ -324,5 +304,26 @@ abstract class SnmpClient extends Snmp implements Closeable {
         for(final OID key: variables.keySet())
             bindings.add(new VariableBinding(key, variables.get(key)));
         set(bindings.toArray(new VariableBinding[bindings.size()]), timeout);
+    }
+
+    /**
+     * Returns the message dispatcher associated with this SNMP session.
+     *
+     * @return a <code>MessageDispatcher</code> instance.
+     * @since 1.1
+     */
+    @Override
+    public final ConcurrentMessageDispatcher getMessageDispatcher() {
+        return (ConcurrentMessageDispatcher)super.getMessageDispatcher();
+    }
+
+    @Override
+    public final void close() throws IOException {
+        try {
+            super.close();
+        }
+        finally {
+            getMessageDispatcher().close();
+        }
     }
 }

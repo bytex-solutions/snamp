@@ -21,5 +21,4 @@ public abstract class AbstractSnmpConnectorTest extends AbstractResourceConnecto
                                         final AbstractProvisionOption<?>... deps){
         super(CONNECTOR_NAME, "udp:" + host + "/" + port, parameters, concat(deps, SnampArtifact.SNMP_CONNECTOR.getReference(), SnampArtifact.SNMP4J.getReference()));
     }
-
 }

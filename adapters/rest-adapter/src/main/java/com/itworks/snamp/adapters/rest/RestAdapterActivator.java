@@ -2,8 +2,6 @@ package com.itworks.snamp.adapters.rest;
 
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 
-import java.util.Collection;
-
 /**
  * Represents bundle activator for REST adapter.
  * @author Roman Sakno
@@ -29,23 +27,13 @@ public final class RestAdapterActivator extends ResourceAdapterActivator<RestAda
         }
     }
 
-    public RestAdapterActivator(){
+    public RestAdapterActivator() {
         super(RestAdapter.NAME,
                 new RestAdapterFactory(),
-                new RestAdapterConfigurationManager(),
-                new LicensingDescriptionServiceManager<>(RestAdapterLimitations.class, RestAdapterLimitations.fallbackFactory));
-    }
-
-    /**
-     * Exposes additional adapter dependencies.
-     * <p>
-     * In the default implementation this method does nothing.
-     * </p>
-     *
-     * @param dependencies A collection of dependencies to fill.
-     */
-    @Override
-    protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
-        dependencies.add(RestAdapterLimitations.licenseReader);
+                new RequiredService<?>[]{RestAdapterLimitations.licenseReader},
+                new SupportAdapterServiceManager<?, ?>[]{
+                        new RestAdapterConfigurationManager(),
+                        new LicensingDescriptionServiceManager<>(RestAdapterLimitations.class, RestAdapterLimitations.fallbackFactory)
+                });
     }
 }

@@ -279,12 +279,12 @@ final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
      * @since 1.1
      */
     @Override
-    public void stop() {
+    public void stop(){
         switch (agentState){
             case STATE_RUNNING:
-                super.stop();
                 if(threadPool != null)
                     threadPool.shutdownNow();
+                super.stop();
             case STATE_STOPPED:
             case STATE_CREATED:
                 snmpTargetMIB.getSnmpTargetAddrEntry().removeAll();

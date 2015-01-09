@@ -57,4 +57,8 @@ final class SnmpConnectorHelpers {
     static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Throwable e){
         log(lvl, message, new Object[]{arg0, arg1}, e);
     }
+
+    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Object arg2, final Throwable e){
+        log(lvl, message, new Object[]{arg0, arg1, arg2}, e);
+    }
 }

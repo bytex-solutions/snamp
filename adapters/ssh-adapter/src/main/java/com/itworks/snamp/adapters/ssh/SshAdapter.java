@@ -5,12 +5,12 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.MapMaker;
-import com.itworks.snamp.Consumer;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
+import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.mapping.*;
 import net.schmizz.sshj.userauth.keyprovider.*;
@@ -90,14 +90,14 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                 listener.handle(notificationMetadata, notif);
         }
 
-        long addNotificationListener(final NotificationListener listener) {
+        private long addNotificationListener(final NotificationListener listener) {
             final long listenerID;
             listeners.put(listenerID = idCounter.incrementAndGet(),
                     Objects.requireNonNull(listener));
             return listenerID;
         }
 
-        void removeNotificationListener(final long listenerID) {
+        private void removeNotificationListener(final long listenerID) {
             listeners.remove(listenerID);
         }
 
@@ -113,7 +113,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             return String.format("%s/%s", resourceName, eventName);
         }
 
-        Set<String> getNotifications(final String resourceName) {
+        private Set<String> getNotifications(final String resourceName) {
             final Set<String> notifs = new HashSet<>(size());
             for (final String notifID : keySet())
                 if (notifID.startsWith(resourceName))
@@ -204,6 +204,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                                 accessor.containsKey(SshAdapterConfigurationDescriptor.COLUMN_BASED_OUTPUT_PARAM),
                                 output);
                     else output.println(Objects.toString(attrValue, VALUE_STUB));
+                    output.flush();
                 }
 
                 @Override
@@ -215,6 +216,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                 public void printOptions(final PrintWriter output) {
                     for(final Map.Entry<String, String> option: accessor.entrySet())
                         output.println(String.format("%s = %s", option.getKey(), option.getValue()));
+                    output.flush();
                 }
 
                 @Override
@@ -265,6 +267,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     }
 
     private SshServer server;
+    private ExecutorService threadPool;
     private final SshAttributesModel attributes;
     private final SshNotificationsModel notifications;
 
@@ -384,18 +387,11 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                        final SshSecuritySettings security,
                        final Supplier<ExecutorService> threadPoolFactory) throws Exception{
         final SshServer server = SshServer.setUpDefaultServer();
+        final ExecutorService commandExecutors = threadPoolFactory.get();
         server.setHost(host);
         server.setPort(port);
         server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(serverCertificateFile));
         setupSecurity(server, security);
-        final ExecutorService commandExecutors = Utils.overrideFinalize(threadPoolFactory.get(),
-                ExecutorService.class,
-                new Consumer<ExecutorService, Throwable>() {
-                    @Override
-                    public void accept(final ExecutorService commandExecutors) {
-                        commandExecutors.shutdownNow();
-                    }
-                });
         server.setShellFactory(ManagementShell.createFactory(this, commandExecutors));
         server.setCommandFactory(new CommandFactory() {
             private final AdapterController controller = Utils.weakReference(SshAdapter.this, AdapterController.class);
@@ -411,6 +407,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         populateModel(notifications);
         server.start();
         this.server = server;
+        this.threadPool = commandExecutors;
     }
 
     /**
@@ -452,11 +449,13 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     protected void stop() throws Exception{
         try {
             server.stop();
+            threadPool.shutdownNow();
         }
         finally {
             clearModel(attributes);
             clearModel(notifications);
             server = null;
+            threadPool = null;
         }
         System.gc();
     }
@@ -466,7 +465,6 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      *
      * @return The logger associated with this service.
      */
-    @Override
     public Logger getLogger() {
         return getLogger(NAME);
     }
@@ -527,7 +525,10 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             enlargeModel(resourceName, notifications);
         }
         catch (final Exception e){
-            SshHelpers.log(Level.SEVERE, String.format("Unable to process new resource %s. Restarting adapter %s.", resourceName, NAME), e);
+            SshHelpers.log(Level.SEVERE, String.format("Unable to process new resource %s. Restarting adapter %s. Context: %s",
+                    resourceName,
+                    NAME,
+                    LogicalOperation.current()), e);
             super.resourceAdded(resourceName);
         }
     }

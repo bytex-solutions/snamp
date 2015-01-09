@@ -3,8 +3,6 @@ package com.itworks.snamp.adapters.snmp;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import org.osgi.service.jndi.JNDIContextManager;
 
-import java.util.Collection;
-
 /**
  * @author Roman Sakno
  * @version 1.0
@@ -41,15 +39,10 @@ public final class SnmpResourceAdapterActivator extends ResourceAdapterActivator
     public SnmpResourceAdapterActivator() {
         super(SnmpResourceAdapter.NAME,
                 new SnmpAdapterFactory(),
-                new RequiredService<?>[]{ new SimpleDependency<>(JNDIContextManager.class) },
+                new RequiredService<?>[]{ new SimpleDependency<>(JNDIContextManager.class), SnmpAdapterLimitations.licenseReader },
                 new SupportAdapterServiceManager<?, ?>[]{
                         new LicensingDescriptionServiceManager<>(SnmpAdapterLimitations.class, SnmpAdapterLimitations.fallbackFactory),
                         new SnmpAdapterConfigurationEntityDescriptionManager()
                 });
-    }
-
-    @Override
-    protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
-        dependencies.add(SnmpAdapterLimitations.licenseReader);
     }
 }

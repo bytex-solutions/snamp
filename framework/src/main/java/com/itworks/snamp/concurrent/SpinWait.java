@@ -2,6 +2,7 @@ package com.itworks.snamp.concurrent;
 
 import com.google.common.base.Stopwatch;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.core.LogicalOperation;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -56,7 +57,7 @@ public abstract class SpinWait<T, E extends Throwable> implements Awaitor<T, E> 
         final Stopwatch timer = Stopwatch.createStarted();
         T result;
         while ((result = get()) == null)
-            if(timer.elapsed(TimeUnit.MILLISECONDS) > timeout.toMillis()) throw new TimeoutException();
+            if(timer.elapsed(TimeUnit.MILLISECONDS) > timeout.toMillis()) throw new TimeoutException(String.format("Spin wait timed out. Context: %s", LogicalOperation.current()));
             else if(Thread.interrupted()) throw spinWaitInterrupted();
             else if(delay != null) Thread.sleep(delay.toMillis());
         return result;

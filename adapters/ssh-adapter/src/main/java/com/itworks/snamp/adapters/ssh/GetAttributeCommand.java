@@ -1,5 +1,7 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
+import com.itworks.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
@@ -32,7 +34,7 @@ final class GetAttributeCommand extends AbstractManagementShellCommand {
         for(final String attributeID: input.getArgs()){
             final SshAttributeView attr = getAdapterController().getAttribute(attributeID);
             if(attr == null) throw new CommandException("Attribute %s doesn't exist", attributeID);
-            try {
+            try(final LogicalOperation ignored = new ReadAttributeLogicalOperation(attr.getName(), attributeID)) {
                 attr.printValue(output);
             }
             catch (final TimeoutException e) {

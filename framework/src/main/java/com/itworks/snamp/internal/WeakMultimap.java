@@ -29,11 +29,15 @@ public final class WeakMultimap {
                                         final K key,
                                         final V value){
         int result = 0;
-        for(final Iterator<WeakReference<V>> it = map.get(key).iterator(); it.hasNext();)
-            if(Objects.equals(value, it.next().get())) {
+        for(final Iterator<WeakReference<V>> it = map.get(key).iterator(); it.hasNext();) {
+            final V candidate = it.next().get();
+            if(candidate == null)
+                it.remove();
+            else if (Objects.equals(value, candidate)) {
                 it.remove();
                 result += 1;
             }
+        }
         return result;
     }
 

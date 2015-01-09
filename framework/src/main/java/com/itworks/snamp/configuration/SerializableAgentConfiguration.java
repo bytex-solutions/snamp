@@ -996,4 +996,12 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         //read connectors
         resources.readExternal(in);
     }
+
+    /**
+     * Determines whether this configuration is empty.
+     * @return {@literal true}, if this configuration is empty; otherwise, {@literal false}.
+     */
+    public final boolean isEmpty(){
+        return adapters.isEmpty() && resources.isEmpty();
+    }
 }

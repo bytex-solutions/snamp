@@ -2,6 +2,7 @@ package com.itworks.snamp.concurrent;
 
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.core.LogicalOperation;
 
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
@@ -90,7 +91,7 @@ public class SynchronizationEvent<T> {
         public T await(final TimeSpan timeout) throws TimeoutException, InterruptedException {
             if (timeout == TimeSpan.INFINITE) return await();
             else if (tryAcquireSharedNanos(1, timeout.toNanos())) return eventObj;
-            else throw new TimeoutException();
+            else throw new TimeoutException(String.format("Event timed out. Context: %s", LogicalOperation.current()));
         }
 
         /**

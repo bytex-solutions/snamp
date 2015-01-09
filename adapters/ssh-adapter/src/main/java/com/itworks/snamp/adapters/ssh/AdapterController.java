@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.ssh;
 
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * Represents mediation layer between SNAMP infrastructure and Secure Shell Interpreter.
@@ -9,7 +8,7 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-interface AdapterController {
+public interface AdapterController {
     /**
      * Gets a collection of connected managed resources.
      * @return A collection of connected managed resources.
@@ -29,14 +28,6 @@ interface AdapterController {
      * @return The attribute accessor; or {@literal null}, if attribute doesn't exist.
      */
     SshAttributeView getAttribute(final String attributeID);
-
-    /**
-     * Gets logger associated with adapter.
-     * @return The logger.
-     */
-    Logger getLogger();
-
-
     /**
      * Adds a new notification listener.
      * @param listener The listener.

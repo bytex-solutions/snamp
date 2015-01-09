@@ -52,9 +52,9 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     private static final String ENC_PROTOCOL = "aes128";
     private static final String ENC_KEY = "samplekey";
 
-    private static Map<String, String> getParameters(){
-        final Map<String, String> params = new HashMap<>(1);
-        params.put("localAddress", "udp://127.0.0.1/" + LOCAL_PORT);
+    private static Map<String, String> getParameters(final int localPort){
+        final Map<String, String> params = new HashMap<>(7);
+        params.put("localAddress", "udp://127.0.0.1/" + localPort);
         params.put("engineID", ENGINE_ID);
         params.put("userName", USER_NAME);
         params.put("password", PASSWORD);
@@ -62,6 +62,10 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         params.put("encryptionProtocol", ENC_PROTOCOL);
         params.put("encryptionKey", ENC_KEY);
         return params;
+    }
+
+    private static Map<String, String> getParameters() {
+        return getParameters(LOCAL_PORT);
     }
 
     private final BaseAgent agent;

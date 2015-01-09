@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadFactory;
  * @version 1.0
  * @since 1.0
  */
-public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory {
+public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, AutoCloseable {
     /**
      * Represents a priority for all newly created threads.
      */
@@ -42,10 +42,19 @@ public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory {
      * create a thread is rejected
      */
     @Override
-    public Thread newThread(final Runnable r) {
+    public Thread newThread(@SuppressWarnings("NullableProblems") final Runnable r) {
         final Thread t = new Thread(this, r);
         t.setDaemon(true);
         t.setPriority(newThreadPriority);
         return t;
+    }
+
+    /**
+     * Destroys this thread group.
+     * @see #destroy()
+     */
+    @Override
+    public final void close() {
+        destroy();
     }
 }

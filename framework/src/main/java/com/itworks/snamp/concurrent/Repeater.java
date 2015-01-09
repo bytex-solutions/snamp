@@ -142,7 +142,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     private final static class RepeaterThreadImpl extends Thread implements RepeaterThread{
         private final long period;
 
-        public RepeaterThreadImpl(final RepeaterWorker worker, final TimeSpan period){
+        private RepeaterThreadImpl(final RepeaterWorker worker, final TimeSpan period){
             super(worker);
             this.period = period.convert(TimeUnit.MILLISECONDS).duration;
             setDaemon(true);
