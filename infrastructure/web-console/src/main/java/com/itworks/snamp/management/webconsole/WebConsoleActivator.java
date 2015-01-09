@@ -29,7 +29,9 @@ import java.util.Collection;
  */
 public final class WebConsoleActivator extends AbstractBundleActivator {
     private static final String WEB_CONSOLE_PORT = "com.itworks.snamp.webconsole.port";
+    private static final String DEFAULT_WEB_CONSOLE_PORT = "3344";
     private static final String WEB_CONSOLE_HOST = "com.itworks.snamp.webconsole.host";
+    private static final String DEFAULT_WEB_CONSOLE_HOST = "localhost";
     private static final String LOGIN_MODULE_NAME = "SNAMP_WEB_CONSOLE";
     private static final String REALM = "Snamp Web Console Security";
 
@@ -49,6 +51,20 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         return loginService;
     }
 
+    private static int getWebConsolePort(final BundleContext context){
+        String port = context.getProperty(WEB_CONSOLE_PORT);
+        if(port == null || port.isEmpty())
+            port = System.getProperty(WEB_CONSOLE_PORT, DEFAULT_WEB_CONSOLE_PORT);
+        return Integer.parseInt(port);
+    }
+
+    private static String getWebConsoleHost(final BundleContext context){
+        String host = context.getProperty(WEB_CONSOLE_HOST);
+        if(host == null || host.isEmpty())
+            host = System.getProperty(WEB_CONSOLE_HOST, DEFAULT_WEB_CONSOLE_HOST);
+        return host;
+    }
+
     /**
      * Starts the bundle and instantiate runtime state of the bundle.
      *
@@ -58,15 +74,12 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
      */
     @Override
     protected void start(final BundleContext context, final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-        final int port = Integer.valueOf(context.getProperty(WEB_CONSOLE_PORT));
-        String host = context.getProperty(WEB_CONSOLE_HOST);
-        if(host == null || host.isEmpty()) host = "127.0.0.1";
         //remove all connectors.
         removeConnectors(jettyServer);
         //initializes a new connector.
         final ServerConnector connector = new ServerConnector(jettyServer);
-        connector.setPort(port);
-        connector.setHost(host);
+        connector.setPort(getWebConsolePort(context));
+        connector.setHost(getWebConsoleHost(context));
         jettyServer.setConnectors(new Connector[]{connector});
         //add dependencies
         bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
