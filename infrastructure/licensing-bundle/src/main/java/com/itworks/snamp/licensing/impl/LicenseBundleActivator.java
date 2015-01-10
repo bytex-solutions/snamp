@@ -3,6 +3,7 @@ package com.itworks.snamp.licensing.impl;
 import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.LicenseReader;
+import org.osgi.service.cm.ManagedService;
 
 import java.util.Collection;
 import java.util.Map;
@@ -14,14 +15,11 @@ import java.util.Map;
  * @since 1.0
  */
 public final class LicenseBundleActivator extends AbstractServiceLibrary {
+    private static final ActivationProperty<XmlLicenseReader> LICENSE_READER_ACTIVATION_PROPERTY = defineActivationProperty(XmlLicenseReader.class);
 
+    private static final class XmlLicenseReaderProvidedService extends ProvidedService<LicenseReader, XmlLicenseReader>{
 
-    private static final class XmlLicenseReaderProvider extends ProvidedService<LicenseReader, XmlLicenseReader>{
-
-        /**
-         * Initializes a new holder for the provided service.
-         */
-        private XmlLicenseReaderProvider() {
+        private XmlLicenseReaderProvidedService() {
             super(LicenseReader.class);
         }
 
@@ -34,14 +32,23 @@ public final class LicenseBundleActivator extends AbstractServiceLibrary {
          */
         @Override
         protected XmlLicenseReader activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
-            final XmlLicenseReader reader = new XmlLicenseReader();
-            reader.reload();
-            return reader;
+            return getActivationPropertyValue(LICENSE_READER_ACTIVATION_PROPERTY);
+        }
+    }
+
+    private static final class LicenseTrackerProvidedService extends ProvidedService<ManagedService, XmlLicenseReader>{
+        private LicenseTrackerProvidedService(){
+            super(ManagedService.class);
+        }
+
+        @Override
+        protected XmlLicenseReader activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+            return getActivationPropertyValue(LICENSE_READER_ACTIVATION_PROPERTY);
         }
     }
 
     public LicenseBundleActivator(){
-        super(new XmlLicenseReaderProvider());
+        super(new XmlLicenseReaderProvidedService());
     }
 
 
@@ -64,8 +71,10 @@ public final class LicenseBundleActivator extends AbstractServiceLibrary {
      */
     @Override
     @MethodStub
-    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) {
-
+    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception{
+        final XmlLicenseReader reader = new XmlLicenseReader();
+        reader.bootFromFile();
+        activationProperties.publish(LICENSE_READER_ACTIVATION_PROPERTY, reader);
     }
 
     /**

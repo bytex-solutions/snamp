@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.licensing.LicenseReader.LICENSE_FILE_PROPERTY;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
@@ -38,6 +37,9 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  */
 @ExamReactorStrategy(PerClass.class)
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
+    //copied from XmlLicenseReader
+    private static final String LICENSE_FILE_PROPERTY = "com.itworks.snamp.licensing.file";
+
     private static final class AdapterStartedSynchronizationEvent extends SynchronizationEvent<ResourceAdapter> implements ResourceAdapterEventListener {
 
         @Override

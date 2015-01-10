@@ -48,5 +48,11 @@
             <artifactId>org.osgi.core</artifactId>
             <version>4.3.1</version>
         </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <version>4.3.1</version>
+        </dependency>
     </dependencies>
 </project>

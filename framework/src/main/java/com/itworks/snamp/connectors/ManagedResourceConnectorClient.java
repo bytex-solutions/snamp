@@ -413,7 +413,7 @@ public final class ManagedResourceConnectorClient {
         try {
             return PersistentConfigurationManager.readResourceConfiguration(admin.getService(), resourceName);
         } finally {
-            admin.clear(context);
+            admin.release(context);
         }
     }
 }

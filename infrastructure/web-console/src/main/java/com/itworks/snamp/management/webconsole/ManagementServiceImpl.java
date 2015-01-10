@@ -19,7 +19,6 @@ import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.core.OsgiLoggingContext;
 import com.itworks.snamp.internal.TransformerClosure;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.licensing.LicenseReader;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
@@ -29,7 +28,7 @@ import org.osgi.framework.BundleException;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.io.*;
+import java.io.IOException;
 import java.util.*;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
@@ -120,30 +119,18 @@ public final class ManagementServiceImpl {
         }
     }
 
-    /**
-     * Gets path to the SNAMP license file.
-     * @return A path to the SNAMP license file.
-     */
-    static String getLicenseFile(){
-        return System.getProperty(LicenseReader.LICENSE_FILE_PROPERTY, "./snamp.lic");
-    }
+
 
     @GET
     @Path("/license")
     @Produces(MediaType.APPLICATION_XML)
-    public String getLicense(@Context SecurityContext context) throws WebApplicationException{
+    public String getLicense(final @Context SecurityContext context) throws WebApplicationException {
         SecurityUtils.adminRequired(context);
-        final StringBuilder result = new StringBuilder(14);
-        try(final InputStreamReader is = new InputStreamReader(new FileInputStream(getLicenseFile()), LicenseReader.LICENSE_FILE_ENCODING)){
-            final char[] buffer = new char[1024];
-            int count;
-            while ((count = is.read(buffer)) > 0)
-                result.append(buffer, 0, count);
+        try {
+            return LicenseManager.getLicenseContent(getBundleContextByObject(this));
+        } catch (final IOException e) {
+            throw new WebApplicationException(e);
         }
-        catch (final IOException e){
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-        return result.toString();
     }
 
     @POST
@@ -151,11 +138,11 @@ public final class ManagementServiceImpl {
     @Consumes(MediaType.APPLICATION_XML)
     public void setLicense(final String licenseContent, @Context final SecurityContext context) throws WebApplicationException{
         SecurityUtils.adminRequired(context);
-        try(final OutputStream os = new FileOutputStream(getLicenseFile(), false)){
-            os.write(licenseContent.getBytes(LicenseReader.LICENSE_FILE_ENCODING));
+        try{
+            LicenseManager.setLicenseContent(getBundleContextByObject(this), licenseContent);
         }
         catch (final IOException e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException(e);
         }
     }
 

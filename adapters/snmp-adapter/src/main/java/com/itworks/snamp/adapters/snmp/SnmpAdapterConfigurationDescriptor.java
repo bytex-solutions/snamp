@@ -72,7 +72,7 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     static final String JNDI_LDAP_FACTORY_PARAM = "jndi-ldap-factory";
 
     /**
-     * Represents name of the attribute in directory that holds the user attribute as clear text.
+     * Represents name of the attribute in directory that holds the user attribute as release text.
      */
     static final String LDAP_PASSWORD_HOLDER_PARAM = "ldap-user-password-attribute-name";
 

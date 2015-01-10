@@ -50,7 +50,7 @@ public class ServiceReferenceHolder<S> implements ServiceReference<S> {
      *         is zero or if the service has been unregistered; {@literal true}
      *         otherwise.
      */
-    public final boolean clear(final BundleContext context){
+    public final boolean release(final BundleContext context){
         return context.ungetService(serviceRef);
     }
 

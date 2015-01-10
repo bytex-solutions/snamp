@@ -2,6 +2,7 @@ package com.itworks.snamp.licensing;
 
 import com.google.common.base.Supplier;
 import com.itworks.snamp.core.FrameworkService;
+import org.osgi.service.cm.ManagedService;
 
 /**
  * Represents OSGi service that allows to restrict functionality of another SNAMP services.
@@ -9,16 +10,22 @@ import com.itworks.snamp.core.FrameworkService;
  * @version 1.0
  * @since 1.0
  */
-public interface LicenseReader extends FrameworkService {
+public interface LicenseReader extends FrameworkService, ManagedService {
     /**
-     * Represents system property that contains path to the SNAMP commercial license descriptor.
+     * Represents persistence identifier used to read and write license content.
      */
-    String LICENSE_FILE_PROPERTY = "com.snamp.itworks.licensing.file";
+    String LICENSE_PID = "com.itworks.snamp.license";
 
     /**
      * Represents encoding of the license file.
      */
-    String LICENSE_FILE_ENCODING = "UTF-8";
+    String LICENSE_CONTENT_ENCODING = "UTF-8";
+
+    /**
+     * Represents name of the entry in the configuration dictionary which
+     * contains raw license content in the form of byte array.
+     */
+    String LICENSE_CONTENT_ENTRY = "license";
 
     /**
      * Reload the license from the persistent storage.

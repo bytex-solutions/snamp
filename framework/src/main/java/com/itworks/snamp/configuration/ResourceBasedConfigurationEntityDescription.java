@@ -506,7 +506,7 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Conf
      * Removes all of the elements from this collection (optional operation).
      * The collection will be empty after this method returns.
      *
-     * @throws UnsupportedOperationException if the <tt>clear</tt> operation
+     * @throws UnsupportedOperationException if the <tt>release</tt> operation
      *                                       is not supported by this collection
      */
     @Override

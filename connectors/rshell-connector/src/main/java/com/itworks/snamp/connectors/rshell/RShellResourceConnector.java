@@ -198,7 +198,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
          * the iteration are undefined.  The set supports element removal,
          * which removes the corresponding mapping from the map, via the
          * <tt>Iterator.remove</tt>, <tt>Set.remove</tt>,
-         * <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>clear</tt>
+         * <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>release</tt>
          * operations.  It does not support the <tt>add</tt> or <tt>addAll</tt>
          * operations.
          *
@@ -220,7 +220,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
          * supports element removal, which removes the corresponding
          * mapping from the map, via the <tt>Iterator.remove</tt>,
          * <tt>Collection.remove</tt>, <tt>removeAll</tt>,
-         * <tt>retainAll</tt> and <tt>clear</tt> operations.  It does not
+         * <tt>retainAll</tt> and <tt>release</tt> operations.  It does not
          * support the <tt>add</tt> or <tt>addAll</tt> operations.
          *
          * @return a collection view of the values contained in this map
@@ -242,7 +242,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
          * supports element removal, which removes the corresponding
          * mapping from the map, via the <tt>Iterator.remove</tt>,
          * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt> and
-         * <tt>clear</tt> operations.  It does not support the
+         * <tt>release</tt> operations.  It does not support the
          * <tt>add</tt> or <tt>addAll</tt> operations.
          *
          * @return a set view of the mappings contained in this map

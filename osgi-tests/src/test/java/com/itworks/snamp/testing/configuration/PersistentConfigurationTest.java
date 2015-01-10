@@ -72,7 +72,7 @@ public class PersistentConfigurationTest extends AbstractIntegrationTest {
             assertEquals("value", currentConfig.getResourceAdapters().get("adapter1").getParameters().get("param1"));
         }
         finally {
-            admin.clear(getTestBundleContext());
+            admin.release(getTestBundleContext());
         }
     }
 }

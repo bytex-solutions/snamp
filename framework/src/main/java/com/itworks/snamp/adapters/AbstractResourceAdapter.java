@@ -622,7 +622,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * Removes all of the mappings from this map (optional operation).
          * The map will be empty after this call returns.
          *
-         * @throws UnsupportedOperationException if the <tt>clear</tt> operation
+         * @throws UnsupportedOperationException if the <tt>release</tt> operation
          *                                       is not supported by this map
          * @throws java.lang.IllegalStateException The accessor is disconnected from the managed resource connector.
          */
@@ -795,14 +795,14 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 switch (eventType){
                     case ServiceEvent.REGISTERED:
                         if(resourceConnector != null){
-                            resourceConnector.clear(context);
+                            resourceConnector.release(context);
                         }
                         resourceConnector = new ServiceReferenceHolder<>(context, connectorRef);
                         break;
                     case ServiceEvent.UNREGISTERING:
                     case ServiceEvent.MODIFIED_ENDMATCH:
                         if(resourceConnector != null)
-                            resourceConnector.clear(context);
+                            resourceConnector.release(context);
                         resourceConnector = null;
                 }
         }
@@ -837,7 +837,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          */
         public void close(){
             if(resourceConnector != null)
-                resourceConnector.clear(context);
+                resourceConnector.release(context);
             resourceConnector = null;
         }
     }
@@ -928,7 +928,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 }
             });
         } finally {
-            configAdmin.clear(context);
+            configAdmin.release(context);
         }
     }
 
@@ -1034,7 +1034,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * <p>
      *     It is recommended to call this method inside of {@link #stop()} method.
      * </p>
-     * @param notificationsModel The model to clear. Cannot be {@literal null}.
+     * @param notificationsModel The model to release. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException notificationsModel is {@literal null}.
      */
     protected final void clearModel(final AbstractNotificationsModel<?> notificationsModel){
@@ -1064,7 +1064,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * <p>
      *     It is recommended to call this method inside of {@link #stop()} method.
      * </p>
-     * @param attributesModel The model to clear. Cannot be {@literal null}.
+     * @param attributesModel The model to release. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
      */
     protected final void clearModel(final AbstractAttributesModel<?> attributesModel) {

@@ -3,12 +3,18 @@ package com.itworks.snamp.licensing.impl;
 import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.itworks.snamp.concurrent.ConcurrentResourceAccess;
 import com.itworks.snamp.SafeConsumer;
+import com.itworks.snamp.ServiceReferenceHolder;
+import com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess;
+import com.itworks.snamp.concurrent.ConcurrentResourceAccess;
 import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.cm.ConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -25,13 +31,12 @@ import javax.xml.crypto.dsig.dom.DOMValidateContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.math.BigInteger;
 import java.security.Key;
 import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPublicKey;
+import java.util.Dictionary;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,6 +52,7 @@ import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.Cons
  */
 final class XmlLicenseReader extends AbstractFrameworkService implements LicenseReader {
     private static final String LOGGER_NAME = "com.itworks.snamp.licensing";
+    private static final String BOOT_LICENSE_SYSTEM_PROP = "com.itworks.snamp.licensing.file";
 
     /**
      * Represents licensing context.
@@ -61,7 +67,7 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
         }
     }
 
-    private final ConcurrentResourceAccess<LicensingContext> licensingContext;
+    private final AbstractConcurrentResourceAccess<LicensingContext> licensingContext;
 
     /**
      * Initializes a new instance of the license reader service.
@@ -128,49 +134,64 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
         }
     }
 
-    /**
-     * Gets path to the SNAMP license file.
-     *
-     * @return A path to the SNAMP license file.
-     */
-    public static String getLicenseFile() {
-        return System.getProperty(LICENSE_FILE_PROPERTY, "./snamp.lic");
+    private static InputStream getLicenseStream(final Dictionary<String, ?> config){
+        final byte[] licenseContent = Utils.getProperty(config, LICENSE_CONTENT_ENTRY, byte[].class, new byte[0]);
+        return licenseContent == null || licenseContent.length == 0 ?
+                null :
+                new ByteArrayInputStream(licenseContent);
     }
 
-    private Document loadLicense() {
-        //This method is specially not optimized for security purposes!!!
-        try (final InputStream licenseStream = new FileInputStream(getLicenseFile())) {
-            final Key publicLicenseKey = new LicensePublicKey();
-            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            final DocumentBuilder builder = factory.newDocumentBuilder();
-            final Document xmlLicense = builder.parse(licenseStream);
-            final NodeList nl = xmlLicense.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
-            if (nl.getLength() == 0) throw new XMLSignatureException("License file has no digital signature.");
-            //normal XML signature validation
-            final DOMValidateContext valContext = new DOMValidateContext(publicLicenseKey, nl.item(0));
-            final XMLSignatureFactory xmlsigfact = XMLSignatureFactory.getInstance("DOM");
-            final XMLSignature signature = xmlsigfact.unmarshalXMLSignature(valContext);
-            if (!signature.validate(valContext))
-                throw new XMLSignatureException("Invalid license file signature.");
-            return xmlLicense;
-        } catch (final IOException | ParserConfigurationException | SAXException | MarshalException | XMLSignatureException e) {
-            OsgiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    logger.log(Level.SEVERE, "Unable to load license file.", e);
-                }
-            });
-            return null;
+    @Override
+    public void updated(final Dictionary<String, ?> properties) throws ConfigurationException {
+        final InputStream licenseContent = getLicenseStream(properties);
+        if (licenseContent != null)
+            try {
+                reload(licenseContent);
+            } catch (final MarshalException | IOException | SAXException | ParserConfigurationException | XMLSignatureException e) {
+                OsgiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
+                    @Override
+                    public void accept(final Logger logger) {
+                        logger.log(Level.SEVERE, "Unable to update license", e);
+                    }
+                });
+            }
+    }
+
+    private static InputStream getLicenseStream(final BundleContext context) throws IOException {
+        final ServiceReferenceHolder<ConfigurationAdmin> adminRef = new ServiceReferenceHolder<>(context,
+                ConfigurationAdmin.class);
+        try{
+            final ConfigurationAdmin admin = adminRef.getService();
+            return getLicenseStream(admin.getConfiguration(LICENSE_PID, null).getProperties());
+        }
+        finally {
+            adminRef.release(context);
         }
     }
 
-    /**
-     * Reloads the current license file.
-     */
-    @Override
-    public void reload() {
-        final Document newLicenseContent = loadLicense();
+    private InputStream getLicenseStream() throws IOException {
+        return getLicenseStream(Utils.getBundleContextByObject(this));
+    }
+
+    private static Document loadLicense(final InputStream licenseStream) throws IOException, ParserConfigurationException, SAXException, MarshalException, XMLSignatureException {
+        final Key publicLicenseKey = new LicensePublicKey();
+        final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        final DocumentBuilder builder = factory.newDocumentBuilder();
+        final Document xmlLicense = builder.parse(licenseStream);
+        final NodeList nl = xmlLicense.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
+        if (nl.getLength() == 0) throw new XMLSignatureException("License file has no digital signature.");
+        //normal XML signature validation
+        final DOMValidateContext valContext = new DOMValidateContext(publicLicenseKey, nl.item(0));
+        final XMLSignatureFactory xmlsigfact = XMLSignatureFactory.getInstance("DOM");
+        final XMLSignature signature = xmlsigfact.unmarshalXMLSignature(valContext);
+        if (!signature.validate(valContext))
+            throw new XMLSignatureException("Invalid license file signature.");
+        return xmlLicense;
+    }
+
+    private void reload(final InputStream licenseContent) throws MarshalException, ParserConfigurationException, SAXException, XMLSignatureException, IOException {
+        final Document newLicenseContent = loadLicense(licenseContent);
         licensingContext.write(new ConsistentAction<LicensingContext, Void>() {
             @Override
             public final Void invoke(final LicensingContext resource) {
@@ -179,6 +200,33 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
                 return null;
             }
         });
+    }
+
+    /**
+     * Reloads the current license file.
+     */
+    @Override
+    public void reload() {
+        final InputStream licenseContent;
+        try{
+            licenseContent = getLicenseStream();
+            if(licenseContent == null)
+                OsgiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
+                    @Override
+                    public void accept(final Logger logger) {
+                        logger.warning("License content is empty");
+                    }
+                });
+            else reload(licenseContent);
+        } catch (final SAXException | MarshalException | IOException | XMLSignatureException | ParserConfigurationException e) {
+            OsgiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
+                @Override
+                public void accept(final Logger logger) {
+                    logger.log(Level.SEVERE, "Unable to reload license on demand", e);
+                }
+            });
+        }
+
     }
 
     private <T extends LicenseLimitations> T getLimitations(final Class<T> descriptor, final String licensedObject, final Unmarshaller deserializer) throws JAXBException {
@@ -235,6 +283,16 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
             result = fallback.get();
         }
         return result;
+    }
+
+    boolean bootFromFile() throws IOException, MarshalException, ParserConfigurationException, SAXException, XMLSignatureException {
+        final File licenseFile = new File(System.getProperty(BOOT_LICENSE_SYSTEM_PROP, "snamp.lic"));
+        if(licenseFile.exists())
+            try(final InputStream licenseContent = new FileInputStream(licenseFile)){
+                reload(licenseContent);
+                return true;
+            }
+        else return false;
     }
 
     /**
