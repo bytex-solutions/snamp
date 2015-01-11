@@ -7,8 +7,8 @@ import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.ops4j.pax.exam.options.FrameworkPropertyOption;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 
-import javax.inject.Inject;
 import java.util.*;
 
 import static org.ops4j.pax.exam.CoreOptions.junitBundles;
@@ -22,12 +22,9 @@ import static org.ops4j.pax.exam.CoreOptions.junitBundles;
 @RunWith(PaxExam.class)
 public abstract class AbstractIntegrationTest extends AbstractTest {
     private final List<AbstractProvisionOption<?>> dependencies;
-    @Inject
-    private BundleContext context;
 
     protected AbstractIntegrationTest(final List<AbstractProvisionOption<?>> deps){
         this.dependencies = new ArrayList<>(deps);
-        this.context = null;
     }
 
     protected AbstractIntegrationTest(final AbstractProvisionOption<?>... deps){
@@ -56,6 +53,6 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
      * @return The context of the test bundle.
      */
     protected final BundleContext getTestBundleContext(){
-        return context;
+        return FrameworkUtil.getBundle(getClass()).getBundleContext();
     }
 }
