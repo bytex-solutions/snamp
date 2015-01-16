@@ -18,11 +18,11 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapter
  */
 final class RestAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
 
-    static final String DATE_FORMAT_PARAM_NAME = "dateFormat";
-    static final String WEB_SOCKET_TIMEOUT_PARAM_NAME = "webSocketIdleTimeout";
-    static final String PORT_PARAM_NAME = "port";
-    static final String HOST_PARAM_NAME = "host";
-    static final String LOGIN_MODULE_NAME = "loginModule";
+    static final String DATE_FORMAT_PARAM = "dateFormat";
+    static final String WEB_SOCKET_TIMEOUT_PARAM = "webSocketIdleTimeout";
+    static final String PORT_PARAM = "port";
+    static final String HOST_PARAM = "host";
+    static final String REALM_NAME_PARAM = "realmName";
     static final int DEFAULT_PORT = 3456;
     static final String DEFAULT_HOST = "127.0.0.1";
     static final int DEFAULT_TIMEOUT = 5000;
@@ -32,11 +32,11 @@ final class RestAdapterConfigurationDescriptor extends ConfigurationEntityDescri
 
         public AdapterConfigurationInfo(){
             super(ResourceAdapterConfiguration.class,
-                    HOST_PARAM_NAME,
-                    PORT_PARAM_NAME,
-                    DATE_FORMAT_PARAM_NAME,
-                    WEB_SOCKET_TIMEOUT_PARAM_NAME,
-                    LOGIN_MODULE_NAME,
+                    HOST_PARAM,
+                    PORT_PARAM,
+                    DATE_FORMAT_PARAM,
+                    WEB_SOCKET_TIMEOUT_PARAM,
+                    REALM_NAME_PARAM,
                     MIN_POOL_SIZE_PROPERTY,
                     MAX_POOL_SIZE_PROPERTY,
                     PRIORITY_PROPERTY,

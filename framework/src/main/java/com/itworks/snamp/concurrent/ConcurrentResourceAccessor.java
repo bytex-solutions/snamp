@@ -17,8 +17,8 @@ import com.itworks.snamp.Wrapper;
  *     <b>Example:</b><br/>
  *     <pre>{@code
  *     final class Container{
- *         private final ConcurrentResourceAccess<Map<String, String>> map =
- *           new ConcurrentResourceAccess<>(new HashMap<>());
+ *         private final ConcurrentResourceAccessorImpl<Map<String, String>> map =
+ *           new ConcurrentResourceAccessorImpl<>(new HashMap<>());
  *
  *         public String get(final String key){
  *           return map.invoke(new ConcurrentResourceAccess.ConsistentAction<Map<String, String>, String>(){
@@ -29,7 +29,7 @@ import com.itworks.snamp.Wrapper;
  *         }
  *
  *         public void put(final Entry<String, String> entry){
- *           map.write(new ConcurrentResourceAccess.ConsistentAction<Map<String, String>, Void>(){
+ *           map.write(new ConcurrentResourceAccessImpl.ConsistentAction<Map<String, String>, Void>(){
  *             public Void write(final Map<String, String> m){
  *               m.put(entry.getKey(), entry.getRawValue());
  *               return null;
@@ -44,7 +44,7 @@ import com.itworks.snamp.Wrapper;
  * @since 1.0
  * @version 1.0
  */
-public class ConcurrentResourceAccess<R> extends AbstractConcurrentResourceAccess<R> implements Wrapper<R> {
+public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAccessor<R> implements Wrapper<R> {
     /**
      * Represents coordinated resource.
      */
@@ -54,7 +54,7 @@ public class ConcurrentResourceAccess<R> extends AbstractConcurrentResourceAcces
      * Initializes a new thread safe container for the specified resource.
      * @param resource The resource to hold. May be {@literal null}.
      */
-    public ConcurrentResourceAccess(final R resource){
+    public ConcurrentResourceAccessor(final R resource){
         this.resource = resource;
     }
 

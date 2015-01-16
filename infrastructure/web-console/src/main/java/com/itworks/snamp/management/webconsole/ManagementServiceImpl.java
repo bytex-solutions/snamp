@@ -1,6 +1,7 @@
 package com.itworks.snamp.management.webconsole;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.gson.*;
 import com.itworks.snamp.Box;
 import com.itworks.snamp.Consumer;
@@ -394,7 +395,7 @@ public final class ManagementServiceImpl {
     private static Map<String, JsonElement> deserializeQueryParams(final JsonParser parser,
                                                                    final MultivaluedMap<String, String> queryParams,
                                                                    final Set<String> exclusion){
-        final Map<String, JsonElement> result = new HashMap<>(queryParams.size());
+        final Map<String, JsonElement> result = Maps.newHashMapWithExpectedSize(queryParams.size());
         for(final String param: queryParams.keySet())
             if(!exclusion.contains(param))
                 result.put(param, parser.parse(queryParams.getFirst(param)));

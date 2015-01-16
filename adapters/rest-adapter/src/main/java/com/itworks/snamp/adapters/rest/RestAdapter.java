@@ -12,7 +12,6 @@ import com.itworks.snamp.connectors.notifications.Notification;
 import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import com.itworks.snamp.internal.Utils;
 import org.eclipse.jetty.jaas.JAASLoginService;
-import org.eclipse.jetty.jaas.JAASRole;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.LoginService;
@@ -41,7 +40,7 @@ import static com.itworks.snamp.adapters.rest.RestAdapterConfigurationDescriptor
  * @author Roman Sakno
  */
 final class RestAdapter extends AbstractResourceAdapter {
-    private static final String REALM_NAME = "SNAMP_REST_ADAPTER";
+    private static final String SECURITY_ALIAS = "SNAMP_REST_ADAPTER";
     static final String NAME = RestAdapterHelpers.ADAPTER_NAME;
 
     private static final class HttpNotifications extends AbstractNotificationsModel<HttpNotificationMapping> implements EventHandler, HttpNotificationsModel, AutoCloseable{
@@ -219,22 +218,21 @@ final class RestAdapter extends AbstractResourceAdapter {
         return builder.create();
     }
 
-    private static LoginService createLoginService(final String loginModuleName, final Class<?> callerClass){
-        final JAASLoginService loginService = RestAdapterHelpers.createJaasLoginServiceForOsgi(callerClass.getClassLoader());
-        loginService.setLoginModuleName(loginModuleName);
-        loginService.setName(REALM_NAME);
-        loginService.setRoleClassNames(new String[]{JAASRole.class.getName()});
+    private static LoginService createLoginService(final String realmName, final Class<?> callerClass){
+        final JAASLoginService loginService = RestAdapterHelpers.createJaasLoginServiceForOsgi(realmName, callerClass.getClassLoader());
+        loginService.setName(SECURITY_ALIAS);
+        loginService.setRoleClassNames(JAASLoginService.DEFAULT_ROLE_CLASS_NAMES);
         return loginService;
     }
 
     private void start(final Supplier<Server> serverFactory,
-                       final String loginModuleName,
+                       final String realmName,
                        final String dateTimeFormat,
                        final int webSocketTimeout) throws Exception {
         final Server jettyServer = serverFactory.get();
         attributes.setDateTimeFormat(dateTimeFormat);
         notifications.setDateTimeFormat(dateTimeFormat);
-        final boolean securityEnabled = loginModuleName != null && loginModuleName.length() > 0;
+        final boolean securityEnabled = realmName != null && realmName.length() > 0;
         final ServletContextHandler resourcesHandler = new ServletContextHandler(securityEnabled ? ServletContextHandler.SECURITY : ServletContextHandler.NO_SESSIONS);
         resourcesHandler.setContextPath("/snamp/managedResource");
         //security
@@ -245,14 +243,14 @@ final class RestAdapter extends AbstractResourceAdapter {
             constraint.setAuthenticate(true);
             constraint.setName("restadapterauth");
             constraint.setRoles(new String[]{RestAdapterHelpers.MAINTAINER_ROLE, RestAdapterHelpers.MONITOR_ROLE});
-            security.setRealmName(REALM_NAME);
+            security.setRealmName(SECURITY_ALIAS);
             security.addRole(RestAdapterHelpers.MAINTAINER_ROLE);
             security.addRole(RestAdapterHelpers.MONITOR_ROLE);
             final ConstraintMapping cmapping = new ConstraintMapping();
             cmapping.setPathSpec("/attributes/*");
             cmapping.setConstraint(constraint);
             security.setConstraintMappings(new ConstraintMapping[]{cmapping});
-            security.setLoginService(createLoginService(loginModuleName, getClass()));
+            security.setLoginService(createLoginService(realmName, getClass()));
             security.setAuthenticator(new DigestAuthenticator());
             resourcesHandler.setSecurityHandler(security);
             jettyServer.addBean(security.getLoginService());
@@ -279,13 +277,13 @@ final class RestAdapter extends AbstractResourceAdapter {
 
     private void start(final int port,
                        final String hostName,
-                       final String loginModuleName,
+                       final String realmName,
                        final String dateTimeFormat,
                        final int webSocketTimeout,
                        final Supplier<ExecutorService> threadPoolFactory) throws Exception{
         final JettyServerBuilder serverBuilder = new JettyServerBuilder(hostName, port);
         serverBuilder.setThreadPool(threadPoolFactory.get());
-        start(serverBuilder, loginModuleName, dateTimeFormat, webSocketTimeout);
+        start(serverBuilder, realmName, dateTimeFormat, webSocketTimeout);
     }
 
     @Override
@@ -293,18 +291,18 @@ final class RestAdapter extends AbstractResourceAdapter {
         final Supplier<ExecutorService> threadPoolFactory = new JettyThreadPoolConfig(parameters,
                 getInstanceName());
         RestAdapterLimitations.current().verifyServiceVersion(RestAdapter.class);
-        final String port = parameters.containsKey(PORT_PARAM_NAME) ?
-                parameters.get(PORT_PARAM_NAME) : Integer.toString(DEFAULT_PORT);
-        final String host = parameters.containsKey(HOST_PARAM_NAME) ?
-                parameters.get(HOST_PARAM_NAME) :
+        final String port = parameters.containsKey(PORT_PARAM) ?
+                parameters.get(PORT_PARAM) : Integer.toString(DEFAULT_PORT);
+        final String host = parameters.containsKey(HOST_PARAM) ?
+                parameters.get(HOST_PARAM) :
                 DEFAULT_HOST;
-        final String socketTimeout = parameters.containsKey(WEB_SOCKET_TIMEOUT_PARAM_NAME) ?
-                parameters.get(WEB_SOCKET_TIMEOUT_PARAM_NAME) :
+        final String socketTimeout = parameters.containsKey(WEB_SOCKET_TIMEOUT_PARAM) ?
+                parameters.get(WEB_SOCKET_TIMEOUT_PARAM) :
                 Integer.toString(DEFAULT_TIMEOUT);
         start(Integer.valueOf(port),
                 host,
-                parameters.get(LOGIN_MODULE_NAME),
-                parameters.get(DATE_FORMAT_PARAM_NAME),
+                parameters.get(REALM_NAME_PARAM),
+                parameters.get(DATE_FORMAT_PARAM),
                 Integer.valueOf(socketTimeout),
                 threadPoolFactory);
     }

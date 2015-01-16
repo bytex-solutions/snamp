@@ -1,11 +1,12 @@
 package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
 import com.itworks.snamp.ConversionException;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess;
-import com.itworks.snamp.concurrent.ConcurrentResourceAccess;
+import com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor;
+import com.itworks.snamp.concurrent.ConcurrentResourceAccessor;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityValue;
@@ -32,8 +33,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.Action;
-import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.ConsistentAction;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
 import static com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory.ExceptionHandler;
 import static com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker;
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.*;
@@ -120,8 +121,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
                     return new ManagedEntityValue<>(binding,
                             typeSystem.resolveSnmpScalarType(binding, options));
                 default:
-                    final Map<String, Object> attachment = new HashMap<>(bindings.size());
-                    final Map<String, ManagedEntityType> attachmentType = new HashMap<>(bindings.size());
+                    final Map<String, Object> attachment = Maps.newHashMapWithExpectedSize(bindings.size());
+                    final Map<String, ManagedEntityType> attachmentType = Maps.newHashMapWithExpectedSize(bindings.size());
                     for(final VariableBinding b: bindings){
                         final String key = b.getOid().toDottedString();
                         attachment.put(key, b.getVariable());
@@ -259,10 +260,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
     }
 
     private static final class SnmpNotificationSupport extends AbstractNotificationSupport{
-        private final AbstractConcurrentResourceAccess<SnmpClient> client;
+        private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final SnmpTypeSystem typeSystem;
 
-        private SnmpNotificationSupport(final AbstractConcurrentResourceAccess<SnmpClient> client,
+        private SnmpNotificationSupport(final AbstractConcurrentResourceAccessor<SnmpClient> client,
                                         final SnmpTypeSystem typeSystem){
             this.client = client;
             this.typeSystem = typeSystem;
@@ -470,10 +471,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
     }
 
     private static final class SnmpAttributeSupport extends AbstractAttributeSupport{
-        private final AbstractConcurrentResourceAccess<SnmpClient> client;
+        private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final SnmpTypeSystem typeSystem;
 
-        private SnmpAttributeSupport(final AbstractConcurrentResourceAccess<SnmpClient> client,
+        private SnmpAttributeSupport(final AbstractConcurrentResourceAccessor<SnmpClient> client,
                                      final SnmpTypeSystem typeSystem){
             this.client = client;
             this.typeSystem = typeSystem;
@@ -645,7 +646,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
 
     private final SnmpAttributeSupport attributes;
     private final SnmpNotificationSupport notifications;
-    private final AbstractConcurrentResourceAccess<SnmpClient> client;
+    private final AbstractConcurrentResourceAccessor<SnmpClient> client;
 
     /**
      * Initializes a new management connector.
@@ -654,7 +655,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      */
     SnmpResourceConnector(final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
         super(snmpConnectionOptions);
-        client = new ConcurrentResourceAccess<>(snmpConnectionOptions.createSnmpClient());
+        client = new ConcurrentResourceAccessor<>(snmpConnectionOptions.createSnmpClient());
         final SnmpTypeSystem typeSystem = new SnmpTypeSystem();
         attributes = new SnmpAttributeSupport(client, typeSystem);
         notifications = new SnmpNotificationSupport(client, typeSystem);

@@ -7,7 +7,7 @@ import com.itworks.snamp.core.LogicalOperation;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
-import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.ConsistentAction;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
 
 /**
  * Represents synchronization event that is used to synchronize with some
@@ -107,7 +107,7 @@ public class SynchronizationEvent<T> {
         }
     }
 
-    private final ConcurrentResourceAccess<EventState<T>> state;
+    private final ConcurrentResourceAccessor<EventState<T>> state;
     private final boolean autoReset;
 
     /**
@@ -117,7 +117,7 @@ public class SynchronizationEvent<T> {
      *                  otherwise, {@literal false}.
      */
     public SynchronizationEvent(final boolean autoReset) {
-        state = new ConcurrentResourceAccess<>(new EventState<T>());
+        state = new ConcurrentResourceAccessor<>(new EventState<T>());
         this.autoReset = autoReset;
     }
 

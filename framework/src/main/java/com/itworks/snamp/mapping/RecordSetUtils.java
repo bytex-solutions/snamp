@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 import com.itworks.snamp.Box;
 import com.itworks.snamp.ExceptionPlaceholder;
@@ -270,7 +271,7 @@ public final class RecordSetUtils {
      * @param <V> Type of the map values.
      */
     public static <K, V> Map<K, V> toMap(final RecordSet<K, V> input){
-        final Map<K, V> result = new HashMap<>(input.size());
+        final Map<K, V> result = Maps.newHashMapWithExpectedSize(input.size());
         fillMap(input, result);
         return result;
     }

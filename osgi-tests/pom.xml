@@ -244,5 +244,11 @@
             <version>1.8.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>jaas-config</artifactId>
+            <version>1.0.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

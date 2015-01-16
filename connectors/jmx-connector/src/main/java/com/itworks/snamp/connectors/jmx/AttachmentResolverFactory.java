@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.jmx;
 
 import com.google.common.base.Suppliers;
+import com.google.common.collect.Maps;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.ManagedEntityValue;
@@ -112,7 +113,7 @@ final class AttachmentResolverFactory {
                     final List<String>
                             itemDescriptions = new ArrayList<>(properties.length);
                     final List<OpenType<?>> itemTypes = new ArrayList<>(properties.length);
-                    final Map<String, Object> itemValues = new HashMap<>(properties.length);
+                    final Map<String, Object> itemValues = Maps.newHashMapWithExpectedSize(properties.length);
                     reflectProperties(properties, typeSystem, new PropertyReflector() {
                         @Override
                         public void reflect(final PropertyDescriptor prop, final JmxManagedEntityOpenType<?> type) throws ReflectiveOperationException {

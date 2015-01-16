@@ -15,6 +15,7 @@ import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,26 +43,31 @@ final class RestAdapterHelpers {
      */
     static final String MAINTAINER_ROLE = "maintainer";
 
-    private static final class OsgiCompliantJaasLoginService extends JAASLoginService{
-        private final ClassLoader osgiClassLoader;
+    private static final class OsgiCompliantJAASLoginService extends JAASLoginService {
+        private final WeakReference<ClassLoader> osgiClassLoader;
 
-        private OsgiCompliantJaasLoginService(final ClassLoader osgiClassLoader){
-            this.osgiClassLoader = osgiClassLoader;
+        private OsgiCompliantJAASLoginService(final String realmName,
+                                              final ClassLoader osgiClassLoader) {
+            super(realmName);
+            this.osgiClassLoader = new WeakReference<>(osgiClassLoader);
         }
 
         @Override
         public UserIdentity login(final String username, final Object credentials) {
-            return Utils.withContextClassLoader(osgiClassLoader, new ExceptionalCallable<UserIdentity, ExceptionPlaceholder>() {
-                @Override
-                public UserIdentity call() {
-                    return OsgiCompliantJaasLoginService.super.login(username, credentials);
-                }
-            });
+            final ClassLoader osgiClassLoader = this.osgiClassLoader.get();
+            return osgiClassLoader != null ?
+                    Utils.withContextClassLoader(osgiClassLoader, new ExceptionalCallable<UserIdentity, ExceptionPlaceholder>() {
+                        @Override
+                        public UserIdentity call() {
+                            return OsgiCompliantJAASLoginService.super.login(username, credentials);
+                        }
+                    }) : super.login(username, credentials);
         }
     }
 
-    static JAASLoginService createJaasLoginServiceForOsgi(final ClassLoader osgiClassLoader) {
-        return new OsgiCompliantJaasLoginService(osgiClassLoader);
+    static JAASLoginService createJaasLoginServiceForOsgi(final String realmName,
+                                                          final ClassLoader osgiClassLoader) {
+        return new OsgiCompliantJAASLoginService(realmName, osgiClassLoader);
     }
 
     //this method is not used by this bundle but required for correct Import-Package

@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
@@ -535,7 +536,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
                     SnmpHelpers.log(Level.SEVERE, "Row %s is null. Sending table %s is cancelled", makeRowID(r), getOID(), null);
                     return;
                 }
-                final Map<String, Object> cells = new HashMap<>(getColumnCount());
+                final Map<String, Object> cells = Maps.newHashMapWithExpectedSize(getColumnCount());
                 boolean allowToAddRow = true;
                 for(int c = 0; c < getColumnCount(); c++){
                     final MONamedColumn<Variable> column = getColumn(c);

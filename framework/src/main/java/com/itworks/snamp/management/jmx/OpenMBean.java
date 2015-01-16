@@ -1,6 +1,7 @@
 package com.itworks.snamp.management.jmx;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.Maps;
 import com.itworks.snamp.internal.annotations.MethodStub;
 
 import javax.management.*;
@@ -175,7 +176,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         private R invoke(final Object[] arguments) throws ReflectionException{
             if(arguments.length < parameters.size())
                 throw new ReflectionException(new IllegalArgumentException(String.format("Invalid arguments count. Expected %s but found %s.", parameters.size(), arguments.length)));
-            final Map<String, Object> args = new HashMap<>(arguments.length);
+            final Map<String, Object> args = Maps.newHashMapWithExpectedSize(arguments.length);
             for(int i = 0; i < arguments.length; i++){
                 final OpenMBeanParameterInfo paramInfo = parameters.get(i);
                 args.put(paramInfo.getName(), arguments[i]);

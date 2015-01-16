@@ -1,5 +1,6 @@
 package com.itworks.snamp.concurrent;
 
+import com.google.common.collect.Maps;
 import com.itworks.snamp.TimeSpan;
 
 import java.util.*;
@@ -64,7 +65,7 @@ public abstract class ThreadSafeObject {
                         groups.iterator().next(), new ReentrantReadWriteLock());
                 break;
             default:
-                resourceGroups = new HashMap<>(groups.size());
+                resourceGroups = Maps.newHashMapWithExpectedSize(groups.size());
                 for (final Enum<?> g : groups)
                     resourceGroups.put(g, new ReentrantReadWriteLock());
         }

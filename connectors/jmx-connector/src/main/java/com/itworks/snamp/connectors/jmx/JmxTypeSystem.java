@@ -2,6 +2,7 @@ package com.itworks.snamp.connectors.jmx;
 
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.connectors.ManagedEntityTabularType;
@@ -306,7 +307,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
                 value.sequential().forEach(new RecordReader<Integer, RecordSet<String, ?>, JMException>() {
                     @Override
                     public void read(final Integer rowIndex, final RecordSet<String, ?> row) throws JMException {
-                        final Map<String, Object> newRow = new HashMap<>(row.size());
+                        final Map<String, Object> newRow = Maps.newHashMapWithExpectedSize(row.size());
                         //for each column
                         row.sequential().forEach(new RecordReader<String, Object, InvalidAttributeValueException>() {
                             @Override
@@ -423,7 +424,7 @@ final class JmxTypeSystem extends WellKnownTypeSystem {
         }
 
         private CompositeData convertToJmxType(final RecordSet<String, ?> value) throws InvalidAttributeValueException{
-            final Map<String, Object> convertedValue = new HashMap<>(value.size());
+            final Map<String, Object> convertedValue = Maps.newHashMapWithExpectedSize(value.size());
             value.sequential().forEach(new RecordReader<String, Object, InvalidAttributeValueException>() {
                 @Override
                 public void read(final String columnName, final Object value) throws InvalidAttributeValueException {

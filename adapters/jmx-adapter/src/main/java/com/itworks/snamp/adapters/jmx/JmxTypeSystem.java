@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.jmx;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ArrayUtils;
@@ -139,7 +140,7 @@ final class JmxTypeSystem {
                     dict.values().toArray());
         }
         else if(source.canConvertTo(TypeLiterals.NAMED_RECORD_SET)){
-            final Map<String, Object> m = new HashMap<>(source.type.getColumns().size());
+            final Map<String, Object> m = Maps.newHashMapWithExpectedSize(source.type.getColumns().size());
             source.convertTo(TypeLiterals.NAMED_RECORD_SET).sequential().forEach(new MapReader<OpenDataException>(source.type) {
                 @Override
                 protected void read(final String key, final ManagedEntityValue<?> value) throws OpenDataException{
@@ -169,7 +170,7 @@ final class JmxTypeSystem {
             source.convertTo(TypeLiterals.ROW_SET).sequential().forEach(new RecordReader<Integer, RecordSet<String, ?>, OpenDataException>() {
                 @Override
                 public void read(final Integer index, final RecordSet<String, ?> value) throws OpenDataException {
-                    final Map<String, Object> row = new HashMap<>(result.getTabularType().getRowType().keySet().size());
+                    final Map<String, Object> row = Maps.newHashMapWithExpectedSize(result.getTabularType().getRowType().keySet().size());
                     value.sequential().forEach(new MapReader<OpenDataException>(source.type) {
                         @Override
                         protected void read(final String columnName, final ManagedEntityValue<?> value) throws OpenDataException {

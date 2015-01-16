@@ -5,8 +5,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.ServiceReferenceHolder;
-import com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess;
-import com.itworks.snamp.concurrent.ConcurrentResourceAccess;
+import com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor;
+import com.itworks.snamp.concurrent.ConcurrentResourceAccessor;
 import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.core.OsgiLoggingContext;
 import com.itworks.snamp.internal.Utils;
@@ -40,8 +40,8 @@ import java.util.Dictionary;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.Action;
-import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.ConsistentAction;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
+import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
 
 /**
  * Represents license reader for SNAMP license consumers. This class cannot be inherited
@@ -67,13 +67,13 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
         }
     }
 
-    private final AbstractConcurrentResourceAccess<LicensingContext> licensingContext;
+    private final AbstractConcurrentResourceAccessor<LicensingContext> licensingContext;
 
     /**
      * Initializes a new instance of the license reader service.
      */
     public XmlLicenseReader() {
-        licensingContext = new ConcurrentResourceAccess<>(new LicensingContext());
+        licensingContext = new ConcurrentResourceAccessor<>(new LicensingContext());
     }
 
     /**
@@ -249,7 +249,7 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
      */
     public <T extends LicenseLimitations> T getLimitations(final Class<T> limitationsDescriptor, final Supplier<T> fallback) {
         if (limitationsDescriptor == null) return fallback.get();
-        T result = licensingContext.read(new ConcurrentResourceAccess.ConsistentAction<LicensingContext, T>() {
+        T result = licensingContext.read(new ConcurrentResourceAccessor.ConsistentAction<LicensingContext, T>() {
             @Override
             public T invoke(final LicensingContext resource) {
                 return resource.loadedLicense == null ?

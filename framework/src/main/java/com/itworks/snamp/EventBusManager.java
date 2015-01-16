@@ -10,9 +10,8 @@ import java.util.EventListener;
  * @version 1.0
  * @since 1.0
  */
-public class EventBusManager {
+public final class EventBusManager {
     private EventBusManager(){
-
     }
 
     /**

@@ -14,7 +14,7 @@ import java.util.concurrent.locks.Lock;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractTransactionalResourceAccess<R, S, C> extends AbstractConcurrentResourceAccess<R> {
+public abstract class AbstractTransactionalResourceAccessor<R, S, C> extends AbstractConcurrentResourceAccessor<R> {
     /**
      * Represents a set of data that can be used to commit or undo changes in the resource.
      * This class cannot be inherited.
@@ -42,7 +42,7 @@ public abstract class AbstractTransactionalResourceAccess<R, S, C> extends Abstr
     /**
      * Initializes a new transactional resource accessor.
      */
-    protected AbstractTransactionalResourceAccess(){
+    protected AbstractTransactionalResourceAccessor(){
         snapshot = new Box<>();
     }
 
@@ -110,7 +110,7 @@ public abstract class AbstractTransactionalResourceAccess<R, S, C> extends Abstr
     /**
      * Processes the second phase of the commit action and apply the necessary changes to the resource.
      * <p>
-     *     You should check if this method returns {@literal false} then call {@link #rollback(AbstractTransactionalResourceAccess.TransactionPhaseProcessor)} immediately.
+     *     You should check if this method returns {@literal false} then call {@link #rollback(AbstractTransactionalResourceAccessor.TransactionPhaseProcessor)} immediately.
      * </p>
      * @param committer The action that apply the changeset to the resource.
      * @return {@literal true}, if second phase of the commit action is completed successfully; otherwise, {@literal false}.

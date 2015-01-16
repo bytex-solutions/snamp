@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
@@ -254,7 +255,7 @@ abstract class SnmpClient extends Snmp implements Closeable {
         for (final OID oid : variables)
             request.add(new VariableBinding(oid));
         final ResponseEvent response = send(request, timeout);
-        final Map<OID, Variable> result = new HashMap<>(variables.length);
+        final Map<OID, Variable> result = Maps.newHashMapWithExpectedSize(variables.length);
         for (final VariableBinding binding : response.getResponse().getVariableBindings())
             result.put(binding.getOid(), binding.getVariable());
         return result;

@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.collect.Maps;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
@@ -967,7 +968,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType) {
             beginRead(ANSResource.CONNECTED_NOTIFS);
             try {
-                final Map<String, T> result = new HashMap<>(notifications.size());
+                final Map<String, T> result = Maps.newHashMapWithExpectedSize(notifications.size());
                 for (final Map.Entry<String, GenericNotificationMetadata> metadata : notifications.entrySet())
                     if (Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
                         result.put(metadata.getKey(), metadataType.cast(metadata.getValue()));

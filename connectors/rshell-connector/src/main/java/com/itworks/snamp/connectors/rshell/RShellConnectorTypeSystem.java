@@ -3,10 +3,12 @@ package com.itworks.snamp.connectors.rshell;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import com.itworks.jcommands.impl.TypeTokens;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.connectors.ManagedEntityType;
 import com.itworks.snamp.connectors.WellKnownTypeSystem;
 import com.itworks.snamp.mapping.*;
@@ -85,19 +87,23 @@ final class RShellConnectorTypeSystem extends WellKnownTypeSystem {
         final Map<String, XmlParsingResultType> keys = new HashMap<>();
         final Set<String> indexed = new HashSet<>();
         definition.exportTableType(keys, indexed);
-        return createEntityTabularType(new HashMap<String, ManagedEntityType>(keys.size()) {{
-            for (final String k : keys.keySet())
-                put(k, createEntityType(keys.get(k)));
-        }}, indexed.toArray(new String[indexed.size()]));
+        return createEntityTabularType(Maps.transformEntries(keys, new Maps.EntryTransformer<String, XmlParsingResultType, ManagedEntityType>() {
+            @Override
+            public ManagedEntityType transformEntry(final String key, final XmlParsingResultType value) {
+                return createEntityType(value);
+            }
+        }), ArrayUtils.toArray(indexed, String.class));
     }
 
     private ManagedEntityType createEntityDictionaryType(final XmlParserDefinition definition) {
         final Map<String, XmlParsingResultType> keys = new HashMap<>();
         definition.exportDictionaryType(keys);
-        return createEntityDictionaryType(new HashMap<String, ManagedEntityType>(keys.size()) {{
-            for (final String k : keys.keySet())
-                put(k, createEntityType(keys.get(k)));
-        }});
+        return createEntityDictionaryType(Maps.transformEntries(keys, new Maps.EntryTransformer<String, XmlParsingResultType, ManagedEntityType>() {
+            @Override
+            public ManagedEntityType transformEntry(final String key, final XmlParsingResultType value) {
+                return createEntityType(value);
+            }
+        }));
     }
 
     static RecordSet<String, ?> toNamedRecordSet(final Map<String, ?> value){

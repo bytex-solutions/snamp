@@ -1,5 +1,6 @@
 package com.itworks.snamp.configuration;
 
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.*;
 import com.itworks.snamp.internal.Utils;
@@ -188,7 +189,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     }
 
     public static Map<String, String> getAdapterParameters(final Dictionary<String, ?> adapterConfig){
-        final Map<String, String> result = new HashMap<>(adapterConfig.size());
+        final Map<String, String> result = Maps.newHashMapWithExpectedSize(adapterConfig.size());
         fillAdapterParameters(adapterConfig, result);
         return result;
     }
@@ -271,7 +272,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     }
 
     public static Map<String, String> getResourceConnectorParameters(final Dictionary<String, ?> resourceConfig){
-        final Map<String, String> result = new HashMap<>(resourceConfig.size());
+        final Map<String, String> result = Maps.newHashMapWithExpectedSize(resourceConfig.size());
         fillConnectionOptions(resourceConfig, result);
         return result;
     }

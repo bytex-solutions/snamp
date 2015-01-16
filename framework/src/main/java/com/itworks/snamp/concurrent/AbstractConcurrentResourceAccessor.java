@@ -18,12 +18,47 @@ import java.util.concurrent.locks.*;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadWriteLock implements Wrapper<R> {
+public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantReadWriteLock implements Wrapper<R> {
+    /**
+     * Represents resource action that can throws an exception during execution.
+     * @param <R> Type of the resource to handle.
+     * @param <V> Type of the result of reading operation.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static interface Action<R, V, E extends Throwable>{
+        /**
+         * Handles the resource.
+         * @param resource The resource to handle.
+         * @return The value obtained from the specified resource.
+         * @throws E An exception that can be raised by action.
+         */
+        V invoke(final R resource) throws E;
+    }
+
+    /**
+     * Represents resource action that cannot throws an exception during execution.
+     * @param <R> Type of the resource to handle.
+     * @param <V> Type of the resource handling.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static interface ConsistentAction<R, V> extends Action<R, V, ExceptionPlaceholder> {
+        /**
+         * Handles the resource.
+         * @param resource The resource to handle.
+         * @return The value obtained from the specified resource.
+         */
+        @Override
+        V invoke(final R resource);
+    }
 
     /**
      * Initializes a new concurrent access coordinator.
      */
-    protected AbstractConcurrentResourceAccess(){
+    protected AbstractConcurrentResourceAccessor(){
     }
 
     /**
@@ -42,38 +77,6 @@ public abstract class AbstractConcurrentResourceAccess<R> extends ReentrantReadW
      * @return The resource to synchronize.
      */
     protected abstract R getResource();
-
-    /**
-     * Represents resource action that can throws an exception during execution.
-     * @param <R> Type of the resource to handle.
-     * @param <V> Type of the result of reading operation.
-     * @since 1.0
-     * @version 1.0
-     */
-    public static interface Action<R, V, E extends Throwable>{
-        /**
-         * Handles the resource.
-         * @param resource The resource to handle.
-         * @return The value obtained from the specified resource.
-         * @throws E An exception that can be raised by action.
-         */
-        V invoke(final R resource) throws E;
-    }
-
-    /**
-     * Represents resource action that cannot throws an exception during execution.
-     * @param <R> Type of the resource to handle.
-     * @param <V> Type of the resource handling.
-     */
-    public static interface ConsistentAction<R, V> extends Action<R, V, ExceptionPlaceholder> {
-        /**
-         * Handles the resource.
-         * @param resource The resource to handle.
-         * @return The value obtained from the specified resource.
-         */
-        @Override
-        V invoke(final R resource);
-    }
 
     /**
      * Provides consistent read on the resource.

@@ -143,7 +143,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     };
 
     private static final class ActivationProperties extends HashMap<ActivationProperty<?>, Object> implements ActivationPropertyPublisher, ActivationPropertyReader{
-        public ActivationProperties(){
+        private ActivationProperties(){
             super(10);
         }
 

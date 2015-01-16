@@ -1,5 +1,6 @@
 package com.itworks.snamp.management.impl;
 
+import com.google.common.collect.Maps;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
@@ -14,7 +15,6 @@ import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogService;
 
 import javax.management.openmbean.*;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -147,7 +147,7 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
         }
 
         private CompositeData createRow(final SnampComponentDescriptor component) throws OpenDataException{
-            final Map<String, Object> row = new HashMap<>(COLUMNS.length);
+            final Map<String, Object> row = Maps.newHashMapWithExpectedSize(COLUMNS.length);
             row.put(NAME_COLUMN, component.getName(null));
             row.put(DESCRIPTION_COLUMN, component.getDescription(null));
             row.put(VERSION_COLUMN, Objects.toString(component.getVersion(), "0.0"));

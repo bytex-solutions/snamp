@@ -1,6 +1,5 @@
 package com.itworks.snamp.concurrent;
 
-import com.itworks.snamp.concurrent.ConcurrentResourceAccess;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 /**
@@ -10,7 +9,7 @@ import com.itworks.snamp.internal.annotations.ThreadSafe;
  * @version 1.0
  * @since 1.0
  */
-public abstract class ReferenceCountedObject<R> extends ConcurrentResourceAccess<R> implements AutoCloseable {
+public abstract class ReferenceCountedObject<R> extends ConcurrentResourceAccessor<R> implements AutoCloseable {
     private int refCounter;
 
     /**
@@ -96,7 +95,7 @@ public abstract class ReferenceCountedObject<R> extends ConcurrentResourceAccess
      * Increments reference to the resource and reads some object from it.
      * <p>
      *     This method increments reference to the underlying resource and
-     *     call {@link #read(com.itworks.snamp.concurrent.AbstractConcurrentResourceAccess.Action)} method.
+     *     call {@link #read(AbstractConcurrentResourceAccessor.Action)} method.
      *     If this method fails then {@link #decref()} will be called.
      * </p>
      * @param reader The resource reader.

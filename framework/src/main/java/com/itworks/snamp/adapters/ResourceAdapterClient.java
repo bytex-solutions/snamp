@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters;
 
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
@@ -136,8 +137,8 @@ public final class ResourceAdapterClient {
             ref = getServiceReference(context, adapterName, null, LicensingDescriptionService.class);
             if(ref == null)
                 throw unsupportedServiceRequest(adapterName, LicensingDescriptionService.class);
-            final Map<String, String> result = new HashMap<>(5);
             final LicensingDescriptionService lims = context.getService(ref);
+            final Map<String, String> result = Maps.newHashMapWithExpectedSize(lims.getLimitations().size());
             for(final String limName: lims.getLimitations())
                 result.put(limName, lims.getDescription(limName, loc));
             return result;
@@ -173,7 +174,7 @@ public final class ResourceAdapterClient {
             ref = getServiceReference(context, adapterName, null, Maintainable.class);
             if(ref == null) throw unsupportedServiceRequest(adapterName, Maintainable.class);
             final Maintainable service = context.getService(ref);
-            final Map<String, String> result = new HashMap<>(service.getActions().size());
+            final Map<String, String> result = Maps.newHashMapWithExpectedSize(service.getActions().size());
             for(final String actionName: service.getActions())
                 result.put(actionName, service.getActionDescription(actionName, loc));
             return result;

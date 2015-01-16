@@ -4,7 +4,6 @@ import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.core.AbstractBundleActivator;
 import com.itworks.snamp.management.SnampManager;
 import org.eclipse.jetty.jaas.JAASLoginService;
-import org.eclipse.jetty.jaas.JAASRole;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.LoginService;
@@ -28,12 +27,14 @@ import java.util.Collection;
  * @since 1.0
  */
 public final class WebConsoleActivator extends AbstractBundleActivator {
-    private static final String WEB_CONSOLE_PORT = "com.itworks.snamp.webconsole.port";
-    private static final String DEFAULT_WEB_CONSOLE_PORT = "3344";
-    private static final String WEB_CONSOLE_HOST = "com.itworks.snamp.webconsole.host";
+    private static final String WEB_CONSOLE_PORT_PROPERTY = "com.itworks.snamp.webconsole.port";
+    private static final int DEFAULT_WEB_CONSOLE_PORT = 3344;
+    private static final String WEB_CONSOLE_HOST_PROPERTY = "com.itworks.snamp.webconsole.host";
     private static final String DEFAULT_WEB_CONSOLE_HOST = "localhost";
-    private static final String LOGIN_MODULE_NAME = "SNAMP_WEB_CONSOLE";
-    private static final String REALM = "Snamp Web Console Security";
+    private static final String REALM_NAME_PROPERTY = "com.itworks.snamp.webconsole.realm";
+    private static final String DEFAULT_REALM_NAME = "snamp";
+
+    private static final String SECURITY_ALIAS = "Snamp Web Console Security";
 
     private Server jettyServer = new Server();
 
@@ -43,25 +44,31 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         jettyServer.setConnectors(new Connector[0]);
     }
 
-    private static LoginService createLoginService(final Class<?> callerClass){
-        final JAASLoginService loginService = SecurityUtils.createJaasLoginServiceForOsgi(callerClass.getClassLoader());
-        loginService.setLoginModuleName(LOGIN_MODULE_NAME);
-        loginService.setName(REALM);
-        loginService.setRoleClassNames(new String[]{JAASRole.class.getName()});
+    private static String getWebConsoleRealm(final BundleContext context){
+        String realm = context.getProperty(REALM_NAME_PROPERTY);
+        if(realm == null || realm.isEmpty())
+            realm = System.getProperty(REALM_NAME_PROPERTY, DEFAULT_REALM_NAME);
+        return realm;
+    }
+
+    private static LoginService createLoginService(final BundleContext context, final Class<?> callerClass){
+        final JAASLoginService loginService = SecurityUtils.createJaasLoginServiceForOsgi(getWebConsoleRealm(context), callerClass.getClassLoader());
+        loginService.setName(SECURITY_ALIAS);
+        loginService.setRoleClassNames(JAASLoginService.DEFAULT_ROLE_CLASS_NAMES);
         return loginService;
     }
 
-    private static int getWebConsolePort(final BundleContext context){
-        String port = context.getProperty(WEB_CONSOLE_PORT);
-        if(port == null || port.isEmpty())
-            port = System.getProperty(WEB_CONSOLE_PORT, DEFAULT_WEB_CONSOLE_PORT);
-        return Integer.parseInt(port);
+    private static int getWebConsolePort(final BundleContext context) {
+        String port = context.getProperty(WEB_CONSOLE_PORT_PROPERTY);
+        return port == null || port.isEmpty() ?
+                Integer.getInteger(WEB_CONSOLE_PORT_PROPERTY, DEFAULT_WEB_CONSOLE_PORT) :
+                Integer.parseInt(port);
     }
 
     private static String getWebConsoleHost(final BundleContext context){
-        String host = context.getProperty(WEB_CONSOLE_HOST);
+        String host = context.getProperty(WEB_CONSOLE_HOST_PROPERTY);
         if(host == null || host.isEmpty())
-            host = System.getProperty(WEB_CONSOLE_HOST, DEFAULT_WEB_CONSOLE_HOST);
+            host = System.getProperty(WEB_CONSOLE_HOST_PROPERTY, DEFAULT_WEB_CONSOLE_HOST);
         return host;
     }
 
@@ -108,14 +115,14 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         constraint.setAuthenticate(true);
         constraint.setName("snampauth");
         constraint.setRoles(new String[]{SecurityUtils.ADMIN_ROLE, SecurityUtils.USER_ROLE});
-        security.setRealmName(REALM);
+        security.setRealmName(SECURITY_ALIAS);
         security.addRole(SecurityUtils.ADMIN_ROLE);
         security.addRole(SecurityUtils.USER_ROLE);
         final ConstraintMapping cmapping = new ConstraintMapping();
         cmapping.setPathSpec("/management/*");
         cmapping.setConstraint(constraint);
         security.setConstraintMappings(new ConstraintMapping[]{cmapping});
-        security.setLoginService(createLoginService(getClass()));
+        security.setLoginService(createLoginService(context, getClass()));
         security.setAuthenticator(new DigestAuthenticator());
         //Setup REST service
         final PersistentConfigurationManager manager = new PersistentConfigurationManager(getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies));

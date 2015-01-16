@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.google.common.collect.Maps;
 import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
 import com.itworks.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
@@ -10,7 +11,6 @@ import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -53,7 +53,7 @@ final class SetMapCommand extends AbstractManagementShellCommand {
                                          final Format fmt,
                                          final PrintWriter output) throws CommandException {
         try {
-            final Map<String, Object> map = new HashMap<String, Object>(entries.size()){ };
+            final Map<String, Object> map = Maps.newHashMapWithExpectedSize(entries.size());
             for (final String key : entries.stringPropertyNames())
                 map.put(key, fmt != null ? fmt.parseObject(entries.getProperty(key)) : entries.getProperty(key));
             output.println(attr.applyTransformation(SshAttributeView.UpdateMapTransformation.class,
