@@ -9,7 +9,7 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  * @version 1.0
  * @since 1.0
  */
-public enum SnampArtifact {
+public enum SnampFeature {
     CORLIB("framework", "1.0.0"),
     LICENSING_BUNDLE("licensing-bundle", "1.0.0"),
     JMX_CONNECTOR("jmx-connector", "1.0.0"),
@@ -31,12 +31,12 @@ public enum SnampArtifact {
     private final String artifactId;
     private final String version;
 
-    private SnampArtifact(final String artifactId, final String version){
+    private SnampFeature(final String artifactId, final String version){
         this.artifactId = artifactId;
         this.version = version;
     }
 
-    public static final SnampArtifact[] BASIC_SET = new SnampArtifact[]{
+    public static final SnampFeature[] BASIC_SET = new SnampFeature[]{
         CORLIB,
         LICENSING_BUNDLE
     };
@@ -45,7 +45,7 @@ public enum SnampArtifact {
         return mavenBundle(GROUP_ID, artifactId, version);
     }
 
-    public static AbstractProvisionOption<?>[] makeReferences(final SnampArtifact... artifacts){
+    public static AbstractProvisionOption<?>[] makeReferences(final SnampFeature... artifacts){
         final AbstractProvisionOption<?>[] result = new AbstractProvisionOption<?>[artifacts.length];
         for(int i = 0; i < artifacts.length; i++)
             result[i] = artifacts[i].getReference();
@@ -54,5 +54,14 @@ public enum SnampArtifact {
 
     public static AbstractProvisionOption<?>[] makeBasicSet(){
         return makeReferences(BASIC_SET);
+    }
+
+    public String getFeatureAbsoluteFileName(final String featureFileName){
+        return TestUtils.join(new String[]{featureName, version, featureFileName}, '-');
+    }
+
+    public String getAbsoluteRepositoryPath(final String repositoryLocation,
+                                            final String featureFileName){
+        return TestUtils.join(new String[]{repositoryLocation, featureName, version, getFeatureAbsoluteFileName(featureFileName)}, '/');
     }
 }

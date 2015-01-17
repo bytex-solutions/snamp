@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="features_for_snamp_framework">
+    <feature name="management-feature" description="management-feature" version="1.0.0">
+        <details>This future contains snamp management bundle (deprecated) and the reference to the main feature</details>
+        <bundle>mvn:com.itworks.snamp/management-bundle/1.0.0</bundle>
+    </feature>
+</features>

@@ -95,7 +95,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                 mavenBundle("org.apache.felix", "org.apache.felix.eventadmin", "1.4.2"),
                 mavenBundle("org.apache.felix", "org.apache.felix.configadmin", "1.8.0"),
                 mavenBundle("com.google.guava", "guava", "18.0"));
-        return concat(SnampArtifact.makeBasicSet(), deps);
+        return concat(SnampFeature.makeBasicSet(), deps);
     }
 
     protected AbstractSnampIntegrationTest(final AbstractProvisionOption<?>... deps){

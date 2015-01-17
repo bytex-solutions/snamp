@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="features_for_snamp_framework">
+    <feature name="jmx-connector-feature" description="jmx-connector-feature" version="1.0.0">
+        <details>This future contains snamp configuration bundle (deprecated) and the reference to the main feature</details>
+        <bundle>mvn:com.itworks.snamp/jmx-connector/1.0.0</bundle>
+    </feature>
+</features>

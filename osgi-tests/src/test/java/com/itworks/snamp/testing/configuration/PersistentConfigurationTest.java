@@ -4,7 +4,7 @@ import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.testing.AbstractIntegrationTest;
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.SnampFeature;
 import org.junit.Test;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -21,7 +21,7 @@ public class PersistentConfigurationTest extends AbstractIntegrationTest {
                 mavenBundle("org.apache.felix", "org.apache.felix.log", "1.0.1"),
                 mavenBundle("org.apache.felix", "org.apache.felix.eventadmin", "1.4.2"),
                 mavenBundle("com.google.guava", "guava", "18.0"),
-                SnampArtifact.CORLIB.getReference());
+                SnampFeature.CORLIB.getReference());
     }
 
     @Test

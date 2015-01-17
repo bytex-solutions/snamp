@@ -13,7 +13,7 @@ import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.junit.Test;
@@ -59,9 +59,9 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
                 mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.api", "1.1.0"),
                 mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.core", "1.1.1"),
                 mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.core.whiteboard", "1.1.1"),
-                SnampArtifact.MANAGEMENT.getReference(),
-                SnampArtifact.SNMP4J.getReference(),
-                SnampArtifact.SNMP_ADAPTER.getReference());
+                SnampFeature.MANAGEMENT.getReference(),
+                SnampFeature.SNMP4J.getReference(),
+                SnampFeature.SNMP_ADAPTER.getReference());
     }
 
     @Override

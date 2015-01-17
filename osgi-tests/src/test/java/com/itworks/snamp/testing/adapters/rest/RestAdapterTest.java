@@ -10,7 +10,7 @@ import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import com.sun.jersey.api.client.Client;
@@ -55,7 +55,7 @@ public final class RestAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
 
     public RestAdapterTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME),
-                SnampArtifact.REST_ADAPTER.getReference(),
+                SnampFeature.REST_ADAPTER.getReference(),
                 mavenBundle("org.eclipse.jetty", "jetty-xml", "9.1.1.v20140108"),
                 mavenBundle("org.eclipse.jetty", "jetty-security", "9.1.1.v20140108"),
                 mavenBundle("org.eclipse.jetty", "jetty-io", "9.1.1.v20140108"),

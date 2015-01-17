@@ -3,7 +3,7 @@ package com.itworks.snamp.testing.management;
 import com.google.gson.*;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.SnampFeature;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPDigestAuthFilter;
@@ -44,13 +44,13 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 mavenBundle("com.google.code.gson", "gson", "2.2.4"),
                 mavenBundle("org.eclipse.jetty", "jetty-jaas", "9.1.1.v20140108"),
                 mavenBundle("jline", "jline", "2.12"),
-                SnampArtifact.SSHJ.getReference(),
-                SnampArtifact.MANAGEMENT.getReference(),
-                SnampArtifact.WEB_CONSOLE.getReference(),
-                SnampArtifact.SNMP_CONNECTOR.getReference(),
-                SnampArtifact.SNMP4J.getReference(),
-                SnampArtifact.SSH_ADAPTER.getReference(),
-                SnampArtifact.JMX_CONNECTOR.getReference());
+                SnampFeature.SSHJ.getReference(),
+                SnampFeature.MANAGEMENT.getReference(),
+                SnampFeature.WEB_CONSOLE.getReference(),
+                SnampFeature.SNMP_CONNECTOR.getReference(),
+                SnampFeature.SNMP4J.getReference(),
+                SnampFeature.SSH_ADAPTER.getReference(),
+                SnampFeature.JMX_CONNECTOR.getReference());
     }
 
     @Override

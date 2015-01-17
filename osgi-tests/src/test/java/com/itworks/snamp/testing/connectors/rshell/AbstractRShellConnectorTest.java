@@ -1,6 +1,6 @@
 package com.itworks.snamp.testing.connectors.rshell;
 
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
@@ -42,8 +42,8 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
                 }},
                 concat(deps,
                         mavenBundle("org.apache.sshd", "sshd-core", "0.12.0"),
-                        SnampArtifact.SSHJ.getReference(),
-                        SnampArtifact.RSHELL_CONNECTOR.getReference()));
+                        SnampFeature.SSHJ.getReference(),
+                        SnampFeature.RSHELL_CONNECTOR.getReference()));
         server = SshServer.setUpDefaultServer();
         server.setPort(this.port = port);
         server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(certificateFile));

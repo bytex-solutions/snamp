@@ -4,7 +4,7 @@ import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.security.LoginConfigurationManager;
 import com.itworks.snamp.security.auth.login.JsonConfiguration;
 import com.itworks.snamp.testing.AbstractIntegrationTest;
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.SnampFeature;
 import org.junit.Test;
 
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
@@ -16,8 +16,8 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  */
 public final class LoginConfigurationManagerTest extends AbstractIntegrationTest {
     public LoginConfigurationManagerTest(){
-        super(SnampArtifact.CORLIB.getReference(),
-                SnampArtifact.JAAS_CONFIG.getReference().start(),
+        super(SnampFeature.CORLIB.getReference(),
+                SnampFeature.JAAS_CONFIG.getReference().start(),
                 mavenBundle("org.apache.felix", "org.apache.felix.log", "1.0.1"),
                 mavenBundle("org.apache.felix", "org.apache.felix.eventadmin", "1.4.2"),
                 mavenBundle("org.apache.felix", "org.apache.felix.configadmin", "1.8.0"),

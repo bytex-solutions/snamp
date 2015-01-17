@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="features_for_snamp_framework">
+    <feature name="framework-feature" description="framework-feature" version="1.0.0">
+        <details>A base classes for building karaf features for existing SNAMP osgi-ready bundles</details>
+        <feature>eventadmin</feature>
+        <bundle >mvn:com.google.code.gson/gson/2.2.4</bundle>
+        <bundle>mvn:com.google.guava/guava/18.0</bundle>
+        <bundle>mvn:com.itworks.snamp/framework/1.0.0</bundle>
+    </feature>
+</features>

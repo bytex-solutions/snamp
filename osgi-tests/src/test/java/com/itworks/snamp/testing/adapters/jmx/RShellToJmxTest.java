@@ -6,7 +6,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.rshell.AbstractRShellConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -44,7 +44,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
                 PORT,
                 CERTIFICATE_FILE,
                 FINGERPRINT,
-                SnampArtifact.JMX_ADAPTER.getReference());
+                SnampFeature.JMX_ADAPTER.getReference());
     }
 
     private static ObjectName createObjectName() throws MalformedObjectNameException {

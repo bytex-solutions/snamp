@@ -4,7 +4,7 @@ import com.google.common.base.Supplier;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
@@ -45,8 +45,8 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     public JmxToSshTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(/*true*/), new ObjectName(BEAN_NAME),
                 mavenBundle("jline", "jline", "2.12"),
-                SnampArtifact.SSHJ.getReference(),
-                SnampArtifact.SSH_ADAPTER.getReference());
+                SnampFeature.SSHJ.getReference(),
+                SnampFeature.SSH_ADAPTER.getReference());
     }
 
     private void testScalarAttribute(String attributeId,

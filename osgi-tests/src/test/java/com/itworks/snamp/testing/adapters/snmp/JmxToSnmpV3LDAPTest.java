@@ -10,7 +10,7 @@ import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.connectors.notifications.Severity;
 import com.itworks.snamp.testing.Matrix;
 import com.itworks.snamp.testing.MatrixImpl;
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.junit.Test;
@@ -59,8 +59,8 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     //ldapsearch -h 127.0.0.1 -p 10389 -w 1-2-3-4-5-password -D uid=admin,ou=system -b dc=ad,dc=microsoft,dc=com
     public JmxToSnmpV3LDAPTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME),
-                SnampArtifact.SNMP4J.getReference(),
-                SnampArtifact.SNMP_ADAPTER.getReference(),
+                SnampFeature.SNMP4J.getReference(),
+                SnampFeature.SNMP_ADAPTER.getReference(),
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi", "1.0.0"),
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.core", "1.0.0"),
                 mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.url", "1.0.0"),

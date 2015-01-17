@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="features_for_snamp_framework">
+    <repository>mvn:io.hawt/hawtio-karaf/1.4.37/xml/features</repository>
+    <feature name="jaas-config-feature" description="jaas-config-feature" version="1.0.0">
+        <bundle >mvn:com.google.code.gson/gson/2.2.4</bundle>
+        <feature>hawtio</feature>
+    </feature>
+</features>
