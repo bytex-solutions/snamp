@@ -78,7 +78,7 @@
                 <configuration>
                     <skipTests>true</skipTests>
                     <!-- -Djava.security.egd=file:/dev/./urandom -->
-                    <argLine>-Djava.security.egd=file:/dev/./urandom -Dcom.sun.management.jmxremote.port=3334 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.snamp.itworks.licensing.file="unlimited.lic" -Djava.security.auth.login.config="jaas.conf"</argLine>
+                    <argLine>-Djava.security.egd=file:/dev/./urandom -Dcom.sun.management.jmxremote.port=3334 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.snamp.itworks.licensing.file="unlimited.lic" -Djava.security.auth.login.config="jaas.conf" -Dcom.itworks.snamp.login.config.boot="jaas.conf"</argLine>
                 </configuration>
             </plugin>
         </plugins>

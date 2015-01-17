@@ -22,7 +22,6 @@
                     <instructions>
                         <Bundle-SymbolicName>com.itworks.snamp.jaas.config</Bundle-SymbolicName>
                         <Bundle-Activator>com.itworks.snamp.security.impl.Activator</Bundle-Activator>
-                        <Export-Package/>
                     </instructions>
                 </configuration>
             </plugin>
