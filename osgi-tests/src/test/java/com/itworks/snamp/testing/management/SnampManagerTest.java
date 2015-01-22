@@ -3,9 +3,9 @@ package com.itworks.snamp.testing.management;
 import com.google.common.base.Supplier;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.SafeConsumer;
-import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
@@ -13,11 +13,11 @@ import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
+import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.junit.Test;
-import org.ops4j.pax.exam.options.FrameworkPropertyOption;
 import org.osgi.framework.*;
 import org.osgi.service.log.LogService;
 
@@ -28,45 +28,27 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.SNMP_ADAPTER)
 public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
 
     public SnampManagerTest() throws MalformedObjectNameException {
-        super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.core", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.url", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.api", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.rmi", "1.0.0"),
-                mavenBundle("org.apache.aries", "org.apache.aries.util", "1.0.0"),
-                mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy.api", "1.0.0"),
-                mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy.impl", "1.0.1"),
-                mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy", "1.0.1"),
-                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx", "1.1.1"),
-                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.api", "1.1.0"),
-                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.core", "1.1.1"),
-                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.core.whiteboard", "1.1.1"),
-                SnampFeature.MANAGEMENT.getReference(),
-                SnampFeature.SNMP4J.getReference(),
-                SnampFeature.SNMP_ADAPTER.getReference());
-    }
-
-    @Override
-    protected Collection<FrameworkPropertyOption> getFrameworkProperties() {
-        return Arrays.asList(new FrameworkPropertyOption("com.itworks.snamp.management.usePlatformMBean").value("true"));
+        super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
     @Test

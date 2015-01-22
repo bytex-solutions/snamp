@@ -3,8 +3,8 @@ package com.itworks.snamp.testing.security.login.config.json;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.itworks.snamp.security.auth.login.JsonConfiguration;
-import com.itworks.snamp.security.auth.login.spi.JsonConfigurationSpi;
+import com.itworks.snamp.security.auth.login.json.JsonConfiguration;
+import com.itworks.snamp.security.auth.login.json.spi.JsonConfigurationSpi;
 import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 

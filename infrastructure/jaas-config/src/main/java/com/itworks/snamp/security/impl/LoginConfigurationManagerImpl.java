@@ -9,7 +9,7 @@ import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.core.OsgiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.security.LoginConfigurationManager;
-import com.itworks.snamp.security.auth.login.JsonConfiguration;
+import com.itworks.snamp.security.auth.login.json.JsonConfiguration;
 import org.apache.karaf.jaas.config.JaasRealm;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;

@@ -1,5 +1,6 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
+import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.ops4j.pax.exam.options.AbstractProvisionOption;
@@ -15,13 +16,14 @@ import java.lang.management.PlatformManagedObject;
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.JMX_CONNECTOR)
 public abstract class AbstractJmxConnectorTest<MBean> extends AbstractResourceConnectorTest {
     private final ObjectName beanName;
     protected final MBean beanInstance;
     protected static final String CONNECTOR_NAME = "jmx";
 
     protected AbstractJmxConnectorTest(final MBean beanInstance, final ObjectName beanName, final AbstractProvisionOption<?>... deps){
-        super(CONNECTOR_NAME, getJmxConnectionString(), concat(deps, SnampFeature.JMX_CONNECTOR.getReference()));
+        super(CONNECTOR_NAME, getJmxConnectionString());
         this.beanName = beanName;
         this.beanInstance = beanInstance;
     }

@@ -1,17 +1,25 @@
 package com.itworks.snamp.testing;
 
+import com.itworks.snamp.ArrayUtils;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
+import org.ops4j.pax.exam.ProbeBuilder;
+import org.ops4j.pax.exam.TestProbeBuilder;
 import org.ops4j.pax.exam.junit.PaxExam;
-import org.ops4j.pax.exam.options.AbstractProvisionOption;
-import org.ops4j.pax.exam.options.FrameworkPropertyOption;
+import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
+import org.ops4j.pax.exam.karaf.options.LogLevelOption;
+import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
+import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
+import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 
+import java.io.File;
 import java.util.*;
 
-import static org.ops4j.pax.exam.CoreOptions.junitBundles;
+import static org.ops4j.pax.exam.CoreOptions.*;
+import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.*;
 
 /**
  * Represents a base class for all OSGi integration tests.
@@ -20,32 +28,120 @@ import static org.ops4j.pax.exam.CoreOptions.junitBundles;
  * @since 1.0
  */
 @RunWith(PaxExam.class)
+@ExamReactorStrategy(PerClass.class)
 public abstract class AbstractIntegrationTest extends AbstractTest {
-    private final List<AbstractProvisionOption<?>> dependencies;
+    /**
+     * Represents test environment builder.
+     */
+    protected abstract static class EnvironmentBuilder {
+        /**
+         * Returns an array of system properties to be defined for the container' process.
+         * @param testType The type of the integration test class.
+         * @return An array of system properties.
+         */
+        public Map<String, String> getSystemProperties(final Class<? extends AbstractIntegrationTest> testType){
+            final Map<String, String> result = new HashMap<>(10);
+            for(final SystemProperties props : TestUtils.getAnnotations(testType, SystemProperties.class))
+                for(final String definition: props.value()){
+                    final String[] pair = definition.split("=");
+                    if(pair.length == 2)
+                        result.put(pair[0], pair[1]);
+                }
+            return result;
+        }
 
-    protected AbstractIntegrationTest(final List<AbstractProvisionOption<?>> deps){
-        this.dependencies = new ArrayList<>(deps);
+        /**
+         * Returns a set of features to be installed into test OSGi container.
+         * @param testType The type of the integration test class.
+         * @return A collection of features.
+         */
+        public abstract Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType);
+
+        /**
+         * Returns an array of packages to be imported into test OSGi bundle.
+         * @param testType The type of the integration test class.
+         * @return An array of package names.
+         */
+        public String[] getPackages(final Class<? extends AbstractIntegrationTest> testType){
+            final Collection<String> packages = new HashSet<>(15);
+            for(final ImportPackages pkg: TestUtils.getAnnotations(testType, ImportPackages.class))
+                Collections.addAll(packages, pkg.value());
+            return ArrayUtils.toArray(packages, String.class);
+        }
+
+        /**
+         * Returns an array of system properties that should be propagated into the test container.
+         * @return An array of system properties that should be propagated into the test container.
+         */
+        public String[] getPropagatedProperties(final Class<? extends AbstractIntegrationTest> testType){
+            final Collection<String> systemProperties = new HashSet<>(15);
+            for (final PropagateSystemProperty prop : TestUtils.getAnnotations(testType, PropagateSystemProperty.class))
+                Collections.addAll(systemProperties, prop.value());
+            return ArrayUtils.toArray(systemProperties, String.class);
+        }
     }
 
-    protected AbstractIntegrationTest(final AbstractProvisionOption<?>... deps){
-        this(Arrays.asList(deps));
+    private static final String TEST_CONTAINER_INDICATOR = "com.itworks.snamp.testing.isInContainer";
+
+    private final EnvironmentBuilder builder;
+
+    protected AbstractIntegrationTest(final EnvironmentBuilder builder){
+        this.builder = Objects.requireNonNull(builder);
     }
 
-    protected Collection<FrameworkPropertyOption> getFrameworkProperties(){
-        return Collections.emptyList();
+    /**
+     * Determines whether this test is executed in the separated test container.
+     * @return {@literal true}, if this test is executed in the test container; otherwise, {@literal false}.
+     */
+    protected static boolean isInTestContainer(){
+        return Boolean.getBoolean(TEST_CONTAINER_INDICATOR);
+    }
+
+    private Option getPropagatedProperties() {
+        return propagateSystemProperties(builder.getPropagatedProperties(getClass()));
+    }
+
+    /**
+     * Determines whether the forked test container should be suspended before
+     * debugger will be attached.
+     * @return {@literal true} to enable debugging; otherwise, {@literal false}.
+     */
+    protected boolean enableDebugging(){
+        return false;
+    }
+
+    private Option[] configureTestingRuntimeImpl(){
+        final MavenArtifactUrlReference karafUrl = maven()
+                .groupId("org.apache.karaf")
+                .artifactId("apache-karaf")
+                .versionAsInProject().type("tar.gz");
+        final List<Option> result = new ArrayList<>(20);
+        result.add(karafDistributionConfiguration().frameworkUrl(karafUrl)
+                .name("Apache Karaf")
+                .unpackDirectory(new File("exam")));
+        result.add(configureSecurity().enableKarafMBeanServerBuilder());
+        result.add(logLevel(LogLevelOption.LogLevel.INFO));
+        if(enableDebugging())
+            result.add(debugConfiguration("32441", true));
+        result.add(systemProperty(TEST_CONTAINER_INDICATOR).value("true"));
+        for(final Map.Entry<String, String> sp: builder.getSystemProperties(getClass()).entrySet())
+            result.add(systemProperty(sp.getKey()).value(sp.getValue()));
+        result.add(getPropagatedProperties());
+        // https://ops4j1.jira.com/wiki/display/PAXEXAM3/Configuration+Options
+        result.add(keepRuntimeFolder());
+        // result.add(new KarafDistributionConfigurationFilePutOption("etc/system.properties",  "java.security.auth.login.config", "C:\\Users\\temni\\Documents\\projects\\snamp\\auth.conf"));
+        // result.add(new KarafDistributionConfigurationFileReplacementOption("etc/system.properties", new File("src/")));
+        result.addAll(builder.getFeatures(getClass()));
+        return result.toArray(new Option[result.size()]);
     }
 
     /**
      * Returns configuration of Pax Exam testing runtime.
-     * @return
+     * @return An array of Pax Exam configuration.
      */
     @Configuration
     public final Option[] configureTestingRuntime(){
-        final List<Option> result = new ArrayList<>(dependencies.size() + 1);
-        result.addAll(dependencies);
-        result.add(junitBundles());
-        result.addAll(getFrameworkProperties());
-        return result.toArray(new Option[result.size()]);
+        return isInTestContainer() ? new Option[0] : configureTestingRuntimeImpl();
     }
 
     /**
@@ -54,5 +150,18 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
      */
     protected final BundleContext getTestBundleContext(){
         return FrameworkUtil.getBundle(getClass()).getBundleContext();
+    }
+
+    /**
+     * Prepares test container in the host process.
+     * @param builder The container builder to setup.
+     * @return Prepared test container.
+     */
+    @ProbeBuilder
+    public final TestProbeBuilder setupProbeConfiguration(final TestProbeBuilder builder) {
+        final String[] packages = this.builder.getPackages(getClass());
+        if (packages != null && packages.length > 0)
+            builder.setHeader("Import-Package", TestUtils.join(packages, ','));
+        return builder;
     }
 }

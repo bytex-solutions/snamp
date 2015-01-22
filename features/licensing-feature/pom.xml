@@ -11,7 +11,7 @@
 
     <artifactId>licensing-feature</artifactId>
     <packaging>pom</packaging>
-
+    <name>SNAMP Licensing Karaf Feature</name>
     <build>
         <plugins>
             <plugin>
@@ -53,4 +53,12 @@
             </plugin>
         </plugins>
     </build>
+    <dependencies>
+        <dependency>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>licensing</artifactId>
+            <version>1.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>

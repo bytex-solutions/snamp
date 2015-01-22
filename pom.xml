@@ -39,14 +39,14 @@
     <module>connectors</module>
     <module>adapters</module>
     <module>license-generator</module>
-     <module>infrastructure/licensing-bundle</module>
-     <module>osgi-tests</module>
-     <!--<module>html</module>-->
-     <module>third-party-libs/bundlized/snmp4j</module>
-     <module>third-party-libs/bundlized/sshj</module>
-     <module>infrastructure/management-bundle</module>
-      <module>infrastructure/web-console</module>
-      <module>infrastructure/jaas-config</module>
+    <module>infrastructure/licensing</module>
+    <module>osgi-tests</module>
+    <module>third-party-libs/bundlized/snmp4j</module>
+    <module>third-party-libs/bundlized/sshj</module>
+    <module>infrastructure/management</module>
+    <module>infrastructure/web-console</module>
+    <module>infrastructure/jaas-config</module>
+    <module>/features</module>
   </modules>
     <repositories>
         <repository>

@@ -1,5 +1,6 @@
 package com.itworks.snamp.testing.connectors.rshell;
 
+import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.apache.sshd.SshServer;
@@ -9,19 +10,17 @@ import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.shell.ProcessShellFactory;
-import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 
 import java.util.HashMap;
 import java.util.Objects;
-
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.RSHELL_CONNECTOR)
 public abstract class AbstractRShellConnectorTest extends AbstractResourceConnectorTest {
     protected static final String CONNECTOR_NAME = "rshell";
     private final SshServer server;
@@ -31,19 +30,14 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
                                           final String password,
                                           final int port,
                                           final String certificateFile,
-                                          final String fingerprint,
-                                          final AbstractProvisionOption<?>... deps) {
+                                          final String fingerprint) {
         super(CONNECTOR_NAME, getConnectionString(port), new HashMap<String, String>(){{
                     put("host", "localhost");
                     put("port", Integer.toString(port));
                     put("fingerprint", fingerprint);
                     put("userName", sshUserName);
                     put("password", password);
-                }},
-                concat(deps,
-                        mavenBundle("org.apache.sshd", "sshd-core", "0.12.0"),
-                        SnampFeature.SSHJ.getReference(),
-                        SnampFeature.RSHELL_CONNECTOR.getReference()));
+                }});
         server = SshServer.setUpDefaultServer();
         server.setPort(this.port = port);
         server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(certificateFile));

@@ -8,6 +8,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
@@ -36,13 +37,13 @@ import java.util.concurrent.TimeoutException;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.REST_ADAPTER)
 public final class SecureRestAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "REST";
     private static final String HTTP_HOST = "127.0.0.1";
@@ -52,29 +53,7 @@ public final class SecureRestAdapterTest extends AbstractJmxConnectorTest<TestOp
     private final JsonParser jsonParser;
 
     public SecureRestAdapterTest() throws MalformedObjectNameException {
-        super(new TestOpenMBean(), new ObjectName(BEAN_NAME),
-                SnampFeature.REST_ADAPTER.getReference(),
-                mavenBundle("org.eclipse.jetty", "jetty-xml", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty", "jetty-security", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty", "jetty-io", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty", "jetty-http", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty", "jetty-util", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty.websocket", "websocket-server", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty.websocket", "websocket-servlet", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty.websocket", "websocket-common", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty.websocket", "websocket-client", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty.websocket", "websocket-api", "9.1.1.v20140108"),
-                mavenBundle("javax.servlet", "javax.servlet-api", "3.1.0"),
-                mavenBundle("org.eclipse.jetty", "jetty-server", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty", "jetty-webapp", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty", "jetty-servlet", "9.1.1.v20140108"),
-                mavenBundle("org.eclipse.jetty", "jetty-servlet", "9.1.1.v20140108"),
-                mavenBundle("com.sun.jersey", "jersey-core", "1.17.1"),
-                mavenBundle("com.sun.jersey", "jersey-server", "1.17.1"),
-                mavenBundle("com.sun.jersey", "jersey-servlet", "1.17.1"),
-                mavenBundle("com.sun.jersey", "jersey-client", "1.17.1"),
-                mavenBundle("com.google.code.gson", "gson", "2.2.4"),
-                mavenBundle("org.eclipse.jetty", "jetty-jaas", "9.1.1.v20140108"));
+        super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
         jsonFormatter = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").create();
         jsonParser = new JsonParser();
     }

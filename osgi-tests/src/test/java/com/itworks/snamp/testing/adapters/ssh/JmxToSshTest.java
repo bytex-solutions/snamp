@@ -4,6 +4,7 @@ import com.google.common.base.Supplier;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
@@ -27,7 +28,6 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * Represents SSH-to-RShell integration test.
@@ -35,6 +35,7 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.SSH_ADAPTER)
 public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String FINGERPRINT = "24:aa:e0:cb:d9:89:1d:68:f3:1d:ed:53:0e:99:31:87";
     private static final String USER_NAME = "Dummy";
@@ -43,10 +44,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     private static final String ADAPTER_NAME = "ssh";
 
     public JmxToSshTest() throws MalformedObjectNameException {
-        super(new TestOpenMBean(/*true*/), new ObjectName(BEAN_NAME),
-                mavenBundle("jline", "jline", "2.12"),
-                SnampFeature.SSHJ.getReference(),
-                SnampFeature.SSH_ADAPTER.getReference());
+        super(new TestOpenMBean(/*true*/), new ObjectName(BEAN_NAME));
     }
 
     private void testScalarAttribute(String attributeId,

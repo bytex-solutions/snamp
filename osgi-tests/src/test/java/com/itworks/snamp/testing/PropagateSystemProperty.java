@@ -18,5 +18,5 @@ public @interface PropagateSystemProperty {
      * Gets an array of system properties to be propagated in test container
      * @return An array of system properties to be propagated in test container
      */
-    String[] value();
+    String[] value() default {};
 }

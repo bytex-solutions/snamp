@@ -8,13 +8,12 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <name>SNAMP Connectors Collection</name>
     <artifactId>connectors-features</artifactId>
     <packaging>pom</packaging>
     <modules>
         <module>jmx-connector-feature</module>
         <module>snmp-connector-feature</module>
     </modules>
-
 
 </project>

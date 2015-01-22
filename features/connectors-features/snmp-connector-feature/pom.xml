@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>snmp-connector-feature</artifactId>
-
+    <name>SNMP Connector Karaf Feature</name>
     <build>
         <plugins>
             <plugin>
@@ -52,4 +52,12 @@
             </plugin>
         </plugins>
     </build>
+    <dependencies>
+        <dependency>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>snmp-connector</artifactId>
+            <version>1.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>

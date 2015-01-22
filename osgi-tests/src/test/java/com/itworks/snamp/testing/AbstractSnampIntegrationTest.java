@@ -13,21 +13,17 @@ import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
-import com.itworks.snamp.licensing.LicensingException;
 import org.junit.After;
 import org.junit.Before;
-import org.ops4j.pax.exam.options.AbstractProvisionOption;
-import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
-import org.ops4j.pax.exam.spi.reactors.PerClass;
+import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.concurrent.TimeoutException;
-
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * Represents an abstract class for all SNAMP-based integration tests.
@@ -35,10 +31,17 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  * @version 1.0
  * @since 1.0
  */
-@ExamReactorStrategy(PerClass.class)
+@SnampDependencies(SnampFeature.PLATFORM)
+@PropagateSystemProperty({
+        "com.itworks.snamp.licensing.file",
+        "com.itworks.snamp.webconsole.port",
+        "com.itworks.snamp.webconsole.host",
+        "com.sun.management.jmxremote.port",
+        "java.security.egd"
+})
+@SystemProperties("pax.exam.osgi.unresolved.fail=true")
+@ImportPackages("com.itworks.snamp;version=\"[1.0,2)\"")
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
-    //copied from XmlLicenseReader
-    private static final String LICENSE_FILE_PROPERTY = "com.itworks.snamp.licensing.file";
 
     private static final class AdapterStartedSynchronizationEvent extends SynchronizationEvent<ResourceAdapter> implements ResourceAdapterEventListener {
 
@@ -67,39 +70,23 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    /**
-     * Represents relative path to the test license file.
-     */
-    private static final String TEST_LICENCE_FILE = "unlimited.lic";
-
     private PersistentConfigurationManager configManager = null;
     @Inject
     private LicenseReader licenseReader = null;
     @Inject
     private ConfigurationAdmin configAdmin = null;
 
-    static {
-        try {
-            final File licenseFile = new File(System.getProperty(LICENSE_FILE_PROPERTY, TEST_LICENCE_FILE));
-            if(!licenseFile.exists())
-                throw new IOException("License file for tests is missed.");
-            else System.setProperty(LICENSE_FILE_PROPERTY, licenseFile.getAbsolutePath());
-        }
-        catch (final IOException e) {
-            fail(e.getMessage());
-        }
-    }
-
-    private static AbstractProvisionOption<?>[] buildDependencies(AbstractProvisionOption<?>[] deps) {
-        deps = concat(deps, mavenBundle("org.apache.felix", "org.apache.felix.log", "1.0.1"),
-                mavenBundle("org.apache.felix", "org.apache.felix.eventadmin", "1.4.2"),
-                mavenBundle("org.apache.felix", "org.apache.felix.configadmin", "1.8.0"),
-                mavenBundle("com.google.guava", "guava", "18.0"));
-        return concat(SnampFeature.makeBasicSet(), deps);
-    }
-
-    protected AbstractSnampIntegrationTest(final AbstractProvisionOption<?>... deps){
-        super(buildDependencies(deps));
+    protected AbstractSnampIntegrationTest(){
+        super(new EnvironmentBuilder() {
+            @Override
+            public Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType) {
+                final Collection<KarafFeaturesOption> result = new LinkedList<>();
+                for(final SnampDependencies deps: TestUtils.getAnnotations(testType, SnampDependencies.class))
+                    for(final SnampFeature feature: deps.value())
+                        result.add(new SnampFeatureOption(feature));
+                return result;
+            }
+        });
     }
 
     private PersistentConfigurationManager getTestConfigurationManager() throws Exception{
@@ -163,24 +150,6 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         getTestConfigurationManager().getCurrentConfiguration().clear();
         getTestConfigurationManager().save();
         afterCleanupTest(getTestBundleContext());
-    }
-
-    /**
-     * Verifies some limitation from SNAMP license.
-     * @param descriptor
-     * @param limitationName
-     * @param actualValue
-     * @param <L>
-     * @param <A>
-     * @throws LicensingException
-     */
-    protected final <L extends AbstractLicenseLimitations, A> void verifyLicenseLimitation(final Class<L> descriptor,
-                                                                                           final String limitationName,
-                                                                                           final A actualValue,
-                                                                                           final Supplier<L> fallback) throws LicensingException{
-        final L lims = getLicenseLimitation(descriptor, fallback);
-        assertNotNull(String.format("Limitation %s is not described in license", descriptor), lims);
-        lims.verify(limitationName, actualValue);
     }
 
     protected final <L extends AbstractLicenseLimitations> L getLicenseLimitation(final Class<L> limitationType, final Supplier<L> fallback){

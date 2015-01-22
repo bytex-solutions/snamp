@@ -3,26 +3,16 @@ package com.itworks.snamp.testing.configuration;
 import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
-import com.itworks.snamp.testing.AbstractIntegrationTest;
-import com.itworks.snamp.testing.SnampFeature;
+import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import org.junit.Test;
 import org.osgi.service.cm.ConfigurationAdmin;
-
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public class PersistentConfigurationTest extends AbstractIntegrationTest {
-    public PersistentConfigurationTest(){
-        super(mavenBundle("org.apache.felix", "org.apache.felix.configadmin", "1.8.0"),
-                mavenBundle("org.apache.felix", "org.apache.felix.log", "1.0.1"),
-                mavenBundle("org.apache.felix", "org.apache.felix.eventadmin", "1.4.2"),
-                mavenBundle("com.google.guava", "guava", "18.0"),
-                SnampFeature.CORLIB.getReference());
-    }
+public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void configurationTest() throws Exception {
@@ -74,5 +64,15 @@ public class PersistentConfigurationTest extends AbstractIntegrationTest {
         finally {
             admin.release(getTestBundleContext());
         }
+    }
+
+    /**
+     * Creates a new configuration for running this test.
+     *
+     * @param config The configuration to set.
+     */
+    @Override
+    protected void setupTestConfiguration(final AgentConfiguration config) {
+
     }
 }

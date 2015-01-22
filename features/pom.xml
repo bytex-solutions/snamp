@@ -10,17 +10,12 @@
     <version>1.0.0</version>
     <packaging>pom</packaging>
     <name>SNAMP Features</name>
-    <description>A base classes for building karaf features for existing SNAMP osgi-ready bundles</description>
+    <description>A base classes for building karaf features for existing SNAMP OSGi-ready bundles</description>
     <modules>
-        <module>framework-feature</module>
-        <module>management-feature</module>
-        <module>configuration-feature</module>
+        <module>platform-feature</module>
         <module>licensing-feature</module>
-        <module>web-console-feature</module>
-        <module>adapters-features</module>
         <module>connectors-features</module>
-        <module>hawtio</module>
-        <module>jaas-config-feature</module>
+        <module>adapter-features</module>
     </modules>
 
     <build>
@@ -45,12 +40,4 @@
             </plugins>
         </pluginManagement>
     </build>
-
-    <repositories>
-        <repository>
-            <id>m2home</id>
-            <name>The local repository</name>
-            <url>file:/home/temni/.m2/repository/</url>
-        </repository>
-    </repositories>
 </project>

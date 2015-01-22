@@ -7,6 +7,7 @@ import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
+import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
@@ -36,13 +37,13 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.JMX_ADAPTER)
 public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "jmx";
     private static final String ROOT_OBJECT_NAME = "com.itworks.snamp.testing:type=TestOpenMBean";
 
     public JmxAdapterTest() throws MalformedObjectNameException {
-        super(new TestOpenMBean(), new ObjectName(BEAN_NAME),
-                SnampFeature.JMX_ADAPTER.getReference());
+        super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
     }
 
     private static ObjectName createObjectName() throws MalformedObjectNameException {

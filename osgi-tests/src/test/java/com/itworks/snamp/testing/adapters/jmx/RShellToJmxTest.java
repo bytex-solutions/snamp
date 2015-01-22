@@ -6,6 +6,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.rshell.AbstractRShellConnectorTest;
 import org.junit.Test;
@@ -29,6 +30,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.JMX_ADAPTER)
 public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     private static final String ROOT_OBJECT_NAME = "com.itworks.snamp.testing:type=TestOpenMBean";
     private static final String USER_NAME = "Dummy";
@@ -43,8 +45,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
                 PASSWORD,
                 PORT,
                 CERTIFICATE_FILE,
-                FINGERPRINT,
-                SnampFeature.JMX_ADAPTER.getReference());
+                FINGERPRINT);
     }
 
     private static ObjectName createObjectName() throws MalformedObjectNameException {

@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.security.LoginConfigurationManager;
-import com.itworks.snamp.security.auth.login.spi.JsonConfigurationSpi;
+import com.itworks.snamp.security.auth.login.json.spi.JsonConfigurationSpi;
 import org.apache.karaf.jaas.config.JaasRealm;
 import org.osgi.service.cm.ConfigurationAdmin;
 

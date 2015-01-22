@@ -10,6 +10,7 @@ import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfigu
 import com.itworks.snamp.connectors.notifications.Severity;
 import com.itworks.snamp.testing.Matrix;
 import com.itworks.snamp.testing.MatrixImpl;
+import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
@@ -38,13 +39,13 @@ import java.util.concurrent.TimeoutException;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.SNMP_ADAPTER)
 public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
@@ -54,16 +55,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + SNMP_HOST + "/" + SNMP_PORT, USER_NAME, SecurityLevel.authPriv);
 
     public JmxToSnmpV3PasswordTest() throws MalformedObjectNameException {
-        super(new TestOpenMBean(), new ObjectName(BEAN_NAME),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.core", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.url", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.api", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.rmi", "1.0.0"),
-                mavenBundle("org.apache.aries", "org.apache.aries.util", "1.0.0"),
-                mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy.api", "1.0.0"),
-                SnampFeature.SNMP4J.getReference(),
-                SnampFeature.SNMP_ADAPTER.getReference());
+        super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
     }
 
     @Override

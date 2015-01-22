@@ -21,7 +21,6 @@ import com.itworks.snamp.mapping.RecordSetUtils;
 import com.itworks.snamp.mapping.TypeConverter;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import org.junit.rules.TestName;
-import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
@@ -117,16 +116,13 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     private final Map<String, String> connectorParameters;
 
     protected AbstractResourceConnectorTest(final String connectorType,
-                                            final String connectionString,
-                                            final AbstractProvisionOption<?>... deps){
-        this(connectorType, connectionString, Collections.<String, String>emptyMap(), deps);
+                                            final String connectionString){
+        this(connectorType, connectionString, Collections.<String, String>emptyMap());
     }
 
     protected AbstractResourceConnectorTest(final String connectorType,
                                             final String connectionString,
-                                            final Map<String, String> parameters,
-                                            final AbstractProvisionOption<?>... deps){
-        super(deps);
+                                            final Map<String, String> parameters){
         this.connectorType = connectorType;
         this.connectionString = connectionString;
         this.connectorParameters = parameters;
