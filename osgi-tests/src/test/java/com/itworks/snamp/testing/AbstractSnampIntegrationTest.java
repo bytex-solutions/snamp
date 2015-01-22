@@ -1,5 +1,6 @@
 package com.itworks.snamp.testing;
 
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Supplier;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
@@ -33,13 +34,16 @@ import java.util.concurrent.TimeoutException;
  */
 @SnampDependencies({SnampFeature.PLATFORM, SnampFeature.LICENSING})
 @PropagateSystemProperties({
-        "com.itworks.snamp.licensing.file",
-        "com.itworks.snamp.webconsole.port",
-        "com.itworks.snamp.webconsole.host",
+        SnampSystemProperties.JAAS_CONFIG_FILE,
+        "java.security.egd",
+        "com.sun.management.jmxremote.authenticate",
         "com.sun.management.jmxremote.port",
-        "java.security.egd"
+        "com.sun.management.jmxremote.ssl",
+        SnampSystemProperties.LICENSING_FILE,
+        "pax.exam.osgi.unresolved.fail",
+        SnampSystemProperties.WEB_CONSOLE_HOST,
+        SnampSystemProperties.WEB_CONSOLE_PORT
 })
-@SystemProperties("pax.exam.osgi.unresolved.fail=true")
 @ImportPackages("com.itworks.snamp;version=\"[1.0,2)\"")
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
 
@@ -87,6 +91,23 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                 return result;
             }
         });
+        //WORKAROUND for system properties with relative path
+        if(!isInTestContainer()){
+            expandSystemPropertyFileName(SnampSystemProperties.JAAS_CONFIG_FILE);
+            expandSystemPropertyFileName(SnampSystemProperties.LICENSING_FILE);
+        }
+    }
+
+    private static void expandSystemPropertyFileName(final String propertyName){
+        String fileName = System.getProperty(propertyName);
+        if(fileName == null || fileName.isEmpty()) return;
+        else if(fileName.startsWith("./")){
+            fileName = fileName.substring(2);
+            fileName = StandardSystemProperty.USER_DIR.value() +
+                    StandardSystemProperty.FILE_SEPARATOR.value() +
+                    fileName;
+            System.setProperty(propertyName, fileName);
+        }
     }
 
     private PersistentConfigurationManager getTestConfigurationManager() throws Exception{
