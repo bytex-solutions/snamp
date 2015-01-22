@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface PropagateSystemProperty {
+public @interface PropagateSystemProperties {
 
     /**
      * Gets an array of system properties to be propagated in test container

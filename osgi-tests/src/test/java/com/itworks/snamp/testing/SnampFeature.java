@@ -8,7 +8,7 @@ package com.itworks.snamp.testing;
  */
 public enum SnampFeature {
     PLATFORM("platform-feature", "1.0.0"),
-    LICENSING_BUNDLE("licensing-feature", "1.0.0"),
+    LICENSING("licensing-feature", "1.0.0"),
     JMX_CONNECTOR("jmx-connector-feature", "1.0.0"),
     SNMP_ADAPTER("snmp-adapter-feature", "1.0.0"),
     REST_ADAPTER("rest-adapter-feature", "1.0.0"),

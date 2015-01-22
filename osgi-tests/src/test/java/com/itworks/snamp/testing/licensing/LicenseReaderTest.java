@@ -6,15 +6,12 @@ import com.itworks.snamp.licensing.LicensingException;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import com.itworks.snamp.testing.licensing.limitations.TestLicenseLimitation;
 import org.junit.Test;
-import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
-import org.ops4j.pax.exam.spi.reactors.PerClass;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-@ExamReactorStrategy(PerClass.class)
 public final class LicenseReaderTest extends AbstractSnampIntegrationTest {
     /**
      * Creates a new configuration for running this test.

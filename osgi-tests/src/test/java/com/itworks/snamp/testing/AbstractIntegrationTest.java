@@ -75,7 +75,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
          */
         public String[] getPropagatedProperties(final Class<? extends AbstractIntegrationTest> testType){
             final Collection<String> systemProperties = new HashSet<>(15);
-            for (final PropagateSystemProperty prop : TestUtils.getAnnotations(testType, PropagateSystemProperty.class))
+            for (final PropagateSystemProperties prop : TestUtils.getAnnotations(testType, PropagateSystemProperties.class))
                 Collections.addAll(systemProperties, prop.value());
             return ArrayUtils.toArray(systemProperties, String.class);
         }

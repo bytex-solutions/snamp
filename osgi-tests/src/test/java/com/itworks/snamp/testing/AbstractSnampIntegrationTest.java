@@ -31,8 +31,8 @@ import java.util.concurrent.TimeoutException;
  * @version 1.0
  * @since 1.0
  */
-@SnampDependencies(SnampFeature.PLATFORM)
-@PropagateSystemProperty({
+@SnampDependencies({SnampFeature.PLATFORM, SnampFeature.LICENSING})
+@PropagateSystemProperties({
         "com.itworks.snamp.licensing.file",
         "com.itworks.snamp.webconsole.port",
         "com.itworks.snamp.webconsole.host",
