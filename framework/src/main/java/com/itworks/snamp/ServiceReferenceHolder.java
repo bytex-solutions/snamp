@@ -10,7 +10,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public class ServiceReferenceHolder<S> implements ServiceReference<S> {
+public class ServiceReferenceHolder<S> implements ServiceProvider<S> {
     private final ServiceReference<S> serviceRef;
     private S serviceImpl;
 
@@ -40,6 +40,15 @@ public class ServiceReferenceHolder<S> implements ServiceReference<S> {
      * @return A strong reference to the service; or {@literal null}, if reference is released.
      */
     public final S getService(){
+        return get();
+    }
+
+    /**
+     * Gets a strong reference to the service.
+     * @return A strong reference to the service; or {@literal null}, if reference is released.
+     */
+    @Override
+    public final S get() {
         return serviceImpl;
     }
 

@@ -1,6 +1,11 @@
 package com.itworks.snamp.testing;
 
+import com.google.common.collect.Iterables;
 import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.ServiceReferenceHolder;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.Awaitor;
+import com.itworks.snamp.concurrent.SpinWait;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
@@ -14,9 +19,12 @@ import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 import static org.ops4j.pax.exam.CoreOptions.*;
 import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.*;
@@ -163,5 +171,24 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         if (packages != null && packages.length > 0)
             builder.setHeader("Import-Package", TestUtils.join(packages, ','));
         return builder;
+    }
+
+    private static <S> ServiceReferenceHolder<S> getServiceReference(final BundleContext context,
+                                                            final Class<S> serviceContract,
+                                                            final String filter,
+                                                            final TimeSpan timeout) throws InvalidSyntaxException, TimeoutException, InterruptedException{
+        final Awaitor<ServiceReference<S>, InvalidSyntaxException> awaitor = new SpinWait<ServiceReference<S>, InvalidSyntaxException>() {
+            @Override
+            protected ServiceReference<S> get() throws InvalidSyntaxException {
+                return Iterables.getFirst(context.getServiceReferences(serviceContract, filter), null);
+            }
+        };
+        return new ServiceReferenceHolder<>(context, awaitor.await(timeout));
+    }
+
+    protected final <S> ServiceReferenceHolder<S> getServiceReference(final Class<S> serviceContract,
+                                                                      final String filter,
+                                                                      final TimeSpan timeout) throws InvalidSyntaxException, TimeoutException, InterruptedException {
+        return getServiceReference(getTestBundleContext(), serviceContract, filter, timeout);
     }
 }

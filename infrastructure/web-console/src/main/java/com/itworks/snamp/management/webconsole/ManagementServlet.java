@@ -31,6 +31,6 @@ final class ManagementServlet extends ServletContainer {
      */
     public ManagementServlet(final PersistentConfigurationManager configManager,
                              final SnampManager snampManager){
-        super(createResourceConfig(new ManagementServiceImpl(configManager, snampManager)));
+        super(createResourceConfig(new ManagementServiceImpl(configManager, snampManager,  new LoginConfiguration())));
     }
 }

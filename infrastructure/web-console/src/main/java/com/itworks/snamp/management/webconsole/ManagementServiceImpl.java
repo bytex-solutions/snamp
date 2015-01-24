@@ -6,6 +6,7 @@ import com.google.gson.*;
 import com.itworks.snamp.Box;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
+import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.itworks.snamp.configuration.AgentConfiguration;
@@ -23,14 +24,21 @@ import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
+import com.itworks.snamp.security.LoginConfigurationManager;
 import com.sun.jersey.spi.resource.Singleton;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.io.InputStream;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
@@ -51,7 +59,7 @@ public final class ManagementServiceImpl {
     private final JsonParser jsonParser;
 
     ManagementServiceImpl(final PersistentConfigurationManager configManager,
-                                 final SnampManager snampManager){
+                          final SnampManager snampManager){
         this.configManager = Objects.requireNonNull(configManager);
         this.snampManager = Objects.requireNonNull(snampManager);
         jsonFormatter = new Gson();
@@ -616,5 +624,58 @@ public final class ManagementServiceImpl {
 
     private OsgiLoggingContext getLoggingContext(){
         return OsgiLoggingContext.getLogger(LOGGER_NAME, getBundleContextByObject(this));
+    }
+
+    @GET
+    @Path("/jaas/config")
+    @Produces(MediaType.WILDCARD)
+    public Response getJaasConfig(@Context final SecurityContext security) {
+        SecurityUtils.adminRequired(security);
+        final BundleContext context = getBundleContextByObject(this);
+        final ServiceReference<LoginConfigurationManager> managerRef =
+                context.getServiceReference(LoginConfigurationManager.class);
+        if (managerRef == null) return Response.status(Response.Status.NOT_FOUND).build();
+        final ServiceReferenceHolder<LoginConfigurationManager> manager = new ServiceReferenceHolder<>(context, managerRef);
+        try (final ByteArrayOutputStream out = new ByteArrayOutputStream(1024)) {
+            manager.get().dumpConfiguration(out);
+            final byte[] content = out.toByteArray();
+            return Response.ok(content,
+                    Objects.toString(manager.getProperty(LoginConfigurationManager.CONFIGURATION_MIME_TYPE), MediaType.APPLICATION_OCTET_STREAM))
+                    .header(HttpHeaders.CONTENT_LENGTH, content.length).build();
+        } catch (final Exception e) {
+            return Response.serverError().entity(e.toString()).build();
+        } finally {
+            manager.release(context);
+        }
+    }
+
+    @POST
+    @Path("/jaas/config")
+    @Consumes(MediaType.WILDCARD)
+    public void setJaasConfig(@Context final SecurityContext security,
+                              @Context final HttpHeaders headers,
+                              final InputStream content) throws WebApplicationException{
+        SecurityUtils.adminRequired(security);
+        final BundleContext context = getBundleContextByObject(this);
+        final ServiceReference<LoginConfigurationManager> managerRef =
+                context.getServiceReference(LoginConfigurationManager.class);
+        if (managerRef == null) throw new WebApplicationException(Response.Status.NOT_FOUND);
+        final ServiceReferenceHolder<LoginConfigurationManager> manager = new ServiceReferenceHolder<>(context, managerRef);
+        try {
+            final MediaType actualContentType = headers.getMediaType();
+            final MediaType requiredContentType =
+                    MediaType.valueOf(Objects.toString(manager.getProperty(LoginConfigurationManager.CONFIGURATION_MIME_TYPE), MediaType.APPLICATION_OCTET_STREAM));
+            if(!requiredContentType.isCompatible(actualContentType))
+                throw new WebApplicationException(Response.Status.UNSUPPORTED_MEDIA_TYPE);
+            manager.get().loadConfiguration(content);
+        }
+        catch (final IOException | IllegalArgumentException e){
+            throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+        }
+        catch (final Exception e) {
+            throw new WebApplicationException(e);
+        } finally {
+            manager.release(context);
+        }
     }
 }

@@ -110,7 +110,7 @@
                         <com.sun.management.jmxremote.authenticate>false</com.sun.management.jmxremote.authenticate>
                         <com.sun.management.jmxremote.ssl>false</com.sun.management.jmxremote.ssl>
                         <com.itworks.snamp.licensing.file>./unlimited.lic</com.itworks.snamp.licensing.file>
-                        <com.itworks.snamp.login.config.boot>./jaas.conf</com.itworks.snamp.login.config.boot>
+                        <com.itworks.snamp.login.config.boot>./jaas.json</com.itworks.snamp.login.config.boot>
                         <pax.exam.osgi.unresolved.fail>true</pax.exam.osgi.unresolved.fail>
                         <com.itworks.snamp.webconsole.host>localhost</com.itworks.snamp.webconsole.host>
                         <com.itworks.snamp.webconsole.port>3344</com.itworks.snamp.webconsole.port>

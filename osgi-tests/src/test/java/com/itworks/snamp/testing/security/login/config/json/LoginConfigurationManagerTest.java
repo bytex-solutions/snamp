@@ -1,11 +1,15 @@
 package com.itworks.snamp.testing.security.login.config.json;
 
-import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.security.LoginConfigurationManager;
 import com.itworks.snamp.security.auth.login.json.JsonConfiguration;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import org.junit.Test;
+import org.ops4j.pax.exam.util.Filter;
+import org.osgi.framework.InvalidSyntaxException;
+
+import javax.inject.Inject;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
@@ -13,19 +17,16 @@ import org.junit.Test;
  * @since 1.0
  */
 public final class LoginConfigurationManagerTest extends AbstractSnampIntegrationTest {
-
+    @Inject
+    @Filter(timeout = 20000L)
+    private LoginConfigurationManager manager = null;
 
     @Test
-    public void jaasTest() throws InterruptedException {
-        final ServiceReferenceHolder<LoginConfigurationManager> managerRef = new ServiceReferenceHolder<>(getTestBundleContext(), LoginConfigurationManager.class);
-        try{
-            JsonConfiguration conf = new JsonConfiguration();
-            managerRef.getService().dumpConfiguration(conf);
-            assertEquals(2, conf.size());
-        }
-        finally {
-            managerRef.release(getTestBundleContext());
-        }
+    public void jaasTest() throws InterruptedException, TimeoutException, InvalidSyntaxException {
+        assertNotNull(manager);
+        JsonConfiguration conf = new JsonConfiguration();
+        manager.dumpConfiguration(conf);
+        assertEquals(2, conf.size());
     }
 
     /**

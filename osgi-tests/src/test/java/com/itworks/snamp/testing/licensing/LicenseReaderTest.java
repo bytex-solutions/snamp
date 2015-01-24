@@ -34,7 +34,7 @@ public final class LicenseReaderTest extends AbstractSnampIntegrationTest {
         lims.verifyMaxInstanceCount(10);
     }
 
-    @Test()
+    @Test
     public final void faultVerificationTest(){
         final TestLicenseLimitation lims = getLicenseLimitation(TestLicenseLimitation.class,
                 TestLicenseLimitation.fallbackFactory);

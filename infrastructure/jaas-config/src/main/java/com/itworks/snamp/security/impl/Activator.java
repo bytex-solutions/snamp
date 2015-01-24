@@ -26,23 +26,24 @@ public final class Activator extends AbstractServiceLibrary {
     private static final String BOOT_CONFIG_PROPERTY = "com.itworks.snamp.login.config.boot";
     private static final String DEFAULT_CONFIG_FILE = "jaas.json";
 
-    private static final class LoginConfigurationManagerServiceManager extends ProvidedService<LoginConfigurationManager, LoginConfigurationManagerImpl>{
+    private static final class LoginConfigurationManagerServiceManager extends ProvidedService<LoginConfigurationManager, LoginConfigurationManagerImpl> {
         private final Gson formatter;
 
-        private LoginConfigurationManagerServiceManager(final Gson formatter){
+        private LoginConfigurationManagerServiceManager(final Gson formatter) {
             super(LoginConfigurationManager.class);
             this.formatter = formatter;
         }
 
         @Override
-        protected LoginConfigurationManagerImpl activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws IOException{
-            final LoginConfigurationManagerImpl result =  new LoginConfigurationManagerImpl(formatter);
+        protected LoginConfigurationManagerImpl activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws IOException {
+            final LoginConfigurationManagerImpl result = new LoginConfigurationManagerImpl(formatter);
             //check for boot configuration
             final File bootConfig = new File(System.getProperty(BOOT_CONFIG_PROPERTY, DEFAULT_CONFIG_FILE));
-            if(bootConfig.exists())
-                try(final InputStream config = new FileInputStream(bootConfig)){
+            if (bootConfig.exists())
+                try (final InputStream config = new FileInputStream(bootConfig)) {
                     result.loadConfiguration(config);
                 }
+            identity.put(LoginConfigurationManager.CONFIGURATION_MIME_TYPE, "application/json");
             return result;
         }
     }

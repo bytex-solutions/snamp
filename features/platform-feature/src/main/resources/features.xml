@@ -25,8 +25,8 @@
         <bundle >mvn:javax.servlet/javax.servlet-api/3.1.0</bundle>
         <!--SNAMP dependencies-->
         <bundle>mvn:com.itworks.snamp/framework/1.0.0</bundle>
-        <bundle>mvn:com.itworks.snamp/management/1.0.0</bundle>
-        <bundle>mvn:com.itworks.snamp/jaas-config/1.0.0</bundle>
-        <bundle>mvn:com.itworks.snamp/web-console/1.0.0</bundle>
+        <bundle start="true">mvn:com.itworks.snamp/management/1.0.0</bundle>
+        <bundle start="true">mvn:com.itworks.snamp/jaas-config/1.0.0</bundle>
+        <bundle start="true">mvn:com.itworks.snamp/web-console/1.0.0</bundle>
     </feature>
 </features>
