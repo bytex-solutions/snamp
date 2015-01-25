@@ -1,9 +1,9 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
-import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
@@ -21,17 +21,15 @@ public abstract class AbstractJmxConnectorTest<MBean> extends AbstractResourceCo
     private final ObjectName beanName;
     protected final MBean beanInstance;
     protected static final String CONNECTOR_NAME = "jmx";
+    private static final String JMX_LOGIN = "karaf";
+    private static final String JMX_PASSWORD = "karaf";
+    private static final int JMX_KARAF_PORT = 1099; // Located in KARAF_ROOT/etc/org.apache.karaf.management.cfg; property name is rmiRegistryPort
+    protected static final String JMX_RMI_CONNECTION_STRING = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
 
-    protected AbstractJmxConnectorTest(final MBean beanInstance, final ObjectName beanName, final AbstractProvisionOption<?>... deps){
-        super(CONNECTOR_NAME, getJmxConnectionString());
+    protected AbstractJmxConnectorTest(final MBean beanInstance, final ObjectName beanName){
+        super(CONNECTOR_NAME, JMX_RMI_CONNECTION_STRING, ImmutableMap.of("login", JMX_LOGIN, "password", JMX_PASSWORD));
         this.beanName = beanName;
         this.beanInstance = beanInstance;
-    }
-
-    protected static String getJmxConnectionString(){
-        final String jmxPort =
-                System.getProperty("com.sun.management.jmxremote.port", "9010");
-        return String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
     }
 
     @Override
