@@ -8,9 +8,10 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <version>${com.itworks.snamp.adapters.snmp.version}</version>
     <artifactId>snmp-adapter-feature</artifactId>
     <name>SNMP Adapter Karaf Feature</name>
+    <packaging>pom</packaging>
     <build>
         <plugins>
             <plugin>

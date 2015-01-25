@@ -12,6 +12,7 @@
     <description>Provides JAAS configuration management in Apache Karaf environment</description>
     <packaging>bundle</packaging>
     <artifactId>jaas-config</artifactId>
+    <version>${com.itworks.snamp.jaas.config.version}</version>
     <build>
         <plugins>
             <plugin>

@@ -3,15 +3,28 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.itworks.snamp</groupId>
   <artifactId>snamp</artifactId>
-  <version>1.0.0</version>
+
   <packaging>pom</packaging>
   <name>snamp</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
+    <com.itworks.snamp.connectors.jmx.version>1.0.0</com.itworks.snamp.connectors.jmx.version>
+    <com.itworks.snamp.connectors.snmp.version>1.0.0</com.itworks.snamp.connectors.snmp.version>
+    <com.itworks.snamp.connectors.rshell.version>1.0.0</com.itworks.snamp.connectors.rshell.version>
+    <com.itworks.snamp.adapters.jmx.version>1.0.0</com.itworks.snamp.adapters.jmx.version>
+    <com.itworks.snamp.adapters.snmp.version>1.0.0</com.itworks.snamp.adapters.snmp.version>
+    <com.itworks.snamp.adapters.rest.version>1.0.0</com.itworks.snamp.adapters.rest.version>
+    <com.itworks.snamp.adapters.ssh.version>1.0.0</com.itworks.snamp.adapters.ssh.version>
+    <com.itworks.snamp.version>1.0.0</com.itworks.snamp.version>
+    <com.itworks.snamp.jaas.config.version>1.0.0</com.itworks.snamp.jaas.config.version>
+    <com.itworks.snamp.management.console.version>1.0.0</com.itworks.snamp.management.console.version>
+    <com.itworks.snamp.management.version>1.0.0</com.itworks.snamp.management.version>
+    <com.itworks.snamp.licensing.version>1.0.0</com.itworks.snamp.licensing.version>
   </properties>
-  <organization>
+    <version>${com.itworks.snamp.version}</version>
+    <organization>
         <name>IT Works</name>
         <url>http://www.itworks.com/snamp</url>
   </organization>

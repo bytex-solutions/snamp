@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>RShell Connector</name>
+    <version>${com.itworks.snamp.connectors.rshell.version}</version>
     <packaging>bundle</packaging>
     <description>RShell Connector that uses remote shells (ssh, rsh, rexec and etc) to obtain management information</description>
     <build>

@@ -12,6 +12,7 @@
     <artifactId>licensing</artifactId>
     <packaging>bundle</packaging>
     <name>SNAMP Licensing Engine</name>
+    <version>${com.itworks.snamp.licensing.version}</version>
     <description>Provides access to commercial license information that helps to </description>
     <build>
         <plugins>

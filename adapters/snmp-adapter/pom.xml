@@ -7,7 +7,7 @@
     <version>1.0.0</version>
   </parent>
   <artifactId>snmp-adapter</artifactId>
-  <version>1.0.0</version>
+  <version>${com.itworks.snamp.adapters.snmp.version}</version>
   <packaging>bundle</packaging>
   <name>SNMP Resource Adapter</name>
   <description>Resource adapter that exposes managed resource via SNMPv2 and SNMPv3 protocols.</description>
