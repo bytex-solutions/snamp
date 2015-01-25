@@ -21,6 +21,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.TimeoutException;
@@ -86,7 +87,11 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                 final Collection<KarafFeaturesOption> result = new LinkedList<>();
                 for(final SnampDependencies deps: TestUtils.getAnnotations(testType, SnampDependencies.class))
                     for(final SnampFeature feature: deps.value())
-                        result.add(new SnampFeatureOption(feature));
+                        try {
+                            result.add(new SnampFeatureOption(feature));
+                        } catch (final MalformedURLException e) {
+                            fail(e.getMessage());
+                        }
                 return result;
             }
         });

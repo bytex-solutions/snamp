@@ -331,7 +331,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     public final void testForAttributesDiscovery(){
         final Collection<AttributeConfiguration> discoveredAttributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
-                getJmxConnectionString(),
+                JMX_RMI_CONNECTION_STRING,
                 Collections.<String, String>emptyMap(),
                 AttributeConfiguration.class);
         assertTrue(discoveredAttributes.size() > 30);
@@ -345,7 +345,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     public final void testForNotificationsDiscovery(){
         final Collection<EventConfiguration> discoveredEvents = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
-                getJmxConnectionString(),
+                JMX_RMI_CONNECTION_STRING,
                 Collections.<String, String>emptyMap(),
                 EventConfiguration.class);
         assertTrue(discoveredEvents.size() > 2);

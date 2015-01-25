@@ -8,7 +8,7 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>${com.itworks.snamp.adapters.jmx.version}</version>
+    <version>1.0.0</version>
     <name>JMX Adapter</name>
     <description>SNAMP adapter for JMX protocol</description>
     <artifactId>jmx-adapter</artifactId>

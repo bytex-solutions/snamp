@@ -15,7 +15,8 @@
         <module>platform-feature</module>
         <module>licensing-feature</module>
         <module>connectors-features</module>
-        <module>adapter-features</module>
+        <module>adapters-features</module>
+        <module>third-party-features</module>
     </modules>
 
     <build>

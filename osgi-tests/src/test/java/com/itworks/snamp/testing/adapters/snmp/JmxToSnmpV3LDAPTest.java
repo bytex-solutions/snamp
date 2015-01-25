@@ -45,7 +45,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  * @version 1.0
  * @since 1.0
  */
-@SnampDependencies(SnampFeature.SNMP_ADAPTER)
+@SnampDependencies({SnampFeature.SNMP_ADAPTER, SnampFeature.APACHE_DS})
 public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";

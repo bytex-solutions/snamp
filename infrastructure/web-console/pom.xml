@@ -13,7 +13,7 @@
     <name>SNAMP Web Console</name>
     <description>Web Console for SNAMP administrators</description>
     <packaging>bundle</packaging>
-    <version>${com.itworks.snamp.management.console.version}</version>
+    <version>1.0.0</version>
     <build>
         <plugins>
             <plugin>

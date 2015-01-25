@@ -3,22 +3,14 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>adapters-features</artifactId>
+        <artifactId>third-party-features</artifactId>
         <groupId>com.itworks.snamp</groupId>
         <version>1.0.0</version>
     </parent>
-    <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
-    <name>JMX Adapter Karaf Feature</name>
-    <artifactId>jmx-adapter-feature</artifactId>
-    <version>${com.itworks.snamp.adapters.jmx.version}</version>
+
+    <artifactId>apache-ds-feature</artifactId>
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
@@ -31,7 +23,6 @@
                         </goals>
                         <configuration>
                             <featuresFile>${project.basedir}/src/main/resources/features.xml</featuresFile>
-
                         </configuration>
                     </execution>
                 </executions>
@@ -60,12 +51,14 @@
             </plugin>
         </plugins>
     </build>
+
     <dependencies>
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>jmx-adapter</artifactId>
-            <version>${com.itworks.snamp.adapters.jmx.version}</version>
+            <groupId>org.apache.directory.server</groupId>
+            <artifactId>apacheds-all</artifactId>
+            <version>2.0.0-M16</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
 </project>
