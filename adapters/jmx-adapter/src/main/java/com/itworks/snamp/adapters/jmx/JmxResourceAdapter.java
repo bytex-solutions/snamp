@@ -159,7 +159,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         this.attributes = new JmxAttributes();
         this.exposedBeans = new HashMap<>(10);
         this.notifications = new JmxNotifications();
-        this.usePlatformMBean = true;
+        this.usePlatformMBean = false;
     }
 
     private static ObjectName createObjectName(final ObjectName rootObjectName, final String resourceName) throws MalformedObjectNameException {
