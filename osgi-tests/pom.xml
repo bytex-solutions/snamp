@@ -114,6 +114,7 @@
                         <pax.exam.osgi.unresolved.fail>true</pax.exam.osgi.unresolved.fail>
                         <com.itworks.snamp.webconsole.host>localhost</com.itworks.snamp.webconsole.host>
                         <com.itworks.snamp.webconsole.port>3344</com.itworks.snamp.webconsole.port>
+                        <mavenLocalRepository>${settings.localRepository}</mavenLocalRepository>
                     </systemPropertyVariables>
                     <skipTests>true</skipTests>
                 </configuration>
@@ -391,7 +392,6 @@
             <artifactId>guava</artifactId>
             <version>18.0</version>
         </dependency>
-
     </dependencies>
 
 

@@ -33,4 +33,12 @@ final class TestUtils {
         while (clazz != null);
         return result;
     }
+
+    /**
+     * Gets path to the Maven local repository.
+     * @return The path to the Maven local repository.
+     */
+    static String getMavenLocalRepository(){
+        return System.getProperty("mavenLocalRepository", "");
+    }
 }
