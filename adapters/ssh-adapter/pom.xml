@@ -12,7 +12,7 @@
     <artifactId>ssh-adapter</artifactId>
     <packaging>bundle</packaging>
     <name>SSH Adapter</name>
-    <version>${com.itworks.snamp.adapters.ssh.version}</version>
+    <version>1.0.0</version>
     <description>Exploring management information via SSH protocol</description>
     <build>
         <plugins>

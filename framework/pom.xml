@@ -8,7 +8,7 @@
   </parent>
   <artifactId>framework</artifactId>
   <packaging>bundle</packaging>
-  <version>${com.itworks.snamp.version}</version>
+  <version>1.0.0</version>
   <name>SNAMP Framework</name>
   <description>Provides a collection of SNAMP-related core interfaces and classes</description>
   <properties>

@@ -8,7 +8,7 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>${com.itworks.snamp.adapters.rest.version}</version>
+    <version>1.0.0</version>
     <packaging>bundle</packaging>
     <name>REST Adapter</name>
     <artifactId>rest-adapter</artifactId>

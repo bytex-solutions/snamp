@@ -11,7 +11,7 @@
     <modelVersion>4.0.0</modelVersion>
     <name>JMX Adapter Karaf Feature</name>
     <artifactId>jmx-adapter-feature</artifactId>
-    <version>${com.itworks.snamp.adapters.jmx.version}</version>
+    <version>1.0.0</version>
     <build>
         <resources>
             <resource>
@@ -64,7 +64,7 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>jmx-adapter</artifactId>
-            <version>${com.itworks.snamp.adapters.jmx.version}</version>
+            <version>1.0.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

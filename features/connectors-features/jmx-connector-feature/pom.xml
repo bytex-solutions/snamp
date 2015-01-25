@@ -8,7 +8,7 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>${com.itworks.snamp.connectors.jmx.version}</version>
+    <version>1.0.0</version>
     <artifactId>jmx-connector-feature</artifactId>
     <name>JMX Connector Karaf Feature</name>
     <build>
@@ -56,7 +56,7 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>jmx-connector</artifactId>
-            <version>${com.itworks.snamp.connectors.jmx.version}</version>
+            <version>1.0.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
