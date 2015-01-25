@@ -1,5 +1,6 @@
 package com.itworks.snamp.configuration.diff;
 
+import com.itworks.snamp.configuration.AbstractAgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 
 import java.util.Map;
@@ -18,11 +19,9 @@ final class UpdateResourceAdapterInstancePatchImpl extends AbstractResourceAdapt
     @Override
     protected void applyTo(final Map<String, ResourceAdapterConfiguration> adapters) {
         final ResourceAdapterConfiguration baselineConfig = adapters.get(getAdapterInstanceName());
-        if(baselineConfig == null)
+        if (baselineConfig == null)
             adapters.put(getAdapterInstanceName(), getAdapter());
-        else {
-            baselineConfig.setAdapterName(getAdapter().getAdapterName());
-            baselineConfig.getParameters().putAll(getAdapter().getParameters());
-        }
+        else
+            AbstractAgentConfiguration.copy(getAdapter(), baselineConfig);
     }
 }

@@ -6,5 +6,5 @@ package com.itworks.snamp.configuration.diff;
  * @version 1.0
  * @since 1.0
  */
-public interface RemoveResourceResourceAdapterPatch extends ResourceAdapterInstancePatch {
+public interface RemoveResourceAdapterPatch extends ResourceAdapterInstancePatch {
 }

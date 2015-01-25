@@ -10,6 +10,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
+import com.itworks.snamp.configuration.diff.ConfigurationDiffEngine;
 import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
 
@@ -217,7 +218,7 @@ final class JsonAgentConfiguration {
             dest.put(entry.getKey(), deserializeResourceAdapter(entry.getValue().getAsJsonObject(), configFactory));
     }
 
-    private static void writeResourceAdapters(final JsonElement source,
+    private static void parseResourceAdapters(final JsonElement source,
                                               final Map<String, ResourceAdapterConfiguration> dest,
                                               final Supplier<ResourceAdapterConfiguration> configFactory){
         if (source != null && source.isJsonObject() && dest != null) {
@@ -293,29 +294,30 @@ final class JsonAgentConfiguration {
             dest.put(entry.getKey(), deserializeResourceConnector(entry.getValue().getAsJsonObject(), configFactory));
     }
 
-    private static void writeResourceConnectors(final JsonElement source,
-                                           final Map<String, ManagedResourceConfiguration> dest,
-                                           final Supplier<ManagedResourceConfiguration> configFactory){
+    private static void parseResourceConnectors(final JsonElement source,
+                                                final Map<String, ManagedResourceConfiguration> dest,
+                                                final Supplier<ManagedResourceConfiguration> configFactory){
         if(source != null && dest != null){
             writeResourceConnectors(source.getAsJsonObject(), dest, configFactory);
         }
     }
 
-    private static void write(final JsonObject source, final AgentConfiguration dest){
-        dest.clear();
-        writeResourceAdapters(source.get(RESOURCE_ADAPTERS_SECTION), dest.getResourceAdapters(), new Supplier<ResourceAdapterConfiguration>(){
+    private static void write(final JsonObject source, final AgentConfiguration baseline){
+        final AgentConfiguration target = baseline.clone();
+        target.clear();
+        parseResourceAdapters(source.get(RESOURCE_ADAPTERS_SECTION), target.getResourceAdapters(), new Supplier<ResourceAdapterConfiguration>() {
             @Override
             public ResourceAdapterConfiguration get() {
-                return dest.newConfigurationEntity(ResourceAdapterConfiguration.class);
+                return baseline.newConfigurationEntity(ResourceAdapterConfiguration.class);
             }
         });
-        writeResourceConnectors(source.get(RESOURCES_SECTION), dest.getManagedResources(), new Supplier<ManagedResourceConfiguration>(){
-
+        parseResourceConnectors(source.get(RESOURCES_SECTION), target.getManagedResources(), new Supplier<ManagedResourceConfiguration>() {
             @Override
             public ManagedResourceConfiguration get() {
-                return dest.newConfigurationEntity(ManagedResourceConfiguration.class);
+                return baseline.newConfigurationEntity(ManagedResourceConfiguration.class);
             }
         });
+        ConfigurationDiffEngine.merge(target, baseline);
     }
 
     /**

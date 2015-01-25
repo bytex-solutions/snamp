@@ -9,8 +9,8 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapter
  * @version 1.0
  * @since 1.0
  */
-final class AddResourceResourceAdapterPatchIml extends AbstractResourceAdapterInstancePatch implements AddResourceResourceAdapterPatch {
-    AddResourceResourceAdapterPatchIml(final String adapterInstanceName, final ResourceAdapterConfiguration adapter) {
+final class AddResourceAdapterPatchIml extends AbstractResourceAdapterInstancePatch implements AddResourceAdapterPatch {
+    AddResourceAdapterPatchIml(final String adapterInstanceName, final ResourceAdapterConfiguration adapter) {
         super(adapterInstanceName, adapter);
     }
 

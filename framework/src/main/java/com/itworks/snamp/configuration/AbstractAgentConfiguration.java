@@ -94,7 +94,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
             }
     }
 
-    private static void copyConnector(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
+    public static void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
         output.setConnectionString(input.getConnectionString());
         output.setConnectionType(input.getConnectionType());
         //import additional elements
@@ -121,7 +121,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
                 });
     }
 
-    private static void copyAdapter(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output){
+    public static void copy(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output){
         output.setAdapterName(input.getAdapterName());
         final Map<String, String> additionalElements = output.getParameters();
         additionalElements.clear();
@@ -169,7 +169,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         new ConfigurationEntityCopier<ResourceAdapterConfiguration>() {
             @Override
             public void copy(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output) {
-                copyAdapter(input, output);
+                AbstractAgentConfiguration.copy(input, output);
             }
         });
         //import management targets
@@ -183,7 +183,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         new ConfigurationEntityCopier<ManagedResourceConfiguration>() {
             @Override
             public void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output) {
-                copyConnector(input, output);
+                AbstractAgentConfiguration.copy(input, output);
             }
         });
 

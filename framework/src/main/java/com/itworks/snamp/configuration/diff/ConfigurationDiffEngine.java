@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.*;
 
 /**
  * Provides a methods for computing diffs between target and baseline configuration,
@@ -27,7 +27,7 @@ public final class ConfigurationDiffEngine {
         //compute gaps for adapters that should be deleted from baseline config
         for(final String adapterInstanceName: baseline.keySet())
             if(!target.containsKey(adapterInstanceName))
-                output.add(new RemoveResourceResourceAdapterPatchImpl(adapterInstanceName, baseline.get(adapterInstanceName)));
+                output.add(new RemoveResourceAdapterPatchImpl(adapterInstanceName, baseline.get(adapterInstanceName)));
 
         for(final String adapterInstanceName: target.keySet())
             //compute gaps between two resource adapters
@@ -37,7 +37,24 @@ public final class ConfigurationDiffEngine {
                     output.add(new UpdateResourceAdapterInstancePatchImpl(adapterInstanceName, targetConfig));
             }
             //compute gaps for adapters that should be added to the baseline config
-            else output.add(new AddResourceResourceAdapterPatchIml(adapterInstanceName, target.get(adapterInstanceName)));
+            else output.add(new AddResourceAdapterPatchIml(adapterInstanceName, target.get(adapterInstanceName)));
+    }
+
+    private static void computeResourcesGap(final Collection<ConfigurationPatch> output,
+                                            final Map<String, ManagedResourceConfiguration> target,
+                                            final Map<String, ManagedResourceConfiguration> baseline) {
+        //compute gaps for resources that should be deleted from baseline config
+        for (final String resourceName : baseline.keySet())
+            if (!target.containsKey(resourceName))
+                output.add(new RemoveManagedResourcePatchImpl(resourceName, baseline.get(resourceName)));
+
+        for(final String resourceName : target.keySet())
+            if(baseline.containsKey(resourceName)){
+                final ManagedResourceConfiguration targetConfig = target.get(resourceName);
+                if(!AbstractAgentConfiguration.equals(targetConfig, baseline.get(resourceName)))
+                    output.add(new UpdateManagedResourcePatchImpl(resourceName, targetConfig));
+            }
+            else output.add(new AddManagedResourcePatchImpl(resourceName, target.get(resourceName)));
     }
 
     /**
@@ -53,6 +70,9 @@ public final class ConfigurationDiffEngine {
         computeAdaptersGap(result,
                 target.getResourceAdapters(),
                 baseline.getResourceAdapters());
+        computeResourcesGap(result,
+                target.getManagedResources(),
+                baseline.getManagedResources());
         return result;
     }
 

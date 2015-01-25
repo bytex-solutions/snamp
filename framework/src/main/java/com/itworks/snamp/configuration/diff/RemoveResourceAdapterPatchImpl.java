@@ -9,10 +9,10 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapter
  * @version 1.0
  * @since 1.0
  */
-final class RemoveResourceResourceAdapterPatchImpl extends AbstractResourceAdapterInstancePatch implements RemoveResourceResourceAdapterPatch {
+final class RemoveResourceAdapterPatchImpl extends AbstractResourceAdapterInstancePatch implements RemoveResourceAdapterPatch {
 
 
-    RemoveResourceResourceAdapterPatchImpl(final String adapterInstanceName, final ResourceAdapterConfiguration adapter) {
+    RemoveResourceAdapterPatchImpl(final String adapterInstanceName, final ResourceAdapterConfiguration adapter) {
         super(adapterInstanceName, adapter);
     }
 
