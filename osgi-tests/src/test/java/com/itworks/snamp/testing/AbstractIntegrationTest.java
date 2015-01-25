@@ -1,5 +1,6 @@
 package com.itworks.snamp.testing;
 
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.Iterables;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.ServiceReferenceHolder;
@@ -90,6 +91,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     }
 
     private static final String TEST_CONTAINER_INDICATOR = "com.itworks.snamp.testing.isInContainer";
+    private static final String PROJECT_DIR = "com.itworks.snamp.testing.project.dir";
 
     private final EnvironmentBuilder builder;
 
@@ -134,6 +136,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         result.add(systemProperty(TEST_CONTAINER_INDICATOR).value("true"));
         for(final Map.Entry<String, String> sp: builder.getSystemProperties(getClass()).entrySet())
             result.add(systemProperty(sp.getKey()).value(sp.getValue()));
+        result.add(systemProperty(PROJECT_DIR).value(StandardSystemProperty.USER_DIR.value()));
         result.add(getPropagatedProperties());
         // https://ops4j1.jira.com/wiki/display/PAXEXAM3/Configuration+Options
         result.add(keepRuntimeFolder());
@@ -141,6 +144,18 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         // result.add(new KarafDistributionConfigurationFileReplacementOption("etc/system.properties", new File("src/")));
         result.addAll(builder.getFeatures(getClass()));
         return result.toArray(new Option[result.size()]);
+    }
+
+    /**
+     * Gets path of the directory in which the host Test Engine was executed.
+     * @return The path of the directory.
+     */
+    protected static String getProjectRootDir(){
+        return System.getProperty(PROJECT_DIR, StandardSystemProperty.USER_DIR.value());
+    }
+
+    protected static String getPathToFileInProjectRoot(final String fileName){
+        return new File(getProjectRootDir(), fileName).getAbsolutePath();
     }
 
     /**

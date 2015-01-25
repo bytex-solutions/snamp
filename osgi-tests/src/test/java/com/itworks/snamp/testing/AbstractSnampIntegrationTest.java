@@ -1,6 +1,5 @@
 package com.itworks.snamp.testing;
 
-import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Supplier;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
@@ -98,14 +97,11 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    private static void expandSystemPropertyFileName(final String propertyName){
+    private static void expandSystemPropertyFileName(final String propertyName) {
         String fileName = System.getProperty(propertyName);
-        if(fileName == null || fileName.isEmpty()) return;
-        else if(fileName.startsWith("./")){
+        if (fileName != null && fileName.startsWith("./")) {
             fileName = fileName.substring(2);
-            fileName = StandardSystemProperty.USER_DIR.value() +
-                    StandardSystemProperty.FILE_SEPARATOR.value() +
-                    fileName;
+            fileName = getPathToFileInProjectRoot(fileName);
             System.setProperty(propertyName, fileName);
         }
     }

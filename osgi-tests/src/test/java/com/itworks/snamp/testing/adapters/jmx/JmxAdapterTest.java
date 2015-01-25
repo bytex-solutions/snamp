@@ -172,7 +172,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
         final ResourceAdapterConfiguration restAdapter = adapterFactory.get();
         restAdapter.setAdapterName(ADAPTER_NAME);
         restAdapter.getParameters().put("objectName", ROOT_OBJECT_NAME);
-        restAdapter.getParameters().put("usePlatformMBean", "true");
+        restAdapter.getParameters().put("usePlatformMBean", Boolean.toString(isInTestContainer()));
         restAdapter.getParameters().put("dbgUsePureSerialization", "true");
         adapters.put("test-jmx", restAdapter);
     }

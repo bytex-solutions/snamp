@@ -6,7 +6,6 @@ package com.itworks.snamp.management.webconsole;
  * @since 1.0
  */
 
-import com.itworks.snamp.configuration.ConfigurationManager;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.management.SnampManager;
 import com.sun.jersey.api.core.DefaultResourceConfig;
@@ -31,6 +30,6 @@ final class ManagementServlet extends ServletContainer {
      */
     public ManagementServlet(final PersistentConfigurationManager configManager,
                              final SnampManager snampManager){
-        super(createResourceConfig(new ManagementServiceImpl(configManager, snampManager,  new LoginConfiguration())));
+        super(createResourceConfig(new ManagementServiceImpl(configManager, snampManager)));
     }
 }

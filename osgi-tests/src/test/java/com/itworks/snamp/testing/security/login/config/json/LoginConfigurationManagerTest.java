@@ -5,7 +5,6 @@ import com.itworks.snamp.security.LoginConfigurationManager;
 import com.itworks.snamp.security.auth.login.json.JsonConfiguration;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import org.junit.Test;
-import org.ops4j.pax.exam.util.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 
 import javax.inject.Inject;
@@ -18,7 +17,6 @@ import java.util.concurrent.TimeoutException;
  */
 public final class LoginConfigurationManagerTest extends AbstractSnampIntegrationTest {
     @Inject
-    @Filter(timeout = 20000L)
     private LoginConfigurationManager manager = null;
 
     @Test
