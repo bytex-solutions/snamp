@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.adapters.jmx;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
@@ -54,10 +55,8 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     private void testJmxAttribute(final Attribute attr) throws BundleException, JMException, IOException{
-            final String jmxPort =
-                    System.getProperty("com.sun.management.jmxremote.port", "9010");
-            final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
-            try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString))) {
+            final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
+            try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
                 final MBeanServerConnection connection = connector.getMBeanServerConnection();
                 final ObjectName resourceObjectName = createObjectName();
                 assertNotNull(connection.getMBeanInfo(resourceObjectName));
@@ -126,11 +125,9 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void notificationTest() throws BundleException, JMException, IOException, TimeoutException, InterruptedException {
-        final String jmxPort =
-                System.getProperty("com.sun.management.jmxremote.port", "9010");
         final Attribute attr = new Attribute("1.0", "Garry Oldman");
-        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
-        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString))) {
+        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
+        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName resourceObjectName = createObjectName();
             assertNotNull(connection.getMBeanInfo(resourceObjectName));

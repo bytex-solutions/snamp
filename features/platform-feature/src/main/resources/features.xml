@@ -7,11 +7,13 @@
         <feature>eventadmin</feature>
         <!--<feature>hawtio</feature>-->
         <!-- Third-party bundles -->
+        <bundle>mvn:javax.ws.rs/javax.ws.rs-api/2.0.1</bundle>
+        <bundle>mvn:javax.annotation/javax.annotation-api/1.2</bundle>
         <bundle >mvn:com.google.code.gson/gson/2.2.4</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
         <bundle >mvn:org.glassfish.jersey.core/jersey-common/2.15</bundle>
         <bundle >mvn:org.glassfish.jersey.core/jersey-server/2.15</bundle>
-        <bundle >mvn:org.glassfish.jersey.core/jersey-container-servlet/2.15</bundle>
+        <bundle >mvn:org.glassfish.jersey.containers/jersey-container-servlet/2.15</bundle>
         <bundle >mvn:org.glassfish.jersey.core/jersey-client/2.15</bundle>
         <bundle >mvn:org.eclipse.jetty/jetty-xml/9.2.7.v20150116</bundle>
         <bundle >mvn:org.eclipse.jetty/jetty-io/9.2.7.v20150116</bundle>

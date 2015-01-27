@@ -21,9 +21,9 @@ public abstract class AbstractJmxConnectorTest<MBean> extends AbstractResourceCo
     private final ObjectName beanName;
     protected final MBean beanInstance;
     protected static final String CONNECTOR_NAME = "jmx";
-    private static final String JMX_LOGIN = "karaf";
-    private static final String JMX_PASSWORD = "karaf";
-    private static final int JMX_KARAF_PORT = 1099; // Located in KARAF_ROOT/etc/org.apache.karaf.management.cfg; property name is rmiRegistryPort
+    public static final String JMX_LOGIN = "karaf";
+    public static final String JMX_PASSWORD = "karaf";
+    public static final int JMX_KARAF_PORT = 1099; // Located in KARAF_ROOT/etc/org.apache.karaf.management.cfg; property name is rmiRegistryPort
     protected static final String JMX_RMI_CONNECTION_STRING = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
 
     protected AbstractJmxConnectorTest(final MBean beanInstance, final ObjectName beanName){

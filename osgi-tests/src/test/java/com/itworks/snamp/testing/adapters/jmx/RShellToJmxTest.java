@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.adapters.jmx;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
@@ -24,6 +25,10 @@ import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
+
+import static com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JMX_KARAF_PORT;
+import static com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JMX_LOGIN;
+import static com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JMX_PASSWORD;
 
 /**
  * @author Roman Sakno
@@ -99,10 +104,8 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     }
 
     private Object readAttribute(final String attributeName) throws IOException, JMException {
-        final String jmxPort =
-                System.getProperty("com.sun.management.jmxremote.port", "9010");
-        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
-        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString))) {
+        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName resourceObjectName = createObjectName();
             assertNotNull(connection.getMBeanInfo(resourceObjectName));
