@@ -6,8 +6,8 @@ import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
 import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
-import com.sun.jersey.spi.resource.Singleton;
 
+import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;

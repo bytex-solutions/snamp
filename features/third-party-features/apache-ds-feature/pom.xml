@@ -8,7 +8,8 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <name>Apache Directory Server Feature</name>
+    <description>ApacheDS packed into Karaf Feature</description>
     <artifactId>apache-ds-feature</artifactId>
     <build>
         <plugins>

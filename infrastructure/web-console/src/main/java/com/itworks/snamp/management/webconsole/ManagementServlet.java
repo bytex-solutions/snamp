@@ -8,10 +8,8 @@ package com.itworks.snamp.management.webconsole;
 
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.management.SnampManager;
-import com.sun.jersey.api.core.DefaultResourceConfig;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
-
-import javax.ws.rs.core.Application;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 
 /**
  * Represents descriptor of the HTTP servlet container.
@@ -19,16 +17,16 @@ import javax.ws.rs.core.Application;
  */
 final class ManagementServlet extends ServletContainer {
 
-    private static Application createResourceConfig(final ManagementServiceImpl serviceInstance){
-        final DefaultResourceConfig result = new DefaultResourceConfig();
-        result.getSingletons().add(serviceInstance);
+    private static ResourceConfig createResourceConfig(final ManagementServiceImpl serviceInstance){
+        final ResourceConfig result = new ResourceConfig();
+        result.register(serviceInstance);
         return result;
     }
 
     /**
      * Initializes a new instance of the rest service.
      */
-    public ManagementServlet(final PersistentConfigurationManager configManager,
+    ManagementServlet(final PersistentConfigurationManager configManager,
                              final SnampManager snampManager){
         super(createResourceConfig(new ManagementServiceImpl(configManager, snampManager)));
     }

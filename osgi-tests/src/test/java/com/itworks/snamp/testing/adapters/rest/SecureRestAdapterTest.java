@@ -12,13 +12,11 @@ import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.HTTPDigestAuthFilter;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -26,6 +24,10 @@ import org.osgi.framework.BundleException;
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import java.math.BigInteger;
 import java.net.URI;
@@ -59,11 +61,12 @@ public final class SecureRestAdapterTest extends AbstractJmxConnectorTest<TestOp
     }
 
     private void testJsonAttribute(final JsonElement newValue, final String attributeName) {
-        final Client webConsoleClient = new Client();
-        final WebResource config = webConsoleClient.resource("http://127.0.0.1:3344/snamp/managedResource/attributes/test-target/" + attributeName);
-        webConsoleClient.addFilter(new HTTPDigestAuthFilter("roman", "mypassword"));
-        config.getRequestBuilder().type(MediaType.APPLICATION_JSON_TYPE).post(jsonFormatter.toJson(newValue));
-        final String attributeValue = config.get(String.class);
+        final Client webConsoleClient = ClientBuilder.newClient()
+                .register(HttpAuthenticationFeature.digest("roman", "mypassword"));
+        final WebTarget config = webConsoleClient.target("http://127.0.0.1:3344/snamp/managedResource/attributes/test-target/" + attributeName);
+
+        config.request(MediaType.APPLICATION_JSON_TYPE).post(Entity.json(jsonFormatter.toJson(newValue)));
+        final String attributeValue = config.request().get(String.class);
         assertEquals(newValue, jsonParser.parse(attributeValue));
     }
 

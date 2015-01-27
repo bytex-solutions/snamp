@@ -8,7 +8,8 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <name>Third-Party Features</name>
+    <description>Third-party libraries packed into the Karaf Features</description>
     <artifactId>third-party-features</artifactId>
     <packaging>pom</packaging>
     <modules>
