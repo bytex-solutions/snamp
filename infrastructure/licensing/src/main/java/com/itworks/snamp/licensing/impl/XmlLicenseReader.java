@@ -8,7 +8,7 @@ import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.itworks.snamp.concurrent.ConcurrentResourceAccessor;
 import com.itworks.snamp.core.AbstractFrameworkService;
-import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
@@ -148,7 +148,7 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
             try {
                 reload(licenseContent);
             } catch (final MarshalException | IOException | SAXException | ParserConfigurationException | XMLSignatureException e) {
-                OsgiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
+                OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
                     @Override
                     public void accept(final Logger logger) {
                         logger.log(Level.SEVERE, "Unable to update license", e);
@@ -211,7 +211,7 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
         try{
             licenseContent = getLicenseStream();
             if(licenseContent == null)
-                OsgiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
+                OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
                     @Override
                     public void accept(final Logger logger) {
                         logger.warning("License content is empty");
@@ -219,7 +219,7 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
                 });
             else reload(licenseContent);
         } catch (final SAXException | MarshalException | IOException | XMLSignatureException | ParserConfigurationException e) {
-            OsgiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
+            OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
                 @Override
                 public void accept(final Logger logger) {
                     logger.log(Level.SEVERE, "Unable to reload license on demand", e);
@@ -274,7 +274,7 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
                 });
             } else result = fallback.get();
         } catch (final JAXBException e) {
-            OsgiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
+            OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
                 @Override
                 public void accept(final Logger logger) {
                     logger.warning(e.getLocalizedMessage());

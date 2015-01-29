@@ -12,8 +12,11 @@ import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.mapping.TypeLiterals;
+import com.itworks.snamp.scripting.OSGiScriptEngineManager;
 
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
@@ -257,9 +260,12 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
     private static final class RShellAttributes extends AbstractAttributeSupport {
 
         private final CommandExecutionChannel executionChannel;
+        private final ScriptEngineManager scriptEngineManager;
 
-        private RShellAttributes(final CommandExecutionChannel channel) {
+        private RShellAttributes(final CommandExecutionChannel channel,
+                                 final ScriptEngineManager engineManager) {
             this.executionChannel = channel;
+            this.scriptEngineManager = engineManager;
         }
 
         /**
@@ -327,8 +333,10 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
         protected GenericAttributeMetadata<?> connectAttribute(final String attributeName, final Map<String, String> options) throws CommandProfileNotFoundException, UndefinedCommandProfileException {
             if (options.containsKey(COMMAND_PROFILE_PATH_PARAM)) {
                 final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(options.get(COMMAND_PROFILE_PATH_PARAM)));
-                if (profile != null)
+                if (profile != null) {
+                    profile.setScriptManager(scriptEngineManager);
                     return new RShellAttributeMetadata(attributeName, profile, options);
+                }
                 else
                     throw new CommandProfileNotFoundException(options.get(COMMAND_PROFILE_PATH_PARAM));
             }
@@ -379,7 +387,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
     RShellResourceConnector(final RShellConnectionOptions connectionOptions) throws Exception {
         super(connectionOptions);
         executionChannel = connectionOptions.createExecutionChannel();
-        attributes = new RShellAttributes(executionChannel);
+        attributes = new RShellAttributes(executionChannel, new OSGiScriptEngineManager(Utils.getBundleContextByObject(this)));
     }
 
     RShellResourceConnector(final String connectionString,

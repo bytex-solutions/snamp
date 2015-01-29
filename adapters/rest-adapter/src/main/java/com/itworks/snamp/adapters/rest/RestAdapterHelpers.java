@@ -5,7 +5,7 @@ import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import org.eclipse.jetty.jaas.JAASLoginService;
 import org.eclipse.jetty.jaas.spi.LdapLoginModule;
@@ -99,7 +99,7 @@ final class RestAdapterHelpers {
     }
 
     static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
-        OsgiLoggingContext.within(LOGGER_NAME, contextBody);
+        OSGiLoggingContext.within(LOGGER_NAME, contextBody);
     }
 
     private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){

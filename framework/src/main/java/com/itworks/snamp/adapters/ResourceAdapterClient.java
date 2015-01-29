@@ -5,7 +5,7 @@ import com.google.common.util.concurrent.Futures;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.core.FrameworkService;
-import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.SupportService;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
@@ -111,7 +111,7 @@ public final class ResourceAdapterClient {
         }
         catch (final InvalidSyntaxException e) {
             ref = null;
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, String.format("Unable to discover configuration schema of %s adapter", adapterName), e);
             }
             return null;
@@ -145,7 +145,7 @@ public final class ResourceAdapterClient {
         }
         catch (final InvalidSyntaxException e) {
             ref = null;
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, String.format("Unable to discover license limitations of %s adapter", adapterName), e);
             }
             return null;
@@ -181,7 +181,7 @@ public final class ResourceAdapterClient {
         }
         catch (final InvalidSyntaxException e) {
             ref = null;
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, String.format("Unable to enumerate maintenance actions of %s adapter", adapterName), e);
             }
             return Collections.emptyMap();

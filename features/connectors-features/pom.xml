@@ -14,6 +14,7 @@
     <modules>
         <module>jmx-connector-feature</module>
         <module>snmp-connector-feature</module>
+        <module>rshell-connector-feature</module>
     </modules>
 
 </project>

@@ -12,6 +12,7 @@ import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.shell.ProcessShellFactory;
 import org.osgi.framework.BundleContext;
 
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -23,8 +24,11 @@ import java.util.Objects;
 @SnampDependencies(SnampFeature.RSHELL_CONNECTOR)
 public abstract class AbstractRShellConnectorTest extends AbstractResourceConnectorTest {
     protected static final String CONNECTOR_NAME = "rshell";
-    private final SshServer server;
+    private SshServer server;
     private final int port;
+    private final String certificateFile;
+    private final String sshUserName;
+    private final String password;
 
     protected AbstractRShellConnectorTest(final String sshUserName,
                                           final String password,
@@ -38,8 +42,29 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
                     put("userName", sshUserName);
                     put("password", password);
                 }});
-        server = SshServer.setUpDefaultServer();
-        server.setPort(this.port = port);
+        this.certificateFile = Paths.get(getProjectRootDir(), certificateFile).toFile().getAbsolutePath();
+        this.port = port;
+        this.sshUserName = sshUserName;
+        this.password = password;
+    }
+
+    protected static String getConnectionString(final int port){
+        return String.format("ssh://localhost:%s", port);
+    }
+
+    protected final String getConnectionString(){
+        return getConnectionString(port);
+    }
+
+    /*@Override
+    protected boolean enableRemoteDebugging() {
+        return true;
+    } */
+
+    @Override
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        final SshServer server = this.server = SshServer.setUpDefaultServer();
+        server.setPort(port);
         server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(certificateFile));
         server.setPasswordAuthenticator(new PasswordAuthenticator() {
             @Override
@@ -55,23 +80,12 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
                 return factory.create();
             }
         });
-    }
-
-    protected static String getConnectionString(final int port){
-        return String.format("ssh://localhost:%s", port);
-    }
-
-    protected final String getConnectionString(){
-        return getConnectionString(port);
-    }
-
-    @Override
-    protected void beforeStartTest(final BundleContext context) throws Exception {
         server.start();
     }
 
     @Override
     protected void afterCleanupTest(final BundleContext context) throws Exception {
         server.stop();
+        server = null;
     }
 }

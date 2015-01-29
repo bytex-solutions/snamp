@@ -3,7 +3,7 @@ package com.itworks.snamp.security.auth.login.json.spi;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itworks.snamp.SafeConsumer;
-import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.security.auth.login.json.JsonConfiguration;
 
 import javax.security.auth.login.AppConfigurationEntry;
@@ -96,7 +96,7 @@ public final class JsonConfigurationSpi extends ConfigurationSpi {
         try {
             configuration = deserializePrivileged(formatter, configFile);
         } catch (final Exception e) {
-            OsgiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
+            OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
                 @Override
                 public void accept(final Logger logger) {
                     logger.log(Level.SEVERE, String.format("Unable to reload JAAS configuration from file %s", configFile), e);

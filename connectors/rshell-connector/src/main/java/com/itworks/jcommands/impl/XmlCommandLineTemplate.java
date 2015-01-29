@@ -140,6 +140,9 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, 
     @ThreadSafe(false)
     public Object process(final String result, final Exception error) throws ScriptException {
         if (error != null) throw new ScriptException(error);
-        return getCommandOutputParser().parse(result, scriptManager != null ? scriptManager : new ScriptEngineManager());
+        return getCommandOutputParser().parse(result,
+                scriptManager != null ?
+                        scriptManager :
+                        new ScriptEngineManager());
     }
 }

@@ -18,7 +18,7 @@ import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
-import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.TransformerClosure;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
@@ -560,7 +560,7 @@ public final class ManagementServiceImpl {
                                final String reason,
                                @Context final SecurityContext context) throws WebApplicationException{
         SecurityUtils.adminRequired(context);
-        try(final OsgiLoggingContext logger = getLoggingContext()) {
+        try(final OSGiLoggingContext logger = getLoggingContext()) {
             ManagedResourceActivator.startResourceConnector(getBundleContextByObject(this), connectorType);
                 logger.info(String.format("User %s starts the %s connectors. Reason: %s",
                         context.getUserPrincipal().getName(),
@@ -577,7 +577,7 @@ public final class ManagementServiceImpl {
                               final String reason,
                               @Context final SecurityContext context) throws WebApplicationException{
         SecurityUtils.adminRequired(context);
-        try(final OsgiLoggingContext logger = getLoggingContext()) {
+        try(final OSGiLoggingContext logger = getLoggingContext()) {
             ManagedResourceActivator.stopResourceConnector(getBundleContextByObject(this), connectorType);
             logger.info(String.format("User %s stops the %s connectors. Reason: %s",
                         context.getUserPrincipal().getName(),
@@ -594,7 +594,7 @@ public final class ManagementServiceImpl {
                              final String reason,
                              @Context final SecurityContext context) throws WebApplicationException{
         SecurityUtils.adminRequired(context);
-        try(final OsgiLoggingContext logger = getLoggingContext()) {
+        try(final OSGiLoggingContext logger = getLoggingContext()) {
             ResourceAdapterActivator.startResourceAdapter(getBundleContextByObject(this), adapterName);
             logger.info(String.format("User %s starts the %s adapter. Reason: %s",
                     context.getUserPrincipal().getName(),
@@ -611,7 +611,7 @@ public final class ManagementServiceImpl {
                             final String reason,
                             @Context final SecurityContext context){
         SecurityUtils.adminRequired(context);
-        try(final OsgiLoggingContext logger = getLoggingContext()) {
+        try(final OSGiLoggingContext logger = getLoggingContext()) {
             ResourceAdapterActivator.stopResourceAdapter(getBundleContextByObject(this), adapterName);
             logger.info(String.format("User %s stops the %s adapter. Reason: %s",
                     context.getUserPrincipal().getName(),
@@ -622,8 +622,8 @@ public final class ManagementServiceImpl {
         }
     }
 
-    private OsgiLoggingContext getLoggingContext(){
-        return OsgiLoggingContext.getLogger(LOGGER_NAME, getBundleContextByObject(this));
+    private OSGiLoggingContext getLoggingContext(){
+        return OSGiLoggingContext.getLogger(LOGGER_NAME, getBundleContextByObject(this));
     }
 
     @GET

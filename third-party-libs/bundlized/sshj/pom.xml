@@ -30,7 +30,7 @@
                         <Embed-Dependency>
                             *;scope=compile
                         </Embed-Dependency>
-                        <Export-Package>net.schmizz.*</Export-Package>
+                        <Export-Package>net.schmizz.*;org.bouncycastle.jce.provider;org.bouncycastle.crypto.prng</Export-Package>
                         <Embed-Transitive>true</Embed-Transitive>
                         <Import-Package>
                             !javax.swing.*,

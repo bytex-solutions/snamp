@@ -4,7 +4,7 @@ import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
-import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.OSGiLoggingContext;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOColumn;
@@ -332,7 +332,7 @@ final class SnmpHelpers {
     }
 
     static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
-        OsgiLoggingContext.within(LOGGER_NAME, contextBody);
+        OSGiLoggingContext.within(LOGGER_NAME, contextBody);
     }
 
     private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){

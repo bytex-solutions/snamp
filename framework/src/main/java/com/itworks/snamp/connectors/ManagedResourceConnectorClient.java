@@ -10,7 +10,7 @@ import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.core.FrameworkService;
-import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.SupportService;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
@@ -142,7 +142,7 @@ public final class ManagedResourceConnectorClient {
         }
         catch (final InvalidSyntaxException e) {
             ref = null;
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, String.format("Unable to discover license limitations of %s connector", connectorType), e);
             }
             return Collections.emptyMap();
@@ -179,7 +179,7 @@ public final class ManagedResourceConnectorClient {
         }
         catch (final InvalidSyntaxException e) {
             ref = null;
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, String.format("Unable to discover configuration schema of %s connector", connectorType), e);
             }
             return null;
@@ -217,7 +217,7 @@ public final class ManagedResourceConnectorClient {
             return service.discover(connectionString, connectionOptions, entityType);
         }
         catch (final InvalidSyntaxException e) {
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, String.format("Unable to discover entities of %s connector with %s connection string",
                         connectorType,
                         connectionString), e);
@@ -256,7 +256,7 @@ public final class ManagedResourceConnectorClient {
         }
         catch (final InvalidSyntaxException e) {
             ref = null;
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, String.format("Unable to enumerate maintenance actions of %s connector", connectorType), e);
             }
             return Collections.emptyMap();
@@ -319,7 +319,7 @@ public final class ManagedResourceConnectorClient {
             return result;
         }
         catch (final InvalidSyntaxException e) {
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, "Unable to enumerate all available connectors", e);
             }
             return Collections.emptyMap();
@@ -367,7 +367,7 @@ public final class ManagedResourceConnectorClient {
             return Iterables.<ServiceReference>getFirst(context.getServiceReferences(ManagedResourceConnector.class, ManagedResourceActivator.createFilter(resourceName)), null);
         }
         catch (final InvalidSyntaxException e) {
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, String.format("Unable to find resource connector %s", resourceName), e);
             }
         }
@@ -385,7 +385,7 @@ public final class ManagedResourceConnectorClient {
             context.addServiceListener(listener, ManagedResourceActivator.createFilter("*", String.format("(%s=%s)", Constants.OBJECTCLASS, ManagedResourceConnector.class.getName())));
             return true;
         } catch (final InvalidSyntaxException e) {
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.getLogger(LOGGER_NAME, context)){
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, "Unable to bind resource listener", e);
             }
             return false;

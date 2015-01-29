@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="features_for_snamp_framework">
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
     <repository>mvn:io.hawt/hawtio-karaf/1.4.37/xml/features</repository>
     <feature name="platform-feature" description="SNAMP Platform" version="1.0.0">
         <details>Basic set of features required to execute SNAMP platform</details>
@@ -7,6 +7,8 @@
         <feature>eventadmin</feature>
         <!--<feature>hawtio</feature>-->
         <!-- Third-party bundles -->
+        <bundle>mvn:org.glassfish.hk2/hk2-api/2.4.0-b06</bundle>
+        <bundle>mvn:org.glassfish.jersey.bundles.repackaged/jersey-guava/2.15</bundle>
         <bundle>mvn:javax.ws.rs/javax.ws.rs-api/2.0.1</bundle>
         <bundle>mvn:javax.annotation/javax.annotation-api/1.2</bundle>
         <bundle >mvn:com.google.code.gson/gson/2.2.4</bundle>

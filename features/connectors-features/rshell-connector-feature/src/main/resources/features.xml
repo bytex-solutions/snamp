@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
+    <feature name="rshell-connector-feature" description="RShell Connector" version="1.0.0">
+        <details>This future contains SNAMP RShell connector</details>
+        <bundle>mvn:com.itworks.snamp/sshj/0.10.0</bundle>
+        <bundle>mvn:com.itworks.snamp/rshell-connector/1.0.0</bundle>
+    </feature>
+</features>

@@ -17,7 +17,7 @@ import java.util.logging.*;
  * @version 1.0
  * @since 1.0
  */
-public class OsgiLoggingContext extends Logger implements AutoCloseable {
+public class OSGiLoggingContext extends Logger implements AutoCloseable {
 
     private final Logger logger;
     private LogService service;
@@ -30,7 +30,7 @@ public class OsgiLoggingContext extends Logger implements AutoCloseable {
      * @param underlyingLogger The underlying logger. Cannot be {@literal null}.
      * @param context The bundle context. Cannot be {@literal null}.
      */
-    protected OsgiLoggingContext(final Logger underlyingLogger,
+    protected OSGiLoggingContext(final Logger underlyingLogger,
                                  final BundleContext context) {
         super(underlyingLogger.getName(), underlyingLogger.getResourceBundleName());
         logServiceRef = context.getServiceReference(LogService.class);
@@ -349,13 +349,13 @@ public class OsgiLoggingContext extends Logger implements AutoCloseable {
      * @param context The bundle context used to obtain a reference to {@link org.osgi.service.log.LogService}. Cannot be {@literal null}.
      * @return A new closeable logging context.
      */
-    public static OsgiLoggingContext get(final Logger logger, final BundleContext context) {
-        return new OsgiLoggingContext(logger, context);
+    public static OSGiLoggingContext get(final Logger logger, final BundleContext context) {
+        return new OSGiLoggingContext(logger, context);
     }
 
     protected static <E extends Exception> void within(final Logger logger,
                                                     final Consumer<Logger, E> contextBody) throws E {
-        try (final OsgiLoggingContext context = new OsgiLoggingContext(logger, Utils.getBundleContextByObject(contextBody))) {
+        try (final OSGiLoggingContext context = new OSGiLoggingContext(logger, Utils.getBundleContextByObject(contextBody))) {
             contextBody.accept(context);
         }
     }
@@ -365,15 +365,15 @@ public class OsgiLoggingContext extends Logger implements AutoCloseable {
         within(getLogger(loggerName), contextBody);
     }
 
-    public static OsgiLoggingContext getAnonymousLogger(final BundleContext context){
+    public static OSGiLoggingContext getAnonymousLogger(final BundleContext context){
         return get(getAnonymousLogger(), context);
     }
 
-    public static OsgiLoggingContext getLogger(final String loggerName, final BundleContext context){
+    public static OSGiLoggingContext getLogger(final String loggerName, final BundleContext context){
         return get(getLogger(loggerName), context);
     }
 
-    public static OsgiLoggingContext getGlobal(final BundleContext context){
+    public static OSGiLoggingContext getGlobal(final BundleContext context){
         return get(getGlobal(), context);
     }
 }

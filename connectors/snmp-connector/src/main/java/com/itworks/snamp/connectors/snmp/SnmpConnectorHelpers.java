@@ -3,7 +3,7 @@ package com.itworks.snamp.connectors.snmp;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
-import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.OSGiLoggingContext;
 import org.snmp4j.smi.OID;
 
 import java.util.Arrays;
@@ -34,7 +34,7 @@ final class SnmpConnectorHelpers {
     }
 
     static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
-        OsgiLoggingContext.within(LOGGER_NAME, contextBody);
+        OSGiLoggingContext.within(LOGGER_NAME, contextBody);
     }
 
     private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){

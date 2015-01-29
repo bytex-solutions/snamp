@@ -13,8 +13,6 @@ import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.ProbeBuilder;
 import org.ops4j.pax.exam.TestProbeBuilder;
 import org.ops4j.pax.exam.junit.PaxExam;
-import org.ops4j.pax.exam.karaf.options.KarafDistributionConfigurationFileExtendOption;
-import org.ops4j.pax.exam.karaf.options.KarafDistributionConfigurationFileOption;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
 import org.ops4j.pax.exam.karaf.options.LogLevelOption;
 import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
@@ -118,7 +116,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
      * debugger will be attached.
      * @return {@literal true} to enable debugging; otherwise, {@literal false}.
      */
-    protected boolean enableDebugging(){
+    protected boolean enableRemoteDebugging(){
         return false;
     }
 
@@ -133,7 +131,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
                 .unpackDirectory(new File("exam")));
         result.add(configureSecurity().enableKarafMBeanServerBuilder());
         result.add(logLevel(LogLevelOption.LogLevel.INFO));
-        if(enableDebugging())
+        if(enableRemoteDebugging())
             result.add(debugConfiguration("32441", true));
         result.add(systemProperty(TEST_CONTAINER_INDICATOR).value("true"));
         for(final Map.Entry<String, String> sp: builder.getSystemProperties(getClass()).entrySet())

@@ -42,8 +42,9 @@ public class XmlParserDefinition {
     private static final class RegexScriptEngine extends AbstractScriptEngine{
         private final ScriptEngine javaScriptEngine;
 
-        public RegexScriptEngine(final ScriptEngineManager manager){
-            javaScriptEngine = manager.getEngineByName(JAVASCRIPT_LANG);
+        private RegexScriptEngine(final ScriptEngineManager manager){
+            javaScriptEngine = Objects.requireNonNull(manager.getEngineByName(JAVASCRIPT_LANG),
+                    String.format("Unable to load %s script engine", JAVASCRIPT_LANG));
         }
 
         /**
@@ -95,6 +96,16 @@ public class XmlParserDefinition {
             }
             return eval(script.toString(), context);
         }
+        /**
+         * Returns a <code>ScriptEngineFactory</code> for the class to which this <code>ScriptEngine</code> belongs.
+         *
+         * @return The <code>ScriptEngineFactory</code>
+         * @throws java.lang.UnsupportedOperationException This method is not supported.
+         */
+        @Override
+        public ScriptEngineFactory getFactory() {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Returns an uninitialized <code>Bindings</code>.
@@ -104,16 +115,6 @@ public class XmlParserDefinition {
         @Override
         public Bindings createBindings() {
             return javaScriptEngine.createBindings();
-        }
-
-        /**
-         * Returns a <code>ScriptEngineFactory</code> for the class to which this <code>ScriptEngine</code> belongs.
-         *
-         * @return The <code>ScriptEngineFactory</code>
-         */
-        @Override
-        public ScriptEngineFactory getFactory() {
-            throw new UnsupportedOperationException();
         }
     }
 
@@ -878,7 +879,7 @@ public class XmlParserDefinition {
 
     private Map<String, ?> parseDictionary(final ResettableIterator parsingTemplateIter,
                                                 final ScriptEngine engine) throws ScriptException {
-        final Map<String, Object> result = new HashMap<String, Object>(20);
+        final Map<String, Object> result = new HashMap<String, Object>(20){ };
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){
             final Object templateFragment = parsingTemplateIter.next();
@@ -896,7 +897,7 @@ public class XmlParserDefinition {
 
     private List<? extends Map<String, ?>> parseTable(final ResettableIterator parsingTemplateIter,
                                                        final ScriptEngine engine) throws ScriptException{
-        final List<HashMap<String, ?>> table = new LinkedList<>();
+        final List<HashMap<String, ?>> table = new LinkedList<HashMap<String, ?>>(){ };
         HashMap<String, Object> row = new HashMap<>(20);
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){

@@ -2,7 +2,7 @@ package com.itworks.snamp.management.impl;
 
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
-import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.OSGiLoggingContext;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,7 +20,7 @@ final class MonitoringUtils {
     }
 
     static <E extends Exception> void withLogger(final Consumer<Logger, E> loggerHandler) throws E{
-        OsgiLoggingContext.within(LOGGER_NAME, loggerHandler);
+        OSGiLoggingContext.within(LOGGER_NAME, loggerHandler);
     }
 
     private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){

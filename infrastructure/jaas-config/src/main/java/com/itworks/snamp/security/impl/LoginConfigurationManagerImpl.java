@@ -6,7 +6,7 @@ import com.google.common.net.MediaType;
 import com.google.gson.Gson;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ServiceReferenceHolder;
-import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.security.LoginConfigurationManager;
 import com.itworks.snamp.security.auth.login.json.JsonConfiguration;
@@ -73,7 +73,7 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
             dumpConfiguration(getContext(), formatter, out);
         }
         catch (final InvalidSyntaxException | IOException e) {
-            try(final OsgiLoggingContext logger = OsgiLoggingContext.get(getLogger(), getContext())){
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getContext())){
                 logger.log(Level.SEVERE, "Unable to dump JAAS configuration", e);
             }
         }

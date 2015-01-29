@@ -20,7 +20,7 @@ import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.LogicalOperation;
-import com.itworks.snamp.core.OsgiLoggingContext;
+import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.RichLogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
@@ -960,7 +960,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                         if (attributes == null) return;
                         enlargeModel(consumer.resourceName, attributes, attributesModel, support);
                     }
-                    else if(consumer.isReferenced()) try (final OsgiLoggingContext logger = getLoggingContext()) {
+                    else if(consumer.isReferenced()) try (final OSGiLoggingContext logger = getLoggingContext()) {
                         logger.info(String.format("Managed resource connector %s (connection string %s) doesn't support attributes. Context: %s",
                                 consumer.resourceConfiguration.getConnectionType(),
                                 consumer.resourceConfiguration.getConnectionString(),
@@ -972,7 +972,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     private void logConnectorNotExposed(final String connectorType, final String resourceName){
-        try(final OsgiLoggingContext logger = getLoggingContext()){
+        try(final OSGiLoggingContext logger = getLoggingContext()){
             logger.log(Level.WARNING, String.format("Managed resource connector %s:%s is not exposed into OSGi environment. Context: %s. Stack trace: %s",
                     connectorType,
                     resourceName,
@@ -1015,7 +1015,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                             support);
                 }
                 else if(consumer.isReferenced())
-                    try(final OsgiLoggingContext logger = getLoggingContext()){
+                    try(final OSGiLoggingContext logger = getLoggingContext()){
                         logger.info(String.format("Managed resource connector %s (connection string %s) doesn't support notifications. Context: %s",
                                 consumer.resourceConfiguration.getConnectionType(),
                                 consumer.resourceConfiguration.getConnectionString(),
@@ -1049,7 +1049,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                             support.disableNotifications(listID);
                         }
                         catch (final NotificationSupportException e) {
-                            try (final OsgiLoggingContext context = getLoggingContext()) {
+                            try (final OSGiLoggingContext context = getLoggingContext()) {
                                 context.log(Level.WARNING, String.format("Failed to disable notifications at %s topic", listID), e.getCause());
                             }
                         }
@@ -1127,7 +1127,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         final ResourceAdapterEventListener listener = this.listener.get();
         if(listener != null)
             listener.adapterStarted(new ResourceAdapterEvent(this));
-        try(final OsgiLoggingContext logger = getLoggingContext()){
+        try(final OSGiLoggingContext logger = getLoggingContext()){
             logger.info(String.format("Adapter %s is started. Context: %s",
                     adapterInstanceName,
                     LogicalOperation.current()));
@@ -1138,7 +1138,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         final ResourceAdapterEventListener listener = this.listener.get();
         if(listener != null)
             listener.adapterStopped(new ResourceAdapterEvent(this));
-        try(final OsgiLoggingContext logger = getLoggingContext()){
+        try(final OSGiLoggingContext logger = getLoggingContext()){
             logger.info(String.format("Adapter %s is stopped. Context: %s",
                     adapterInstanceName,
                     LogicalOperation.current()));
@@ -1283,7 +1283,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 topics.add(NotificationUtils.getTopicName(connectorType,
                         metadata.getCategory(),
                         listID));
-            } else try (final OsgiLoggingContext context = getLoggingContext()) {
+            } else try (final OSGiLoggingContext context = getLoggingContext()) {
                 context.warning(String.format("Event %s cannot be enabled for %s resource.", eventConfig.getCategory(), connectionString));
             }
         }
@@ -1322,7 +1322,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 if(model.containsKey(attributeID)) {
                     model.remove(attributeID);
                     if (!attributeSupport.disconnectAttribute(attributeID))
-                        try (final OsgiLoggingContext logger = getLoggingContext()) {
+                        try (final OSGiLoggingContext logger = getLoggingContext()) {
                             logger.info(String.format("Unable to disconnect attribute %s of resource %s. Context: %s",
                                     attributeID,
                                     resourceName,
@@ -1366,7 +1366,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                         //disable notification in the connector
                         notificationSupport.disableNotifications(listID);
                     } catch (NotificationSupportException e) {
-                        try (final OsgiLoggingContext logger = getLoggingContext()) {
+                        try (final OSGiLoggingContext logger = getLoggingContext()) {
                             logger.info(String.format("Unable to disable event subscription %s of resource %s. Context: %s",
                                     listID,
                                     resourceName,
@@ -1467,7 +1467,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             } else restartRequired = false;
         }
         catch (final IOException e){
-            try (final OsgiLoggingContext logger = getLoggingContext()) {
+            try (final OSGiLoggingContext logger = getLoggingContext()) {
                 logger.log(Level.WARNING, String.format("Unable to read configuration of newly added resource %s. Context: %s",
                         resourceName,
                         LogicalOperation.current()), e);
@@ -1508,7 +1508,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                         resourceAddedImpl(resourceName, connectorRef);
                         return;
                     default:
-                        try (final OsgiLoggingContext logger = getLoggingContext()) {
+                        try (final OSGiLoggingContext logger = getLoggingContext()) {
                             logger.info(String.format("Unexpected event %s captured by adapter %s for resource %s. Context: %s",
                                     event.getType(),
                                     adapterInstanceName,
@@ -1556,8 +1556,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
     }
 
-    private OsgiLoggingContext getLoggingContext(){
-        return OsgiLoggingContext.get(getLogger(), getBundleContextByObject(this));
+    private OSGiLoggingContext getLoggingContext(){
+        return OSGiLoggingContext.get(getLogger(), getBundleContextByObject(this));
     }
 
     /**
@@ -1575,7 +1575,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param e The failure reason.
      */
     protected void failedToStartAdapter(final Level logLevel, final Exception e) {
-        try (final OsgiLoggingContext context = getLoggingContext()) {
+        try (final OSGiLoggingContext context = getLoggingContext()) {
             context.log(logLevel, String.format("Failed to start resource adapter %s.", adapterInstanceName), e);
         }
     }
@@ -1586,7 +1586,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param e The failure reason.
      */
     protected void failedToStopAdapter(final Level logLevel, final Exception e){
-        try(final OsgiLoggingContext context = getLoggingContext()) {
+        try(final OSGiLoggingContext context = getLoggingContext()) {
             context.log(logLevel, String.format("Failed to stop resource adapter %s.", adapterInstanceName), e);
         }
     }

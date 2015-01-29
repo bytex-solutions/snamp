@@ -2,6 +2,7 @@ package com.itworks.jcommands.impl;
 
 import com.itworks.jcommands.CommandExecutionChannel;
 
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.*;
@@ -102,5 +103,12 @@ public class XmlCommandLineToolProfile {
 
     public static XmlCommandLineToolProfile loadFrom(final Reader source){
         return loadFrom(source, XmlCommandLineToolProfile.class);
+    }
+
+    public void setScriptManager(final ScriptEngineManager scriptManager) {
+        if(readerTemplate != null)
+            readerTemplate.setScriptManager(scriptManager);
+        if(modifierTemplate != null)
+            modifierTemplate.setScriptManager(scriptManager);
     }
 }

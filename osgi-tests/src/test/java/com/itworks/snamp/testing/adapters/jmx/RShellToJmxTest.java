@@ -7,6 +7,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.itworks.snamp.scripting.OSGiScriptEngineManager;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.rshell.AbstractRShellConnectorTest;
@@ -22,13 +23,16 @@ import javax.management.openmbean.CompositeData;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptException;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
 
-import static com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JMX_KARAF_PORT;
-import static com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JMX_LOGIN;
-import static com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JMX_PASSWORD;
+import static com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.*;
 
 /**
  * @author Roman Sakno
@@ -98,7 +102,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
         final AttributeConfiguration attr = attributeFactory.get();
         attr.setAttributeName("memStatus");
-        attr.getParameters().put("commandProfileLocation", "freemem-tool-profile.xml");
+        attr.getParameters().put("commandProfileLocation", Paths.get(getProjectRootDir(), "freemem-tool-profile.xml").toFile().getAbsolutePath());
         attr.getParameters().put("format", "-m");
         attributes.put("ms", attr);
     }
@@ -112,6 +116,27 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
             assertNotNull(connection.getMBeanInfo(resourceObjectName).getAttributes().length > 0);
             return connection.getAttribute(resourceObjectName, attributeName);
         }
+    }
+
+    @Test
+    public void systemScriptEngineTest() throws IOException, ClassNotFoundException {
+        final Set<String> factories = OSGiScriptEngineManager.getSystemScriptEngineFactories();
+        assertTrue(factories.size() > 0);
+        for (final String className : factories) {
+            final Class<?> cls = Class.forName(className, true, getClass().getClassLoader());
+            assertNotNull(cls);
+            assertTrue(ScriptEngineFactory.class.isAssignableFrom(cls));
+        }
+    }
+
+    @Test
+    public void javaScriptEngineTest() throws IOException, ReflectiveOperationException, ScriptException {
+        final OSGiScriptEngineManager engineManager = new OSGiScriptEngineManager(getTestBundleContext());
+        final ScriptEngine javaScript = engineManager.getEngineByName("JavaScript");
+        assertNotNull(javaScript);
+        final Object result = javaScript.eval("function sayHelloWorld(){return 'Hello, world!';}; sayHelloWorld();");
+        assertNotNull(result);
+        assertEquals("Hello, world!", result.toString());
     }
 
     @Test

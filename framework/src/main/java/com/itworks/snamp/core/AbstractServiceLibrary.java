@@ -361,7 +361,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected void failedToUpdateService(final String servicePID,
                                              final Dictionary<String, ?> configuration,
                                              final Exception e){
-            try(final OsgiLoggingContext logger = getLoggingContext()){
+            try(final OSGiLoggingContext logger = getLoggingContext()){
                 logger.log(Level.SEVERE, String.format("Unable to update service with PID %s and %s configuration. Context: %s",
                         servicePID, configuration, LogicalOperation.current()),
                         e);
@@ -375,15 +375,15 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         protected void failedToCleanupService(final String servicePID,
                                               final Exception e){
-            try(final OsgiLoggingContext logger = getLoggingContext()){
+            try(final OSGiLoggingContext logger = getLoggingContext()){
                 logger.log(Level.SEVERE, String.format("Unable to deactivate service with PID %s. Context: %s",
                         servicePID, LogicalOperation.current()),
                         e);
             }
         }
 
-        private OsgiLoggingContext getLoggingContext(){
-            return OsgiLoggingContext.getLogger(factoryPID, getBundleContextByObject(this));
+        private OSGiLoggingContext getLoggingContext(){
+            return OSGiLoggingContext.getLogger(factoryPID, getBundleContextByObject(this));
         }
 
         LogicalOperation createLogicalOperationForUpdate(final String servicePID){
