@@ -14,5 +14,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>apache-ds-feature</module>
+        <module>hawtio-feature</module>
     </modules>
 </project>
