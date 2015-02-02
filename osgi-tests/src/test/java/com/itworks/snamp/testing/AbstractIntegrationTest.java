@@ -1,12 +1,6 @@
 package com.itworks.snamp.testing;
 
 import com.google.common.base.StandardSystemProperty;
-import com.google.common.collect.Iterables;
-import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.ServiceReferenceHolder;
-import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.concurrent.Awaitor;
-import com.itworks.snamp.concurrent.SpinWait;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
@@ -20,15 +14,14 @@ import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 
 import static org.ops4j.pax.exam.CoreOptions.*;
 import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.*;
+
+//!!! DO NOT USE packages from SNAMP
 
 /**
  * Represents a base class for all OSGi integration tests.
@@ -75,7 +68,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
             final Collection<String> packages = new HashSet<>(15);
             for(final ImportPackages pkg: TestUtils.getAnnotations(testType, ImportPackages.class))
                 Collections.addAll(packages, pkg.value());
-            return ArrayUtils.toArray(packages, String.class);
+            return packages.toArray(new String[packages.size()]);
         }
 
         /**
@@ -86,7 +79,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
             final Collection<String> systemProperties = new HashSet<>(15);
             for (final PropagateSystemProperties prop : TestUtils.getAnnotations(testType, PropagateSystemProperties.class))
                 Collections.addAll(systemProperties, prop.value());
-            return ArrayUtils.toArray(systemProperties, String.class);
+            return systemProperties.toArray(new String[systemProperties.size()]);
         }
     }
 
@@ -186,24 +179,5 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         if (packages != null && packages.length > 0)
             builder.setHeader("Import-Package", TestUtils.join(packages, ','));
         return builder;
-    }
-
-    private static <S> ServiceReferenceHolder<S> getServiceReference(final BundleContext context,
-                                                            final Class<S> serviceContract,
-                                                            final String filter,
-                                                            final TimeSpan timeout) throws InvalidSyntaxException, TimeoutException, InterruptedException{
-        final Awaitor<ServiceReference<S>, InvalidSyntaxException> awaitor = new SpinWait<ServiceReference<S>, InvalidSyntaxException>() {
-            @Override
-            protected ServiceReference<S> get() throws InvalidSyntaxException {
-                return Iterables.getFirst(context.getServiceReferences(serviceContract, filter), null);
-            }
-        };
-        return new ServiceReferenceHolder<>(context, awaitor.await(timeout));
-    }
-
-    protected final <S> ServiceReferenceHolder<S> getServiceReference(final Class<S> serviceContract,
-                                                                      final String filter,
-                                                                      final TimeSpan timeout) throws InvalidSyntaxException, TimeoutException, InterruptedException {
-        return getServiceReference(getTestBundleContext(), serviceContract, filter, timeout);
     }
 }
