@@ -127,8 +127,8 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          * @return Listeners invocation model for this notification type.
          */
         @Override
-        public final NotificationModel getNotificationModel() {
-            return NotificationModel.MULTICAST;
+        public final NotificationSubscriptionModel getNotificationModel() {
+            return NotificationSubscriptionModel.MULTICAST;
         }
 
         /**

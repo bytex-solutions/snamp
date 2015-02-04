@@ -2,6 +2,8 @@ package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.core.FrameworkService;
 
+import javax.management.DynamicMBean;
+
 /**
  * Represents management connector that provides unified access to the management information.
  * <p>
@@ -10,7 +12,7 @@ import com.itworks.snamp.core.FrameworkService;
  *     to provide management mechanisms:
  *     <ul>
  *         <li>{@link com.itworks.snamp.connectors.attributes.AttributeSupport} to provide management
- *         via resource properties.</li>
+ *         via resource attributes.</li>
  *         <li>{@link com.itworks.snamp.connectors.notifications.NotificationSupport} to receiver
  *         management notifications.</li>
  *         <li>{@link com.itworks.snamp.connectors.operations.OperationSupport} to operate
@@ -22,7 +24,7 @@ import com.itworks.snamp.core.FrameworkService;
  * @since 1.0
  * @version 1.0
  */
-public interface ManagedResourceConnector<TConnectionOptions> extends AutoCloseable, FrameworkService {
+public interface ManagedResourceConnector<TConnectionOptions> extends AutoCloseable, FrameworkService, DynamicMBean {
     /**
      * Returns connection options used by this management connector.
      * @return The connection options used by this management connector.

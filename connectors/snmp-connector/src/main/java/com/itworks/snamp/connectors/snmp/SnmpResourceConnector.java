@@ -198,8 +198,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
          * @return Listeners invocation model for this notification type.
          */
         @Override
-        public NotificationModel getNotificationModel() {
-            return NotificationModel.MULTICAST_SEQUENTIAL;
+        public NotificationSubscriptionModel getNotificationModel() {
+            return NotificationSubscriptionModel.MULTICAST_SEQUENTIAL;
         }
 
         /**

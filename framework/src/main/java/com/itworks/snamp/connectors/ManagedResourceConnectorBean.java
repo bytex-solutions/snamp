@@ -620,8 +620,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
          * @return Listeners invocation model for this notification type.
          */
         @Override
-        public final NotificationModel getNotificationModel() {
-            return NotificationModel.MULTICAST_SEQUENTIAL;
+        public final NotificationSubscriptionModel getNotificationModel() {
+            return NotificationSubscriptionModel.MULTICAST_SEQUENTIAL;
         }
 
         /**

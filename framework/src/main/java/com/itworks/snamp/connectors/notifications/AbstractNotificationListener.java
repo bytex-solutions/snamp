@@ -1,9 +1,7 @@
 package com.itworks.snamp.connectors.notifications;
 
-import com.itworks.snamp.connectors.notifications.Notification;
-import com.itworks.snamp.connectors.notifications.NotificationListener;
-import com.itworks.snamp.connectors.notifications.NotificationMetadata;
-
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import java.util.Objects;
 
 /**
@@ -14,10 +12,6 @@ import java.util.Objects;
  * @since 1.0
  */
 public abstract class AbstractNotificationListener implements NotificationListener {
-    /**
-     * Represents metadata of the notification to listen.
-     */
-    protected final NotificationMetadata notificationInfo;
 
     /**
      * Represents subscription list which is listened by this instance.
@@ -26,34 +20,32 @@ public abstract class AbstractNotificationListener implements NotificationListen
 
     /**
      * Initializes a new listener for the specified subscription list.
-     * @param info Metadata of the notification to listen.
      * @param subscriptionList The subscription list.
      */
-    protected AbstractNotificationListener(final NotificationMetadata info, final String subscriptionList){
-        if(info == null) throw new IllegalArgumentException("info");
-        else if(subscriptionList == null || subscriptionList.isEmpty()) throw new IllegalArgumentException("Subscription list is null or empty.");
-        else {
-            this.notificationInfo = info;
-            this.subscriptionList = subscriptionList;
-        }
+    protected AbstractNotificationListener(final String subscriptionList){
+        if(subscriptionList == null || subscriptionList.isEmpty()) throw new IllegalArgumentException("Subscription list is null or empty.");
+        this.subscriptionList = subscriptionList;
     }
 
     /**
-     * Handles the incoming notification.
-     * @param n The notification to handle.
-     * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
-     */
-    protected abstract boolean handle(final Notification n);
-
-    /**
-     * Handles the specified notification.
+     * Invoked when a JMX notification occurs.
+     * The implementation of this method should return as soon as possible, to avoid
+     * blocking its notification broadcaster.
      *
-     * @param listId An identifier of the subscription list.
-     * @param n      The notification to handle.
-     * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
+     * @param notif The notification.
+     * @param handback     An opaque object which helps the listener to associate
+     *                     information regarding the MBean emitter. This object is passed to the
+     *                     addNotificationListener call and resent, without modification, to the
      */
     @Override
-    public final boolean handle(final String listId, final Notification n) {
-        return Objects.equals(listId, subscriptionList) && handle(n);
+    public final void handleNotification(final Notification notif, final Object handback) {
+        if(Objects.equals(subscriptionList, notif.getType()))
+            handle(notif);
     }
+
+    /**
+     * Processes filtered notification.
+     * @param notif The notification to process.
+     */
+    public abstract void handle(final Notification notif);
 }

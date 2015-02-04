@@ -38,6 +38,11 @@ public interface AgentConfiguration extends Cloneable {
      */
     public static interface ConfigurationEntity{
         /**
+         * The name of the parameter which contains description of the configuration entity.
+         */
+        String DESCRIPTION_KEY = "description";
+
+        /**
          * Gets configuration parameters of this entity.
          * @return A map of configuration parameters.
          */

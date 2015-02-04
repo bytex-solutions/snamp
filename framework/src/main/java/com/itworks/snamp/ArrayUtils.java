@@ -2,6 +2,7 @@ package com.itworks.snamp;
 
 import com.google.common.collect.ObjectArrays;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -128,6 +129,12 @@ public final class ArrayUtils {
         final Integer[] result = new Integer[value.length];
         for (int i = 0; i < value.length; i++)
             result[i] = value[i];
+        return result;
+    }
+
+    public static <T> T[] createAndFill(final Class<T> componentType, final T value, final int length){
+        final T[] result = ObjectArrays.newArray(componentType, length);
+        Arrays.fill(result, value);
         return result;
     }
 }
