@@ -110,7 +110,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Test
@@ -121,6 +121,19 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             Object licenseContent = connection.getAttribute(commonsObj, "license");
             assertTrue(licenseContent instanceof String);
             assertEquals(getLicenseContent(), licenseContent);
+        }
+    }
+
+    @Test
+    public void getConnectorConfigurationSchemaTest() throws IOException, JMException, InterruptedException, TimeoutException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final Object result = connection.invoke(commonsObj,
+                    "getConnectorConfigurationSchema",
+                    new Object[]{"jmx", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertTrue(result instanceof CompositeData);
         }
     }
 

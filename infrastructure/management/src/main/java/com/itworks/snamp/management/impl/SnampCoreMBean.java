@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import com.itworks.snamp.management.SnampComponentDescriptor;
@@ -34,6 +35,38 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
     public static final String OBJECT_NAME = "com.itworks.snamp.management:type=SnampCore";
     public static final TimeSpan DEFAULT_RENEWAL_TIME = TimeSpan.fromSeconds(5);
     private final StatisticCounters counter;
+
+    private static final class GetConnectorConfigurationSchemaOperation extends OpenOperation<CompositeData, CompositeType>{
+        private static final String NAME = "getConnectorConfigurationSchema";
+        private static final OpenMBeanParameterInfo CONNECTOR_NAME_PARAM = new OpenMBeanParameterInfoSupport(
+            "connectorName",
+            "The name of the managed resource connector",
+            SimpleType.STRING
+        );
+        private static final OpenMBeanParameterInfo LOCALE_PARAM = new OpenMBeanParameterInfoSupport(
+                "locale",
+                "The expected localization of the configuration schema",
+                SimpleType.STRING);
+
+        private final SnampManager manager;
+
+        private GetConnectorConfigurationSchemaOperation(final SnampManager manager){
+            super(NAME, SnampCoreMBeanUtils.COMPONENT_CONFIG_SCHEMA, CONNECTOR_NAME_PARAM, LOCALE_PARAM);
+            this.manager = Objects.requireNonNull(manager);
+        }
+
+        private CompositeData invoke(final String connectorName, final String locale) throws OpenDataException{
+            return SnampCoreMBeanUtils.getConnectorConfigurationSchema(manager, connectorName, locale);
+        }
+
+        @Override
+        public CompositeData invoke(final Map<String, ?> arguments) throws OpenDataException {
+            return invoke(
+                    Utils.getProperty(arguments, CONNECTOR_NAME_PARAM.getName(), String.class),
+                    Utils.getProperty(arguments, LOCALE_PARAM.getName(), String.class)
+            );
+        }
+    }
 
     private static final class LicenseAttribute extends OpenAttribute<String, SimpleType<String>>{
         private static final String NAME = "license";
@@ -255,21 +288,22 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
         }
     }
 
-    private SnampCoreMBean(final StatisticCounters counter) throws OpenDataException{
-        super( new LicenseAttribute(),
+    private SnampCoreMBean(final StatisticCounters counter, final SnampManager manager) throws OpenDataException{
+        super(  new GetConnectorConfigurationSchemaOperation(manager),
+                new LicenseAttribute(),
                 new StatisticRenewalTimeAttribute(counter),
                 new CountAttribute("FaultsCount", counter, LogService.LOG_ERROR),
                 new CountAttribute("WarningMessagesCount", counter, LogService.LOG_WARNING),
                 new CountAttribute("DebugMessagesCount", counter, LogService.LOG_DEBUG),
                 new CountAttribute("InformationMessagesCount", counter, LogService.LOG_INFO),
                 new LogEventNotification(),
-                new InstalledComponents(new SnampManagerImpl()));
+                new InstalledComponents(manager));
         counter.start();
         this.counter = counter;
     }
 
     public SnampCoreMBean() throws OpenDataException{
-        this(new StatisticCounters(DEFAULT_RENEWAL_TIME));
+        this(new StatisticCounters(DEFAULT_RENEWAL_TIME), new SnampManagerImpl());
     }
 
     /**
