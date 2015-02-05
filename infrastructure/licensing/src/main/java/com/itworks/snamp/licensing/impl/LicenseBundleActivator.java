@@ -1,12 +1,22 @@
 package com.itworks.snamp.licensing.impl;
 
+import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.core.AbstractServiceLibrary;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.LicenseReader;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ManagedService;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Hashtable;
 import java.util.Map;
 
 /**
@@ -44,6 +54,7 @@ public final class LicenseBundleActivator extends AbstractServiceLibrary {
 
         @Override
         protected XmlLicenseReader activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+            identity.put(Constants.SERVICE_PID, XmlLicenseReader.LICENSE_PID);
             return getActivationPropertyValue(LICENSE_READER_ACTIVATION_PROPERTY);
         }
     }
@@ -61,6 +72,7 @@ public final class LicenseBundleActivator extends AbstractServiceLibrary {
     @Override
     @MethodStub
     protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
+
     }
 
     /**
@@ -71,10 +83,31 @@ public final class LicenseBundleActivator extends AbstractServiceLibrary {
      */
     @Override
     @MethodStub
-    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception{
+    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         final XmlLicenseReader reader = new XmlLicenseReader();
-        reader.bootFromFile();
         activationProperties.publish(LICENSE_READER_ACTIVATION_PROPERTY, reader);
+        //load configuration from file if it is necessary
+        bootLicense();
+    }
+
+    private void bootLicense() throws IOException {
+        final BundleContext context = Utils.getBundleContextByObject(this);
+        final File licenseFile = new File(System.getProperty(XmlLicenseReader.BOOT_LICENSE_SYSTEM_PROP, "snamp.lic"));
+        if (licenseFile.exists()) {
+            final ServiceReferenceHolder<ConfigurationAdmin> configService = new ServiceReferenceHolder<>(context,
+                    ConfigurationAdmin.class);
+            try {
+                final byte[] licenseContent = Files.readAllBytes(Paths.get(licenseFile.toURI()));
+                final Configuration config = configService.getService()
+                        .getConfiguration(XmlLicenseReader.LICENSE_PID, null);
+                final Hashtable<String, Object> entry = new Hashtable<>();
+                entry.put(XmlLicenseReader.LICENSE_CONTENT_ENTRY, licenseContent);
+                config.update(entry);
+            }
+            finally {
+                configService.release(context);
+            }
+        }
     }
 
     /**

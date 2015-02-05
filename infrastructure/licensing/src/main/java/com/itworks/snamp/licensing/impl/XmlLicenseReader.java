@@ -13,7 +13,6 @@ import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.licensing.LicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
 import org.w3c.dom.Document;
@@ -32,15 +31,14 @@ import javax.xml.crypto.dsig.dom.DOMValidateContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.Key;
 import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPublicKey;
 import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,7 +54,7 @@ import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.Co
  */
 final class XmlLicenseReader extends AbstractFrameworkService implements LicenseReader {
     private static final String LOGGER_NAME = "com.itworks.snamp.licensing";
-    private static final String BOOT_LICENSE_SYSTEM_PROP = "com.itworks.snamp.licensing.file";
+    static final String BOOT_LICENSE_SYSTEM_PROP = "com.itworks.snamp.licensing.file";
 
     /**
      * Represents licensing context.
@@ -159,6 +157,7 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
                     }
                 });
             }
+
     }
 
     private static InputStream getLicenseStream(final BundleContext context) throws IOException {
@@ -287,30 +286,6 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
             result = fallback.get();
         }
         return result;
-    }
-
-    private boolean bootFromFile(final ConfigurationAdmin configService) throws IOException {
-        final File licenseFile = new File(System.getProperty(BOOT_LICENSE_SYSTEM_PROP, "snamp.lic"));
-        if(licenseFile.exists()){
-            final byte[] licenseContent = Files.readAllBytes(Paths.get(licenseFile.toURI()));
-            final Configuration config = configService.getConfiguration(LICENSE_PID, null);
-            final Hashtable<String, Object> entry = new Hashtable<>();
-            entry.put(LICENSE_CONTENT_ENTRY, licenseContent);
-            config.update(entry);
-            return true;
-        }
-        else return false;
-    }
-
-    boolean bootFromFile() throws IOException {
-        final BundleContext context = Utils.getBundleContextByObject(this);
-        final ServiceReferenceHolder<ConfigurationAdmin> configService = new ServiceReferenceHolder<>(context, ConfigurationAdmin.class);
-        try{
-            return bootFromFile(configService.getService());
-        }
-        finally {
-            configService.release(context);
-        }
     }
 
     /**

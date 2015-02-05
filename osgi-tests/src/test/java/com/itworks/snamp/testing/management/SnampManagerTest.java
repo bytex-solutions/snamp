@@ -28,13 +28,7 @@ import javax.management.openmbean.TabularData;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
@@ -116,7 +110,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Test
