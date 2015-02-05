@@ -6,6 +6,7 @@ import javax.management.JMException;
 import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcaster;
 import javax.management.openmbean.CompositeData;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * Provides notification support for management connector.
@@ -28,13 +29,15 @@ public interface NotificationSupport extends NotificationBroadcaster, View {
      * The name of the field in {@link javax.management.Descriptor}
      * which contains the value of the notification severity as {@link com.itworks.snamp.connectors.notifications.Severity} value.
      */
-    String NOTIFICATION_SEVERITY_FIELD = "severity";
+    String SEVERITY_FIELD = "severity";
 
     /**
      * The name of the field in {@link javax.management.Descriptor}
      * which contains the value of the notification subscription model as {@link com.itworks.snamp.connectors.notifications.NotificationSubscriptionModel} value.
      */
     String NOTIFICATION_MODEL_FIELD = "notificationModel";
+
+    String DESCRIPTION_FIELD = EventConfiguration.DESCRIPTION_KEY;
 
     /**
      * Enables event listening for the specified category of events.
