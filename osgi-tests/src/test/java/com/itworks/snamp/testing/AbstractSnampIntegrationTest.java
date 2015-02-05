@@ -22,6 +22,8 @@ import org.osgi.service.cm.ConfigurationAdmin;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.TimeoutException;
@@ -100,6 +102,14 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
             expandSystemPropertyFileName(SnampSystemProperties.JAAS_CONFIG_FILE);
             expandSystemPropertyFileName(SnampSystemProperties.LICENSING_FILE);
         }
+    }
+
+    protected static String getLicenseFile(){
+        return System.getProperty(SnampSystemProperties.LICENSING_FILE);
+    }
+
+    protected static String getLicenseContent() throws IOException {
+        return new String(Files.readAllBytes(Paths.get(getLicenseFile())), "UTF-8");
     }
 
     private static void expandSystemPropertyFileName(final String propertyName) {

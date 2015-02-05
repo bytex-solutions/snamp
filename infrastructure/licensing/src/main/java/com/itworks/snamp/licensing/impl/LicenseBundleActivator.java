@@ -3,6 +3,7 @@ package com.itworks.snamp.licensing.impl;
 import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.LicenseReader;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ManagedService;
 
 import java.util.Collection;
@@ -60,7 +61,6 @@ public final class LicenseBundleActivator extends AbstractServiceLibrary {
     @Override
     @MethodStub
     protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
-
     }
 
     /**

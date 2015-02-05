@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.management;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
@@ -27,7 +28,13 @@ import javax.management.openmbean.TabularData;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
@@ -53,10 +60,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void jmxMonitoringTest() throws IOException, JMException, InterruptedException, TimeoutException {
-        final String jmxPort =
-                System.getProperty("com.sun.management.jmxremote.port", "9010");
-        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
-        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString))){
+        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))){
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
             assertNotNull(connection.getMBeanInfo(commonsObj));
@@ -107,6 +111,22 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(true, jmxConnectorInfo.get("IsCommerciallyLicensed"));
             assertEquals(true, jmxConnectorInfo.get("IsConfigurationDescriptionAvailable"));
             getTestBundleContext().ungetService(loggerRef);
+        }
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
+    }
+
+    @Test
+    public void licenseTest() throws IOException, JMException, InterruptedException, TimeoutException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            Object licenseContent = connection.getAttribute(commonsObj, "license");
+            assertTrue(licenseContent instanceof String);
+            assertEquals(getLicenseContent(), licenseContent);
         }
     }
 

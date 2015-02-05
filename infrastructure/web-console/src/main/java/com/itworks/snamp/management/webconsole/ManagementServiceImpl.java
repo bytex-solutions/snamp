@@ -69,6 +69,7 @@ public final class ManagementServiceImpl {
     /**
      * Gets SNAMP configuration in JSON format.
      * @return SNAMP configuration in JSON format.
+     * @todo move as property
      */
     @GET
     @Path("/configuration")
@@ -87,6 +88,7 @@ public final class ManagementServiceImpl {
      * Stores SNAMP configuration.
      *
      * @param value SNAMP configuration in JSON format.
+     *              * @todo move as property
      */
     @POST
     @Path("/configuration")
@@ -118,6 +120,7 @@ public final class ManagementServiceImpl {
      */
     @POST
     @Path("/restart")
+    // todo move as operation
     public void restart(@Context final SecurityContext context) throws WebApplicationException {
         SecurityUtils.adminRequired(context);
         try {
@@ -133,6 +136,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/license")
     @Produces(MediaType.APPLICATION_XML)
+    // todo move as property
     public String getLicense(final @Context SecurityContext context) throws WebApplicationException {
         SecurityUtils.adminRequired(context);
         try {
@@ -145,6 +149,7 @@ public final class ManagementServiceImpl {
     @POST
     @Path("/license")
     @Consumes(MediaType.APPLICATION_XML)
+    // todo move as property
     public void setLicense(final String licenseContent, @Context final SecurityContext context) throws WebApplicationException{
         SecurityUtils.adminRequired(context);
         try{
@@ -223,6 +228,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors/{connectorType}/configurationSchema")
     @Produces(MediaType.APPLICATION_JSON)
+    // move as composite data object
     public String getConnectorConfigurationSchema(@PathParam("connectorType") final String connectorName,
                                                   @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                                   @Context final SecurityContext context) throws WebApplicationException {
@@ -261,6 +267,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors")
     @Produces(MediaType.APPLICATION_JSON)
+    // move as attribute (read only if no setters exist)
     public String getInstalledConnectors(@Context final SecurityContext context){
         SecurityUtils.wellKnownRoleRequired(context);
         final JsonArray result = new JsonArray();
@@ -271,6 +278,7 @@ public final class ManagementServiceImpl {
 
     @GET
     @Path("/connectors/{connectorType}")
+    // move as operation (due to existence params)
     public String getConnectorInfo(@PathParam("connectorType")final String connectorName,
                                    @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                    @Context final SecurityContext context) throws WebApplicationException {
@@ -304,6 +312,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/adapters")
     @Produces(MediaType.APPLICATION_JSON)
+    // move as read only attribute
     public String getInstalledAdapters(@Context SecurityContext context){
         SecurityUtils.wellKnownRoleRequired(context);
         final JsonArray result = new JsonArray();
@@ -321,6 +330,7 @@ public final class ManagementServiceImpl {
     public String getAdapterInfo(@PathParam("adapterName")final String adapterName,
                                  @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                  @Context SecurityContext context) throws WebApplicationException {
+        // all the exception should be wrapped into JMException
         SecurityUtils.wellKnownRoleRequired(context);
         final SnampComponentDescriptor adapter = getResourceAdapter(snampManager, adapterName);
         if (adapter == null)
@@ -347,6 +357,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/adapters/{adapterName}/configurationSchema")
     @Produces(MediaType.APPLICATION_JSON)
+    // operation
     public String getAdapterConfigurationSchema(@PathParam("adapterName")final String adapterName,
                                                 @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                                 @Context SecurityContext context) throws WebApplicationException {
@@ -367,6 +378,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors/{connectorType}/configurationSchema/attribute/{parameterName}")
     @Produces(MediaType.APPLICATION_JSON)
+    // operation
     public String suggestConnectorAttributeParameterValues(@PathParam("connectorType")final String connectorName,
                                                             @PathParam("parameterName")final String parameterName,
                                                             @QueryParam(LOCALE_QUERY_PARAM)final String locale,
@@ -385,6 +397,8 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors/{connectorType}/configurationSchema/event/{parameterName}")
     @Produces(MediaType.APPLICATION_JSON)
+    // operation (array in return)
+
     public String suggestConnectorEventParameterValues(@PathParam("connectorType")final String connectorName,
                                                        @PathParam("parameterName")final String parameterName,
                                                        @QueryParam(LOCALE_QUERY_PARAM)final String locale,
@@ -463,6 +477,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors/{connectorType}/availableMetadata")
     @Produces(MediaType.APPLICATION_JSON)
+    //
     public String discoverManagementMetadata(@PathParam("connectorType")final String connectorName,
                                              @QueryParam(CONNECTION_STRING_QUERY_PARAM)final String connectionString,
                                              @QueryParam(LOCALE_QUERY_PARAM)final String locale,
@@ -629,6 +644,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/jaas/config")
     @Produces(MediaType.WILDCARD)
+    // operation return byteArray
     public Response getJaasConfig(@Context final SecurityContext security) {
         SecurityUtils.adminRequired(security);
         final BundleContext context = getBundleContextByObject(this);
@@ -652,6 +668,7 @@ public final class ManagementServiceImpl {
     @POST
     @Path("/jaas/config")
     @Consumes(MediaType.WILDCARD)
+    // setter byteArray type of argument
     public void setJaasConfig(@Context final SecurityContext security,
                               @Context final HttpHeaders headers,
                               final InputStream content) throws WebApplicationException{

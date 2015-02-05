@@ -15,27 +15,55 @@ import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogService;
 
 import javax.management.openmbean.*;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
+
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
+ * @TODO for temni: move from the webconsole all the methods related to attrubites
  */
 final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMBean {
     public static final String OBJECT_NAME = "com.itworks.snamp.management:type=SnampCore";
     public static final TimeSpan DEFAULT_RENEWAL_TIME = TimeSpan.fromSeconds(5);
     private final StatisticCounters counter;
 
+    private static final class LicenseAttribute extends OpenAttribute<String, SimpleType<String>>{
+        private static final String NAME = "license";
+
+        private LicenseAttribute(){
+            super(NAME, SimpleType.STRING);
+        }
+
+        @Override
+        public String getValue() throws IOException {
+            return LicenseManager.getLicenseContent(getBundleContextByObject(this));
+        }
+
+        @Override
+        public void setValue(final String licenseContent) throws IOException {
+            LicenseManager.setLicenseContent(getBundleContextByObject(this), licenseContent);
+        }
+
+        @Override
+        protected String getDescription() {
+            return "SNAMP Configuration";
+        }
+    }
+
     private static final class StatisticRenewalTimeAttribute extends OpenAttribute<Long, SimpleType<Long>>{
         private final StatisticCounters counter;
+        private static final String NAME = "StatisticRenewalTime";
 
-        public StatisticRenewalTimeAttribute(final StatisticCounters counter){
-            super("StatisticRenewalTime", SimpleType.LONG);
+        private StatisticRenewalTimeAttribute(final StatisticCounters counter){
+            super(NAME, SimpleType.LONG);
             this.counter = counter;
         }
 
@@ -64,7 +92,7 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
         private final StatisticCounters counter;
         private final int logLevel;
 
-        public CountAttribute(final String attributeName,
+        private CountAttribute(final String attributeName,
                               final StatisticCounters counter,
                               final int logLevel){
             super(attributeName, SimpleType.LONG);
@@ -228,7 +256,7 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
     }
 
     private SnampCoreMBean(final StatisticCounters counter) throws OpenDataException{
-        super(
+        super( new LicenseAttribute(),
                 new StatisticRenewalTimeAttribute(counter),
                 new CountAttribute("FaultsCount", counter, LogService.LOG_ERROR),
                 new CountAttribute("WarningMessagesCount", counter, LogService.LOG_WARNING),

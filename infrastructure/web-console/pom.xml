@@ -134,11 +134,5 @@
             <version>18.0</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>io.hawt</groupId>
-            <artifactId>hawtio-core</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 </project>
