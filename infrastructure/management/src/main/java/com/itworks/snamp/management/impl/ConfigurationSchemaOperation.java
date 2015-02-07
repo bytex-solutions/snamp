@@ -10,8 +10,9 @@ import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
+import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
-import com.itworks.snamp.management.SnampManager;
+import com.itworks.snamp.management.jmx.OpenMBean;
 
 import javax.management.openmbean.*;
 import java.util.*;
@@ -21,14 +22,14 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-final class SnampCoreMBeanUtils {
-    static final CompositeType COMPONENT_CONFIG_SCHEMA;
+abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<CompositeData, CompositeType> {
+    private static final CompositeType COMPONENT_CONFIG_SCHEMA;
     private static String MANAGED_RESOURCE_PARAMS = "managedResourceParameters";
     private static String RESOURCE_ADAPTER_PARAMS = "resourceAdapterParameters";
     private static final String ATTRIBUTE_PARAMS = "attributeParameters";
     private static final String EVENT_PARAMS = "eventParameters";
 
-    static final CompositeType CONFIG_PARAMETER_DESCRIPTOR;
+    private static final CompositeType CONFIG_PARAMETER_DESCRIPTOR;
     private static final String DEFAULT_VALUE = "defaultValue";
     private static final String DESCRIPTION = "description";
     private static final String INPUT_PATTERN = "inputPattern";
@@ -38,8 +39,7 @@ final class SnampCoreMBeanUtils {
     private static final String EXTENDS = "extends";
     private static final String EXCLUDES = "notCompatibleWith";
 
-    static final TabularType CONFIG_ENTITY_SCHEMA;
-
+    private static final TabularType CONFIG_ENTITY_SCHEMA;
 
     static{
         try {
@@ -85,7 +85,7 @@ final class SnampCoreMBeanUtils {
                             new String[]{"Parameter name", "Parameter descriptor"},
                             new OpenType<?>[]{SimpleType.STRING, CONFIG_PARAMETER_DESCRIPTOR}),
                     new String[]{"parameter"}
-                    );
+            );
             //COMPONENT_CONFIG_SCHEMA
             COMPONENT_CONFIG_SCHEMA = new CompositeType("com.itworks.management.ConnectorConfigSchema",
                     "SNAMP Connector Configuration Schema",
@@ -111,8 +111,13 @@ final class SnampCoreMBeanUtils {
         }
     }
 
-    private SnampCoreMBeanUtils(){
+    protected final AbstractSnampManager snampManager;
 
+    protected ConfigurationSchemaOperation(final AbstractSnampManager snampManager,
+                                           final String operationName,
+                                           final OpenMBeanParameterInfo... parameters) {
+        super(operationName, COMPONENT_CONFIG_SCHEMA, parameters);
+        this.snampManager = Objects.requireNonNull(snampManager);
     }
 
     private static String getRelationshipKey(final ConfigurationEntityDescription.ParameterRelationship rel){
@@ -162,8 +167,8 @@ final class SnampCoreMBeanUtils {
         return new CompositeDataSupport(COMPONENT_CONFIG_SCHEMA, schema);
     }
 
-    private static CompositeData getConfigurationSchema(final SnampComponentDescriptor component,
-                                                 final String locale) throws OpenDataException {
+    protected static CompositeData getConfigurationSchema(final SnampComponentDescriptor component,
+                                                        final String locale) throws OpenDataException {
         final Box<CompositeData> result = new Box<>();
         component.invokeSupportService(ConfigurationEntityDescriptionProvider.class, new Consumer<ConfigurationEntityDescriptionProvider, OpenDataException>() {
             @Override
@@ -174,18 +179,5 @@ final class SnampCoreMBeanUtils {
         return result.get();
     }
 
-    static SnampComponentDescriptor getResourceConnector(final SnampManager snampManager,
-                                                                 final String connectorName){
-        for(final SnampComponentDescriptor connector: snampManager.getInstalledResourceConnectors())
-            if(Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
-                return connector;
-        return null;
-    }
 
-    static CompositeData getConnectorConfigurationSchema(final SnampManager snampManager,
-                                                         final String connectorName,
-                                                         final String locale) throws OpenDataException{
-        final SnampComponentDescriptor connector = getResourceConnector(snampManager, connectorName);
-        return connector != null ? getConfigurationSchema(connector, locale) : null;
-    }
 }

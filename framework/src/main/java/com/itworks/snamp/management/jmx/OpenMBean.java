@@ -2,6 +2,7 @@ package com.itworks.snamp.management.jmx;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 
 import javax.management.*;
@@ -38,7 +39,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @see com.itworks.snamp.management.jmx.OpenMBean.OpenOperation
      * @see com.itworks.snamp.management.jmx.OpenMBean.OpenAttribute
      */
-    protected static abstract class OpenMBeanElement<T extends MBeanFeatureInfo> implements Supplier<T> {
+    public static abstract class OpenMBeanElement<T extends MBeanFeatureInfo> implements Supplier<T> {
         /**
          * Represents name of this element.
          */
@@ -75,7 +76,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class OpenNotification<N> extends OpenMBeanElement<MBeanNotificationInfo>{
+    public static abstract class OpenNotification<N> extends OpenMBeanElement<MBeanNotificationInfo>{
         private final String[] types;
         private final Class<N> eventObjectType;
         private final AtomicLong sequenceNumber;
@@ -156,7 +157,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         }
     }
 
-    protected static abstract class OpenOperation<R, T extends OpenType<R>> extends OpenMBeanElement<MBeanOperationInfo>{
+    public static abstract class OpenOperation<R, T extends OpenType<R>> extends OpenMBeanElement<MBeanOperationInfo>{
         private final T returnType;
         private final List<OpenMBeanParameterInfo> parameters;
 
@@ -166,9 +167,8 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             this.parameters = Arrays.asList(parameters);
         }
 
-        @SuppressWarnings("UnusedDeclaration")
         protected static <T> T getArgument(final String paramName, final Class<T> paramType, final Map<String, ?> arguments){
-            return paramType.cast(arguments.get(paramName));
+            return Utils.getProperty(arguments, paramName, paramType);
         }
 
         public abstract R invoke(final Map<String, ?> arguments) throws Exception;
@@ -221,7 +221,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @author Roman Sakno
      * @since 1.0
      */
-    protected static abstract class OpenAttribute<V, T extends OpenType<V>> extends OpenMBeanElement<MBeanAttributeInfo> {
+    public static abstract class OpenAttribute<V, T extends OpenType<V>> extends OpenMBeanElement<MBeanAttributeInfo> {
         private static final String GET_VALUE_METHOD = "getValue";
         private static final String SET_VALUE_METHOD = "setValue";
 

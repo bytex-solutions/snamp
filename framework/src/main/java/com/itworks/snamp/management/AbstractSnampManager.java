@@ -1,5 +1,7 @@
 package com.itworks.snamp.management;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.Aggregator;
 import com.itworks.snamp.Consumer;
@@ -11,10 +13,7 @@ import com.itworks.snamp.core.SupportService;
 import com.itworks.snamp.internal.Utils;
 import org.osgi.framework.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * Represents partial implementation of {@link com.itworks.snamp.management.SnampManager} service.
@@ -417,5 +416,23 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
             if(isSnampComponent(bnd))
                 result.add(new InternalSnampComponentDescriptor(bnd.getBundleId()));
         return result;
+    }
+
+    public final SnampComponentDescriptor getResourceConnector(final String connectorName) {
+        return Iterables.find(getInstalledResourceConnectors(), new Predicate<SnampComponentDescriptor>() {
+            @Override
+            public boolean apply(final SnampComponentDescriptor connector) {
+                return Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY));
+            }
+        });
+    }
+
+    public final SnampComponentDescriptor getResourcAdapter(final String adapterName) {
+        return Iterables.find(getInstalledResourceAdapters(), new Predicate<SnampComponentDescriptor>() {
+            @Override
+            public boolean apply(final SnampComponentDescriptor connector) {
+                return Objects.equals(adapterName, connector.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY));
+            }
+        });
     }
 }
