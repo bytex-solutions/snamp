@@ -3,7 +3,7 @@ package com.itworks.snamp.configuration;
 import com.google.common.collect.ForwardingMap;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.mapping.RecordReader;
+import com.itworks.snamp.internal.RecordReader;
 
 import java.io.*;
 import java.util.HashMap;

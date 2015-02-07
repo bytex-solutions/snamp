@@ -2,9 +2,7 @@ package com.itworks.snamp.jmx;
 
 import com.google.common.base.Supplier;
 
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenType;
+import javax.management.openmbean.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
@@ -104,26 +102,22 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
         super.clear();
     }
 
-    private CompositeDataBuilder putImpl(final String itemName,
-                                         final Object itemValue){
-        put(itemName, itemValue);
-        return this;
-    }
-
     /**
      * Puts a new item into the composite data.
      * @param itemName The name of the item. Cannot be {@literal null} or empty.
      * @param itemDescription The description of the item. Cannot be {@literal null} or empty.
      * @param itemType The type of the item.
      * @param value The value of the item.
+     * @param <T> The type of the item.
      * @return This builder.
      */
-    public CompositeDataBuilder put(final String itemName,
+    public <T> CompositeDataBuilder put(final String itemName,
                     final String itemDescription,
-                    final OpenType<?> itemType,
-                    final Object value){
+                    final OpenType<T> itemType,
+                    final T value){
         typeBuilder.addItem(itemName, itemDescription, itemType);
-        return putImpl(itemName, value);
+        put(itemName, value);
+        return this;
     }
 
     /**
@@ -134,11 +128,10 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putString(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                               final String itemDescription,
                               final String value){
-        typeBuilder.addStringItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.STRING, value);
     }
 
     /**
@@ -149,11 +142,10 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putByte(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                           final String itemDescription,
                           final byte value){
-        typeBuilder.addByteItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.BYTE, value);
     }
 
     /**
@@ -164,11 +156,10 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putChar(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                         final String itemDescription,
                         final char value){
-        typeBuilder.addCharItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.CHARACTER, value);
     }
 
     /**
@@ -179,11 +170,10 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putShort(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                         final String itemDescription,
                         final short value){
-        typeBuilder.addShortItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.SHORT, value);
     }
 
     /**
@@ -194,11 +184,10 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putInt(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                          final String itemDescription,
                          final int value){
-        typeBuilder.addIntItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.INTEGER, value);
     }
 
     /**
@@ -209,11 +198,10 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putLong(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                        final String itemDescription,
                        final long value){
-        typeBuilder.addLongItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.LONG, value);
     }
 
     /**
@@ -224,11 +212,10 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putFloat(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                         final String itemDescription,
                         final float value){
-        typeBuilder.addFloatItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.FLOAT, value);
     }
 
     /**
@@ -239,11 +226,10 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putDouble(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                          final String itemDescription,
                          final double value){
-        typeBuilder.addDoubleItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.DOUBLE, value);
     }
 
     /**
@@ -254,11 +240,10 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putBool(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                          final String itemDescription,
                          final boolean value){
-        typeBuilder.addBoolItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.BOOLEAN, value);
     }
 
     /**
@@ -269,11 +254,10 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putDate(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                         final String itemDescription,
                         final Date value){
-        typeBuilder.addDateItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.DATE, value);
     }
 
     /**
@@ -284,11 +268,10 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putBigInt(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                         final String itemDescription,
                         final BigInteger value){
-        typeBuilder.addBigIntItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.BIGINTEGER, value);
     }
 
     /**
@@ -299,11 +282,22 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @param value The value of the item.
      * @return This builder.
      */
-    public final CompositeDataBuilder putBigDecimal(final String itemName,
+    public final CompositeDataBuilder put(final String itemName,
                         final String itemDescription,
                         final BigDecimal value){
-        typeBuilder.addBigDecimalItem(itemName, itemDescription);
-        return putImpl(itemName, value);
+        return put(itemName, itemDescription, SimpleType.BIGDECIMAL, value);
+    }
+
+    public final CompositeDataBuilder put(final String itemName,
+                                                       final String itemDescription,
+                                                       final CompositeData dict) {
+        return put(itemName, itemDescription, dict.getCompositeType(), dict);
+    }
+
+    public final CompositeDataBuilder put(final String itemName,
+                                          final String itemDescription,
+                                          final TabularData table){
+        return put(itemName, itemDescription, table.getTabularType(), table);
     }
 
     /**

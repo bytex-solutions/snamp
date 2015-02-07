@@ -23,7 +23,7 @@ public final class ArrayUtils {
      * @param <T> Array component type.
      * @return An array with elements from the collection.
      */
-    public static <T> T[] toArray(final Collection<T> source, final Class<T> componentType){
+    public static <T> T[] toArray(final Collection<? extends T> source, final Class<T> componentType){
         return source.toArray(ObjectArrays.newArray(componentType, source.size()));
     }
 

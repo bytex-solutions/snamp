@@ -5,8 +5,8 @@ import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.Attribute;
 import com.itworks.snamp.AttributeReader;
 import com.itworks.snamp.StringAppender;
+import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.internal.annotations.MethodStub;
-import com.itworks.snamp.mapping.TypeLiterals;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -177,8 +177,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             if (propertyDef == null) return null;
             else if (containsKey(propertyDef)) {
                 final Object value = get(propertyDef);
-                return TypeLiterals.isInstance(value, propertyDef.getType()) ?
-                        TypeLiterals.cast(value, propertyDef.getType()) :
+                return TypeTokens.isInstance(value, propertyDef.getType()) ?
+                        TypeTokens.cast(value, propertyDef.getType()) :
                         propertyDef.getDefaultValue();
             } else return null;
         }

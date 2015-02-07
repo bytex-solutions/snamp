@@ -29,4 +29,6 @@ public enum NotificationSubscriptionModel {
      * Each listener will be executed in the separated thread.
      */
     MULTICAST_PARALLEL,
+
+
 }

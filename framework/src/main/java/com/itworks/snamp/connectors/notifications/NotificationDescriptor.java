@@ -24,39 +24,51 @@ import static com.itworks.snamp.jmx.DescriptorUtils.getField;
  * @since 1.0
  */
 public class NotificationDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<EventConfiguration> {
+    /**
+     * Gets name of the parameter in {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration}
+     * which describes the notification severity.
+     */
     public static final String SEVERITY_PARAM = NotificationSupport.SEVERITY_FIELD;
+
+    private NotificationDescriptor(final Map<String, ?> fields){
+        super(fields);
+    }
 
     public NotificationDescriptor(final EventConfiguration eventConfig,
                                   final NotificationSubscriptionModel subscriptionModel){
         this(eventConfig.getCategory(),
-                getSeverity(eventConfig.getParameters()),
                 subscriptionModel,
                 new ConfigParameters(eventConfig));
     }
 
     public NotificationDescriptor(final String category,
-                                  final Severity severity,
                                   final NotificationSubscriptionModel subscriptionModel,
                                   final CompositeData options){
-        super(getFields(category, severity, subscriptionModel, options));
+        this(getFields(category, subscriptionModel, options));
     }
 
     private static Map<String, ?> getFields(final String category,
-                                            final Severity severity,
                                             final NotificationSubscriptionModel subscriptionModel,
                                             final CompositeData options){
         final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 3);
         fields.put(NOTIFICATION_CATEGORY_FIELD, category);
-        fields.put(SEVERITY_FIELD, severity);
+        fields.put(SEVERITY_FIELD, getSeverity(options));
         fields.put(SUBSCRIPTION_MODEL_FIELD, subscriptionModel);
         fillMap(options, fields);
         return fields;
     }
 
-    private static Severity getSeverity(final Map<String, String> parameters){
-        return parameters.containsKey(SEVERITY_PARAM) ?
-                Severity.resolve(parameters.get(SEVERITY_PARAM)):
-                Severity.UNKNOWN;
+    private static Severity getSeverity(final CompositeData parameters){
+        if(parameters.containsKey(SEVERITY_PARAM)){
+            final Object result = parameters.get(SEVERITY_PARAM);
+            if(result instanceof String)
+                return Severity.resolve((String)result);
+            else if(result instanceof Integer)
+                return Severity.resolve((Integer)result);
+            else if(result instanceof Severity)
+                return (Severity)result;
+        }
+        return Severity.UNKNOWN;
     }
 
     /**
@@ -102,8 +114,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public static String getNotificationCategory(final MBeanNotificationInfo metadata){
-        final String[] notifTypes = metadata.getNotifTypes();
-        return notifTypes.length > 0 ? notifTypes[0] : getNotificationCategory(metadata.getDescriptor());
+        return getNotificationCategory(metadata.getDescriptor());
     }
 
     public static Severity getSeverity(final Descriptor metadata) {

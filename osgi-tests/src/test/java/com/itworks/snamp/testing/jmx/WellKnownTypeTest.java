@@ -1,6 +1,6 @@
-package com.itworks.snamp.testing.mapping;
+package com.itworks.snamp.testing.jmx;
 
-import com.itworks.snamp.mapping.WellKnownType;
+import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 
@@ -23,6 +23,7 @@ public class WellKnownTypeTest extends AbstractUnitTest<WellKnownType> {
             assertEquals(type, WellKnownType.getType(type.getType()));
             if(type.isOpenType())
                 assertEquals(type, WellKnownType.getType(type.getOpenType()));
+            assertEquals(type, WellKnownType.getType(type.getType().getName()));
         }
     }
 }

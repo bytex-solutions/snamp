@@ -23,8 +23,8 @@ public final class NotificationListenerInvokerFactory {
      * </p>
      * @return A new instance of the invoker.
      */
-    public static NotificationListenerInvoker createSequentialInvoker(){
-        return new NotificationListenerInvoker() {
+    public static NotificationListenerSequentialInvoker createSequentialInvoker(){
+        return new NotificationListenerSequentialInvoker() {
             @Override
             public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
@@ -54,8 +54,8 @@ public final class NotificationListenerInvokerFactory {
      * @param handler An exception handler that captures exception raised by the notification listener.
      * @return A new instance of the invoker.
      */
-    public static NotificationListenerInvoker createExceptionResistantInvoker(final ExceptionHandler handler){
-        return new NotificationListenerInvoker() {
+    public static NotificationListenerSequentialInvoker createExceptionResistantInvoker(final ExceptionHandler handler){
+        return new NotificationListenerSequentialInvoker() {
             @Override
             public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
@@ -74,12 +74,17 @@ public final class NotificationListenerInvokerFactory {
      * @param executor An executor that is used to apply each listener.
      * @return A new instance of the listener invoker that uses {@link ExecutorService} for listener invocation.
      */
-    public static NotificationListenerInvoker createParallelInvoker(final ExecutorService executor){
-        return new NotificationListenerInvoker() {
+    public static NotificationListenerParallelInvoker createParallelInvoker(final ExecutorService executor){
+        return new NotificationListenerParallelInvoker() {
+            @Override
+            public ExecutorService getScheduler() {
+                return executor;
+            }
+
             @Override
             public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
-                    executor.execute(new Runnable() {
+                    getScheduler().execute(new Runnable() {
                         @Override
                         public final void run() {
                             listener.handleNotification(n, handback);
@@ -89,12 +94,17 @@ public final class NotificationListenerInvokerFactory {
         };
     }
 
-    public static NotificationListenerInvoker createParallelExceptionResistantInvoker(final ExecutorService executor, final ExceptionHandler handler){
-        return new NotificationListenerInvoker() {
+    public static NotificationListenerParallelInvoker createParallelExceptionResistantInvoker(final ExecutorService executor, final ExceptionHandler handler){
+        return new NotificationListenerParallelInvoker() {
+            @Override
+            public ExecutorService getScheduler() {
+                return executor;
+            }
+
             @Override
             public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
-                    executor.execute(new Runnable() {
+                    getScheduler().execute(new Runnable() {
                         @Override
                         public final void run() {
                             try{

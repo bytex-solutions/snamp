@@ -15,8 +15,6 @@ import javax.management.DynamicMBean;
  *         via resource attributes.</li>
  *         <li>{@link com.itworks.snamp.connectors.notifications.NotificationSupport} to receiver
  *         management notifications.</li>
- *         <li>{@link com.itworks.snamp.connectors.operations.OperationSupport} to operate
- *         with managed resource in service-like manner.</li>
  *     </ul>
  * </p>
  * @param <TConnectionOptions> The connection options used to initiate connection to the management target.
