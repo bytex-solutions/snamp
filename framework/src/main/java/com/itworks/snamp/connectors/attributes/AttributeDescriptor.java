@@ -14,7 +14,7 @@ import java.util.Objects;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.connectors.attributes.AttributeSupport.*;
-import static com.itworks.snamp.jmx.CompositeDataUtils.getString;
+import static com.itworks.snamp.jmx.CompositeDataUtils.fillMap;
 import static com.itworks.snamp.jmx.DescriptorUtils.getField;
 
 /**
@@ -55,9 +55,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 3);
         fields.put(ATTRIBUTE_NAME_FIELD, attributeName);
         fields.put(READ_WRITE_TIMEOUT_FIELD, readWriteTimeout);
-        fields.put(DESCRIPTION_FIELD, getString(options, AttributeConfiguration.DESCRIPTION_KEY, ""));
-        for(final String key: options.getCompositeType().keySet())
-            fields.put(key, options.get(key));
+        fillMap(options, fields);
         return fields;
     }
 

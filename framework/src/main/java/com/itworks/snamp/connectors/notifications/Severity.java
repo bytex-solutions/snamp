@@ -87,4 +87,36 @@ public enum Severity implements Serializable, Comparable<Severity> {
                 return sev;
         return null;
     }
+
+    public static Severity resolve(final String value) {
+        switch (value.toLowerCase()) {
+            case "1": //jmx severity level
+            case "panic":
+                return Severity.PANIC;
+            case "2": //jmx severity level
+            case "alert":
+                return Severity.ALERT;
+            case "3": //jmx severity level
+            case "critical":
+                return Severity.CRITICAL;
+            case "4": //jmx severity level
+            case "error":
+                return Severity.ERROR;
+            case "5": //jmx severity level
+            case "warning":
+                return Severity.WARNING;
+            case "6": //jmx severity level
+            case "notice":
+                return Severity.NOTICE;
+            case "7": //jmx severity level
+            case "info":
+                return Severity.INFO;
+            case "8": //jmx severity level
+            case "debug":
+                return Severity.DEBUG;
+            case "0": //jmx severity level
+            default:
+                return Severity.UNKNOWN;
+        }
+    }
 }

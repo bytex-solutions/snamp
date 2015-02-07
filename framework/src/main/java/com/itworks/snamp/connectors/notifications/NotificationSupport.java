@@ -1,11 +1,10 @@
 package com.itworks.snamp.connectors.notifications;
 
-import com.itworks.snamp.views.View;
-
 import javax.management.JMException;
 import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcaster;
 import javax.management.openmbean.CompositeData;
+
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
@@ -18,7 +17,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @version 1.0
  * @since 1.0
  */
-public interface NotificationSupport extends NotificationBroadcaster, View {
+public interface NotificationSupport extends NotificationBroadcaster {
     /**
      * The name of the field in {@link javax.management.Descriptor}
      * which contains the name of the enabled category.
@@ -35,9 +34,16 @@ public interface NotificationSupport extends NotificationBroadcaster, View {
      * The name of the field in {@link javax.management.Descriptor}
      * which contains the value of the notification subscription model as {@link com.itworks.snamp.connectors.notifications.NotificationSubscriptionModel} value.
      */
-    String NOTIFICATION_MODEL_FIELD = "notificationModel";
+    String SUBSCRIPTION_MODEL_FIELD = "subscriptionModel";
+
 
     String DESCRIPTION_FIELD = EventConfiguration.DESCRIPTION_KEY;
+
+    /**
+     * The name of the field in {@link javax.management.Descriptor}
+     * which contains type descriptor of {@link javax.management.Notification#getUserData()}.
+     */
+    String USER_DATA_TYPE = "openType";
 
     /**
      * Enables event listening for the specified category of events.

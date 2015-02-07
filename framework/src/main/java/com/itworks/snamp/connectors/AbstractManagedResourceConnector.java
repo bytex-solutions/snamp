@@ -1,6 +1,8 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.attributes.AttributeMetadata;
@@ -10,14 +12,15 @@ import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.core.LogicalOperation;
-import com.itworks.snamp.internal.AbstractKeyedObjects;
-import com.itworks.snamp.internal.CountdownTimer;
-import com.itworks.snamp.internal.IllegalStateFlag;
-import com.itworks.snamp.internal.KeyedObjects;
+import com.itworks.snamp.core.OSGiLoggingContext;
+import com.itworks.snamp.internal.*;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
+import com.itworks.snamp.jmx.AttributeListUtils;
+import com.itworks.snamp.jmx.JMExceptionUtils;
 
+import javax.management.*;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -38,203 +41,7 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractManagedResourceConnector<TConnectionOptions> extends AbstractFrameworkService implements ManagedResourceConnector<TConnectionOptions> {
-
-    /**
-     * Represents default implementation of the attribute descriptor.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    protected static abstract class GenericAttributeMetadata<T extends ManagedEntityType> implements AttributeMetadata {
-        /**
-         * Represents the name of the attribute configuration parameter that assigns the display
-         * name for the attribute.
-         * <p>
-         *     If you want to store display names for each language then you should use the following notation:
-         *     displayName.en-US,
-         *     display.ru-RU
-         * </p>
-         */
-        public static final String DISPLAY_NAME_PARAM = "displayName";
-
-        /**
-         * Represents the name of the attribute configuration parameters that assigns the
-         * description for the attribute.
-         * <p>
-         *     If you want to store display names for each language then you should use the following notation:
-         *     description.en-US,
-         *     description.ru-RU
-         * </p>
-         */
-        public static final String DESCRIPTION_PARAM = "description";
-
-        private final String attributeName;
-        private volatile T attributeType;
-
-        /**
-         * Initializes a new attribute metadata.
-         * @param attributeName The name of the attribute. Cannot be {@literal null}.
-         * @throws IllegalArgumentException attributeName or namespace is {@literal null}.
-         */
-        public GenericAttributeMetadata(final String attributeName){
-            if(attributeName == null) throw new IllegalArgumentException("attributeName is null.");
-            this.attributeName = attributeName;
-        }
-
-        private String readLocalizedParam(String paramName, final Locale locale, final String defaultValue){
-            if(locale == null)
-                return containsKey(paramName) ? get(paramName) : defaultValue;
-            else{
-                paramName = String.format("%s.%s", paramName, locale.toLanguageTag());
-                return containsKey(paramName) ? get(paramName) : defaultValue;
-            }
-        }
-
-        /**
-         * Returns the localized description of this attribute.
-         * <p>
-         *     In the default implementation, this method reads description from {@link #DESCRIPTION_PARAM}
-         *     attribute configuration parameter.
-         * </p>
-         * @param locale The locale of the description. If it is {@literal null} then returns description
-         *               in the default locale.
-         * @return The localized description of this attribute.
-         * @see #DESCRIPTION_PARAM
-         */
-        @Override
-        public String getDescription(final Locale locale) {
-            return readLocalizedParam(DESCRIPTION_PARAM, locale, "");
-        }
-
-        /**
-         * Returns the localized name of this attribute.
-         * <p>
-         *     In the default implementation, this method reads description from {@link #DISPLAY_NAME_PARAM}
-         *     attribute configuration parameter.
-         * </p>
-         * @param locale The locale of the display name. If it is {@literal null} then returns display name
-         *               in the default locale.
-         * @return The localized name of this attribute.
-         * @see #DISPLAY_NAME_PARAM
-         */
-        @Override
-        public String getDisplayName(final Locale locale) {
-            return readLocalizedParam(DISPLAY_NAME_PARAM, locale, attributeName);
-        }
-
-        /**
-         * Detects the attribute type (this method will be called by infrastructure once).
-         * @return Detected attribute type.
-         */
-        protected abstract T detectAttributeType();
-
-        /**
-         * Returns the type of the attribute value.
-         *
-         * @return The type of the attribute value.
-         */
-        @Override
-        public final T getType() {
-            // use a temporary variable to reduce the number of reads of the
-            // volatile field
-            T result = attributeType;
-            if (result == null)
-                synchronized (this) {
-                    result = attributeType;
-                    if (result == null)
-                        result = attributeType = detectAttributeType();
-                }
-            return result;
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception because
-         * this map is read-only.
-         * @param option The name of the option to put.
-         * @param value The value of the option to put.
-         * @return The previously option value.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @Override
-        public final String put(final String option, final String value) {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception because
-         * this map is read-only.
-         * @param option The name of the option to remove.
-         * @return The value of the remove option.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @Override
-        public final String remove(final Object option) {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception because
-         * this map is read-only.
-         * @param options A map of attribute discovery options.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public final void putAll(Map<? extends String, ? extends String> options) {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception because
-         * this map is read-only.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @Override
-        public final void clear() {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Returns the attribute name.
-         * @return The attribute name.
-         */
-        @Override
-        public final String getName() {
-            return attributeName;
-        }
-
-        /**
-         * By default, returns {@literal true}, but you can override this method
-         * in the derived class.
-         * @return {@literal true}
-         */
-        @Override
-        public boolean canRead() {
-            return true;
-        }
-
-        /**
-         * Determines whether the value of this attribute can be changed, returns {@literal true} by default.
-         *
-         * @return {@literal true}, if the attribute value can be changed; otherwise, {@literal false}.
-         */
-        @Override
-        public boolean canWrite() {
-            return true;
-        }
-
-        /**
-         * Determines whether the value of the attribute can be cached after first reading
-         * and supplied as real attribute value before first write, return {@literal false} by default.
-         *
-         * @return {@literal true}, if the value of this attribute can be cached; otherwise, {@literal false}.
-         */
-        @Override
-        public boolean cacheable() {
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-    }
+public abstract class AbstractManagedResourceConnector<TConnectionOptions> extends AbstractFrameworkService implements ManagedResourceConnector<TConnectionOptions>, Descriptive {
 
     /**
      * Provides a base support of management attributes.
@@ -250,6 +57,14 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          */
         protected AbstractAttributeSupport() {
             attributes = new HashMap<>(10);
+        }
+
+        /**
+         * Gets an array of connected attributes.
+         * @return An array of connected attributes.
+         */
+        protected MBeanAttributeInfo[] getAttributes(){
+
         }
 
         /**
@@ -943,6 +758,14 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         }
 
         /**
+         * Gets an array of enabled notifications.
+         * @return An array of enabled notifications.
+         */
+        protected MBeanNotificationInfo[] getNotifications(){
+
+        }
+
+        /**
          * Returns a read-only collection of enabled notifications (subscription list identifiers).
          *
          * @return A read-only collection of enabled notifications (subscription list identifiers).
@@ -1326,6 +1149,247 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
     }
 
     /**
+     * Obtain the value of a specific attribute of the managed resource.
+     *
+     * @param attribute The name of the attribute to be retrieved
+     * @return The value of the attribute retrieved.
+     * @throws javax.management.AttributeNotFoundException
+     * @throws javax.management.MBeanException             Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's getter.
+     * @throws javax.management.ReflectionException        Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the getter.
+     * @see #setAttribute(javax.management.Attribute)
+     */
+    @Override
+    public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
+        throw JMExceptionUtils.attributeNotFound(attribute);
+    }
+
+    /**
+     * Set the value of a specific attribute of the managed resource.
+     *
+     * @param attribute The identification of the attribute to
+     *                  be set and  the value it is to be set to.
+     * @throws javax.management.AttributeNotFoundException
+     * @throws javax.management.InvalidAttributeValueException
+     * @throws javax.management.MBeanException                 Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
+     * @throws javax.management.ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
+     * @see #getAttribute
+     */
+    @Override
+    public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+        throw JMExceptionUtils.attributeNotFound(attribute.getName());
+    }
+
+    private static AttributeList getAttributesSequential(final DynamicMBean connector,
+                                                         final String[] attributes) throws JMException {
+        final List<Attribute> result = Lists.newArrayListWithExpectedSize(attributes.length);
+        for(final String attributeName: attributes)
+            result.add(new Attribute(attributeName, connector.getAttribute(attributeName)));
+        return new AttributeList(result);
+    }
+
+    protected final AttributeList getAttributesSequential(final String[] attributes) throws JMException {
+        return getAttributesSequential(this, attributes);
+    }
+
+    private static AttributeList getAttributesParallel( final DynamicMBean connector,
+                                                        final ExecutorService executor,
+                                                        final String[] attributes,
+                                                        final TimeSpan timeout) throws InterruptedException, TimeoutException{
+        if(attributes.length == 0) return new AttributeList();
+        final ConcurrentMap<String, Object> result = Maps.newConcurrentMap();
+        final CountDownLatch synchronizer = new CountDownLatch(attributes.length);
+        for (final String attributeName : attributes)
+            executor.submit(new Callable<Object>() {
+                @Override
+                public Object call() throws JMException {
+                    try {
+                        return result.put(attributeName, connector.getAttribute(attributeName));
+                    }
+                    finally {
+                        synchronizer.countDown();
+                    }
+                }
+            });
+        if(timeout == null)
+            synchronizer.await();
+        else if(!synchronizer.await(timeout.duration, timeout.unit))
+            throw new TimeoutException();
+        return AttributeListUtils.create(result);
+    }
+
+    protected final AttributeList getAttributesParallel(final ExecutorService executor,
+                                                        final String[] attributes,
+                                                        final TimeSpan timeout) throws InterruptedException, TimeoutException{
+        return getAttributesParallel(this, executor, attributes, timeout);
+    }
+
+    /**
+     * Get the values of several attributes of the managed resouce.
+     * <p>
+     *     In the default implementation this method attempts to use
+     *     {@link java.util.concurrent.ExecutorService} obtained
+     *     from {@link #queryObject(Class)} to execute each attribute reader
+     *     as separated task. If this connector doesn't provide executor
+     *     then method read each attribute sequentially.
+     * @param attributes A list of the attributes to be retrieved.
+     * @return The list of attributes retrieved.
+     * @see #setAttributes(javax.management.AttributeList)
+     * @see #getAttributesSequential(String[])
+     * @see #getAttributesParallel(java.util.concurrent.ExecutorService, String[], com.itworks.snamp.TimeSpan)
+     */
+    @Override
+    public AttributeList getAttributes(final String[] attributes) {
+        final ExecutorService executor = queryObject(ExecutorService.class);
+        try {
+            return executor != null ?
+                    getAttributesParallel(executor, attributes, TimeSpan.fromSeconds(30)) :
+                    getAttributesSequential(attributes);
+        } catch (final JMException | InterruptedException | TimeoutException e) {
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), Utils.getBundleContextByObject(this))){
+                logger.log(Level.SEVERE, String.format("Unable to read attributes %s", Arrays.toString(attributes)), e);
+            }
+            return new AttributeList();
+        }
+    }
+
+    protected final AttributeList setAttributesSequential(final AttributeList attributes) throws JMException{
+        final AttributeList result = new AttributeList(attributes.size() + 5);
+        for(final Attribute attr: result.asList()) {
+            setAttribute(attr);
+            result.add(attr);
+        }
+        return result;
+    }
+
+    protected final AttributeList setAttributesParallel(final ExecutorService executor,
+                                                        final AttributeList attributes,
+                                                        final TimeSpan timeout) throws TimeoutException, InterruptedException {
+        if(attributes.isEmpty()) return attributes;
+        final ConcurrentMap<String, Object> result = Maps.newConcurrentMap();
+        final CountDownLatch synchronizer = new CountDownLatch(attributes.size());
+        for (final Attribute attr : attributes.asList())
+            executor.submit(new Callable<Object>() {
+                @Override
+                public Object call() throws Exception {
+                    try {
+                        setAttribute(attr);
+                        return result.put(attr.getName(), attr.getValue());
+                    }
+                    finally {
+                        synchronizer.countDown();
+                    }
+                }
+            });
+        if(timeout == null)
+            synchronizer.await();
+        else if(!synchronizer.await(timeout.duration, timeout.unit))
+            throw new TimeoutException();
+        return AttributeListUtils.create(result);
+    }
+
+    /**
+     * Sets the values of several attributes of the managed resource.
+     *
+     * @param attributes A list of attributes: The identification of the
+     *                   attributes to be set and  the values they are to be set to.
+     * @return The list of attributes that were set, with their new values.
+     * @see #getAttributes(String[])
+     * @see #setAttributesSequential(javax.management.AttributeList)
+     * @see #setAttributesParallel(java.util.concurrent.ExecutorService, javax.management.AttributeList, com.itworks.snamp.TimeSpan)
+     */
+    @Override
+    public AttributeList setAttributes(final AttributeList attributes) {
+        final ExecutorService executor = queryObject(ExecutorService.class);
+        try {
+            return executor != null ?
+                    setAttributesParallel(executor, attributes, TimeSpan.fromSeconds(20)) :
+                    setAttributesSequential(attributes);
+        } catch (final TimeoutException | InterruptedException | JMException e) {
+            try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), Utils.getBundleContextByObject(this))){
+                logger.log(Level.SEVERE, "Unable to write attributes", e);
+            }
+            return new AttributeList();
+        }
+    }
+
+    /**
+     * Allows an action to be invoked on the Dynamic MBean.
+     *
+     * @param actionName The name of the action to be invoked.
+     * @param params     An array containing the parameters to be set when the action is
+     *                   invoked.
+     * @param signature  An array containing the signature of the action. The class objects will
+     *                   be loaded through the same class loader as the one used for loading the
+     *                   MBean on which the action is invoked.
+     * @return The object returned by the action, which represents the result of
+     * invoking the action on the MBean specified.
+     * @throws javax.management.MBeanException      Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's invoked method.
+     * @throws javax.management.ReflectionException Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the method
+     */
+    @Override
+    public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
+        throw new MBeanException(new UnsupportedOperationException("Operation invocation is not supported."));
+    }
+
+    private String getClassName(){
+        return getClass().getName();
+    }
+
+    /**
+     * Returns the localized description of this connector.
+     *
+     * @param locale The locale of the description. If it is {@literal null} then returns description
+     *               in the default locale.
+     * @return The localized description of this connector.
+     */
+    @Override
+    public String getDescription(final Locale locale) {
+        return getClassName();
+    }
+
+    /**
+     * Gets an array of connected attributes.
+     * @return An array of connected attributes.
+     * @see com.itworks.snamp.connectors.AbstractManagedResourceConnector.AbstractAttributeSupport#getAttributes()
+     */
+    protected MBeanAttributeInfo[] getAttributes(){
+        return new MBeanAttributeInfo[0];
+    }
+
+    /**
+     * Gets an array of enabled notifications.
+     * @return An array of enabled notifications.
+     * @see com.itworks.snamp.connectors.AbstractManagedResourceConnector.AbstractNotificationSupport#getNotifications()
+     */
+    protected MBeanNotificationInfo[] getNotifications(){
+        return new MBeanNotificationInfo[0];
+    }
+
+    /**
+     * Gets an array of supported operations.
+     * @return An array of supported operations.
+     */
+    protected MBeanOperationInfo[] getOperations(){
+        return new MBeanOperationInfo[0];
+    }
+
+    /**
+     * Provides the exposed attributes and actions of the Dynamic MBean using an MBeanInfo object.
+     *
+     * @return An instance of <CODE>MBeanInfo</CODE> allowing all attributes and actions
+     * exposed by this Dynamic MBean to be retrieved.
+     */
+    @Override
+    public final MBeanInfo getMBeanInfo() {
+        return new MBeanInfo(getClassName(),
+                getDescription(Locale.getDefault()),
+                getAttributes(),
+                new MBeanConstructorInfo[0],
+                getOperations(),
+                getNotifications());
+    }
+
+    /**
      * Returns logger name based on the management connector name.
      * @param connectorName The name of the connector.
      * @return The logger name.
@@ -1342,6 +1406,4 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
     public static Logger getLogger(final String connectorName){
         return Logger.getLogger(getLoggerName(connectorName));
     }
-
-
 }

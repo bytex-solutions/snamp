@@ -1,5 +1,7 @@
 package com.itworks.snamp.connectors.notifications;
 
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -24,9 +26,9 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createSequentialInvoker(){
         return new NotificationListenerInvoker() {
             @Override
-            public void invoke(final String listId, final Notification n, final Iterable<? extends NotificationListener> listeners) {
+            public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
-                    listener.handle(listId, n);
+                    listener.handleNotification(n, handback);
             }
         };
     }
@@ -43,7 +45,7 @@ public final class NotificationListenerInvokerFactory {
          * @param e An exception to handle.
          * @param source A listener which throws an exception.
          */
-        public void handle(final Throwable e, final NotificationListener source);
+        void handle(final Throwable e, final NotificationListener source);
     }
 
     /**
@@ -55,10 +57,10 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createExceptionResistantInvoker(final ExceptionHandler handler){
         return new NotificationListenerInvoker() {
             @Override
-            public void invoke(final String listId, final Notification n, final Iterable<? extends NotificationListener> listeners) {
+            public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
                     try{
-                        listener.handle(listId, n);
+                        listener.handleNotification(n, handback);
                     }
                     catch (final Throwable e){
                         handler.handle(e, listener);
@@ -75,12 +77,12 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createParallelInvoker(final ExecutorService executor){
         return new NotificationListenerInvoker() {
             @Override
-            public void invoke(final String listId, final Notification n, final Iterable<? extends NotificationListener> listeners) {
+            public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
                     executor.execute(new Runnable() {
                         @Override
                         public final void run() {
-                            listener.handle(listId, n);
+                            listener.handleNotification(n, handback);
                         }
                     });
             }
@@ -90,13 +92,13 @@ public final class NotificationListenerInvokerFactory {
     public static NotificationListenerInvoker createParallelExceptionResistantInvoker(final ExecutorService executor, final ExceptionHandler handler){
         return new NotificationListenerInvoker() {
             @Override
-            public void invoke(final String listId, final Notification n, final Iterable<? extends NotificationListener> listeners) {
+            public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
                 for(final NotificationListener listener: listeners)
                     executor.execute(new Runnable() {
                         @Override
                         public final void run() {
                             try{
-                                listener.handle(listId, n);
+                                listener.handleNotification(n, handback);
                             }
                             catch (final Throwable e){
                                 handler.handle(e, listener);

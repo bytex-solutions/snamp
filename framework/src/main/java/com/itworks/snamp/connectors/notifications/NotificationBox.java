@@ -1,5 +1,7 @@
 package com.itworks.snamp.connectors.notifications;
 
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
@@ -17,16 +19,18 @@ public class NotificationBox extends ArrayBlockingQueue<Notification> implements
         super(maxCapacity);
     }
 
-
     /**
-     * Save the specified notification into this mailbox.
+     * Invoked when a JMX notification occurs.
+     * The implementation of this method should return as soon as possible, to avoid
+     * blocking its notification broadcaster.
      *
-     * @param listId An identifier of the subscription list.
-     * @param n      The notification to handle.
-     * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
+     * @param notification The notification.
+     * @param handback     An opaque object which helps the listener to associate
+     *                     information regarding the MBean emitter. This object is passed to the
+     *                     addNotificationListener call and resent, without modification, to the
      */
     @Override
-    public boolean handle(final String listId, final Notification n) {
-        return offer(n);
+    public void handleNotification(final Notification notification, final Object handback) {
+        offer(notification);
     }
 }

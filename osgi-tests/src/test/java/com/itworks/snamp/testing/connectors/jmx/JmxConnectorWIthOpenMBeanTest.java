@@ -36,7 +36,8 @@ import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.itworks.snamp.connectors.notifications.NotificationUtils.SynchronizationListener;
+
+import com.itworks.snamp.connectors.notifications.SynchronizationListener;
 
 /**
  * @author Roman Sakno

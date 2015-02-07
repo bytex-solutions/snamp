@@ -1,20 +1,34 @@
 package com.itworks.snamp.connectors.attributes;
 
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.views.View;
 
+import javax.management.DynamicMBean;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.CompositeData;
+
 import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
 
 /**
- * Represents support for management managementAttributes.
+ * Represents support for management attributes.
+ * <p>
+ *     The type of each managed resource attribute is limited to the following classes:
+ *     <ul>
+ *         <li>All JMX Open Types are valid attribute types. For more information, see {@link javax.management.openmbean.OpenType}</li>
+ *         <li>{@link java.nio.ByteBuffer}</li>
+ *         <li>{@link java.nio.CharBuffer}</li>
+ *         <li>{@link java.nio.ShortBuffer}</li>
+ *         <li>{@link java.nio.IntBuffer}</li>
+ *         <li>{@link java.nio.LongBuffer}</li>
+ *         <li>{@link java.nio.FloatBuffer}</li>
+ *         <li>{@link java.nio.DoubleBuffer}</li>
+ *     </ul>
+ * </p>
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public interface AttributeSupport extends View {
+public interface AttributeSupport extends DynamicMBean {
     /**
      * The name of field in {@link javax.management.Descriptor} which contains
      * the name of the attribute.

@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.connectors.notifications.NotificationUtils.SynchronizationListener;
+import com.itworks.snamp.connectors.notifications.SynchronizationListener;
 import static com.itworks.snamp.connectors.notifications.NotificationUtils.generateListenerId;
 
 /**

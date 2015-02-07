@@ -174,4 +174,9 @@ public final class CompositeDataUtils {
                                      final Date defval){
         return getValue(dict, itemName, Date.class, defval);
     }
+
+    public static void fillMap(final CompositeData source, final Map<String, Object> dest){
+        for(final String key: source.getCompositeType().keySet())
+            dest.put(key, source.get(key));
+    }
 }
