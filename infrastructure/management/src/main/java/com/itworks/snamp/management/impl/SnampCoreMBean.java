@@ -36,7 +36,11 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
                 new LogEventNotification(),
                 new InstalledComponents(manager),
                 new GetInstalledAdaptersOperation(manager),
-                new GetInstalledConnectorsOperation(manager));
+                new GetInstalledConnectorsOperation(manager),
+                new StartConnectorOperation(),
+                new StartAdapterOperation(),
+                new StopConnectorOperation(),
+                new StopAdapterOperation());
         counter.start();
         this.counter = counter;
     }

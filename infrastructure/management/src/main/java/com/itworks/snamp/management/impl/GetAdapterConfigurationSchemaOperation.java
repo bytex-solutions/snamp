@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Created by temni on 2/8/2015.
  */
-public class GetAdapterConfigurationSchemaOperation extends ConfigurationSchemaOperation {
+final class GetAdapterConfigurationSchemaOperation extends ConfigurationSchemaOperation {
     private static final String NAME = "getAdapterConfigurationSchemaOperation";
     private static final OpenMBeanParameterInfo ADAPTER_NAME_PARAM = new OpenMBeanParameterInfoSupport(
             "adapterName",
