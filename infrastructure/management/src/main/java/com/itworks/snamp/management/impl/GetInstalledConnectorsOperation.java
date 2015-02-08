@@ -14,7 +14,7 @@ import java.util.Collection;
  */
 final class GetInstalledConnectorsOperation extends OpenMBean.OpenAttribute<String [], ArrayType<String []>> {
 
-    private static final String NAME = "getInstalledConnectorsOperation";
+    private static final String NAME = "getInstalledConnectors";
 
     GetInstalledConnectorsOperation() throws OpenDataException{
         super(NAME, new ArrayType<String[]>(SimpleType.STRING, true));

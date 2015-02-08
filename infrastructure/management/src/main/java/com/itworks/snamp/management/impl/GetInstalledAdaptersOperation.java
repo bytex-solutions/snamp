@@ -14,7 +14,7 @@ import java.util.Collection;
  */
 final class GetInstalledAdaptersOperation extends OpenMBean.OpenAttribute<String [], ArrayType<String []>>  {
 
-    private static final String NAME = "getInstalledAdaptersOperation";
+    private static final String NAME = "getInstalledAdapters";
 
     GetInstalledAdaptersOperation() throws OpenDataException {
         super(NAME, new ArrayType<String[]>(SimpleType.STRING, true));

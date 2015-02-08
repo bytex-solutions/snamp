@@ -460,6 +460,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors/{connectorType}/configurationSchema/{parameterName}")
     @Produces(MediaType.APPLICATION_JSON)
+    // @todo MOVED!
     public String suggestConnectorParameterValues(@PathParam("connectorType")final String connectorName,
                                                   @PathParam("parameterName")final String parameterName,
                                                   @QueryParam(LOCALE_QUERY_PARAM)final String locale,
@@ -512,6 +513,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/adapters/{adapterName}/configurationSchema/{parameterName}")
     @Produces(MediaType.APPLICATION_JSON)
+    // @todo MOVED!
     public String suggestAdapterParameterValues(@PathParam("adapterName")final String adapterName,
                                                 @PathParam("parameterName")final String parameterName,
                                                 @QueryParam(LOCALE_QUERY_PARAM)final String locale,

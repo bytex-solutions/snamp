@@ -10,7 +10,7 @@ import java.util.Map;
  * Created by temni on 2/8/2015.
  */
 final class GetAdapterConfigurationSchemaOperation extends ConfigurationSchemaOperation {
-    private static final String NAME = "getAdapterConfigurationSchemaOperation";
+    private static final String NAME = "getAdapterConfigurationSchema";
     private static final OpenMBeanParameterInfo ADAPTER_NAME_PARAM = new OpenMBeanParameterInfoSupport(
             "adapterName",
             "The name of the managed resource adapter",
