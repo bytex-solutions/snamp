@@ -26,6 +26,7 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
     private SnampCoreMBean(final StatisticCounters counter, final AbstractSnampManager manager) throws OpenDataException{
         super(  new GetConnectorConfigurationSchemaOperation(manager),
                 new LicenseAttribute(),
+                new RestartOperation(),
                 new StatisticRenewalTimeAttribute(counter),
                 new CountAttribute("FaultsCount", counter, LogService.LOG_ERROR),
                 new CountAttribute("WarningMessagesCount", counter, LogService.LOG_WARNING),

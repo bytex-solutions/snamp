@@ -553,4 +553,37 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
                 getNotifications(),
                 getDescriptor());
     }
+
+    public static abstract class OpenOneWayOperation extends OpenMBeanElement<MBeanOperationInfo>{
+
+        protected OpenOneWayOperation(final String operationName){
+            super(operationName);
+        }
+
+        public abstract void invoke() throws Exception;
+
+        @Override
+        protected String getDescription(){
+            return String.format("%s operation.", name);
+        }
+
+        /**
+         * Creates a new MBean feature.
+         *
+         * @return A new MBean feature.
+         */
+        @Override
+        public final OpenMBeanOperationInfoSupport get() {
+            return new OpenMBeanOperationInfoSupport(name,
+                    getDescription(),
+                    null,
+                    SimpleType.VOID,
+                    getImpact(),
+                    getDescriptor());
+        }
+
+        protected int getImpact(){
+            return MBeanOperationInfo.UNKNOWN;
+        }
+    }
 }

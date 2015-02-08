@@ -18,6 +18,7 @@ import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.framework.*;
 import org.osgi.service.log.LogService;
@@ -121,6 +122,17 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             Object licenseContent = connection.getAttribute(commonsObj, "license");
             assertTrue(licenseContent instanceof String);
             assertEquals(getLicenseContent(), licenseContent);
+        }
+    }
+
+    @Ignore
+    @Test
+    public void restartTest() throws IOException, JMException, InterruptedException, TimeoutException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            Object voidReturn = connection.invoke(commonsObj, "restart", null, null);
+            assertTrue(voidReturn instanceof Void);
         }
     }
 
