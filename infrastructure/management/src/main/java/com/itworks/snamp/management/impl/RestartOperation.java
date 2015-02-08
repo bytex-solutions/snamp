@@ -11,7 +11,7 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 /**
  * Created by temni on 2/8/2015.
  */
-public class RestartOperation extends OpenMBean.OpenOneWayOperation {
+final class RestartOperation extends OpenMBean.OpenOneWayOperation {
 
     private static final String NAME = "restart";
 

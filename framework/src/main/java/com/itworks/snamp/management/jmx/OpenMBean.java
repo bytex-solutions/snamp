@@ -586,4 +586,39 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             return MBeanOperationInfo.UNKNOWN;
         }
     }
+
+    public static abstract class OpenOneWayReturnOperation<T extends OpenType<?>> extends OpenMBeanElement<MBeanOperationInfo>{
+        private final T returnType;
+
+        protected OpenOneWayReturnOperation(final String operationName, final T returnType){
+            super(operationName);
+            this.returnType = returnType;
+        }
+
+        public abstract T invoke() throws Exception;
+
+        @Override
+        protected String getDescription(){
+            return String.format("%s operation.", name);
+        }
+
+        /**
+         * Creates a new MBean feature.
+         *
+         * @return A new MBean feature.
+         */
+        @Override
+        public final OpenMBeanOperationInfoSupport get() {
+            return new OpenMBeanOperationInfoSupport(name,
+                    getDescription(),
+                    null,
+                    returnType,
+                    getImpact(),
+                    getDescriptor());
+        }
+
+        protected int getImpact(){
+            return MBeanOperationInfo.UNKNOWN;
+        }
+    }
 }

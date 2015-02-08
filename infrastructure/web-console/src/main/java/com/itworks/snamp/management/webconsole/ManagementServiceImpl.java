@@ -229,7 +229,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors/{connectorType}/configurationSchema")
     @Produces(MediaType.APPLICATION_JSON)
-    // move as composite data object @MOVED
+    // move as composite data object @todo @MOVED
     public String getConnectorConfigurationSchema(@PathParam("connectorType") final String connectorName,
                                                   @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                                   @Context final SecurityContext context) throws WebApplicationException {
@@ -268,7 +268,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors")
     @Produces(MediaType.APPLICATION_JSON)
-    // move as attribute (read only if no setters exist)
+    // move as attribute (read only if no setters exist) @todo: MOVED!
     public String getInstalledConnectors(@Context final SecurityContext context){
         SecurityUtils.wellKnownRoleRequired(context);
         final JsonArray result = new JsonArray();
@@ -313,7 +313,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/adapters")
     @Produces(MediaType.APPLICATION_JSON)
-    // move as read only attribute
+    // move as read only attribute @todo: MOVED!
     public String getInstalledAdapters(@Context SecurityContext context){
         SecurityUtils.wellKnownRoleRequired(context);
         final JsonArray result = new JsonArray();
@@ -358,7 +358,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/adapters/{adapterName}/configurationSchema")
     @Produces(MediaType.APPLICATION_JSON)
-    // operation
+    // operation @todo !MOVED
     public String getAdapterConfigurationSchema(@PathParam("adapterName")final String adapterName,
                                                 @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                                 @Context SecurityContext context) throws WebApplicationException {
@@ -548,6 +548,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/components")
     @Produces(MediaType.APPLICATION_JSON)
+    // @todo: MOVED!
     public String getInstalledComponents(@QueryParam("locale")final String locale,
                                          @Context final SecurityContext context) throws WebApplicationException{
         SecurityUtils.wellKnownRoleRequired(context);
