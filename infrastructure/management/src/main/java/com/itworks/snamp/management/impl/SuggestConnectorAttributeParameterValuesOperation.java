@@ -23,7 +23,7 @@ public class SuggestConnectorAttributeParameterValuesOperation extends AbstractS
     protected final AbstractSnampManager snampManager;
 
     SuggestConnectorAttributeParameterValuesOperation(final AbstractSnampManager snampManager) throws OpenDataException {
-        super(NAME, new ArrayType<String[]>(SimpleType.STRING, true), CONNECTOR_NAME_PARAM, PARAM_NAME_PARAM, LOCALE_PARAM);
+        super(NAME, new ArrayType<String[]>(SimpleType.STRING, true), CONNECTOR_NAME_PARAM, PARAM_NAME_PARAM, CONNECTION_STRING_PARAM, LOCALE_PARAM);
         this.snampManager = Objects.requireNonNull(snampManager);
     }
 
@@ -32,10 +32,13 @@ public class SuggestConnectorAttributeParameterValuesOperation extends AbstractS
         final String connectorName = getArgument(CONNECTOR_NAME_PARAM.getName(), String.class, arguments);
         final String parameterName = getArgument(PARAM_NAME_PARAM.getName(), String.class, arguments);
         final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
+        final Map<String, String> tabularData =
+                transformTabularDataToMap(getArgument(CONNECTION_STRING_PARAM.getName(), TabularData.class, arguments));
 
         final SnampComponentDescriptor connector = getResourceConnector(snampManager, connectorName);
         if (connector == null) throw new IllegalArgumentException(String.format("Connector %s doesn't exist", connectorName));
 
-        return getSnampCompenentSuggestedValue(connector, parameterName, locale, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class);
+        return getSnampCompenentSuggestedValue(connector, parameterName, locale,
+                AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class, tabularData);
     }
 }

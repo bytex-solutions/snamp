@@ -1,6 +1,7 @@
 package com.itworks.snamp.management.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.Box;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.adapters.SelectableAdapterParameterDescriptor;
@@ -10,11 +11,9 @@ import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
 import com.itworks.snamp.management.jmx.OpenMBean;
+import com.sun.xml.internal.fastinfoset.util.FixedEntryStringIntMap;
 
-import javax.management.openmbean.ArrayType;
-import javax.management.openmbean.OpenMBeanParameterInfo;
-import javax.management.openmbean.OpenMBeanParameterInfoSupport;
-import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.*;
 import java.util.*;
 
 /**
@@ -32,6 +31,44 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
             "The name of the parameter which values should be suggested",
             SimpleType.STRING
     );
+
+    protected static final TabularType CONNECTION_PARAMS_SCHEMA;
+
+    static {
+        try {
+            CONNECTION_PARAMS_SCHEMA = new TabularType("com.itworks.management.ConnectionParams",
+                    "Configuration entity schema",
+                    new CompositeType("com.itworks.management.ConnectionParam",
+                            "Additional parameters for filtering suggested values",
+                            new String[]{"key", "value"},
+                            new String[]{"Parameter key", "Parameter value"},
+                            new OpenType<?>[]{SimpleType.STRING, SimpleType.STRING}),
+                    new String[]{"key"}
+            );
+        } catch (OpenDataException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
+    protected static final OpenMBeanParameterInfo CONNECTION_STRING_PARAM = new OpenMBeanParameterInfoSupport(
+            "connectionStringData",
+            "Additional parameters for filtering suggested values",
+            CONNECTION_PARAMS_SCHEMA
+    );
+
+    protected static Map<String, String> transformTabularDataToMap(final TabularData data) {
+        if (data == null || data.isEmpty()) {
+            return Collections.emptyMap();
+        } else {
+            Map<String, String> result = new HashMap<>();
+            for (Object value : data.values()) {
+                if (!(value instanceof CompositeData)) continue;
+                final CompositeData cd = (CompositeData) value;
+                result.put((String) cd.get("key"), (String) cd.get("value"));
+            }
+            return result;
+        }
+    }
 
 
     protected AbstractSnampComponentParamValueOperation(String operationName, ArrayType<String[]> returnType, OpenMBeanParameterInfo... parameters) {
@@ -56,7 +93,8 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
 
     protected String[] getSnampCompenentSuggestedValue(final SnampComponentDescriptor snampComponentDescriptor,
                                                        final String parameterName, final String locale,
-                                                       final Class<? extends AgentConfiguration.ConfigurationEntity> configurationEntity) throws Exception {
+                                                       final Class<? extends AgentConfiguration.ConfigurationEntity> configurationEntity,
+                                                       final Map<String, String> tabularData) throws Exception {
 
         final Box<List<String>> result = new Box<>();
         snampComponentDescriptor.invokeSupportService(ConfigurationEntityDescriptionProvider.class, new Consumer<ConfigurationEntityDescriptionProvider, Exception>() {
@@ -68,7 +106,7 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
                     if (pd == null || !(pd instanceof SelectableAdapterParameterDescriptor))
                         result.set(Collections.<String>emptyList());
                     else {
-                        result.set(ImmutableList.copyOf(((SelectableAdapterParameterDescriptor) pd).suggestValues(null,
+                        result.set(ImmutableList.copyOf(((SelectableAdapterParameterDescriptor) pd).suggestValues(tabularData,
                                 locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale))));
                     }
                 }

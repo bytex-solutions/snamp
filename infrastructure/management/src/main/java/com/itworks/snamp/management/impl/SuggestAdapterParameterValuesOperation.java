@@ -24,7 +24,7 @@ final class SuggestAdapterParameterValuesOperation extends AbstractSnampComponen
     protected final AbstractSnampManager snampManager;
 
     SuggestAdapterParameterValuesOperation(final AbstractSnampManager snampManager) throws OpenDataException {
-        super(NAME, new ArrayType<String[]>(SimpleType.STRING, true), ADAPTER_NAME_PARAM, PARAM_NAME_PARAM, LOCALE_PARAM);
+        super(NAME, new ArrayType<String[]>(SimpleType.STRING, true), ADAPTER_NAME_PARAM, PARAM_NAME_PARAM, CONNECTION_STRING_PARAM, LOCALE_PARAM);
         this.snampManager = Objects.requireNonNull(snampManager);
     }
 
@@ -33,10 +33,13 @@ final class SuggestAdapterParameterValuesOperation extends AbstractSnampComponen
         final String adapterName = getArgument(ADAPTER_NAME_PARAM.getName(), String.class, arguments);
         final String parameterName = getArgument(PARAM_NAME_PARAM.getName(), String.class, arguments);
         final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
+        final Map<String, String> tabularData =
+                transformTabularDataToMap(getArgument(CONNECTION_STRING_PARAM.getName(), TabularData.class, arguments));
 
         final SnampComponentDescriptor adapter = getResourceAdapter(snampManager, adapterName);
         if (adapter == null) throw new IllegalArgumentException(String.format("Adapter %s doesn't exist", adapterName));
 
-        return getSnampCompenentSuggestedValue(adapter, parameterName, locale, AgentConfiguration.ResourceAdapterConfiguration.class);
+        return getSnampCompenentSuggestedValue(adapter, parameterName, locale,
+                AgentConfiguration.ResourceAdapterConfiguration.class, tabularData);
     }
 }

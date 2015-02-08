@@ -379,7 +379,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors/{connectorType}/configurationSchema/attribute/{parameterName}")
     @Produces(MediaType.APPLICATION_JSON)
-    // operation
+    // operation @todo !MOVED
     public String suggestConnectorAttributeParameterValues(@PathParam("connectorType")final String connectorName,
                                                             @PathParam("parameterName")final String parameterName,
                                                             @QueryParam(LOCALE_QUERY_PARAM)final String locale,
@@ -398,7 +398,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors/{connectorType}/configurationSchema/event/{parameterName}")
     @Produces(MediaType.APPLICATION_JSON)
-    // operation (array in return)
+    // operation (array in return)  @todo !MOVED
 
     public String suggestConnectorEventParameterValues(@PathParam("connectorType")final String connectorName,
                                                        @PathParam("parameterName")final String parameterName,
