@@ -1,28 +1,28 @@
 package com.itworks.snamp.management.impl;
 
-import com.itworks.snamp.management.SnampComponentDescriptor;
-import com.itworks.snamp.management.SnampManager;
+import com.itworks.snamp.connectors.ManagedResourceActivator;
+import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.management.jmx.OpenMBean;
 
+import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.TabularData;
-import javax.management.openmbean.TabularDataSupport;
+import javax.management.openmbean.SimpleType;
+import java.util.Collection;
 
 /**
  * Created by temni on 2/8/2015.
  */
-final class GetInstalledConnectorsOperation extends InstalledComponents  {
+final class GetInstalledConnectorsOperation extends OpenMBean.OpenAttribute<String [], ArrayType<String []>> {
 
     private static final String NAME = "getInstalledConnectorsOperation";
 
-    GetInstalledConnectorsOperation(final SnampManager manager) throws OpenDataException{
-        super(NAME, manager);
+    GetInstalledConnectorsOperation() throws OpenDataException{
+        super(NAME, new ArrayType<String[]>(SimpleType.STRING, true));
     }
 
     @Override
-    public TabularData getValue() throws OpenDataException{
-        final TabularData result = new TabularDataSupport(openType);
-        for(final SnampComponentDescriptor component: manager.getInstalledResourceConnectors())
-            result.put(createRow(component));
-        return result;
+    public String[] getValue() throws OpenDataException{
+        final Collection<String> result = ManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this));
+        return result.toArray(new String[result.size()]);
     }
 }

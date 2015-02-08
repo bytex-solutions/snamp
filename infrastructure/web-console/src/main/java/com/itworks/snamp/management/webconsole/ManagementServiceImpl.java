@@ -573,6 +573,7 @@ public final class ManagementServiceImpl {
 
     @Path("/connectors/{connectorType}/start")
     @POST
+    // @todo moved
     public void startConnector(@PathParam("connectorType")final String connectorType,
                                final String reason,
                                @Context final SecurityContext context) throws WebApplicationException{
@@ -590,6 +591,7 @@ public final class ManagementServiceImpl {
 
     @Path("/connectors/{connectorType}/stop")
     @POST
+    // @todo moved
     public void stopConnector(@PathParam("connectorType")final String connectorType,
                               final String reason,
                               @Context final SecurityContext context) throws WebApplicationException{
@@ -607,6 +609,7 @@ public final class ManagementServiceImpl {
 
     @Path("/adapters/{adapterName}/start")
     @POST
+    // @todo moved
     public void startAdapter(@PathParam("adapterName")final String adapterName,
                              final String reason,
                              @Context final SecurityContext context) throws WebApplicationException{
@@ -624,6 +627,7 @@ public final class ManagementServiceImpl {
 
     @Path("/adapters/{adapterName}/stop")
     @POST
+    // @todo moved
     public void stopAdapter(@PathParam("adapterName")final String adapterName,
                             final String reason,
                             @Context final SecurityContext context){
