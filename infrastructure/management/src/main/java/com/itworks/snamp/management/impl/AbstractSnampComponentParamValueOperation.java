@@ -1,7 +1,6 @@
 package com.itworks.snamp.management.impl;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.Box;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.adapters.SelectableAdapterParameterDescriptor;
@@ -11,7 +10,6 @@ import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
 import com.itworks.snamp.management.jmx.OpenMBean;
-import com.sun.xml.internal.fastinfoset.util.FixedEntryStringIntMap;
 
 import javax.management.openmbean.*;
 import java.util.*;
