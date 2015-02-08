@@ -427,7 +427,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         });
     }
 
-    public final SnampComponentDescriptor getResourcAdapter(final String adapterName) {
+    public final SnampComponentDescriptor getResourceAdapter(final String adapterName) {
         return Iterables.find(getInstalledResourceAdapters(), new Predicate<SnampComponentDescriptor>() {
             @Override
             public boolean apply(final SnampComponentDescriptor connector) {

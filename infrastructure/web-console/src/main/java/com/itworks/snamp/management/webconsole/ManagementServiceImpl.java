@@ -89,6 +89,7 @@ public final class ManagementServiceImpl {
      *
      * @param value SNAMP configuration in JSON format.
      *              * @todo move as property
+     *
      */
     @POST
     @Path("/configuration")
@@ -120,7 +121,7 @@ public final class ManagementServiceImpl {
      */
     @POST
     @Path("/restart")
-    // todo move as operation
+    // todo move as operation !MOVED
     public void restart(@Context final SecurityContext context) throws WebApplicationException {
         SecurityUtils.adminRequired(context);
         try {
@@ -136,7 +137,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/license")
     @Produces(MediaType.APPLICATION_XML)
-    // todo move as property
+    // todo move as property !MOVED
     public String getLicense(final @Context SecurityContext context) throws WebApplicationException {
         SecurityUtils.adminRequired(context);
         try {
@@ -149,7 +150,7 @@ public final class ManagementServiceImpl {
     @POST
     @Path("/license")
     @Consumes(MediaType.APPLICATION_XML)
-    // todo move as property
+    // todo move as property !MOVED
     public void setLicense(final String licenseContent, @Context final SecurityContext context) throws WebApplicationException{
         SecurityUtils.adminRequired(context);
         try{
@@ -228,7 +229,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors/{connectorType}/configurationSchema")
     @Produces(MediaType.APPLICATION_JSON)
-    // move as composite data object
+    // move as composite data object @MOVED
     public String getConnectorConfigurationSchema(@PathParam("connectorType") final String connectorName,
                                                   @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                                   @Context final SecurityContext context) throws WebApplicationException {

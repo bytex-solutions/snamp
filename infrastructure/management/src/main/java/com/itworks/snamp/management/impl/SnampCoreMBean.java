@@ -27,6 +27,7 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
         super(  new GetConnectorConfigurationSchemaOperation(manager),
                 new LicenseAttribute(),
                 new RestartOperation(),
+                new GetAdapterConfigurationSchemaOperation(manager),
                 new StatisticRenewalTimeAttribute(counter),
                 new CountAttribute("FaultsCount", counter, LogService.LOG_ERROR),
                 new CountAttribute("WarningMessagesCount", counter, LogService.LOG_WARNING),

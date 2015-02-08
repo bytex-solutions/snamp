@@ -125,6 +125,13 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         }
     }
 
+    /**
+     * @todo - low priority task - create a right test for this operation if possible
+     * @throws IOException
+     * @throws JMException
+     * @throws InterruptedException
+     * @throws TimeoutException
+     */
     @Ignore
     @Test
     public void restartTest() throws IOException, JMException, InterruptedException, TimeoutException {
@@ -144,6 +151,19 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             final Object result = connection.invoke(commonsObj,
                     "getConnectorConfigurationSchema",
                     new Object[]{"jmx", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertTrue(result instanceof CompositeData);
+        }
+    }
+
+    @Test
+    public void getAdapterConfigurationSchemaTest() throws IOException, JMException, InterruptedException, TimeoutException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final Object result = connection.invoke(commonsObj,
+                    "getAdapterConfigurationSchemaOperation",
+                    new Object[]{"snmp", ""},
                     new String[]{String.class.getName(), String.class.getName()});
             assertTrue(result instanceof CompositeData);
         }
