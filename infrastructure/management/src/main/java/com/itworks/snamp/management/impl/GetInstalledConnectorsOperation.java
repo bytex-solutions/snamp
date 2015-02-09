@@ -17,7 +17,7 @@ final class GetInstalledConnectorsOperation extends OpenMBean.OpenAttribute<Stri
     private static final String NAME = "getInstalledConnectors";
 
     GetInstalledConnectorsOperation() throws OpenDataException{
-        super(NAME, new ArrayType<String[]>(SimpleType.STRING, true));
+        super(NAME, ArrayType.getArrayType(SimpleType.STRING));
     }
 
     @Override

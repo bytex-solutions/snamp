@@ -1,5 +1,6 @@
 package com.itworks.snamp.management.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
@@ -108,7 +109,14 @@ abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeDa
             @Override
             public void accept(final LicensingDescriptionService input) {
                 for (final String limitation : input.getLimitations()) {
-                    tabularDataSupport.put(limitation, input.getDescription(limitation, loc));
+                    try {
+                        tabularDataSupport.put(new CompositeDataSupport(tabularDataSupport.getTabularType().getRowType(),
+                                ImmutableMap.<String, Object>of(
+                                        "limitation", limitation,
+                                        "description", input.getDescription(limitation, loc))));
+                    } catch (OpenDataException e) {
+                        // @TODO what do
+                    }
                 }
             }
         });

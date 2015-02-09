@@ -17,7 +17,7 @@ final class GetInstalledAdaptersOperation extends OpenMBean.OpenAttribute<String
     private static final String NAME = "getInstalledAdapters";
 
     GetInstalledAdaptersOperation() throws OpenDataException {
-        super(NAME, new ArrayType<String[]>(SimpleType.STRING, true));
+        super(NAME, ArrayType.getArrayType(SimpleType.STRING));
     }
 
     @Override
