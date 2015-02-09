@@ -279,7 +279,7 @@ public final class ManagementServiceImpl {
 
     @GET
     @Path("/connectors/{connectorType}")
-    // move as operation (due to existence params)
+    // move as operation (due to existence params) @todo !MOVED
     public String getConnectorInfo(@PathParam("connectorType")final String connectorName,
                                    @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                    @Context final SecurityContext context) throws WebApplicationException {
@@ -328,6 +328,7 @@ public final class ManagementServiceImpl {
 
     @GET
     @Path("/adapters/{adapterName}")
+    // @todo: !MOVED
     public String getAdapterInfo(@PathParam("adapterName")final String adapterName,
                                  @QueryParam(LOCALE_QUERY_PARAM)final String locale,
                                  @Context SecurityContext context) throws WebApplicationException {

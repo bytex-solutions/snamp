@@ -11,7 +11,7 @@ import java.util.Objects;
 /**
  * Created by temni on 2/8/2015.
  */
-public class SuggestConnectorEventParameterValuesOperation extends AbstractSnampComponentParamValueOperation{
+final class SuggestConnectorEventParameterValuesOperation extends AbstractSnampComponentParamValueOperation{
     private static final String NAME = "suggestConnectorEventParameterValues";
 
     private static final OpenMBeanParameterInfo CONNECTOR_NAME_PARAM = new OpenMBeanParameterInfoSupport(
