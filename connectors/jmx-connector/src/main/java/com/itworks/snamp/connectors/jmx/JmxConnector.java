@@ -35,11 +35,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      */
     static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
 
-    private static interface JmxFeatureMetadata extends Serializable, DescriptorRead{
+    private static interface JmxFeatureMetadata extends Serializable, DescriptorRead {
         ObjectName getOwner();
         String getName();
         String getDescription();
-        Descriptor getDescriptor();
     }
 
     /**
