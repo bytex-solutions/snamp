@@ -480,7 +480,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/connectors/{connectorType}/availableMetadata")
     @Produces(MediaType.APPLICATION_JSON)
-    //
+    // // operation return byteArray @todo !MOVED
     public String discoverManagementMetadata(@PathParam("connectorType")final String connectorName,
                                              @QueryParam(CONNECTION_STRING_QUERY_PARAM)final String connectionString,
                                              @QueryParam(LOCALE_QUERY_PARAM)final String locale,
@@ -653,7 +653,7 @@ public final class ManagementServiceImpl {
     @GET
     @Path("/jaas/config")
     @Produces(MediaType.WILDCARD)
-    // operation return byteArray
+    // operation return byteArray @todo !MOVED
     public Response getJaasConfig(@Context final SecurityContext security) {
         SecurityUtils.adminRequired(security);
         final BundleContext context = getBundleContextByObject(this);
@@ -677,7 +677,7 @@ public final class ManagementServiceImpl {
     @POST
     @Path("/jaas/config")
     @Consumes(MediaType.WILDCARD)
-    // setter byteArray type of argument
+    // setter byteArray type of argument @todo !MOVED
     public void setJaasConfig(@Context final SecurityContext security,
                               @Context final HttpHeaders headers,
                               final InputStream content) throws WebApplicationException{
