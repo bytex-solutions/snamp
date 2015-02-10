@@ -1,9 +1,20 @@
 package com.itworks.snamp.management.impl;
 
+import com.itworks.snamp.ServiceReferenceHolder;
+import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.management.jmx.OpenMBean;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.cm.ConfigurationException;
 
 import javax.management.openmbean.*;
 import java.io.IOException;
+import java.util.Dictionary;
+import java.util.Hashtable;
+
+import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
 /**
  * Description here
@@ -23,6 +34,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     private static final TabularType SIMPLE_MAP_TYPE;
     private static final TabularType ADAPTER_MAP_TYPE;
     private static final TabularType CONNECTOR_MAP_TYPE;
+
+
 
     static{
         try {
@@ -158,14 +171,55 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         super(NAME, SNAMP_CONFIGURATION_DATA);
     }
 
+    private static CompositeData snampConfigurationToJMX(final AgentConfiguration configuration) {
+        return null; // @TODO append logic
+    }
+
+    private static AgentConfiguration JMXtoSnampConfiguration(final CompositeData data) {
+        return null; // @TODO append logic
+    }
+
+    /**
+     * @TODO: ask roman for real values of PID and KEY in ConfigAdmin
+     */
+    private static final String SNAMP_CONFIGURATION_PID = "com.itwork.snamp.configuration";
+    private static final String SNAMP_CONFIGURATION_KEY = "configuration";
+
     @Override
-    public CompositeData getValue() throws IOException {
-        return null;
+    public CompositeData getValue() throws IOException, ConfigurationException {
+        final BundleContext bundleContext = getBundleContextByObject(this);
+        final ServiceReferenceHolder<ConfigurationAdmin> adminRef =
+                new ServiceReferenceHolder<>(bundleContext,ConfigurationAdmin.class);
+        try{
+            final ConfigurationAdmin admin = adminRef.getService();
+            final AgentConfiguration configuration = Utils.getProperty(admin.getConfiguration(SNAMP_CONFIGURATION_PID, null).getProperties(),
+                    SNAMP_CONFIGURATION_KEY, AgentConfiguration.class, (AgentConfiguration) null);
+            if (configuration == null) throw new ConfigurationException(SNAMP_CONFIGURATION_PID,
+                    "Configuration admin does not contain appropriate SNAMP configuration");
+            return snampConfigurationToJMX(configuration);
+        }
+        finally {
+            adminRef.release(bundleContext);
+        }
     }
 
     @Override
     public void setValue(final CompositeData data) throws IOException {
+        if(data == null || data.values().size() == 0) throw new IllegalArgumentException("No valid input data received");
 
+        final BundleContext bundleContext = getBundleContextByObject(this);
+        final ServiceReferenceHolder<ConfigurationAdmin> adminRef =
+                new ServiceReferenceHolder<>(bundleContext,ConfigurationAdmin.class);
+        try{
+            final ConfigurationAdmin admin = adminRef.getService();
+            final Configuration config = admin.getConfiguration(SNAMP_CONFIGURATION_PID, null);
+            final Dictionary<String, AgentConfiguration> dict = new Hashtable<>(1);
+            dict.put(SNAMP_CONFIGURATION_KEY, JMXtoSnampConfiguration(data));
+            config.update(dict);
+        }
+        finally {
+            adminRef.release(bundleContext);
+        }
     }
 
     @Override

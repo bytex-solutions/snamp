@@ -72,9 +72,9 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
                             SimpleType.STRING,
                             SimpleType.BOOLEAN,
                             SimpleType.BOOLEAN,
-                            new ArrayType<String[]>(SimpleType.STRING, false),
-                            new ArrayType<String[]>(SimpleType.STRING, false),
-                            new ArrayType<String[]>(SimpleType.STRING, false)
+                            ArrayType.getArrayType(SimpleType.STRING),
+                            ArrayType.getArrayType(SimpleType.STRING),
+                            ArrayType.getArrayType(SimpleType.STRING)
                     });
             //CONFIG_ENTITY_SCHEMA
             CONFIG_ENTITY_SCHEMA = new TabularType("com.itworks.management.ConfigEntitySchema",
