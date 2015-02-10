@@ -2,9 +2,12 @@ package com.itworks.snamp.jmx;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.Maps;
 
 import javax.management.Descriptor;
 import java.lang.reflect.Array;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Represents utility methods for working with {@link javax.management.Descriptor} instances.
@@ -21,6 +24,7 @@ public final class DescriptorUtils {
                                  final String fieldName,
                                  final Class<T> fieldType,
                                  final Supplier<T> defval) {
+        if(descr == null) return defval.get();
         final Object fieldValue = descr.getFieldValue(fieldName);
         if (fieldValue == null) return defval.get();
         else if (fieldType.isInstance(fieldValue))
@@ -45,5 +49,14 @@ public final class DescriptorUtils {
                                  final String fieldName,
                                  final Class<T> fieldType){
         return getField(descr, fieldName, fieldType, Suppliers.<T>ofInstance(null));
+    }
+
+    public static Map<String, ?> toMap(final Descriptor descr){
+        if(descr == null) return Collections.emptyMap();
+        final String[] fields = descr.getFieldNames();
+        final Map<String, Object> result = Maps.newHashMapWithExpectedSize(fields.length);
+        for(final String fieldName: fields)
+            result.put(fieldName, descr.getFieldValue(fieldName));
+        return result;
     }
 }

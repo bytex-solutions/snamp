@@ -52,17 +52,20 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
      */
     protected static abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> extends ThreadSafeObject implements AttributeSupport {
         private final KeyedObjects<String, M> attributes;
+        private final Class<M> metadataType;
 
         /**
          * Initializes a new support of management attributes.
+         * @param attributeMetadataType The type of the attribute metadata.
          */
-        protected AbstractAttributeSupport() {
+        protected AbstractAttributeSupport(final Class<M> attributeMetadataType) {
             attributes = new AbstractKeyedObjects<String, M>(10) {
                 @Override
                 public String getKey(final MBeanAttributeInfo metadata) {
                     return metadata.getName();
                 }
             };
+            metadataType = Objects.requireNonNull(attributeMetadataType);
         }
 
         /**
@@ -86,10 +89,10 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @return An array of connected attributes.
          */
         @Override
-        public final MBeanAttributeInfo[] getAttributeInfo() {
+        public final M[] getAttributeInfo() {
             beginRead();
             try {
-                return ArrayUtils.toArray(attributes.values(), MBeanAttributeInfo.class);
+                return ArrayUtils.toArray(attributes.values(), metadataType);
             } finally {
                 endRead();
             }
@@ -533,11 +536,13 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         private final KeyedObjects<String, M> notifications;
         private final List<NotificationListenerHolder> listeners;
         private final AtomicLong sequenceCounter;
+        private final Class<M> metadataType;
 
         /**
          * Initializes a new notification manager.
+         * @param notifMetadataType Type of the notification metadata;
          */
-        protected AbstractNotificationSupport() {
+        protected AbstractNotificationSupport(final Class<M> notifMetadataType) {
             super(ANSResource.class);
             notifications = new AbstractKeyedObjects<String, M>(10) {
                 @Override
@@ -547,6 +552,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
             };
             listeners = new ArrayList<>(10);
             sequenceCounter = new AtomicLong(0L);
+            metadataType = Objects.requireNonNull(notifMetadataType);
         }
 
         /**
@@ -740,10 +746,10 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @return the array of possible notifications.
          */
         @Override
-        public final MBeanNotificationInfo[] getNotificationInfo() {
+        public final M[] getNotificationInfo() {
             beginRead(ANSResource.NOTIFICATIONS);
             try{
-                return ArrayUtils.toArray(notifications.values(), MBeanNotificationInfo.class);
+                return ArrayUtils.toArray(notifications.values(), metadataType);
             }
             finally {
                 endRead(ANSResource.NOTIFICATIONS);
@@ -836,6 +842,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
     protected void verifyInitialization() throws IllegalStateException{
         closed.verify();
     }
+
     /**
      * Releases all resources associated with this connector.
      * @throws Exception Unable to release resources associated with this connector.

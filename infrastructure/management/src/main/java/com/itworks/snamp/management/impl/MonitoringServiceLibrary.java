@@ -32,7 +32,7 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
 
     private static final class SnampManagerProvider extends ProvidedService<SnampManager, SnampManagerImpl>{
 
-        public SnampManagerProvider() {
+        private SnampManagerProvider() {
             super(SnampManager.class);
         }
 

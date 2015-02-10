@@ -539,6 +539,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         private JavaBeanAttributeSupport(final ManagedBeanDescriptor<?> beanDesc,
                                          final Logger logger){
+            super(JavaBeanAttributeInfo.class);
             this.logger = Objects.requireNonNull(logger);
             this.bean = Objects.requireNonNull(beanDesc);
         }
@@ -593,6 +594,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         private JavaBeanNotificationSupport(final Set<? extends ManagementNotificationType<?>> notifTypes,
                                             final Logger logger){
+            super(CustomNotificationInfo.class);
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();

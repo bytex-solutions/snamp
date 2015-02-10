@@ -1,8 +1,11 @@
 package com.itworks.snamp.connectors.notifications;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata;
+import com.itworks.snamp.jmx.DescriptorUtils;
 
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
@@ -15,7 +18,6 @@ import java.util.Objects;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.connectors.notifications.NotificationSupport.*;
 import static com.itworks.snamp.jmx.CompositeDataUtils.fillMap;
-import static com.itworks.snamp.jmx.DescriptorUtils.getField;
 
 /**
  * Represents notification descriptor.
@@ -58,6 +60,24 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         return fields;
     }
 
+    public NotificationDescriptor setFields(final Map<String, ?> values){
+        if(values == null || values.isEmpty()) return this;
+        final String[] fields = getFieldNames();
+        final Map<String, Object> newFields = Maps.newHashMapWithExpectedSize(fields.length + values.size());
+        for(final String name: fields)
+            newFields.put(name, getFieldValue(name));
+        newFields.putAll(values);
+        return new NotificationDescriptor(newFields);
+    }
+
+    public final NotificationDescriptor setFields(final Descriptor values){
+        return setFields(DescriptorUtils.toMap(values));
+    }
+
+    public final NotificationDescriptor setUserDataType(final OpenType<?> type){
+        return type != null ? setFields(ImmutableMap.of(USER_DATA_TYPE, type)) : this;
+    }
+
     private static Severity getSeverity(final CompositeData parameters){
         if(parameters.containsKey(SEVERITY_PARAM)){
             final Object result = parameters.get(SEVERITY_PARAM);
@@ -98,7 +118,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public static String getDescription(final Descriptor metadata){
-        return getField(metadata, DESCRIPTION_FIELD, String.class);
+        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, String.class);
     }
 
     public static String getDescription(final MBeanNotificationInfo metadata){
@@ -106,7 +126,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public static String getNotificationCategory(final Descriptor metadata){
-        return getField(metadata, NOTIFICATION_CATEGORY_FIELD, String.class);
+        return DescriptorUtils.getField(metadata, NOTIFICATION_CATEGORY_FIELD, String.class);
     }
 
     public final String getNotificationCategory(){
@@ -118,9 +138,9 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public static Severity getSeverity(final Descriptor metadata) {
-        Severity result = getField(metadata, SEVERITY_FIELD, Severity.class);
+        Severity result = DescriptorUtils.getField(metadata, SEVERITY_FIELD, Severity.class);
         return result != null ? result :
-                Severity.resolve(getField(metadata, SEVERITY_FIELD, Integer.class, Severity.UNKNOWN.getLevel()));
+                Severity.resolve(DescriptorUtils.getField(metadata, SEVERITY_FIELD, Integer.class, Severity.UNKNOWN.getLevel()));
     }
 
     public final Severity getSeverity(){
@@ -132,7 +152,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public static NotificationSubscriptionModel getSubscriptionModel(final Descriptor metadata){
-        return getField(metadata, SUBSCRIPTION_MODEL_FIELD, NotificationSubscriptionModel.class, NotificationSubscriptionModel.MULTICAST);
+        return DescriptorUtils.getField(metadata, SUBSCRIPTION_MODEL_FIELD, NotificationSubscriptionModel.class, NotificationSubscriptionModel.MULTICAST);
     }
 
     public static NotificationSubscriptionModel getSubscriptionModel(final MBeanNotificationInfo metadata){
@@ -144,10 +164,23 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public static OpenType<?> getUserDataType(final Descriptor metadata){
-        return getField(metadata, USER_DATA_TYPE, OpenType.class);
+        return DescriptorUtils.getField(metadata, USER_DATA_TYPE, OpenType.class);
     }
 
     public static OpenType<?> getUserDataType(final MBeanNotificationInfo metadata){
         return getUserDataType(metadata.getDescriptor());
+    }
+
+    /**
+     * Determines whether the field with the specified name is defined in this descriptor.
+     * @param fieldName The name of the field to check.
+     * @return {@literal true}, if the specified field exists in this descriptor; otherwise, {@literal false}.
+     */
+    public final boolean hasField(final String fieldName){
+        return ArrayUtils.contains(getFieldNames(), fieldName);
+    }
+
+    public final  <T> T getField(final String fieldName, final Class<T> fieldType){
+        return DescriptorUtils.getField(this, fieldName, fieldType);
     }
 }
