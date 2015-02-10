@@ -6,7 +6,6 @@ import com.itworks.snamp.management.SnampComponentDescriptor;
 
 import javax.management.openmbean.*;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Created by temni on 2/8/2015.
@@ -21,11 +20,8 @@ final class SuggestAdapterParameterValuesOperation extends AbstractSnampComponen
             SimpleType.STRING
     );
 
-    protected final AbstractSnampManager snampManager;
-
     SuggestAdapterParameterValuesOperation(final AbstractSnampManager snampManager) throws OpenDataException {
-        super(NAME, new ArrayType<String[]>(SimpleType.STRING, true), ADAPTER_NAME_PARAM, PARAM_NAME_PARAM, CONNECTION_STRING_PARAM, LOCALE_PARAM);
-        this.snampManager = Objects.requireNonNull(snampManager);
+        super(snampManager, NAME, ADAPTER_NAME_PARAM, PARAM_NAME_PARAM, CONNECTION_STRING_PARAM, LOCALE_PARAM);
     }
 
     @Override
@@ -36,10 +32,9 @@ final class SuggestAdapterParameterValuesOperation extends AbstractSnampComponen
         final Map<String, String> tabularData =
                 transformTabularDataToMap(getArgument(CONNECTION_STRING_PARAM.getName(), TabularData.class, arguments));
 
-        final SnampComponentDescriptor adapter = getResourceAdapter(snampManager, adapterName);
+        final SnampComponentDescriptor adapter = snampManager.getResourceAdapter(adapterName);
         if (adapter == null) throw new IllegalArgumentException(String.format("Adapter %s doesn't exist", adapterName));
-
-        return getSnampCompenentSuggestedValue(adapter, parameterName, locale,
+        else return getSnampComponentSuggestedValue(adapter, parameterName, locale,
                 AgentConfiguration.ResourceAdapterConfiguration.class, tabularData);
     }
 }

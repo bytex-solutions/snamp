@@ -6,19 +6,9 @@ import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
-import com.itworks.snamp.management.SnampManager;
 import com.itworks.snamp.management.jmx.OpenMBean;
 
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.CompositeDataSupport;
-import javax.management.openmbean.CompositeType;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenMBeanParameterInfo;
-import javax.management.openmbean.OpenMBeanParameterInfoSupport;
-import javax.management.openmbean.OpenType;
-import javax.management.openmbean.SimpleType;
-import javax.management.openmbean.TabularDataSupport;
-import javax.management.openmbean.TabularType;
+import javax.management.openmbean.*;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -38,22 +28,6 @@ abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeDa
 
     private static final CompositeType COMPONENT_CONFIG_SCHEMA;
     private static final TabularType LIMITATION_SCHEMA;
-
-    protected static SnampComponentDescriptor getResourceAdapter(final SnampManager snampManager,
-                                                                 final String adapterName){
-        for(final SnampComponentDescriptor adapter: snampManager.getInstalledResourceAdapters())
-            if(Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY)))
-                return adapter;
-        return null;
-    }
-
-    protected static SnampComponentDescriptor getResourceConnector(final SnampManager snampManager,
-                                                                   final String connectorName){
-        for(final SnampComponentDescriptor connector: snampManager.getInstalledResourceConnectors())
-            if(Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
-                return connector;
-        return null;
-    }
 
     static{
         try {
@@ -98,8 +72,13 @@ abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeDa
         }
     }
 
-    protected AbstractComponentInfo(String operationName, OpenMBeanParameterInfo... parameters) {
+    protected final AbstractSnampManager snampManager;
+
+    protected AbstractComponentInfo(final AbstractSnampManager snampManager,
+                                    final String operationName,
+                                    final OpenMBeanParameterInfo... parameters) {
         super(operationName, COMPONENT_CONFIG_SCHEMA, parameters);
+        this.snampManager = Objects.requireNonNull(snampManager);
     }
 
     protected static CompositeData getSnampComponentInfo(final SnampComponentDescriptor component, final Locale loc) throws OpenDataException {

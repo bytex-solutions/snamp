@@ -19,25 +19,21 @@ import java.util.Map;
 final class GetAdapterInfoOperation extends AbstractComponentInfo {
     private static final String NAME = "getConnectorInfo";
 
-    protected final AbstractSnampManager snampManager;
-
-    protected static final OpenMBeanParameterInfo ADAPTER_NAME = new OpenMBeanParameterInfoSupport(
+    private static final OpenMBeanParameterInfo ADAPTER_NAME = new OpenMBeanParameterInfoSupport(
             "adapterName",
             "Snamp adapter name",
             SimpleType.STRING);
 
-    protected GetAdapterInfoOperation(final AbstractSnampManager snampManager) {
-        super(NAME, ADAPTER_NAME, LOCALE_PARAM);
-        this.snampManager = snampManager;
+    GetAdapterInfoOperation(final AbstractSnampManager snampManager) {
+        super(snampManager, NAME, ADAPTER_NAME, LOCALE_PARAM);
     }
 
     @Override
-    public CompositeData invoke(Map<String, ?> arguments) throws Exception {
+    public CompositeData invoke(final Map<String, ?> arguments) throws Exception {
         final String adapterName = getArgument(ADAPTER_NAME.getName(), String.class, arguments);
         final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
-        final SnampComponentDescriptor connector = getResourceAdapter(snampManager, adapterName);
+        final SnampComponentDescriptor connector = snampManager.getResourceAdapter(adapterName);
         if (connector == null) throw new IllegalArgumentException(String.format("Adapter %s doesn't exist", adapterName));
-
-        return getSnampComponentInfo(connector, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale));
+        else return getSnampComponentInfo(connector, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale));
     }
 }

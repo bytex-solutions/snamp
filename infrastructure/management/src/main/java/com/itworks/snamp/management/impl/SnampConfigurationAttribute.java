@@ -2,16 +2,8 @@ package com.itworks.snamp.management.impl;
 
 import com.itworks.snamp.management.jmx.OpenMBean;
 
-import javax.management.openmbean.ArrayType;
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.CompositeType;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenType;
-import javax.management.openmbean.SimpleType;
-import javax.management.openmbean.TabularType;
+import javax.management.openmbean.*;
 import java.io.IOException;
-
-import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
 /**
  * Description here
@@ -19,7 +11,7 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  * @author Evgeniy Kirichenko
  * @date 10.02.2015
  */
-public class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<CompositeData, CompositeType> {
+final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<CompositeData, CompositeType> {
 
     private static final String NAME = "configuration";
 
@@ -162,7 +154,7 @@ public class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Compos
     /**
      * Initializes a new attribute.
      */
-    protected SnampConfigurationAttribute() {
+    SnampConfigurationAttribute() {
         super(NAME, SNAMP_CONFIGURATION_DATA);
     }
 

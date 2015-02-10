@@ -15,7 +15,7 @@ final class RestartOperation extends OpenMBean.OpenOneWayOperation {
 
     private static final String NAME = "restart";
 
-    protected RestartOperation() {
+    RestartOperation() {
         super(NAME);
     }
 

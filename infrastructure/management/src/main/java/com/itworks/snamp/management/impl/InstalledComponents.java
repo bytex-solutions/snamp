@@ -19,7 +19,7 @@ import java.util.logging.Level;
 * @version 1.0
 * @since 1.0
 */
-class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, TabularType> {
+final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, TabularType> {
     private static final String NAME_COLUMN = "Name";
     private static final String DESCRIPTION_COLUMN = "Description";
     private static final String VERSION_COLUMN = "Version";
@@ -65,19 +65,14 @@ class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, TabularTy
                 "A set of SNAMP components", rowType, new String[]{NAME_COLUMN});
     }
 
-    protected final SnampManager manager;
+    private final SnampManager manager;
 
     InstalledComponents(final SnampManager manager) throws OpenDataException{
         super("InstalledComponents", createTabularType());
-        this.manager = manager;
+        this.manager = Objects.requireNonNull(manager);
     }
 
-    InstalledComponents(final String name, final SnampManager manager) throws OpenDataException{
-        super(name, createTabularType());
-        this.manager = manager;
-    }
-
-    protected CompositeData createRow(final SnampComponentDescriptor component) throws OpenDataException{
+    private CompositeData createRow(final SnampComponentDescriptor component) throws OpenDataException{
         final Map<String, Object> row = Maps.newHashMapWithExpectedSize(COLUMNS.length);
         row.put(NAME_COLUMN, component.getName(null));
         row.put(DESCRIPTION_COLUMN, component.getDescription(null));

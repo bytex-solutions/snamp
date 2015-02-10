@@ -6,7 +6,6 @@ import com.itworks.snamp.management.SnampComponentDescriptor;
 
 import javax.management.openmbean.*;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Created by temni on 2/8/2015.
@@ -20,25 +19,21 @@ final class SuggestConnectorAttributeParameterValuesOperation extends AbstractSn
             SimpleType.STRING
     );
 
-    protected final AbstractSnampManager snampManager;
-
     SuggestConnectorAttributeParameterValuesOperation(final AbstractSnampManager snampManager) throws OpenDataException {
-        super(NAME, new ArrayType<String[]>(SimpleType.STRING, true), CONNECTOR_NAME_PARAM, PARAM_NAME_PARAM, CONNECTION_STRING_PARAM, LOCALE_PARAM);
-        this.snampManager = Objects.requireNonNull(snampManager);
+        super(snampManager, NAME, CONNECTOR_NAME_PARAM, PARAM_NAME_PARAM, CONNECTION_STRING_PARAM, LOCALE_PARAM);
     }
 
     @Override
-    public String[] invoke(Map<String, ?> arguments) throws Exception {
+    public String[] invoke(final Map<String, ?> arguments) throws Exception {
         final String connectorName = getArgument(CONNECTOR_NAME_PARAM.getName(), String.class, arguments);
         final String parameterName = getArgument(PARAM_NAME_PARAM.getName(), String.class, arguments);
         final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
         final Map<String, String> tabularData =
                 transformTabularDataToMap(getArgument(CONNECTION_STRING_PARAM.getName(), TabularData.class, arguments));
 
-        final SnampComponentDescriptor connector = getResourceConnector(snampManager, connectorName);
+        final SnampComponentDescriptor connector = snampManager.getResourceConnector(connectorName);
         if (connector == null) throw new IllegalArgumentException(String.format("Connector %s doesn't exist", connectorName));
-
-        return getSnampCompenentSuggestedValue(connector, parameterName, locale,
+        else return getSnampComponentSuggestedValue(connector, parameterName, locale,
                 AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class, tabularData);
     }
 }

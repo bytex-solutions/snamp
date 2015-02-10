@@ -8,29 +8,10 @@ import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
-import com.itworks.snamp.management.SnampManager;
 import com.itworks.snamp.management.jmx.OpenMBean;
 
-import javax.management.openmbean.ArrayType;
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.CompositeDataSupport;
-import javax.management.openmbean.CompositeType;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenMBeanParameterInfo;
-import javax.management.openmbean.OpenMBeanParameterInfoSupport;
-import javax.management.openmbean.OpenType;
-import javax.management.openmbean.SimpleType;
-import javax.management.openmbean.TabularData;
-import javax.management.openmbean.TabularDataSupport;
-import javax.management.openmbean.TabularType;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import javax.management.openmbean.*;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -41,12 +22,12 @@ import java.util.concurrent.TimeUnit;
  */
 final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<CompositeData, CompositeType> {
 
-    protected static final OpenMBeanParameterInfo LOCALE_PARAM = new OpenMBeanParameterInfoSupport(
+    private static final OpenMBeanParameterInfo LOCALE_PARAM = new OpenMBeanParameterInfoSupport(
             "locale",
             "The expected localization of the configuration schema",
             SimpleType.STRING);
 
-    protected static final OpenMBeanParameterInfo CONNECTION_STRING = new OpenMBeanParameterInfoSupport(
+    private static final OpenMBeanParameterInfo CONNECTION_STRING = new OpenMBeanParameterInfoSupport(
             "connectionString",
             "Connection string for SNAMP connector",
             SimpleType.STRING);
@@ -55,7 +36,7 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
 
     private final AbstractSnampManager snampManager;
 
-    protected static final OpenMBeanParameterInfo CONNECTOR_NAME = new OpenMBeanParameterInfoSupport(
+    private static final OpenMBeanParameterInfo CONNECTOR_NAME = new OpenMBeanParameterInfoSupport(
             "connectorName",
             "Snamp connector name",
             SimpleType.STRING);
@@ -67,15 +48,7 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
     private static final TabularType USER_DEFINED_EVENT_SCHEMA;
     private static final TabularType CONNECTION_PARAMS_SCHEMA;
 
-    protected static SnampComponentDescriptor getResourceConnector(final SnampManager snampManager,
-                                                                   final String connectorName){
-        for(final SnampComponentDescriptor connector: snampManager.getInstalledResourceConnectors())
-            if(Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
-                return connector;
-        return null;
-    }
-
-    protected static Map<String, String> transformTabularDataToMap(final TabularData data) {
+    private static Map<String, String> transformTabularDataToMap(final TabularData data) {
         if (data == null || data.isEmpty()) {
             return Collections.emptyMap();
         } else {
@@ -173,23 +146,24 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
             throw new ExceptionInInitializerError(e);
         }
     }
-    protected static final OpenMBeanParameterInfo CONNECTION_STRING_PARAM = new OpenMBeanParameterInfoSupport(
+    private static final OpenMBeanParameterInfo CONNECTION_STRING_PARAM = new OpenMBeanParameterInfoSupport(
             "connectionStringData",
             "Additional parameters for filtering suggested values",
             CONNECTION_PARAMS_SCHEMA
     );
 
 
-    protected DiscoverManagementMetadataOperation(final AbstractSnampManager snampManager) {
+    DiscoverManagementMetadataOperation(final AbstractSnampManager snampManager) {
         super(NAME, CONNECTOR_METADATA, CONNECTOR_NAME, CONNECTION_STRING, CONNECTION_STRING_PARAM, LOCALE_PARAM);
         this.snampManager = snampManager;
     }
 
-    protected static CompositeData getDiscoverMetadata(final SnampComponentDescriptor connector, final Locale loc,
+    private static CompositeData getDiscoverMetadata(final SnampComponentDescriptor connector, final Locale loc,
            final String connectionString, final Map<String, String> connectionOptions) throws Exception {
 
         final Map<String, Object> schema = Maps.newHashMapWithExpectedSize(CONNECTOR_METADATA.keySet().size());
         connector.invokeSupportService(DiscoveryService.class, new Consumer<DiscoveryService, Exception>() {
+            @SuppressWarnings("unchecked")
             @Override
             public void accept(final DiscoveryService input) throws Exception {
                 final DiscoveryService.DiscoveryResult metadata = input.discover(
@@ -252,17 +226,16 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
     }
 
     @Override
-    public CompositeData invoke(Map<String, ?> arguments) throws Exception {
+    public CompositeData invoke(final Map<String, ?> arguments) throws Exception {
         final String connectorName = getArgument(CONNECTOR_NAME.getName(), String.class, arguments);
         final String connectionString = getArgument(CONNECTION_STRING.getName(), String.class, arguments);
         final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
         final Map<String, String> connectionStringParam =
                 transformTabularDataToMap(getArgument(CONNECTION_STRING_PARAM.getName(), TabularData.class, arguments));
-        final SnampComponentDescriptor connector = getResourceConnector(snampManager, connectorName);
+        final SnampComponentDescriptor connector = snampManager.getResourceConnector(connectorName);
 
         if (connector == null) throw new IllegalArgumentException(String.format("Connector %s doesn't exist", connectorName));
-
-        return getDiscoverMetadata(connector,
+        else return getDiscoverMetadata(connector,
                 locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale),
                 connectionString, connectionStringParam);
     }

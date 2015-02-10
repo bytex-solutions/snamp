@@ -1,14 +1,14 @@
 package com.itworks.snamp.management.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.itworks.snamp.Box;
+import com.google.common.collect.Maps;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
-import com.itworks.snamp.management.SnampManager;
 import com.itworks.snamp.management.jmx.OpenMBean;
 
 import javax.management.openmbean.*;
@@ -58,59 +58,46 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
         if (data == null || data.isEmpty()) {
             return Collections.emptyMap();
         } else {
-            Map<String, String> result = new HashMap<>();
-            for (Object value : data.values()) {
+            final Map<String, String> result = Maps.newHashMapWithExpectedSize(data.size());
+            for (final Object value : data.values()) {
                 if (!(value instanceof CompositeData)) continue;
                 final CompositeData cd = (CompositeData) value;
-                result.put((String) cd.get("key"), (String) cd.get("value"));
+                result.put(Objects.toString(cd.get("key")),
+                        Objects.toString(cd.get("value")));
             }
             return result;
         }
     }
 
 
-    protected AbstractSnampComponentParamValueOperation(String operationName, ArrayType<String[]> returnType, OpenMBeanParameterInfo... parameters) {
-        super(operationName, returnType, parameters);
+    protected final AbstractSnampManager snampManager;
+
+    protected AbstractSnampComponentParamValueOperation(final AbstractSnampManager manager,
+                                                        final String operationName,
+                                                        final OpenMBeanParameterInfo... parameters) throws OpenDataException {
+        super(operationName, new ArrayType<String[]>(SimpleType.STRING, false), parameters);
+        this.snampManager = Objects.requireNonNull(manager);
     }
 
-    protected static SnampComponentDescriptor getResourceAdapter(final SnampManager snampManager,
-                                                               final String adapterName){
-        for(final SnampComponentDescriptor adapter: snampManager.getInstalledResourceAdapters())
-            if(Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY)))
-                return adapter;
-        return null;
-    }
+    protected final String[] getSnampComponentSuggestedValue(final SnampComponentDescriptor snampComponentDescriptor,
+                                                             final String parameterName, final String locale,
+                                                             final Class<? extends AgentConfiguration.ConfigurationEntity> configurationEntity,
+                                                             final Map<String, String> tabularData) throws Exception {
 
-    protected static SnampComponentDescriptor getResourceConnector(final SnampManager snampManager,
-                                                                 final String connectorName){
-        for(final SnampComponentDescriptor connector: snampManager.getInstalledResourceConnectors())
-            if(Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
-                return connector;
-        return null;
-    }
-
-    protected String[] getSnampCompenentSuggestedValue(final SnampComponentDescriptor snampComponentDescriptor,
-                                                       final String parameterName, final String locale,
-                                                       final Class<? extends AgentConfiguration.ConfigurationEntity> configurationEntity,
-                                                       final Map<String, String> tabularData) throws Exception {
-
-        final Box<List<String>> result = new Box<>();
+        final List<String> result = new LinkedList<>();
         snampComponentDescriptor.invokeSupportService(ConfigurationEntityDescriptionProvider.class, new Consumer<ConfigurationEntityDescriptionProvider, Exception>() {
             @Override
             public void accept(final ConfigurationEntityDescriptionProvider input) throws Exception {
                 final ConfigurationEntityDescription<?> description = input.getDescription(configurationEntity);
                 if (description != null) {
                     final ConfigurationEntityDescription.ParameterDescription pd = description.getParameterDescriptor(parameterName);
-                    if (pd == null || !(pd instanceof SelectableAdapterParameterDescriptor))
-                        result.set(Collections.<String>emptyList());
-                    else {
-                        result.set(ImmutableList.copyOf(((SelectableAdapterParameterDescriptor) pd).suggestValues(tabularData,
-                                locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale))));
-                    }
+                    if (pd instanceof SelectableAdapterParameterDescriptor)
+                        Collections.addAll(result, ((SelectableAdapterParameterDescriptor) pd).suggestValues(tabularData,
+                                locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
+
                 }
             }
         });
-        final List<String> resultList = result.get();
-        return resultList.toArray(new String[resultList.size()]);
+        return ArrayUtils.toArray(result, String.class);
     }
 }
