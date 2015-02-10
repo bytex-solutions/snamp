@@ -46,6 +46,12 @@ public interface AttributeSupport {
     String DESCRIPTION_FIELD = ConfigurationEntity.DESCRIPTION_KEY;
 
     /**
+     * The name of the field of {@link javax.management.openmbean.OpenType} in {@link javax.management.Descriptor}
+     * which describes the attribute type.
+     */
+    String OPEN_TYPE = "openType";
+
+    /**
      * Connects to the specified attribute.
      * @param id A key string that is used to invoke attribute from this connector.
      * @param attributeName The name of the attribute.

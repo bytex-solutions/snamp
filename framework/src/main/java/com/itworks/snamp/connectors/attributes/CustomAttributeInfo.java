@@ -1,6 +1,9 @@
 package com.itworks.snamp.connectors.attributes;
 
+import com.itworks.snamp.jmx.WellKnownType;
+
 import javax.management.MBeanAttributeInfo;
+import javax.management.openmbean.OpenType;
 
 /**
  * Represents simplified version of {@link javax.management.MBeanAttributeInfo}.
@@ -56,5 +59,15 @@ public class CustomAttributeInfo<T> extends MBeanAttributeInfo {
                         final AttributeSpecifier specifier,
                         final AttributeDescriptor descriptor) {
         super(name, type, description, specifier.canRead(), specifier.canWrite(), specifier.isFlag(), descriptor);
+    }
+
+    /**
+     * Infers type of the attribute.
+     * @param attribute The attribute metadata. Cannot be {@literal null}.
+     * @return The well-known SNAMP type that should be recognized by resource adapter.
+     */
+    public static WellKnownType getType(final MBeanAttributeInfo attribute) {
+        final OpenType<?> ot = AttributeDescriptor.getOpenType(attribute);
+        return ot != null ? WellKnownType.getType(ot) : WellKnownType.getType(attribute.getType());
     }
 }

@@ -9,6 +9,8 @@ import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenMBeanAttributeInfo;
+import javax.management.openmbean.OpenType;
 import java.util.Map;
 import java.util.Objects;
 
@@ -120,5 +122,15 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
 
     public String getDescription(final MBeanAttributeInfo metadata) {
         return metadata.getDescription();
+    }
+
+    public static OpenType<?> getOpenType(final Descriptor metadata){
+        return getField(metadata, OPEN_TYPE, OpenType.class);
+    }
+
+    public static OpenType<?> getOpenType(final MBeanAttributeInfo metadata) {
+        return metadata instanceof OpenMBeanAttributeInfo ?
+                ((OpenMBeanAttributeInfo) metadata).getOpenType() :
+                getOpenType(metadata.getDescriptor());
     }
 }

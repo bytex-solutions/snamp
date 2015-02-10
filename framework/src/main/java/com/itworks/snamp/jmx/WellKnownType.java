@@ -1,8 +1,8 @@
 package com.itworks.snamp.jmx;
 
 import com.google.common.base.Predicate;
+import com.google.common.reflect.TypeToken;
 
-import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -20,6 +20,16 @@ import java.util.Objects;
  * @since 1.0
  */
 public enum  WellKnownType implements Serializable, Type {
+    /**
+     * Represents {@link java.lang.Void} data type.
+     */
+    VOID(SimpleType.VOID),
+
+    /**
+     * Represents {@link javax.management.ObjectName} data type.
+     */
+    OBJECT_NAME(SimpleType.OBJECTNAME),
+
     /**
      * Represents {@link java.lang.String} data type.
      */
@@ -216,6 +226,11 @@ public enum  WellKnownType implements Serializable, Type {
     BIG_DECIMAL_ARRAY(SimpleType.BIGDECIMAL, false),
 
     /**
+     * Represents {@link javax.management.ObjectName}[] type.
+     */
+    OBJECT_NAME_ARRAY(SimpleType.OBJECTNAME, false),
+
+    /**
      * Represents {@link javax.management.openmbean.CompositeData} type.
      */
     DICTIONARY(CompositeData.class),
@@ -225,8 +240,10 @@ public enum  WellKnownType implements Serializable, Type {
      */
     TABLE(TabularData.class),
     ;
+
     private final OpenType<?> openType;
     private final Class<?> javaType;
+
 
     private <T> WellKnownType(final SimpleType<T> openType){
         this.openType = Objects.requireNonNull(openType, "openType is null.");
@@ -248,7 +265,7 @@ public enum  WellKnownType implements Serializable, Type {
         }
     }
 
-    private WellKnownType(final Class<?> javaType){
+    private WellKnownType(final Class<?> javaType) {
         this.openType = null;
         this.javaType = Objects.requireNonNull(javaType, "javaType is null.");
     }
@@ -363,6 +380,14 @@ public enum  WellKnownType implements Serializable, Type {
     }
 
     /**
+     * Gets underlying Java type in form of the {@link com.google.common.reflect.TypeToken}.
+     * @return The underlying Java type.
+     */
+    public final TypeToken<?> getTypeToken(){
+        return TypeToken.of(getType());
+    }
+
+    /**
      * Detects well-known SNAP type using Java class name.
      * @param className The name of the Java class.
      * @return Inferred well-known SNAMP type; or {@literal null}, if type cannot be inferred.
@@ -417,13 +442,17 @@ public enum  WellKnownType implements Serializable, Type {
         return null;
     }
 
-    public static OpenType<?> getOpenType(final MBeanAttributeInfo attribute){
-        if(attribute instanceof OpenMBeanAttributeInfo)
-            return ((OpenMBeanAttributeInfo)attribute).getOpenType();
-        else {
-            final WellKnownType type = getType(attribute.getType());
-            return type != null && type.isOpenType() ? type.getOpenType() : null;
-        }
+    /**
+     * Detects well-known SNAMP type using type token.
+     * @param token Type token.
+     * @return Inferred well-known SNAMP type; or {@literal null} if type cannot be detected.
+     */
+    public static WellKnownType getType(final TypeToken<?> token){
+        if(token != null)
+            for(final WellKnownType type: values())
+                if(token.isAssignableFrom(type.getType()))
+                    return type;
+        return null;
     }
 
     private static EnumSet<WellKnownType> filterTypes(final Predicate<WellKnownType> filter){

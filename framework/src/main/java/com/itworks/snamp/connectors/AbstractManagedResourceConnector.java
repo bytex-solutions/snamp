@@ -711,11 +711,16 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
             beginWrite(ANSResource.LISTENERS);
             try {
                 final Iterator<NotificationListenerHolder> iter = listeners.iterator();
+                boolean removed = false;
                 while (iter.hasNext()){
                     final NotificationListenerHolder holder = iter.next();
-                    if(holder.isWrapped(listener))
+                    if(holder.isWrapped(listener)) {
                         iter.remove();
+                        removed = true;
+                    }
                 }
+                if(!removed)
+                    throw JMExceptionUtils.listenerNotFound(listener);
             }
             finally {
                 endWrite(ANSResource.LISTENERS);
