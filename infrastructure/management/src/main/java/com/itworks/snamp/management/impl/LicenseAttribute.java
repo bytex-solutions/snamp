@@ -31,6 +31,6 @@ final class LicenseAttribute extends OpenMBean.OpenAttribute<String, SimpleType<
 
     @Override
     protected String getDescription() {
-        return "SNAMP Configuration";
+        return "The license of the SNAMP instance";
     }
 }
