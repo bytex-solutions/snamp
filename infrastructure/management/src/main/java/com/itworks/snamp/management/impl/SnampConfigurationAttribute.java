@@ -6,6 +6,7 @@ import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
+import com.itworks.snamp.configuration.SerializableAgentConfiguration;
 import com.itworks.snamp.configuration.diff.ConfigurationDiffEngine;
 import com.itworks.snamp.management.jmx.OpenMBean;
 import org.osgi.framework.BundleContext;
@@ -15,7 +16,6 @@ import org.osgi.service.cm.ConfigurationException;
 import javax.management.openmbean.*;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
@@ -315,7 +315,9 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     }
 
     private static AgentConfiguration JMXtoSnampConfiguration(final CompositeData data) {
-        return null; // @TODO append logic
+        final SerializableAgentConfiguration configuration = new SerializableAgentConfiguration();
+        // @todo implement it
+        return configuration;
     }
 
     @Override
