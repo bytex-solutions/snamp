@@ -1,20 +1,22 @@
 package com.itworks.snamp.management.impl;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.itworks.snamp.ServiceReferenceHolder;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.configuration.diff.ConfigurationDiffEngine;
-import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.management.jmx.OpenMBean;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
 
 import javax.management.openmbean.*;
 import java.io.IOException;
-import java.util.Dictionary;
-import java.util.Hashtable;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
@@ -33,6 +35,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     private static final CompositeType ADAPTER_METADATA;
     private static final CompositeType EVENT_METADATA;
     private static final CompositeType ATTRIBUTE_METADATA;
+    private static final TabularType CONNECTOR_EVENT_MAP_TYPE;
+    private static final TabularType CONNECTOR_ATTRIBUTE_MAP_TYPE;
     private static final TabularType SIMPLE_MAP_TYPE;
     private static final TabularType ADAPTER_MAP_TYPE;
     private static final TabularType CONNECTOR_MAP_TYPE;
@@ -85,7 +89,26 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                     }
             );
 
-            //COMPONENT_CONFIG_SCHEMA
+            CONNECTOR_ATTRIBUTE_MAP_TYPE = new TabularType("com.itworks.management.ConnectorAttributeMapType",
+                    "Simple type for Map<String, EventMetadata>",
+                    new CompositeType("com.itworks.management.SimpleConnectorAttributeMap",
+                            "Type for holding snamp adapters configuration",
+                            new String[]{"name", "attribute"},
+                            new String[]{"User defined name for connector's attribute", "Attribute metadata instance"},
+                            new OpenType<?>[]{SimpleType.STRING, ATTRIBUTE_METADATA}),
+                    new String[]{"name"}
+            );
+
+            CONNECTOR_EVENT_MAP_TYPE = new TabularType("com.itworks.management.ConnectorEventMapType",
+                    "Simple type for Map<String, AttributeMetadata>",
+                    new CompositeType("com.itworks.management.SimpleConnectorEventMap",
+                            "Type for holding snamp adapters configuration",
+                            new String[]{"name", "event"},
+                            new String[]{"User defined name for connector's event", "Event metadata instance"},
+                            new OpenType<?>[]{SimpleType.STRING, EVENT_METADATA}),
+                    new String[]{"name"}
+            );
+
             CONNECTOR_METADATA = new CompositeType("com.itworks.management.ConnectorMetadata",
                     "SNAMP connector configuration metadata",
                     new String[]{
@@ -105,13 +128,12 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                     new OpenType<?>[]{
                             SimpleType.STRING,
                             SimpleType.STRING,
-                            ArrayType.getArrayType(ATTRIBUTE_METADATA),
-                            ArrayType.getArrayType(EVENT_METADATA),
+                            CONNECTOR_ATTRIBUTE_MAP_TYPE,
+                            CONNECTOR_EVENT_MAP_TYPE,
                             SIMPLE_MAP_TYPE
                     }
             );
 
-            //COMPONENT_CONFIG_SCHEMA
             ADAPTER_METADATA = new CompositeType("com.itworks.management.AdapterMetadata",
                     "SNAMP adapter configuration metadata",
                     new String[]{
@@ -166,6 +188,64 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         }
     }
 
+    private static TabularDataSupport parseConnectorAttributes(final Map<String,
+            AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> map) throws OpenDataException {
+        final TabularDataSupport attributesMap = new TabularDataSupport(CONNECTOR_ATTRIBUTE_MAP_TYPE);
+        for (final String attributeName : map.keySet()) {
+            final Map<String, Object> attributeMap = Maps.newHashMapWithExpectedSize(ATTRIBUTE_METADATA.keySet().size());
+
+            // parse attribute system name
+            attributeMap.put("Name", map.get(attributeName).getAttributeName());
+
+            // parse attribute read write timeout if exists
+            if (map.get(attributeName).getReadWriteTimeout() != TimeSpan.INFINITE) {
+                attributeMap.put("ReadWriteTimeout", map.get(attributeName).getReadWriteTimeout().convert(TimeUnit.MILLISECONDS).duration);
+            }
+
+            // parse attribute user defined parameters
+            attributeMap.put("AdditionalProperties", transformAdditionalPropertiesToTabularData(map.get(attributeName).getParameters()));
+
+            // append current attribute to the map
+            attributesMap.put(new CompositeDataSupport(attributesMap.getTabularType().getRowType(),
+                    ImmutableMap.<String, Object>of(
+                            "name", attributeName,
+                            "attribute", new CompositeDataSupport(ATTRIBUTE_METADATA, attributeMap))));
+        }
+        return attributesMap;
+    }
+
+    private static TabularDataSupport parseConnectorEvents(final Map<String,
+            AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> map) throws OpenDataException {
+        final TabularDataSupport eventMap = new TabularDataSupport(CONNECTOR_EVENT_MAP_TYPE);
+        for (final String eventName : map.keySet()) {
+            final Map<String, Object> eventSimpleMap = Maps.newHashMapWithExpectedSize(EVENT_METADATA.keySet().size());
+
+            // parse attribute system name
+            eventSimpleMap.put("Category", map.get(eventName).getCategory());
+
+            // parse attribute user defined parameters
+            eventSimpleMap.put("AdditionalProperties", transformAdditionalPropertiesToTabularData(map.get(eventName).getParameters()));
+
+            // append current attribute to the map
+            eventMap.put(new CompositeDataSupport(eventMap.getTabularType().getRowType(),
+                    ImmutableMap.<String, Object>of(
+                            "name", eventName,
+                            "event", new CompositeDataSupport(EVENT_METADATA, eventSimpleMap))));
+        }
+        return eventMap;
+    }
+
+    private static TabularDataSupport transformAdditionalPropertiesToTabularData(final Map<String, String> map) throws OpenDataException {
+        final TabularDataSupport tabularDataSupport =  new TabularDataSupport(SIMPLE_MAP_TYPE);
+        for (final String key : map.keySet()) {
+            tabularDataSupport.put(new CompositeDataSupport(tabularDataSupport.getTabularType().getRowType(),
+                    ImmutableMap.<String, Object>of(
+                            "key", key,
+                            "value", map.get(key))));
+        }
+            return tabularDataSupport;
+    }
+
     /**
      * Initializes a new attribute.
      */
@@ -173,8 +253,65 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         super(NAME, SNAMP_CONFIGURATION_DATA);
     }
 
-    private static CompositeData snampConfigurationToJMX(final AgentConfiguration configuration) {
-        return null; // @TODO append logic
+    private static CompositeData snampConfigurationToJMX(final AgentConfiguration configuration) throws OpenDataException {
+        final Map<String, Object> schema = Maps.newHashMapWithExpectedSize(SNAMP_CONFIGURATION_DATA.keySet().size());
+
+        final TabularDataSupport adapterMap = new TabularDataSupport(ADAPTER_MAP_TYPE);
+        // adapter parsing
+        final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapterMapConfig =
+                configuration.getResourceAdapters();
+        for (final String adapterName : adapterMapConfig.keySet()) {
+            final Map<String, Object> currentAdapter = Maps.newHashMapWithExpectedSize(ADAPTER_METADATA.keySet().size());
+
+            // parse adapter's name
+            currentAdapter.put("Name", adapterMapConfig.get(adapterName).getAdapterName());
+
+            // parse adapter's user defined parameters
+            currentAdapter.put("Parameters", transformAdditionalPropertiesToTabularData(adapterMapConfig.get(adapterName).getParameters()));
+
+            // add current adapter to the main adapters map
+            adapterMap.put(new CompositeDataSupport(adapterMap.getTabularType().getRowType(),
+                    ImmutableMap.<String, Object>of(
+                            "name", adapterName,
+                            "connector", new CompositeDataSupport(ADAPTER_METADATA, currentAdapter))));
+        }
+
+        final TabularDataSupport connectorMap = new TabularDataSupport(CONNECTOR_MAP_TYPE);
+        // connector parsing
+        final Map<String, AgentConfiguration.ManagedResourceConfiguration> connectors = configuration.getManagedResources();
+        for (final String connectorName : connectors.keySet()) {
+            final Map<String , Object> currentConnector = Maps.newHashMapWithExpectedSize(CONNECTOR_METADATA.keySet().size());
+
+            // parse connector's connection string
+            currentConnector.put("ConnectionString", connectors.get(connectorName).getConnectionString());
+
+            // parse connector's connection type
+            currentConnector.put("ConnectionType", connectors.get(connectorName).getConnectionType());
+
+            // parse connector's attributes
+            final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributeMap =
+                    connectors.get(connectorName).getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class);
+            currentConnector.put("Attributes", parseConnectorAttributes(attributeMap));
+
+            // parse connector's events
+            final Map<String, AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> eventMap =
+                    connectors.get(connectorName).getElements(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
+            currentConnector.put("Events", parseConnectorEvents(eventMap));
+
+            // parse connector's user defined properties
+            currentConnector.put("Parameters", transformAdditionalPropertiesToTabularData(connectors.get(connectorName).getParameters()));
+
+            // append current connector to the map
+            connectorMap.put(new CompositeDataSupport(connectorMap.getTabularType().getRowType(),
+                    ImmutableMap.<String, Object>of(
+                            "name", connectorName,
+                            "adapter", new CompositeDataSupport(CONNECTOR_METADATA, currentConnector))));
+
+        }
+
+        schema.put("ResourceAdapters", adapterMap);
+        schema.put("ManagedResources", connectorMap);
+        return new CompositeDataSupport(SNAMP_CONFIGURATION_DATA, schema);
     }
 
     private static AgentConfiguration JMXtoSnampConfiguration(final CompositeData data) {
@@ -182,7 +319,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     }
 
     @Override
-    public CompositeData getValue() throws IOException, ConfigurationException {
+    public CompositeData getValue() throws IOException, ConfigurationException, OpenDataException {
         final BundleContext bundleContext = getBundleContextByObject(this);
         final ServiceReferenceHolder<ConfigurationAdmin> adminRef =
                 new ServiceReferenceHolder<>(bundleContext,ConfigurationAdmin.class);
