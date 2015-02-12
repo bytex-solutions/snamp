@@ -9,13 +9,17 @@ import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.configuration.SerializableAgentConfiguration;
 import com.itworks.snamp.configuration.diff.ConfigurationDiffEngine;
 import com.itworks.snamp.management.jmx.OpenMBean;
+import javafx.scene.control.Tab;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
 
 import javax.management.openmbean.*;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
@@ -314,9 +318,115 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         return new CompositeDataSupport(SNAMP_CONFIGURATION_DATA, schema);
     }
 
+    // due to wildcard generic type in value() of TabularData
+    @SuppressWarnings("unchecked")
     private static AgentConfiguration JMXtoSnampConfiguration(final CompositeData data) {
         final SerializableAgentConfiguration configuration = new SerializableAgentConfiguration();
-        // @todo implement it
+
+        // parse adapters
+        if (data.containsKey("ResourceAdapters") && data.get("ResourceAdapters") instanceof TabularData) {
+            final TabularData adaptersData = (TabularData) data.get("ResourceAdapters");
+            for (final CompositeData adapterDataCurrent : (Collection<CompositeData>) adaptersData.values()) {
+                final SerializableAgentConfiguration.SerializableResourceAdapterConfiguration agentConfiguration =
+                        new SerializableAgentConfiguration.SerializableResourceAdapterConfiguration();
+                if (adapterDataCurrent.containsKey("adapter")) {
+                    final CompositeData adapterInstance = ((CompositeData) adapterDataCurrent.get("adapter"));
+                    if (adapterInstance.containsKey("name")) {
+                        agentConfiguration.setAdapterName((String) adapterInstance.get("name"));
+                    }
+                    if (adapterInstance.containsKey("Parameters") && adapterInstance.get("Parameters") instanceof TabularData) {
+                        final TabularData params = (TabularData) adapterInstance.get("Parameters");
+                        for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
+                            agentConfiguration.setParameter((String) keyParam.get("key"), (String) keyParam.get("value"));
+                        }
+                    }
+                }
+                configuration.getResourceAdapters().put((String) adapterDataCurrent.get("name"), agentConfiguration);
+            }
+        }
+
+        // parse connectors
+        if (data.containsKey("ManagedResources") && data.get("ManagedResources") instanceof TabularData) {
+            final TabularData connectorsData = (TabularData) data.get("ManagedResources");
+            for (final CompositeData connectorDataCurrent : (Collection<CompositeData>) connectorsData.values()) {
+                final SerializableAgentConfiguration.SerializableManagedResourceConfiguration connectorConfiguration =
+                        new SerializableAgentConfiguration.SerializableManagedResourceConfiguration();
+
+                if (connectorDataCurrent.containsKey("connector")) {
+                    final CompositeData connectorInstance = (CompositeData) connectorDataCurrent.get("connector");
+                    if (connectorInstance.containsKey("ConnectionString")) {
+                        connectorConfiguration.setConnectionString((String) connectorInstance.get("ConnectionString"));
+                    }
+
+                    if (connectorInstance.containsKey("ConnectionType")) {
+                        connectorConfiguration.setConnectionType((String) connectorInstance.get("ConnectionType"));
+                    }
+
+                    // attributes parsing
+                    if (connectorInstance.containsKey("Attributes") && connectorInstance.get("Attributes") instanceof TabularData) {
+                        final TabularData attributes = (TabularData) connectorInstance.get("Attributes");
+                        final Map<String, SerializableAgentConfiguration.SerializableManagedResourceConfiguration.AttributeConfiguration>
+                                attributesConfigMap = Maps.newHashMap();
+                        for (final CompositeData attributeInstance : (Collection<CompositeData>) attributes.values()) {
+                            AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration config = connectorConfiguration.newAttributeConfiguration();
+                            if (attributeInstance.containsKey("attribute") && attributeInstance.get("attribute") instanceof CompositeData) {
+
+                                final CompositeData attributeData = (CompositeData) attributeInstance.get("attribute");
+                                if (attributeData.containsKey("Name")) {
+                                    config.setAttributeName((String) attributeData.get("Name"));
+                                }
+                                if (attributeData.containsKey("ReadWriteTimeout")) {
+                                    config.setReadWriteTimeout(new TimeSpan((Long) attributeData.get("ReadWriteTimeout"), TimeUnit.MILLISECONDS));
+                                }
+
+                                if (attributeData.containsKey("AdditionalProperties") && attributeData.get("AdditionalProperties") instanceof TabularData) {
+                                    final TabularData params = (TabularData) attributeData.get("AdditionalProperties");
+                                    for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
+                                        config.getParameters().put((String) keyParam.get("key"), (String) keyParam.get("value"));
+                                    }
+                                }
+                            }
+                            attributesConfigMap.put((String) attributeInstance.get("name"), config);
+                        }
+                        connectorConfiguration.setAttributes(attributesConfigMap);
+                    }
+
+                    // attributes parsing
+                    if (connectorInstance.containsKey("Events") && connectorInstance.get("Events") instanceof TabularData) {
+                        final TabularData events = (TabularData) connectorInstance.get("Events");
+                        final Map<String, SerializableAgentConfiguration.SerializableManagedResourceConfiguration.EventConfiguration>
+                                eventsConfigMap = Maps.newHashMap();
+                        for (final CompositeData eventInstance : (Collection<CompositeData>) events.values()) {
+                            AgentConfiguration.ManagedResourceConfiguration.EventConfiguration config = connectorConfiguration.newEventConfiguration();
+                            if (eventInstance.containsKey("event") && eventInstance.get("event") instanceof CompositeData) {
+                                final CompositeData attributeData = (CompositeData) eventInstance.get("event");
+                                if (attributeData.containsKey("Category")) {
+                                    config.setCategory((String) attributeData.get("Category"));
+                                }
+
+                                if (attributeData.containsKey("AdditionalProperties") && attributeData.get("AdditionalProperties") instanceof TabularData) {
+                                    final TabularData params = (TabularData) attributeData.get("AdditionalProperties");
+                                    for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
+                                        config.getParameters().put((String) keyParam.get("key"), (String) keyParam.get("value"));
+                                    }
+                                }
+                            }
+                            eventsConfigMap.put((String) eventInstance.get("name"), config);
+                        }
+                        connectorConfiguration.setEvents(eventsConfigMap);
+                    }
+
+                    if (connectorInstance.containsKey("Parameters") && connectorInstance.get("Parameters") instanceof TabularData) {
+                        final TabularData params = (TabularData) connectorInstance.get("Parameters");
+                        for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
+                            connectorConfiguration.setParameter((String) keyParam.get("key"), (String) keyParam.get("value"));
+                        }
+                    }
+                }
+
+                configuration.getManagedResources().put((String) connectorDataCurrent.get("name"), connectorConfiguration);
+            }
+        }
         return configuration;
     }
 
