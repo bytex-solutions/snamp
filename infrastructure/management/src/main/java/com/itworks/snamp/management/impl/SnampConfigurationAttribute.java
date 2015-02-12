@@ -9,7 +9,6 @@ import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.configuration.SerializableAgentConfiguration;
 import com.itworks.snamp.configuration.diff.ConfigurationDiffEngine;
 import com.itworks.snamp.management.jmx.OpenMBean;
-import javafx.scene.control.Tab;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
@@ -17,9 +16,7 @@ import org.osgi.service.cm.ConfigurationException;
 import javax.management.openmbean.*;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;

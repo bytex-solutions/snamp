@@ -45,7 +45,6 @@
     <module>third-party-libs/bundlized/snmp4j</module>
     <module>third-party-libs/bundlized/sshj</module>
     <module>infrastructure/management</module>
-    <module>infrastructure/web-console</module>
     <module>infrastructure/jaas-config</module>
     <module>features</module>
     <module>osgi-tests</module>

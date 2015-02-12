@@ -7,7 +7,7 @@ import com.itworks.snamp.testing.SnampFeature;
 import org.junit.Test;
 import org.osgi.framework.FrameworkUtil;
 
-@SnampDependencies(SnampFeature.HAWTIO)
+@SnampDependencies({SnampFeature.SNMP_ADAPTER, SnampFeature.RSHELL_CONNECTOR})
 public class HawtioTestFeature extends AbstractSnampIntegrationTest {
 
 

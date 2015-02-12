@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="features_for_snamp_framework">
-    <repository>mvn:io.hawt/hawtio-karaf/1.4.46/xml/features</repository>
-    <feature name="hawtio-feature" description="hawtio-standalone-feature" version="1.0.0">
-        <bundle>mvn:org.apache.geronimo.specs/geronimo-servlet_3.0_spec/1.0</bundle>
-        <feature>hawtio</feature>
-    </feature>
-</features>
