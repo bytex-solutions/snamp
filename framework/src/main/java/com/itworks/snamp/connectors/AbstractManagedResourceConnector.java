@@ -59,13 +59,17 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @param attributeMetadataType The type of the attribute metadata.
          */
         protected AbstractAttributeSupport(final Class<M> attributeMetadataType) {
-            attributes = new AbstractKeyedObjects<String, M>(10) {
+            attributes = createAttributes();
+            metadataType = Objects.requireNonNull(attributeMetadataType);
+        }
+
+        private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, M> createAttributes(){
+            return new AbstractKeyedObjects<String, M>(10) {
                 @Override
                 public String getKey(final MBeanAttributeInfo metadata) {
                     return metadata.getName();
                 }
             };
-            metadataType = Objects.requireNonNull(attributeMetadataType);
         }
 
         /**
@@ -544,15 +548,19 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          */
         protected AbstractNotificationSupport(final Class<M> notifMetadataType) {
             super(ANSResource.class);
-            notifications = new AbstractKeyedObjects<String, M>(10) {
-                @Override
-                public String getKey(final M item) {
-                    return item.getNotifTypes()[0];
-                }
-            };
+            notifications = createNotifications();
             listeners = new ArrayList<>(10);
             sequenceCounter = new AtomicLong(0L);
             metadataType = Objects.requireNonNull(notifMetadataType);
+        }
+
+        private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, M> createNotifications(){
+            return new AbstractKeyedObjects<String, M>(10) {
+                @Override
+                public String getKey(final MBeanNotificationInfo item) {
+                    return item.getNotifTypes()[0];
+                }
+            };
         }
 
         /**

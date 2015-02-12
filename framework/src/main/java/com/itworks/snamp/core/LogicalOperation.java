@@ -55,12 +55,7 @@ public class LogicalOperation implements AutoCloseable {
 
     private final String name;
     private LogicalOperation parent;
-    private final IllegalStateFlag operationState = new IllegalStateFlag() {
-        @Override
-        protected IllegalStateException create() {
-            return new IllegalStateException("Logical operation is finished");
-        }
-    };
+    private final IllegalStateFlag operationState = createStateFlagHolder();
     private final Stopwatch timer;
     private final long correlationID;
 
@@ -81,6 +76,15 @@ public class LogicalOperation implements AutoCloseable {
             this.correlationID = correlationID.generate();
         else this.correlationID = -1;
         operations.set(this);
+    }
+
+    private static IllegalStateFlag createStateFlagHolder(){
+        return new IllegalStateFlag() {
+            @Override
+            protected IllegalStateException create() {
+                return new IllegalStateException("Logical operation is finished");
+            }
+        };
     }
 
     /**

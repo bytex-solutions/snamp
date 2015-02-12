@@ -32,14 +32,8 @@ public class AttributeOutputValueConverterBuilder<I> implements Supplier<Attribu
         return register(token, Functions.<I>identity());
     }
 
-    /**
-     * Constructs a new attribute value converter.
-     * @return A new attribute value converter.
-     */
-    public final AttributeOutputValueConverter<I> build(){
+    private static <I> AttributeOutputValueConverter<I> build(final ImmutableMap<TypeToken<?>, Function> converters){
         return new AttributeOutputValueConverter<I>() {
-            private final ImmutableMap<TypeToken<?>, Function> converters = AttributeOutputValueConverterBuilder.this.converters.build();
-
             @SuppressWarnings("unchecked")
             @Override
             public <O> Function<? super I, ? extends O> getConverter(final TypeToken<O> attributeType) {
@@ -48,6 +42,14 @@ public class AttributeOutputValueConverterBuilder<I> implements Supplier<Attribu
                         null;
             }
         };
+    }
+
+    /**
+     * Constructs a new attribute value converter.
+     * @return A new attribute value converter.
+     */
+    public final AttributeOutputValueConverter<I> build(){
+        return build(converters.build());
     }
 
     /**

@@ -98,7 +98,8 @@ public abstract class AbstractTransactionalResourceAccessor<R, S, C> extends Abs
      *                         that can be used to restore the resource at the rollback phase.
      * @return {@literal true}, if prepare phase is completed successfully; otherwise, {@literal false}.
      */
-    public final boolean prepare(final ConsistentAction<R, C> changesetProvider, final ConsistentAction<R, S> snapshotProvider){
+    public final boolean prepare(final ConsistentAction<R, C> changesetProvider,
+                                 final ConsistentAction<R, S> snapshotProvider){
         return prepare(new Supplier<C>() {
             @Override
             public final C get() {

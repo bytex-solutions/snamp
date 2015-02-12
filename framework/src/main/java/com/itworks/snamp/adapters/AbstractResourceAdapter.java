@@ -646,14 +646,18 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      */
     protected AbstractResourceAdapter(final String instanceName) {
         this.adapterInstanceName = instanceName;
-        connectors = new AbstractKeyedObjects<String, ManagedResourceConnectorConsumer>(10) {
+        mutableState = InternalState.initialState();
+        listener = new WriteOnceRef<>();
+        connectors = createConnectors();
+    }
+
+    private static KeyedObjects<String, ManagedResourceConnectorConsumer> createConnectors(){
+        return new AbstractKeyedObjects<String, ManagedResourceConnectorConsumer>(10) {
             @Override
             public String getKey(final ManagedResourceConnectorConsumer item) {
                 return item.resourceName;
             }
         };
-        mutableState = InternalState.initialState();
-        listener = new WriteOnceRef<>();
     }
 
     /**

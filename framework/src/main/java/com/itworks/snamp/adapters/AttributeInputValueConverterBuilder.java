@@ -17,13 +17,8 @@ import java.util.Objects;
 public class AttributeInputValueConverterBuilder<O> implements Supplier<AttributeInputValueConverter<O>> {
     private final ImmutableMap.Builder<TypeToken<?>, Function> converters = ImmutableMap.builder();
 
-    /**
-     * Constructs a new attribute value converter.
-     * @return A new attribute value converter.
-     */
-    public final AttributeInputValueConverter<O> build(){
+    private static <O> AttributeInputValueConverter<O> build(final ImmutableMap<TypeToken<?>, Function> converters){
         return new AttributeInputValueConverter<O>() {
-            private final ImmutableMap<TypeToken<?>, Function> converters = AttributeInputValueConverterBuilder.this.converters.build();
 
             @SuppressWarnings("unchecked")
             @Override
@@ -33,6 +28,14 @@ public class AttributeInputValueConverterBuilder<O> implements Supplier<Attribut
                         null;
             }
         };
+    }
+
+    /**
+     * Constructs a new attribute value converter.
+     * @return A new attribute value converter.
+     */
+    public final AttributeInputValueConverter<O> build() {
+        return build(converters.build());
     }
 
     /**
