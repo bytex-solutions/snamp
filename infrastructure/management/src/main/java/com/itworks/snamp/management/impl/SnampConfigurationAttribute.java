@@ -201,6 +201,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             // parse attribute read write timeout if exists
             if (map.get(attributeName).getReadWriteTimeout() != TimeSpan.INFINITE) {
                 attributeMap.put("ReadWriteTimeout", map.get(attributeName).getReadWriteTimeout().convert(TimeUnit.MILLISECONDS).duration);
+            } else {
+                attributeMap.put("ReadWriteTimeout", Long.MAX_VALUE);
             }
 
             // parse attribute user defined parameters
@@ -238,13 +240,15 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
 
     private static TabularDataSupport transformAdditionalPropertiesToTabularData(final Map<String, String> map) throws OpenDataException {
         final TabularDataSupport tabularDataSupport =  new TabularDataSupport(SIMPLE_MAP_TYPE);
-        for (final String key : map.keySet()) {
-            tabularDataSupport.put(new CompositeDataSupport(tabularDataSupport.getTabularType().getRowType(),
-                    ImmutableMap.<String, Object>of(
-                            "key", key,
-                            "value", map.get(key))));
+        if (map != null) {
+            for (final String key : map.keySet()) {
+                tabularDataSupport.put(new CompositeDataSupport(tabularDataSupport.getTabularType().getRowType(),
+                        ImmutableMap.<String, Object>of(
+                                "key", key,
+                                "value", map.get(key))));
+            }
         }
-            return tabularDataSupport;
+        return tabularDataSupport;
     }
 
     /**
@@ -274,7 +278,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             adapterMap.put(new CompositeDataSupport(adapterMap.getTabularType().getRowType(),
                     ImmutableMap.<String, Object>of(
                             "name", adapterName,
-                            "connector", new CompositeDataSupport(ADAPTER_METADATA, currentAdapter))));
+                            "adapter", new CompositeDataSupport(ADAPTER_METADATA, currentAdapter))));
         }
 
         final TabularDataSupport connectorMap = new TabularDataSupport(CONNECTOR_MAP_TYPE);
@@ -306,7 +310,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             connectorMap.put(new CompositeDataSupport(connectorMap.getTabularType().getRowType(),
                     ImmutableMap.<String, Object>of(
                             "name", connectorName,
-                            "adapter", new CompositeDataSupport(CONNECTOR_METADATA, currentConnector))));
+                            "connector", new CompositeDataSupport(CONNECTOR_METADATA, currentConnector))));
 
         }
 
@@ -374,6 +378,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                                 }
                                 if (attributeData.containsKey("ReadWriteTimeout")) {
                                     config.setReadWriteTimeout(new TimeSpan((Long) attributeData.get("ReadWriteTimeout"), TimeUnit.MILLISECONDS));
+                                } else {
+                                    config.setReadWriteTimeout(new TimeSpan(Long.MAX_VALUE));
                                 }
 
                                 if (attributeData.containsKey("AdditionalProperties") && attributeData.get("AdditionalProperties") instanceof TabularData) {
@@ -434,6 +440,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                 new ServiceReferenceHolder<>(bundleContext,ConfigurationAdmin.class);
         try{
             final PersistentConfigurationManager manager = new PersistentConfigurationManager(adminRef);
+            manager.load();
             final AgentConfiguration configuration = manager.getCurrentConfiguration();
             if (configuration == null) throw new ConfigurationException("configuration admin",
                     "Configuration admin does not contain appropriate SNAMP configuration");
