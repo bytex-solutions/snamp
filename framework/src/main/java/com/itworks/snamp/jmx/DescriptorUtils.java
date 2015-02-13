@@ -3,6 +3,7 @@ package com.itworks.snamp.jmx;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
+import com.itworks.snamp.ArrayUtils;
 
 import javax.management.Descriptor;
 import java.lang.reflect.Array;
@@ -58,5 +59,9 @@ public final class DescriptorUtils {
         for(final String fieldName: fields)
             result.put(fieldName, descr.getFieldValue(fieldName));
         return result;
+    }
+
+    public static boolean hasField(final Descriptor descr, final String fieldName){
+        return ArrayUtils.contains(descr.getFieldNames(), fieldName);
     }
 }

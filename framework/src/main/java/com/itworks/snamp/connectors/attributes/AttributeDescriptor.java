@@ -1,7 +1,6 @@
 package com.itworks.snamp.connectors.attributes;
 
 import com.google.common.collect.Maps;
-import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata;
@@ -165,7 +164,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * @return {@literal true}, if the specified field exists in this descriptor; otherwise, {@literal false}.
      */
     public final boolean hasField(final String fieldName){
-        return ArrayUtils.contains(getFieldNames(), fieldName);
+        return DescriptorUtils.hasField(this, fieldName);
     }
 
     public final  <T> T getField(final String fieldName, final Class<T> fieldType){

@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.notifications;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 /**
  * Represents notification listener invoker which invokes listener
@@ -14,5 +14,5 @@ public interface NotificationListenerParallelInvoker extends NotificationListene
      * Gets notification listener scheduler.
      * @return The notification listener scheduler.
      */
-    ExecutorService getScheduler();
+    Executor getScheduler();
 }

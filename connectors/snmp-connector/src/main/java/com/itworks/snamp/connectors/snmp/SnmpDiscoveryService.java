@@ -38,7 +38,7 @@ final class SnmpDiscoveryService {
 
     private static void setupAttributeOptions(final Variable v, final Map<String, String> options){
         if(v instanceof OctetString)
-            options.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString)v).toString());
+            options.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) v));
     }
 
     private static Collection<AttributeConfiguration> discoverAttributes(final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {

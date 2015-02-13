@@ -2,7 +2,7 @@ package com.itworks.snamp.connectors.notifications;
 
 import javax.management.Notification;
 import javax.management.NotificationListener;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 /**
  * Represents commonly used listener invocation strategies.
@@ -70,14 +70,14 @@ public final class NotificationListenerInvokerFactory {
     }
 
     /**
-     * Creates an invoker that invokes each listener using {@link ExecutorService#execute(Runnable)} method.
+     * Creates an invoker that invokes each listener using {@link Executor#execute(Runnable)} method.
      * @param executor An executor that is used to apply each listener.
-     * @return A new instance of the listener invoker that uses {@link ExecutorService} for listener invocation.
+     * @return A new instance of the listener invoker that uses {@link Executor} for listener invocation.
      */
-    public static NotificationListenerParallelInvoker createParallelInvoker(final ExecutorService executor){
+    public static NotificationListenerParallelInvoker createParallelInvoker(final Executor executor){
         return new NotificationListenerParallelInvoker() {
             @Override
-            public ExecutorService getScheduler() {
+            public Executor getScheduler() {
                 return executor;
             }
 
@@ -94,10 +94,10 @@ public final class NotificationListenerInvokerFactory {
         };
     }
 
-    public static NotificationListenerParallelInvoker createParallelExceptionResistantInvoker(final ExecutorService executor, final ExceptionHandler handler){
+    public static NotificationListenerParallelInvoker createParallelExceptionResistantInvoker(final Executor executor, final ExceptionHandler handler){
         return new NotificationListenerParallelInvoker() {
             @Override
-            public ExecutorService getScheduler() {
+            public Executor getScheduler() {
                 return executor;
             }
 

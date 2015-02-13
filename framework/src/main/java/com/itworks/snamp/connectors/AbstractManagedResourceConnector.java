@@ -659,6 +659,20 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
             }
         }
 
+        /**
+         * Determines whether all notifications disabled.
+         * @return {@literal true}, if all notifications disabled; otherwise, {@literal false}.
+         */
+        protected final boolean hasNoNotifications(){
+            beginRead(ANSResource.NOTIFICATIONS);
+            try{
+                return notifications.isEmpty();
+            }
+            finally {
+                endRead(ANSResource.NOTIFICATIONS);
+            }
+        }
+
         protected abstract boolean disableNotifications(final M metadata);
 
         /**
@@ -675,7 +689,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
             beginWrite(ANSResource.NOTIFICATIONS);
             try{
                 return notifications.containsKey(listId) &&
-                        disableNotifications(notifications.get(listId));
+                        disableNotifications(notifications.remove(listId));
             }
             finally {
                 endWrite(ANSResource.NOTIFICATIONS);
@@ -758,6 +772,16 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
             beginRead(ANSResource.NOTIFICATIONS);
             try{
                 return ArrayUtils.toArray(notifications.values(), metadataType);
+            }
+            finally {
+                endRead(ANSResource.NOTIFICATIONS);
+            }
+        }
+
+        protected final M getNotificationInfo(final String category){
+            beginRead(ANSResource.NOTIFICATIONS);
+            try{
+                return notifications.get(category);
             }
             finally {
                 endRead(ANSResource.NOTIFICATIONS);

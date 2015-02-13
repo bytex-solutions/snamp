@@ -1,13 +1,15 @@
 package com.itworks.snamp.connectors.snmp;
 
-import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.mapping.TypeLiterals;
 import org.snmp4j.smi.IpAddress;
 
-import java.util.Map;
+import javax.management.Descriptor;
+import javax.management.InvalidAttributeValueException;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.SimpleType;
 
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
+import static com.itworks.snamp.jmx.DescriptorUtils.getField;
+import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
 
 /**
  * Represents {@link org.snmp4j.smi.IpAddress} conversion format.
@@ -15,39 +17,52 @@ import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvid
  * @version 1.0
  * @since 1.0
  */
-enum IpAddressConversionFormat {
-    TEXT,
-    BYTE_ARRAY;
+enum IpAddressConversionFormat implements SnmpObjectConverter<IpAddress> {
+    TEXT(SimpleType.STRING) {
 
-    static final TypeToken<IpAddress> IP_ADDRESS = TypeToken.of(IpAddress.class);
+        @Override
+        public Object convert(final IpAddress value) {
+            return value.toString();
+        }
+    },
+    BYTE_ARRAY(SnmpConnectorHelpers.arrayType(SimpleType.BYTE, true)) {
+        @Override
+        public Object convert(final IpAddress value) {
+            return value.toByteArray();
+        }
+    };
 
-    public static IpAddressConversionFormat getFormat(final Map<String, String> options){
-        if(options.containsKey(SNMP_CONVERSION_FORMAT_PARAM))
-            return getFormat(options.get(SNMP_CONVERSION_FORMAT_PARAM));
+    private OpenType<?> openType;
+
+    private IpAddressConversionFormat(final OpenType<?> type){
+        this.openType = type;
+    }
+
+    @Override
+    public IpAddress convert(final Object value) throws InvalidAttributeValueException {
+        if(value instanceof String)
+            return new IpAddress((String)value);
+        else if(value instanceof byte[])
+            return new IpAddress((byte[])value);
+        else throw new InvalidAttributeValueException(String.format("Unable convert %s to IP Address", value));
+    }
+
+    @Override
+    public final OpenType<?> getOpenType() {
+        return openType;
+    }
+
+    static IpAddressConversionFormat getFormat(final Descriptor options){
+        if(hasField(options, SNMP_CONVERSION_FORMAT_PARAM))
+            return getFormat(getField(options, SNMP_CONVERSION_FORMAT_PARAM, String.class));
         else return BYTE_ARRAY;
     }
 
-    public static IpAddressConversionFormat getFormat(final String formatName){
+    static IpAddressConversionFormat getFormat(final String formatName){
         switch (formatName){
             case "text": return TEXT;
             default: return BYTE_ARRAY;
         }
     }
 
-    public SMITypeProjection<IpAddress, ?> createTypeProjection(){
-        switch (this){
-            case TEXT: return new SMITypeProjection<IpAddress, String>(IP_ADDRESS, TypeLiterals.STRING) {
-                @Override
-                protected String convertFrom(final IpAddress value) throws IllegalArgumentException {
-                    return value.toString();
-                }
-            };
-            default: return new SMITypeProjection<IpAddress, Object[]>(IP_ADDRESS, TypeLiterals.OBJECT_ARRAY) {
-                @Override
-                protected Byte[] convertFrom(final IpAddress value) throws IllegalArgumentException {
-                    return ArrayUtils.boxArray(value.toByteArray());
-                }
-            };
-        }
-    }
 }

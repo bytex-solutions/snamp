@@ -9,8 +9,8 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-public class OpenTypeAttributeInfo<T> extends CustomAttributeInfo<T> implements OpenMBeanAttributeInfo {
-    private final OpenType<T> openType;
+public class OpenTypeAttributeInfo extends CustomAttributeInfo implements OpenMBeanAttributeInfo {
+    private final OpenType<?> openType;
 
     /**
      * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
@@ -21,7 +21,7 @@ public class OpenTypeAttributeInfo<T> extends CustomAttributeInfo<T> implements 
      * @param specifier   Attribute access specifier. Cannot be {@literal null}.
      */
     public OpenTypeAttributeInfo(final String name,
-                                 final OpenType<T> type,
+                                 final OpenType<?> type,
                                  final String description,
                                  final AttributeSpecifier specifier) {
         super(name, type.getClassName(), description, specifier);
@@ -38,7 +38,7 @@ public class OpenTypeAttributeInfo<T> extends CustomAttributeInfo<T> implements 
      * @param descriptor  The descriptor for the attribute.  This may be null
      */
     public OpenTypeAttributeInfo(final String name,
-                                 final OpenType<T> type,
+                                 final OpenType<?> type,
                                  final String description,
                                  final AttributeSpecifier specifier,
                                  final AttributeDescriptor descriptor) {

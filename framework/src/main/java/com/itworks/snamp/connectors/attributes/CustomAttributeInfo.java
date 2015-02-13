@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.attributes;
 
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.WellKnownType;
 
 import javax.management.MBeanAttributeInfo;
@@ -11,7 +12,7 @@ import javax.management.openmbean.OpenType;
  * @version 1.0
  * @since 1.0
  */
-public class CustomAttributeInfo<T> extends MBeanAttributeInfo {
+public class CustomAttributeInfo extends MBeanAttributeInfo {
     /**
      * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
      *
@@ -21,7 +22,7 @@ public class CustomAttributeInfo<T> extends MBeanAttributeInfo {
      * @param specifier Attribute access specifier. Cannot be {@literal null}.
      */
     public CustomAttributeInfo(final String name,
-                               final Class<T> type,
+                               final Class<?> type,
                                final String description,
                                final AttributeSpecifier specifier) {
         this(name, type.getName(), description, specifier);
@@ -38,7 +39,7 @@ public class CustomAttributeInfo<T> extends MBeanAttributeInfo {
      *                    which is equivalent to an empty descriptor.
      */
     public CustomAttributeInfo(final String name,
-                               final Class<T> type,
+                               final Class<?> type,
                                final String description,
                                final AttributeSpecifier specifier,
                                final AttributeDescriptor descriptor) {
@@ -69,5 +70,17 @@ public class CustomAttributeInfo<T> extends MBeanAttributeInfo {
     public static WellKnownType getType(final MBeanAttributeInfo attribute) {
         final OpenType<?> ot = AttributeDescriptor.getOpenType(attribute);
         return ot != null ? WellKnownType.getType(ot) : WellKnownType.getType(attribute.getType());
+    }
+
+    /**
+     * Returns the descriptor for the feature.  Changing the returned value
+     * will have no affect on the original descriptor.
+     *
+     * @return a descriptor that is either immutable or a copy of the original.
+     * @since 1.6
+     */
+    @Override
+    public final AttributeDescriptor getDescriptor() {
+        return Utils.safeCast(super.getDescriptor(), AttributeDescriptor.class);
     }
 }

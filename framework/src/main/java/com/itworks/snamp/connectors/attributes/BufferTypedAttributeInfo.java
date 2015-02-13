@@ -8,7 +8,7 @@ import java.nio.Buffer;
  * @version 1.0
  * @since 1.0
  */
-public class BufferTypedAttributeInfo<B extends Buffer> extends CustomAttributeInfo<B> {
+public class BufferTypedAttributeInfo<B extends Buffer> extends CustomAttributeInfo {
     /**
      * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
      *

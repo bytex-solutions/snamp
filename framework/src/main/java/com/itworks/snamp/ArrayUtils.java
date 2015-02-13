@@ -1,5 +1,6 @@
 package com.itworks.snamp;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ObjectArrays;
 
 import java.util.Arrays;
@@ -136,5 +137,15 @@ public final class ArrayUtils {
         final T[] result = ObjectArrays.newArray(componentType, length);
         Arrays.fill(result, value);
         return result;
+    }
+
+    public static <T> T find(final T[] array, final Predicate<T> filter, final T defval) {
+        for(final T item: array)
+            if(filter.apply(item)) return item;
+        return defval;
+    }
+
+    public static <T> T find(final T[] array, final Predicate<T> filter) {
+        return find(array, filter, null);
     }
 }

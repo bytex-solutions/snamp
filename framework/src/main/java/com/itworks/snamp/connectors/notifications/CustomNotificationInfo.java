@@ -1,5 +1,7 @@
 package com.itworks.snamp.connectors.notifications;
 
+import com.itworks.snamp.internal.Utils;
+
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 
@@ -32,5 +34,17 @@ public class CustomNotificationInfo extends MBeanNotificationInfo {
                                   final String description,
                                   final NotificationDescriptor descriptor) {
         super(new String[]{notifType}, Notification.class.getName(), description, descriptor);
+    }
+
+    /**
+     * Returns the descriptor for the feature.  Changing the returned value
+     * will have no affect on the original descriptor.
+     *
+     * @return a descriptor that is either immutable or a copy of the original.
+     * @since 1.6
+     */
+    @Override
+    public final NotificationDescriptor getDescriptor() {
+        return Utils.safeCast(super.getDescriptor(), NotificationDescriptor.class);
     }
 }

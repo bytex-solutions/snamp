@@ -6,6 +6,9 @@ import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import org.snmp4j.smi.OID;
 
+import javax.management.openmbean.ArrayType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.SimpleType;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,5 +63,14 @@ final class SnmpConnectorHelpers {
 
     static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Object arg2, final Throwable e){
         log(lvl, message, new Object[]{arg0, arg1, arg2}, e);
+    }
+
+    static <T> ArrayType<T[]> arrayType(final SimpleType<T> type,
+                                                final boolean primitive) throws ExceptionInInitializerError{
+        try {
+            return new ArrayType<>(type, primitive);
+        } catch (final OpenDataException e) {
+            throw new ExceptionInInitializerError(e);
+        }
     }
 }

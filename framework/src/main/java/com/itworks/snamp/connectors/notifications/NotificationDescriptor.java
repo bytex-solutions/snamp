@@ -2,7 +2,6 @@ package com.itworks.snamp.connectors.notifications;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata;
 import com.itworks.snamp.jmx.DescriptorUtils;
@@ -177,7 +176,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
      * @return {@literal true}, if the specified field exists in this descriptor; otherwise, {@literal false}.
      */
     public final boolean hasField(final String fieldName){
-        return ArrayUtils.contains(getFieldNames(), fieldName);
+        return DescriptorUtils.hasField(this, fieldName);
     }
 
     public final  <T> T getField(final String fieldName, final Class<T> fieldType){

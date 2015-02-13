@@ -18,6 +18,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,11 +60,11 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
          */
         private final ObjectName eventOwner;
 
-        private JmxNotificationInfo(final String category,
+        private JmxNotificationInfo(final String listID,
                                        final MBeanNotificationInfo nativeNotif,
                                        final ObjectName eventOwner,
                                        final NotificationDescriptor descriptor) {
-            super(category,
+            super(listID,
                     nativeNotif.getDescription(),
                     descriptor.setFields(nativeNotif.getDescriptor()));
             this.eventOwner = eventOwner;
@@ -280,7 +282,11 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
             super(JmxNotificationInfo.class);
             this.connectionManager = connectionManager;
             this.connectionManager.addReconnectionHandler(this);
-            listenerInvoker = NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(Executors.newSingleThreadExecutor(), new NotificationListenerInvokerFactory.ExceptionHandler() {
+            listenerInvoker = createListenerInvoker(Executors.newSingleThreadExecutor());
+        }
+
+        private static NotificationListenerInvoker createListenerInvoker(final Executor executor){
+            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
                 @Override
                 public final void handle(final Throwable e, final NotificationListener source) {
                     JmxConnectorHelpers.log(Level.SEVERE, "Unable to process JMX notification.", e);
@@ -361,7 +367,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
 
 
         @Override
-        protected JmxNotificationInfo enableNotifications(final String category,
+        protected JmxNotificationInfo enableNotifications(final String listID,
                                                           final NotificationDescriptor metadata) throws Exception {
             final JmxNotificationInfo eventData = connectionManager.handleConnection(new MBeanServerConnectionHandler<JmxNotificationInfo>() {
                 @Override
@@ -370,8 +376,8 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                         final ObjectName on = new ObjectName(metadata.getField(OBJECT_NAME_PROPERTY, String.class));
                         for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(on).getNotifications())
                             for (final String notifType : notificationInfo.getNotifTypes())
-                                if (Objects.equals(notifType, category))
-                                    return new JmxNotificationInfo(notifType,
+                                if (Objects.equals(notifType, metadata.getNotificationCategory()))
+                                    return new JmxNotificationInfo(listID,
                                             notificationInfo,
                                             on,
                                             metadata);
@@ -386,7 +392,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
                     enableListening(eventData.eventOwner);
                 return eventData;
             }
-            else throw new IllegalArgumentException(String.format("%s notification is not supported", category));
+            else throw new IllegalArgumentException(String.format("%s notification is not supported", listID));
         }
 
         @Override

@@ -606,7 +606,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         @Override
-        protected CustomNotificationInfo enableNotifications(final String notifType,
+        protected CustomNotificationInfo enableNotifications(final String category,
                                                             final NotificationDescriptor metadata) throws IllegalArgumentException {
             //find the suitable notification type
             final ManagementNotificationType<?> type = Iterables.find(notifTypes, new Predicate<ManagementNotificationType<?>>() {
@@ -622,7 +622,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     if(description == null || description.isEmpty())
                         description = type.getCategory();
                 }
-                return new CustomNotificationInfo(notifType, description, metadata);
+                return new CustomNotificationInfo(category, description, metadata);
             }
             else throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getNotificationCategory()));
         }

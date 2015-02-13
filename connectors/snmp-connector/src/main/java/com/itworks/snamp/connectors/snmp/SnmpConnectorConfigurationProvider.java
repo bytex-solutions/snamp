@@ -5,9 +5,9 @@ import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfigu
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ThreadPoolConfigurationDescriptor;
+import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
 import java.util.Locale;
-import java.util.Map;
 import java.util.ResourceBundle;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -107,9 +107,9 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
                 new EventConfigurationDescriptor());
     }
 
-    static TimeSpan getResponseTimeout(final Map<String, String> attributeParams){
-        return attributeParams.containsKey(RESPONSE_TIMEOUT_PARAM) ?
-                new TimeSpan(Integer.parseInt(attributeParams.get(RESPONSE_TIMEOUT_PARAM))):
+    static TimeSpan getResponseTimeout(final AttributeDescriptor attributeParams){
+        return attributeParams.hasField(RESPONSE_TIMEOUT_PARAM) ?
+                new TimeSpan(Integer.parseInt(attributeParams.getField(RESPONSE_TIMEOUT_PARAM, String.class))):
                 DEFAULT_RESPONSE_TIMEOUT;
     }
 }
