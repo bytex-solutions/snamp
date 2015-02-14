@@ -82,7 +82,9 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, 
      */
     public static ST createCommandTemplate(final String template) {
         final ST result = new ST(template, TEMPLATE_DELIMITER_START_CHAR, TEMPLATE_DELIMITER_STOP_CHAR);
-        StringTemplateExtender.register(result.groupThatCreatedThisInstance);
+        CommonExtender.register(result.groupThatCreatedThisInstance);
+        CompositeDataExtender.register(result.groupThatCreatedThisInstance);
+        TabularDataExtender.register(result.groupThatCreatedThisInstance);
         return result;
     }
 

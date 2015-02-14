@@ -1,11 +1,10 @@
 package com.itworks.jcommands.impl;
 
+import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ObjectArrays;
-import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.ResettableIterator;
+import com.itworks.snamp.*;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.annotations.Internal;
 
 import javax.script.*;
@@ -14,6 +13,7 @@ import javax.xml.bind.annotation.*;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -285,28 +285,31 @@ public class XmlParserDefinition {
         }
     }
 
-    private static final class ArrayBuilder extends ArrayList<Object> {
-        private TypeToken<?> elementType;
+    private static final class ArrayBuilder extends ArrayList<Object> implements Supplier<Object> {
+        private XmlParsingResultType elementType;
 
         public ArrayBuilder() {
             super(10);
-            elementType = XmlParsingResultType.STRING.underlyingType;
-        }
-
-        public void setElementType(final TypeToken<?> value) {
-            this.elementType = value;
+            elementType = XmlParsingResultType.STRING;
         }
 
         public void setElementType(final XmlParsingResultType value) {
-            setElementType(value.underlyingType);
+            this.elementType = value;
         }
 
-        @SuppressWarnings("NullableProblems")
+        /**
+         * Retrieves an instance of the appropriate type. The returned object may or
+         * may not be a new instance, depending on the implementation.
+         *
+         * @return an instance of the appropriate type
+         */
         @Override
-        public Object[] toArray() {
-            final Object[] result = ObjectArrays.newArray(elementType.getRawType(), size());
-            for (int i = 0; i < size(); i++)
-                result[i] = get(i);
+        public Object get() {
+            final XmlParsingResultType elementType = this.elementType;
+            if(elementType == null) return null;
+            final Object result = elementType.newArray(size());
+            for(int i = 0; i < size(); i++)
+                Array.set(result, i, get(i));
             return result;
         }
     }
@@ -839,12 +842,12 @@ public class XmlParserDefinition {
                 }, new Date(0L));
     }
 
-    private static Byte[] parseBLOB(final List parsingTemplate,
+    private static byte[] parseBLOB(final List parsingTemplate,
                                     final BLOBFormat format,
                                     final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                format, new Byte[0]);
+                format, new byte[0]);
     }
 
     private static void runPlaceholder(final String fragment, final ScriptEngine engine) throws ScriptException {
@@ -852,7 +855,7 @@ public class XmlParserDefinition {
             engine.eval(fragment);
     }
 
-    private Object[] parseArray(final ResettableIterator parsingTemplateIter,
+    private Object parseArray(final ResettableIterator parsingTemplateIter,
                                      final ScriptEngine engine) throws ScriptException {
         final ArrayBuilder builder = new ArrayBuilder();
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
@@ -874,7 +877,7 @@ public class XmlParserDefinition {
             } else if (templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule) templateFragment).getRule(), engine);
         }
-        return builder.toArray();
+        return builder.get();
     }
 
     private Map<String, ?> parseDictionary(final ResettableIterator parsingTemplateIter,
@@ -892,6 +895,7 @@ public class XmlParserDefinition {
             else if(templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule)templateFragment).getRule(), engine);
         }
+        assert com.itworks.snamp.TypeTokens.isInstance(result, TypeTokens.DICTIONARY_TYPE_TOKEN);
         return result;
     }
 
@@ -917,6 +921,7 @@ public class XmlParserDefinition {
             else if(templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule)templateFragment).getRule(), engine);
         }
+        assert com.itworks.snamp.TypeTokens.isInstance(table, TypeTokens.TABLE_TYPE_TOKEN);
         return table;
     }
 
@@ -973,14 +978,14 @@ public class XmlParserDefinition {
         }
     }
 
-    public final void exportTableOrDictionaryType(final ImmutableMap.Builder<String, TypeToken<?>> output) {
+    public final <E extends Exception> void exportTableOrDictionaryType(final RecordReader<String, XmlParsingResultType, E> reader) throws E {
         for (final Object templateFragment : getParsingTemplate())
             if (templateFragment instanceof TableColumnParsingRule) {
                 final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;
-                output.put(rule.getColumnName(), rule.getColumnType().underlyingType);
+                reader.read(rule.getColumnName(), rule.getColumnType());
             } else if (templateFragment instanceof DictionaryEntryParsingRule) {
                 final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule) templateFragment;
-                output.put(rule.getKeyName(), rule.getValueType().underlyingType);
+                reader.read(rule.getKeyName(), rule.getValueType());
             }
     }
 
