@@ -19,8 +19,6 @@ final class JmxAdapterConfigurationProvider extends ConfigurationEntityDescripti
 
     static final String USE_PLATFORM_MBEAN_PARAM = "usePlatformMBean";
 
-    static final String DEBUG_USE_PURE_SERIALIZATION_PARAM = "dbgUsePureSerialization";
-
     static final String SEVERITY_PARAM = "severity";
 
     private static final class EventConfigSchema extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{

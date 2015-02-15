@@ -1,8 +1,10 @@
 package com.itworks.snamp;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
@@ -147,5 +149,12 @@ public final class ArrayUtils {
 
     public static <T> T find(final T[] array, final Predicate<T> filter) {
         return find(array, filter, null);
+    }
+
+    public static <T> T[] filter(final T[] array, final Predicate<T> filter, final Class<T> elementType){
+        final ArrayList<T> result = Lists.newArrayListWithExpectedSize(array.length);
+        for(final T item: array)
+            if(filter.apply(item)) result.add(item);
+        return toArray(result, elementType);
     }
 }

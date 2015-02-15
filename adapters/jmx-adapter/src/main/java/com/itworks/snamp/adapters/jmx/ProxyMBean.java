@@ -1,17 +1,27 @@
 package com.itworks.snamp.adapters.jmx;
 
-import com.google.common.eventbus.Subscribe;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
 import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
 import com.itworks.snamp.core.LogicalOperation;
+import com.itworks.snamp.internal.AbstractKeyedObjects;
+import com.itworks.snamp.internal.KeyedObjects;
+import com.itworks.snamp.jmx.DescriptorUtils;
+import com.itworks.snamp.jmx.NotificationFilterBuilder;
 import com.itworks.snamp.management.jmx.OpenMBeanProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import javax.management.*;
-import javax.management.openmbean.*;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
+import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
+import javax.management.openmbean.OpenMBeanConstructorInfo;
+import javax.management.openmbean.OpenMBeanInfoSupport;
+import javax.management.openmbean.OpenMBeanOperationInfo;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.logging.Level;
 
 /**
@@ -21,22 +31,44 @@ import java.util.logging.Level;
  * @version 1.0
  * @since 1.0
  */
-final class ProxyMBean extends NotificationBroadcasterSupport implements DynamicMBean, JmxNotificationHandler {
-    private final Map<String, JmxAttributeMapping> attributes;
-    private final Map<String, JmxNotificationMapping> notifications;
+final class ProxyMBean extends NotificationBroadcasterSupport implements DynamicMBean {
+    /**
+     * The name of the field in descriptor which contains the name of the
+     * associated resource.
+     */
+    static final String RESOURCE_NAME_FIELD = "resourceName";
+
+    private final KeyedObjects<String, JmxAttributeMapping> attributes;
+    private final NotificationBroadcaster notifications;
     private final String resourceName;
-    private final AtomicLong sequenceCounter;
     private ServiceRegistration<DynamicMBean> registration;
+    private final NotificationFilter filterByResource;
 
     ProxyMBean(final String resourceName,
-                      final Map<String, JmxAttributeMapping> attributes,
-                      final Map<String, JmxNotificationMapping> notifications){
-        this.attributes = Collections.unmodifiableMap(attributes);
-        this.notifications = Collections.unmodifiableMap(notifications);
-        this.resourceName = resourceName;
-        this.sequenceCounter = new AtomicLong(0L);
+                      final Collection<JmxAttributeMapping> attributes,
+                      final NotificationBroadcaster notifications){
+        this.attributes = new AbstractKeyedObjects<String, JmxAttributeMapping>(attributes.size()) {
+            @Override
+            public String getKey(final JmxAttributeMapping item) {
+                return item.getAttributeInfo().getName();
+            }
+        };
+        //filter out attributes
+        for(final JmxAttributeMapping mapping: attributes)
+            if(Objects.equals(resourceName, DescriptorUtils.getField(mapping.getAttributeInfo().getDescriptor(), RESOURCE_NAME_FIELD, String.class)))
+                this.attributes.put(mapping);
+        this.notifications = notifications;
         registration = null;
+        filterByResource = createFilterByResource(this.resourceName = resourceName);
+    }
 
+    private static NotificationFilter createFilterByResource(final String resourceName){
+        return new NotificationFilter() {
+            @Override
+            public boolean isNotificationEnabled(final Notification notification) {
+                return notification.getType().contains(resourceName);
+            }
+        };
     }
 
     final void registerAsService(final BundleContext context, final ObjectName beanName){
@@ -45,13 +77,6 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
 
     final void unregister(){
         if(registration != null) registration.unregister();
-    }
-
-    @Subscribe
-    public void processNotification(final JmxNotificationSurrogate notification) {
-
-        if (Objects.equals(notification.getSource(), resourceName))
-            super.sendNotification(notification.toWellKnownNotification(this, sequenceCounter.getAndIncrement()));
     }
 
 
@@ -65,13 +90,11 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
      * @see #setAttribute
      */
     @Override
-    public Object getAttribute(final String attributeName) throws AttributeNotFoundException, ReflectionException {
+    public Object getAttribute(final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
         if (attributes.containsKey(attributeName)) {
             final JmxAttributeMapping attribute = attributes.get(attributeName);
             try (final LogicalOperation ignored = new ReadAttributeLogicalOperation(attribute.getOriginalName(), attributeName)) {
                 return attribute.getValue();
-            } catch (final Exception e) {
-                throw new ReflectionException(e);
             }
         } else throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist", attributeName));
     }
@@ -86,13 +109,11 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
      * @see #getAttribute
      */
     @Override
-    public void setAttribute(final Attribute attributeHolder) throws AttributeNotFoundException, ReflectionException {
+    public void setAttribute(final Attribute attributeHolder) throws AttributeNotFoundException, ReflectionException, InvalidAttributeValueException, MBeanException {
         if (attributes.containsKey(attributeHolder.getName())) {
             final JmxAttributeMapping attribute = attributes.get(attributeHolder.getName());
             try (final LogicalOperation ignored = new WriteAttributeLogicalOperation(attribute.getOriginalName(), attributeHolder.getName())) {
                 attribute.setValue(attributeHolder.getValue());
-            } catch (final Exception e) {
-                throw new ReflectionException(e);
             }
         } else
             throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist", attributeHolder.getName()));
@@ -161,23 +182,23 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
         throw new MBeanException(new UnsupportedOperationException("Operation invocation is not supported."));
     }
 
-    private OpenMBeanAttributeInfoSupport[] getAttributes() {
-        final Collection<OpenMBeanAttributeInfoSupport> result = new ArrayList<>(attributes.size());
-        for(final String attributeName: attributes.keySet())
-            try {
-                result.add(attributes.get(attributeName).createFeature(attributeName));
+    public OpenMBeanAttributeInfoSupport[] getAttributeInfo() {
+        return ArrayUtils.toArray(Collections2.transform(attributes.values(), new Function<JmxAttributeMapping, OpenMBeanAttributeInfoSupport>() {
+            @Override
+            public OpenMBeanAttributeInfoSupport apply(final JmxAttributeMapping attribute) {
+                return attribute.getAttributeInfo();
             }
-            catch (final OpenDataException e) {
-                JmxAdapterHelpers.log(Level.WARNING, "Unable to expose attribute %s", attributeName, e);
-            }
-        return result.toArray(new OpenMBeanAttributeInfoSupport[result.size()]);
+        }), OpenMBeanAttributeInfoSupport.class);
     }
 
-    private MBeanNotificationInfo[] getNotifications(){
-        final Collection<MBeanNotificationInfo> result = new ArrayList<>(notifications.size());
-        for(final String notificationName: notifications.keySet())
-            result.add(notifications.get(notificationName).createFeature(notificationName));
-        return result.toArray(new MBeanNotificationInfo[result.size()]);
+    @Override
+    public MBeanNotificationInfo[] getNotificationInfo() {
+        return ArrayUtils.filter(notifications.getNotificationInfo(), new Predicate<MBeanNotificationInfo>() {
+            @Override
+            public boolean apply(final MBeanNotificationInfo info) {
+                return Objects.equals(resourceName, DescriptorUtils.getField(info.getDescriptor(), ProxyMBean.RESOURCE_NAME_FIELD, String.class));
+            }
+        }, MBeanNotificationInfo.class);
     }
 
     /**
@@ -190,9 +211,31 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
     public MBeanInfo getMBeanInfo() {
         return new OpenMBeanInfoSupport(getClass().getName(),
                 String.format("Represents %s resource as MBean", resourceName),
-                getAttributes(),
+                getAttributeInfo(),
                 new OpenMBeanConstructorInfo[0],
                 new OpenMBeanOperationInfo[0],
-                getNotifications());
+                getNotificationInfo());
+    }
+
+    /**
+     * Adds a listener.
+     *
+     * @param listener The listener to receive notifications.
+     * @param filter   The filter object. If filter is null, no
+     *                 filtering will be performed before handling notifications.
+     * @param handback An opaque object to be sent back to the
+     *                 listener when a notification is emitted. This object cannot be
+     *                 used by the Notification broadcaster object. It should be
+     *                 resent unchanged with the notification to the listener.
+     * @throws IllegalArgumentException thrown if the listener is null.
+     * @see #removeNotificationListener
+     */
+    @Override
+    public void addNotificationListener(final NotificationListener listener,
+                                        final NotificationFilter filter,
+                                        final Object handback) {
+        notifications.addNotificationListener(listener,
+                new NotificationFilterBuilder(filter).and(filterByResource).build(),
+                handback);
     }
 }

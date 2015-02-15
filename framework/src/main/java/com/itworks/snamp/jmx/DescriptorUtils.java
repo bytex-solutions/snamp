@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.itworks.snamp.ArrayUtils;
 
 import javax.management.Descriptor;
+import javax.management.ImmutableDescriptor;
 import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.Map;
@@ -63,5 +64,9 @@ public final class DescriptorUtils {
 
     public static boolean hasField(final Descriptor descr, final String fieldName){
         return ArrayUtils.contains(descr.getFieldNames(), fieldName);
+    }
+
+    public static ImmutableDescriptor copyOf(final Descriptor descr){
+        return new ImmutableDescriptor(toMap(descr));
     }
 }
