@@ -460,7 +460,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                 new ServiceReferenceHolder<>(bundleContext,ConfigurationAdmin.class);
         try{
             final PersistentConfigurationManager manager = new PersistentConfigurationManager(adminRef);
-            ConfigurationDiffEngine.merge(manager.getCurrentConfiguration(), JMXtoSnampConfiguration(data));
+            manager.load();
+            ConfigurationDiffEngine.merge(JMXtoSnampConfiguration(data), manager.getCurrentConfiguration());
             manager.save();
         }
         finally {

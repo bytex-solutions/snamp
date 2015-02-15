@@ -2,6 +2,7 @@ package com.itworks.snamp.testing.management;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
@@ -18,18 +19,19 @@ import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
+import org.junit.ComparisonFailure;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.framework.*;
 import org.osgi.service.log.LogService;
 
 import javax.management.*;
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.TabularData;
+import javax.management.openmbean.*;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
@@ -109,11 +111,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         }
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void licenseTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
@@ -126,7 +123,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Test
-    public void configurationTest() throws IOException, JMException, InterruptedException, TimeoutException {
+    public void configurationGetTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
@@ -329,6 +326,77 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute110.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
             assertEquals(((TabularData) attribute110.get("AdditionalProperties")).get(new Object[]{"displayFormat"}).get("value"), "rfc1903");
             assertEquals(((TabularData) attribute110.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.11.0");
+        }
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
+    }
+
+
+    @Test
+    public void configurationSetTest() throws Exception {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+
+            Object configurationContent = connection.getAttribute(commonsObj, "configuration");
+            assertNotNull(configurationContent);
+            assertTrue(configurationContent instanceof CompositeData);
+
+            // test to reset default test case settings
+            connection.setAttribute(commonsObj, new Attribute("configuration", configurationContent));
+            configurationGetTest();
+
+            // change adapter's parameter value
+            final CompositeData snmpAdapter = ((TabularData) ((CompositeData) configurationContent).get("ResourceAdapters")).get(new Object[]{"test-snmp"});
+            final TabularData paramData = ((TabularData)((CompositeData) snmpAdapter.get("adapter")).get("Parameters"));
+            paramData.remove(new Object[]{"socketTimeout"});
+            paramData.put(new CompositeDataSupport(paramData.getTabularType().getRowType(), ImmutableMap.of("key", "socketTimeout", "value", "4000")));
+            connection.setAttribute(commonsObj, new Attribute("configuration", configurationContent));
+
+            // we must get junit comparison failure
+            try {
+                configurationGetTest();
+            } catch (final ComparisonFailure ex) {
+                assertEquals(ex.getActual(), "5000");
+                assertEquals(ex.getExpected(), "4000");
+            }
+
+            // turn configuration back
+            paramData.remove(new Object[]{"socketTimeout"});
+            paramData.put(new CompositeDataSupport(paramData.getTabularType().getRowType(), ImmutableMap.of("key", "socketTimeout", "value", "5000")));
+            connection.setAttribute(commonsObj, new Attribute("configuration", configurationContent));
+
+            // check if current configuration is ok
+            configurationGetTest();
+
+            // change connector's param
+            final CompositeData jmxConnector = ((TabularData) ((CompositeData) configurationContent).get("ManagedResources")).get(new Object[]{"test-target"});
+            final TabularData attributesData = ((TabularData)((CompositeData) jmxConnector.get("connector")).get("Attributes"));
+            final TabularData connectorAttributeParams = ((TabularData)((CompositeData)(attributesData.get(new Object[]{"2.0"}).get("attribute"))).get("AdditionalProperties"));
+            connectorAttributeParams.remove(new Object[]{"oid"});
+            connectorAttributeParams.put(new CompositeDataSupport(connectorAttributeParams.getTabularType().getRowType(),
+                    ImmutableMap.of("key", "oid", "value", "1.1.2.1")));
+            connection.setAttribute(commonsObj, new Attribute("configuration", configurationContent));
+
+            // we must get junit comparison failure
+            try {
+                configurationGetTest();
+            } catch (final ComparisonFailure ex) {
+                assertEquals(ex.getActual(), "1.1.2.0");
+                assertEquals(ex.getExpected(), "1.1.2.1");
+            }
+
+            // turn the configuration back
+            connectorAttributeParams.remove(new Object[]{"oid"});
+            connectorAttributeParams.put(new CompositeDataSupport(connectorAttributeParams.getTabularType().getRowType(),
+                    ImmutableMap.of("key", "oid", "value", "1.1.2.0")));
+            connection.setAttribute(commonsObj, new Attribute("configuration", configurationContent));
+
+            // check if current configuration is ok
+            configurationGetTest();
         }
     }
 
