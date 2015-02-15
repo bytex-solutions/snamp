@@ -131,6 +131,204 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
             Object configurationContent = connection.getAttribute(commonsObj, "configuration");
+            assertNotNull(configurationContent);
+            assertTrue(configurationContent instanceof CompositeData);
+            final CompositeData configurationData = (CompositeData) configurationContent;
+
+            // snmp adapter check
+            assertTrue(configurationData.containsKey("ResourceAdapters"));
+            assertTrue(configurationData.get("ResourceAdapters") instanceof TabularData);
+
+            final TabularData resourceAdapters = (TabularData) configurationData.get("ResourceAdapters");
+            assertTrue(resourceAdapters.values().size() == 1);
+
+            assertTrue(resourceAdapters.containsKey(new Object[]{"test-snmp"}));
+            final CompositeData currentAdapter = resourceAdapters.get(new Object[]{"test-snmp"});
+            assertTrue(currentAdapter.get("adapter") instanceof  CompositeData);
+            final CompositeData adapterComposite = (CompositeData) currentAdapter.get("adapter");
+            assertEquals(adapterComposite.get("Name"), ADAPTER_NAME);
+            assertTrue(adapterComposite.containsKey("Parameters"));
+            assertTrue(adapterComposite.get("Parameters") instanceof TabularData);
+
+            final TabularData adapterAdditionalParameters = (TabularData) adapterComposite.get("Parameters");
+
+            assertTrue(adapterAdditionalParameters.containsKey(new Object[]{"port"}));
+            assertTrue(adapterAdditionalParameters.containsKey(new Object[]{"host"}));
+            assertTrue(adapterAdditionalParameters.containsKey(new Object[]{"socketTimeout"}));
+
+            assertEquals(adapterAdditionalParameters.get(new Object[]{"port"}).get("value"), SNMP_PORT);
+            assertEquals(adapterAdditionalParameters.get(new Object[]{"host"}).get("value"), SNMP_HOST);
+            assertEquals(adapterAdditionalParameters.get(new Object[]{"socketTimeout"}).get("value"), "5000");
+
+            // jmx connector check
+            assertTrue(configurationData.containsKey("ManagedResources"));
+
+            final TabularData managedResources = (TabularData) configurationData.get("ManagedResources");
+            assertTrue(managedResources.values().size() == 1);
+
+            assertTrue(managedResources.containsKey(new Object[]{"test-target"}));
+
+            final CompositeData jmxConnector = managedResources.get(new Object[]{"test-target"});
+
+            assertTrue(jmxConnector.get("connector") instanceof  CompositeData);
+            final CompositeData connectorComposite = (CompositeData) jmxConnector.get("connector");
+            assertEquals(connectorComposite.get("ConnectionString"), JMX_RMI_CONNECTION_STRING);
+            assertEquals(connectorComposite.get("ConnectionType"), CONNECTOR_NAME);
+
+            assertTrue(connectorComposite.containsKey("Parameters"));
+            assertTrue(connectorComposite.get("Parameters") instanceof TabularData);
+
+            final TabularData connectorAdditionalParameters = (TabularData) connectorComposite.get("Parameters");
+
+
+            assertTrue(connectorAdditionalParameters.containsKey(new Object[]{"login"}));
+            assertTrue(connectorAdditionalParameters.containsKey(new Object[]{"password"}));
+
+            assertEquals(connectorAdditionalParameters.get(new Object[]{"login"}).get("value"), JMX_LOGIN);
+            assertEquals(connectorAdditionalParameters.get(new Object[]{"password"}).get("value"), JMX_PASSWORD);
+
+            assertTrue(connectorComposite.containsKey("Attributes"));
+            assertTrue(connectorComposite.get("Attributes") instanceof TabularData);
+
+            final TabularData connectorAttributes = (TabularData) connectorComposite.get("Attributes");
+
+            assertTrue(connectorAttributes.containsKey(new Object[]{"1.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"2.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"3.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"4.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"5.1"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"6.1"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"7.1"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"8.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"9.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"10.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"11.0"}));
+
+            assertTrue(connectorAttributes.get(new Object[]{"1.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"2.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"3.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"4.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"5.1"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"6.1"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"7.1"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"8.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"9.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"10.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"11.0"}).containsKey("attribute"));
+
+            assertTrue(connectorAttributes.get(new Object[]{"1.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"2.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"3.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"4.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"5.1"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"6.1"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"7.1"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"8.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"9.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"10.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"11.0"}).get("attribute") instanceof CompositeData);
+
+            final CompositeData attribute10 = (CompositeData) connectorAttributes.get(new Object[]{"1.0"}).get("attribute");
+            assertEquals(attribute10.get("Name"), "string");
+            assertEquals(attribute10.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute10.containsKey("AdditionalProperties"));
+            assertTrue(attribute10.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute10.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute10.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute10.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.1.0");
+
+            final CompositeData attribute20 = (CompositeData) connectorAttributes.get(new Object[]{"2.0"}).get("attribute");
+            assertEquals(attribute20.get("Name"), "boolean");
+            assertEquals(attribute20.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute20.containsKey("AdditionalProperties"));
+            assertTrue(attribute20.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute20.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute20.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute20.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.2.0");
+
+            final CompositeData attribute30 = (CompositeData) connectorAttributes.get(new Object[]{"3.0"}).get("attribute");
+            assertEquals(attribute30.get("Name"), "int32");
+            assertEquals(attribute30.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute30.containsKey("AdditionalProperties"));
+            assertTrue(attribute30.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute30.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute30.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute30.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.3.0");
+
+            final CompositeData attribute40 = (CompositeData) connectorAttributes.get(new Object[]{"4.0"}).get("attribute");
+            assertEquals(attribute40.get("Name"), "bigint");
+            assertEquals(attribute40.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute40.containsKey("AdditionalProperties"));
+            assertTrue(attribute40.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute40.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute40.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute40.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.4.0");
+
+            final CompositeData attribute51 = (CompositeData) connectorAttributes.get(new Object[]{"5.1"}).get("attribute");
+            assertEquals(attribute51.get("Name"), "array");
+            assertEquals(attribute51.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute51.containsKey("AdditionalProperties"));
+            assertTrue(attribute51.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute51.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute51.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute51.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.5.1");
+
+            final CompositeData attribute61 = (CompositeData) connectorAttributes.get(new Object[]{"6.1"}).get("attribute");
+            assertEquals(attribute61.get("Name"), "dictionary");
+            assertEquals(attribute61.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute61.containsKey("AdditionalProperties"));
+            assertTrue(attribute61.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute61.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute61.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute61.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.6.1");
+
+            final CompositeData attribute71 = (CompositeData) connectorAttributes.get(new Object[]{"7.1"}).get("attribute");
+            assertEquals(attribute71.get("Name"), "table");
+            assertEquals(attribute71.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute71.containsKey("AdditionalProperties"));
+            assertTrue(attribute71.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute71.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute71.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute71.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.7.1");
+
+            final CompositeData attribute80 = (CompositeData) connectorAttributes.get(new Object[]{"8.0"}).get("attribute");
+            assertEquals(attribute80.get("Name"), "float");
+            assertEquals(attribute80.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute80.containsKey("AdditionalProperties"));
+            assertTrue(attribute80.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute80.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute80.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute80.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.8.0");
+
+            final CompositeData attribute90 = (CompositeData) connectorAttributes.get(new Object[]{"9.0"}).get("attribute");
+            assertEquals(attribute90.get("Name"), "date");
+            assertEquals(attribute90.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute90.containsKey("AdditionalProperties"));
+            assertTrue(attribute90.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute90.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute90.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute90.get("AdditionalProperties")).get(new Object[]{"displayFormat"}).get("value"), "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+            assertEquals(((TabularData) attribute90.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.9.0");
+
+            final CompositeData attribute100 = (CompositeData) connectorAttributes.get(new Object[]{"10.0"}).get("attribute");
+            assertEquals(attribute100.get("Name"), "date");
+            assertEquals(attribute100.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute100.containsKey("AdditionalProperties"));
+            assertTrue(attribute100.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute100.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute100.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute100.get("AdditionalProperties")).get(new Object[]{"displayFormat"}).get("value"), "rfc1903-human-readable");
+            assertEquals(((TabularData) attribute100.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.10.0");
+
+            final CompositeData attribute110 = (CompositeData) connectorAttributes.get(new Object[]{"11.0"}).get("attribute");
+            assertEquals(attribute110.get("Name"), "date");
+            assertEquals(attribute110.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute110.containsKey("AdditionalProperties"));
+            assertTrue(attribute110.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute110.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute110.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute110.get("AdditionalProperties")).get(new Object[]{"displayFormat"}).get("value"), "rfc1903");
+            assertEquals(((TabularData) attribute110.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.11.0");
         }
     }
 

@@ -5,12 +5,8 @@
         <details>Basic set of features required to execute SNAMP platform</details>
         <!-- Third-party features -->
         <feature>eventadmin</feature>
-        <feature>hawtio</feature>
-        <!-- Third-party bundles -->
-        <!--<bundle>mvn:javax.inject/javax.inject/1</bundle> -->
-       <!-- <bundle>mvn:org.javassist/javassist/3.18.1-GA</bundle>
-        <bundle>mvn:javax.annotation/javax.annotation-api/1.2</bundle>
-        <bundle>mvn:javax.validation/validation-api/1.1.0.Final</bundle>-->
+        <feature>hawtio-offline</feature>
+
         <bundle >mvn:com.google.code.gson/gson/2.2.4</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
         <!--SNAMP dependencies-->
