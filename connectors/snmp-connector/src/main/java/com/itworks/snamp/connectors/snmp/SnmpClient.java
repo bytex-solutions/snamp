@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.AbstractFuture;
@@ -7,7 +8,6 @@ import com.itworks.snamp.Aggregator;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
-import com.itworks.snamp.internal.CountdownTimer;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
@@ -322,12 +322,16 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         output.addAll(listener.get(timeout.toMillis(), TimeUnit.MILLISECONDS));
     }
 
-    public final Collection<VariableBinding> walk(final TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {
+    public final Collection<VariableBinding> walk(TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {
         final Collection<VariableBinding> result = new Vector<>(20);
-        final CountdownTimer timer = CountdownTimer.start(timeout);
+        final Stopwatch timer = Stopwatch.createStarted();
         for(int i = 1; i <= 10; i++) {
-            walk(new OID(new int[]{i}), timer.stopAndGetElapsedTime(), result);
-            if(!timer.start()) throw new TimeoutException(String.format("Not enough time to collect all variables. Loop stopped at %s iteration.", i));
+             timeout = timeout == TimeSpan.INFINITE ?
+                    TimeSpan.INFINITE:
+                    timeout.subtract(timer.elapsed(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
+            walk(new OID(new int[]{i}), timeout, result);
+            if(TimeSpan.ZERO.equals(timeout))
+                throw new TimeoutException(String.format("Not enough time to collect all variables. Loop stopped at %s iteration.", i));
         }
         return result;
     }

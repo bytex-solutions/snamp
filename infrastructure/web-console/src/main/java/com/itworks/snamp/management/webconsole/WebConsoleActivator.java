@@ -1,23 +1,7 @@
 package com.itworks.snamp.management.webconsole;
 
-import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.core.AbstractBundleActivator;
-import com.itworks.snamp.management.SnampManager;
-import org.eclipse.jetty.jaas.JAASLoginService;
-import org.eclipse.jetty.security.ConstraintMapping;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.security.LoginService;
-import org.eclipse.jetty.security.authentication.DigestAuthenticator;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.NetworkConnector;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.security.Constraint;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.util.Collection;
 
@@ -27,50 +11,6 @@ import java.util.Collection;
  * @since 1.0
  */
 public final class WebConsoleActivator extends AbstractBundleActivator {
-    private static final String WEB_CONSOLE_PORT_PROPERTY = "com.itworks.snamp.webconsole.port";
-    private static final int DEFAULT_WEB_CONSOLE_PORT = 3344;
-    private static final String WEB_CONSOLE_HOST_PROPERTY = "com.itworks.snamp.webconsole.host";
-    private static final String DEFAULT_WEB_CONSOLE_HOST = "localhost";
-    private static final String REALM_NAME_PROPERTY = "com.itworks.snamp.webconsole.realm";
-    private static final String DEFAULT_REALM_NAME = "snamp";
-
-    private static final String SECURITY_ALIAS = "Snamp Web Console Security";
-
-    private Server jettyServer = new Server();
-
-    private static void removeConnectors(final Server jettyServer){
-        for(final Connector c: jettyServer.getConnectors())
-            if(c instanceof NetworkConnector) ((NetworkConnector)c).close();
-        jettyServer.setConnectors(new Connector[0]);
-    }
-
-    private static String getWebConsoleRealm(final BundleContext context){
-        String realm = context.getProperty(REALM_NAME_PROPERTY);
-        if(realm == null || realm.isEmpty())
-            realm = System.getProperty(REALM_NAME_PROPERTY, DEFAULT_REALM_NAME);
-        return realm;
-    }
-
-    private static LoginService createLoginService(final BundleContext context, final Class<?> callerClass){
-        final JAASLoginService loginService = SecurityUtils.createJaasLoginServiceForOsgi(getWebConsoleRealm(context), callerClass.getClassLoader());
-        loginService.setName(SECURITY_ALIAS);
-        loginService.setRoleClassNames(JAASLoginService.DEFAULT_ROLE_CLASS_NAMES);
-        return loginService;
-    }
-
-    private static int getWebConsolePort(final BundleContext context) {
-        String port = context.getProperty(WEB_CONSOLE_PORT_PROPERTY);
-        return port == null || port.isEmpty() ?
-                Integer.getInteger(WEB_CONSOLE_PORT_PROPERTY, DEFAULT_WEB_CONSOLE_PORT) :
-                Integer.parseInt(port);
-    }
-
-    private static String getWebConsoleHost(final BundleContext context){
-        String host = context.getProperty(WEB_CONSOLE_HOST_PROPERTY);
-        if(host == null || host.isEmpty())
-            host = System.getProperty(WEB_CONSOLE_HOST_PROPERTY, DEFAULT_WEB_CONSOLE_HOST);
-        return host;
-    }
 
     /**
      * Starts the bundle and instantiate runtime state of the bundle.
@@ -81,16 +21,7 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
      */
     @Override
     protected void start(final BundleContext context, final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-        //remove all connectors.
-        removeConnectors(jettyServer);
-        //initializes a new connector.
-        final ServerConnector connector = new ServerConnector(jettyServer);
-        connector.setPort(getWebConsolePort(context));
-        connector.setHost(getWebConsoleHost(context));
-        jettyServer.setConnectors(new Connector[]{connector});
-        //add dependencies
-        bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
-        bundleLevelDependencies.add(new SimpleDependency<>(SnampManager.class));
+
     }
 
     /**
@@ -106,41 +37,7 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
      */
     @Override
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
-        final ServletContextHandler resourcesHandler = new ServletContextHandler(ServletContextHandler.SECURITY);
-        resourcesHandler.setContextPath("/snamp");
-        //security
-        final ConstraintSecurityHandler security = new ConstraintSecurityHandler();
-        security.setCheckWelcomeFiles(true);
-        final Constraint constraint = new Constraint();
-        constraint.setAuthenticate(true);
-        constraint.setName("snampauth");
-        constraint.setRoles(new String[]{SecurityUtils.ADMIN_ROLE, SecurityUtils.USER_ROLE});
-        security.setRealmName(SECURITY_ALIAS);
-        security.addRole(SecurityUtils.ADMIN_ROLE);
-        security.addRole(SecurityUtils.USER_ROLE);
-        final ConstraintMapping cmapping = new ConstraintMapping();
-        cmapping.setPathSpec("/management/*");
-        cmapping.setConstraint(constraint);
-        security.setConstraintMappings(new ConstraintMapping[]{cmapping});
-        security.setLoginService(createLoginService(context, getClass()));
-        security.setAuthenticator(new DigestAuthenticator());
-        //Setup REST service
-        final PersistentConfigurationManager manager = new PersistentConfigurationManager(getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies));
-        manager.load();
-        resourcesHandler.addServlet(new ServletHolder(
-                new ManagementServlet(
-                        manager,
-                        getDependency(RequiredServiceAccessor.class, SnampManager.class, dependencies))),
-                "/management/api/*");
-        //Setup static pages
-        resourcesHandler.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "true");
-        resourcesHandler.setInitParameter("org.eclipse.jetty.servlet.Default.pathInfoOnly", "true");
-        final DefaultServlet staticPages = new StaticPagesServlet();
-        resourcesHandler.addServlet(new ServletHolder(staticPages), "/management/console/*");
-        resourcesHandler.setSecurityHandler(security);
-        jettyServer.setHandler(resourcesHandler);
-        jettyServer.addBean(security.getLoginService());
-        jettyServer.start();
+
     }
 
     /**
@@ -155,8 +52,7 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
      */
     @Override
     protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
-        jettyServer.stop();
-        jettyServer.setHandler(null);
+
     }
 
     /**
@@ -167,6 +63,6 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
      */
     @Override
     protected void shutdown(final BundleContext context) throws Exception {
-        removeConnectors(jettyServer);
+
     }
 }
