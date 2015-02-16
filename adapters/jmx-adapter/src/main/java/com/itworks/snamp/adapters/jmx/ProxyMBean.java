@@ -1,27 +1,14 @@
 package com.itworks.snamp.adapters.jmx;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
-import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
-import com.itworks.snamp.core.LogicalOperation;
-import com.itworks.snamp.internal.AbstractKeyedObjects;
-import com.itworks.snamp.internal.KeyedObjects;
-import com.itworks.snamp.jmx.DescriptorUtils;
-import com.itworks.snamp.jmx.NotificationFilterBuilder;
 import com.itworks.snamp.management.jmx.OpenMBeanProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import javax.management.*;
-import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
+import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenMBeanConstructorInfo;
 import javax.management.openmbean.OpenMBeanInfoSupport;
 import javax.management.openmbean.OpenMBeanOperationInfo;
-import java.util.Collection;
-import java.util.Objects;
 import java.util.logging.Level;
 
 /**
@@ -31,44 +18,20 @@ import java.util.logging.Level;
  * @version 1.0
  * @since 1.0
  */
-final class ProxyMBean extends NotificationBroadcasterSupport implements DynamicMBean {
-    /**
-     * The name of the field in descriptor which contains the name of the
-     * associated resource.
-     */
-    static final String RESOURCE_NAME_FIELD = "resourceName";
+final class ProxyMBean implements DynamicMBean, NotificationSupport, AttributeSupport {
 
-    private final KeyedObjects<String, JmxAttributeMapping> attributes;
-    private final NotificationBroadcaster notifications;
+    private final AttributeSupport attributes;
+    private final NotificationSupport notifications;
     private final String resourceName;
     private ServiceRegistration<DynamicMBean> registration;
-    private final NotificationFilter filterByResource;
 
     ProxyMBean(final String resourceName,
-                      final Collection<JmxAttributeMapping> attributes,
-                      final NotificationBroadcaster notifications){
-        this.attributes = new AbstractKeyedObjects<String, JmxAttributeMapping>(attributes.size()) {
-            @Override
-            public String getKey(final JmxAttributeMapping item) {
-                return item.getAttributeInfo().getName();
-            }
-        };
-        //filter out attributes
-        for(final JmxAttributeMapping mapping: attributes)
-            if(Objects.equals(resourceName, DescriptorUtils.getField(mapping.getAttributeInfo().getDescriptor(), RESOURCE_NAME_FIELD, String.class)))
-                this.attributes.put(mapping);
+                      final AttributeSupport attributes,
+                      final NotificationSupport notifications){
+        this.attributes = attributes;
         this.notifications = notifications;
         registration = null;
-        filterByResource = createFilterByResource(this.resourceName = resourceName);
-    }
-
-    private static NotificationFilter createFilterByResource(final String resourceName){
-        return new NotificationFilter() {
-            @Override
-            public boolean isNotificationEnabled(final Notification notification) {
-                return notification.getType().contains(resourceName);
-            }
-        };
+        this.resourceName = resourceName;
     }
 
     final void registerAsService(final BundleContext context, final ObjectName beanName){
@@ -91,12 +54,7 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
      */
     @Override
     public Object getAttribute(final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
-        if (attributes.containsKey(attributeName)) {
-            final JmxAttributeMapping attribute = attributes.get(attributeName);
-            try (final LogicalOperation ignored = new ReadAttributeLogicalOperation(attribute.getOriginalName(), attributeName)) {
-                return attribute.getValue();
-            }
-        } else throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist", attributeName));
+        return attributes.getAttribute(attributeName);
     }
 
     /**
@@ -110,13 +68,7 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
      */
     @Override
     public void setAttribute(final Attribute attributeHolder) throws AttributeNotFoundException, ReflectionException, InvalidAttributeValueException, MBeanException {
-        if (attributes.containsKey(attributeHolder.getName())) {
-            final JmxAttributeMapping attribute = attributes.get(attributeHolder.getName());
-            try (final LogicalOperation ignored = new WriteAttributeLogicalOperation(attribute.getOriginalName(), attributeHolder.getName())) {
-                attribute.setValue(attributeHolder.getValue());
-            }
-        } else
-            throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist", attributeHolder.getName()));
+        setAttribute(attributeHolder.getName(), attributeHolder.getValue());
     }
 
     /**
@@ -182,23 +134,14 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
         throw new MBeanException(new UnsupportedOperationException("Operation invocation is not supported."));
     }
 
-    public OpenMBeanAttributeInfoSupport[] getAttributeInfo() {
-        return ArrayUtils.toArray(Collections2.transform(attributes.values(), new Function<JmxAttributeMapping, OpenMBeanAttributeInfoSupport>() {
-            @Override
-            public OpenMBeanAttributeInfoSupport apply(final JmxAttributeMapping attribute) {
-                return attribute.getAttributeInfo();
-            }
-        }), OpenMBeanAttributeInfoSupport.class);
+    @Override
+    public OpenMBeanAttributeInfo[] getAttributeInfo() {
+        return attributes.getAttributeInfo();
     }
 
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
-        return ArrayUtils.filter(notifications.getNotificationInfo(), new Predicate<MBeanNotificationInfo>() {
-            @Override
-            public boolean apply(final MBeanNotificationInfo info) {
-                return Objects.equals(resourceName, DescriptorUtils.getField(info.getDescriptor(), ProxyMBean.RESOURCE_NAME_FIELD, String.class));
-            }
-        }, MBeanNotificationInfo.class);
+        return notifications.getNotificationInfo();
     }
 
     /**
@@ -234,8 +177,41 @@ final class ProxyMBean extends NotificationBroadcasterSupport implements Dynamic
     public void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
                                         final Object handback) {
-        notifications.addNotificationListener(listener,
-                new NotificationFilterBuilder(filter).and(filterByResource).build(),
-                handback);
+        notifications.addNotificationListener(listener, filter, handback);
+    }
+
+    /**
+     * Removes a listener from this MBean.  If the listener
+     * has been registered with different handback objects or
+     * notification filters, all entries corresponding to the listener
+     * will be removed.
+     *
+     * @param listener A listener that was previously added to this
+     *                 MBean.
+     * @throws javax.management.ListenerNotFoundException The listener is not
+     *                                                    registered with the MBean.
+     * @see #addNotificationListener
+     * @see javax.management.NotificationEmitter#removeNotificationListener
+     */
+    @Override
+    public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
+        notifications.removeNotificationListener(listener);
+    }
+
+    /**
+     * Set the value of a specific attribute of the Dynamic MBean.
+     *
+     * @param attributeName The identification of the attribute to
+     *                      be set and  the value it is to be set to.
+     * @param value         The value of the attribute.
+     * @throws javax.management.AttributeNotFoundException
+     * @throws javax.management.InvalidAttributeValueException
+     * @throws javax.management.MBeanException                 Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
+     * @throws javax.management.ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
+     * @see #getAttribute
+     */
+    @Override
+    public void setAttribute(final String attributeName, final Object value) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+        attributes.setAttribute(attributeName, value);
     }
 }

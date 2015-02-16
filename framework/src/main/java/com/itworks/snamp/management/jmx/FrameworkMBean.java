@@ -9,7 +9,7 @@ import javax.management.DynamicMBean;
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
- * @see com.itworks.snamp.management.jmx.OpenMBean
+ * @see com.itworks.snamp.jmx.OpenMBean
  */
 public interface FrameworkMBean extends DynamicMBean, FrameworkService {
     /**

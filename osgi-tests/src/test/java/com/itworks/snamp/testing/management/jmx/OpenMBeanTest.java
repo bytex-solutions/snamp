@@ -1,6 +1,6 @@
 package com.itworks.snamp.testing.management.jmx;
 
-import com.itworks.snamp.management.jmx.OpenMBean;
+import com.itworks.snamp.jmx.OpenMBean;
 import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 

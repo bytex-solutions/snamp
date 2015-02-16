@@ -5,9 +5,17 @@ import com.google.common.base.Functions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Maps;
 import com.itworks.snamp.ArrayUtils;
 
 import javax.management.openmbean.*;
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
@@ -21,6 +29,43 @@ import java.util.Map;
  * @since 1.0
  */
 public final class CompositeDataUtils {
+    private static final class CompositeDataInvocationHandler implements InvocationHandler{
+        private static String GET_METHOD_PREFIX = "get";
+        private static String IS_METHOD_PREFIX = "is";
+        private static String SET_METHOD_PREFIX = "set";
+
+        private CompositeData data;
+
+        private CompositeDataInvocationHandler(final CompositeData data){
+            this.data = data;
+        }
+
+        @Override
+        public Object invoke(final Object proxy,
+                             final Method method,
+                             final Object[] args) throws Throwable {
+            final String itemName;
+            if(method.getName().startsWith(GET_METHOD_PREFIX))
+                itemName = method.getName().replaceFirst(GET_METHOD_PREFIX, "");
+            else if(method.getName().startsWith(IS_METHOD_PREFIX))
+                itemName = method.getName().replaceFirst(IS_METHOD_PREFIX, "");
+            else if(method.getName().startsWith(SET_METHOD_PREFIX))
+                itemName = method.getName().replaceFirst(SET_METHOD_PREFIX, "");
+            else itemName = method.getName();
+            switch (args.length){
+                case 0: //getter
+                    return data.get(itemName);
+                case 1://setter
+                    final Map<String, Object> entries = Maps.newHashMapWithExpectedSize(data.getCompositeType().keySet().size());
+                    entries.put(itemName, args[0]);
+                    data = new CompositeDataSupport(data.getCompositeType(), entries);
+                    return null;
+                default:
+                    throw new NoSuchMethodError();
+            }
+        }
+    }
+
     private CompositeDataUtils() {
 
     }
@@ -178,5 +223,72 @@ public final class CompositeDataUtils {
     public static void fillMap(final CompositeData source, final Map<String, Object> dest){
         for(final String key: source.getCompositeType().keySet())
             dest.put(key, source.get(key));
+    }
+
+    /**
+     * Convert composite data into the Java Bean.
+     * @param beanType The type of the Java Bean. Cannot be {@literal null}.
+     * @param data The composite data to convert. Cannot be {@literal null}.
+     * @param <B> Java Bean class.
+     * @return A new instance of the Java Bean.
+     * @throws ReflectiveOperationException Unable to convert composite data into the Java Bean.
+     */
+    public static  <B extends CompositeDataBean> B convert(final Class<B> beanType,
+                                     final CompositeData data) throws ReflectiveOperationException {
+        //as proxy
+        if(beanType.isInterface())
+            return beanType.cast(Proxy.newProxyInstance(beanType.getClassLoader(),
+                    new Class<?>[]{beanType}, new CompositeDataInvocationHandler(data)));
+        //convert to Java Bean class
+        else {
+            final B result = beanType.newInstance();
+            final BeanInfo metadata;
+            try {
+                metadata = Introspector.getBeanInfo(beanType, CompositeDataBean.class);
+            } catch (IntrospectionException e) {
+                throw new ReflectiveOperationException(e);
+            }
+            for (final PropertyDescriptor descriptor : metadata.getPropertyDescriptors())
+                if (data.containsKey(descriptor.getName()))
+                    descriptor.getWriteMethod().invoke(result, data.get(descriptor.getName()));
+            return result;
+        }
+    }
+
+    /**
+     * Converts Java Bean into the composite data.
+     * @param beanInstance The Java Bean instance to be converted.
+     * @param type The type of the composite data. May be {@literal null} if the bean instance
+     *             was previously created as a proxy.
+     * @return The composite data.
+     * @throws IllegalArgumentException The bean is a proxy but was not created with {@link #convert(Class, javax.management.openmbean.CompositeData)} method.
+     * @throws NullPointerException Bean instance is not a proxy and type is {@literal null}.
+     * @throws ReflectiveOperationException Unable to convert bean to composite data.
+     * @throws OpenDataException Unable to convert bean to composite data.
+     */
+    public static CompositeData convert(final CompositeDataBean beanInstance,
+                                        final CompositeType type) throws IllegalArgumentException, NullPointerException, ReflectiveOperationException, OpenDataException {
+        if(Proxy.isProxyClass(beanInstance.getClass())){
+            final InvocationHandler handler = Proxy.getInvocationHandler(beanInstance);
+            if(handler instanceof CompositeDataInvocationHandler)
+                return ((CompositeDataInvocationHandler)handler).data;
+            throw new IllegalArgumentException("beanInstance should be proxy.");
+        }
+        else if(type == null) throw new NullPointerException("type is null.");
+        else {
+            final BeanInfo metadata;
+            try{
+                metadata = Introspector.getBeanInfo(beanInstance.getClass(), CompositeDataBean.class);
+            }
+            catch (final IntrospectionException e){
+                throw new ReflectiveOperationException(e);
+            }
+            final PropertyDescriptor[] properties = metadata.getPropertyDescriptors();
+            final Map<String, Object> entries = Maps.newHashMapWithExpectedSize(properties.length);
+            for(final PropertyDescriptor descriptor: properties)
+                if(type.containsKey(descriptor.getName()))
+                    entries.put(descriptor.getName(), descriptor.getReadMethod().invoke(beanInstance));
+            return new CompositeDataSupport(type, entries);
+        }
     }
 }

@@ -500,30 +500,6 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         }
     }
 
-    private static final class NotificationListenerHolder implements NotificationListener {
-        private final NotificationListener listener;
-        private final Object handback;
-        private final NotificationFilter filter;
-
-        private NotificationListenerHolder(final NotificationListener listener,
-                                           final NotificationFilter filter,
-                                           final Object handback) {
-            this.listener = Objects.requireNonNull(listener);
-            this.handback = handback;
-            this.filter = filter;
-        }
-
-        private boolean isWrapped(final NotificationListener listener){
-            return Objects.equals(listener, this.listener);
-        }
-
-        @Override
-        public void handleNotification(final Notification notification, final Object handback) {
-            if (filter == null || filter.isNotificationEnabled(notification))
-                listener.handleNotification(notification, handback != null ? handback : this.handback);
-        }
-    }
-
     /**
      * Represents a base class that allows to enable notification support for the management connector.
      * @param <M> Notification metadata.
@@ -538,7 +514,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         }
 
         private final KeyedObjects<String, M> notifications;
-        private final List<NotificationListenerHolder> listeners;
+        private final NotificationListenerList listeners;
         private final AtomicLong sequenceCounter;
         private final Class<M> metadataType;
 
@@ -549,7 +525,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         protected AbstractNotificationSupport(final Class<M> notifMetadataType) {
             super(ANSResource.class);
             notifications = createNotifications();
-            listeners = new ArrayList<>(10);
+            listeners = new NotificationListenerList();
             sequenceCounter = new AtomicLong(0L);
             metadataType = Objects.requireNonNull(notifMetadataType);
         }
@@ -714,7 +690,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         public final void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
             beginWrite(ANSResource.LISTENERS);
             try{
-                listeners.add(new NotificationListenerHolder(listener, filter, handback));
+                listeners.addNotificationListener(listener, filter, handback);
             }
             finally {
                 endWrite(ANSResource.LISTENERS);
@@ -738,17 +714,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
             beginWrite(ANSResource.LISTENERS);
             try {
-                final Iterator<NotificationListenerHolder> iter = listeners.iterator();
-                boolean removed = false;
-                while (iter.hasNext()){
-                    final NotificationListenerHolder holder = iter.next();
-                    if(holder.isWrapped(listener)) {
-                        iter.remove();
-                        removed = true;
-                    }
-                }
-                if(!removed)
-                    throw JMExceptionUtils.listenerNotFound(listener);
+                listeners.removeNotificationListener(listener);
             }
             finally {
                 endWrite(ANSResource.LISTENERS);

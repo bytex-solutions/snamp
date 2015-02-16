@@ -1,19 +1,24 @@
 package com.itworks.snamp.adapters.jmx;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.concurrent.ConcurrentResourceAccessor;
-import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
+import com.itworks.snamp.connectors.notifications.NotificationListenerList;
+import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.io.Buffers;
-import com.itworks.snamp.jmx.DescriptorUtils;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.licensing.LicensingException;
 
 import javax.management.*;
-import javax.management.openmbean.*;
+import javax.management.openmbean.ArrayType;
+import javax.management.openmbean.OpenMBeanAttributeInfo;
+import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
+import javax.management.openmbean.SimpleType;
 import java.lang.management.ManagementFactory;
 import java.net.MalformedURLException;
 import java.nio.*;
@@ -23,8 +28,6 @@ import java.util.logging.Logger;
 
 import static com.itworks.snamp.adapters.jmx.JmxAdapterConfigurationProvider.OBJECT_NAME_PARAM;
 import static com.itworks.snamp.adapters.jmx.JmxAdapterConfigurationProvider.USE_PLATFORM_MBEAN_PARAM;
-import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
-import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
 
 /**
  * Represents JMX adapter. This class cannot be inherited.
@@ -35,145 +38,192 @@ import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.Co
 final class JmxResourceAdapter extends AbstractResourceAdapter {
     static final String NAME = JmxAdapterHelpers.ADAPTER_NAME;
 
-    private static final class NotificationListenerHolder implements NotificationListener, NotificationFilter{
-        private final NotificationListener listener;
-        private final NotificationFilter filter;
-        private final Object handback;
-
-        private NotificationListenerHolder(final NotificationListener listener,
-                                           final NotificationFilter filter,
-                                           final Object handback) throws IllegalArgumentException{
-            if(listener == null) throw new IllegalArgumentException("listener is null.");
-            this.listener = listener;
-            this.filter = filter;
-            this.handback = handback;
-        }
-
-        @Override
-        public boolean isNotificationEnabled(final Notification notification) {
-            return filter == null || filter.isNotificationEnabled(notification);
-        }
-
-        @Override
-        public void handleNotification(final Notification notification, final Object handback) {
-            listener.handleNotification(notification, handback == null ? this.handback : handback);
-        }
-    }
-
-    private static final class JmxNotifications extends AbstractNotificationsModel<MBeanNotificationInfo> implements NotificationBroadcaster {
-        private final ConcurrentResourceAccessor<List<NotificationListenerHolder>> listeners;
+    private static final class ResourceNotificationManager extends NotificationListenerList implements NotificationSupport{
         private static final String ID_SEPARATOR = ".";
+        private final List<MBeanNotificationInfo> notifications;
 
-        private JmxNotifications() {
-            listeners = new ConcurrentResourceAccessor<List<NotificationListenerHolder>>(new LinkedList<NotificationListenerHolder>());
-        }
-
-        /**
-         * Creates subscription list ID.
-         *
-         * @param resourceName User-defined name of the managed resource which can emit the notification.
-         * @param eventName    User-defined name of the event.
-         * @return A new unique subscription list ID.
-         */
-        @Override
-        protected String makeSubscriptionListID(final String resourceName, final String eventName) {
-            return resourceName + ID_SEPARATOR + eventName;
-        }
-
-        /**
-         * Creates a new notification metadata representation.
-         *
-         * @param resourceName User-defined name of the managed resource.
-         * @param notifMeta    The notification metadata to wrap.
-         * @return A new notification metadata representation.
-         */
-        @Override
-        protected MBeanNotificationInfo createNotificationView(final String resourceName,
-                                                               final MBeanNotificationInfo notifMeta) {
-            final Map<String, Object> fields = new HashMap<>(DescriptorUtils.toMap(notifMeta.getDescriptor()));
-            fields.put(ProxyMBean.RESOURCE_NAME_FIELD, resourceName);
-            return new MBeanNotificationInfo(notifMeta.getNotifTypes(),
-                    notifMeta.getName(),
-                    notifMeta.getDescription(),
-                    new ImmutableDescriptor(fields));
-        }
-
-        /**
-         * Invoked when a resource notification occurs.
-         *
-         * @param metadata     The user-defined metadata associated with the notification.
-         * @param notification The notification.
-         */
-        @Override
-        protected void handleNotification(final MBeanNotificationInfo metadata,
-                                          final Notification notification) {
-            listeners.read(new ConsistentAction<List<NotificationListenerHolder>, Void>() {
-                @Override
-                public Void invoke(final List<NotificationListenerHolder> listeners) {
-                    for(final NotificationListenerHolder holder: listeners)
-                        if(holder.isNotificationEnabled(notification))
-                            holder.handleNotification(notification, metadata);
-                    return null;
-                }
-            });
-        }
-
-        @Override
-        public void addNotificationListener(final NotificationListener listener,
-                                            final NotificationFilter filter,
-                                            final Object handback) throws IllegalArgumentException {
-            listeners.write(new Action<List<NotificationListenerHolder>, Void, IllegalArgumentException>() {
-                @Override
-                public Void invoke(final List<NotificationListenerHolder> listeners) throws IllegalArgumentException{
-                    listeners.add(new NotificationListenerHolder(listener, filter, handback));
-                    return null;
-                }
-            });
-        }
-
-        @Override
-        public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-            final boolean removed = listeners.write(new ConsistentAction<List<NotificationListenerHolder>, Boolean>() {
-                @Override
-                public Boolean invoke(final List<NotificationListenerHolder> listeners) {
-                    final Iterator<NotificationListenerHolder> holders = listeners.iterator();
-                    boolean removed = false;
-                    while (holders.hasNext()){
-                        final NotificationListenerHolder holder = holders.next();
-                        if(holder.listener == listener) {
-                            holders.remove();
-                            removed = true;
-                        }
-                    }
-                    return removed;
-                }
-            });
-            if(!removed)
-                throw JMExceptionUtils.listenerNotFound(listener);
+        private ResourceNotificationManager(){
+            this.notifications = new LinkedList<>();
         }
 
         @Override
         public MBeanNotificationInfo[] getNotificationInfo() {
-            return ArrayUtils.toArray(values(), MBeanNotificationInfo.class);
+            return ArrayUtils.toArray(notifications, MBeanNotificationInfo.class);
         }
 
-        /**
-         * Removes all of the mappings from this map.
-         */
+        private static String makeListID(final String userDefinedEventName,
+                                                   final String category){
+            return category + ID_SEPARATOR + userDefinedEventName;
+        }
+
+        private void addNotification(final String userDefinedEventName,
+                                     final String category,
+                                     final NotificationConnector connector) throws JMException {
+            MBeanNotificationInfo metadata = connector.enable(makeListID(userDefinedEventName, category));
+            //clone metadata because resource connector may return unserializable metadata
+            metadata = new MBeanNotificationInfo(metadata.getNotifTypes(),
+                    metadata.getName(),
+                    metadata.getDescription(),
+                    metadata.getDescriptor());
+            notifications.add(metadata);
+        }
+
+        private MBeanNotificationInfo removeNotification(final String userDefinedEventName,
+                                        final String category){
+            final Iterator<MBeanNotificationInfo> notifications = this.notifications.iterator();
+            while (notifications.hasNext()){
+                final MBeanNotificationInfo metadata = notifications.next();
+                for(final String listID: metadata.getNotifTypes())
+                    if(Objects.equals(listID, makeListID(userDefinedEventName, category))){
+                        notifications.remove();
+                        return metadata;
+                    }
+            }
+            return null;
+        }
+
+        private boolean hasNoNotifications(){
+            return notifications.isEmpty();
+        }
+
         @Override
-        public void clear() {
-            super.clear();
-            listeners.write(new ConsistentAction<List<NotificationListenerHolder>, Void>() {
-                @Override
-                public Void invoke(final List<NotificationListenerHolder> listeners) {
-                    listeners.clear();
-                    return null;
-                }
-            });
+        public void handleNotification(final Notification notification,
+                                       final Object handback) {
+            for(final MBeanNotificationInfo metadata: notifications)
+                for(final String listID: metadata.getNotifTypes())
+                    if(Objects.equals(listID, notification.getType())){
+                        super.handleNotification(notification, handback);
+                        return;
+                    }
+
         }
     }
 
-    private static abstract class AbstractAttributeMapping implements JmxAttributeMapping{
+    private static final class JmxNotifications extends ThreadSafeObject implements NotificationsModel  {
+        //key is a name of the resource, values - enabled notifications
+        private final Map<String, ResourceNotificationManager> notifications = new HashMap<>(10);
+
+        private ResourceNotificationManager getNotificationManager(final String resourceName){
+            beginRead();
+            try{
+                return notifications.get(resourceName);
+            }
+            finally {
+                endRead();
+            }
+        }
+
+        /**
+         * Registers a new notification in this model.
+         *
+         * @param resourceName         The name of the resource that supplies the specified notification.
+         * @param userDefinedEventName User-defined name of the notification specified in the configuration.
+         * @param category             The notification category.
+         * @param connector            The notification connector.
+         */
+        @Override
+        public void addNotification(final String resourceName,
+                                    final String userDefinedEventName,
+                                    final String category,
+                                    final NotificationConnector connector) {
+            beginWrite();
+            try {
+                final ResourceNotificationManager manager;
+                if(notifications.containsKey(resourceName))
+                    manager = notifications.get(resourceName);
+                else notifications.put(resourceName, manager = new ResourceNotificationManager());
+                manager.addNotification(userDefinedEventName, category, connector);
+            }
+            catch (final JMException e){
+                JmxAdapterHelpers.log(Level.SEVERE, String.format("Failed to enable notification %s", userDefinedEventName), e);
+            }
+            finally {
+                endWrite();
+            }
+        }
+
+        /**
+         * Removes the notification from this model.
+         *
+         * @param resourceName         The name of the resource that supplies the specified notification.
+         * @param userDefinedEventName User-defined name of the notification specified in the configuration.
+         * @param category             The notification category.
+         * @return The enabled notification removed from this model.
+         */
+        @Override
+        public MBeanNotificationInfo removeNotification(final String resourceName, final String userDefinedEventName, final String category) {
+            beginWrite();
+            try{
+                final ResourceNotificationManager manager;
+                if(notifications.containsKey(resourceName))
+                    manager = notifications.get(resourceName);
+                else return null;
+                final MBeanNotificationInfo metadata = manager.removeNotification(userDefinedEventName, category);
+                if(manager.hasNoNotifications()){
+                    manager.clear();
+                    notifications.remove(resourceName);
+                }
+                return metadata;
+            }
+            finally {
+                endWrite();
+            }
+        }
+
+        /**
+         * Removes all notifications from this model.
+         */
+        @Override
+        public void clear() {
+            beginWrite();
+            try{
+                notifications.clear();
+            }
+            finally {
+                endWrite();
+            }
+        }
+
+        /**
+         * Determines whether this model is empty.
+         *
+         * @return {@literal true}, if this model is empty; otherwise, {@literal false}.
+         */
+        @Override
+        public boolean isEmpty() {
+            beginRead();
+            try {
+                return notifications.isEmpty();
+            }
+            finally {
+                endRead();
+            }
+        }
+
+        /**
+         * Invoked when a JMX notification occurs.
+         * The implementation of this method should return as soon as possible, to avoid
+         * blocking its notification broadcaster.
+         *
+         * @param notification The notification.
+         * @param handback     An opaque object which helps the listener to associate
+         *                     information regarding the MBean emitter. This object is passed to the
+         *                     addNotificationListener call and resent, without modification, to the
+         */
+        @Override
+        public void handleNotification(final Notification notification, final Object handback) {
+            beginRead();
+            try{
+                for(final ResourceNotificationManager manager: notifications.values())
+                    manager.handleNotification(notification, handback);
+            }
+            finally {
+                endRead();
+            }
+        }
+    }
+
+    private static abstract class AbstractAttributeMapping{
         protected final AttributeAccessor accessor;
         private final OpenMBeanAttributeInfoSupport metadata;
 
@@ -183,35 +233,29 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             this.metadata = metadata;
         }
 
-        @Override
-        public final OpenMBeanAttributeInfoSupport getAttributeInfo() {
+        private OpenMBeanAttributeInfo getAttributeInfo() {
             return metadata;
         }
 
-        @Override
-        public final String getOriginalName() {
-            return AttributeDescriptor.getAttributeName(metadata.getDescriptor());
-        }
+        abstract Object getValue() throws MBeanException, ReflectionException, AttributeNotFoundException;
 
-
+        abstract void setValue(final Object value) throws MBeanException, ReflectionException, AttributeNotFoundException, InvalidAttributeValueException;
     }
 
     private static final class OpenTypeAttributeMapping extends AbstractAttributeMapping{
 
-        private OpenTypeAttributeMapping(final AttributeAccessor accessor,
-                                         final ImmutableDescriptor fields) {
-            super(accessor, createMetadata((OpenMBeanAttributeInfo)accessor.getMetadata(), fields));
+        private OpenTypeAttributeMapping(final AttributeAccessor accessor) {
+            super(accessor, createMetadata((OpenMBeanAttributeInfo)accessor.getMetadata()));
         }
 
-        private static OpenMBeanAttributeInfoSupport createMetadata(final OpenMBeanAttributeInfo source,
-                                                                    final ImmutableDescriptor options){
+        private static OpenMBeanAttributeInfoSupport createMetadata(final OpenMBeanAttributeInfo source){
             return new OpenMBeanAttributeInfoSupport(source.getName(),
                     source.getDescription(),
                     source.getOpenType(),
                     source.isReadable(),
                     source.isWritable(),
                     source.isIs(),
-                    options);
+                    source instanceof MBeanAttributeInfo ? ((MBeanAttributeInfo)source).getDescriptor() : new ImmutableDescriptor());
         }
 
         @Override
@@ -227,21 +271,19 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
     private static abstract class BufferAttributeMapping<T> extends AbstractAttributeMapping{
         private BufferAttributeMapping(final AttributeAccessor accessor,
-                                           final Class<T> arrayType,
-                                           final ImmutableDescriptor fields) {
-            super(accessor, createMetadata(accessor.getMetadata(), arrayType, fields));
+                                           final Class<T> arrayType) {
+            super(accessor, createMetadata(accessor.getMetadata(), arrayType));
         }
 
         private static OpenMBeanAttributeInfoSupport createMetadata(final MBeanAttributeInfo source,
-                                                                    final Class<?> arrayType,
-                                                                    final ImmutableDescriptor fields) {
+                                                                    final Class<?> arrayType) {
             return new OpenMBeanAttributeInfoSupport(source.getName(),
                     source.getDescription(),
                     ArrayType.getPrimitiveArrayType(arrayType),
                     true,
                     true,
                     false,
-                    fields);
+                    source.getDescriptor());
         }
 
         @Override
@@ -249,9 +291,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     private static final class ByteBufferAttributeMapping extends BufferAttributeMapping<byte[]>{
-        private ByteBufferAttributeMapping(final AttributeAccessor accessor,
-                                         final ImmutableDescriptor fields) {
-            super(accessor, byte[].class, fields);
+        private ByteBufferAttributeMapping(final AttributeAccessor accessor) {
+            super(accessor, byte[].class);
         }
 
         @Override
@@ -272,9 +313,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     private static final class CharBufferAttributeMapping extends BufferAttributeMapping<char[]>{
-        private CharBufferAttributeMapping(final AttributeAccessor accessor,
-                                           final ImmutableDescriptor fields) {
-            super(accessor, char[].class, fields);
+        private CharBufferAttributeMapping(final AttributeAccessor accessor) {
+            super(accessor, char[].class);
         }
 
         @Override
@@ -295,9 +335,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     private static final class ShortBufferAttributeMapping extends BufferAttributeMapping<short[]>{
-        private ShortBufferAttributeMapping(final AttributeAccessor accessor,
-                                           final ImmutableDescriptor fields) {
-            super(accessor, short[].class, fields);
+        private ShortBufferAttributeMapping(final AttributeAccessor accessor) {
+            super(accessor, short[].class);
         }
 
         @Override
@@ -318,9 +357,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     private static final class IntBufferAttributeMapping extends BufferAttributeMapping<int[]>{
-        private IntBufferAttributeMapping(final AttributeAccessor accessor,
-                                            final ImmutableDescriptor fields) {
-            super(accessor, int[].class, fields);
+        private IntBufferAttributeMapping(final AttributeAccessor accessor) {
+            super(accessor, int[].class);
         }
 
         @Override
@@ -341,9 +379,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     private static final class LongBufferAttributeMapping extends BufferAttributeMapping<long[]>{
-        private LongBufferAttributeMapping(final AttributeAccessor accessor,
-                                          final ImmutableDescriptor fields) {
-            super(accessor, long[].class, fields);
+        private LongBufferAttributeMapping(final AttributeAccessor accessor) {
+            super(accessor, long[].class);
         }
 
         @Override
@@ -364,9 +401,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     private static final class FloatBufferAttributeMapping extends BufferAttributeMapping<float[]>{
-        private FloatBufferAttributeMapping(final AttributeAccessor accessor,
-                                           final ImmutableDescriptor fields) {
-            super(accessor, float[].class, fields);
+        private FloatBufferAttributeMapping(final AttributeAccessor accessor) {
+            super(accessor, float[].class);
         }
 
         @Override
@@ -387,9 +423,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     private static final class DoubleBufferAttributeMapping extends BufferAttributeMapping<double[]>{
-        private DoubleBufferAttributeMapping(final AttributeAccessor accessor,
-                                            final ImmutableDescriptor fields) {
-            super(accessor, double[].class, fields);
+        private DoubleBufferAttributeMapping(final AttributeAccessor accessor) {
+            super(accessor, double[].class);
         }
 
         @Override
@@ -410,20 +445,18 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     private static final class ReadOnlyAttributeMapping extends AbstractAttributeMapping{
-        private ReadOnlyAttributeMapping(final AttributeAccessor accessor,
-                                         final ImmutableDescriptor fields){
-            super(accessor, createMetadata(accessor.getMetadata(), fields));
+        private ReadOnlyAttributeMapping(final AttributeAccessor accessor){
+            super(accessor, createMetadata(accessor.getMetadata()));
         }
 
-        private static OpenMBeanAttributeInfoSupport createMetadata(final MBeanAttributeInfo source,
-                                                                    final ImmutableDescriptor fields){
+        private static OpenMBeanAttributeInfoSupport createMetadata(final MBeanAttributeInfo source){
             return new OpenMBeanAttributeInfoSupport(source.getName(),
                     source.getDescription(),
                     SimpleType.STRING,
                     true,
                     false,
                     false,
-                    fields);
+                    source.getDescriptor());
         }
 
         @Override
@@ -437,58 +470,166 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class JmxAttributes extends AbstractAttributesModel<JmxAttributeMapping>{
+    private static final class ResourceAttributeManager extends AbstractKeyedObjects<String, AbstractAttributeMapping> implements AttributeSupport{
         private static final String ID_SEPARATOR = "/";
 
-        /**
-         * Creates a new unique identifier of the management attribute.
-         * <p>
-         * The identifier must be unique through all instances of the resource adapter.
-         * </p>
-         *
-         * @param resourceName             User-defined name of the managed resource which supply the attribute.
-         * @param userDefinedAttributeName User-defined name of the attribute.
-         * @return A new unique identifier of the management attribute.
-         */
-        @Override
-        protected String makeAttributeID(final String resourceName, final String userDefinedAttributeName) {
-            return resourceName + ID_SEPARATOR + userDefinedAttributeName;
+        private ResourceAttributeManager(){
+            super(10);
         }
 
-        /**
-         * Creates a new domain-specific representation of the management attribute.
-         *
-         * @param resourceName User-defined name of the managed resource.
-         * @param accessor     An accessor for the individual management attribute.
-         * @return A new domain-specific representation of the management attribute.
-         */
+        private static String makeAttributeID(final String userDefinedAttributeName,
+                                              final String attributeName) {
+            return userDefinedAttributeName + ID_SEPARATOR + attributeName;
+        }
+
         @Override
-        protected AbstractAttributeMapping createAttributeView(final String resourceName,
-                                                               final AttributeAccessor accessor) {
-            final Map<String, Object> fields = new HashMap<>(DescriptorUtils.toMap(accessor.getMetadata().getDescriptor()));
-            fields.put(ProxyMBean.RESOURCE_NAME_FIELD, resourceName);
+        public void clear() {
+            for(final AbstractAttributeMapping mapping: values())
+                mapping.accessor.disconnect();
+            super.clear();
+        }
+
+        @Override
+        public OpenMBeanAttributeInfo[] getAttributeInfo() {
+            return ArrayUtils.toArray(Collections2.transform(values(), new Function<AbstractAttributeMapping, OpenMBeanAttributeInfo>() {
+                @Override
+                public OpenMBeanAttributeInfo apply(final AbstractAttributeMapping mapping) {
+                    return mapping.getAttributeInfo();
+                }
+            }), OpenMBeanAttributeInfo.class);
+        }
+
+        @Override
+        public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
+            final AbstractAttributeMapping mapping = get(attribute);
+            if(mapping == null) throw JMExceptionUtils.attributeNotFound(attribute);
+            else return mapping.getValue();
+        }
+
+        @Override
+        public void setAttribute(final String attributeName, final Object value) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+            final AbstractAttributeMapping mapping = get(attributeName);
+            if(mapping == null) throw JMExceptionUtils.attributeNotFound(attributeName);
+            else mapping.setValue(value);
+        }
+
+        private static AbstractAttributeMapping createMapping(final AttributeAccessor accessor){
             if(accessor.getMetadata() instanceof OpenMBeanAttributeInfo)
-                return new OpenTypeAttributeMapping(accessor, new ImmutableDescriptor(fields));
+                return new OpenTypeAttributeMapping(accessor);
             //try to detect the Buffer
             final WellKnownType type = CustomAttributeInfo.getType(accessor.getMetadata());
             if(type != null)
                 switch (type){
                     case BYTE_BUFFER:
-                        return new ByteBufferAttributeMapping(accessor, new ImmutableDescriptor(fields));
+                        return new ByteBufferAttributeMapping(accessor);
                     case CHAR_BUFFER:
-                        return new CharBufferAttributeMapping(accessor, new ImmutableDescriptor(fields));
+                        return new CharBufferAttributeMapping(accessor);
                     case SHORT_BUFFER:
-                        return new ShortBufferAttributeMapping(accessor, new ImmutableDescriptor(fields));
+                        return new ShortBufferAttributeMapping(accessor);
                     case INT_BUFFER:
-                        return new IntBufferAttributeMapping(accessor, new ImmutableDescriptor(fields));
+                        return new IntBufferAttributeMapping(accessor);
                     case LONG_BUFFER:
-                        return new LongBufferAttributeMapping(accessor, new ImmutableDescriptor(fields));
+                        return new LongBufferAttributeMapping(accessor);
                     case FLOAT_BUFFER:
-                        return new FloatBufferAttributeMapping(accessor, new ImmutableDescriptor(fields));
+                        return new FloatBufferAttributeMapping(accessor);
                     case DOUBLE_BUFFER:
-                        return  new DoubleBufferAttributeMapping(accessor, new ImmutableDescriptor(fields));
+                        return  new DoubleBufferAttributeMapping(accessor);
                 }
-            return new ReadOnlyAttributeMapping(accessor, new ImmutableDescriptor(fields));
+            return new ReadOnlyAttributeMapping(accessor);
+        }
+
+        private void addAttribute(final String userDefinedAttributeName,
+                                  final String attributeName,
+                                  final AttributeConnector connector) throws JMException {
+            final AbstractAttributeMapping mapping = createMapping(connector.connect(makeAttributeID(userDefinedAttributeName, attributeName)));
+            put(mapping);
+        }
+
+        private AttributeAccessor removeAttribute(final String userDefinedAttributeName,
+                                                  final String attributeName){
+            final AbstractAttributeMapping mapping = remove(makeAttributeID(userDefinedAttributeName,
+                    attributeName));
+            return mapping != null ? mapping.accessor : null;
+        }
+
+        @Override
+        public String getKey(final AbstractAttributeMapping item) {
+            return item.getAttributeInfo().getName();
+        }
+    }
+
+    private static final class JmxAttributes extends ThreadSafeObject implements AttributesModel{
+        //key is a name of the resource, values - connected attributes
+        private final Map<String, ResourceAttributeManager> attributes = new HashMap<>(10);
+
+        private AttributeSupport getAttributeManager(final String resourceName) {
+            beginRead();
+            try{
+                return attributes.get(resourceName);
+            }
+            finally {
+                endRead();
+            }
+        }
+
+        @Override
+        public void addAttribute(final String resourceName, final String userDefinedAttributeName, final String attributeName, final AttributeConnector connector) {
+            beginWrite();
+            try{
+                final ResourceAttributeManager manager;
+                if(attributes.containsKey(resourceName))
+                    manager = attributes.get(resourceName);
+                else attributes.put(resourceName, manager = new ResourceAttributeManager());
+                manager.addAttribute(userDefinedAttributeName, attributeName, connector);
+            } catch (final JMException e) {
+                JmxAdapterHelpers.log(Level.SEVERE, String.format("Unable to connect attribute %s", userDefinedAttributeName), e);
+            } finally {
+                endWrite();
+            }
+        }
+
+        /**
+         * Removes the attribute from this model.
+         *
+         * @param resourceName             The name of the resource that supplies the specified attribute.
+         * @param userDefinedAttributeName User-defined name of the attribute in the configuration.
+         * @param attributeName            The name of the attribute as it is exposed by resource connector.
+         * @return The connected attribute removed from this accessor.
+         */
+        @Override
+        public AttributeAccessor removeAttribute(final String resourceName, final String userDefinedAttributeName, final String attributeName) {
+            beginWrite();
+            try{
+                final ResourceAttributeManager manager;
+                if(attributes.containsKey(resourceName))
+                    manager = attributes.get(resourceName);
+                else return null;
+                final AttributeAccessor accessor = manager.removeAttribute(userDefinedAttributeName, attributeName);
+                if(manager.isEmpty())
+                    attributes.remove(resourceName);
+                return accessor;
+            }
+            finally {
+                endWrite();
+            }
+        }
+
+        @Override
+        public void clear() {
+            beginWrite();
+            try{
+                for(final ResourceAttributeManager manager: attributes.values())
+                    manager.clear();
+                attributes.clear();
+            }
+            finally {
+                endWrite();
+            }
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return attributes.isEmpty();
         }
     }
 
@@ -524,7 +665,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         }
         for (final String resourceName : getHostedResources())
             try {
-                final ProxyMBean bean = new ProxyMBean(resourceName, attributes.values(), notifications);
+                final ProxyMBean bean = new ProxyMBean(resourceName,
+                        attributes.getAttributeManager(resourceName), notifications.getNotificationManager(resourceName));
                 final ObjectName beanName = createObjectName(rootObjectName, resourceName);
                 //register bean
                 if(usePlatformMBean)

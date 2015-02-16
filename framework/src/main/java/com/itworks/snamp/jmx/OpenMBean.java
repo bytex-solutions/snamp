@@ -1,4 +1,4 @@
-package com.itworks.snamp.management.jmx;
+package com.itworks.snamp.jmx;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
@@ -34,9 +34,9 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
-     * @see com.itworks.snamp.management.jmx.OpenMBean.OpenNotification
-     * @see com.itworks.snamp.management.jmx.OpenMBean.OpenOperation
-     * @see com.itworks.snamp.management.jmx.OpenMBean.OpenAttribute
+     * @see OpenMBean.OpenNotification
+     * @see OpenMBean.OpenOperation
+     * @see OpenMBean.OpenAttribute
      */
     protected static abstract class OpenMBeanElement<T extends MBeanFeatureInfo> implements Supplier<T> {
         /**

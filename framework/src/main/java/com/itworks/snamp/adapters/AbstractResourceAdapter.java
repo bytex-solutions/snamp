@@ -37,8 +37,9 @@ import javax.management.*;
 import javax.management.openmbean.OpenType;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -104,89 +105,6 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     /**
-     * Represents resource management model based on notifications.
-     * @param <TNotificationView> Type of the notification metadata.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    protected static abstract class AbstractNotificationsModel<TNotificationView> extends ConcurrentHashMap<String, TNotificationView> implements NotificationListener, NotificationFilter{
-        /**
-         * Initializes a new notifications-based resource management model.
-         */
-        protected AbstractNotificationsModel(){
-            super(10);
-        }
-
-        /**
-         * Creates subscription list ID.
-         * @param resourceName User-defined name of the managed resource which can emit the notification.
-         * @param eventName User-defined name of the event.
-         * @return A new unique subscription list ID.
-         */
-        protected String makeSubscriptionListID(final String resourceName, final String eventName){
-            return String.format("%s-%s-%s", System.identityHashCode(this), resourceName, eventName);
-        }
-
-        /**
-         * Creates a new notification metadata representation.
-         * @param resourceName User-defined name of the managed resource.
-         * @param notifMeta The notification metadata to wrap.
-         * @return A new notification metadata representation.
-         */
-        protected abstract TNotificationView createNotificationView(final String resourceName,
-                                                                    final MBeanNotificationInfo notifMeta);
-
-        /**
-         * Invoked when a resource notification occurs.
-         *
-         * @param notification The notification.
-         * @param handback     An opaque object which helps the listener to associate
-         *                     information regarding the MBean emitter. This object is passed to the
-         *                     addNotificationListener call and resent, without modification, to the
-         */
-        @Override
-        public final void handleNotification(final Notification notification, final Object handback) {
-            final TNotificationView metadata = get(notification.getType());
-            if (metadata != null)
-                handleNotification(metadata, notification);
-        }
-
-        /**
-         * Invoked before sending the specified notification to the listener.
-         *
-         * @param notification The notification to be sent.
-         * @return {@literal true} if the notification has to be sent to the listener; otherwise, {@literal false}.
-         */
-        @Override
-        public final boolean isNotificationEnabled(final Notification notification) {
-            return containsKey(notification.getType());
-        }
-
-        /**
-         * Invoked when a resource notification occurs.
-         * @param metadata The user-defined metadata associated with the notification.
-         * @param notification The notification.
-         */
-        protected abstract void handleNotification(final TNotificationView metadata,
-                                                   final Notification notification);
-
-        private boolean put(final NotificationSupport support,
-                            final String resourceName,
-                            final String eventID,
-                            final EventConfiguration eventConfig) throws JMException {
-            final String listID = makeSubscriptionListID(resourceName, eventID);
-            final MBeanNotificationInfo metadata = support.enableNotifications(listID,
-                    eventConfig.getCategory(),
-                    new ConfigParameters(eventConfig));
-            final TNotificationView view = createNotificationView(resourceName, metadata);
-            return view != null ?
-                    putIfAbsent(listID, view) == null :
-                    support.disableNotifications(listID);
-        }
-    }
-
-    /**
      * Represents an accessor for individual management attribute.
      * This class cannot be inherited.
      * <p>
@@ -210,6 +128,14 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                             new ConfigParameters(attributeConfig));
             if(metadata == null)
                 throw JMExceptionUtils.attributeNotFound(attributeConfig.getAttributeName());
+        }
+
+        /**
+         * Disconnects this attribute.
+         * @return {@literal true}, if this attribute is disconnected successfully; otherwise, {@literal false}.
+         */
+        public boolean disconnect(){
+            return attributeSupport.disconnectAttribute(metadata.getName());
         }
 
         /**
@@ -441,63 +367,148 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     /**
-     * Represents resource management model based on attributes.
-     * <p>
-     *     The derived class should not contain any management logic, just a factory
-     *     for domain-specific representation of the management attribute and a collection of it.
-     * </p>
-     * @param <TAttributeView> Type of the domain-specific representation of the management attribute.
+     * Represents connector of the managed resource attribute.
+     * This class cannot be inherited or instantiated directly from your code.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class AbstractAttributesModel<TAttributeView> extends ConcurrentHashMap<String, TAttributeView>{
+    protected static final class AttributeConnector{
+        private final AttributeSupport attributes;
+        private final AttributeConfiguration attributeConfig;
 
-        /**
-         * Initializes a new resource management model based on a set of attributes.
-         */
-        protected AbstractAttributesModel(){
-            super(10);
+        private AttributeConnector(final AttributeSupport attrs,
+                                   final AttributeConfiguration config){
+            this.attributes = attrs;
+            this.attributeConfig = config;
         }
 
         /**
-         * Creates a new unique identifier of the management attribute.
-         * <p>
-         *     The identifier must be unique through all instances of the resource adapter.
-         * </p>
-         * @param resourceName User-defined name of the managed resource which supply the attribute.
-         * @param userDefinedAttributeName User-defined name of the attribute.
-         * @return A new unique identifier of the management attribute.
+         * Connects a new attribute and assign the name for it.
+         * @param attributeID The name of the connected attribute.
+         * @return The connected attribute.
+         * @throws JMException Unable to connect attribute.
          */
-        @ThreadSafe
-        protected String makeAttributeID(final String resourceName, final String userDefinedAttributeName){
-            return String.format("%s-%s-%s", System.identityHashCode(this), resourceName, userDefinedAttributeName);
-        }
-
-        /**
-         * Creates a new domain-specific representation of the management attribute.
-         * @param resourceName User-defined name of the managed resource.
-         * @param accessor An accessor for the individual management attribute.
-         * @return A new domain-specific representation of the management attribute.
-         */
-        @ThreadSafe
-        protected abstract TAttributeView createAttributeView(final String resourceName, final AttributeAccessor accessor);
-
-        private boolean put(final AttributeSupport support,
-                            final String resourceName,
-                            final String userDefinedAttrName,
-                            final AttributeConfiguration attributeConfig) throws JMException {
-            final String attributeID = makeAttributeID(resourceName, userDefinedAttrName);
-            final AttributeAccessor metadata = new AttributeAccessor(attributeID,
-                    attributeConfig,
-                    support);
-            final TAttributeView view = createAttributeView(resourceName, metadata);
-            return view != null ?
-                    putIfAbsent(attributeID, view) == null :
-                    support.disconnectAttribute(attributeID);
+        public AttributeAccessor connect(final String attributeID) throws JMException{
+            return new AttributeAccessor(attributeID, attributeConfig, attributes);
         }
     }
 
+    /**
+     * Represents connector of the managed resource notification.
+     * This class cannot be inherited or instantiated directly from your code.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static final class NotificationConnector{
+        private final EventConfiguration eventConfig;
+        private final NotificationSupport notifications;
+
+        private NotificationConnector(final NotificationSupport notifs,
+                                      final EventConfiguration config){
+            this.notifications = notifs;
+            this.eventConfig = config;
+        }
+
+        /**
+         * Enables a new notification.
+         * @param listID The name of the notification to be enabled.
+         * @return The metadata of the enabled notification.
+         * @throws JMException Could not enable notification.
+         */
+        public MBeanNotificationInfo enable(final String listID) throws JMException{
+            return notifications.enableNotifications(listID, eventConfig.getCategory(), new ConfigParameters(eventConfig));
+        }
+    }
+
+    /**
+     * Represents adapter-specific view of the managed resource notifications.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static interface NotificationsModel extends NotificationListener{
+        /**
+         * Registers a new notification in this model.
+         * @param resourceName The name of the resource that supplies the specified notification.
+         * @param userDefinedEventName User-defined name of the notification specified in the configuration.
+         * @param category The notification category.
+         * @param connector The notification connector.
+         */
+        void addNotification(final String resourceName,
+                             final String userDefinedEventName,
+                             final String category,
+                             final NotificationConnector connector);
+
+        /**
+         * Removes the notification from this model.
+         * @param resourceName The name of the resource that supplies the specified notification.
+         * @param userDefinedEventName User-defined name of the notification specified in the configuration.
+         * @param category The notification category.
+         * @return The enabled notification removed from this model.
+         */
+        MBeanNotificationInfo removeNotification(final String resourceName,
+                                                 final String userDefinedEventName,
+                                                 final String category);
+
+        /**
+         * Removes all notifications from this model.
+         */
+        void clear();
+
+        /**
+         * Determines whether this model is empty.
+         * @return {@literal true}, if this model is empty; otherwise, {@literal false}.
+         */
+        boolean isEmpty();
+    }
+
+    /**
+     * Represents adapter-specific view of the managed resource attributes.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static interface AttributesModel{
+        /**
+         * Registers a new attribute in this model.
+         * <p>
+         *     Don't forget to call {@link com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeConnector#connect(String)}
+         *     method and save the connected attribute into the internal model structure.
+         * </p>
+         * @param resourceName The name of the resource that supplies the specified attribute.
+         * @param userDefinedAttributeName User-defined name of the attribute in the configuration.
+         * @param attributeName The name of the attribute as it is exposed by resource connector.
+         * @param connector The attribute connector.
+         */
+        void addAttribute(final String resourceName,
+                          final String userDefinedAttributeName,
+                          final String attributeName,
+                          final AttributeConnector connector);
+
+        /**
+         * Removes the attribute from this model.
+         * @param resourceName The name of the resource that supplies the specified attribute.
+         * @param userDefinedAttributeName User-defined name of the attribute in the configuration.
+         * @param attributeName The name of the attribute as it is exposed by resource connector.
+         * @return The connected attribute removed from this accessor.
+         */
+        AttributeAccessor removeAttribute(final String resourceName,
+                             final String userDefinedAttributeName,
+                             final String attributeName);
+
+        /**
+         * Removes all attributes from this model.
+         */
+        void clear();
+
+        /**
+         * Determines whether this model is empty.
+         * @return {@literal true}, if this model is empty; otherwise, {@literal false}.
+         */
+        boolean isEmpty();
+    }
 
     private static final class ManagedResourceConnectorConsumer implements ServiceListener, AutoCloseable{
         private final ManagedResourceConfiguration resourceConfiguration;
@@ -712,25 +723,20 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *     then it will be ignore and management attributes will not be added into the model.
      *     It is recommended to call this method inside of {@link #start(java.util.Map)} method.
      * </p>
-     * @param <TAttributeView> Type of the attribute metadata representation.
      * @param attributesModel The model to be populated. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
      * @throws javax.management.JMException Internal resource connector error.
      * @throws java.lang.Exception Internal adapter error
      */
     @ThreadSafe(true)
-    protected final <TAttributeView> void populateModel(final AbstractAttributesModel<TAttributeView> attributesModel) throws Exception {
+    protected final void populateModel(final AttributesModel attributesModel) throws Exception {
         if (attributesModel == null) throw new IllegalArgumentException("attributesModel is null.");
         else
             populateResources(getBundleContextByObject(this), new Consumer<ManagedResourceConnectorConsumer, JMException>() {
                 @Override
                 public void accept(final ManagedResourceConnectorConsumer consumer) throws JMException{
-                    if (consumer.isAttributesSupported()) {
-                        final AttributeSupport support = consumer.getWeakAttributeSupport();
-                        final Map<String, AttributeConfiguration> attributes = consumer.resourceConfiguration.getElements(AttributeConfiguration.class);
-                        if (attributes == null) return;
-                        enlargeModel(consumer.resourceName, attributes, attributesModel, support);
-                    }
+                    if (consumer.isAttributesSupported())
+                        enlargeModel(consumer, attributesModel);
                     else if(consumer.isReferenced()) try (final OSGiLoggingContext logger = getLoggingContext()) {
                         logger.info(String.format("Managed resource connector %s (connection string %s) doesn't support attributes. Context: %s",
                                 consumer.resourceConfiguration.getConnectionType(),
@@ -762,25 +768,17 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *     It is recommended to call this method inside {@link #start(java.util.Map)} method.
      * </p>
      * @param notificationsModel The model to populate. Cannot be {@literal null}.
-     * @param <TNotificationView> Type of the notification metadata.
      * @throws java.lang.IllegalArgumentException notificationsModel is {@literal null}.
      * @throws javax.management.JMException Internal resource connector error.
      * @throws java.lang.Exception Internal adapter error.
      */
-    protected final <TNotificationView> void populateModel(final AbstractNotificationsModel<TNotificationView> notificationsModel) throws Exception{
+    protected final void populateModel(final NotificationsModel notificationsModel) throws Exception{
         if (notificationsModel == null) throw new IllegalArgumentException("notificationsModel is null.");
         populateResources(getBundleContextByObject(this), new Consumer<ManagedResourceConnectorConsumer, JMException>() {
             @Override
             public void accept(final ManagedResourceConnectorConsumer consumer) throws JMException{
-                if (consumer.isNotificationsSupported()) {
-                    final NotificationSupport support = consumer.getWeakNotificationSupport();
-                    final Map<String, EventConfiguration> events = consumer.resourceConfiguration.getElements(EventConfiguration.class);
-                    if (events == null) return;
-                    enlargeModel(consumer.resourceName,
-                            events,
-                            notificationsModel,
-                            support);
-                }
+                if (consumer.isNotificationsSupported())
+                    enlargeModel(consumer, notificationsModel);
                 else if(consumer.isReferenced())
                     try(final OSGiLoggingContext logger = getLoggingContext()){
                         logger.info(String.format("Managed resource connector %s (connection string %s) doesn't support notifications. Context: %s",
@@ -801,27 +799,11 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param notificationsModel The model to release. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException notificationsModel is {@literal null}.
      */
-    protected final void clearModel(final AbstractNotificationsModel<?> notificationsModel) {
+    protected final void clearModel(final NotificationsModel notificationsModel) {
         if (notificationsModel == null) throw new IllegalArgumentException("notificationsModel is null.");
-        else if (!notificationsModel.isEmpty()) {
-            for (final ManagedResourceConnectorConsumer consumer : connectors.values())
-                if (consumer.isNotificationsSupported()) {
-                    final NotificationSupport support = consumer.getWeakNotificationSupport();
-                    for (final String listID : notificationsModel.keySet())
-                        support.disableNotifications(listID);
-                    try {
-                        support.removeNotificationListener(notificationsModel);
-                    } catch (final ListenerNotFoundException e) {
-                        try (final OSGiLoggingContext context = getLoggingContext()) {
-                            context.log(Level.WARNING,
-                                    String.format("Failed to disable notifications for %s resource. Context: %s",
-                                            consumer.resourceName,
-                                            LogicalOperation.current()), e);
-                        }
-                    }
-                }
-            notificationsModel.clear();
-        }
+        for(final ManagedResourceConnectorConsumer consumer: connectors.values())
+            clearModel(consumer, notificationsModel);
+        notificationsModel.clear();
     }
 
     /**
@@ -833,14 +815,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param attributesModel The model to release. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException attributesModel is {@literal null}.
      */
-    protected final void clearModel(final AbstractAttributesModel<?> attributesModel) {
+    protected final void clearModel(final AttributesModel attributesModel) {
         if (attributesModel == null) throw new IllegalArgumentException("attributesModel is null.");
         for (final ManagedResourceConnectorConsumer consumer : connectors.values())
-            if (consumer.isAttributesSupported()) {
-                final AttributeSupport attributeProvider = consumer.getWeakAttributeSupport();
-                for (final String attributeID : attributesModel.keySet())
-                    attributeProvider.disconnectAttribute(attributeID);
-            }
+            clearModel(consumer, attributesModel);
         attributesModel.clear();
     }
 
@@ -851,8 +829,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * </p>
      * @param parameters Adapter startup parameters.
      * @throws java.lang.Exception Unable to start adapter.
-     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
-     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)
+     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AttributesModel)
+     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.NotificationsModel)
      */
     protected abstract void start(final Map<String, String> parameters) throws Exception;
 
@@ -968,8 +946,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *     This method will be called by SNAMP infrastructure automatically.
      * </p>
      * @throws java.lang.Exception Unable to stop adapter.
-     * @see #clearModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
-     * @see #clearModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)
+     * @see #clearModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AttributesModel)
+     * @see #clearModel(com.itworks.snamp.adapters.AbstractResourceAdapter.NotificationsModel)
      */
     protected abstract void stop() throws Exception;
 
@@ -990,12 +968,15 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
     }
 
-    private <TAttributeView> void enlargeModel(final String resourceName,
-                                               final Map<String, AttributeConfiguration> newAttributes,
-                                               final AbstractAttributesModel<TAttributeView> model,
-                                               final AttributeSupport attributeSupport) throws JMException{
-        for (final Map.Entry<String, AttributeConfiguration> entry : newAttributes.entrySet())
-            model.put(attributeSupport, resourceName, entry.getKey(), entry.getValue());
+    private void enlargeModel(final ManagedResourceConnectorConsumer resource,
+                            final AttributesModel model) throws JMException{
+        final Map<String, AttributeConfiguration> attributes = resource.resourceConfiguration.getElements(AttributeConfiguration.class);
+        if(resource.isAttributesSupported() && attributes != null)
+        for (final Map.Entry<String, AttributeConfiguration> entry : attributes.entrySet())
+            model.addAttribute(resource.resourceName,
+                    entry.getKey(),
+                    entry.getValue().getAttributeName(),
+                    new AttributeConnector(resource.getWeakAttributeSupport(), entry.getValue()));
     }
 
     /**
@@ -1005,63 +986,43 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * </p>
      * @param resourceName The name of newly connected resource.
      * @param model The model to enlarge.
-     * @param <TAttributeView> Type of the attribute metadata.
-     * @throws javax.management.JMException Internal resouce connector error.
+     * @throws javax.management.JMException Internal resource connector error.
      */
-    protected final <TAttributeView> void enlargeModel(final String resourceName,
-                                                      final AbstractAttributesModel<TAttributeView> model) throws JMException {
+    protected final void enlargeModel(final String resourceName,
+                                                      final AttributesModel model) throws JMException {
         final ManagedResourceConnectorConsumer consumer = connectors.get(resourceName);
-        if (consumer != null) {
-            final Map<String, AttributeConfiguration> attributes = consumer.resourceConfiguration.getElements(AttributeConfiguration.class);
-            if (consumer.isAttributesSupported())
-                enlargeModel(consumer.resourceName,
-                        attributes != null ? attributes : Collections.<String, AttributeConfiguration>emptyMap(),
-                        model,
-                        consumer.getWeakAttributeSupport());
+        if (consumer != null)
+            enlargeModel(consumer, model);
+    }
+
+    private void enlargeModel(final ManagedResourceConnectorConsumer resource,
+                              final NotificationsModel model) throws JMException {
+        final Map<String, EventConfiguration> notifs = resource.resourceConfiguration.getElements(EventConfiguration.class);
+        if(notifs != null && resource.isNotificationsSupported()) {
+            for (final Map.Entry<String, EventConfiguration> entry : notifs.entrySet())
+                model.addNotification(resource.resourceName,
+                        entry.getKey(),
+                        entry.getValue().getCategory(),
+                        new NotificationConnector(resource.getWeakNotificationSupport(), entry.getValue()));
+            if(!model.isEmpty())
+                resource.getWeakNotificationSupport().addNotificationListener(model, null, null);
         }
     }
 
-    private <TNotificationView> void enlargeModel(
-            final String resourceName,
-            final Map<String, EventConfiguration> events,
-            final AbstractNotificationsModel<TNotificationView> model,
-            final NotificationSupport support) throws JMException {
-        for (final Map.Entry<String, EventConfiguration> entry : events.entrySet())
-            model.put(support, resourceName, entry.getKey(), entry.getValue());
-        support.addNotificationListener(model, model, null);
-    }
-
-    protected final <TNotificationView> void enlargeModel(final String resourceName,
-                                                          final AbstractNotificationsModel<TNotificationView> model) throws JMException {
+    protected final void enlargeModel(final String resourceName,
+                                      final NotificationsModel model) throws JMException {
         final ManagedResourceConnectorConsumer consumer = connectors.get(resourceName);
-        if (consumer != null) {
-            final Map<String, EventConfiguration> events = consumer.resourceConfiguration.getElements(EventConfiguration.class);
-            if (consumer.isNotificationsSupported() && events != null)
-                enlargeModel(consumer.resourceName,
-                        events,
-                        model,
-                        consumer.getWeakNotificationSupport());
-        }
-
+        if (consumer != null)
+            enlargeModel(consumer, model);
     }
 
-    private void clearModel(final String resourceName,
-                            final Set<String> disconnectedAttributes,
-                            final AbstractAttributesModel<?> model,
-                            final AttributeSupport attributeSupport) {
-        if (attributeSupport != null)
-            for (final String userDefinedName : disconnectedAttributes) {
-                final String attributeID = model.makeAttributeID(resourceName, userDefinedName);
-                if(model.containsKey(attributeID)) {
-                    model.remove(attributeID);
-                    if (!attributeSupport.disconnectAttribute(attributeID))
-                        try (final OSGiLoggingContext logger = getLoggingContext()) {
-                            logger.info(String.format("Unable to disconnect attribute %s of resource %s. Context: %s",
-                                    attributeID,
-                                    resourceName,
-                                    LogicalOperation.current()));
-                        }
-                }
+    private void clearModel(final ManagedResourceConnectorConsumer resource,
+                            final AttributesModel model){
+        final Map<String, AttributeConfiguration> disconnectedAttrs = resource.resourceConfiguration.getElements(AttributeConfiguration.class);
+        if(disconnectedAttrs != null)
+            for(final Map.Entry<String, AttributeConfiguration> entry: disconnectedAttrs.entrySet()){
+                final AttributeAccessor accessor = model.removeAttribute(resource.resourceName, entry.getKey(), entry.getValue().getAttributeName());
+                if(accessor != null) accessor.disconnect();
             }
     }
 
@@ -1071,31 +1032,32 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param model The model to update. Cannot be {@literal null}.
      * @see #resourceRemoved(String)
      */
-    protected final void clearModel(final String resourceName, final AbstractAttributesModel<?> model){
+    protected final void clearModel(final String resourceName, final AttributesModel model){
         final ManagedResourceConnectorConsumer consumer = connectors.get(resourceName);
-        if(consumer != null) {
-            final Map<String, AttributeConfiguration> disconnectedAttrs = consumer.resourceConfiguration.getElements(AttributeConfiguration.class);
-            clearModel(consumer.resourceName, disconnectedAttrs != null ? disconnectedAttrs.keySet() : Collections.<String>emptySet(), model, consumer.getWeakAttributeSupport());
-        }
+        if(consumer != null) clearModel(consumer, model);
     }
 
-    private void clearModel(final String resourceName,
-                            final Map<String, EventConfiguration> disconnectedEvents,
-                            final AbstractNotificationsModel<?> model,
-                            final NotificationSupport notificationSupport) {
-        if (notificationSupport != null) {
-            int disconnectedEventsCount = 0;
-            for (final String userDefinedName : disconnectedEvents.keySet())
-                if (model.remove(model.makeSubscriptionListID(resourceName, userDefinedName)) != null)
-                    disconnectedEventsCount += 1;
-            if (disconnectedEventsCount >= disconnectedEvents.size())
+    private void clearModel(final ManagedResourceConnectorConsumer resource,
+                            final NotificationsModel model){
+        final Map<String, EventConfiguration> disconnectedEvents = resource.resourceConfiguration.getElements(EventConfiguration.class);
+        if(disconnectedEvents != null && resource.isNotificationsSupported()){
+            final NotificationSupport notifs = resource.getWeakNotificationSupport();
+            for(final Map.Entry<String, EventConfiguration> entry: disconnectedEvents.entrySet()){
+                final MBeanNotificationInfo metadata = model.removeNotification(resource.resourceName,
+                        entry.getKey(),
+                        entry.getValue().getCategory());
+                if(metadata != null)
+                    for(final String notificationID: metadata.getNotifTypes())
+                        notifs.disableNotifications(notificationID);
+            }
+            if(model.isEmpty())
                 try {
-                    notificationSupport.removeNotificationListener(model);
+                    notifs.removeNotificationListener(model);
                 } catch (final ListenerNotFoundException e) {
                     try (final OSGiLoggingContext context = getLoggingContext()) {
                         context.log(Level.WARNING,
                                 String.format("Failed to disable notifications for %s resource. Context: %s",
-                                        resourceName,
+                                        resource.resourceName,
                                         LogicalOperation.current()), e);
                     }
                 }
@@ -1108,15 +1070,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param model The model to update. Cannot be {@literal null}.
      * @see #resourceRemoved(String)
      */
-    protected final void clearModel(final String resourceName, final AbstractNotificationsModel<?> model) {
+    protected final void clearModel(final String resourceName, final NotificationsModel model) {
         final ManagedResourceConnectorConsumer consumer = connectors.get(resourceName);
-        if (consumer != null) {
-            final Map<String, EventConfiguration> disconnectedEvents = consumer.resourceConfiguration.getElements(EventConfiguration.class);
-            clearModel(consumer.resourceName,
-                    disconnectedEvents != null ? disconnectedEvents : Collections.<String, EventConfiguration>emptyMap(),
-                    model,
-                    consumer.getWeakNotificationSupport());
-        }
+        if (consumer != null)
+            clearModel(consumer, model);
     }
 
     /**
@@ -1126,13 +1083,13 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *     In the default implementation this method throws internal exception
      *     derived from {@link java.lang.UnsupportedOperationException} indicating
      *     that the adapter should be restarted.
-     *     It is recommended to use {@link #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)}
-     *     and/or {@link #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)} to
+     *     It is recommended to use {@link #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AttributesModel)}
+     *     and or {@link #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.NotificationsModel)} to
      *     update your underlying models.
      * </p>
      * @param resourceName The name of the resource to be removed.
-     * @see #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
-     * @see #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractNotificationsModel)
+     * @see #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AttributesModel)
+     * @see #clearModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.NotificationsModel)
      */
     protected void resourceRemoved(final String resourceName){
         throw new UnsupportedResourceRemovedOperation(resourceName);
@@ -1147,7 +1104,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *     that the adapter should be restarted.
      * </p
      * @param resourceName The name of the resource to be added.
-     * @see #enlargeModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
+     * @see #enlargeModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AttributesModel)
      */
     protected void resourceAdded(final String resourceName){
         throw new UnsupportedResourceAddedOperation(resourceName);

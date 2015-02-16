@@ -15,17 +15,6 @@ import java.util.*;
 public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType>, Iterable<String> {
     final static int DEFAULT_CAPACITY = 10;
 
-    private final class CompositeTypeItem {
-        private final String description;
-        private final OpenType<?> type;
-
-        private CompositeTypeItem(final OpenType<?> type,
-                          final String description){
-            this.description = Objects.requireNonNull(description, "description is null.");
-            this.type = Objects.requireNonNull(type, "type is null.");
-        }
-    }
-
     private String typeName;
     private String typeDescription;
     private final LinkedHashMap<String, CompositeTypeItem> items;
@@ -119,8 +108,8 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
         final OpenType<?>[] itemTypes = new OpenType<?>[itemNames.length];
         for (int i = 0; i < itemNames.length; i++) {
             final CompositeTypeItem item = items.get(itemNames[i]);
-            itemDescriptions[i] = item.description;
-            itemTypes[i] = item.type;
+            itemDescriptions[i] = item.getDescription();
+            itemTypes[i] = item.getType();
         }
         return new CompositeType(typeName, typeDescription, itemNames, itemDescriptions, itemTypes);
     }

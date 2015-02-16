@@ -1,5 +1,7 @@
 package com.itworks.snamp.management.jmx;
 
+import com.itworks.snamp.jmx.OpenMBean;
+
 import javax.management.JMException;
 import javax.management.ObjectName;
 import java.util.Dictionary;

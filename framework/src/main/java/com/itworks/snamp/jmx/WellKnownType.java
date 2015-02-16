@@ -1,6 +1,7 @@
 package com.itworks.snamp.jmx;
 
 import com.google.common.base.Predicate;
+import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeToken;
 
 import javax.management.openmbean.*;
@@ -407,7 +408,9 @@ public enum  WellKnownType implements Serializable, Type {
      */
     public static WellKnownType getType(final Class<?> javaType) {
         if(javaType != null)
-            for(final WellKnownType type: values())
+            if(javaType.isPrimitive())
+                return getType(Primitives.wrap(javaType));
+            else for(final WellKnownType type: values())
                 if(javaType.isAssignableFrom(type.getType()))
                     return type;
         return null;
