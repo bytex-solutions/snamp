@@ -1,9 +1,11 @@
 package com.itworks.snamp.scripting;
 
+import com.google.common.collect.ForwardingObject;
+
 import javax.script.*;
 import java.io.Reader;
 
-public abstract class ForwardingScriptEngine implements ScriptEngine{
+public abstract class ForwardingScriptEngine extends ForwardingObject implements ScriptEngine{
 
     protected abstract ScriptEngine delegate();
 
@@ -13,22 +15,22 @@ public abstract class ForwardingScriptEngine implements ScriptEngine{
     }
 
     @Override
-    public Object eval(Reader reader, Bindings n) throws ScriptException {
+    public Object eval(final Reader reader, final Bindings n) throws ScriptException {
         return delegate().eval(reader, n);
     }
 
     @Override
-    public Object eval(Reader reader, ScriptContext context) throws ScriptException {
+    public Object eval(final Reader reader, final ScriptContext context) throws ScriptException {
         return delegate().eval(reader, context);
     }
 
     @Override
-    public Object eval(Reader reader) throws ScriptException {
+    public Object eval(final Reader reader) throws ScriptException {
         return delegate().eval(reader);
     }
 
     @Override
-    public Object eval(String script, Bindings n) throws ScriptException {
+    public Object eval(final String script, final Bindings n) throws ScriptException {
         return delegate().eval(script, n);
     }
 
@@ -61,12 +63,12 @@ public abstract class ForwardingScriptEngine implements ScriptEngine{
     public abstract ScriptEngineFactory getFactory();
 
     @Override
-    public void put(String key, Object value) {
+    public void put(final String key, final Object value) {
         delegate().put(key, value);
     }
 
     @Override
-    public void setBindings(Bindings bindings, int scope) {
+    public void setBindings(final Bindings bindings, final int scope) {
         delegate().setBindings(bindings, scope);
     }
 
