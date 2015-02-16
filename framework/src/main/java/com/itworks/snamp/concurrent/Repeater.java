@@ -38,7 +38,12 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         /**
          * The timer is stopped because it throws an exception.
          */
-        FAILED
+        FAILED,
+
+        /**
+         * The timer is closed.
+         */
+        CLOSED,
     }
 
     private volatile State state;
@@ -234,5 +239,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     @Override
     public final synchronized void close() {
         if(repeatThread != null) repeatThread.interrupt();
+        state = State.CLOSED;
+        repeatThread = null;
     }
 }
