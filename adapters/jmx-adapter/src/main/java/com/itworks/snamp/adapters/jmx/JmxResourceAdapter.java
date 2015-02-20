@@ -8,6 +8,7 @@ import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
 import com.itworks.snamp.connectors.notifications.NotificationListenerList;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
+import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.io.Buffers;
 import com.itworks.snamp.jmx.JMExceptionUtils;
@@ -40,46 +41,46 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
     private static final class ResourceNotificationManager extends NotificationListenerList implements NotificationSupport{
         private static final String ID_SEPARATOR = ".";
-        private final List<MBeanNotificationInfo> notifications;
+        private final KeyedObjects<String, MBeanNotificationInfo> notifications;
 
         private ResourceNotificationManager(){
-            this.notifications = new LinkedList<>();
+            this.notifications = createNotifs();
+        }
+
+        private static KeyedObjects<String, MBeanNotificationInfo> createNotifs(){
+            return new AbstractKeyedObjects<String, MBeanNotificationInfo>(10) {
+                @Override
+                public String getKey(final MBeanNotificationInfo item) {
+                    return item.getNotifTypes()[0];
+                }
+            };
         }
 
         @Override
         public MBeanNotificationInfo[] getNotificationInfo() {
-            return ArrayUtils.toArray(notifications, MBeanNotificationInfo.class);
+            return ArrayUtils.toArray(notifications.values(), MBeanNotificationInfo.class);
         }
 
-        private static String makeListID(final String userDefinedEventName,
+        private static String makeListID(final String adapterInstanceName,
                                                    final String category){
-            return category + ID_SEPARATOR + userDefinedEventName;
+            return category + ID_SEPARATOR + adapterInstanceName;
         }
 
-        private void addNotification(final String userDefinedEventName,
+        private void addNotification(final String adapterInstanceName,
                                      final String category,
                                      final NotificationConnector connector) throws JMException {
-            MBeanNotificationInfo metadata = connector.enable(makeListID(userDefinedEventName, category));
+            MBeanNotificationInfo metadata = connector.enable(makeListID(adapterInstanceName, category));
             //clone metadata because resource connector may return unserializable metadata
             metadata = new MBeanNotificationInfo(metadata.getNotifTypes(),
                     metadata.getName(),
                     metadata.getDescription(),
                     metadata.getDescriptor());
-            notifications.add(metadata);
+            notifications.put(metadata);
         }
 
-        private MBeanNotificationInfo removeNotification(final String userDefinedEventName,
+        private MBeanNotificationInfo removeNotification(final String adapterInstanceName,
                                         final String category){
-            final Iterator<MBeanNotificationInfo> notifications = this.notifications.iterator();
-            while (notifications.hasNext()){
-                final MBeanNotificationInfo metadata = notifications.next();
-                for(final String listID: metadata.getNotifTypes())
-                    if(Objects.equals(listID, makeListID(userDefinedEventName, category))){
-                        notifications.remove();
-                        return metadata;
-                    }
-            }
-            return null;
+            return notifications.remove(makeListID(adapterInstanceName, category));
         }
 
         private boolean hasNoNotifications(){
@@ -89,19 +90,20 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         @Override
         public void handleNotification(final Notification notification,
                                        final Object handback) {
-            for(final MBeanNotificationInfo metadata: notifications)
-                for(final String listID: metadata.getNotifTypes())
-                    if(Objects.equals(listID, notification.getType())){
-                        super.handleNotification(notification, handback);
-                        return;
-                    }
-
+            if(notifications.containsKey(notification.getType()))
+                super.handleNotification(notification, handback);
         }
     }
 
     private static final class JmxNotifications extends ThreadSafeObject implements NotificationsModel  {
         //key is a name of the resource, values - enabled notifications
-        private final Map<String, ResourceNotificationManager> notifications = new HashMap<>(10);
+        private final Map<String, ResourceNotificationManager> notifications;
+        private final String adapterInstanceName;
+
+        private JmxNotifications(final String adapterInstanceName){
+            this.adapterInstanceName = adapterInstanceName;
+            this.notifications = new HashMap<>(10);
+        }
 
         private ResourceNotificationManager getNotificationManager(final String resourceName){
             beginRead();
@@ -113,17 +115,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             }
         }
 
-        /**
-         * Registers a new notification in this model.
-         *
-         * @param resourceName         The name of the resource that supplies the specified notification.
-         * @param userDefinedEventName User-defined name of the notification specified in the configuration.
-         * @param category             The notification category.
-         * @param connector            The notification connector.
-         */
         @Override
         public void addNotification(final String resourceName,
-                                    final String userDefinedEventName,
                                     final String category,
                                     final NotificationConnector connector) {
             beginWrite();
@@ -132,33 +125,26 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
                 if(notifications.containsKey(resourceName))
                     manager = notifications.get(resourceName);
                 else notifications.put(resourceName, manager = new ResourceNotificationManager());
-                manager.addNotification(userDefinedEventName, category, connector);
+                manager.addNotification(adapterInstanceName, category, connector);
             }
             catch (final JMException e){
-                JmxAdapterHelpers.log(Level.SEVERE, String.format("Failed to enable notification %s", userDefinedEventName), e);
+                JmxAdapterHelpers.log(Level.SEVERE, String.format("Failed to enable notification %s:%s", resourceName, category), e);
             }
             finally {
                 endWrite();
             }
         }
 
-        /**
-         * Removes the notification from this model.
-         *
-         * @param resourceName         The name of the resource that supplies the specified notification.
-         * @param userDefinedEventName User-defined name of the notification specified in the configuration.
-         * @param category             The notification category.
-         * @return The enabled notification removed from this model.
-         */
         @Override
-        public MBeanNotificationInfo removeNotification(final String resourceName, final String userDefinedEventName, final String category) {
+        public MBeanNotificationInfo removeNotification(final String resourceName,
+                                                        final String category) {
             beginWrite();
             try{
                 final ResourceNotificationManager manager;
                 if(notifications.containsKey(resourceName))
                     manager = notifications.get(resourceName);
                 else return null;
-                final MBeanNotificationInfo metadata = manager.removeNotification(userDefinedEventName, category);
+                final MBeanNotificationInfo metadata = manager.removeNotification(adapterInstanceName, category);
                 if(manager.hasNoNotifications()){
                     manager.clear();
                     notifications.remove(resourceName);
@@ -477,9 +463,9 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             super(10);
         }
 
-        private static String makeAttributeID(final String userDefinedAttributeName,
+        private static String makeAttributeID(final String adapterInstanceName,
                                               final String attributeName) {
-            return userDefinedAttributeName + ID_SEPARATOR + attributeName;
+            return adapterInstanceName + ID_SEPARATOR + attributeName;
         }
 
         @Override
@@ -538,16 +524,16 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             return new ReadOnlyAttributeMapping(accessor);
         }
 
-        private void addAttribute(final String userDefinedAttributeName,
+        private void addAttribute(final String adapterInstanceName,
                                   final String attributeName,
                                   final AttributeConnector connector) throws JMException {
-            final AbstractAttributeMapping mapping = createMapping(connector.connect(makeAttributeID(userDefinedAttributeName, attributeName)));
+            final AbstractAttributeMapping mapping = createMapping(connector.connect(makeAttributeID(adapterInstanceName, attributeName)));
             put(mapping);
         }
 
-        private AttributeAccessor removeAttribute(final String userDefinedAttributeName,
+        private AttributeAccessor removeAttribute(final String adapterInstanceName,
                                                   final String attributeName){
-            final AbstractAttributeMapping mapping = remove(makeAttributeID(userDefinedAttributeName,
+            final AbstractAttributeMapping mapping = remove(makeAttributeID(adapterInstanceName,
                     attributeName));
             return mapping != null ? mapping.accessor : null;
         }
@@ -560,7 +546,13 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
     private static final class JmxAttributes extends ThreadSafeObject implements AttributesModel{
         //key is a name of the resource, values - connected attributes
-        private final Map<String, ResourceAttributeManager> attributes = new HashMap<>(10);
+        private final Map<String, ResourceAttributeManager> attributes;
+        private final String adapterInstanceName;
+
+        private JmxAttributes(final String adapterInstanceName){
+            this.adapterInstanceName = adapterInstanceName;
+            this.attributes = new HashMap<>(10);
+        }
 
         private AttributeSupport getAttributeManager(final String resourceName) {
             beginRead();
@@ -573,38 +565,33 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public void addAttribute(final String resourceName, final String userDefinedAttributeName, final String attributeName, final AttributeConnector connector) {
+        public void addAttribute(final String resourceName,
+                                 final String attributeName,
+                                 final AttributeConnector connector) {
             beginWrite();
             try{
                 final ResourceAttributeManager manager;
                 if(attributes.containsKey(resourceName))
                     manager = attributes.get(resourceName);
                 else attributes.put(resourceName, manager = new ResourceAttributeManager());
-                manager.addAttribute(userDefinedAttributeName, attributeName, connector);
+                manager.addAttribute(adapterInstanceName, attributeName, connector);
             } catch (final JMException e) {
-                JmxAdapterHelpers.log(Level.SEVERE, String.format("Unable to connect attribute %s", userDefinedAttributeName), e);
+                JmxAdapterHelpers.log(Level.SEVERE, String.format("Unable to connect attribute %s:%s", resourceName, attributeName), e);
             } finally {
                 endWrite();
             }
         }
 
-        /**
-         * Removes the attribute from this model.
-         *
-         * @param resourceName             The name of the resource that supplies the specified attribute.
-         * @param userDefinedAttributeName User-defined name of the attribute in the configuration.
-         * @param attributeName            The name of the attribute as it is exposed by resource connector.
-         * @return The connected attribute removed from this accessor.
-         */
         @Override
-        public AttributeAccessor removeAttribute(final String resourceName, final String userDefinedAttributeName, final String attributeName) {
+        public AttributeAccessor removeAttribute(final String resourceName,
+                                                 final String attributeName) {
             beginWrite();
             try{
                 final ResourceAttributeManager manager;
                 if(attributes.containsKey(resourceName))
                     manager = attributes.get(resourceName);
                 else return null;
-                final AttributeAccessor accessor = manager.removeAttribute(userDefinedAttributeName, attributeName);
+                final AttributeAccessor accessor = manager.removeAttribute(adapterInstanceName, attributeName);
                 if(manager.isEmpty())
                     attributes.remove(resourceName);
                 return accessor;
@@ -640,9 +627,9 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
     JmxResourceAdapter(final String adapterInstanceName) {
         super(adapterInstanceName);
-        this.attributes = new JmxAttributes();
+        this.attributes = new JmxAttributes(adapterInstanceName);
         this.exposedBeans = new HashMap<>(10);
-        this.notifications = new JmxNotifications();
+        this.notifications = new JmxNotifications(adapterInstanceName);
         this.usePlatformMBean = false;
     }
 

@@ -16,6 +16,7 @@ import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
+import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
@@ -139,11 +140,19 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
 
         /**
-         * Gets type of the attribute.
-         * @return The type of the attribute.
+         * Gets type of this attribute.
+         * @return The type of this attribute.
          */
         public WellKnownType getType(){
             return CustomAttributeInfo.getType(metadata);
+        }
+
+        /**
+         * Gets JMX Open Type of this attribute.
+         * @return The type of this attribute.
+         */
+        public OpenType<?> getOpenType(){
+            return AttributeDescriptor.getOpenType(metadata);
         }
 
         /**
@@ -432,24 +441,20 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         /**
          * Registers a new notification in this model.
          * @param resourceName The name of the resource that supplies the specified notification.
-         * @param userDefinedEventName User-defined name of the notification specified in the configuration.
          * @param category The notification category.
          * @param connector The notification connector.
          */
         void addNotification(final String resourceName,
-                             final String userDefinedEventName,
                              final String category,
                              final NotificationConnector connector);
 
         /**
          * Removes the notification from this model.
          * @param resourceName The name of the resource that supplies the specified notification.
-         * @param userDefinedEventName User-defined name of the notification specified in the configuration.
          * @param category The notification category.
          * @return The enabled notification removed from this model.
          */
         MBeanNotificationInfo removeNotification(final String resourceName,
-                                                 final String userDefinedEventName,
                                                  final String category);
 
         /**
@@ -478,25 +483,21 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          *     method and save the connected attribute into the internal model structure.
          * </p>
          * @param resourceName The name of the resource that supplies the specified attribute.
-         * @param userDefinedAttributeName User-defined name of the attribute in the configuration.
          * @param attributeName The name of the attribute as it is exposed by resource connector.
          * @param connector The attribute connector.
          */
         void addAttribute(final String resourceName,
-                          final String userDefinedAttributeName,
                           final String attributeName,
                           final AttributeConnector connector);
 
         /**
          * Removes the attribute from this model.
          * @param resourceName The name of the resource that supplies the specified attribute.
-         * @param userDefinedAttributeName User-defined name of the attribute in the configuration.
          * @param attributeName The name of the attribute as it is exposed by resource connector.
          * @return The connected attribute removed from this accessor.
          */
         AttributeAccessor removeAttribute(final String resourceName,
-                             final String userDefinedAttributeName,
-                             final String attributeName);
+                                        final String attributeName);
 
         /**
          * Removes all attributes from this model.
@@ -974,7 +975,6 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         if(resource.isAttributesSupported() && attributes != null)
         for (final Map.Entry<String, AttributeConfiguration> entry : attributes.entrySet())
             model.addAttribute(resource.resourceName,
-                    entry.getKey(),
                     entry.getValue().getAttributeName(),
                     new AttributeConnector(resource.getWeakAttributeSupport(), entry.getValue()));
     }
@@ -1001,7 +1001,6 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         if(notifs != null && resource.isNotificationsSupported()) {
             for (final Map.Entry<String, EventConfiguration> entry : notifs.entrySet())
                 model.addNotification(resource.resourceName,
-                        entry.getKey(),
                         entry.getValue().getCategory(),
                         new NotificationConnector(resource.getWeakNotificationSupport(), entry.getValue()));
             if(!model.isEmpty())
@@ -1021,7 +1020,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         final Map<String, AttributeConfiguration> disconnectedAttrs = resource.resourceConfiguration.getElements(AttributeConfiguration.class);
         if(disconnectedAttrs != null)
             for(final Map.Entry<String, AttributeConfiguration> entry: disconnectedAttrs.entrySet()){
-                final AttributeAccessor accessor = model.removeAttribute(resource.resourceName, entry.getKey(), entry.getValue().getAttributeName());
+                final AttributeAccessor accessor = model.removeAttribute(resource.resourceName, entry.getValue().getAttributeName());
                 if(accessor != null) accessor.disconnect();
             }
     }
@@ -1044,7 +1043,6 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             final NotificationSupport notifs = resource.getWeakNotificationSupport();
             for(final Map.Entry<String, EventConfiguration> entry: disconnectedEvents.entrySet()){
                 final MBeanNotificationInfo metadata = model.removeNotification(resource.resourceName,
-                        entry.getKey(),
                         entry.getValue().getCategory());
                 if(metadata != null)
                     for(final String notificationID: metadata.getNotifTypes())

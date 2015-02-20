@@ -19,7 +19,7 @@
   </dependencies>
   <modules>
       <module>snmp-adapter</module>
-      <module>rest-adapter</module>
+      <module>http-adapter</module>
       <module>jmx-adapter</module>
       <module>ssh-adapter</module>
   </modules>

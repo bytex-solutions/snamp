@@ -1,7 +1,9 @@
 package com.itworks.snamp.jmx;
 
 import com.google.common.base.Predicate;
-import com.google.common.primitives.Primitives;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import com.google.common.reflect.TypeToken;
 
 import javax.management.openmbean.*;
@@ -242,6 +244,40 @@ public enum  WellKnownType implements Serializable, Type {
     TABLE(TabularData.class),
     ;
 
+    private static final Cache<String, WellKnownType> classNameCache =
+            CacheBuilder.newBuilder().build(new CacheLoader<String, WellKnownType>() {
+                @Override
+                public WellKnownType load(@SuppressWarnings("NullableProblems") final String className) throws InvalidKeyException {
+                    for (final WellKnownType type : values())
+                        if (Objects.equals(className, type.getType().getName()))
+                            return type;
+                    throw new InvalidKeyException("Well-known type is not defined for class " + className);
+                }
+            });
+
+    private static final Cache<TypeToken<?>, WellKnownType> typeTokenCache =
+            CacheBuilder.newBuilder().build(new CacheLoader<TypeToken<?>, WellKnownType>() {
+                @Override
+                public WellKnownType load(@SuppressWarnings("NullableProblems") final TypeToken<?> javaType) throws InvalidKeyException {
+                    if(javaType.isPrimitive())
+                        return load(javaType.wrap());
+                    else for(final WellKnownType type: values())
+                        if(javaType.isAssignableFrom(type.getType()))
+                            return type;
+                    throw new InvalidKeyException("Well-known type is not defined for class " + javaType);
+                }
+            });
+
+    private static final Cache<OpenType<?>, WellKnownType> openTypeCache =
+            CacheBuilder.newBuilder().build(new CacheLoader<OpenType<?>, WellKnownType>() {
+                @Override
+                public WellKnownType load(@SuppressWarnings("NullableProblems") final OpenType<?> openType) throws InvalidKeyException {
+                    for (final WellKnownType type : values())
+                        if (Objects.equals(openType, type.getOpenType()))
+                            return type;
+                    throw new InvalidKeyException("Well-known type is not defined for class " + openType);
+                }
+            });
     private final OpenType<?> openType;
     private final Class<?> javaType;
 
@@ -369,7 +405,7 @@ public enum  WellKnownType implements Serializable, Type {
      *      otherwise, {@literal false}.
      */
     public boolean isInstance(final Object value){
-        return javaType.isInstance(value);
+        return openType != null ? openType.isValue(value) : javaType.isInstance(value);
     }
 
     /**
@@ -388,17 +424,15 @@ public enum  WellKnownType implements Serializable, Type {
         return TypeToken.of(getType());
     }
 
+
     /**
      * Detects well-known SNAP type using Java class name.
      * @param className The name of the Java class.
      * @return Inferred well-known SNAMP type; or {@literal null}, if type cannot be inferred.
      * @see Class#getName()
      */
-    public static WellKnownType getType(final String className){
-        for(final WellKnownType type: values())
-            if(Objects.equals(className, type.getType().getName()))
-                return type;
-        return null;
+    public static WellKnownType getType(final String className) {
+        return classNameCache.getIfPresent(className);
     }
 
     /**
@@ -407,13 +441,7 @@ public enum  WellKnownType implements Serializable, Type {
      * @return Inferred well-known SNAMP type; or {@literal null}, if type cannot be inferred.
      */
     public static WellKnownType getType(final Class<?> javaType) {
-        if(javaType != null)
-            if(javaType.isPrimitive())
-                return getType(Primitives.wrap(javaType));
-            else for(final WellKnownType type: values())
-                if(javaType.isAssignableFrom(type.getType()))
-                    return type;
-        return null;
+        return javaType != null ? getType(TypeToken.of(javaType)) : null;
     }
 
     /**
@@ -426,10 +454,7 @@ public enum  WellKnownType implements Serializable, Type {
             return DICTIONARY;
         else if (openType instanceof TabularType)
             return TABLE;
-        else for (final WellKnownType type : values())
-                if (Objects.equals(openType, type.getOpenType()))
-                    return type;
-        return null;
+        else return openTypeCache.getIfPresent(openType);
     }
 
     /**
@@ -451,11 +476,7 @@ public enum  WellKnownType implements Serializable, Type {
      * @return Inferred well-known SNAMP type; or {@literal null} if type cannot be detected.
      */
     public static WellKnownType getType(final TypeToken<?> token){
-        if(token != null)
-            for(final WellKnownType type: values())
-                if(token.isAssignableFrom(type.getType()))
-                    return type;
-        return null;
+        return token != null ? typeTokenCache.getIfPresent(token) : null;
     }
 
     private static EnumSet<WellKnownType> filterTypes(final Predicate<WellKnownType> filter){
