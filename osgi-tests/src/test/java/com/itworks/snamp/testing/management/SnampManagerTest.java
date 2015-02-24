@@ -45,6 +45,7 @@ import java.util.concurrent.TimeoutException;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
+ * The type Snamp manager test.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -55,10 +56,23 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
 
+    /**
+     * Instantiates a new Snamp manager test.
+     *
+     * @throws MalformedObjectNameException the malformed object name exception
+     */
     public SnampManagerTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
+    /**
+     * Jmx monitoring test.
+     *
+     * @throws IOException the iO exception
+     * @throws JMException the jM exception
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
     @Test
     public void jmxMonitoringTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))){
@@ -115,6 +129,14 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         }
     }
 
+    /**
+     * License test.
+     *
+     * @throws IOException the iO exception
+     * @throws JMException the jM exception
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
     @Test
     public void licenseTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
@@ -126,6 +148,14 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         }
     }
 
+    /**
+     * Configuration get test.
+     *
+     * @throws IOException the iO exception
+     * @throws JMException the jM exception
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
     @Test
     public void configurationGetTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
@@ -339,6 +369,11 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
 
+    /**
+     * Configuration set test.
+     *
+     * @throws Exception the exception
+     */
     @Test
     public void configurationSetTest() throws Exception {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
@@ -408,11 +443,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
      * Adapter snmp runned.
      *
      * @throws IOException the iO exception
-     * @throws MalformedObjectNameException the malformed object name exception
-     * @throws AttributeNotFoundException the attribute not found exception
-     * @throws MBeanException the m bean exception
-     * @throws ReflectionException the reflection exception
-     * @throws InstanceNotFoundException the instance not found exception
      */
     @Test
     public void adapterSnmpRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
@@ -441,13 +471,40 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     /**
+     * Connector jmx runned.
+     *
+     * @throws IOException the iO exception
+     */
+    @Test
+    public void connectorJmxRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+
+            // checking if the we have SNMP adapter installed
+            Object installedConnectors = connection.getAttribute(commonsObj, "InstalledConnectors");
+            assertNotNull(installedConnectors);
+            assertTrue(installedConnectors instanceof String[]);
+            assertTrue(new ArrayList<>(Arrays.asList((String[]) installedConnectors)).contains("jmx"));
+
+            // getting the adapter info
+            Object snmpConnectorInfo = connection.invoke(commonsObj,
+                    "getConnectorInfo",
+                    new Object[]{"jmx", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertNotNull(snmpConnectorInfo);
+            assertTrue(snmpConnectorInfo instanceof CompositeData);
+            assertTrue(((CompositeData) snmpConnectorInfo).containsKey("State"));
+            assertNotNull(((CompositeData) snmpConnectorInfo).get("State"));
+            assertTrue(((CompositeData) snmpConnectorInfo).get("State") instanceof Integer);
+            assertEquals(Bundle.ACTIVE, ((CompositeData) snmpConnectorInfo).get("State"));
+        }
+    }
+
+    /**
      * Adapter management start stop test.
      *
      * @throws IOException the iO exception
-     * @throws MalformedObjectNameException the malformed object name exception
-     * @throws MBeanException the m bean exception
-     * @throws InstanceNotFoundException the instance not found exception
-     * @throws ReflectionException the reflection exception
      */
     @Test
     public void adapterManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
@@ -494,11 +551,63 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     /**
-     * @todo - low priority task - create a right test for this operation if possible
-     * @throws IOException
-     * @throws JMException
-     * @throws InterruptedException
-     * @throws TimeoutException
+     * Connectors management test.
+     *
+     * @throws IOException the iO exception
+     * @throws MalformedObjectNameException the malformed object name exception
+     * @throws MBeanException the m bean exception
+     * @throws InstanceNotFoundException the instance not found exception
+     * @throws ReflectionException the reflection exception
+     * @throws AttributeNotFoundException the attribute not found exception
+     */
+    @Test
+    public void connectorsManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+
+            // checking if the we have JMX connector installed
+            Object installedConnectors = connection.getAttribute(commonsObj, "InstalledConnectors");
+            assertNotNull(installedConnectors);
+            assertTrue(installedConnectors instanceof String[]);
+            assertTrue(new ArrayList<>(Arrays.asList((String[]) installedConnectors)).contains("jmx"));
+
+            // check if connector is alive
+            connectorJmxRunned();
+
+            // stopping the adapter
+            connection.invoke(commonsObj,
+                    "stopConnector",
+                    new Object[]{"jmx"},
+                    new String[]{String.class.getName()});
+
+            // check if the connector has appropriate status after stopping
+            final Object snmpConnectorInfo = connection.invoke(commonsObj,
+                    "getConnectorInfo",
+                    new Object[]{"jmx", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertNotNull(snmpConnectorInfo);
+            assertTrue(snmpConnectorInfo instanceof CompositeData);
+            assertTrue(((CompositeData) snmpConnectorInfo).containsKey("State"));
+            assertNotNull(((CompositeData) snmpConnectorInfo).get("State"));
+            assertTrue(((CompositeData) snmpConnectorInfo).get("State") instanceof Integer);
+            assertEquals(Bundle.RESOLVED, ((CompositeData) snmpConnectorInfo).get("State"));
+
+            // starting the connector
+            connection.invoke(commonsObj,
+                    "startConnector",
+                    new Object[]{"jmx"},
+                    new String[]{String.class.getName()});
+
+            // check if connector is ok after start
+            connectorJmxRunned();
+        }
+    }
+
+    /**
+     * Restart test.
+     *
+     * @throws IOException the iO exception
      */
     @Ignore
     @Test
@@ -511,6 +620,14 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         }
     }
 
+    /**
+     * Gets connector configuration schema test.
+     *
+     * @throws IOException the iO exception
+     * @throws JMException the jM exception
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
     @Test
     public void getConnectorConfigurationSchemaTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
@@ -524,6 +641,14 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         }
     }
 
+    /**
+     * Gets adapter configuration schema test.
+     *
+     * @throws IOException the iO exception
+     * @throws JMException the jM exception
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
     @Test
     public void getAdapterConfigurationSchemaTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
@@ -534,90 +659,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
                     new Object[]{"snmp", ""},
                     new String[]{String.class.getName(), String.class.getName()});
             assertTrue(result instanceof CompositeData);
-        }
-    }
-
-    private void testSnmpAdapterDescriptor(final SnampComponentDescriptor descriptor){
-        assertEquals(new Version(1, 0, 0), descriptor.getVersion());
-        assertFalse(descriptor.getDescription(Locale.getDefault()).isEmpty());
-        descriptor.invokeSupportService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
-            @Override
-            public void accept(final LicensingDescriptionService input) {
-                assertFalse(input.getLimitations().isEmpty());
-            }
-        });
-        descriptor.invokeSupportService(ConfigurationEntityDescriptionProvider.class, new SafeConsumer<ConfigurationEntityDescriptionProvider>() {
-            @Override
-            public void accept(final ConfigurationEntityDescriptionProvider input) {
-                assertNotNull(input.getDescription(AgentConfiguration.ResourceAdapterConfiguration.class));
-            }
-        });
-    }
-
-    @Test
-    public void adaptersManagementTest(){
-        final ServiceReference<SnampManager> managerRef = getTestBundleContext().getServiceReference(SnampManager.class);
-        assertNotNull(managerRef);
-        try{
-            final SnampManager manager = getTestBundleContext().getService(managerRef);
-            final Collection<SnampComponentDescriptor> adapters = manager.getInstalledResourceAdapters();
-            assertFalse(adapters.isEmpty());
-            boolean snmpAdapterDiscovered = false;
-            for(final SnampComponentDescriptor adapter: adapters)
-                if(Objects.equals("SNMP Resource Adapter", adapter.getName(null))){
-                    testSnmpAdapterDescriptor(adapter);
-                    snmpAdapterDiscovered = true;
-                }
-            assertTrue(snmpAdapterDiscovered);
-        }
-        finally {
-            getTestBundleContext().ungetService(managerRef);
-        }
-    }
-
-    private static void testJmxConnectorDescriptor(final SnampComponentDescriptor descriptor){
-        assertEquals(new Version(1, 0, 0), descriptor.getVersion());
-        assertFalse(descriptor.getDescription(Locale.getDefault()).isEmpty());
-        descriptor.invokeSupportService(DiscoveryService.class, new SafeConsumer<DiscoveryService>() {
-            @Override
-            public void accept(final DiscoveryService input) {
-                assertNotNull(input);
-            }
-        });
-        descriptor.invokeSupportService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
-            @Override
-            public void accept(final LicensingDescriptionService input) {
-                assertNotNull(input);
-            }
-        });
-        descriptor.invokeSupportService(Maintainable.class, new SafeConsumer<Maintainable>() {
-            @Override
-            public void accept(final Maintainable input) {
-                assertNotNull(input);
-            }
-        });
-    }
-
-    @Test
-    public void connectorsManagementTest(){
-        final ServiceReference<SnampManager> managerRef = getTestBundleContext().getServiceReference(SnampManager.class);
-        assertNotNull(managerRef);
-        try{
-            final SnampManager manager = getTestBundleContext().getService(managerRef);
-            final Collection<SnampComponentDescriptor> connectors = manager.getInstalledResourceConnectors();
-            assertFalse(connectors.isEmpty());
-            boolean jmxConnectorDiscovered = false;
-            for(final SnampComponentDescriptor descriptor: connectors){
-                assertEquals(Bundle.ACTIVE, descriptor.getState());
-                if(Objects.equals(descriptor.getName(null), "JMX Connector")){
-                    jmxConnectorDiscovered = true;
-                    testJmxConnectorDescriptor(descriptor);
-                }
-            }
-            assertTrue(jmxConnectorDiscovered);
-        }
-        finally {
-            getTestBundleContext().ungetService(managerRef);
         }
     }
 
