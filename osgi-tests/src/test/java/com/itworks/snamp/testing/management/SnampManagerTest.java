@@ -437,29 +437,10 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
             final Object result = connection.invoke(commonsObj,
-                    "getAdapterConfigurationSchemaOperation",
+                    "getAdapterConfigurationSchema",
                     new Object[]{"snmp", ""},
                     new String[]{String.class.getName(), String.class.getName()});
             assertTrue(result instanceof CompositeData);
-        }
-    }
-
-    @Test
-    public void additionalComponentsTest(){
-        final ServiceReference<SnampManager> managerRef = getTestBundleContext().getServiceReference(SnampManager.class);
-        assertNotNull(managerRef);
-        try{
-            final SnampManager manager = getTestBundleContext().getService(managerRef);
-            final Collection<SnampComponentDescriptor> components = manager.getInstalledComponents();
-            assertFalse(components.isEmpty());
-            for(final SnampComponentDescriptor c: components){
-                assertFalse(c.getName(null).isEmpty());
-                assertFalse(c.getDescription(null).isEmpty());
-                assertNotNull(c.getVersion());
-            }
-        }
-        finally {
-            getTestBundleContext().ungetService(managerRef);
         }
     }
 
