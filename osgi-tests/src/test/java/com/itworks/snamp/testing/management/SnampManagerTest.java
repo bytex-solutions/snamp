@@ -19,6 +19,7 @@ import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
+import jersey.repackaged.com.google.common.collect.Lists;
 import org.junit.ComparisonFailure;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -32,7 +33,10 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -397,6 +401,95 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
             // check if current configuration is ok
             configurationGetTest();
+        }
+    }
+
+    /**
+     * Adapter snmp runned.
+     *
+     * @throws IOException the iO exception
+     * @throws MalformedObjectNameException the malformed object name exception
+     * @throws AttributeNotFoundException the attribute not found exception
+     * @throws MBeanException the m bean exception
+     * @throws ReflectionException the reflection exception
+     * @throws InstanceNotFoundException the instance not found exception
+     */
+    @Test
+    public void adapterSnmpRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+
+            // checking if the we have SNMP adapter installed
+            Object installedAdapters = connection.getAttribute(commonsObj, "InstalledAdapters");
+            assertNotNull(installedAdapters);
+            assertTrue(installedAdapters instanceof String[]);
+            assertTrue(new ArrayList<>(Arrays.asList((String[]) installedAdapters)).contains("snmp"));
+
+            // getting the adapter info
+            Object snmpAdapterInfo = connection.invoke(commonsObj,
+                    "getAdapterInfo",
+                    new Object[]{"snmp", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertNotNull(snmpAdapterInfo);
+            assertTrue(snmpAdapterInfo instanceof CompositeData);
+            assertTrue(((CompositeData) snmpAdapterInfo).containsKey("State"));
+            assertNotNull(((CompositeData) snmpAdapterInfo).get("State"));
+            assertTrue(((CompositeData) snmpAdapterInfo).get("State") instanceof Integer);
+            assertEquals(Bundle.ACTIVE, ((CompositeData) snmpAdapterInfo).get("State"));
+        }
+    }
+
+    /**
+     * Adapter management start stop test.
+     *
+     * @throws IOException the iO exception
+     * @throws MalformedObjectNameException the malformed object name exception
+     * @throws MBeanException the m bean exception
+     * @throws InstanceNotFoundException the instance not found exception
+     * @throws ReflectionException the reflection exception
+     */
+    @Test
+    public void adapterManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+
+            // checking if the we have SNMP adapter installed
+            Object installedAdapters = connection.getAttribute(commonsObj, "InstalledAdapters");
+            assertNotNull(installedAdapters);
+            assertTrue(installedAdapters instanceof String[]);
+            assertTrue(new ArrayList<>(Arrays.asList((String[]) installedAdapters)).contains("snmp"));
+
+            // check if adapter is alive
+            adapterSnmpRunned();
+
+            // stopping the adapter
+            connection.invoke(commonsObj,
+                    "stopAdapter",
+                    new Object[]{"snmp"},
+                    new String[]{String.class.getName()});
+
+            // check if the adapter has appropriate status after stopping
+            final Object snmpAdapterInfo = connection.invoke(commonsObj,
+                    "getAdapterInfo",
+                    new Object[]{"snmp", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertNotNull(snmpAdapterInfo);
+            assertTrue(snmpAdapterInfo instanceof CompositeData);
+            assertTrue(((CompositeData) snmpAdapterInfo).containsKey("State"));
+            assertNotNull(((CompositeData) snmpAdapterInfo).get("State"));
+            assertTrue(((CompositeData) snmpAdapterInfo).get("State") instanceof Integer);
+            assertEquals(Bundle.RESOLVED, ((CompositeData) snmpAdapterInfo).get("State"));
+
+            // starting the adapter
+            connection.invoke(commonsObj,
+                    "startAdapter",
+                    new Object[]{"snmp"},
+                    new String[]{String.class.getName()});
+
+            // check if adapter is ok after start
+            adapterSnmpRunned();
         }
     }
 

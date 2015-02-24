@@ -17,7 +17,7 @@ import java.util.Map;
  * @date 09.02.2015
  */
 final class GetAdapterInfoOperation extends AbstractComponentInfo {
-    private static final String NAME = "getConnectorInfo";
+    private static final String NAME = "getAdapterInfo";
 
     private static final OpenMBeanParameterInfo ADAPTER_NAME = new OpenMBeanParameterInfoSupport(
             "adapterName",
