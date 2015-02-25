@@ -42,6 +42,7 @@
     <module>adapters</module>
     <module>license-generator</module>
     <module>infrastructure/licensing</module>
+    <module>infrastructure/hawtio-console</module>
     <module>third-party-libs/bundlized/snmp4j</module>
     <module>third-party-libs/bundlized/sshj</module>
     <module>infrastructure/management</module>

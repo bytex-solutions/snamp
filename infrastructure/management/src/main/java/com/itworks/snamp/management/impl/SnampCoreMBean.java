@@ -16,7 +16,6 @@ import java.util.logging.Logger;
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
- * @TODO for temni: move from the webconsole all the methods related to attrubites
  */
 final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMBean {
     public static final String OBJECT_NAME = "com.itworks.snamp.management:type=SnampCore";
