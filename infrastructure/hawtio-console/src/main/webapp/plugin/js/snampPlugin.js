@@ -13,7 +13,7 @@ var SnampShell = (function(SnampShell) {
      *
      * The name of this plugin
      */
-    SnampShell.pluginName = 'groovy_shell_plugin';
+    SnampShell.pluginName = 'snamp_shell_plugin';
 
     /**
      * @property log
@@ -42,7 +42,7 @@ var SnampShell = (function(SnampShell) {
 
 
     /**
-     * The mbean for the groovy shell
+     * The mbean for OpenMBean Snamp Core
      */
     SnampShell.mbean = "com.itworks.snamp.management:type=SnampCore";
 

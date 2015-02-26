@@ -5,6 +5,7 @@
         <details>Basic set of features required to execute SNAMP platform</details>
         <!-- Third-party features -->
         <feature>eventadmin</feature>
+        <feature>war</feature>
         <feature>hawtio-offline</feature>
         <bundle start="true">mvn:io.hawt/hawtio-plugin-mbean/1.4.47</bundle>
 
@@ -12,7 +13,7 @@
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
         <!--SNAMP dependencies-->
         <bundle>mvn:com.itworks.snamp/framework/1.0.0</bundle>
-        <bundle start="true">mvn:com.itworks.snamp/hawtio-console/1.0.0</bundle>
+        <bundle start="true">mvn:com.itworks.snamp/hawtio-console/1.0.0/war</bundle>
         <bundle start="true">mvn:com.itworks.snamp/management/1.0.0</bundle>
         <bundle start="true">mvn:com.itworks.snamp/jaas-config/1.0.0</bundle>
     </feature>
