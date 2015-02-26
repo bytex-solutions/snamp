@@ -1,11 +1,11 @@
 /**
- * @module GroovyShell
- * @mail GroovyShell
+ * @module SnampShell
+ * @mail SnampShell
  *
- * The main entry point for the GroovyShell module
+ * The main entry point for the SnampShell module
  *
  */
-var GroovyShell = (function(GroovyShell) {
+var SnampShell = (function(SnampShell) {
 
     /**
      * @property pluginName
@@ -13,7 +13,7 @@ var GroovyShell = (function(GroovyShell) {
      *
      * The name of this plugin
      */
-    GroovyShell.pluginName = 'groovy_shell_plugin';
+    SnampShell.pluginName = 'groovy_shell_plugin';
 
     /**
      * @property log
@@ -21,7 +21,7 @@ var GroovyShell = (function(GroovyShell) {
      *
      * This plugin's logger instance
      */
-    GroovyShell.log = Logger.get('GroovyShell');
+    SnampShell.log = Logger.get('SnampShell');
 
     /**
      * @property contextPath
@@ -30,7 +30,7 @@ var GroovyShell = (function(GroovyShell) {
      * The top level path of this plugin on the server
      *
      */
-    GroovyShell.contextPath = "/groovy-shell-plugin/";
+    SnampShell.contextPath = "/snamp-shell-plugin/";
 
     /**
      * @property templatePath
@@ -38,13 +38,13 @@ var GroovyShell = (function(GroovyShell) {
      *
      * The path to this plugin's partials
      */
-    GroovyShell.templatePath = GroovyShell.contextPath + "plugin/html/";
+    SnampShell.templatePath = SnampShell.contextPath + "plugin/html/";
 
 
     /**
      * The mbean for the groovy shell
      */
-    GroovyShell.mbean = "hawtio:type=GroovyShell";
+    SnampShell.mbean = "com.itworks.snamp.management:type=SnampCore";
 
     /**
      * @property module
@@ -55,7 +55,7 @@ var GroovyShell = (function(GroovyShell) {
      * workspace, viewRegistry and layoutFull used by the
      * run function
      */
-    GroovyShell.module = angular.module('groovy_shell_plugin', ['hawtioCore'])
+    SnampShell.module = angular.module('snamp_shell_plugin', ['hawtioCore'])
         .config(function($routeProvider) {
 
             /**
@@ -65,8 +65,8 @@ var GroovyShell = (function(GroovyShell) {
              * routeProvider has been configured with.
              */
             $routeProvider.
-                when('/groovy_shell_plugin', {
-                    templateUrl: GroovyShell.templatePath + 'shell.html'
+                when('/snamp_shell_plugin', {
+                    templateUrl: SnampShell.templatePath + 'snamp.html'
                 });
         });
 
@@ -84,18 +84,16 @@ var GroovyShell = (function(GroovyShell) {
      *     plugin.  This is just a matter of adding to the workspace's
      *     topLevelTabs array.
      */
-    GroovyShell.module.run(function(workspace, viewRegistry, helpRegistry, layoutFull) {
+    SnampShell.module.run(function(workspace, viewRegistry, helpRegistry, layoutFull) {
 
-        GroovyShell.log.info(GroovyShell.pluginName, " loaded");
+        SnampShell.log.info(SnampShell.pluginName, " loaded");
 
-        Core.addCSS(GroovyShell.contextPath + "plugin/css/groovy.css");
+        Core.addCSS(SnampShell.contextPath + "plugin/css/snamp.css");
 
         // tell the app to use the full layout, also could use layoutTree
         // to get the JMX tree or provide a URL to a custom layout
-        viewRegistry["groovy_shell_plugin"] = layoutFull;
+        viewRegistry["snamp_shell_plugin"] = layoutFull;
 
-        // add the plugin help to the help registry
-        helpRegistry.addUserDoc('Groovy-Shell', GroovyShell.contextPath + '/plugin/doc/help.md');
 
         /* Set up top-level link to our plugin.  Requires an object
          with the following attributes:
@@ -120,61 +118,56 @@ var GroovyShell = (function(GroovyShell) {
          route.
          */
         workspace.topLevelTabs.push({
-            id: "groovy-shell",
-            content: "Groovy Shell",
-            title: "GroovyShell plugin loaded dynamically",
+            id: "snamp-shell",
+            content: "Snamp Shell",
+            title: "SnampShell plugin loaded dynamically",
             isValid: function(workspace) { return true; },
-            href: function() { return "#/groovy_shell_plugin"; },
-            isActive: function(workspace) { return workspace.isLinkActive("groovy_shell_plugin"); }
+            href: function() { return "#/snamp_shell_plugin"; },
+            isActive: function(workspace) { return workspace.isLinkActive("snamp_shell_plugin"); }
         });
 
     });
 
     /**
-     * @function GroovyController
+     * @function SnampController
      * @param $scope
      * @param jolokia
      *
      * The controller for shell.html, only requires the jolokia
      * service from hawtioCore
      */
-    GroovyShell.GroovyController = function($scope, jolokia) {
+    SnampShell.SnampController = function($scope, jolokia) {
 
-        $scope.groovyinput = null;
-
-        $scope.evalMe = function() {
-            GroovyShell.log.info(GroovyShell.pluginName, " evaluate(" + $scope.groovyinput + ")");
-            if ($scope.groovyinput) {
+        $scope.getConfiguration = function() {
+            SnampShell.log.info(SnampShell.pluginName, " get configuration operation (" + $scope + ")");
                 // call mbean
                 jolokia.request({
-                    type: 'exec',
-                    mbean: GroovyShell.mbean,
-                    operation: 'evaluate',
-                    arguments: [$scope.groovyinput]
+                    type: 'read',
+                    mbean: SnampShell.mbean,
+                    attribute: 'configuration'
                 }, onSuccess(render, {error: renderError}));
-            }
-        }
+        };
 
         // update display with groovy result
         function render(response) {
-            GroovyShell.log.info(GroovyShell.pluginName, " --> " + response.value);
+            SnampShell.log.info(SnampShell.pluginName, " --> " + response.value);
             $scope.output = response.value;
             $scope.error = null;
             Core.$apply($scope);
         }
 
         function renderError(response) {
-            GroovyShell.log.info(GroovyShell.pluginName, " error " + response);
+            SnampShell.log.info(SnampShell.pluginName, " error " + response);
             $scope.output = null;
             $scope.error = response;
             Core.$apply($scope);
         }
     };
 
-    return GroovyShell;
+    return SnampShell;
 
-})(GroovyShell || {});
+})(SnampShell || {});
 
 // tell the hawtio plugin loader about our plugin so it can be
 // bootstrapped with the rest of angular
-hawtioPluginLoader.addModule(GroovyShell.pluginName);
+hawtioPluginLoader.addModule(SnampShell.pluginName);
