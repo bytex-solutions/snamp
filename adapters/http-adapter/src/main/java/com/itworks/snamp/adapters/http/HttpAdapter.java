@@ -14,12 +14,10 @@ import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.jmx.WellKnownType;
 import org.atmosphere.jersey.JerseyBroadcaster;
 import org.osgi.service.http.HttpService;
+import com.itworks.snamp.jmx.json.*;
 
 import javax.management.*;
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.CompositeType;
-import javax.management.openmbean.TabularData;
-import javax.management.openmbean.TabularType;
+import javax.management.openmbean.*;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.nio.*;
@@ -206,12 +204,20 @@ final class HttpAdapter extends AbstractResourceAdapter {
                         builder = builder.registerTypeAdapter(ObjectName.class, new ObjectNameFormatter());
                     break;
                     case DICTIONARY:
-                        final CompositeType compositeType = (CompositeType)accessor.getOpenType();
-                        builder = builder.registerTypeHierarchyAdapter(CompositeType.class, new CompositeDataFormatter(compositeType));
+                        CompositeType compositeType = (CompositeType)accessor.getOpenType();
+                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new CompositeDataFormatter(compositeType));
                     break;
                     case TABLE:
-                        final TabularType tabularType = (TabularType)accessor.getOpenType();
-                        builder = builder.registerTypeHierarchyAdapter(TabularType.class, new TabularDataFormatter(tabularType));
+                        TabularType tabularType = (TabularType)accessor.getOpenType();
+                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new TabularDataFormatter(tabularType));
+                    break;
+                    case DICTIONARY_ARRAY:
+                        compositeType = (CompositeType)((ArrayType<?>)accessor.getOpenType()).getElementOpenType();
+                        builder = builder.registerTypeAdapter(type.getType(), new ArrayOfCompositeDataFormatter(compositeType));
+                    break;
+                    case TABLE_ARRAY:
+                        tabularType = (TabularType)((ArrayType<?>)accessor.getOpenType()).getElementOpenType();
+                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new ArrayOfTabularDataFormatter(tabularType));
                     break;
                 }
             return new HttpAttributeMapping(accessor, builder);
@@ -254,7 +260,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 manager.addAttribute(adapterInstanceName, attributeName, connector);
             }
             catch (final JMException e){
-                HttpAdapterHelpers.log(Level.SEVERE, String.format("Unable to register attribute %s:%s", resourceName, attributeName), e);
+                HttpAdapterHelpers.log(Level.SEVERE, "Unable to register attribute %s:%s", resourceName, attributeName, e);
             }
             finally {
                 endWrite();
@@ -426,7 +432,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         private HttpNotificationsModel(final String adapterInstanceName){
             this.adapterInstanceName = adapterInstanceName;
             this.formatter = new GsonBuilder()
-                    .registerTypeHierarchyAdapter(Notification.class, new NotificationJsonSerializer())
+                    .registerTypeHierarchyAdapter(Notification.class, new NotificationSerializer())
                     .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter())
                     .registerTypeAdapter(ByteBuffer.class, new ByteBufferFormatter())
                     .registerTypeAdapter(CharBuffer.class, new CharBufferFormatter())
@@ -435,8 +441,8 @@ final class HttpAdapter extends AbstractResourceAdapter {
                     .registerTypeAdapter(LongBuffer.class, new LongBufferFormatter())
                     .registerTypeAdapter(FloatBuffer.class, new FloatBufferFormatter())
                     .registerTypeAdapter(DoubleBuffer.class, new DoubleBufferFormatter())
-                    .registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataJsonSerializer())
-                    .registerTypeHierarchyAdapter(TabularData.class, new TabularDataJsonSerializer())
+                    .registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataSerializer())
+                    .registerTypeHierarchyAdapter(TabularData.class, new TabularDataSerializer())
                     .create();
             this.notifications = new HashMap<>(10);
         }
@@ -463,7 +469,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
                         connector);
             }
             catch (final JMException e){
-                HttpAdapterHelpers.log(Level.SEVERE, String.format("Failed to enable notifications for %s resource", resourceName), e);
+                HttpAdapterHelpers.log(Level.SEVERE, "Failed to enable notifications for %s resource", resourceName, e);
             }
             finally {
                 endWrite();

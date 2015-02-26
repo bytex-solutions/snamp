@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters.http;
+package com.itworks.snamp.jmx.json;
 
 import com.google.gson.*;
 
@@ -11,7 +11,10 @@ import java.nio.Buffer;
  * @version 1.0
  * @since 1.0
  */
-abstract class AbstractBufferFormatter<B extends Buffer> implements JsonSerializer<B>, JsonDeserializer<B> {
+public abstract class AbstractBufferFormatter<B extends Buffer> implements JsonSerializer<B>, JsonDeserializer<B> {
+    AbstractBufferFormatter(){
+
+    }
 
     protected abstract B deserialize(final JsonArray json) throws JsonParseException;
 

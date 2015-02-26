@@ -8,6 +8,7 @@ import javax.management.*;
 import javax.management.openmbean.OpenType;
 
 /**
+ * Represents attribute value reader.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

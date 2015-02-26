@@ -88,11 +88,6 @@ final class ManagementShell implements Command, SessionAware {
             this.executor = Objects.requireNonNull(executor, "executor is null.");
             setDaemon(true);
             setName("SSH Adapter Shell Interpreter");
-            NotificationManager.createNotificationManagerWithDisabledNotifs(session, controller);
-        }
-
-        public long getListenerID(){
-            return NotificationManager.getNotificationListenerID(session);
         }
 
         @Override
@@ -236,7 +231,6 @@ final class ManagementShell implements Command, SessionAware {
     public void destroy() {
         final Interpreter i = interpreter.get();
         i.interrupt();
-        controller.removeNotificationListener(i.getListenerID());
     }
 
     /**
@@ -308,12 +302,6 @@ final class ManagementShell implements Command, SessionAware {
                 return new GetAttributeCommand(context);
             case SetAttributeCommand.COMMAND_NAME:
                 return new SetAttributeCommand(context);
-            case SetArrayCommand.COMMAND_NAME:
-                return new SetArrayCommand(context);
-            case SetMapCommand.COMMAND_NAME:
-                return new SetMapCommand(context);
-            case SetTableCommand.COMMAND_NAME:
-                return new SetTableCommand(context);
             case NotificationsCommand.COMMAND_NAME:
                 return new NotificationsCommand(context);
             default:

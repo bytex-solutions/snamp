@@ -1,5 +1,8 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.Consumer;
+
+import javax.management.Notification;
 import java.util.Set;
 
 /**
@@ -23,17 +26,13 @@ public interface AdapterController {
     Set<String> getAttributes(final String resourceName);
 
     /**
-     * Gets an attribute accessor.
+     * Processes the attribute.
      * @param attributeID ID of the attribute.
-     * @return The attribute accessor; or {@literal null}, if attribute doesn't exist.
+     * @param handler The attribute processor.
+     * @return {@literal true}, if attribute exists; otherwise, {@literal false}.
+     * @throws E Unable to process attribute.
      */
-    SshAttributeView getAttribute(final String attributeID);
-    /**
-     * Adds a new notification listener.
-     * @param listener The listener.
-     * @return A new ID of the notification listener.
-     */
-    long addNotificationListener(final NotificationListener listener);
+    <E extends Exception> boolean processAttribute(final String attributeID, final Consumer<SshAttributeView, E> handler) throws E;
 
     /**
      * Gets a collection of available notifications.
@@ -42,5 +41,10 @@ public interface AdapterController {
      */
     Set<String> getNotifications(final String resourceName);
 
-    void removeNotificationListener(final long listenerID);
+    <E extends Exception> boolean processNotification(final String notificationID,
+                                                      final Consumer<SshNotificationView, E> handler) throws E;
+
+    Notification poll(final String resourceName);
+
+    Notification poll();
 }

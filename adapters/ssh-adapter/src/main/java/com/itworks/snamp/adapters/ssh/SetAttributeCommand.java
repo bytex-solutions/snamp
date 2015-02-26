@@ -1,15 +1,15 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.Consumer;
 import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
 import com.itworks.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import javax.management.JMException;
+import java.io.IOException;
 import java.io.PrintWriter;
-import java.text.DecimalFormat;
-import java.text.Format;
-import java.text.SimpleDateFormat;
+import java.io.StringReader;
 
 /**
  * @author Roman Sakno
@@ -17,24 +17,11 @@ import java.text.SimpleDateFormat;
  * @since 1.0
  */
 final class SetAttributeCommand extends AbstractManagementShellCommand {
-    static final String COMMAND_USAGE = "set <attribute-id> <value> [OPTIONS]...";
+    static final String COMMAND_USAGE = "set <attribute-id> <value-as-json>";
     static final String COMMAND_NAME = "set";
-    static final String COMMAND_DESC = "Override value of the attribute (scalar data type only)";
+    static final String COMMAND_DESC = "Override value of the attribute";
 
-    static final Options COMMAND_OPTIONS = new Options();
-    private static final String DT_FORMAT_OPT = "d";
-    private static final String NUM_FORMAT_OPT = "n";
-
-    static {
-        Option opt = new Option(DT_FORMAT_OPT, "dateTimeFormat", true, "Date time format");
-        opt.setArgName("format");
-        opt.setRequired(false);
-        COMMAND_OPTIONS.addOption(opt);
-        opt = new Option(NUM_FORMAT_OPT, "numberFormat", true, "Number format");
-        opt.setArgName("format");
-        opt.setRequired(false);
-        COMMAND_OPTIONS.addOption(opt);
-    }
+    static final Options COMMAND_OPTIONS = EMPTY_OPTIONS;
 
     SetAttributeCommand(final CommandExecutionContext context){
         super(context);
@@ -45,33 +32,27 @@ final class SetAttributeCommand extends AbstractManagementShellCommand {
         return COMMAND_OPTIONS;
     }
 
-    private void setScalarValue(final String attributeID,
-                                final String value,
-                                final Format fmt,
-                                final PrintWriter output) throws CommandException {
-        final SshAttributeView attr = getAdapterController().getAttribute(attributeID);
-        if (attr == null) throw new CommandException("Attribute %s doesn't exist.", attributeID);
-        try (final LogicalOperation ignored = new WriteAttributeLogicalOperation(attr.getName(), attributeID)) {
-            attr.setValue(fmt != null ? fmt.parseObject(value) : value);
-            output.println("OK");
-        } catch (final Exception e) {
-            throw new CommandException(e);
-        }
-    }
 
     @Override
     protected void doCommand(final CommandLine input, final PrintWriter output) throws CommandException {
         final String[] arguments = input.getArgs();
-        //handle scalar set
-        if(arguments.length == 2) {
-            final Format fmt;
-            if (input.hasOption(DT_FORMAT_OPT))
-                fmt = new SimpleDateFormat(input.getOptionValue(DT_FORMAT_OPT));
-            else if (input.hasOption(NUM_FORMAT_OPT))
-                fmt = new DecimalFormat(input.getOptionValue(NUM_FORMAT_OPT));
-            else fmt = null;
-            setScalarValue(arguments[0], arguments[1], fmt, output);
+        switch (arguments.length){
+            case 2:
+                final String attributeID = arguments[0], value = arguments[1];
+                if(!getAdapterController().processAttribute(attributeID, new Consumer<SshAttributeView, CommandException>() {
+                    @Override
+                    public void accept(final SshAttributeView attribute) throws CommandException {
+                        try (final LogicalOperation ignored = new WriteAttributeLogicalOperation(attribute.getOriginalName(), attributeID);
+                            final StringReader reader = new StringReader(value)) {
+                            attribute.setValue(reader);
+                            output.println("OK");
+                        } catch (final JMException | IOException e) {
+                            throw new CommandException(e);
+                        }
+                    }
+                }))
+                    throw new CommandException("Attribute %s doesn't exist.", attributeID);
+            default: throw invalidCommandFormat();
         }
-        else throw invalidCommandFormat();
     }
 }

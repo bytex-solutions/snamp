@@ -239,9 +239,19 @@ public enum  WellKnownType implements Serializable, Type {
     DICTIONARY(CompositeData.class),
 
     /**
+     * Represents {@link javax.management.openmbean.CompositeData}[] type.
+     */
+    DICTIONARY_ARRAY(CompositeData[].class),
+
+    /**
      * Represents {@link javax.management.openmbean.TabularData} type.
      */
     TABLE(TabularData.class),
+
+    /**
+     * Represents {@link javax.management.openmbean.TabularData}[] type.
+     */
+    TABLE_ARRAY(TabularData[].class)
     ;
 
     private static final Cache<String, WellKnownType> classNameCache =
@@ -272,7 +282,11 @@ public enum  WellKnownType implements Serializable, Type {
             CacheBuilder.newBuilder().build(new CacheLoader<OpenType<?>, WellKnownType>() {
                 @Override
                 public WellKnownType load(@SuppressWarnings("NullableProblems") final OpenType<?> openType) throws InvalidKeyException {
-                    for (final WellKnownType type : values())
+                    if (openType instanceof CompositeType)
+                        return DICTIONARY;
+                    else if (openType instanceof TabularType)
+                        return TABLE;
+                    else for (final WellKnownType type : values())
                         if (Objects.equals(openType, type.getOpenType()))
                             return type;
                     throw new InvalidKeyException("Well-known type is not defined for class " + openType);
@@ -339,6 +353,9 @@ public enum  WellKnownType implements Serializable, Type {
      *         <li>{@link #WRAPPED_DOUBLE_ARRAY}</li>
      *         <li>{@link #DATE_ARRAY}</li>
      *         <li>{@link #STRING_ARRAY}</li>
+     *         <li>{@link #OBJECT_NAME_ARRAY}</li>
+     *         <li>{@link #DICTIONARY_ARRAY}</li>
+     *         <li>{@link #TABLE_ARRAY}</li>
      *     </ul>
      * @return {@literal true}, if this type describes an array; otherwise, {@literal false}.
      */
@@ -450,11 +467,7 @@ public enum  WellKnownType implements Serializable, Type {
      * @return Inferred well-known SNAMP type; or {@literal null}, if type cannot be detected.
      */
     public static WellKnownType getType(final OpenType<?> openType) {
-        if (openType instanceof CompositeType)
-            return DICTIONARY;
-        else if (openType instanceof TabularType)
-            return TABLE;
-        else return openTypeCache.getIfPresent(openType);
+        return openTypeCache.getIfPresent(openType);
     }
 
     /**

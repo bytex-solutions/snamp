@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters.http;
+package com.itworks.snamp.jmx.json;
 
 import com.google.gson.*;
 
@@ -7,11 +7,13 @@ import javax.management.openmbean.TabularData;
 import java.lang.reflect.Type;
 
 /**
+ * Represents one-way converter from {@link javax.management.openmbean.CompositeData} to
+ * JSON Object.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-class CompositeDataJsonSerializer implements JsonSerializer<CompositeData> {
+public class CompositeDataSerializer implements JsonSerializer<CompositeData> {
 
     static JsonObject serialize(final CompositeData src,
                                 final JsonSerializationContext context){
@@ -27,6 +29,13 @@ class CompositeDataJsonSerializer implements JsonSerializer<CompositeData> {
         return result;
     }
 
+    /**
+     * Serializes {@link javax.management.openmbean.CompositeData} into JSON Object.
+     * @param src Composite data to convert.
+     * @param typeOfSrc Type of the object to convert. May be {@literal null}.
+     * @param context Serialization context.
+     * @return JSON Object that represents {@link javax.management.openmbean.CompositeData}.
+     */
     @Override
     public final JsonObject serialize(final CompositeData src, final Type typeOfSrc, final JsonSerializationContext context) {
         return serialize(src, context);

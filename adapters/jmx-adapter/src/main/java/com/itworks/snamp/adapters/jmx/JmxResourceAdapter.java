@@ -128,7 +128,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
                 manager.addNotification(adapterInstanceName, category, connector);
             }
             catch (final JMException e){
-                JmxAdapterHelpers.log(Level.SEVERE, String.format("Failed to enable notification %s:%s", resourceName, category), e);
+                JmxAdapterHelpers.log(Level.SEVERE, "Failed to enable notification %s:%s", resourceName, category, e);
             }
             finally {
                 endWrite();
@@ -576,7 +576,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
                 else attributes.put(resourceName, manager = new ResourceAttributeManager());
                 manager.addAttribute(adapterInstanceName, attributeName, connector);
             } catch (final JMException e) {
-                JmxAdapterHelpers.log(Level.SEVERE, String.format("Unable to connect attribute %s:%s", resourceName, attributeName), e);
+                JmxAdapterHelpers.log(Level.SEVERE, "Unable to connect attribute %s:%s", resourceName, attributeName, e);
             } finally {
                 endWrite();
             }

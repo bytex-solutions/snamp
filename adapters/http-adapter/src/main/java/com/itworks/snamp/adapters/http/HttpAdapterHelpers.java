@@ -42,4 +42,7 @@ final class HttpAdapterHelpers {
         log(lvl, message, new Object[]{arg0}, e);
     }
 
+    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Throwable e){
+        log(lvl, message, new Object[]{arg0, arg1}, e);
+    }
 }

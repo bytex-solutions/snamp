@@ -1,6 +1,9 @@
-package com.itworks.snamp.adapters.http;
+package com.itworks.snamp.jmx.json;
 
-import com.google.gson.*;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularType;
@@ -12,10 +15,10 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-final class TabularDataFormatter extends TabularDataJsonSerializer implements JsonDeserializer<TabularData> {
+public final class TabularDataFormatter extends TabularDataSerializer implements JsonDeserializer<TabularData> {
     private final TabularType type;
 
-    TabularDataFormatter(final TabularType t){
+    public TabularDataFormatter(final TabularType t){
         this.type = Objects.requireNonNull(t);
     }
 

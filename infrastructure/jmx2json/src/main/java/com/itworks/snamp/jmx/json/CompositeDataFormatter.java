@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters.http;
+package com.itworks.snamp.jmx.json;
 
 import com.google.common.collect.Maps;
 import com.google.gson.*;
@@ -10,14 +10,20 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * Represents converter from {@link javax.management.openmbean.CompositeData} to JSON Object
+ * and vice versa. This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class CompositeDataFormatter extends CompositeDataJsonSerializer implements JsonDeserializer<CompositeData> {
+public final class CompositeDataFormatter extends CompositeDataSerializer implements JsonDeserializer<CompositeData> {
     private final CompositeType type;
 
-    CompositeDataFormatter(final CompositeType t){
+    /**
+     * Initializes a new formatter for {@link javax.management.openmbean.CompositeData}.
+     * @param t The type of the composite data. Cannot be {@literal null}.
+     */
+    public CompositeDataFormatter(final CompositeType t){
         this.type = Objects.requireNonNull(t);
     }
 
@@ -42,6 +48,14 @@ final class CompositeDataFormatter extends CompositeDataJsonSerializer implement
         }
     }
 
+    /**
+     * Converts JSON Object to {@link javax.management.openmbean.CompositeData}.
+     * @param json JSON Object to convert. Cannot be {@literal null}.
+     * @param typeOfT {@link javax.management.openmbean.CompositeData}.class
+     * @param context Deserialization context.
+     * @return A new instance of the {@link javax.management.openmbean.CompositeData}.
+     * @throws JsonParseException Unable convert JSON Object to {@link javax.management.openmbean.CompositeData}.
+     */
     @Override
     public CompositeData deserialize(final JsonElement json,
                                      final Type typeOfT,
@@ -50,8 +64,6 @@ final class CompositeDataFormatter extends CompositeDataJsonSerializer implement
             return deserialize(type, json.getAsJsonObject(), context);
         else throw new JsonParseException("JSON Object expected");
     }
-
-
 
     static TabularData deserialize(final TabularType type, final JsonArray json, final JsonDeserializationContext context) throws JsonParseException{
         final TabularDataSupport result = new TabularDataSupport(type);

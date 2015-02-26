@@ -1,5 +1,7 @@
 package com.itworks.snamp.jmx;
 
+import com.itworks.snamp.Consumer;
+
 import javax.management.openmbean.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,5 +66,11 @@ public final class TabularDataUtils {
         for(final CompositeDataBean row: table)
             result.put(CompositeDataUtils.convert(row, type.getRowType()));
         return result;
+    }
+
+    public static <E extends Exception> void forEachRow(final TabularData table, final Consumer<CompositeData, E> rowReader) throws E{
+        for(final Object row: table.values())
+            if(row instanceof CompositeData)
+                rowReader.accept((CompositeData)row);
     }
 }
