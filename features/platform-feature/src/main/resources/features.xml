@@ -6,6 +6,7 @@
         <!-- Third-party features -->
         <feature>eventadmin</feature>
         <feature>hawtio-offline</feature>
+        <bundle start="true">mvn:io.hawt/hawtio-plugin-mbean/1.4.37</bundle>
 
         <bundle >mvn:com.google.code.gson/gson/2.2.4</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
