@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
-    <repository>mvn:io.hawt/hawtio-karaf/1.4.37/xml/features</repository>
+    <repository>mvn:io.hawt/hawtio-karaf/1.4.47/xml/features</repository>
     <feature name="platform-feature" description="SNAMP Platform" version="1.0.0">
         <details>Basic set of features required to execute SNAMP platform</details>
         <!-- Third-party features -->
         <feature>eventadmin</feature>
         <feature>hawtio-offline</feature>
-        <bundle start="true">mvn:io.hawt/hawtio-plugin-mbean/1.4.37</bundle>
+        <bundle start="true">mvn:io.hawt/hawtio-plugin-mbean/1.4.47</bundle>
 
         <bundle >mvn:com.google.code.gson/gson/2.2.4</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>

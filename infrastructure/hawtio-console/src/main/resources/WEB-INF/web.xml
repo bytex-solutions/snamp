@@ -5,7 +5,7 @@
 	      http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
          version="2.4">
 
-    <description>hawtio Snamp Management Console plugin</description>
+    <description>hawtio Snamp Management Console Shell plugin</description>
     <display-name>com.itworks.snamp snamp-shell plugin</display-name>
 
     <context-param>
@@ -17,7 +17,7 @@
     <context-param>
         <description>Plugin's path on the server</description>
         <param-name>plugin-name</param-name>
-        <param-value>${project.artifactId}</param-value>
+        <param-value>hawtio-console</param-value>
     </context-param>
 
     <context-param>

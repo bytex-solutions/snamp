@@ -15,7 +15,7 @@
     <version>1.0.0</version>
     <description>Provides hawtio extension for managing SNAMP software</description>
     <properties>
-        <hawtio.version>1.4.37</hawtio.version>
+        <hawtio.version>1.4.47</hawtio.version>
         <jolokia.version>1.2.3</jolokia.version>
         <servlet-api-version>2.5</servlet-api-version>
         <maven-antrun-plugin-version>1.7</maven-antrun-plugin-version>
