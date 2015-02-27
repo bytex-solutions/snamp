@@ -7,7 +7,6 @@ import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.apache.sshd.common.Session;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
@@ -17,7 +16,6 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents SSH adapter shell command.
@@ -52,16 +50,8 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
         return getService(CommandExecutionContext.CONTROLLER);
     }
 
-    protected final Session getSession(){
-        return getService(CommandExecutionContext.SESSION);
-    }
-
     protected final ExecutorService getExecutionService(){
         return getService(CommandExecutionContext.EXECUTOR);
-    }
-
-    protected final Logger getLogger(){
-        return getService(CommandExecutionContext.LOGGER);
     }
 
     protected final InputStream getConsoleInputStream(){
