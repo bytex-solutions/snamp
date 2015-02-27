@@ -26,7 +26,7 @@ var SnampShell = (function(SnampShell) {
     /**
      * @property contextPath
      * @type {string}
-     *
+     *,
      * The top level path of this plugin on the server
      *
      */
@@ -141,11 +141,13 @@ var SnampShell = (function(SnampShell) {
         $scope.getConfiguration = function() {
             SnampShell.log.info(SnampShell.pluginName, " get configuration operation (" + $scope + ")");
                 // call mbean
-                jolokia.request({
+                var response  = jolokia.request({
                     type: 'read',
                     mbean: SnampShell.mbean,
+                    maxDepth: 20,
                     attribute: 'configuration'
-                }, onSuccess(render, {error: renderError}));
+                }, onSuccess(null, {error: renderError, maxDepth: 20}));
+            SnampShell.log.info(SnampShell.pluginName, " answer is :" + JSON.stringify(response));
         };
 
         // update display with groovy result

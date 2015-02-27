@@ -12,8 +12,13 @@ import org.junit.Test;
  * @author Evgeniy Kirichenko
  * @date 26.02.2015
  */
-@SnampDependencies(SnampFeature.SNMP_CONNECTOR)
+@SnampDependencies({SnampFeature.SNMP_CONNECTOR, SnampFeature.JMX_ADAPTER})
 public class HawtioConsoleTest  extends AbstractSnampIntegrationTest {
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return true;
+    }
 
     /**
      * Simple test.

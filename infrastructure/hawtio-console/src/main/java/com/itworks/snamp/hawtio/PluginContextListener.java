@@ -13,7 +13,7 @@ import javax.servlet.ServletContextListener;
  */
 public class PluginContextListener implements ServletContextListener {
 
-
+//org.jolokia.http.HttpRequestHandler
     HawtioPlugin plugin = null;
 
 
