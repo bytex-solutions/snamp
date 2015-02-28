@@ -8,7 +8,6 @@
         <feature>war</feature>
         <feature>hawtio-offline</feature>
         <bundle start="true">mvn:io.hawt/hawtio-plugin-mbean/1.4.47</bundle>
-        <bundle start="true">mvn:io.hawt/hawtio-json-schema-mbean/1.4.47</bundle>
 
         <bundle >mvn:com.google.code.gson/gson/2.2.4</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>

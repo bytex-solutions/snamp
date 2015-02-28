@@ -199,7 +199,7 @@
         <dependency>
             <groupId>org.jolokia</groupId>
             <artifactId>jolokia-core</artifactId>
-            <version>1.2.1</version>
+            <version>1.2.3</version>
             <scope>provided</scope>
         </dependency>
         <!-- servlet API is provided by the container -->
