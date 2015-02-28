@@ -13,3 +13,21 @@
     font-size: 12px;
     text-align: left;
 }
+li.snampMenu {
+    cursor: pointer;
+    box-shadow: none;
+    width: 100%;
+    padding:20px;
+}
+li.snampMenu:hover{
+    opacity: 0.80;
+
+}
+li.snampMenu.active {
+    margin-left:0;
+    background-color: #dfe9dc !important;
+}
+li.snampMenu a {
+    color: none;
+    box-shadow: none !important;
+}

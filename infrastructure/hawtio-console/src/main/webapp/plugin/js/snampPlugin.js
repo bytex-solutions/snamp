@@ -88,12 +88,12 @@ var SnampShell = (function(SnampShell) {
 
         SnampShell.log.info(SnampShell.pluginName, " loaded");
 
-        Core.addCSS(SnampShell.contextPath + "plugin/css/snamp.css");
+        Core.addCSS(SnampShell.contextPath + "plugin/css/snampPlugin.css");
+        Core.addCSS(SnampShell.contextPath + "plugin/css/bootstrap.css");
 
         // tell the app to use the full layout, also could use layoutTree
         // to get the JMX tree or provide a URL to a custom layout
         viewRegistry["snamp_shell_plugin"] = layoutFull;
-
 
         /* Set up top-level link to our plugin.  Requires an object
          with the following attributes:
@@ -136,18 +136,30 @@ var SnampShell = (function(SnampShell) {
      * The controller for shell.html, only requires the jolokia
      * service from hawtioCore
      */
-    SnampShell.SnampController = function($scope, jolokia) {
+    SnampShell.SnampController = function($scope, $location, jolokia) {
+
+        $scope.menuSelected = function(section) {
+            $scope.template = section;
+            Core.$apply($scope);
+        };
+
+        $scope.sections = [
+            {name: "/snamp_shell_plugin", label: "General Information", url: SnampShell.templatePath + "general.html"},
+            {name: "/configuration", label: "Configuration", url: SnampShell.templatePath + "config.html"},
+            {name: "/licensing", label: "License management", url: SnampShell.templatePath + "license.html"},
+            {name: "/commands", label: "Components management", url: SnampShell.templatePath + "commands.html"}
+        ];
+
+        $scope.template = $scope.sections[0];
 
         $scope.getConfiguration = function() {
             SnampShell.log.info(SnampShell.pluginName, " get configuration operation (" + $scope + ")");
                 // call mbean
-                var response  = jolokia.request({
+               jolokia.request({
                     type: 'read',
                     mbean: SnampShell.mbean,
-                    maxDepth: 20,
                     attribute: 'configuration'
-                }, onSuccess(null, {error: renderError, maxDepth: 20}));
-            SnampShell.log.info(SnampShell.pluginName, " answer is :" + JSON.stringify(response));
+                }, onSuccess(render, {error: renderError, maxDepth: 20}));
         };
 
         // update display with groovy result

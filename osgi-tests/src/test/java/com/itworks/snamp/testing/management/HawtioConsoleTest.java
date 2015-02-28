@@ -41,11 +41,6 @@ public class HawtioConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return true;
-    }
-
     /**
      * Simple test.
      *
