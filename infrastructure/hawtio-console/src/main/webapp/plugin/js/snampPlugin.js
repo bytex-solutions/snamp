@@ -131,27 +131,147 @@ var SnampShell = (function(SnampShell) {
     /**
      * @function SnampController
      * @param $scope
+     * @param $location
      * @param jolokia
      *
-     * The controller for shell.html, only requires the jolokia
-     * service from hawtioCore
+     * The controller for shell.html, only requires the jolokia and location
+     * services from hawtioCore
      */
     SnampShell.SnampController = function($scope, $location, jolokia) {
 
+        // Menu items
         $scope.menuSelected = function(section) {
             $scope.template = section;
             Core.$apply($scope);
         };
-
         $scope.sections = [
             {name: "/snamp_shell_plugin", label: "General Information", url: SnampShell.templatePath + "general.html"},
             {name: "/configuration", label: "Configuration", url: SnampShell.templatePath + "config.html"},
             {name: "/licensing", label: "License management", url: SnampShell.templatePath + "license.html"},
             {name: "/commands", label: "Components management", url: SnampShell.templatePath + "commands.html"}
         ];
-
         $scope.template = $scope.sections[0];
 
+
+        // Grid data
+        $scope.getGeneralGridData = function() {
+            var result = [];
+
+            // get adapters
+            var adapters = jolokia.request({
+                type: 'read',
+                mbean: SnampShell.mbean,
+                attribute: 'InstalledAdapters'
+            }, onSuccess(null, {error: renderError, maxDepth: 20}));
+
+            if (adapters && adapters.value) {
+                angular.forEach(adapters.value, function(item) {
+                    var adapterInfo = jolokia.request({
+                        type: 'exec',
+                        mbean: SnampShell.mbean,
+                        operation: 'getAdapterInfo',
+                        arguments: [item, 'en']
+                    }, onSuccess(null, {error: renderError, maxDepth: 20}));
+                    if (adapterInfo && adapterInfo.value ) {
+                        result.push({
+                            Name: adapterInfo.value.DisplayName,
+                            Type: 'adapter',
+                            Status: adapterInfo.value.State,
+                            Version: adapterInfo.value.Version,
+                            Description: adapterInfo.value.Description
+                        })
+                    }
+                });
+            }
+            // get connectors
+            // get adapters
+            var connectors = jolokia.request({
+                type: 'read',
+                mbean: SnampShell.mbean,
+                attribute: 'InstalledConnectors'
+            }, onSuccess(null, {error: renderError, maxDepth: 20}));
+
+            if (connectors && connectors.value) {
+                angular.forEach(connectors.value, function(item) {
+                    var connectorInfo = jolokia.request({
+                        type: 'exec',
+                        mbean: SnampShell.mbean,
+                        operation: 'getConnectorInfo',
+                        arguments: [item, 'en']
+                    }, onSuccess(null, {error: renderError, maxDepth: 20}));
+                    if (connectorInfo && connectorInfo.value ) {
+                        result.push({
+                            Name: connectorInfo.value.DisplayName,
+                            Type: 'connector',
+                            Status: connectorInfo.value.State,
+                            Version: connectorInfo.value.Version,
+                            Description: connectorInfo.value.Description
+                        })
+                    }
+                });
+            }
+            SnampShell.log.info(JSON.stringify(result));
+            return result;
+        };
+
+        var columnDefs = [
+            {
+                field: 'Name',
+                displayName: 'Name',
+                maxWidth: 250,
+                minWidth: 150,
+                width:200,
+                resizable: true
+            },
+            {
+                field: 'Type',
+                displayName: 'Type',
+                cellFilter: null,
+                maxWidth: 85,
+                minWidth: 85,
+                width:85,
+                resizable: true
+            },
+            {
+                field: 'Status',
+                displayName: 'Status',
+                cellFilter: null,
+                maxWidth: 85,
+                minWidth: 85,
+                width:95,
+                resizable: true
+            },
+            {
+                field: 'Version',
+                displayName: 'Version',
+                cellFilter: null,
+                maxWidth: 70,
+                minWidth: 70,
+                width:90,
+                resizable: true
+            },
+            {
+                field: 'Description',
+                displayName: 'Description',
+                cellFilter: null,
+                width: "*",
+                height: "*",
+                resizable: true
+            }
+        ];
+
+        $scope.genData = $scope.getGeneralGridData();
+
+        $scope.generalGrid = {
+            data:  'genData',
+            displayFooter: true,
+            columnDefs: columnDefs,
+            canSelectRows: false,
+            title: "Current installed components info"
+        };
+
+
+        // Other functions
         $scope.getConfiguration = function() {
             SnampShell.log.info(SnampShell.pluginName, " get configuration operation (" + $scope + ")");
                 // call mbean

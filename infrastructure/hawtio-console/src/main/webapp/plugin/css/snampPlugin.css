@@ -29,3 +29,7 @@ li.snampMenu.active {
 li.snampMenu a {
     box-shadow: none !important;
 }
+
+.gridStyle {
+    border: 1px solid rgb(212,212,212);
+}
