@@ -3,20 +3,23 @@ package com.itworks.snamp.adapters.snmp;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
 import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
 import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
-import com.itworks.snamp.connectors.ManagedEntityType;
-import com.itworks.snamp.connectors.attributes.AttributeMetadata;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
 import com.itworks.snamp.core.LogicalOperation;
+import com.itworks.snamp.jmx.WellKnownType;
+import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOScalar;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.Variable;
 
-import java.util.concurrent.TimeoutException;
+import javax.management.InvalidAttributeValueException;
+import javax.management.JMException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.ReflectionException;
+import java.lang.reflect.Type;
 import java.util.logging.Level;
 
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
-import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.ConversionFallback;
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.getOID;
 
 /**
  * Represents a base class for scalar SNMP managed objects.
@@ -42,24 +45,26 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     private final T defaultValue;
     private final AttributeAccessor attribute;
 
-    protected SnmpScalarObject(final String oid, final AttributeAccessor attribute, final T defval){
-        super(new OID(oid), getAccessRestrictions(attribute), defval);
+    protected SnmpScalarObject(final AttributeAccessor attribute, final T defval){
+        this(attribute, false, defval);
+    }
+
+    protected SnmpScalarObject(final AttributeAccessor attribute,
+                               final boolean readOnly,
+                               final T defval){
+        super(new OID(getOID(attribute.getMetadata())),
+                readOnly ? MOAccessImpl.ACCESS_READ_ONLY : getAccessRestrictions(attribute.getMetadata()),
+                defval);
         this.defaultValue = defval;
         this.attribute = attribute;
     }
 
-    protected static <T> T logAndReturnDefaultValue(final T defaultValue, final Variable originalValue, final ManagedEntityType attributeType){
-        SnmpHelpers.log(Level.WARNING, "Cannot convert '%s' value to '%s' attribute type.", originalValue, attributeType, null);
-        return defaultValue;
+    protected static <T extends Variable> InvalidAttributeValueException unexpectedSnmpType(final Class<T> type){
+        return new InvalidAttributeValueException(String.format("%s expected", type));
     }
 
-    protected static  <T> ConversionFallback<T> fallbackWithDefaultValue(final T defaultValue, final Variable originalValue, final ManagedEntityType attributeType){
-        return new ConversionFallback<T>() {
-            @Override
-            public T call() {
-                return logAndReturnDefaultValue(defaultValue, originalValue, attributeType);
-            }
-        };
+    protected static InvalidAttributeValueException unexpectedAttributeType(final Type type){
+        return new InvalidAttributeValueException(String.format("Unexpected type %s", type));
     }
 
     /**
@@ -74,7 +79,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
      * @param value The value to convert.
      * @return Resource-specific representation of SNMP-compliant value.
      */
-    protected abstract Object convert(final T value);
+    protected abstract Object convert(final T value) throws JMException;
 
     /**
      * Returns SNMP-compliant value of the attribute.
@@ -84,9 +89,9 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     public final T getValue() {
         Object result;
         try(final LogicalOperation ignored = new SnmpReadAttributeLogicalOperation(attribute, getOid())) {
-            result = attribute.getRawValue();
+            result = attribute.getValue();
         }
-        catch (final TimeoutException | AttributeSupportException e) {
+        catch (final JMException e) {
             SnmpHelpers.log(Level.WARNING, "Read operation failed for %s attribute. Context: %s",
                     attribute, LogicalOperation.current(), e);
             result = defaultValue;
@@ -106,7 +111,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
         try(final LogicalOperation ignored = new SnmpWriteAttributeLogicalOperation(attribute, getOid())) {
             attribute.setValue(convert(value));
             result = SnmpConstants.SNMP_ERROR_SUCCESS;
-        } catch (final TimeoutException | AttributeSupportException e) {
+        } catch (final JMException e) {
             SnmpHelpers.log(Level.WARNING, "Writing operation failed for %s attribute. Context: %s",
                     attribute,
                     LogicalOperation.current(),
@@ -122,7 +127,23 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
      * @return The metadata of the underlying attribute.
      */
     @Override
-    public final AttributeMetadata getMetadata() {
-        return attribute;
+    public final MBeanAttributeInfo getMetadata() {
+        return attribute.getMetadata();
+    }
+
+    protected final Type getAttributeType() throws ReflectionException {
+        final WellKnownType knownType = attribute.getType();
+        return knownType != null ? knownType : attribute.getRawType();
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the requested object.
+     * @return An instance of the aggregated object; or {@literal null} if object is not available.
+     */
+    @Override
+    public final <O> O queryObject(final Class<O> objectType) {
+        return objectType.isAssignableFrom(AttributeAccessor.class) ? objectType.cast(attribute) : null;
     }
 }

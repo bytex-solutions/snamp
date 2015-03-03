@@ -293,15 +293,17 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          */
         public <T> T getValue(final AttributeInputValueConverter<T> converter) throws InvalidAttributeValueException, MBeanException, AttributeNotFoundException, ReflectionException {
             final WellKnownType type = getType();
-            if (type != null) return getValue(type.getTypeToken(), converter);
-            else {
-                final TypeToken<?> token;
-                try {
-                    token = TypeToken.of(Class.forName(metadata.getType()));
-                } catch (ClassNotFoundException e) {
-                    throw new ReflectionException(e);
-                }
-                return getValue(token, converter);
+            if (type != null)
+                return getValue(type.getTypeToken(), converter);
+            else
+                return getValue(TypeToken.of(getRawType()), converter);
+        }
+
+        public Class<?> getRawType() throws ReflectionException{
+            try {
+                return Class.forName(metadata.getType());
+            } catch (ClassNotFoundException e) {
+                throw new ReflectionException(e);
             }
         }
 
@@ -326,15 +328,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         public <I> void setValue(final I value, final AttributeOutputValueConverter<I> converter) throws ReflectionException, MBeanException, InvalidAttributeValueException, AttributeNotFoundException {
             final WellKnownType type = getType();
             if (type != null) setValue(value, type.getTypeToken(), converter);
-            else {
-                final TypeToken<?> token;
-                try {
-                    token = TypeToken.of(Class.forName(metadata.getType()));
-                } catch (ClassNotFoundException e) {
-                    throw new ReflectionException(e);
-                }
-                setValue(value, token, converter);
-            }
+            else
+                setValue(value, TypeToken.of(getRawType()), converter);
         }
 
         /**

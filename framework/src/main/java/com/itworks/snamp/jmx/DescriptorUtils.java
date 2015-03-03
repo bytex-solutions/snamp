@@ -18,6 +18,11 @@ import java.util.Map;
  * @since 1.0
  */
 public final class DescriptorUtils {
+    /**
+     * Represents empty immutable descriptor.
+     */
+    public static final Descriptor EMPTY = new ImmutableDescriptor();
+
     private DescriptorUtils(){
 
     }

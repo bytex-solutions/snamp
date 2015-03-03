@@ -1,5 +1,7 @@
 package com.itworks.snamp.io;
 
+import com.google.common.primitives.*;
+
 import java.nio.*;
 import java.util.Objects;
 
@@ -13,32 +15,32 @@ public final class Buffers {
     /**
      * Represents size of the {@code char} data type, in bytes
      */
-    public static final int CHAR_SIZE_IN_BYTES = Character.SIZE / Byte.SIZE;
+    public static final int CHAR_SIZE_IN_BYTES = Chars.BYTES;
 
     /**
      * Represents size of the {@code short} data type, in bytes
      */
-    public static final int SHORT_SIZE_IN_BYTES = Short.SIZE / Byte.SIZE;
+    public static final int SHORT_SIZE_IN_BYTES = Shorts.BYTES;
 
     /**
      * Represents size of the {@code int} data type, in bytes
      */
-    public static final int INT_SIZE_IN_BYTES = Integer.SIZE / Byte.SIZE;
+    public static final int INT_SIZE_IN_BYTES = Ints.BYTES;
 
     /**
      * Represents size of the {@code long} data type, in bytes
      */
-    public static final int LONG_SIZE_IN_BYTES = Long.SIZE / Byte.SIZE;
+    public static final int LONG_SIZE_IN_BYTES = Longs.BYTES;
 
     /**
      * Represents size of the {@code float} data type, in bytes
      */
-    public static final int FLOAT_SIZE_IN_BYTES = Float.SIZE / Byte.SIZE;
+    public static final int FLOAT_SIZE_IN_BYTES = Floats.BYTES;
 
     /**
      * Represents size of the {@code double} data type, in bytes
      */
-    public static final int DOUBLE_SIZE_IN_BYTES = Double.SIZE / Byte.SIZE;
+    public static final int DOUBLE_SIZE_IN_BYTES = Doubles.BYTES;
 
     /**
      * Allocates a new {@link java.nio.ByteBuffer} with the specified capacity of {@code byte} elements.
@@ -266,5 +268,53 @@ public final class Buffers {
 
     public static DoubleBuffer wrap(final double... items){
         return DoubleBuffer.wrap(items);
+    }
+
+    public static ByteBuffer toByteBuffer(final CharBuffer buffer){
+        final ByteBuffer result = allocByteBuffer(buffer.remaining(), CHAR_SIZE_IN_BYTES, true);
+        while (buffer.hasRemaining())
+            result.putChar(buffer.get());
+        result.rewind();
+        return result;
+    }
+
+    public static ByteBuffer toByteBuffer(final ShortBuffer buffer) {
+        final ByteBuffer result = allocByteBuffer(buffer.remaining(), SHORT_SIZE_IN_BYTES, true);
+        while (buffer.hasRemaining())
+            result.putShort(buffer.get());
+        result.rewind();
+        return result;
+    }
+
+    public static ByteBuffer toByteBuffer(final IntBuffer buffer) {
+        final ByteBuffer result = allocByteBuffer(buffer.remaining(), INT_SIZE_IN_BYTES, true);
+        while (buffer.hasRemaining())
+            result.putInt(buffer.get());
+        result.rewind();
+        return result;
+    }
+
+    public static ByteBuffer toByteBuffer(final LongBuffer buffer) {
+        final ByteBuffer result = allocByteBuffer(buffer.remaining(), LONG_SIZE_IN_BYTES, true);
+        while (buffer.hasRemaining())
+            result.putLong(buffer.get());
+        result.rewind();
+        return result;
+    }
+
+    public static ByteBuffer toByteBuffer(final FloatBuffer buffer) {
+        final ByteBuffer result = allocByteBuffer(buffer.remaining(), FLOAT_SIZE_IN_BYTES, true);
+        while (buffer.hasRemaining())
+            result.putFloat(buffer.get());
+        result.rewind();
+        return result;
+    }
+
+    public static ByteBuffer toByteBuffer(final DoubleBuffer buffer) {
+        final ByteBuffer result = allocByteBuffer(buffer.remaining(), DOUBLE_SIZE_IN_BYTES, true);
+        while (buffer.hasRemaining())
+            result.putDouble(buffer.get());
+        result.rewind();
+        return result;
     }
 }

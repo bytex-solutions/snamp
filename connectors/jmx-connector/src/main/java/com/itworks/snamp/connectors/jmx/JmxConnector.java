@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,6 +54,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     }
 
     private final static class JmxNotificationInfo extends CustomNotificationInfo implements JmxNotificationMetadata{
+        private static final long serialVersionUID = -2040203631422591069L;
         /**
          * Represents owner of this notification metadata.
          */
@@ -505,6 +505,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      * Represents an abstract class for building JMX attribute providers.
      */
     private static class JmxAttributeInfo extends OpenMBeanAttributeInfoSupport implements JmxAttributeMetadata {
+        private static final long serialVersionUID = 3262046901190396737L;
         final ObjectName namespace;
 
         private JmxAttributeInfo(final String attributeName,
@@ -560,6 +561,7 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     }
 
     private static final class JmxCompositeAttributeInfo extends JmxAttributeInfo{
+        private static final long serialVersionUID = -8511917301245817602L;
         private final CompositeValueNavigator navigator;
 
         private JmxCompositeAttributeInfo(final String attributeName,

@@ -9,6 +9,8 @@ package com.itworks.snamp;
  * @since 1.0
  */
 public final class ExceptionPlaceholder extends RuntimeException {
+    private static final long serialVersionUID = -3199291164997328632L;
+
     private ExceptionPlaceholder(){
     }
 }

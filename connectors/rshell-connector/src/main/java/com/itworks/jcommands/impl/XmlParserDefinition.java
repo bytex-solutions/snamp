@@ -127,6 +127,8 @@ public class XmlParserDefinition {
     }
 
     private static final class SimpleDateParser extends SimpleDateFormat implements DateParser {
+        private static final long serialVersionUID = 3787599179710232160L;
+
         public SimpleDateParser(final String pattern) {
             super(pattern);
         }
@@ -145,6 +147,8 @@ public class XmlParserDefinition {
     }
 
     private static final class DecimalNumberParser extends DecimalFormat implements NumberParser{
+        private static final long serialVersionUID = 500477579425937782L;
+
         public DecimalNumberParser(final String pattern){
             super(pattern);
         }
@@ -199,6 +203,7 @@ public class XmlParserDefinition {
 
     private static final class HexadecimalNumberParser implements NumberParser {
         private static final String PATTERN_STUB = "hex";
+        private static final long serialVersionUID = -1038188365966872713L;
 
         @Override
         public Number parse(final String input) throws ParseException {
@@ -286,6 +291,7 @@ public class XmlParserDefinition {
     }
 
     private static final class ArrayBuilder extends ArrayList<Object> implements Supplier<Object> {
+        private static final long serialVersionUID = 10998420667381405L;
         private XmlParsingResultType elementType;
 
         public ArrayBuilder() {
@@ -880,9 +886,15 @@ public class XmlParserDefinition {
         return builder.get();
     }
 
+    private static HashMap<String, Object> newHashMap(final int capacity){
+        return new HashMap<String, Object>(capacity){
+            private static final long serialVersionUID = -6249529434879218365L;
+        };
+    }
+
     private Map<String, ?> parseDictionary(final ResettableIterator parsingTemplateIter,
                                                 final ScriptEngine engine) throws ScriptException {
-        final Map<String, Object> result = new HashMap<String, Object>(20){ };
+        final Map<String, Object> result = newHashMap(20);
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){
             final Object templateFragment = parsingTemplateIter.next();
@@ -899,9 +911,15 @@ public class XmlParserDefinition {
         return result;
     }
 
+    private static LinkedList<HashMap<String, ?>> newLinkedList(){
+        return new LinkedList<HashMap<String, ?>>(){
+            private static final long serialVersionUID = -530553453771270599L;
+        };
+    }
+
     private List<? extends Map<String, ?>> parseTable(final ResettableIterator parsingTemplateIter,
                                                        final ScriptEngine engine) throws ScriptException{
-        final List<HashMap<String, ?>> table = new LinkedList<HashMap<String, ?>>(){ };
+        final List<HashMap<String, ?>> table = newLinkedList();
         HashMap<String, Object> row = new HashMap<>(20);
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){
@@ -986,35 +1004,6 @@ public class XmlParserDefinition {
             } else if (templateFragment instanceof DictionaryEntryParsingRule) {
                 final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule) templateFragment;
                 reader.read(rule.getKeyName(), rule.getValueType());
-            }
-    }
-
-    /**
-     * Exports description of the table type.
-     * @param columnDef The map that accepts the columns.
-     * @param indexedColumns The set that accepts the indexed columns.
-     */
-    public final void exportTableType(final Map<String, XmlParsingResultType> columnDef, final Set<String> indexedColumns) {
-        for (final Object templateFragment : getParsingTemplate())
-            if (templateFragment instanceof TableColumnParsingRule) {
-                final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;
-                if (rule.isIndexed()) indexedColumns.add(rule.getColumnName());
-                columnDef.put(rule.getColumnName(), rule.getColumnType());
-            }
-    }
-
-    /**
-     * Exports the detailed description of the dictionary type.
-     * <p>
-     *     This method can be called if this definition has {@link com.itworks.jcommands.impl.XmlParsingResultType#DICTIONARY}
-     *     type.
-     * @param dictionaryType The detailed description of the dictionary to fill.
-     */
-    public final void exportDictionaryType(final Map<String, XmlParsingResultType> dictionaryType) {
-        for (final Object templateFragment : getParsingTemplate())
-            if (templateFragment instanceof DictionaryEntryParsingRule) {
-                final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule) templateFragment;
-                dictionaryType.put(rule.getKeyName(), rule.getValueType());
             }
     }
 }

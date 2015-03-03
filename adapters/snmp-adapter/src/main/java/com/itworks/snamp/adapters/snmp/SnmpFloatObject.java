@@ -1,28 +1,39 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagedEntityType;
-import org.snmp4j.smi.*;
-import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.*;
+import com.itworks.snamp.internal.annotations.SpecialUse;
+import com.itworks.snamp.jmx.WellKnownType;
+import org.snmp4j.smi.OctetString;
+import org.snmp4j.smi.Variable;
+
+import javax.management.InvalidAttributeValueException;
+import javax.management.ReflectionException;
+import java.lang.reflect.Type;
+import java.util.Objects;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
 
-@MOSyntax(SYNTAX_OCTET_STRING)
 final class SnmpFloatObject extends SnmpScalarObject<OctetString>{
-    public static final Number defaultValue = -1.0F;
+    static final Number DEFAULT_VALUE = -1.0F;
+    static final int SYNTAX = SYNTAX_OCTET_STRING;
 
-    public SnmpFloatObject(final String oid, final AttributeAccessor connector){
-        super(oid, connector, new OctetString(defaultValue.toString()));
+    @SpecialUse
+    SnmpFloatObject(final AttributeAccessor connector){
+        super(connector, new OctetString(DEFAULT_VALUE.toString()));
     }
 
-    public static OctetString convert(final Object value, final ManagedEntityType attributeTypeInfo){
-        final Number convertedValue = convertFrom(attributeTypeInfo, value, TypeLiterals.NUMBER, TypeLiterals.FLOAT, TypeLiterals.DOUBLE);
-        return new OctetString(convertedValue.toString());
+    @SpecialUse
+    static OctetString toSnmpObject(final Object value){
+        return new OctetString(Objects.toString(value, "0"));
     }
 
-    public static Object convert(final Variable value, final ManagedEntityType attributeTypeInfo){
-        return convertFrom(attributeTypeInfo, value.toString(), TypeLiterals.NUMBER, fallbackWithDefaultValue(defaultValue, value, attributeTypeInfo), TypeLiterals.FLOAT, TypeLiterals.DOUBLE);
+    @SpecialUse
+    static Number fromSnmpObject(final Variable value, final Type attributeTypeInfo) throws InvalidAttributeValueException {
+        switch (WellKnownType.getType(attributeTypeInfo)){
+            case FLOAT: return Float.valueOf(value.toString());
+            case DOUBLE: return Double.valueOf(value.toString());
+            default: throw unexpectedAttributeType(attributeTypeInfo);
+        }
     }
 
     /**
@@ -33,7 +44,7 @@ final class SnmpFloatObject extends SnmpScalarObject<OctetString>{
      */
     @Override
     protected OctetString convert(final Object value) {
-        return convert(value, getMetadata().getType());
+        return toSnmpObject(value);
     }
 
     /**
@@ -43,7 +54,7 @@ final class SnmpFloatObject extends SnmpScalarObject<OctetString>{
      * @return Resource-specific representation of SNMP-compliant value.
      */
     @Override
-    protected Object convert(final OctetString value) {
-        return convert(value, getMetadata().getType());
+    protected Object convert(final OctetString value) throws ReflectionException, InvalidAttributeValueException {
+        return fromSnmpObject(value, getAttributeType());
     }
 }

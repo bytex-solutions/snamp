@@ -30,6 +30,8 @@ import static com.itworks.snamp.jmx.CompositeDataUtils.fillMap;
 public class AttributeDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<AttributeConfiguration> {
 
 
+    private static final long serialVersionUID = -516459089021572254L;
+
     /**
      * Initializes a new attribute descriptor using attribute configuration.
      * @param attributeConfig The attribute configuration used to create descriptor. Cannot be {@literal null}.

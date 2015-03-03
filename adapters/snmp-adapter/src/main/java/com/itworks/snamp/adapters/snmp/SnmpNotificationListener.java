@@ -9,7 +9,7 @@ import java.util.EventListener;
  * @version 1.0
  * @since 1.0
  */
-interface SnmpNoitificationListener extends EventListener {
+interface SnmpNotificationListener extends EventListener {
     @Subscribe
     void processNotification(final SnmpNotification wrappedNotification);
 }

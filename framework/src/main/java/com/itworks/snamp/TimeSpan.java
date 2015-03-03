@@ -2,6 +2,7 @@ package com.itworks.snamp;
 
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * @since 1.0
  */
-public final class TimeSpan  {
+public final class TimeSpan implements Serializable {
     /**
      * Represents infinite time interval.
      */
@@ -38,6 +39,7 @@ public final class TimeSpan  {
      * Represents maximum value.
      */
     public static final TimeSpan MAX_VALUE = new TimeSpan(Long.MAX_VALUE, TimeUnit.DAYS);
+    private static final long serialVersionUID = -5363358862646385345L;
 
     /**
      * Represents the duration value.

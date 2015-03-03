@@ -13,6 +13,8 @@ import javax.management.openmbean.OpenType;
  * @since 1.0
  */
 public class CustomAttributeInfo extends MBeanAttributeInfo {
+    private static final long serialVersionUID = 340660963081078107L;
+
     /**
      * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
      *

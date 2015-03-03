@@ -1,10 +1,10 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.google.common.eventbus.Subscribe;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
 import org.snmp4j.agent.DuplicateRegistrationException;
+import org.snmp4j.agent.NotificationOriginator;
 import org.snmp4j.agent.mo.MOTableRow;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
@@ -31,7 +31,7 @@ import java.util.logging.Level;
  * @author Roman Sakno, Evgeniy Kirichenko
  * 
  */
-final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
+final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
     private static final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
 
 	private final String hostName;
@@ -68,13 +68,13 @@ final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
             boolean wasWriteViewAdded = false;
             for(final SnmpAttributeMapping mo: SnmpHelpers.getObjectsByPrefix(prefix, attributes))
                 try {
-                    if (mo.getMetadata().canRead() && !wasReadViewAdded){
+                    if (mo.getMetadata().isReadable() && !wasReadViewAdded){
                         vacmMIB.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
                                 new OctetString(), VacmMIB.vacmViewIncluded,
                                 StorageType.nonVolatile);
                         wasReadViewAdded = true;
                     }
-                    if (mo.getMetadata().canWrite() && !wasWriteViewAdded){
+                    if (mo.getMetadata().isWritable() && !wasWriteViewAdded){
                         vacmMIB.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
                                 new OctetString(), VacmMIB.vacmViewIncluded,
                                 StorageType.nonVolatile);
@@ -263,12 +263,12 @@ final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
 		communityMIB.getSnmpCommunityEntry().addRow(row);
 	}
 
-    @Subscribe
     @Override
     public void processNotification(final SnmpNotification wrappedNotification){
-        if(notificationOriginator != null){
-            notificationOriginator.notify(new OctetString(), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv3 sending
-            notificationOriginator.notify(new OctetString("public"), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv2 sending
+        final NotificationOriginator originator = super.notificationOriginator;
+        if(originator != null){
+            originator.notify(new OctetString(), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv3 sending
+            originator.notify(new OctetString("public"), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv2 sending
         }
     }
 

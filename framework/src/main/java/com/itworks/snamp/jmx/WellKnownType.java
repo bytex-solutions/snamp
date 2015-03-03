@@ -475,7 +475,7 @@ public enum  WellKnownType implements Serializable, Type {
      * @param value The object which type should be inferred.
      * @return Inferred well-known SNAMP type; or {@literal null} if type cannot be detected.
      */
-    public static WellKnownType getType(final Object value) {
+    public static WellKnownType fromValue(final Object value) {
         if(value != null)
             for(final WellKnownType type: values())
                 if(type.isInstance(value))
@@ -544,5 +544,27 @@ public enum  WellKnownType implements Serializable, Type {
                 return input.isBuffer();
             }
         });
+    }
+
+    public static WellKnownType getType(final Type t){
+        if(t instanceof WellKnownType)
+            return (WellKnownType)t;
+        else if(t instanceof Class<?>)
+            return getType((Class<?>)t);
+        else if(t instanceof TypeToken<?>)
+            return getType((TypeToken<?>)t);
+        else return null;
+    }
+
+    public static WellKnownType getArrayElementType(final ArrayType<?> arrayType){
+        return arrayType != null ? getType(arrayType.getElementOpenType()) : null;
+    }
+
+    public static WellKnownType getItemType(final CompositeType type, final String itemName) {
+        return getType(type.getType(itemName));
+    }
+
+    public static WellKnownType getColumnType(final TabularType type, final String itemName){
+        return getItemType(type.getRowType(), itemName);
     }
 }

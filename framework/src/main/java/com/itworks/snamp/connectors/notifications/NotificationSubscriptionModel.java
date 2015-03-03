@@ -1,12 +1,14 @@
 package com.itworks.snamp.connectors.notifications;
 
+import java.io.Serializable;
+
 /**
  * Represents model of the notification organization.
  * @author Roman Sakno
  * @version 1,0
  * @since 1.0
  */
-public enum NotificationSubscriptionModel {
+public enum NotificationSubscriptionModel implements Serializable {
     /**
      * Only single listener can be subscribed to the notification.
      */

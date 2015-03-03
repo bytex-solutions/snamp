@@ -68,7 +68,7 @@ public final class TabularDataUtils {
         return result;
     }
 
-    public static <E extends Exception> void forEachRow(final TabularData table, final Consumer<CompositeData, E> rowReader) throws E{
+    public static <E extends Throwable> void forEachRow(final TabularData table, final Consumer<CompositeData, E> rowReader) throws E{
         for(final Object row: table.values())
             if(row instanceof CompositeData)
                 rowReader.accept((CompositeData)row);

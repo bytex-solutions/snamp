@@ -4,10 +4,13 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
+import javax.management.openmbean.*;
+import java.lang.reflect.Array;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
 
 /**
  * Represents advanced routines to work with arrays.
@@ -17,6 +20,15 @@ import java.util.Objects;
  */
 public final class ArrayUtils {
     private ArrayUtils(){
+    }
+
+    /**
+     * Determines whether the specified object is an array.
+     * @param candidate An object to check.
+     * @return {@literal true}, if the specified object is an array; otherwise, {@literal false}.
+     */
+    public static boolean isArray(final Object candidate){
+        return candidate != null && (candidate instanceof Object[] || candidate.getClass().isArray());
     }
 
     /**
@@ -156,5 +168,67 @@ public final class ArrayUtils {
         for(final T item: array)
             if(filter.apply(item)) result.add(item);
         return toArray(result, elementType);
+    }
+
+
+
+    private static Object newArray(final OpenType<?> elementType,
+                                   final int[] dimensions,
+                                   final boolean isPrimitive) throws ReflectionException {
+        if(Objects.equals(SimpleType.BYTE, elementType))
+            return Array.newInstance(isPrimitive ? byte.class : Byte.class, dimensions);
+        else if(SimpleType.CHARACTER.equals(elementType))
+            return Array.newInstance(isPrimitive ? char.class : Character.class, dimensions);
+        else if(SimpleType.SHORT.equals(elementType))
+            return Array.newInstance(isPrimitive ? short.class : Short.class, dimensions);
+        else if(SimpleType.INTEGER.equals(elementType))
+            return Array.newInstance(isPrimitive ? int.class : Integer.class, dimensions);
+        else if(SimpleType.LONG.equals(elementType))
+            return Array.newInstance(isPrimitive ? long.class : Long.class, dimensions);
+        else if(SimpleType.BOOLEAN.equals(elementType))
+            return Array.newInstance(isPrimitive ? boolean.class : Boolean.class, dimensions);
+        else if(SimpleType.FLOAT.equals(elementType))
+            return Array.newInstance(isPrimitive ? float.class : Float.class, dimensions);
+        else if(SimpleType.DOUBLE.equals(elementType))
+            return Array.newInstance(isPrimitive ? double.class : Double.class, dimensions);
+        else if(SimpleType.VOID.equals(elementType))
+            return Array.newInstance(isPrimitive ? void.class : Void.class, dimensions);
+        else if(SimpleType.STRING.equals(elementType))
+            return Array.newInstance(String.class, dimensions);
+        else if(SimpleType.BIGDECIMAL.equals(elementType))
+            return Array.newInstance(BigDecimal.class, dimensions);
+        else if(SimpleType.BIGINTEGER.equals(elementType))
+            return Array.newInstance(BigInteger.class, dimensions);
+        else if(SimpleType.DATE.equals(elementType))
+            return Array.newInstance(Date.class, dimensions);
+        else if(SimpleType.OBJECTNAME.equals(elementType))
+            return Array.newInstance(ObjectName.class, dimensions);
+        else if(elementType instanceof CompositeType)
+            return Array.newInstance(CompositeData.class, dimensions);
+        else if(elementType instanceof TabularType)
+            return Array.newInstance(TabularData.class, dimensions);
+        else try{
+            return Array.newInstance(Class.forName(elementType.getClassName()), dimensions);
+        }
+        catch (final ClassNotFoundException e){
+            throw new ReflectionException(e);
+        }
+    }
+
+    /**
+     * Creates a new instance of the array.
+     * @param arrayType An array type definition.
+     * @param dimensions An array of length of each dimension.
+     * @return A new empty array.
+     * @throws ReflectionException Unable to create a new array.
+     * @throws java.lang.IllegalArgumentException The specified number of dimensions doesn't match to the number of dimensions
+     * in the array definition.
+     */
+    public static Object newArray(final ArrayType<?> arrayType, final int... dimensions) throws ReflectionException {
+        if(arrayType == null)
+            return null;
+        else if(dimensions.length != arrayType.getDimension())
+            throw new IllegalArgumentException("Actual number of dimensions doesn't match to the array type");
+        else return newArray(arrayType.getElementOpenType(), dimensions, arrayType.isPrimitiveArray());
     }
 }

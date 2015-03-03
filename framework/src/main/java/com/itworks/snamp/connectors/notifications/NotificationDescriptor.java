@@ -30,6 +30,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
      * which describes the notification severity.
      */
     public static final String SEVERITY_PARAM = NotificationSupport.SEVERITY_FIELD;
+    private static final long serialVersionUID = 6447489441284228878L;
 
     private NotificationDescriptor(final Map<String, ?> fields){
         super(fields);

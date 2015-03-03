@@ -1,9 +1,10 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.google.common.primitives.Shorts;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
@@ -12,7 +13,11 @@ import org.snmp4j.agent.mo.MOTable;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.Variable;
 
+import javax.management.MBeanAttributeInfo;
+import javax.management.ReflectionException;
+import javax.management.openmbean.ArrayType;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -31,6 +36,22 @@ final class SnmpHelpers {
 
     private SnmpHelpers(){
 
+    }
+
+    static byte toByte(final long value){
+        if(value > Byte.MAX_VALUE)
+            return Byte.MAX_VALUE;
+        else if(value < Byte.MIN_VALUE)
+            return Byte.MIN_VALUE;
+        else return (byte)value;
+    }
+
+    static short toShort(final long value){
+        return Shorts.saturatedCast(value);
+    }
+
+    static char toChar(final String value){
+        return value == null || value.isEmpty() ? '\0' : value.charAt(0);
     }
 
     private static Calendar createCalendar() {
@@ -285,8 +306,8 @@ final class SnmpHelpers {
         }
     }
 
-    static MOAccess getAccessRestrictions(final AttributeMetadata metadata, final boolean mayCreate){
-        switch ((metadata.canWrite() ? 1 : 0) << 1 | (metadata.canRead() ? 1 : 0)){
+    static MOAccess getAccessRestrictions(final MBeanAttributeInfo metadata, final boolean mayCreate){
+        switch ((metadata.isWritable() ? 1 : 0) << 1 | (metadata.isReadable() ? 1 : 0)){
             //case 0: case 1:
             default: return MOAccessImpl.ACCESS_READ_ONLY;
             case 2: return mayCreate ? new MOAccessImpl(MOAccessImpl.ACCESSIBLE_FOR_WRITE | MOAccessImpl.ACCESSIBLE_FOR_CREATE) : MOAccessImpl.ACCESS_WRITE_ONLY;
@@ -294,17 +315,17 @@ final class SnmpHelpers {
         }
     }
 
-    static MOAccess getAccessRestrictions(final AttributeMetadata metadata){
+    static MOAccess getAccessRestrictions(final MBeanAttributeInfo metadata){
         return getAccessRestrictions(metadata, false);
     }
 
-    static <COLUMN extends MOColumn<? extends Variable>> COLUMN findColumn(final MOTable<?, ? extends MOColumn<? extends Variable>, ?> table, final Class<COLUMN> columnType){
+    static <COLUMN extends MOColumn<?>> COLUMN findColumn(final MOTable<?, ? extends MOColumn<?>, ?> table, final Class<COLUMN> columnType){
         for(final MOColumn<? extends Variable> column: table.getColumns())
             if(columnType.isInstance(column)) return columnType.cast(column);
         return null;
     }
 
-    static int findColumnIndex(final MOTable<?, ? extends MOColumn<? extends Variable>, ?> table, final Class<? extends MOColumn<? extends Variable>> columnType){
+    static int findColumnIndex(final MOTable<?, ? extends MOColumn<?>, ?> table, final Class<? extends MOColumn<?>> columnType){
         final MOColumn<? extends Variable> column = findColumn(table, columnType);
         return column != null ? column.getColumnID() : -1;
     }
@@ -328,6 +349,13 @@ final class SnmpHelpers {
         for(final T obj: objects)
             if(Objects.equals(getPrefix(obj.getID()), prefix))
                 result.add(obj);
+        return result;
+    }
+
+    static Object toArray(final List<?> lst, final ArrayType<?> arrayType) throws ReflectionException {
+        final Object result = ArrayUtils.newArray(arrayType, lst.size());
+        for(int i = 0; i < lst.size(); i++)
+            Array.set(result, i, lst.get(i));
         return result;
     }
 

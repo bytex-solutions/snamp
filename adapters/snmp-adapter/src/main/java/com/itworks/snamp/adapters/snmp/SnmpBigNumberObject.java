@@ -1,30 +1,59 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagedEntityType;
+import com.itworks.snamp.internal.annotations.SpecialUse;
+import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
+import javax.management.InvalidAttributeValueException;
+import javax.management.ReflectionException;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Objects;
 
-import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.convertFrom;
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
 
-@MOSyntax(SYNTAX_OCTET_STRING)
 final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
-    public static final Number defaultValue = 0;
+    static final int SYNTAX = SYNTAX_OCTET_STRING;
+    static final Number DEFAULT_VALUE = 0;
 
-    public SnmpBigNumberObject(final String oid, final AttributeAccessor attribute){
-        super(oid, attribute, new OctetString(defaultValue.toString()));
+    @SpecialUse
+    SnmpBigNumberObject(final AttributeAccessor attribute){
+        super(attribute, new OctetString(DEFAULT_VALUE.toString()));
     }
 
-    public static OctetString convert(final Object value, final ManagedEntityType attributeTypeInfo){
-        return new OctetString(Objects.toString(convertFrom(attributeTypeInfo, value, TypeLiterals.NUMBER, TypeLiterals.BIG_INTEGER, TypeLiterals.BIG_DECIMAL), defaultValue.toString()));
+    @SpecialUse
+    static OctetString toSnmpObject(final Object value){
+        final String result;
+        if(value instanceof BigDecimal)
+            result = ((BigDecimal)value).toPlainString();
+        else if(value instanceof BigInteger)
+            result = value.toString();
+        else result = Objects.toString(value, "0");
+        return new OctetString(result);
     }
 
-    public static Number convert(final Variable value, final ManagedEntityType attributeTypeInfo){
-        return convertFrom(attributeTypeInfo, value.toString(), TypeLiterals.NUMBER, fallbackWithDefaultValue(defaultValue, value, attributeTypeInfo), TypeLiterals.BIG_DECIMAL, TypeLiterals.BIG_INTEGER);
+    @SpecialUse
+    static Number fromSnmpObject(final Variable value, final Type attributeTypeInfo) throws InvalidAttributeValueException {
+        switch (WellKnownType.getType(attributeTypeInfo)){
+            case BIG_DECIMAL:
+                try {
+                    return new BigDecimal(value.toString());
+                }
+                catch (final NumberFormatException e){
+                    throw new InvalidAttributeValueException(e.getMessage());
+                }
+            case BIG_INT:
+                try {
+                    return new BigInteger(value.toString());
+                }
+                catch (final NumberFormatException e){
+                    throw new InvalidAttributeValueException(e.getMessage());
+                }
+            default: throw unexpectedAttributeType(attributeTypeInfo);
+        }
     }
 
     /**
@@ -35,7 +64,7 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
      */
     @Override
     protected OctetString convert(final Object value) {
-        return convert(value, getMetadata().getType());
+        return toSnmpObject(value);
     }
 
     /**
@@ -45,7 +74,7 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
      * @return Resource-specific representation of SNMP-compliant value.
      */
     @Override
-    protected Object convert(final OctetString value) {
-        return convert(value, getMetadata().getType());
+    protected Object convert(final OctetString value) throws ReflectionException, InvalidAttributeValueException {
+        return fromSnmpObject(value, getAttributeType());
     }
 }

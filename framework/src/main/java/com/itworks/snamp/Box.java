@@ -3,6 +3,7 @@ package com.itworks.snamp;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -12,7 +13,8 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneable{
+public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneable, Serializable{
+    private static final long serialVersionUID = -3932725773035687013L;
     private T value;
 
     /**

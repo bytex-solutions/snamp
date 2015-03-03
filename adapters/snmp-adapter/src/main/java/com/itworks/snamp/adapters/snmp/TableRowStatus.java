@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
+import org.snmp4j.agent.mo.snmp.RowStatus;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
 
@@ -13,14 +14,14 @@ enum TableRowStatus {
     /**
      * The conceptual row is available for use by the managed device.
      */
-    ACTIVE(1),
+    ACTIVE(RowStatus.active),
 
     /**
      * The conceptual
      * row exists in the agent, but is unavailable for use by
      * the managed device.
      */
-    NOT_IN_SERVICE(2),
+    NOT_IN_SERVICE(RowStatus.notInService),
 
     /**
      * The conceptual row
@@ -28,7 +29,7 @@ enum TableRowStatus {
      * necessary in order to be available for use by the
      * managed device.
      */
-    NOT_READY(3),
+    NOT_READY(RowStatus.notReady),
 
     /**
      * Supplied by a management
@@ -37,7 +38,7 @@ enum TableRowStatus {
      * to active, making it available for use by the managed
      * device.
      */
-    CREATE_AND_GO(4),
+    CREATE_AND_GO(RowStatus.createAndGo),
 
     /**
      * Supplied by a management
@@ -45,14 +46,14 @@ enum TableRowStatus {
      * conceptual row (but not make it available for use by
      * the managed device).
      */
-    CREATE_AND_WAIT(5),
+    CREATE_AND_WAIT(RowStatus.createAndWait),
 
     /**
      * Supplied by a management station
      * wishing to delete all of the instances associated with
      * an existing conceptual row.
      */
-    DESTROY(6);
+    DESTROY(RowStatus.destroy);
 
     private final int value;
 
@@ -65,15 +66,9 @@ enum TableRowStatus {
     }
 
     public static TableRowStatus parse(final int value){
-        switch (value){
-            case 1: return ACTIVE;
-            case 2: return NOT_IN_SERVICE;
-            case 3: return NOT_READY;
-            case 4: return CREATE_AND_GO;
-            case 5: return CREATE_AND_WAIT;
-            case 6: return DESTROY;
-            default: return null;
-        }
+        for(final TableRowStatus status: values())
+            if(value == status.value) return status;
+        return null;
     }
 
     public static TableRowStatus parse(final Integer32 value){
