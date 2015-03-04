@@ -633,7 +633,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     if(description == null || description.isEmpty())
                         description = type.getCategory();
                 }
-                return new CustomNotificationInfo(category, description, metadata);
+                return new CustomNotificationInfo(category, description, metadata.setUserDataType(type.getUserDataType()));
             }
             else throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getNotificationCategory()));
         }
