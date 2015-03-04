@@ -1,5 +1,6 @@
 package com.itworks.snamp.core.maintenance;
 
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.management.AbstractMaintainable;
 import com.itworks.snamp.management.Maintainable;
 import com.itworks.snamp.management.MaintenanceActionInfo;
@@ -50,7 +51,7 @@ public final class MaintainableTest extends Assert {
     }
 
     public static final class MaintainableImpl extends AbstractMaintainable<MaintenanceActions>{
-        public MaintainableImpl(){
+        private MaintainableImpl(){
             super(MaintenanceActions.class);
         }
 
@@ -68,11 +69,13 @@ public final class MaintainableTest extends Assert {
         }
 
         @Action
+        @SpecialUse
         public String inc(final int value){
             return Integer.toString(value + 1);
         }
 
         @Action
+        @SpecialUse
         public String dec(final int value){
             return Integer.toString(value - 1);
         }
@@ -84,6 +87,7 @@ public final class MaintainableTest extends Assert {
          */
         @Override
         @Aggregation
+        @SpecialUse
         public Logger getLogger() {
             return Logger.getAnonymousLogger();
         }

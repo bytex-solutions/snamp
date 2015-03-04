@@ -1,13 +1,10 @@
-package com.itworks.jcommands.testing;
+package com.itworks.jcommands;
 
-import com.itworks.jcommands.ChannelProcessor;
-import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.jcommands.channels.CommandExecutionChannels;
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.testing.AbstractUnitTest;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
@@ -15,10 +12,7 @@ import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.shell.ProcessShellFactory;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -31,7 +25,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public final class SSHExecutionChannelTest extends AbstractUnitTest<CommandExecutionChannel> {
+public final class SSHExecutionChannelTest extends Assert {
     private final SshServer server;
     private static final String USER_NAME = "Dummy";
     private static final String PASSWORD = "Password";

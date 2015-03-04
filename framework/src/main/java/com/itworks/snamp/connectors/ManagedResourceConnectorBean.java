@@ -92,6 +92,14 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         /**
+         * Gets name of the attribute as it is specified in the managed resource configuration.
+         * @return The name of the attribute as it is specified in the managed resource configuration.
+         */
+        public String getDeclaredAttributeName(){
+            return AttributeDescriptor.getAttributeName(getMetadata());
+        }
+
+        /**
          * Gets timeout for the attribute get/set operation.
          * @return The operation timeout.
          */
@@ -413,7 +421,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             if(getter != null)
                 try(final AttributeContext ignored = new AttributeContext(this)) {
                     return formatter.toJmxValue(getter.invoke(owner));
-                } catch (final ReflectiveOperationException e) {
+                }
+                catch (final ReflectiveOperationException e) {
                     throw new ReflectionException(e);
                 }
             else throw new ReflectionException(new UnsupportedOperationException("Attribute is write-only"));
@@ -719,7 +728,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @return the array of possible notifications.
      */
     @Override
-    public MBeanNotificationInfo[] getNotificationInfo() {
+    public final MBeanNotificationInfo[] getNotificationInfo() {
         return new MBeanNotificationInfo[0];
     }
 
@@ -737,8 +746,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @see NotificationEmitter#removeNotificationListener
      */
     @Override
-    public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-
+    public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
+        verifyInitialization();
+        notifications.removeNotificationListener(listener);
     }
 
     /**
@@ -756,8 +766,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @see #removeNotificationListener
      */
     @Override
-    public void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
-
+    public final void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
+        verifyInitialization();
+        notifications.addNotificationListener(listener, filter, handback);
     }
 
     /**
@@ -770,8 +781,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
      */
     @Override
-    public boolean disableNotifications(final String listId) {
-        return false;
+    public final boolean disableNotifications(final String listId) {
+        verifyInitialization();
+        return notifications.disableNotifications(listId);
     }
 
     /**
@@ -790,8 +802,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @throws javax.management.JMException Internal connector error.
      */
     @Override
-    public MBeanNotificationInfo enableNotifications(final String listId, final String category, final CompositeData options) throws JMException {
-        return null;
+    public final MBeanNotificationInfo enableNotifications(final String listId, final String category, final CompositeData options) throws JMException {
+        return notifications.enableNotifications(listId, category, options);
     }
 
     /**

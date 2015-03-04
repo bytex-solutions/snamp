@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.http;
 
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.osgi.service.http.HttpService;
 
 /**
@@ -28,6 +29,7 @@ public final class HttpAdapterActivator extends ResourceAdapterActivator<HttpAda
         }
     }
 
+    @SpecialUse
     public HttpAdapterActivator() {
         super(HttpAdapter.NAME,
                 new RestAdapterFactory(),

@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.rshell;
 
 import com.itworks.snamp.connectors.ManagedResourceActivator;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 
 import java.util.Map;
 
@@ -27,6 +28,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
     /**
      * Initializes a new instance of the connector activator.
      */
+    @SpecialUse
     public RShellResourceConnectorActivator() {
         super(RShellResourceConnector.NAME,
                 new RShellConnectorFactory(),

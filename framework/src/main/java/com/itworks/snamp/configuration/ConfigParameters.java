@@ -1,8 +1,11 @@
 package com.itworks.snamp.configuration;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.jmx.AbstractCompositeData;
 
 import javax.management.openmbean.SimpleType;
+import java.util.Map;
+
 import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
 
 /**
@@ -24,12 +27,32 @@ public final class ConfigParameters extends AbstractCompositeData<String> {
      */
     public static final SimpleType<String> ITEM_TYPE = SimpleType.STRING;
 
+    private static final String PLACEHOLDER_PARAM = "$placeholder$";
+
+    private static final long serialVersionUID = 8225426679292248903L;
+
+    private static Map<String, String> fillWithPlaceholderIfNecessary(final Map<String, String> parameters){
+        return parameters.isEmpty() ? ImmutableMap.of(PLACEHOLDER_PARAM, "") : parameters;
+    }
+
+    private ConfigParameters(final Map<String, String> parameters){
+        super(fillWithPlaceholderIfNecessary(parameters));
+    }
+
     /**
      * Initializes a new copy of configuration entity parameters
      * @param entity The configuration entity. Cannot be {@literal null}.
      */
     public ConfigParameters(final ConfigurationEntity entity){
-        super(entity.getParameters());
+        this(entity.getParameters());
+    }
+
+    /**
+     * Creates a new instance of the empty set of configuration parameters.
+     * @return An empty set of configuration parameters.
+     */
+    public static ConfigParameters empty(){
+        return new ConfigParameters(ImmutableMap.<String, String>of());
     }
 
     /**

@@ -1,6 +1,8 @@
 package com.itworks.snamp.jmx;
 
+import com.google.common.collect.Lists;
 import com.itworks.snamp.Consumer;
+import com.itworks.snamp.SafeConsumer;
 
 import javax.management.openmbean.*;
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ import java.util.Objects;
  */
 public final class TabularDataUtils {
     private static final class RowList<R extends CompositeDataBean> extends ArrayList<R>{
+        private static final long serialVersionUID = 2584942280684733271L;
         private final TabularType type;
 
         private RowList(final int size, final TabularType type){
@@ -72,5 +75,16 @@ public final class TabularDataUtils {
         for(final Object row: table.values())
             if(row instanceof CompositeData)
                 rowReader.accept((CompositeData)row);
+    }
+
+    public static List<CompositeData> getRows(final TabularData table){
+        final ArrayList<CompositeData> rows = Lists.newArrayListWithExpectedSize(table.size());
+        forEachRow(table, new SafeConsumer<CompositeData>() {
+            @Override
+            public void accept(final CompositeData row) {
+                rows.add(row);
+            }
+        });
+        return rows;
     }
 }

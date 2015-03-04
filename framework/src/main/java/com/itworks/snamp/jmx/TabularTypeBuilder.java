@@ -25,10 +25,6 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
         return tabularTypeName + "Row";
     }
 
-    private static String createRowTypeDescription(final String tabularTypeDescription){
-        return String.format("Row type of %s tabular type", tabularTypeDescription);
-    }
-
     /**
      * Initializes a new tabular type builder.
      * @param typeName The name of the tabular type. Cannot be {@literal null}.
@@ -48,7 +44,7 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
 
     public TabularTypeBuilder(final String typeName,
                               final String typeDescription) {
-        this(typeName, typeDescription, createRowTypeName(typeName), createRowTypeDescription(typeDescription));
+        this(typeName, typeDescription, createRowTypeName(typeName), typeDescription);
     }
 
     /**
@@ -84,7 +80,7 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
 
     public final TabularTypeBuilder setDescription(final String value, final boolean setRowDescription) {
         return setRowDescription ?
-                setDescription(value).setRowDescription(createRowTypeDescription(value)) :
+                setDescription(value).setRowDescription(value) :
                 setDescription(value);
     }
 

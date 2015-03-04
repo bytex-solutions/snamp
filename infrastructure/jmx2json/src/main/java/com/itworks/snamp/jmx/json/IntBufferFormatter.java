@@ -15,10 +15,11 @@ import java.nio.IntBuffer;
 public final class IntBufferFormatter extends AbstractBufferFormatter<IntBuffer> {
     @Override
     protected IntBuffer deserialize(final JsonArray json) throws JsonParseException {
-        final int[] result = new int[json.size()];
+        final IntBuffer result = Buffers.allocIntBuffer(json.size(), false);
         for(int i = 0; i < json.size(); i++)
-            result[i] = json.get(i).getAsInt();
-        return Buffers.wrap(result);
+            result.put(json.get(i).getAsInt());
+        result.rewind();
+        return result;
     }
 
     @Override

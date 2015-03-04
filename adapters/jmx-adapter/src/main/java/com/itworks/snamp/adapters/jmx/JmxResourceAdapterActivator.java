@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.jmx;
 
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 
 /**
  * Represents JMX resource adapter activator.
@@ -29,6 +30,7 @@ public final class JmxResourceAdapterActivator extends ResourceAdapterActivator<
     /**
      * Initializes a new instance of the resource adapter lifetime manager.
      */
+    @SpecialUse
     public JmxResourceAdapterActivator() {
         super(JmxResourceAdapter.NAME,
                 new JmxAdapterFactory(),

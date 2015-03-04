@@ -584,7 +584,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                         }
             }
             finally {
-                beginRead(ANSResource.NOTIFICATIONS);
+                endRead(ANSResource.NOTIFICATIONS);
             }
             //fire listeners
             beginRead(ANSResource.LISTENERS);

@@ -179,25 +179,25 @@ final class HttpAdapter extends AbstractResourceAdapter {
             if(type != null)
                 switch (type){
                     case BYTE_BUFFER:
-                        builder = builder.registerTypeAdapter(type.getType(), new ByteBufferFormatter());
+                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new ByteBufferFormatter());
                     break;
                     case CHAR_BUFFER:
-                        builder = builder.registerTypeAdapter(type.getType(), new CharBufferFormatter());
+                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new CharBufferFormatter());
                     break;
                     case SHORT_BUFFER:
-                        builder = builder.registerTypeAdapter(type.getType(), new ShortBufferFormatter());
+                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new ShortBufferFormatter());
                     break;
                     case INT_BUFFER:
-                        builder = builder.registerTypeAdapter(type.getType(), new IntBufferFormatter());
+                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new IntBufferFormatter());
                     break;
                     case LONG_BUFFER:
-                        builder = builder.registerTypeAdapter(type.getType(), new LongBufferFormatter());
+                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new LongBufferFormatter());
                     break;
                     case FLOAT_BUFFER:
-                        builder = builder.registerTypeAdapter(type.getType(), new FloatBufferFormatter());
+                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new FloatBufferFormatter());
                     break;
                     case DOUBLE_BUFFER:
-                        builder = builder.registerTypeAdapter(type.getType(), new DoubleBufferFormatter());
+                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new DoubleBufferFormatter());
                     break;
                     case OBJECT_NAME_ARRAY:
                     case OBJECT_NAME:

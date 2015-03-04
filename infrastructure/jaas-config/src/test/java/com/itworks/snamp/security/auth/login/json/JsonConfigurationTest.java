@@ -1,11 +1,10 @@
-package com.itworks.snamp.testing.security.login.config.json;
+package com.itworks.snamp.security.auth.login.json;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.itworks.snamp.security.auth.login.json.JsonConfiguration;
 import com.itworks.snamp.security.auth.login.json.spi.JsonConfigurationSpi;
-import com.itworks.snamp.testing.AbstractUnitTest;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.security.auth.login.AppConfigurationEntry;
@@ -17,7 +16,7 @@ import java.io.IOException;
  * @version 1.0
  * @since 1.0
  */
-public class JsonConfigurationTest extends AbstractUnitTest {
+public class JsonConfigurationTest extends Assert {
     @Test
     public void serializationDeserializationTest() throws IOException {
         final Gson formatter = JsonConfigurationSpi.init(new GsonBuilder()).create();

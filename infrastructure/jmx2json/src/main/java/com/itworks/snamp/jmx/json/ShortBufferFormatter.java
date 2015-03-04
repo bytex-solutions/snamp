@@ -15,10 +15,11 @@ import java.nio.ShortBuffer;
 public final class ShortBufferFormatter extends AbstractBufferFormatter<ShortBuffer> {
     @Override
     public ShortBuffer deserialize(final JsonArray json) throws JsonParseException {
-        final short[] result = new short[json.size()];
+        final ShortBuffer result = Buffers.allocShortBuffer(json.size(), false);
         for(int i = 0; i < json.size(); i++)
-            result[i] = json.get(i).getAsShort();
-        return Buffers.wrap(result);
+            result.put(json.get(i).getAsShort());
+        result.rewind();
+        return result;
     }
 
     @Override

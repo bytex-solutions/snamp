@@ -15,10 +15,11 @@ import java.nio.LongBuffer;
 public final class LongBufferFormatter extends AbstractBufferFormatter<LongBuffer> {
     @Override
     public LongBuffer deserialize(final JsonArray json) throws JsonParseException {
-        final long[] result = new long[json.size()];
+        final LongBuffer result = Buffers.allocLongBuffer(json.size(), false);
         for(int i = 0; i < json.size(); i++)
-            result[i] = json.get(i).getAsLong();
-        return Buffers.wrap(result);
+            result.put(json.get(i).getAsLong());
+        result.rewind();
+        return result;
     }
 
     @Override

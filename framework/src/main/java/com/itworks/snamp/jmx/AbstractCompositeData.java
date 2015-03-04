@@ -16,6 +16,7 @@ import java.util.Map;
  * @since 1.0
  */
 public abstract class AbstractCompositeData<V> extends HashMap<String, V> implements CompositeData {
+    private static final long serialVersionUID = -3430619815874482606L;
     private CompositeType cachedType;
 
     /**

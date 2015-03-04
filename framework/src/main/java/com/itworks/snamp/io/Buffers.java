@@ -242,32 +242,37 @@ public final class Buffers {
         else return null;
     }
 
+    private static <B extends Buffer> B rewind(final B buffer){
+        buffer.rewind();
+        return buffer;
+    }
+
     public static ByteBuffer wrap(final byte... items){
-        return ByteBuffer.wrap(items);
+        return rewind(ByteBuffer.wrap(items));
     }
 
     public static CharBuffer wrap(final char... items){
-        return CharBuffer.wrap(items);
+        return rewind(CharBuffer.wrap(items));
     }
 
     public static ShortBuffer wrap(final short... items){
-        return ShortBuffer.wrap(items);
+        return rewind(ShortBuffer.wrap(items));
     }
 
     public static IntBuffer wrap(final int... items){
-        return IntBuffer.wrap(items);
+        return rewind(IntBuffer.wrap(items));
     }
 
     public static LongBuffer wrap(final long... items){
-        return LongBuffer.wrap(items);
+        return rewind(LongBuffer.wrap(items));
     }
 
     public static FloatBuffer wrap(final float... items){
-        return FloatBuffer.wrap(items);
+        return rewind(FloatBuffer.wrap(items));
     }
 
     public static DoubleBuffer wrap(final double... items){
-        return DoubleBuffer.wrap(items);
+        return rewind(DoubleBuffer.wrap(items));
     }
 
     public static ByteBuffer toByteBuffer(final CharBuffer buffer){

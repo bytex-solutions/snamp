@@ -1,13 +1,11 @@
-package com.itworks.jcommands.testing;
+package com.itworks.jcommands;
 
-import com.itworks.jcommands.ChannelProcessor;
-import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.jcommands.channels.CommandExecutionChannels;
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.testing.AbstractUnitTest;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -22,7 +20,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-public class LocalProcessExecutionChannelTest extends AbstractUnitTest<CommandExecutionChannel> {
+public class LocalProcessExecutionChannelTest extends Assert {
     @Test
     public void echoTest() throws Exception {
         try(final CommandExecutionChannel channel = CommandExecutionChannels.createLocalProcessExecutionChannel()){

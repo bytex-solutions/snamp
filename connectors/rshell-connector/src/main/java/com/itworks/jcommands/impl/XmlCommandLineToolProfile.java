@@ -2,7 +2,9 @@ package com.itworks.jcommands.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.CommandExecutionChannel;
+import com.itworks.snamp.jmx.TabularDataUtils;
 
+import javax.management.openmbean.TabularData;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.xml.bind.JAXB;
@@ -50,8 +52,10 @@ public class XmlCommandLineToolProfile {
     }
 
     public final boolean writeToChannel(final CommandExecutionChannel channel,
-                                        final Object value) throws ScriptException, IOException {
+                                        Object value) throws ScriptException, IOException {
         if (modifierTemplate == null) return false;
+        if(value instanceof TabularData)
+            value = TabularDataUtils.getRows((TabularData) value);
         final Object success = channel.exec(modifierTemplate, ImmutableMap.of("value", value));
         return success instanceof Boolean && (Boolean) success;
     }

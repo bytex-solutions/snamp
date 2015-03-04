@@ -21,10 +21,11 @@ public final class CharBufferFormatter extends AbstractBufferFormatter<CharBuffe
      */
     @Override
     public CharBuffer deserialize(final JsonArray json) {
-        final char[] result = new char[json.size()];
+        final CharBuffer result = Buffers.allocCharBuffer(json.size(), false);
         for(int i = 0; i < json.size(); i++)
-            result[i] = json.get(i).getAsCharacter();
-        return Buffers.wrap(result);
+            result.put(json.get(i).getAsCharacter());
+        result.rewind();
+        return result;
     }
 
     /**

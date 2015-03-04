@@ -1,4 +1,4 @@
-package com.itworks.jcommands.testing;
+package com.itworks.jcommands;
 
 import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
@@ -7,7 +7,8 @@ import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
 import com.itworks.snamp.jmx.CompositeDataBuilder;
 import com.itworks.snamp.jmx.TabularDataBuilder;
-import com.itworks.snamp.testing.AbstractUnitTest;
+import com.itworks.snamp.jmx.TabularDataUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.management.openmbean.CompositeData;
@@ -29,12 +30,13 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlCommandLineTemplate> {
+public final class XmlCommandLineTemplateTest extends Assert {
 
     @Test
     public void serializationTest() throws IOException {
         final XmlCommandLineToolProfile profile = new XmlCommandLineToolProfile();
-        profile.saveTo(new File("/home/roman/free-tool.xml"));
+        final File output = File.createTempFile("snamp", "free-tool.xml");
+        profile.saveTo(output);
         try(final OutputStream s = new ByteArrayOutputStream(4096)){
             profile.saveTo(s);
         }
@@ -59,6 +61,8 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
         final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
         template.setCommandTemplate("{table:{x | {x.column1} = {x.column2}}}");
         final TabularData table = new TabularDataBuilder()
+                .setTypeName("table", true)
+                .setTypeDescription("Dummy descr", true)
                 .columns()
                 .addColumn("column1", "column1", SimpleType.STRING, true)
                 .addColumn("column2", "column2", SimpleType.INTEGER, false)
@@ -66,7 +70,7 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
                 .add("A", 42)
                 .add("B", 43)
                 .build();
-        final String result = template.renderCommand(ImmutableMap.of("table", table));
+        final String result = template.renderCommand(ImmutableMap.of("table", TabularDataUtils.getRows(table)));
         assertEquals("A = 42B = 43", result);
     }
 
@@ -91,8 +95,8 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
         parser.addLineTermination("scan.next('[a-z]+');");
         final ScriptEngineManager manager = new ScriptEngineManager();
         final Object result = parser.parse("ab 1 ba ab 2 cd ef 3 gh", manager);
-        assertTrue(result instanceof Byte[]);
-        assertArrayEquals(new Byte[]{1, 2, 3}, result);
+        assertTrue(result instanceof byte[]);
+        assertArrayEquals(new byte[]{1, 2, 3}, (byte[])result);
     }
 
     @SuppressWarnings("unchecked")
@@ -139,7 +143,7 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
         final ScriptEngineManager manager = new ScriptEngineManager();
         Object result = parser.parse("abbaa123abbaa", manager);
         assertTrue(result instanceof Byte);
-        assertEquals(123, result);
+        assertEquals((byte) 123, result);
         //Test for BigInteger
         parser.setParsingResultType(XmlParsingResultType.BIG_INTEGER);
         parser.removeParsingRules();
@@ -167,8 +171,8 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
         parser.removeParsingRules();
         parser.addParsingRule("scan.next('[0-9]+');");
         result = parser.parse("20", manager);
-        assertTrue(result instanceof Byte[]);
-        assertArrayEquals(new Byte[]{0x20}, (Byte[])result);
+        assertTrue(result instanceof byte[]);
+        assertArrayEquals(new byte[]{0x20}, (byte[])result);
     }
 
     @Test
@@ -216,7 +220,7 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
         parser.addArrayItem("[0-9]+", XmlParsingResultType.FLOAT);
         parser.addLineTermination("[a-z]*");
         final Object array = parser.parse("ab 1 ba ac 2 da ad 3", new ScriptEngineManager());
-        assertTrue(array instanceof Float[]);
-        assertArrayEquals(new Float[]{1F, 2F, 3F}, array);
+        assertTrue(array instanceof float[]);
+        assertArrayEquals(new float[]{1F, 2F, 3F}, (float[])array, 0.001F);
     }
 }

@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.ssh;
 
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 
 /**
  * Represents OSGi activator for {@link com.itworks.snamp.adapters.ssh.SshAdapter} resource adapter.
@@ -33,6 +34,7 @@ public final class SshAdapterActivator extends ResourceAdapterActivator<SshAdapt
         }
     }
 
+    @SpecialUse
     public SshAdapterActivator() {
         super(SshAdapter.NAME,
                 new SshAdapterFactory(),

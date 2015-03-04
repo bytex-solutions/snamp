@@ -22,10 +22,11 @@ public final class ByteBufferFormatter extends AbstractBufferFormatter<ByteBuffe
      */
     @Override
     public ByteBuffer deserialize(final JsonArray json) {
-        final byte[] result = new byte[json.size()];
+        final ByteBuffer result = Buffers.allocByteBuffer(json.size(), false);
         for(int i = 0; i < json.size(); i++)
-            result[i] = json.get(i).getAsByte();
-        return Buffers.wrap(result);
+            result.put(json.get(i).getAsByte());
+        result.rewind();
+        return result;
     }
 
     /**

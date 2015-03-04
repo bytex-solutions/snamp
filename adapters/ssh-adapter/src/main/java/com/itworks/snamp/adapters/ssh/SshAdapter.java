@@ -371,7 +371,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         private AbstractBufferAttributeView(final AttributeAccessor accessor,
                                     final AbstractBufferFormatter<B> formatter,
                                     final Class<B> bufferType){
-            super(accessor, new GsonBuilder().registerTypeAdapter(bufferType, formatter));
+            super(accessor, new GsonBuilder().registerTypeHierarchyAdapter(bufferType, formatter));
             this.bufferType = bufferType;
         }
 

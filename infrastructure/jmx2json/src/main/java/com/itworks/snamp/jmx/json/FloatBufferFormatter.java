@@ -21,10 +21,11 @@ public final class FloatBufferFormatter extends AbstractBufferFormatter<FloatBuf
      */
     @Override
     public FloatBuffer deserialize(final JsonArray json) {
-        final float[] result = new float[json.size()];
+        final FloatBuffer result = Buffers.allocFloatBuffer(json.size(), false);
         for(int i = 0; i < json.size(); i++)
-            result[i] = json.get(i).getAsFloat();
-        return Buffers.wrap(result);
+            result.put(json.get(i).getAsFloat());
+        result.rewind();
+        return result;
     }
 
     /**

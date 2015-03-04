@@ -21,10 +21,11 @@ public final class DoubleBufferFormatter extends AbstractBufferFormatter<DoubleB
      */
     @Override
     public DoubleBuffer deserialize(final JsonArray json) {
-        final double[] result = new double[json.size()];
+        final DoubleBuffer result = Buffers.allocDoubleBuffer(json.size(), false);
         for(int i = 0; i < json.size(); i++)
-            result[i] = json.get(i).getAsDouble();
-        return Buffers.wrap(result);
+            result.put(json.get(i).getAsDouble());
+        result.rewind();
+        return result;
     }
 
     /**
