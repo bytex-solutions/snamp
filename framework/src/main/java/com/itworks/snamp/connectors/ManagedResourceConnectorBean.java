@@ -391,6 +391,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     private static class JavaBeanAttributeInfo extends MBeanAttributeInfo{
+        private static final long serialVersionUID = -5047097712279607039L;
         private final Method getter;
         private final Method setter;
         protected final ManagementAttributeFormatter formatter;
@@ -405,8 +406,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     canWrite(property),
                     isFlag(property),
                     descriptor);
-            getter = property.getReadMethod();
-            setter = property.getWriteMethod();
+            this.getter = property.getReadMethod();
+            this.setter = property.getWriteMethod();
             final ManagementAttribute info = getAdditionalInfo(getter, setter);
             if(info != null)
                 try {
@@ -474,6 +475,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     private static final class JavaBeanOpenAttributeInfo extends JavaBeanAttributeInfo implements OpenMBeanAttributeInfo{
+        private static final long serialVersionUID = -4173983412042130772L;
         private final OpenType<?> openType;
 
         private JavaBeanOpenAttributeInfo(final String attributeName,
