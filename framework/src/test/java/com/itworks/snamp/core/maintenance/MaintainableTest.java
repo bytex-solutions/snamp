@@ -1,13 +1,14 @@
-package com.itworks.snamp.testing.core.maintenance;
+package com.itworks.snamp.core.maintenance;
 
 import com.itworks.snamp.management.AbstractMaintainable;
 import com.itworks.snamp.management.Maintainable;
 import com.itworks.snamp.management.MaintenanceActionInfo;
-import com.itworks.snamp.testing.AbstractUnitTest;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Locale;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 /**
@@ -15,7 +16,7 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-public final class MaintainableTest extends AbstractUnitTest<AbstractMaintainable> {
+public final class MaintainableTest extends Assert {
     private static enum MaintenanceActions implements MaintenanceActionInfo {
         INC("inc"),
         DEC("dec");

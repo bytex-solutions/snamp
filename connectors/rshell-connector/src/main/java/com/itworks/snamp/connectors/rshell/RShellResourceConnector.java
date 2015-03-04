@@ -46,6 +46,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
     final static String NAME = RShellConnectorHelpers.CONNECTOR_NAME;
 
     private static abstract class RShellAttributeInfo extends OpenTypeAttributeInfo{
+        private static final long serialVersionUID = -403897890533078455L;
         protected final XmlCommandLineToolProfile commandProfile;
         private final Map<String, ?> parameters;
 
@@ -86,6 +87,8 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
 
     private static final class SimpleAttributeInfo extends RShellAttributeInfo{
 
+        private static final long serialVersionUID = 8087839188926328479L;
+
         private SimpleAttributeInfo(final String attributeID,
                                     final XmlCommandLineToolProfile profile,
                                     final AttributeDescriptor options) {
@@ -102,6 +105,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
 
     private static final class TableAttributeInfo extends RShellAttributeInfo{
         private static final String INDEX_COLUMN = "index";
+        private static final long serialVersionUID = -3828510082280244717L;
 
         private TableAttributeInfo(final String attributeID,
                                    final XmlCommandLineToolProfile profile,
@@ -145,6 +149,8 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
     }
 
     private static final class DictionaryAttributeInfo extends RShellAttributeInfo{
+
+        private static final long serialVersionUID = 7974143091272614419L;
 
         private DictionaryAttributeInfo(final String attributeID,
                                         final XmlCommandLineToolProfile profile,

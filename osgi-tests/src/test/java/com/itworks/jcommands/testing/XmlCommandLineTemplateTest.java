@@ -1,15 +1,19 @@
 package com.itworks.jcommands.testing;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
-import com.itworks.snamp.mapping.RecordSetUtils;
-import com.itworks.snamp.mapping.RowSet;
+import com.itworks.snamp.jmx.CompositeDataBuilder;
+import com.itworks.snamp.jmx.TabularDataBuilder;
 import com.itworks.snamp.testing.AbstractUnitTest;
 import org.junit.Test;
 
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.TabularData;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.ByteArrayOutputStream;
@@ -17,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,35 +41,32 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
     }
 
     @Test
-    public void renderDictionaryTest(){
+    public void renderDictionaryTest() throws OpenDataException {
         final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
-        template.setCommandTemplate("{a.key1}, {a.key2}");
-        final String result = template.renderCommand(new HashMap<String, Object>(1){{
-            put("a", new HashMap<String, String>(2){{
-                put("key1", "Hello");
-                put("key2", "world");
-            }});
-        }});
+        template.setCommandTemplate("{dict.key1}, {dict.key2}");
+        final CompositeData dict = new CompositeDataBuilder()
+                .setTypeName("dict")
+                .setTypeDescription("desr")
+                .put("key1", "key1", "Hello")
+                .put("key2", "key2", "world")
+                .build();
+        final String result = template.renderCommand(ImmutableMap.of("dict", dict));
         assertEquals("Hello, world", result);
     }
 
     @Test
-    public void renderTableTest(){
+    public void renderTableTest() throws OpenDataException {
         final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
         template.setCommandTemplate("{table:{x | {x.column1} = {x.column2}}}");
-        RowSet<Object> table = RecordSetUtils.emptyRowSet("column1", "column2");
-        table = RecordSetUtils.addRow(table, new HashMap<String, Object>(){{
-                    put("column1", "A");
-                    put("column2", 42);
-                }});
-        table =  RecordSetUtils.addRow(table, new HashMap<String, Object>(){{
-            put("column1", "B");
-            put("column2", 43);
-        }});
-        final List<? extends Map<String, ?>> tableToRender = RecordSetUtils.toList(table);
-        final String result = template.renderCommand(new HashMap<String, Object>(){{
-            put("table", tableToRender);
-        }});
+        final TabularData table = new TabularDataBuilder()
+                .columns()
+                .addColumn("column1", "column1", SimpleType.STRING, true)
+                .addColumn("column2", "column2", SimpleType.INTEGER, false)
+                .queryObject(TabularDataBuilder.class)
+                .add("A", 42)
+                .add("B", 43)
+                .build();
+        final String result = template.renderCommand(ImmutableMap.of("table", table));
         assertEquals("A = 42B = 43", result);
     }
 
@@ -139,7 +139,7 @@ public final class XmlCommandLineTemplateTest extends AbstractUnitTest<XmlComman
         final ScriptEngineManager manager = new ScriptEngineManager();
         Object result = parser.parse("abbaa123abbaa", manager);
         assertTrue(result instanceof Byte);
-        assertEquals((byte) 123, result);
+        assertEquals(123, result);
         //Test for BigInteger
         parser.setParsingResultType(XmlParsingResultType.BIG_INTEGER);
         parser.removeParsingRules();

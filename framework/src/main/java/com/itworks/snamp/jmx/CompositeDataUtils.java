@@ -40,28 +40,45 @@ public final class CompositeDataUtils {
             this.data = data;
         }
 
+        public static String decapitalize(final String name) {
+            if (name == null) return null;
+            switch (name.length()) {
+                case 0:
+                    return name;
+                case 1:
+                    return new String(new char[]{Character.toLowerCase(name.charAt(0))});
+                default:
+                    if (Character.isUpperCase(name.charAt(1)) &&
+                            Character.isUpperCase(name.charAt(0)))
+                        return name;
+                    else {
+                        char chars[] = name.toCharArray();
+                        chars[0] = Character.toLowerCase(chars[0]);
+                        return new String(chars);
+                    }
+            }
+        }
+
         @Override
         public Object invoke(final Object proxy,
                              final Method method,
                              final Object[] args) throws Throwable {
             final String itemName;
             if(method.getName().startsWith(GET_METHOD_PREFIX))
-                itemName = method.getName().replaceFirst(GET_METHOD_PREFIX, "");
+                itemName = decapitalize(method.getName().replaceFirst(GET_METHOD_PREFIX, ""));
             else if(method.getName().startsWith(IS_METHOD_PREFIX))
-                itemName = method.getName().replaceFirst(IS_METHOD_PREFIX, "");
+                itemName = decapitalize(method.getName().replaceFirst(IS_METHOD_PREFIX, ""));
             else if(method.getName().startsWith(SET_METHOD_PREFIX))
-                itemName = method.getName().replaceFirst(SET_METHOD_PREFIX, "");
+                itemName = decapitalize(method.getName().replaceFirst(SET_METHOD_PREFIX, ""));
             else itemName = method.getName();
-            switch (args.length){
-                case 0: //getter
-                    return data.get(itemName);
-                case 1://setter
-                    final Map<String, Object> entries = Maps.newHashMapWithExpectedSize(data.getCompositeType().keySet().size());
-                    entries.put(itemName, args[0]);
-                    data = new CompositeDataSupport(data.getCompositeType(), entries);
-                    return null;
-                default:
-                    throw new NoSuchMethodError();
+            if(args == null || args.length == 0) //getter
+                return data.get(itemName);
+            else {  //setter
+                final Map<String, Object> entries = Maps.newHashMapWithExpectedSize(data.getCompositeType().keySet().size());
+                fillMap(data, entries);
+                entries.put(itemName, args[0]);
+                data = new CompositeDataSupport(data.getCompositeType(), entries);
+                return null;
             }
         }
     }
@@ -278,16 +295,17 @@ public final class CompositeDataUtils {
         else {
             final BeanInfo metadata;
             try{
-                metadata = Introspector.getBeanInfo(beanInstance.getClass(), CompositeDataBean.class);
+                metadata = Introspector.getBeanInfo(beanInstance.getClass(), Object.class);
             }
             catch (final IntrospectionException e){
                 throw new ReflectiveOperationException(e);
             }
             final PropertyDescriptor[] properties = metadata.getPropertyDescriptors();
             final Map<String, Object> entries = Maps.newHashMapWithExpectedSize(properties.length);
-            for(final PropertyDescriptor descriptor: properties)
-                if(type.containsKey(descriptor.getName()))
+            for(final PropertyDescriptor descriptor: properties) {
+                if (type.containsKey(descriptor.getDisplayName()))
                     entries.put(descriptor.getName(), descriptor.getReadMethod().invoke(beanInstance));
+            }
             return new CompositeDataSupport(type, entries);
         }
     }

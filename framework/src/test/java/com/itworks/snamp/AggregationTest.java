@@ -1,12 +1,12 @@
-package com.itworks.snamp.testing;
+package com.itworks.snamp;
 
-import com.itworks.snamp.AbstractAggregator;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * @author Roman Sakno
  */
-public final class AggregationTest extends AbstractUnitTest<AbstractAggregator> {
+public final class AggregationTest extends Assert {
     private static final class TestAggregator extends AbstractAggregator {
 
         @Aggregation

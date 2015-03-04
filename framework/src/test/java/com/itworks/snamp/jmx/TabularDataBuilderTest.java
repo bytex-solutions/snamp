@@ -1,27 +1,29 @@
-package com.itworks.snamp.testing.jmx;
+package com.itworks.snamp.jmx;
 
-import com.itworks.snamp.jmx.TabularDataBuilder;
-import com.itworks.snamp.testing.AbstractUnitTest;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
-import static com.itworks.snamp.jmx.CompositeDataUtils.*;
+
+import static com.itworks.snamp.jmx.CompositeDataUtils.getInteger;
+import static com.itworks.snamp.jmx.CompositeDataUtils.getString;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class TabularDataBuilderTest extends AbstractUnitTest<TabularDataBuilder> {
+public final class TabularDataBuilderTest extends Assert {
 
     @Test
     public void buildTest() throws OpenDataException {
         final TabularData table = new TabularDataBuilder()
                 .columns()
-                .addIntColumn("intColumn", "descr", true)
-                .addStringColumn("stringColumn", "descr", false)
+                .addColumn("intColumn", "descr", SimpleType.INTEGER, true)
+                .addColumn("stringColumn", "descr", SimpleType.STRING, false)
                 .queryObject(TabularDataBuilder.class)
                 .setTypeName("table", true)
                 .setTypeDescription("test table", true)

@@ -1,6 +1,7 @@
-package com.itworks.snamp.testing;
+package com.itworks.snamp;
 
 import com.itworks.snamp.concurrent.FutureThread;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.Callable;
@@ -11,7 +12,7 @@ import java.util.concurrent.ExecutionException;
  * @version 1.0
  * @since 1.0
  */
-public final class FutureThreadTest extends AbstractUnitTest<FutureThread> {
+public final class FutureThreadTest extends Assert {
 
 
     @Test
@@ -39,7 +40,7 @@ public final class FutureThreadTest extends AbstractUnitTest<FutureThread> {
         nThread.start();
         eThread.start();
         final Boolean bValue = bThread.get();
-        assertTrue(bValue.booleanValue());
+        assertTrue(bValue);
         assertTrue(bThread.isDone());
         assertFalse(bThread.isCancelled());
         final Integer nValue = nThread.get();

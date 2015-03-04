@@ -1,7 +1,7 @@
-package com.itworks.snamp.testing;
+package com.itworks.snamp;
 
 import com.itworks.snamp.concurrent.Repeater;
-import com.itworks.snamp.TimeSpan;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  * @since 1.0
  */
-public class RepeaterTest extends AbstractUnitTest<Repeater> {
+public class RepeaterTest extends Assert {
     private static final class SecondsCounter extends Repeater{
         private final AtomicLong c = new AtomicLong(0);
 
@@ -61,6 +61,7 @@ public class RepeaterTest extends AbstractUnitTest<Repeater> {
         }
     }
 
+    @Test
     public final void exceptionTest() throws InterruptedException, TimeoutException {
         final String exceptionMessage = "Test exception";
         try(final Repeater rep = new Repeater(new TimeSpan(1, TimeUnit.MILLISECONDS)) {
@@ -77,7 +78,7 @@ public class RepeaterTest extends AbstractUnitTest<Repeater> {
         }){
             rep.run();
             Thread.sleep(4000);
-            rep.stop(null);
+            assertEquals(Repeater.State.FAILED, rep.getState());
             assertNotNull(rep.getException());
             assertEquals(exceptionMessage, rep.getException().getMessage());
             assertEquals(Repeater.State.FAILED, rep.getState());

@@ -353,7 +353,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
                 final List<Variable> cells = Lists.newArrayListWithExpectedSize(table.getColumnCount());
                 for(int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++){
                     final MONamedColumn columnDef = table.getColumn(columnIndex);
-                    if(columnDef instanceof MORowStatusColumn)
+                    if(MORowStatusColumn.isInstance(columnDef))
                         cells.add(columnIndex, TableRowStatus.ACTIVE.toManagedScalarValue());
                     else {
                         final Variable cell = columnDef.createCellValue(row.get(columnDef.name), conversionOptions);
@@ -515,7 +515,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             final MOMutableTableRow row = model.getRow(makeRowID(rowIndex));
             for(int columnIndex = 0; columnIndex < getColumnCount(); columnIndex++){
                 final MONamedColumn column = getColumn(columnIndex);
-                if(column instanceof MORowStatusColumn)
+                if(MORowStatusColumn.isInstance(column))
                     switch (TableRowStatus.parse(row.getValue(rowIndex))){
                         case CREATE_AND_GO:
                             row.setValue(rowIndex, TableRowStatus.ACTIVE.toManagedScalarValue());

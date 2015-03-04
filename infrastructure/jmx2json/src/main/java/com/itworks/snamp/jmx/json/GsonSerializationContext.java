@@ -8,6 +8,8 @@ import java.lang.reflect.Type;
 import java.util.Objects;
 
 /**
+ * Represents JSON serialization context reconstructed from GSON serializer/deserializer.
+ * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

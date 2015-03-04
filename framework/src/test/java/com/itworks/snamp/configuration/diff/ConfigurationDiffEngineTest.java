@@ -1,11 +1,10 @@
-package com.itworks.snamp.testing.configuration.diff;
+package com.itworks.snamp.configuration.diff;
 
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AbstractAgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.SerializableAgentConfiguration;
-import com.itworks.snamp.configuration.diff.ConfigurationDiffEngine;
-import com.itworks.snamp.testing.AbstractUnitTest;
+import org.junit.Assert;
 import org.junit.Test;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
@@ -15,7 +14,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @version 1.0
  * @since 1.0
  */
-public final class ConfigurationDiffEngineTest extends AbstractUnitTest<ConfigurationDiffEngine> {
+public final class ConfigurationDiffEngineTest extends Assert {
     @Test
     public void diffTest(){
         final AgentConfiguration baseline = new SerializableAgentConfiguration();

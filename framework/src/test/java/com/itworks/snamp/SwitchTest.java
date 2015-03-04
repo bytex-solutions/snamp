@@ -1,6 +1,6 @@
-package com.itworks.snamp.testing;
+package com.itworks.snamp;
 
-import com.itworks.snamp.Switch;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -8,11 +8,12 @@ import org.junit.Test;
  * @version 1.0
  * @since 1.0
  */
-public final class SwitchTest extends AbstractUnitTest<Switch> {
+public final class SwitchTest extends Assert {
 
     @Test
     public void simpleTest(){
-        final Boolean result = new Switch<Long, Boolean>()
+        @SuppressWarnings("ConstantConditions")
+        final boolean result = new Switch<Long, Boolean>()
                 .equals(42L, Boolean.FALSE)
                 .equals(43L, Boolean.TRUE)
                 .apply(43L);

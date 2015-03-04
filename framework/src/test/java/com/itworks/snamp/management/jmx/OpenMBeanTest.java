@@ -1,7 +1,7 @@
-package com.itworks.snamp.testing.management.jmx;
+package com.itworks.snamp.management.jmx;
 
 import com.itworks.snamp.jmx.OpenMBean;
-import com.itworks.snamp.testing.AbstractUnitTest;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.management.*;
@@ -13,7 +13,7 @@ import javax.management.openmbean.SimpleType;
  * @version 1.0
  * @since 1.0
  */
-public final class OpenMBeanTest extends AbstractUnitTest<OpenMBean> {
+public final class OpenMBeanTest extends Assert {
     private static final class DummyOpenMBean extends OpenMBean{
         private static final class TemperatureAttribute extends OpenAttribute<Integer, SimpleType<Integer>>{
             private int value = 42;

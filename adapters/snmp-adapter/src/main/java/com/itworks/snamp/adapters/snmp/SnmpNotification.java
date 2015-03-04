@@ -32,6 +32,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
  * @since 1.0
  */
 final class SnmpNotification extends HashMap<OID, Variable> {
+    private static final long serialVersionUID = -9060826056942721355L;
     /**
      * Represents identifier of this SNMP notification instance.
      */

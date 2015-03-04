@@ -1,7 +1,8 @@
-package com.itworks.snamp.testing;
+package com.itworks.snamp;
 
 import com.google.common.collect.HashMultimap;
 import com.itworks.snamp.internal.WeakMultimap;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.lang.ref.Reference;
@@ -13,7 +14,7 @@ import java.lang.ref.WeakReference;
  * @version 1.0
  * @since 1.0
  */
-public final class WeakMultimapTest extends AbstractUnitTest<WeakMultimap> {
+public final class WeakMultimapTest extends Assert {
 
 
     @Test
