@@ -89,7 +89,6 @@ var SnampShell = (function(SnampShell) {
         SnampShell.log.info(SnampShell.pluginName, " loaded");
 
         Core.addCSS(SnampShell.contextPath + "plugin/css/snampPlugin.css");
-        Core.addCSS(SnampShell.contextPath + "plugin/css/bootstrap.css");
 
         // tell the app to use the full layout, also could use layoutTree
         // to get the JMX tree or provide a URL to a custom layout
@@ -139,11 +138,6 @@ var SnampShell = (function(SnampShell) {
      */
     SnampShell.SnampController = function($scope, $location, jolokia) {
 
-        // Menu items
-        $scope.menuSelected = function(section) {
-            $scope.template = section;
-            Core.$apply($scope);
-        };
         $scope.sections = [
             {name: "/snamp_shell_plugin", label: "General Information", url: SnampShell.templatePath + "general.html"},
             {name: "/configuration", label: "Configuration", url: SnampShell.templatePath + "config.html"},
@@ -152,6 +146,50 @@ var SnampShell = (function(SnampShell) {
         ];
         $scope.template = $scope.sections[0];
 
+        // management
+        $scope.refreshValues = function() {
+            $scope.dmc = jolokia.request({
+                type: 'read',
+                mbean: SnampShell.mbean,
+                attribute: 'DebugMessagesCount'
+            }).value;
+            $scope.imc = jolokia.request({
+                type: 'read',
+                mbean: SnampShell.mbean,
+                attribute: 'InformationMessagesCount'
+            }).value;
+            $scope.wmc = jolokia.request({
+                type: 'read',
+                mbean: SnampShell.mbean,
+                attribute: 'WarningMessagesCount'
+            }).value;
+            $scope.fc = jolokia.request({
+                type: 'read',
+                mbean: SnampShell.mbean,
+                attribute: 'FaultsCount'
+            }).value;
+            SnampShell.log.info($scope.dmc, +$scope.imc, $scope.wmc, $scope.fc);
+            Core.$apply($scope);
+        };
+
+        // Menu items
+        $scope.menuSelected = function(section) {
+            $scope.template = section;
+            Core.$apply($scope);
+            if ($scope.template == $scope.sections[3]) {
+                $scope.refreshValues();
+                var timer = jolokia.request({
+                    type: 'read',
+                    mbean: SnampShell.mbean,
+                    attribute: 'StatisticRenewalTime'
+                });
+                SnampShell.log.info(timer.value);
+                if (timer && timer.value) {
+                    var spinWaitValue = timer.value;
+                    setInterval($scope.refreshValues, timer.value);
+                }
+            }
+        };
 
         // Grid data
         $scope.getGeneralGridData = function() {
@@ -269,7 +307,6 @@ var SnampShell = (function(SnampShell) {
             canSelectRows: false,
             title: "Current installed components info"
         };
-
 
         // Other functions
         $scope.getConfiguration = function() {
