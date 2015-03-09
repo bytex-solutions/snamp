@@ -168,14 +168,13 @@ var SnampShell = (function(SnampShell) {
                 mbean: SnampShell.mbean,
                 attribute: 'FaultsCount'
             }).value;
-            SnampShell.log.info($scope.dmc, +$scope.imc, $scope.wmc, $scope.fc);
+            SnampShell.log.info($scope.dmc, $scope.imc, $scope.wmc, $scope.fc);
             Core.$apply($scope);
         };
 
         // Menu items
         $scope.menuSelected = function(section) {
             $scope.template = section;
-            Core.$apply($scope);
             if ($scope.template == $scope.sections[3]) {
                 $scope.refreshValues();
                 var timer = jolokia.request({
@@ -188,96 +187,62 @@ var SnampShell = (function(SnampShell) {
                     var spinWaitValue = timer.value;
                     setInterval($scope.refreshValues, timer.value);
                 }
+            } else {
+                Core.$apply($scope);
             }
         };
 
         // Grid data
         $scope.getGeneralGridData = function() {
-            var result = [];
-
-            // get adapters
-            var adapters = jolokia.request({
+            var array = [];
+            // get all the components
+            var result = jolokia.request({
                 type: 'read',
                 mbean: SnampShell.mbean,
-                attribute: 'InstalledAdapters'
-            }, onSuccess(null, {error: renderError, maxDepth: 20}));
-
-            if (adapters && adapters.value) {
-                angular.forEach(adapters.value, function(item) {
-                    var adapterInfo = jolokia.request({
-                        type: 'exec',
-                        mbean: SnampShell.mbean,
-                        operation: 'getAdapterInfo',
-                        arguments: [item, 'en']
-                    }, onSuccess(null, {error: renderError, maxDepth: 20}));
-                    if (adapterInfo && adapterInfo.value ) {
-                        result.push({
-                            Name: adapterInfo.value.DisplayName,
-                            Type: 'adapter',
-                            Status: adapterInfo.value.State,
-                            Version: adapterInfo.value.Version,
-                            Description: adapterInfo.value.Description
-                        })
-                    }
-                });
-            }
-            // get connectors
-            // get adapters
-            var connectors = jolokia.request({
-                type: 'read',
-                mbean: SnampShell.mbean,
-                attribute: 'InstalledConnectors'
-            }, onSuccess(null, {error: renderError, maxDepth: 20}));
-
-            if (connectors && connectors.value) {
-                angular.forEach(connectors.value, function(item) {
-                    var connectorInfo = jolokia.request({
-                        type: 'exec',
-                        mbean: SnampShell.mbean,
-                        operation: 'getConnectorInfo',
-                        arguments: [item, 'en']
-                    }, onSuccess(null, {error: renderError, maxDepth: 20}));
-                    if (connectorInfo && connectorInfo.value ) {
-                        result.push({
-                            Name: connectorInfo.value.DisplayName,
-                            Type: 'connector',
-                            Status: connectorInfo.value.State,
-                            Version: connectorInfo.value.Version,
-                            Description: connectorInfo.value.Description
-                        })
-                    }
-                });
-            }
+                attribute: 'InstalledComponents'
+            }).value;
             SnampShell.log.info(JSON.stringify(result));
-            return result;
+            angular.forEach(result, function(value, key) {
+                if (key != 'null')
+                this.push({
+                    UserName : key,
+                    ComponentName: value.Name,
+                    State: value.State,
+                    Version: value.Version,
+                    IsCommerciallyLicensed: value.IsCommerciallyLicensed,
+                    IsManageable: value.IsManageable,
+                    IsConfigurationDescriptionAvailable: value.IsConfigurationDescriptionAvailable,
+                    Description: value.Description
+                });
+            }, array);
+            return array;
         };
 
         var columnDefs = [
             {
-                field: 'Name',
-                displayName: 'Name',
+                field: 'UserName',
+                displayName: 'User defined name',
                 maxWidth: 250,
                 minWidth: 150,
                 width:200,
                 resizable: true
             },
             {
-                field: 'Type',
-                displayName: 'Type',
-                cellFilter: null,
-                maxWidth: 85,
-                minWidth: 85,
-                width:85,
+                field: 'ComponentName',
+                displayName: 'Component name',
+                maxWidth: 250,
+                minWidth: 150,
+                width:200,
                 resizable: true
             },
             {
-                field: 'Status',
-                displayName: 'Status',
+                field: 'State',
+                displayName: 'State',
                 cellFilter: null,
-                maxWidth: 85,
-                minWidth: 85,
-                width:95,
-                resizable: true
+                maxWidth: 65,
+                minWidth: 65,
+                width:65,
+                resizable: false
             },
             {
                 field: 'Version',
@@ -285,7 +250,34 @@ var SnampShell = (function(SnampShell) {
                 cellFilter: null,
                 maxWidth: 70,
                 minWidth: 70,
-                width:90,
+                width:70,
+                resizable: true
+            },
+            {
+                field: 'IsCommerciallyLicensed',
+                displayName: 'Licensable',
+                cellFilter: null,
+                maxWidth: 85,
+                minWidth: 85,
+                width:85,
+                resizable: true
+            },
+            {
+                field: 'IsManageable',
+                displayName: 'Manageable',
+                cellFilter: null,
+                maxWidth: 85,
+                minWidth: 85,
+                width:85,
+                resizable: true
+            },
+            {
+                field: 'IsConfigurationDescriptionAvailable',
+                displayName: 'Configurable',
+                cellFilter: null,
+                maxWidth: 85,
+                minWidth: 85,
+                width:85,
                 resizable: true
             },
             {
