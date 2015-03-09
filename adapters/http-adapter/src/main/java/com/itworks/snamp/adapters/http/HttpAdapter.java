@@ -2,7 +2,6 @@ package com.itworks.snamp.adapters.http;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -12,16 +11,15 @@ import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.jmx.WellKnownType;
+import com.itworks.snamp.jmx.json.*;
 import org.atmosphere.jersey.JerseyBroadcaster;
 import org.osgi.service.http.HttpService;
-import com.itworks.snamp.jmx.json.*;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.nio.*;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -43,8 +41,8 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
     HttpAdapter(final String instanceName, final HttpService servletPublisher){
         super(instanceName);
-        attributes = new HttpAttributesModel(instanceName);
-        notifications = new HttpNotificationsModel(instanceName);
+        attributes = new HttpAttributesModel();
+        notifications = new HttpNotificationsModel();
         this.publisher = Objects.requireNonNull(servletPublisher, "servletPublisher is null.");
     }
 
@@ -112,10 +110,13 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     private static final class HttpAttributeManager extends AbstractKeyedObjects<String, HttpAttributeMapping>{
+        private static final long serialVersionUID = 2767603193006584834L;
         private static String ATTR_NAME_SPLITTER = "/";
+        private final String resourceName;
 
-        private HttpAttributeManager(){
+        private HttpAttributeManager(final String resourceName){
             super(10);
+            this.resourceName = resourceName;
         }
 
         @Override
@@ -123,16 +124,8 @@ final class HttpAdapter extends AbstractResourceAdapter {
             return item.getName();
         }
 
-        private static String makeAttributeID(final String adapterInstanceName,
-                                              final String attributeName){
-            return adapterInstanceName + ATTR_NAME_SPLITTER + attributeName;
-        }
-
-        private Set<String> getResourceAttributes(final String adapterInstanceName){
-            final Set<String> attributes = Sets.newHashSetWithExpectedSize(size());
-            for(final String attributeID: keySet())
-                attributes.add(attributeID.replaceFirst(adapterInstanceName + ATTR_NAME_SPLITTER, ""));
-            return attributes;
+        private String makeAttributeID(final String attributeName){
+            return resourceName + ATTR_NAME_SPLITTER + attributeName;
         }
 
         /**
@@ -146,9 +139,9 @@ final class HttpAdapter extends AbstractResourceAdapter {
             super.clear();
         }
 
-        private String getAtttribute(final String adapterInstanceName, final String attributeName) throws WebApplicationException{
+        private String getAtttribute(final String attributeName) throws WebApplicationException{
             final String attributeID;
-            if(containsKey(attributeID = makeAttributeID(adapterInstanceName, attributeName))){
+            if(containsKey(attributeID = makeAttributeID(attributeName))){
                 final HttpAttributeMapping mapping = get(attributeID);
                 if(mapping.canRead())
                     return mapping.toString(mapping.getValue());
@@ -157,11 +150,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
             else throw new WebApplicationException(new IllegalArgumentException(String.format("Attribute %s doesn't exist", attributeName)), Response.Status.NOT_FOUND);
         }
 
-        private void setAttribute(final String adapterInstanceName,
-                                  final String attributeName,
+        private void setAttribute(final String attributeName,
                                   final String value) {
             final String attributeID;
-            if(containsKey(attributeID = makeAttributeID(adapterInstanceName, attributeName))){
+            if(containsKey(attributeID = makeAttributeID(attributeName))){
                 final HttpAttributeMapping mapping = get(attributeID);
                 if(mapping.canWrite())
                     mapping.setValue(mapping.fromString(value));
@@ -223,15 +215,14 @@ final class HttpAdapter extends AbstractResourceAdapter {
             return new HttpAttributeMapping(accessor, builder);
         }
 
-        private void addAttribute(final String adapterInstanceName,
-                                  final String attributeName,
+        private void addAttribute(final String attributeName,
                                   final AttributeConnector connector) throws JMException {
-            final String attributeID = makeAttributeID(adapterInstanceName, attributeName);
+            final String attributeID = makeAttributeID(attributeName);
             put(createAttribute(connector.connect(attributeID)));
         }
 
-        private AttributeAccessor removeAttribute(final String adapterInstanceName, final String attributeName) {
-            final String attributeID = makeAttributeID(adapterInstanceName, attributeName);
+        private AttributeAccessor removeAttribute(final String attributeName) {
+            final String attributeID = makeAttributeID(attributeName);
             return containsKey(attributeID) ? remove(attributeID).accessor : null;
         }
 
@@ -239,12 +230,21 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     private static final class HttpAttributesModel extends ThreadSafeObject implements AttributesModel, AttributeSupport{
-        private final String adapterInstanceName;
-        private final Map<String, HttpAttributeManager> managers;
+        private final KeyedObjects<String, HttpAttributeManager> managers;
 
-        private HttpAttributesModel(final String adapterInstanceName){
-            this.adapterInstanceName = adapterInstanceName;
-            this.managers = new HashMap<>(10);
+        private HttpAttributesModel(){
+            this.managers = createManagers();
+        }
+
+        private static KeyedObjects<String, HttpAttributeManager> createManagers(){
+            return new AbstractKeyedObjects<String, HttpAttributeManager>(10) {
+                private static final long serialVersionUID = -1381957593340427015L;
+
+                @Override
+                public String getKey(final HttpAttributeManager item) {
+                    return item.resourceName;
+                }
+            };
         }
 
         @Override
@@ -256,8 +256,8 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 final HttpAttributeManager manager;
                 if(managers.containsKey(resourceName))
                     manager = managers.get(resourceName);
-                else managers.put(resourceName, manager = new HttpAttributeManager());
-                manager.addAttribute(adapterInstanceName, attributeName, connector);
+                else managers.put(manager = new HttpAttributeManager(resourceName));
+                manager.addAttribute(attributeName, connector);
             }
             catch (final JMException e){
                 HttpAdapterHelpers.log(Level.SEVERE, "Unable to register attribute %s:%s", resourceName, attributeName, e);
@@ -276,7 +276,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 if(managers.containsKey(resourceName))
                     manager = managers.get(resourceName);
                 else return null;
-                final AttributeAccessor result = manager.removeAttribute(adapterInstanceName, attributeName);
+                final AttributeAccessor result = manager.removeAttribute(attributeName);
                 if(manager.isEmpty())
                     managers.remove(resourceName);
                 return result;
@@ -337,7 +337,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
             return processAttribute(resourceName, attributeName, new Function<HttpAttributeManager, String>() {
                 @Override
                 public String apply(final HttpAttributeManager input) {
-                    return input.getAtttribute(adapterInstanceName, attributeName);
+                    return input.getAtttribute(attributeName);
                 }
             });
         }
@@ -347,7 +347,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
             processAttribute(resourceName, attributeName, new Function<HttpAttributeManager, Void>() {
                 @Override
                 public Void apply(final HttpAttributeManager input) {
-                    input.setAttribute(adapterInstanceName, attributeName, value);
+                    input.setAttribute(attributeName, value);
                     return null;
                 }
             });
@@ -359,7 +359,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
             try{
                 if(managers.containsKey(resourceName)){
                     final HttpAttributeManager manager = managers.get(resourceName);
-                    return manager.getResourceAttributes(adapterInstanceName);
+                    return manager.keySet();
                 }
                 else return ImmutableSet.of();
             }
@@ -382,13 +382,17 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
     private static final class NotificationBroadcaster extends JerseyBroadcaster{
         private final KeyedObjects<String, MBeanNotificationInfo> notifications;
+        private final String resourceName;
 
-        private NotificationBroadcaster(){
+        private NotificationBroadcaster(final String resourceName){
             notifications = createNotifs();
+            this.resourceName = resourceName;
         }
 
         private static KeyedObjects<String, MBeanNotificationInfo> createNotifs(){
             return new AbstractKeyedObjects<String, MBeanNotificationInfo>(10) {
+                private static final long serialVersionUID = 4500795792209189652L;
+
                 @Override
                 public String getKey(final MBeanNotificationInfo item) {
                     return item.getNotifTypes()[0];
@@ -397,25 +401,23 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         private void handleNotification(final Notification notif, final Gson formatter){
+            notif.setSource(resourceName);
             if(notifications.containsKey(notif.getType()))
                 broadcast(formatter.toJson(notif));
         }
 
-        private static String makeListID(final String adapterInstanceName,
-                                         final String category){
-            return adapterInstanceName + "/" + category;
+        private String makeListID(final String category){
+            return resourceName + "/" + category;
         }
 
-        private void addNotification(final String adapterInstanceName,
-                                    final String category,
+        private void addNotification(final String category,
                                     final NotificationConnector connector) throws JMException {
-            final String listID = makeListID(adapterInstanceName, category);
+            final String listID = makeListID(category);
             notifications.put(connector.enable(listID));
         }
 
-        private MBeanNotificationInfo removeNotification(final String adapterInstanceName,
-                                                        final String category) {
-            final String listID = makeListID(adapterInstanceName, category);
+        private MBeanNotificationInfo removeNotification(final String category) {
+            final String listID = makeListID(category);
             return notifications.remove(listID);
         }
 
@@ -425,12 +427,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     private static final class HttpNotificationsModel extends ThreadSafeObject implements NotificationsModel, NotificationSupport{
-        private final Map<String, NotificationBroadcaster> notifications;
+        private final KeyedObjects<String, NotificationBroadcaster> notifications;
         private final Gson formatter;
-        private final String adapterInstanceName;
 
-        private HttpNotificationsModel(final String adapterInstanceName){
-            this.adapterInstanceName = adapterInstanceName;
+        private HttpNotificationsModel(){
             this.formatter = new GsonBuilder()
                     .registerTypeHierarchyAdapter(Notification.class, new NotificationSerializer())
                     .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter())
@@ -444,7 +444,18 @@ final class HttpAdapter extends AbstractResourceAdapter {
                     .registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataSerializer())
                     .registerTypeHierarchyAdapter(TabularData.class, new TabularDataSerializer())
                     .create();
-            this.notifications = new HashMap<>(10);
+            this.notifications = createBroadcasters();
+        }
+
+        private static KeyedObjects<String, NotificationBroadcaster> createBroadcasters(){
+            return new AbstractKeyedObjects<String, NotificationBroadcaster>(10) {
+                private static final long serialVersionUID = 4673736468179786561L;
+
+                @Override
+                public String getKey(final NotificationBroadcaster item) {
+                    return item.resourceName;
+                }
+            };
         }
 
         /**
@@ -463,9 +474,8 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 final NotificationBroadcaster broadcaster;
                 if(notifications.containsKey(resourceName))
                     broadcaster = notifications.get(resourceName);
-                else notifications.put(resourceName, broadcaster = new NotificationBroadcaster());
-                broadcaster.addNotification(adapterInstanceName,
-                        category,
+                else notifications.put(broadcaster = new NotificationBroadcaster(resourceName));
+                broadcaster.addNotification(category,
                         connector);
             }
             catch (final JMException e){
@@ -502,7 +512,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 if(notifications.containsKey(resourceName))
                     broadcaster = notifications.get(resourceName);
                 else return null;
-                final MBeanNotificationInfo metadata = broadcaster.removeNotification(adapterInstanceName, category);
+                final MBeanNotificationInfo metadata = broadcaster.removeNotification(category);
                 if(broadcaster.isEmpty())
                     notifications.remove(resourceName);
                 return metadata;

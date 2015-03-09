@@ -134,7 +134,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
     private boolean aBoolean;
     private int anInt;
     private BigInteger aBigInt;
-    private Short[] array;
+    private short[] array;
     private CompositeData dictionary;
     private TabularData table;
     private final AtomicLong sequenceCounter;
@@ -146,7 +146,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
         sequenceCounter = new AtomicLong(0);
         chosenString = "NO VALUE";
         aBigInt = BigInteger.ZERO;
-        array = new Short[]{42,100,43,99};
+        array = new short[]{42,100,43,99};
         aFloat = 0F;
         aDate = new Date();
         try{
@@ -190,11 +190,11 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
         this(false);
     }
 
-    public final Short[] getArray(){
+    public final short[] getArray(){
         return array;
     }
 
-    public final void setArray(final Short[] value){
+    public final void setArray(final short[] value){
         array = value;
     }
 
@@ -348,7 +348,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
         }
         else if(Objects.equals(attribute.getName(), ARRAY_PROPERTY.getName())){
             oldValue = array;
-            newValue = array = (Short[])attribute.getValue();
+            newValue = array = (short[])attribute.getValue();
             attributeType = ARRAY_PROPERTY.getType();
         }
         else if(Objects.equals(attribute.getName(), DICTIONARY_PROPERTY.getName())){

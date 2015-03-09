@@ -65,6 +65,8 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
 
         private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, M> createAttributes(){
             return new AbstractKeyedObjects<String, M>(10) {
+                private static final long serialVersionUID = 6284468803876344036L;
+
                 @Override
                 public String getKey(final MBeanAttributeInfo metadata) {
                     return metadata.getName();
@@ -426,7 +428,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                 throw new MBeanException(e);
             }
             finally {
-                beginRead();
+                endRead();
             }
         }
 
@@ -532,6 +534,8 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
 
         private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, M> createNotifications(){
             return new AbstractKeyedObjects<String, M>(10) {
+                private static final long serialVersionUID = 6753355822109787406L;
+
                 @Override
                 public String getKey(final MBeanNotificationInfo item) {
                     return item.getNotifTypes()[0];

@@ -4,7 +4,7 @@ import javax.management.Notification;
 import javax.management.NotificationListener;
 
 /**
- * Represents invocation method for the collection of {@link com.itworks.snamp.connectors.notifications.NotificationListener}.
+ * Represents invocation method for the collection of {@link javax.management.NotificationListener}.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

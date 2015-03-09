@@ -82,6 +82,11 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
         testJmxAttribute(attrval("string", "Frank Underwood"));
     }
 
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return true;
+    }
+
     @Test
     public void testBooleanProperty() throws BundleException, JMException, IOException {
         testJmxAttribute(attrval("boolean", Boolean.TRUE));

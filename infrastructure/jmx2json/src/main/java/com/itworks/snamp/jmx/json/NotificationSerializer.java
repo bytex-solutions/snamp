@@ -17,6 +17,7 @@ public final class NotificationSerializer implements JsonSerializer<Notification
     private static final String TIME_STAMP = "timeStamp";
     private static final String MESSAGE = "message";
     private static final String USER_DATA = "userData";
+    private static final String SOURCE = "source";
 
     private final boolean timeStampAsString;
 
@@ -31,6 +32,7 @@ public final class NotificationSerializer implements JsonSerializer<Notification
     @Override
     public JsonElement serialize(final Notification src, final Type typeOfSrc, final JsonSerializationContext context) {
         final JsonObject result = new JsonObject();
+        result.add(SOURCE, context.serialize(src.getSource()));
         result.add(NOTIF_TYPE, context.serialize(src.getType()));
         result.add(SEQUENCE_NUMBER, context.serialize(src.getSequenceNumber()));
         final Object timeStamp;

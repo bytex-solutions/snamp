@@ -56,12 +56,16 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     static final String NAME = SshHelpers.ADAPTER_NAME;
 
     private static final class SshNotificationViewImpl extends NotificationBox implements SshNotificationView{
+        private static final long serialVersionUID = -1887404933016444754L;
         private final MBeanNotificationInfo metadata;
         private final Gson formatter;
+        private final String resourceName;
 
-        private SshNotificationViewImpl(final MBeanNotificationInfo metadata){
+        private SshNotificationViewImpl(final MBeanNotificationInfo metadata,
+                                        final String resourceName){
             super(20);
             this.metadata = metadata;
+            this.resourceName = resourceName;
             GsonBuilder builder = new GsonBuilder()
                     .registerTypeHierarchyAdapter(Notification.class, new NotificationSerializer())
                     .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter());
@@ -84,6 +88,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         public void print(final Notification notif, final Writer output) {
+            notif.setSource(resourceName);
             formatter.toJson(notif, output);
         }
     }
@@ -97,6 +102,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         private static KeyedObjects<String, SshNotificationViewImpl> createNotifs(){
             return new AbstractKeyedObjects<String, SshNotificationViewImpl>(10) {
+                private static final long serialVersionUID = 2053672206296099383L;
+
                 @Override
                 public String getKey(final SshNotificationViewImpl item) {
                     return item.getEventName();
@@ -122,7 +129,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             beginWrite();
             try{
                 if(notifications.containsKey(listID)) return;
-                notifications.put(new SshNotificationViewImpl(connector.enable(listID)));
+                notifications.put(new SshNotificationViewImpl(connector.enable(listID), resourceName));
             } catch (final JMException e) {
                 SshHelpers.log(Level.SEVERE, "Failed to subscribe on %s notification", listID, e);
             } finally {

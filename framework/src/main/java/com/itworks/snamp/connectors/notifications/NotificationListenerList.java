@@ -20,6 +20,8 @@ import java.util.LinkedList;
  */
 @ThreadSafe(false)
 public class NotificationListenerList extends LinkedList<NotificationListenerHolder> implements NotificationListener {
+    private static final long serialVersionUID = 3905356215172606650L;
+
     /**
      * Adds a listener to this MBean.
      *

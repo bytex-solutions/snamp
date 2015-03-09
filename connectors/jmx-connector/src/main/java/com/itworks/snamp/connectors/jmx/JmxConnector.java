@@ -733,6 +733,66 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     }
 
     /**
+     * Obtain the value of a specific attribute of the managed resource.
+     *
+     * @param attributeID The name of the attribute to be retrieved
+     * @return The value of the attribute retrieved.
+     * @throws javax.management.AttributeNotFoundException
+     * @throws javax.management.MBeanException             Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's getter.
+     * @throws javax.management.ReflectionException        Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the getter.
+     * @see #setAttribute(javax.management.Attribute)
+     */
+    @Override
+    public Object getAttribute(final String attributeID) throws AttributeNotFoundException, MBeanException, ReflectionException {
+        verifyInitialization();
+        return attributes.getAttribute(attributeID);
+    }
+
+    /**
+     * Set the value of a specific attribute of the managed resource.
+     *
+     * @param attribute The identification of the attribute to
+     *                  be set and  the value it is to be set to.
+     * @throws javax.management.AttributeNotFoundException
+     * @throws javax.management.InvalidAttributeValueException
+     * @throws javax.management.MBeanException                 Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
+     * @throws javax.management.ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
+     * @see #getAttribute
+     */
+    @Override
+    public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+        verifyInitialization();
+        attributes.setAttribute(attribute);
+    }
+
+    /**
+     * Get the values of several attributes of the Dynamic MBean.
+     *
+     * @param attributes A list of the attributes to be retrieved.
+     * @return The list of attributes retrieved.
+     * @see #setAttributes
+     */
+    @Override
+    public AttributeList getAttributes(final String[] attributes) {
+        verifyInitialization();
+        return this.attributes.getAttributes(attributes);
+    }
+
+    /**
+     * Sets the values of several attributes of the Dynamic MBean.
+     *
+     * @param attributes A list of attributes: The identification of the
+     *                   attributes to be set and  the values they are to be set to.
+     * @return The list of attributes that were set, with their new values.
+     * @see #getAttributes
+     */
+    @Override
+    public AttributeList setAttributes(final AttributeList attributes) {
+        verifyInitialization();
+        return this.attributes.setAttributes(attributes);
+    }
+
+    /**
      * Retrieves the aggregated object.
      *
      * @param objectType Type of the aggregated object.
