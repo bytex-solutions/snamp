@@ -19,8 +19,8 @@
   </dependencies>
   <modules>
       <module>snmp-adapter</module>
-      <module>http-adapter</module>
       <module>jmx-adapter</module>
       <module>ssh-adapter</module>
+      <module>http-adapter</module>
   </modules>
 </project>

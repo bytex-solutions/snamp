@@ -3,6 +3,7 @@ package com.itworks.snamp.testing.connectors.rshell;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
+import jersey.repackaged.com.google.common.collect.ImmutableMap;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
@@ -13,7 +14,6 @@ import org.apache.sshd.server.shell.ProcessShellFactory;
 import org.osgi.framework.BundleContext;
 
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Objects;
 
 /**
@@ -35,13 +35,13 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
                                           final int port,
                                           final String certificateFile,
                                           final String fingerprint) {
-        super(CONNECTOR_NAME, getConnectionString(port), new HashMap<String, String>(){{
-                    put("host", "localhost");
-                    put("port", Integer.toString(port));
-                    put("fingerprint", fingerprint);
-                    put("userName", sshUserName);
-                    put("password", password);
-                }});
+        super(CONNECTOR_NAME, getConnectionString(port), ImmutableMap.of(
+                    "host", "localhost",
+                    "port", Integer.toString(port),
+                    "fingerprint", fingerprint,
+                    "userName", sshUserName,
+                    "password", password
+        ));
         this.certificateFile = Paths.get(getProjectRootDir(), certificateFile).toFile().getAbsolutePath();
         this.port = port;
         this.sshUserName = sshUserName;

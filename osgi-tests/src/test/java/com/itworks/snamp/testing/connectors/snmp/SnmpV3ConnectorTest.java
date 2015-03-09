@@ -1,15 +1,13 @@
 package com.itworks.snamp.testing.connectors.snmp;
 
-import com.itworks.snamp.ArrayUtils;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.concurrent.Repeater;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
-import com.itworks.snamp.connectors.ManagedEntityValue;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
-import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.mapping.TypeLiterals;
+import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -28,6 +26,10 @@ import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.transport.TransportMappings;
 
+import javax.management.JMException;
+import javax.management.MBeanNotificationInfo;
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -252,102 +254,93 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void notificationTest() throws TimeoutException, InterruptedException, NotificationSupportException, UnknownSubscriptionException {
-        try{
-            final ManagedResourceConnector<?> connector = getManagementConnector();
+    public void notificationTest() throws TimeoutException, InterruptedException, JMException {
+        final ManagedResourceConnector<?> connector = getManagementConnector();
+        try {
             final NotificationSupport notifications = connector.queryObject(NotificationSupport.class);
             assertNotNull(notifications);
             final String LIST_ID = "snmp-notif";
-            final NotificationMetadata metadata = notifications.enableNotifications(LIST_ID, "1.7.1", new HashMap<String, String>(1){{
-                put("messageOID", "1.0");
-            }});
+            final MBeanNotificationInfo metadata = notifications.enableNotifications(LIST_ID, "1.7.1", toConfigParameters(ImmutableMap.of(
+                    "messageTemplate", "{1.0} - {2.0}"
+            )));
             assertNotNull(metadata);
             final SynchronizationEvent<Notification> trap = new SynchronizationEvent<>(false);
-            notifications.subscribe("123", new NotificationListener() {
+            notifications.addNotificationListener(new NotificationListener() {
                 @Override
-                public boolean handle(final String listId, final Notification n) {
-                    return trap.fire(n);
+                public void handleNotification(final Notification notification, final Object handback) {
+                    trap.fire(notification);
                 }
-            }, false);
+            }, null, null);
             //obtain client addresses
             final Address[] addresses = connector.queryObject(Address[].class);
             assertNotNull(addresses);
             assertEquals(1, addresses.length);
             assertTrue(addresses[0] instanceof UdpAddress);
-            try {
-                final Notification n = trap.getAwaitor().await(TimeSpan.fromSeconds(6));
-                assertNotNull(n);
-                assertEquals("Hello, world!", n.getMessage());
-                assertEquals(0L, n.getSequenceNumber());
-                assertTrue(n.getAttachment() instanceof ManagedEntityValue);
-                final ManagedEntityValue attachment = (ManagedEntityValue)n.getAttachment();
-                assertTrue(attachment.canConvertTo(TypeLiterals.INTEGER));
-                assertEquals(42, attachment.convertTo(TypeLiterals.INTEGER));
-            }
-            finally {
-                assertTrue(notifications.unsubscribe("123"));
-            }
+            final Notification n = trap.getAwaitor().await(TimeSpan.fromSeconds(6));
+            assertNotNull(n);
+            assertEquals("Hello, world! - 42", n.getMessage());
+            assertEquals(0L, n.getSequenceNumber());
+            assertNull(n.getUserData());
             assertTrue(notifications.disableNotifications(LIST_ID));
-        }
-        finally {
+        } finally {
             releaseManagementConnector();
         }
     }
 
     @Test
-    public void testForOpaqueProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public void testForOpaqueProperty() throws IOException, JMException {
         final String ATTRIBUTE_ID = "1.6.10.0";
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.OBJECT_ARRAY,
-                new Byte[]{10, 20, 30, 40, 50},
-                AbstractResourceConnectorTest.arrayEquator(),
+                TypeToken.of(byte[].class),
+                new byte[]{10, 20, 30, 40, 50},
+                AbstractResourceConnectorTest.<byte[]>arrayEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
     }
 
     @Test
-    public void testForIpAddressProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public void testForIpAddressProperty() throws IOException, JMException {
         final String ATTRIBUTE_ID = "1.6.9.0";
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.OBJECT_ARRAY,
-                ArrayUtils.boxArray(new IpAddress("192.168.0.1").toByteArray()),
-                AbstractResourceConnectorTest.arrayEquator(),
+                TypeToken.of(byte[].class),
+                new IpAddress("192.168.0.1").toByteArray(),
+                AbstractResourceConnectorTest.<byte[]>arrayEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.STRING,
+                TypeTokens.STRING,
                 "192.168.0.1",
                 AbstractResourceConnectorTest.<String>valueEquator(),
-                new HashMap<String, String>(1){{
-                    put("snmpConversionFormat", "text");
-                }},
+                ImmutableMap.of(
+                        "snmpConversionFormat", "text"
+                ),
                 false);
     }
 
     @Test
-    public void testForOidProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public void testForOidProperty() throws IOException, JMException {
         final String ATTRIBUTE_ID = "1.6.8.0";
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.OBJECT_ARRAY,
-                ArrayUtils.boxArray(new OID("1.4.5.3.1").getValue()),
-                AbstractResourceConnectorTest.arrayEquator(),
+                TypeToken.of(int[].class),
+                new OID("1.4.5.3.1").getValue(),
+                AbstractResourceConnectorTest.<int[]>arrayEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.STRING,
+                TypeTokens.STRING,
                 "1.4.5.3.1",
                 AbstractResourceConnectorTest.<String>valueEquator(),
-                new HashMap<String, String>(1){{
-                    put("snmpConversionFormat", "text");
-                }},
+                ImmutableMap.of(
+                        "snmpConversionFormat", "text"
+                ),
                 false);
     }
 
     @Test
-    public void testForGauge32Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public void testForGauge32Property() throws IOException, JMException {
         final String ATTRIBUTE_ID = "1.6.7.0";
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.LONG,
+                TypeTokens.LONG,
                 42L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
@@ -355,10 +348,10 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForCounter64Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public void testForCounter64Property() throws IOException, JMException {
         final String ATTRIBUTE_ID = "1.6.6.0";
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.LONG,
+                TypeTokens.LONG,
                 42L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
@@ -366,10 +359,10 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForCounter32Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public void testForCounter32Property() throws IOException, JMException {
         final String ATTRIBUTE_ID = "1.6.5.0";
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.LONG,
+                TypeTokens.LONG,
                 42L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
@@ -377,29 +370,29 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForTimeTicksProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public void testForTimeTicksProperty() throws IOException, JMException {
         final String ATTRIBUTE_ID = "1.6.4.0";
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.LONG,
+                TypeTokens.LONG,
                 642584970L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
                 false);
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.STRING,
+                TypeTokens.STRING,
                 new TimeTicks(642584974L).toString(),
                 AbstractResourceConnectorTest.<String>valueEquator(),
-                new HashMap<String, String>(1){{
-                    put("snmpConversionFormat", "text");
-                }},
+                ImmutableMap.of(
+                        "snmpConversionFormat", "text"
+                ),
                 false);
     }
 
     @Test
-    public void testForUnsignedInteger32Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public void testForUnsignedInteger32Property() throws IOException, JMException {
         final String ATTRIBUTE_ID = "1.6.3.0";
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.LONG,
+                TypeTokens.LONG,
                 42L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 Collections.<String, String>emptyMap(),
@@ -407,10 +400,10 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForInteger32Property() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public void testForInteger32Property() throws IOException, JMException {
         final String ATTRIBUTE_ID = "1.6.2.0";
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.INTEGER,
+                TypeTokens.INTEGER,
                 42,
                 AbstractResourceConnectorTest.<Integer>valueEquator(),
                 Collections.<String, String>emptyMap(),
@@ -418,31 +411,31 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void testForOctetStringProperty() throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+    public void testForOctetStringProperty() throws IOException, JMException {
         final String ATTRIBUTE_ID = "1.6.1.0";
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.STRING,
+                TypeTokens.STRING,
                 "Jack Ryan",
                 AbstractResourceConnectorTest.<String>valueEquator(),
-                new HashMap<String, String>(1){{
-                    put("snmpConversionFormat", "text");
-                }},
+                ImmutableMap.of(
+                        "snmpConversionFormat", "text"
+                ),
                 false);
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.STRING,
+                TypeTokens.STRING,
                 new OctetString("Java Enterprise Edition").toHexString(),
                 AbstractResourceConnectorTest.<String>valueEquator(),
-                new HashMap<String, String>(1){{
-                    put("snmpConversionFormat", "hex");
-                }},
+                ImmutableMap.of(
+                        "snmpConversionFormat", "hex"
+                ),
                 false);
         testAttribute(ATTRIBUTE_ID,
-                TypeLiterals.OBJECT_ARRAY,
-                new Byte[]{10, 20, 1, 4},
-                AbstractResourceConnectorTest.arrayEquator(),
-                new HashMap<String, String>(1){{
-                    put("snmpConversionFormat", "raw");
-                }},
+                TypeToken.of(byte[].class),
+                new byte[]{10, 20, 1, 4},
+                AbstractResourceConnectorTest.<byte[]>arrayEquator(),
+                ImmutableMap.of(
+                        "snmpConversionFormat", "raw"
+                ),
                 false);
     }
 

@@ -231,4 +231,13 @@ public final class ArrayUtils {
             throw new IllegalArgumentException("Actual number of dimensions doesn't match to the array type");
         else return newArray(arrayType.getElementOpenType(), dimensions, arrayType.isPrimitiveArray());
     }
+
+    public static boolean equals(final Object array1, final Object array2){
+        if(Array.getLength(array1) == Array.getLength(array2)) {
+            for (int i = 0; i < Array.getLength(array1); i++)
+                if (!Objects.equals(Array.get(array1, i), Array.get(array2, i))) return false;
+            return true;
+        }
+        else return false;
+    }
 }

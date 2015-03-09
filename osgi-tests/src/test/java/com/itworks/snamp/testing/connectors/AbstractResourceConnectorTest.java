@@ -2,6 +2,7 @@ package com.itworks.snamp.testing.connectors;
 
 import com.google.common.base.Supplier;
 import com.google.common.reflect.TypeToken;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeTokens;
@@ -25,7 +26,6 @@ import javax.management.Attribute;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -58,7 +58,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         }
     }
 
-    private static ConfigParameters wrapAsEntity(final Map<String, String> parameters) {
+    protected static ConfigParameters toConfigParameters(final Map<String, String> parameters) {
         return new ConfigParameters(new AgentConfiguration.ConfigurationEntity() {
             @Override
             public Map<String, String> getParameters() {
@@ -80,11 +80,12 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         };
     }
 
-    protected static <V> Equator<V[]> arrayEquator(){
-        return new Equator<V[]>() {
+    protected static <V> Equator<V> arrayEquator(){
+        return new Equator<V>() {
             @Override
-            public boolean equate(final V[] value1, final V[] value2) {
-                return Arrays.equals(value1, value2);
+            public boolean equate(final V value1, final V value2) {
+                return Objects.equals(value1.getClass().getComponentType(), value2.getClass().getComponentType()) &&
+                        ArrayUtils.equals(value1, value2);
             }
         };
     }
@@ -239,7 +240,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         try{
             final AttributeSupport connector = getManagementConnector().queryObject(AttributeSupport.class);
             assertNotNull(connector);
-            final MBeanAttributeInfo metadata = connector.connectAttribute(attributeID, attributeName, TimeSpan.INFINITE, wrapAsEntity(attributeOptions));
+            final MBeanAttributeInfo metadata = connector.connectAttribute(attributeID, attributeName, TimeSpan.INFINITE, toConfigParameters(attributeOptions));
             assertEquals(attributeName, metadata.getName());
             if(!readOnlyTest)
                 connector.setAttribute(new Attribute(attributeID, attributeValue));

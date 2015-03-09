@@ -3,6 +3,7 @@ package com.itworks.snamp.connectors.notifications;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 
 import javax.management.Notification;
+import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import java.util.Objects;
 
@@ -22,8 +23,9 @@ import java.util.Objects;
  * @since 1.0
  * @version 1.0
  */
-public final class SynchronizationListener extends SynchronizationEvent<Notification> implements NotificationListener {
+public final class SynchronizationListener extends SynchronizationEvent<Notification> implements NotificationListener, NotificationFilter {
     private static final String ANY_SUBSCRIPTION_LIST = "*";
+    private static final long serialVersionUID = -5267013562476814414L;
     private final String expectedSubscriptionList;
 
     /**
@@ -51,8 +53,18 @@ public final class SynchronizationListener extends SynchronizationEvent<Notifica
      */
     @Override
     public void handleNotification(final Notification n, final Object handback) {
-        if (Objects.equals(n.getType(), expectedSubscriptionList) ||
-                Objects.equals(expectedSubscriptionList, ANY_SUBSCRIPTION_LIST))
-            fire(n);
+        if (isNotificationEnabled(n)) fire(n);
+    }
+
+    /**
+     * Invoked before sending the specified notification to the listener.
+     *
+     * @param n The notification to be sent.
+     * @return <CODE>true</CODE> if the notification has to be sent to the listener, <CODE>false</CODE> otherwise.
+     */
+    @Override
+    public boolean isNotificationEnabled(final Notification n) {
+        return Objects.equals(n.getType(), expectedSubscriptionList) ||
+                Objects.equals(expectedSubscriptionList, ANY_SUBSCRIPTION_LIST);
     }
 }

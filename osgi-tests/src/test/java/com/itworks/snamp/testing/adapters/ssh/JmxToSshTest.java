@@ -113,7 +113,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
 
     @Test
     public void arrayTest() throws IOException{
-        testScalarAttribute("5.1", "[42, 100, 332, 99]");
+        testScalarAttribute("5.1", "[42, 100, 332, 99]", AbstractResourceConnectorTest.<String>valueEquator());
         try(final SSHClient client = new SSHClient()){
             client.addHostKeyVerifier(FINGERPRINT);
             client.connect("localhost", PORT);

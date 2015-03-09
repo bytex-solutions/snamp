@@ -2,20 +2,19 @@ package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
-import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.connectors.notifications.NotificationSupport;
+import com.itworks.snamp.connectors.notifications.SynchronizationListener;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.mapping.KeyedRecordSet;
-import com.itworks.snamp.mapping.RecordSetUtils;
-import com.itworks.snamp.mapping.RowSet;
-import com.itworks.snamp.mapping.TypeLiterals;
+import com.itworks.snamp.jmx.CompositeDataBuilder;
+import com.itworks.snamp.jmx.TabularDataBuilder;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -23,10 +22,10 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 
-import javax.management.AttributeChangeNotification;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
+import javax.management.*;
 import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.TabularData;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -36,8 +35,6 @@ import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-
-import com.itworks.snamp.connectors.notifications.SynchronizationListener;
 
 /**
  * @author Roman Sakno
@@ -121,46 +118,41 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void notificationTest() throws TimeoutException, InterruptedException, NotificationSupportException, UnknownSubscriptionException, AttributeSupportException, UnknownAttributeException {
+    public final void notificationTest() throws TimeoutException, InterruptedException, JMException {
         final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
         final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
         assertNotNull(notificationSupport);
         assertNotNull(attributeSupport);
-        assertNotNull(attributeSupport.connectAttribute("1.0", "string", new HashMap<String, String>(2) {{
-            put("objectName", TestOpenMBean.BEAN_NAME);
-        }}));
-        assertNotNull(notificationSupport.enableNotifications("19.1", AttributeChangeNotification.ATTRIBUTE_CHANGE, new HashMap<String, String>(2) {{
-            put("severity", "notice");
-            put("objectName", TestOpenMBean.BEAN_NAME);
-        }}));
-        assertNotNull(notificationSupport.enableNotifications("20.1", "com.itworks.snamp.connectors.tests.impl.testnotif", new HashMap<String, String>(2){{
-            put("severity", "panic");
-            put("objectName", TestOpenMBean.BEAN_NAME);
-        }}));
-        assertEquals(2, notificationSupport.getEnabledNotifications().size());
-        assertTrue(notificationSupport.getEnabledNotifications().contains("19.1"));
-        assertTrue(notificationSupport.getEnabledNotifications().contains("20.1"));
-        final String TEST_LISTENER1_ID = "test-listener";
-        final String TEST_LISTENER2_ID = "test-listener-2";
+
+        assertNotNull(attributeSupport.connectAttribute("1.0", "string", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
+                "objectName", TestOpenMBean.BEAN_NAME
+        ))));
+        assertNotNull(notificationSupport.enableNotifications("19.1", AttributeChangeNotification.ATTRIBUTE_CHANGE, toConfigParameters(ImmutableMap.of(
+            "severity", "notice",
+            "objectName", TestOpenMBean.BEAN_NAME
+        ))));
+        assertNotNull(notificationSupport.enableNotifications("20.1", "com.itworks.snamp.connectors.tests.impl.testnotif", toConfigParameters(ImmutableMap.of(
+                "severity", "panic",
+                "objectName", TestOpenMBean.BEAN_NAME
+        ))));
+        assertEquals(2, notificationSupport.getNotificationInfo().length);
         final SynchronizationListener listener1 = new SynchronizationListener("19.1");
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
-        notificationSupport.subscribe(TEST_LISTENER1_ID, listener1, false);
-        notificationSupport.subscribe(TEST_LISTENER2_ID, listener2, false);
+        notificationSupport.addNotificationListener(listener1, listener1, null);
+        notificationSupport.addNotificationListener(listener2, listener2, null);
         final SynchronizationEvent.EventAwaitor<Notification> awaitor1 = listener1.getAwaitor();
         final SynchronizationEvent.EventAwaitor<Notification> awaitor2 = listener2.getAwaitor();
         //force property changing
-        attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood");
+        attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
         final Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif1);
-        assertEquals(Severity.NOTICE, notif1.getSeverity());
         assertEquals("Property string is changed", notif1.getMessage());
-        assertTrue(notif1.getAttachment() instanceof CompositeData);
-        final CompositeData attachment = (CompositeData)notif1.getAttachment();
+        assertTrue(notif1.getUserData() instanceof CompositeData);
+        final CompositeData attachment = (CompositeData)notif1.getUserData();
         assertEquals("string", attachment.get("attributeName"));
         assertEquals(String.class.getName(), attachment.get("attributeType"));
         final Notification notif2 = awaitor2.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif2);
-        assertEquals(Severity.PANIC, notif2.getSeverity());
         assertEquals("Property changed", notif2.getMessage());
     }
 
@@ -168,128 +160,113 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
     public final void simulateConnectionAbortTest() throws TimeoutException,
             InterruptedException,
             ExecutionException,
-            AttributeSupportException,
-            NotificationSupportException,
-            UnknownSubscriptionException,
-            UnknownAttributeException {
+            JMException {
         final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
         final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
         assertNotNull(notificationSupport);
         assertNotNull(attributeSupport);
-        assertNotNull(attributeSupport.connectAttribute("1.0", "string", new HashMap<String, String>(2) {{
-            put("objectName", TestOpenMBean.BEAN_NAME);
-        }}));
-        assertNotNull(notificationSupport.enableNotifications("19.1", AttributeChangeNotification.ATTRIBUTE_CHANGE, new HashMap<String, String>(2) {{
-            put("severity", "notice");
-            put("objectName", TestOpenMBean.BEAN_NAME);
-        }}));
-        assertNotNull(notificationSupport.enableNotifications("20.1", "com.itworks.snamp.connectors.tests.impl.testnotif", new HashMap<String, String>(2){{
-            put("severity", "panic");
-            put("objectName", TestOpenMBean.BEAN_NAME);
-        }}));
-        assertEquals(2, notificationSupport.getEnabledNotifications().size());
-        assertTrue(notificationSupport.getEnabledNotifications().contains("19.1"));
-        assertTrue(notificationSupport.getEnabledNotifications().contains("20.1"));
-        final String TEST_LISTENER1_ID = "test-listener";
-        final String TEST_LISTENER2_ID = "test-listener-2";
+        assertNotNull(attributeSupport.connectAttribute("1.0", "string", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
+                "objectName", TestOpenMBean.BEAN_NAME
+        ))));
+        assertNotNull(notificationSupport.enableNotifications("19.1", AttributeChangeNotification.ATTRIBUTE_CHANGE, toConfigParameters(ImmutableMap.of(
+                "severity", "notice",
+                "objectName", TestOpenMBean.BEAN_NAME
+        ))));
+        assertNotNull(notificationSupport.enableNotifications("20.1", "com.itworks.snamp.connectors.tests.impl.testnotif", toConfigParameters(ImmutableMap.of(
+                "severity", "panic",
+                "objectName", TestOpenMBean.BEAN_NAME
+        ))));
+        assertEquals(2, notificationSupport.getNotificationInfo().length);
         final SynchronizationListener listener1 = new SynchronizationListener("19.1");
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
-        notificationSupport.subscribe(TEST_LISTENER1_ID, listener1, false);
-        notificationSupport.subscribe(TEST_LISTENER2_ID, listener2, false);
+        notificationSupport.addNotificationListener(listener1, listener1, null);
+        notificationSupport.addNotificationListener(listener2, listener2, null);
         final SynchronizationEvent.EventAwaitor<Notification> awaitor1 = listener1.getAwaitor();
         final SynchronizationEvent.EventAwaitor<Notification> awaitor2 = listener2.getAwaitor();
         //simulate connection abort
         assertEquals("OK", ManagedResourceConnectorClient.invokeMaintenanceAction(getTestBundleContext(), CONNECTOR_NAME, "simulateConnectionAbort", null, null).get(3, TimeUnit.SECONDS));
         //force property changing
-        attributeSupport.setAttribute("1.0", TimeSpan.INFINITE, "Frank Underwood");
+        attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
         final Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif1);
-        assertEquals(Severity.NOTICE, notif1.getSeverity());
         assertEquals("Property string is changed", notif1.getMessage());
-        assertTrue(notif1.getAttachment() instanceof CompositeData);
-        final CompositeData attachment = (CompositeData)notif1.getAttachment();
+        assertTrue(notif1.getUserData() instanceof CompositeData);
+        final CompositeData attachment = (CompositeData)notif1.getUserData();
         assertEquals("string", attachment.get("attributeName"));
         assertEquals(String.class.getName(), attachment.get("attributeType"));
         final Notification notif2 = awaitor2.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif2);
-        assertEquals(Severity.PANIC, notif2.getSeverity());
         assertEquals("Property changed", notif2.getMessage());
     }
 
     @Test
     public final void testForTableProperty() throws Exception {
-        RowSet<Object> table = RecordSetUtils.emptyRowSet("col1", "col2", "col3");
-        table = RecordSetUtils.addRow(table, new HashMap<String, Object>(3){{
-            put("col1", true);
-            put("col2", 42);
-            put("col3", "Frank Underwood");
-        }});
-        table = RecordSetUtils.addRow(table, new HashMap<String, Object>(3){{
-            put("col1", true);
-            put("col2", 43);
-            put("col3", "Peter Russo");
-        }});
-        testAttribute("7.1", "table", TypeLiterals.ROW_SET, table, new Equator<RowSet<?>>() {
+        final TabularData table = new TabularDataBuilder()
+                .setTypeName("Table", true)
+                .setTypeDescription("Dummy table", true)
+                .columns()
+                .addColumn("col1", "dummy column", SimpleType.BOOLEAN, false)
+                .addColumn("col2", "dummy column", SimpleType.INTEGER, false)
+                .addColumn("col3", "dummy column", SimpleType.STRING, true)
+                .queryObject(TabularDataBuilder.class)
+                .add(true, 42, "Frank Underwood")
+                .add(true, 43, "Peter Russo")
+                .build();
+        testAttribute("7.1", "table", TypeToken.of(TabularData.class), table, new Equator<TabularData>() {
             @Override
-            public boolean equate(final RowSet<?> o1, final RowSet<?> o2) {
+            public boolean equate(final TabularData o1, final TabularData o2) {
                 return o1.size() == o2.size() &&
-                        Utils.collectionsAreEqual(o1.getColumns(), o2.getColumns());
+                        Utils.collectionsAreEqual((Collection)o1.values(), (Collection)o2.values());
             }
         });
     }
 
     @Test
     public final void testForDictionaryProperty() throws Exception {
-        final Map<String, Object> dict = ImmutableMap.<String, Object>of("col1", Boolean.TRUE,
-        "col2", 42,
-        "col3", "Frank Underwood");
-        testAttribute("6.1", "dictionary", TypeLiterals.NAMED_RECORD_SET, new KeyedRecordSet<String, Object>() {
-            @Override
-            protected Set<String> getKeys() {
-                return dict.keySet();
-            }
-
-            @Override
-            protected Object getRecord(final String key) {
-                return dict.get(key);
-            }
-        }, AbstractResourceConnectorTest.namedRecordSetEquator());
+        final CompositeData dict = new CompositeDataBuilder()
+                .setTypeName("Dict")
+                .setTypeDescription("Descr")
+                .put("col1", "descr", true)
+                .put("col2", "descr", 42)
+                .put("col3", "descr", "Frank Underwood")
+                .build();
+        testAttribute("6.1", "dictionary", TypeToken.of(CompositeData.class), dict, AbstractResourceConnectorTest.<CompositeData>valueEquator());
     }
 
     @Test
     public final void testForArrayProperty() throws Exception {
-        final Object[] array = new Short[]{10, 20, 30, 40, 50};
-        testAttribute("5.1", "array", TypeLiterals.OBJECT_ARRAY, array, arrayEquator());
+        final short[] array = new short[]{10, 20, 30, 40, 50};
+        testAttribute("5.1", "array", TypeToken.of(short[].class), array, AbstractResourceConnectorTest.<short[]>arrayEquator());
     }
 
     @Test
     public final void testForDateProperty() throws Exception {
-        testAttribute("9.0", "date", TypeLiterals.DATE, new Date());
+        testAttribute("9.0", "date", TypeTokens.DATE, new Date());
     }
 
     @Test
     public final void testForFloatProperty() throws Exception {
-        testAttribute("8.0", "float", TypeLiterals.FLOAT, 3.14F);
+        testAttribute("8.0", "float", TypeTokens.FLOAT, 3.14F);
     }
 
     @Test
     public final void testForBigIntProperty() throws Exception {
-        testAttribute("4.0", "bigint", TypeLiterals.BIG_INTEGER, BigInteger.valueOf(100500));
+        testAttribute("4.0", "bigint", TypeTokens.BIG_INTEGER, BigInteger.valueOf(100500));
     }
 
     @Test
     public final void testForInt32Property() throws Exception {
-        testAttribute("3.0", "int32", TypeLiterals.INTEGER, 42);
+        testAttribute("3.0", "int32", TypeTokens.INTEGER, 42);
     }
 
     @Test
     public final void testForBooleanProperty() throws Exception {
-        testAttribute("2.0", "boolean", TypeLiterals.BOOLEAN, Boolean.TRUE);
+        testAttribute("2.0", "boolean", TypeTokens.BOOLEAN, Boolean.TRUE);
     }
 
     @Test
     public final void testForStringProperty() throws Exception {
-        testAttribute("1.0", "string", TypeLiterals.STRING, "Frank Underwood");
+        testAttribute("1.0", "string", TypeTokens.STRING, "Frank Underwood");
     }
 
     @Test
@@ -306,7 +283,6 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
                         return;
                     case ServiceEvent.REGISTERED:
                         registered.fire(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
-                        return;
                 }
             }
         });
@@ -321,6 +297,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         final ConfigurationEntityDescription<AttributeConfiguration> description = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(),
                 CONNECTOR_NAME,
                 AttributeConfiguration.class);
+        assertNotNull(description);
         final ConfigurationEntityDescription.ParameterDescription param = description.getParameterDescriptor("objectName");
         final String defValue = param.getDescription(null);//default locale
         assertTrue(defValue.length() > 0);
