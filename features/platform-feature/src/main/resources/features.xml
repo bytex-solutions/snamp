@@ -8,9 +8,10 @@
         <feature>eventadmin</feature>
         <feature>war</feature>
         <feature>hawtio-offline</feature>
-<!--        <bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.9.12</bundle>
+        <!--<bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.9.12</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.9.12</bundle>
-        <bundle start="true">mvn:org.fusesource.insight/insight-log/7.2.0.redhat-060</bundle>-->
+        <bundle start="true">mvn:org.fusesource.insight/insight-log/7.2.0.redhat-060</bundle>
+        <bundle start="true">mvn:org.fusesource.insight/insight-log-elasticsearch/7.2.0.redhat-060</bundle>-->
         <bundle start="true">mvn:io.hawt/hawtio-plugin-mbean/1.4.47</bundle>
 
         <bundle >mvn:com.google.code.gson/gson/2.2.4</bundle>
