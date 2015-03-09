@@ -72,8 +72,6 @@ public class EmbeddedADSVerTrunk{
     /** The LDAP server */
     private LdapServer server;
 
-    private static File workDir;
-
 
     /**
      * Add a new partition to the server
@@ -332,16 +330,16 @@ public class EmbeddedADSVerTrunk{
      *
      * @param args Not used.
      */
-    public static void main( String[] args )
+    public static void main(final String[] args )
     {
         try
         {
-            workDir = new File( System.getProperty( "java.io.tmpdir" ) + "/server-work" );
+            final File workDir = new File(System.getProperty("java.io.tmpdir") + "/server-work");
 
             workDir.mkdirs();
 
             // Create the server
-            EmbeddedADSVerTrunk ads = new EmbeddedADSVerTrunk( workDir );
+            EmbeddedADSVerTrunk ads = new EmbeddedADSVerTrunk(workDir);
 
             // Read an entry
             Entry result = ads.service.getAdminSession().lookup( new Dn( "dc=apache,dc=org" ) );
@@ -352,7 +350,7 @@ public class EmbeddedADSVerTrunk{
             // optionally we can start a server too
             ads.startServer();
         }
-        catch ( Exception e )
+        catch (final Exception e )
         {
             // Ok, we have something wrong going on ...
             e.printStackTrace();

@@ -5,7 +5,9 @@ import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.jmx.WellKnownType;
 
 import javax.management.*;
+import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenType;
+import javax.management.openmbean.TabularData;
 import java.nio.Buffer;
 import java.util.Objects;
 
@@ -16,6 +18,7 @@ import java.util.Objects;
  * @since 1.0
  */
 public class AttributeValue extends Attribute implements AttributeValueReader {
+    private static final long serialVersionUID = -6273677063905416787L;
     private final WellKnownType type;
 
     AttributeValue(final String name,
@@ -46,6 +49,16 @@ public class AttributeValue extends Attribute implements AttributeValueReader {
     public AttributeValue(final String name,
                           final Buffer value){
         this(name, value, WellKnownType.getType(value.getClass()));
+    }
+
+    public AttributeValue(final String name,
+                          final CompositeData[] value){
+        this(name, value, WellKnownType.DICTIONARY_ARRAY);
+    }
+
+    public AttributeValue(final String name,
+                          final TabularData[] value){
+        this(name, value, WellKnownType.TABLE_ARRAY);
     }
 
     /**

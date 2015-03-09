@@ -17,6 +17,7 @@ import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.CompositeTypeBuilder;
 import com.itworks.snamp.jmx.DescriptorUtils;
+import com.itworks.snamp.jmx.TabularDataUtils;
 import com.itworks.snamp.jmx.TabularTypeBuilder;
 import com.itworks.snamp.scripting.OSGiScriptEngineManager;
 
@@ -145,6 +146,13 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
         protected Object getValue(final CommandExecutionChannel channel, final Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
             final List<? extends Map<String, ?>> rows = com.itworks.snamp.TypeTokens.safeCast(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN);
             return rows != null ? convert(rows) : null;
+        }
+
+        @Override
+        void setValue(final CommandExecutionChannel channel, Object value) throws ScriptException, IOException {
+            if(value instanceof TabularData)
+                value = TabularDataUtils.getRows((TabularData) value);
+            commandProfile.writeToChannel(channel, value);
         }
     }
 

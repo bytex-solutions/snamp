@@ -1,13 +1,11 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
 import com.itworks.snamp.concurrent.SynchronizationEvent;
-import com.itworks.snamp.testing.Matrix;
+import com.itworks.snamp.testing.SnmpTable;
 import org.snmp4j.PDU;
 import org.snmp4j.smi.OID;
-import org.snmp4j.smi.Variable;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Represents SNMP client for flexible testing of snmp adapter
@@ -33,7 +31,7 @@ public interface SnmpClient {
      * @return
      * @throws IOException
      */
-    PDU writeTable(final String tablePrefix, final Matrix<? extends Variable> table) throws IOException;
+    PDU writeTable(final String tablePrefix, final SnmpTable table) throws IOException;
 
 
     /**
@@ -41,7 +39,7 @@ public interface SnmpClient {
      * @return
      * @throws IOException
      */
-    Matrix<?> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception;
+    SnmpTable readTable(final ReadMethod method, final OID oid, final Class<?>... columns) throws Exception;
 
 
     /**

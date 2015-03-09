@@ -4,27 +4,26 @@ import com.google.common.base.Supplier;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.concurrent.SpinWait;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
-import com.itworks.snamp.connectors.attributes.AttributeMetadata;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.core.LogicalOperation;
-import com.itworks.snamp.mapping.RecordSet;
-import com.itworks.snamp.mapping.RecordSetUtils;
-import com.itworks.snamp.mapping.TypeConverter;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import org.junit.rules.TestName;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 
+import javax.management.Attribute;
+import javax.management.JMException;
+import javax.management.MBeanAttributeInfo;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,7 +39,6 @@ import java.util.concurrent.TimeoutException;
  */
 public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegrationTest {
     private static final String CONNECTOR_TYPE_PROPERTY = "connectorType";
-
 
     private static final class ConnectorTestLogicalOperation extends TestLogicalOperation{
 
@@ -58,6 +56,15 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         private static ConnectorTestLogicalOperation stopResourceConnector(final String connectorType, final TestName name){
             return new ConnectorTestLogicalOperation("stopResourceConnector", connectorType, name);
         }
+    }
+
+    private static ConfigParameters wrapAsEntity(final Map<String, String> parameters) {
+        return new ConfigParameters(new AgentConfiguration.ConfigurationEntity() {
+            @Override
+            public Map<String, String> getParameters() {
+                return parameters;
+            }
+        });
     }
 
     protected static interface Equator<V>{
@@ -91,20 +98,6 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
             }
         else return false;
         return true;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected static Equator<RecordSet<String, ?>> namedRecordSetEquator(){
-        return (Equator)recordSetEquator();
-    }
-
-    protected static <K, V> Equator<RecordSet<K, V>> recordSetEquator(){
-        return new Equator<RecordSet<K, V>>() {
-            @Override
-            public boolean equate(final RecordSet<K, V> value1, final RecordSet<K, V> value2) {
-                return areEqual(RecordSetUtils.toMap(value1), RecordSetUtils.toMap(value2));
-            }
-        };
     }
 
     private final String connectorType;
@@ -242,17 +235,15 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final Map<String, String> attributeOptions,
-                                           final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+                                           final boolean readOnlyTest) throws JMException, IOException {
         try{
             final AttributeSupport connector = getManagementConnector().queryObject(AttributeSupport.class);
             assertNotNull(connector);
-            final AttributeMetadata metadata = connector.connectAttribute(attributeID, attributeName, attributeOptions);
+            final MBeanAttributeInfo metadata = connector.connectAttribute(attributeID, attributeName, TimeSpan.INFINITE, wrapAsEntity(attributeOptions));
             assertEquals(attributeName, metadata.getName());
-            final TypeConverter<T> projection = metadata.getType().getProjection(attributeType);
-            assertNotNull(projection);
             if(!readOnlyTest)
-                connector.setAttribute(attributeID, TimeSpan.INFINITE, attributeValue);
-            final T newValue = projection.convertFrom(connector.getAttribute(attributeID, TimeSpan.INFINITE));
+                connector.setAttribute(new Attribute(attributeID, attributeValue));
+            final T newValue = TypeTokens.cast(connector.getAttribute(attributeID), attributeType);
             assertNotNull(newValue);
             assertTrue(comparator.equate(attributeValue, newValue));
             assertTrue(connector.disconnectAttribute(attributeID));
@@ -267,7 +258,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final Map<String, String> attributeOptions,
-                                           final boolean readOnlyTest) throws TimeoutException, IOException, AttributeSupportException, UnknownAttributeException {
+                                           final boolean readOnlyTest) throws JMException, IOException {
        testAttribute("ID", attributeName, attributeType, attributeValue, comparator, attributeOptions, readOnlyTest);
     }
 

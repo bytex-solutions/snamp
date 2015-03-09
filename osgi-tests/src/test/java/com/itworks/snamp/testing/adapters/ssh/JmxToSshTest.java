@@ -59,7 +59,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
                 s.exec(String.format("set %s %s", attributeId, value));
             }
             try(final Session s = client.startSession()){
-                final Session.Command result = s.exec(String.format("get %s", attributeId));
+                final Session.Command result = s.exec(String.format("get %s json", attributeId));
                 final String output = IOUtils.readFully(result.getInputStream()).toString();
                 final String error = IOUtils.readFully(result.getErrorStream()).toString();
                 if(error != null && error.length() > 0)
@@ -103,48 +103,17 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
 
     @Test
     public void tableTest() throws IOException{
-        try(final SSHClient client = new SSHClient()){
-            client.addHostKeyVerifier(FINGERPRINT);
-            client.connect("localhost", PORT);
-            client.authPassword(USER_NAME, PASSWORD);
-            final String attributeId = String.format("%s/%s", TEST_RESOURCE_NAME, "7.1");
-            //update dictionary
-            try(final Session s = client.startSession()) {
-                s.exec(String.format("set-table %s -r col1=false -r col2=2 -r col3=pp -i 0", attributeId));
-            }
-            try(final Session s = client.startSession()){
-                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
-                assertNotNull(result);
-                assertFalse(result.isEmpty());
-                assertEquals("TABLE col1\tcol2\tcol3false\tpp\t2false\tCiao, monde!\t42true\tLuke Skywalker\t1", result);
-            }
-        }
+        testScalarAttribute("7.1", "[{\"col1\": false, \"col2\": 2, \"col3\": \"pp\"}]", AbstractResourceConnectorTest.<String>valueEquator());
     }
 
     @Test
     public void dictionaryTest() throws IOException{
-        try(final SSHClient client = new SSHClient()){
-            client.addHostKeyVerifier(FINGERPRINT);
-            client.connect("localhost", PORT);
-            client.authPassword(USER_NAME, PASSWORD);
-            final String attributeId = String.format("%s/%s", TEST_RESOURCE_NAME, "6.1");
-            //update dictionary
-            try(final Session s = client.startSession()) {
-                s.exec(String.format("set-map %s -p col1=false -p col2=42", attributeId));
-            }
-            try(final Session s = client.startSession()){
-                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
-                assertNotNull(result);
-                assertFalse(result.isEmpty());
-                assertTrue(result.startsWith("MAP "));
-                assertTrue(result.contains("col1=false"));
-                assertTrue(result.contains("col2=42"));
-            }
-        }
+        testScalarAttribute("6.1", "{\"col1\": false, \"col2\": 42}", AbstractResourceConnectorTest.<String>valueEquator());
     }
 
     @Test
     public void arrayTest() throws IOException{
+        testScalarAttribute("5.1", "[42, 100, 332, 99]");
         try(final SSHClient client = new SSHClient()){
             client.addHostKeyVerifier(FINGERPRINT);
             client.connect("localhost", PORT);

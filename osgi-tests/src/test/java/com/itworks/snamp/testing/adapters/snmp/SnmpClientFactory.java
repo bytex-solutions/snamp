@@ -7,7 +7,9 @@ import org.snmp4j.security.SecurityLevel;
  * @author Evgeniy Kirichenko
  */
 public final class SnmpClientFactory {
-    private SnmpClientFactory(){};
+    private SnmpClientFactory(){
+
+    }
 
     public static SnmpClient createSnmpV2(final String address){
         return new SnmpV2Client(address);

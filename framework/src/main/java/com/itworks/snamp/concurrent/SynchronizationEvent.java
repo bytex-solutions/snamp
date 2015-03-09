@@ -1,5 +1,6 @@
 package com.itworks.snamp.concurrent;
 
+import com.itworks.snamp.Consumer;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.core.LogicalOperation;
@@ -53,6 +54,7 @@ public class SynchronizationEvent<T> {
      * @param <T> Type of the event object.
      */
     private static final class EventState<T> extends AbstractQueuedSynchronizer implements EventAwaitor<T> {
+        private static final long serialVersionUID = 7883990808552287879L;
         private T eventObj;
 
         public EventState() {
@@ -109,6 +111,7 @@ public class SynchronizationEvent<T> {
 
     private final ConcurrentResourceAccessor<EventState<T>> state;
     private final boolean autoReset;
+    private static boolean DEFAULT_AUTO_RESET = false;
 
     /**
      * Initializes a new synchronization event.
@@ -125,7 +128,7 @@ public class SynchronizationEvent<T> {
      * Initializes a new synchronization event.
      */
     public SynchronizationEvent() {
-        this(false);
+        this(DEFAULT_AUTO_RESET);
     }
 
     /**
@@ -181,5 +184,21 @@ public class SynchronizationEvent<T> {
      */
     public final EventAwaitor<T> getAwaitor() {
         return state.getResource();
+    }
+
+    protected final <E extends Throwable> EventAwaitor<T> getAwaitor(final Consumer<? super SynchronizationEvent<T>, E> handler) throws E{
+        final EventAwaitor<T> awaitor = getAwaitor();
+        handler.accept(this);
+        return awaitor;
+    }
+
+    public static <T, E extends Throwable> EventAwaitor<T> processEvent(final Consumer<? super SynchronizationEvent<T>, E> handler,
+                                                                 final boolean autoReset) throws E{
+        final SynchronizationEvent<T> event = new SynchronizationEvent<>(autoReset);
+        return event.getAwaitor(handler);
+    }
+
+    public static <T, E extends Throwable> EventAwaitor<T> processEvent(final Consumer<? super SynchronizationEvent<T>, E> handler) throws E{
+        return processEvent(handler, DEFAULT_AUTO_RESET);
     }
 }

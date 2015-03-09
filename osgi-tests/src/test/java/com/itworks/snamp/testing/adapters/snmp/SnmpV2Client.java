@@ -18,7 +18,7 @@ final class SnmpV2Client extends AbstractSnmpClient {
      * Snmp version 2 constructor
      * @param address
      */
-    public SnmpV2Client(String address) {
+    SnmpV2Client(String address) {
         this.address = address;
         try {
             start();

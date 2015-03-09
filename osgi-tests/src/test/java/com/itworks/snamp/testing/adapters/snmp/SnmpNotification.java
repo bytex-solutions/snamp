@@ -16,6 +16,7 @@ import static com.itworks.snamp.testing.adapters.snmp.SnmpHelpers.DateTimeFormat
  * @since 1.0
  */
 final class SnmpNotification extends HashMap<OID, Variable> {
+    private static final long serialVersionUID = -9064210467469772285L;
     /**
      * Represents identifier of this SNMP notification instance.
      */
@@ -25,7 +26,6 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     private final OID sequenceNumberId;
     private final OID timeStampId;
     private final OID categoryId;
-    private final OID correlationId;
 
     /**
      * Initializes a new SNMP notification message.
@@ -42,7 +42,6 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         sequenceNumberId = new OID(notificationID).append(3);
         timeStampId = new OID(notificationID).append(4);
         categoryId = new OID(notificationID).append(5);
-        correlationId = new OID(notificationID).append(6);
     }
 
     boolean put(final VariableBinding binding){
