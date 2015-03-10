@@ -1,4 +1,4 @@
-package com.itworks.snamp.management.jmx;
+package com.itworks.snamp.management;
 
 import com.itworks.snamp.jmx.OpenMBean;
 

@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.jmx;
 
-import com.itworks.snamp.management.jmx.OpenMBeanProvider;
+import com.itworks.snamp.management.OpenMBeanProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
