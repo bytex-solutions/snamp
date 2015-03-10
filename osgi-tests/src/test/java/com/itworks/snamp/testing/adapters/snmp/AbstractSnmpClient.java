@@ -246,7 +246,9 @@ abstract class AbstractSnmpClient implements SnmpClient {
         final PDU pdu = DefaultPDUFactory.createPDU(this.getTarget(), PDU.SET);
         for(int rowIndex = 0; rowIndex < table.getRowCount(); rowIndex++)
             for(int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++){
-                final OID rowId = new OID(tablePrefix + "." + columnIndex + "." + (rowIndex + 1));
+                //row index always starts from 1 in SnmpAdapter
+                //column index always starts from 2 in SnmpAdapter
+                final OID rowId = new OID(tablePrefix + '.' + (columnIndex + 2) + '.' + (rowIndex + 1));
                 pdu.add(new VariableBinding(rowId, table.getRawCell(columnIndex, rowIndex)));
             }
         return this.set(pdu).getResponse();

@@ -309,7 +309,6 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             try{
                 final AttributeAccessor accessor = connector.connect(attributeID);
                 if(hasField(accessor.getMetadata().getDescriptor(), OID_PARAM_NAME)){
-                    System.out.println(getField(accessor.getMetadata().getDescriptor(), OID_PARAM_NAME, String.class));
                     final SnmpType type = SnmpType.map(accessor.getType());
                     if(type != null){
                         final SnmpAttributeMapping mapping = type.createManagedObject(accessor);

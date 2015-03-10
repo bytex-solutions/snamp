@@ -184,12 +184,21 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             timer = Stopwatch.createUnstarted();
         }
 
-        private void stop(){
-            timer.stop();
+        private boolean stop() {
+            if (timer.isRunning()) {
+                timer.stop();
+                return true;
+            }
+            else return false;
         }
 
-        private void start(){
-            timer.start();
+        private boolean start(){
+            if(timer.isRunning())
+                return false;
+            else {
+                timer.start();
+                return true;
+            }
         }
 
         private boolean isEmpty(){
@@ -529,8 +538,8 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
                     }
                 else  //data row
                     items.put(column.name, column.parseCellValue(row.getValue(columnIndex), getMetadata()));
-                result.put(new CompositeDataSupport(type.getRowType(), items));
             }
+            result.put(new CompositeDataSupport(type.getRowType(), items));
         }
         _connector.setValue(result);
         return rowsToDelete;
