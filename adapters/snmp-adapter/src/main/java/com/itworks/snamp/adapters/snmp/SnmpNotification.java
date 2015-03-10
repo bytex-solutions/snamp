@@ -42,6 +42,8 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     private final OID sequenceNumberId;
     private final OID timeStampId;
     private final OID categoryId;
+    private final OID eventNameId;
+    private final OID sourceId;
     private static final int MAX_RESERVED_POSTFIX = 10;
 
     /**
@@ -59,18 +61,22 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         sequenceNumberId = new OID(notificationID).append(3);
         timeStampId = new OID(notificationID).append(4);
         categoryId = new OID(notificationID).append(5);
+        eventNameId = new OID(notificationID).append(6);
+        sourceId = new OID(notificationID).append(7);
     }
 
     SnmpNotification(final Notification n,
                      final MBeanNotificationInfo metadata) {
         this(new OID(getOID(metadata)));
         put(messageId, new OctetString(n.getMessage()));
-        put(severityId, new Integer32(NotificationDescriptor.getSeverity(metadata).ordinal()));
+        put(severityId, new Integer32(NotificationDescriptor.getSeverity(metadata).getLevel()));
         put(sequenceNumberId, new Counter64(n.getSequenceNumber()));
         put(categoryId, new OctetString(NotificationDescriptor.getNotificationCategory(metadata)));
         final DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter(getDateTimeDisplayFormat(metadata));
         put(timeStampId, new OctetString(formatter.convert(new Date(n.getTimeStamp()))));
         putAttachment(notificationID, n.getUserData(), metadata, this);
+        put(eventNameId, new OctetString(n.getType()));
+        put(sourceId, new OctetString(Objects.toString(n.getSource(), "")));
     }
 
     private static void putAttachment(final OID notificationID,
@@ -78,7 +84,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
                                       final MBeanNotificationInfo options,
                                       final Map<OID, Variable> output) {
         if (attachment == null) return;
-        final SnmpType type = SnmpType.map(WellKnownType.getType(NotificationDescriptor.getUserDataType(options)));
+        final SnmpType type = SnmpType.map(WellKnownType.fromValue(attachment));
         if (type.isScalar()) {
             final Variable value = type.convert(attachment, options);
             output.put(new OID(notificationID).append(MAX_RESERVED_POSTFIX + 1), value != null ? value : new Null());
@@ -163,7 +169,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     }
 
     private static Severity getSeverity(final Integer32 value){
-        return Severity.values()[value.toInt()];
+        return Severity.resolve(value.toInt());
     }
 
     Severity getSeverity(){

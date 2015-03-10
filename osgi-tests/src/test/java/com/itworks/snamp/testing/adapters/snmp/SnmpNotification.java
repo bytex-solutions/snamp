@@ -65,7 +65,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     }
 
     private static Severity getSeverity(final Integer32 value){
-        return Severity.values()[value.toInt()];
+        return Severity.resolve(value.toInt());
     }
 
     public final Severity getSeverity(){

@@ -112,7 +112,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Test
@@ -284,8 +284,8 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         );
         assertEquals(1, dict.getRowCount());
         assertEquals(false, dict.getCell(0, 0));
-        assertEquals(4230, dict.getCell(0, 1));
-        assertEquals("Test for dictionary property", dict.getCell(0, 2));
+        assertEquals(4230, dict.getCell(1, 0));
+        assertEquals("Test for dictionary property", dict.getCell(2, 0));
     }
 
     @Test

@@ -138,9 +138,14 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public static Severity getSeverity(final Descriptor metadata) {
-        Severity result = DescriptorUtils.getField(metadata, SEVERITY_FIELD, Severity.class);
-        return result != null ? result :
-                Severity.resolve(DescriptorUtils.getField(metadata, SEVERITY_FIELD, Integer.class, Severity.UNKNOWN.getLevel()));
+        final Object result = metadata.getFieldValue(SEVERITY_FIELD);
+        if(result instanceof Severity)
+            return (Severity)result;
+        else if(result instanceof Number)
+            return Severity.resolve(((Number)result).intValue());
+        else if(result instanceof String)
+            return Severity.resolve((String)result);
+        else return Severity.UNKNOWN;
     }
 
     public final Severity getSeverity(){

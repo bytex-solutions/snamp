@@ -43,14 +43,22 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     private static final class SnmpNotificationMappingImpl implements SnmpNotificationMapping{
         private final MBeanNotificationInfo metadata;
         private final DateTimeFormatter formatter;
+        private final String resourceName;
 
-        private SnmpNotificationMappingImpl(final MBeanNotificationInfo metadata) throws IllegalArgumentException{
+        private SnmpNotificationMappingImpl(final String resourceName,
+                                            final MBeanNotificationInfo metadata) throws IllegalArgumentException{
             if(hasField(metadata.getDescriptor(), TARGET_ADDRESS_PARAM) &&
                     hasField(metadata.getDescriptor(), TARGET_NAME_PARAM) &&
                     hasField(metadata.getDescriptor(), OID_PARAM_NAME)) {
                 this.metadata = metadata;
                 this.formatter = SnmpHelpers.createDateTimeFormatter(getDateTimeDisplayFormat(metadata));
             } else throw new IllegalArgumentException("Target address, target name and event OID parameters are not specified for SNMP trap");
+            this.resourceName = resourceName;
+        }
+
+        @Override
+        public String getSource() {
+            return resourceName;
         }
 
         @Override
@@ -186,7 +194,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             try{
                 if(notifications.containsKey(listID))
                     return;
-                notifications.put(new SnmpNotificationMappingImpl(connector.enable(listID)));
+                notifications.put(new SnmpNotificationMappingImpl(resourceName, connector.enable(listID)));
             } catch (final JMException e) {
                 SnmpHelpers.log(Level.SEVERE, "Failed to enable notification %s", listID, e);
             } finally {
@@ -252,17 +260,18 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
          */
         @Override
         public void handleNotification(final Notification notification, final Object handback) {
-            final MBeanNotificationInfo metadata;
+            final SnmpNotificationMapping metadata;
             beginRead(SNMResource.NOTIFICATIONS);
             try{
                 if(notifications.containsKey(notification.getType()))
-                    metadata = notifications.get(notification.getType()).getMetadata();
+                    metadata = notifications.get(notification.getType());
                 else return;
             }
             finally {
                 endRead(SNMResource.NOTIFICATIONS);
             }
-            final SnmpNotification snmpTrap = new SnmpNotification(notification, metadata);
+            notification.setSource(metadata.getSource());
+            final SnmpNotification snmpTrap = new SnmpNotification(notification, metadata.getMetadata());
             beginRead(SNMResource.LISTENERS);
             try{
                 for(final SnmpNotificationListener listener: listeners)

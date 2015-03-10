@@ -28,4 +28,6 @@ interface SnmpNotificationMapping extends SnmpEntity {
     OID getID();
 
     MBeanNotificationInfo getMetadata();
+
+    String getSource();
 }
