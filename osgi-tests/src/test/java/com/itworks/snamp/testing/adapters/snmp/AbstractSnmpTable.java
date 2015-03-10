@@ -51,7 +51,9 @@ public abstract class AbstractSnmpTable implements SnmpTable {
 
     static <T> T deserialize(final Variable var, final Class<T> className){
         final Object result;
-        if (var instanceof UnsignedInteger32 || var instanceof Integer32)
+        if(var instanceof Null)
+            throw new RuntimeException(String.format("SNMP NULL unexpected: %s", var.getSyntaxString()));
+        else if (var instanceof UnsignedInteger32 || var instanceof Integer32)
             result = (className == Boolean.class)?(var.toInt() == 1):var.toInt();
         else if (var instanceof OctetString)
         {

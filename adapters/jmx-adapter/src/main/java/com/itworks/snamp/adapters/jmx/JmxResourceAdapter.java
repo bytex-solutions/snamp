@@ -66,13 +66,13 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             return ArrayUtils.toArray(notifications.values(), MBeanNotificationInfo.class);
         }
 
-        private String makeListID(final String category){
-            return resourceName + ID_SEPARATOR + category;
+        private String makeListID(final String userDefinedName){
+            return resourceName + ID_SEPARATOR + userDefinedName;
         }
 
-        private void addNotification(final String category,
+        private void addNotification(final String userDefinedName,
                                      final NotificationConnector connector) throws JMException {
-            MBeanNotificationInfo metadata = connector.enable(makeListID(category));
+            MBeanNotificationInfo metadata = connector.enable(makeListID(userDefinedName));
             //clone metadata because resource connector may return unserializable metadata
             metadata = new MBeanNotificationInfo(metadata.getNotifTypes(),
                     metadata.getName(),
@@ -81,8 +81,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             notifications.put(metadata);
         }
 
-        private MBeanNotificationInfo removeNotification(final String category){
-            return notifications.remove(makeListID(category));
+        private MBeanNotificationInfo removeNotification(final String userDefinedName){
+            return notifications.remove(makeListID(userDefinedName));
         }
 
         private boolean hasNoNotifications(){
@@ -130,6 +130,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
         @Override
         public void addNotification(final String resourceName,
+                                    final String userDefinedName,
                                     final String category,
                                     final NotificationConnector connector) {
             beginWrite();
@@ -138,10 +139,10 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
                 if(notifications.containsKey(resourceName))
                     manager = notifications.get(resourceName);
                 else notifications.put(manager = new ResourceNotificationManager(resourceName));
-                manager.addNotification(category, connector);
+                manager.addNotification(userDefinedName, connector);
             }
             catch (final JMException e){
-                JmxAdapterHelpers.log(Level.SEVERE, "Failed to enable notification %s:%s", resourceName, category, e);
+                JmxAdapterHelpers.log(Level.SEVERE, "Failed to enable notification %s:%s", resourceName, userDefinedName, e);
             }
             finally {
                 endWrite();
@@ -150,6 +151,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
         @Override
         public MBeanNotificationInfo removeNotification(final String resourceName,
+                                                        final String userDefinedName,
                                                         final String category) {
             beginWrite();
             try{
@@ -157,7 +159,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
                 if(notifications.containsKey(resourceName))
                     manager = notifications.get(resourceName);
                 else return null;
-                final MBeanNotificationInfo metadata = manager.removeNotification(category);
+                final MBeanNotificationInfo metadata = manager.removeNotification(userDefinedName);
                 if(manager.hasNoNotifications()){
                     manager.clear();
                     notifications.remove(resourceName);
@@ -479,8 +481,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             this.resourceName = resourceName;
         }
 
-        private String makeAttributeID(final String attributeName) {
-            return resourceName + ID_SEPARATOR + attributeName;
+        private String makeAttributeID(final String userDefinedName) {
+            return resourceName + ID_SEPARATOR + userDefinedName;
         }
 
         @Override
@@ -501,16 +503,16 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
-            final AbstractAttributeMapping mapping = get(attribute);
-            if(mapping == null) throw JMExceptionUtils.attributeNotFound(attribute);
+        public Object getAttribute(final String attributeID) throws AttributeNotFoundException, MBeanException, ReflectionException {
+            final AbstractAttributeMapping mapping = get(attributeID);
+            if(mapping == null) throw JMExceptionUtils.attributeNotFound(attributeID);
             else return mapping.getValue();
         }
 
         @Override
-        public void setAttribute(final String attributeName, final Object value) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-            final AbstractAttributeMapping mapping = get(attributeName);
-            if(mapping == null) throw JMExceptionUtils.attributeNotFound(attributeName);
+        public void setAttribute(final String attributeID, final Object value) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+            final AbstractAttributeMapping mapping = get(attributeID);
+            if(mapping == null) throw JMExceptionUtils.attributeNotFound(attributeID);
             else mapping.setValue(value);
         }
 
@@ -539,14 +541,14 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             return new ReadOnlyAttributeMapping(accessor);
         }
 
-        private void addAttribute(final String attributeName,
+        private void addAttribute(final String userDefinedName,
                                   final AttributeConnector connector) throws JMException {
-            final AbstractAttributeMapping mapping = createMapping(connector.connect(makeAttributeID(attributeName)));
+            final AbstractAttributeMapping mapping = createMapping(connector.connect(makeAttributeID(userDefinedName)));
             put(mapping);
         }
 
-        private AttributeAccessor removeAttribute(final String attributeName){
-            final AbstractAttributeMapping mapping = remove(makeAttributeID(attributeName));
+        private AttributeAccessor removeAttribute(final String userDefinedName){
+            final AbstractAttributeMapping mapping = remove(makeAttributeID(userDefinedName));
             return mapping != null ? mapping.accessor : null;
         }
 
@@ -587,6 +589,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
         @Override
         public void addAttribute(final String resourceName,
+                                 final String userDefinedName,
                                  final String attributeName,
                                  final AttributeConnector connector) {
             beginWrite();
@@ -595,9 +598,9 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
                 if(attributes.containsKey(resourceName))
                     manager = attributes.get(resourceName);
                 else attributes.put(manager = new ResourceAttributeManager(resourceName));
-                manager.addAttribute(attributeName, connector);
+                manager.addAttribute(userDefinedName, connector);
             } catch (final JMException e) {
-                JmxAdapterHelpers.log(Level.SEVERE, "Unable to connect attribute %s:%s", resourceName, attributeName, e);
+                JmxAdapterHelpers.log(Level.SEVERE, "Unable to connect attribute %s:%s", resourceName, userDefinedName, e);
             } finally {
                 endWrite();
             }
@@ -605,6 +608,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
         @Override
         public AttributeAccessor removeAttribute(final String resourceName,
+                                                 final String userDefinedName,
                                                  final String attributeName) {
             beginWrite();
             try{
@@ -612,7 +616,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
                 if(attributes.containsKey(resourceName))
                     manager = attributes.get(resourceName);
                 else return null;
-                final AttributeAccessor accessor = manager.removeAttribute(attributeName);
+                final AttributeAccessor accessor = manager.removeAttribute(userDefinedName);
                 if(manager.isEmpty())
                     attributes.remove(resourceName);
                 return accessor;

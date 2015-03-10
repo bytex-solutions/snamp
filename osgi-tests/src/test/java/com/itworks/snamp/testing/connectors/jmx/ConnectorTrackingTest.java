@@ -30,7 +30,10 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             private static final long serialVersionUID = -4679265669843153720L;
 
             @Override
-            public void addAttribute(final String resourceName, final String attributeName, final AttributeConnector connector) {
+            public void addAttribute(final String resourceName,
+                                     final String userDefinedName,
+                                     final String attributeName,
+                                     final AttributeConnector connector) {
                 try {
                     add(connector.connect(resourceName + "/" + attributeName));
                 } catch (final JMException e) {
@@ -39,7 +42,9 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             }
 
             @Override
-            public AttributeAccessor removeAttribute(final String resourceName, final String attributeName) {
+            public AttributeAccessor removeAttribute(final String resourceName,
+                                                     final String userDefinedName,
+                                                     final String attributeName) {
                 for(final AttributeAccessor accessor: this)
                     if(Objects.equals(resourceName + "/" + attributeName, accessor.getName()))
                         return accessor;
@@ -50,7 +55,10 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             private static final long serialVersionUID = 943992701825986769L;
 
             @Override
-            public void addNotification(final String resourceName, final String category, final NotificationConnector connector) {
+            public void addNotification(final String resourceName,
+                                        final String userDefinedName,
+                                        final String category,
+                                        final NotificationConnector connector) {
                 try {
                     add(connector.enable(resourceName + '.' + category));
                 } catch (final JMException e) {
@@ -59,7 +67,9 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             }
 
             @Override
-            public MBeanNotificationInfo removeNotification(final String resourceName, final String category) {
+            public MBeanNotificationInfo removeNotification(final String resourceName,
+                                                            final String userDefinedName,
+                                                            final String category) {
                 for(final MBeanNotificationInfo notif: this)
                     if(Objects.equals(resourceName + '.' + category, notif.getNotifTypes()[0]))
                         return notif;

@@ -124,8 +124,8 @@ final class HttpAdapter extends AbstractResourceAdapter {
             return item.getName();
         }
 
-        private String makeAttributeID(final String attributeName){
-            return resourceName + ATTR_NAME_SPLITTER + attributeName;
+        private String makeAttributeID(final String userDefinedName){
+            return resourceName + ATTR_NAME_SPLITTER + userDefinedName;
         }
 
         /**
@@ -139,27 +139,27 @@ final class HttpAdapter extends AbstractResourceAdapter {
             super.clear();
         }
 
-        private String getAtttribute(final String attributeName) throws WebApplicationException{
+        private String getAtttribute(final String userDefinedName) throws WebApplicationException{
             final String attributeID;
-            if(containsKey(attributeID = makeAttributeID(attributeName))){
+            if(containsKey(attributeID = makeAttributeID(userDefinedName))){
                 final HttpAttributeMapping mapping = get(attributeID);
                 if(mapping.canRead())
                     return mapping.toString(mapping.getValue());
-                else throw new WebApplicationException(new IllegalStateException(String.format("Attribute %s is write-ony", attributeName)), METHOD_NOT_ALLOWED);
+                else throw new WebApplicationException(new IllegalStateException(String.format("Attribute %s is write-ony", userDefinedName)), METHOD_NOT_ALLOWED);
             }
-            else throw new WebApplicationException(new IllegalArgumentException(String.format("Attribute %s doesn't exist", attributeName)), Response.Status.NOT_FOUND);
+            else throw new WebApplicationException(new IllegalArgumentException(String.format("Attribute %s doesn't exist", userDefinedName)), Response.Status.NOT_FOUND);
         }
 
-        private void setAttribute(final String attributeName,
+        private void setAttribute(final String userDefinedName,
                                   final String value) {
             final String attributeID;
-            if(containsKey(attributeID = makeAttributeID(attributeName))){
+            if(containsKey(attributeID = makeAttributeID(userDefinedName))){
                 final HttpAttributeMapping mapping = get(attributeID);
                 if(mapping.canWrite())
                     mapping.setValue(mapping.fromString(value));
-                else throw new WebApplicationException(new IllegalStateException(String.format("Attribute %s is read-only", attributeName)), METHOD_NOT_ALLOWED);
+                else throw new WebApplicationException(new IllegalStateException(String.format("Attribute %s is read-only", userDefinedName)), METHOD_NOT_ALLOWED);
             }
-            else throw new WebApplicationException(new IllegalArgumentException(String.format("Attribute %s doesn't exist", attributeName)), Response.Status.NOT_FOUND);
+            else throw new WebApplicationException(new IllegalArgumentException(String.format("Attribute %s doesn't exist", userDefinedName)), Response.Status.NOT_FOUND);
         }
 
         private HttpAttributeMapping createAttribute(final AttributeAccessor accessor){
@@ -215,14 +215,14 @@ final class HttpAdapter extends AbstractResourceAdapter {
             return new HttpAttributeMapping(accessor, builder);
         }
 
-        private void addAttribute(final String attributeName,
+        private void addAttribute(final String userDefinedName,
                                   final AttributeConnector connector) throws JMException {
-            final String attributeID = makeAttributeID(attributeName);
+            final String attributeID = makeAttributeID(userDefinedName);
             put(createAttribute(connector.connect(attributeID)));
         }
 
-        private AttributeAccessor removeAttribute(final String attributeName) {
-            final String attributeID = makeAttributeID(attributeName);
+        private AttributeAccessor removeAttribute(final String userDefinedName) {
+            final String attributeID = makeAttributeID(userDefinedName);
             return containsKey(attributeID) ? remove(attributeID).accessor : null;
         }
 
@@ -249,6 +249,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
         @Override
         public void addAttribute(final String resourceName,
+                                 final String userDefinedName,
                                  final String attributeName,
                                  final AttributeConnector connector) {
             beginWrite();
@@ -257,10 +258,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 if(managers.containsKey(resourceName))
                     manager = managers.get(resourceName);
                 else managers.put(manager = new HttpAttributeManager(resourceName));
-                manager.addAttribute(attributeName, connector);
+                manager.addAttribute(userDefinedName, connector);
             }
             catch (final JMException e){
-                HttpAdapterHelpers.log(Level.SEVERE, "Unable to register attribute %s:%s", resourceName, attributeName, e);
+                HttpAdapterHelpers.log(Level.SEVERE, "Unable to register attribute %s:%s", resourceName, userDefinedName, e);
             }
             finally {
                 endWrite();
@@ -269,6 +270,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
         @Override
         public AttributeAccessor removeAttribute(final String resourceName,
+                                                 final String userDefinedName,
                                                  final String attributeName) {
             beginWrite();
             try{
@@ -276,7 +278,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 if(managers.containsKey(resourceName))
                     manager = managers.get(resourceName);
                 else return null;
-                final AttributeAccessor result = manager.removeAttribute(attributeName);
+                final AttributeAccessor result = manager.removeAttribute(userDefinedName);
                 if(manager.isEmpty())
                     managers.remove(resourceName);
                 return result;
@@ -406,18 +408,18 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 broadcast(formatter.toJson(notif));
         }
 
-        private String makeListID(final String category){
-            return resourceName + "/" + category;
+        private String makeListID(final String userDefinedName){
+            return resourceName + "/" + userDefinedName;
         }
 
-        private void addNotification(final String category,
+        private void addNotification(final String userDefinedName,
                                     final NotificationConnector connector) throws JMException {
-            final String listID = makeListID(category);
+            final String listID = makeListID(userDefinedName);
             notifications.put(connector.enable(listID));
         }
 
-        private MBeanNotificationInfo removeNotification(final String category) {
-            final String listID = makeListID(category);
+        private MBeanNotificationInfo removeNotification(final String userDefinedName) {
+            final String listID = makeListID(userDefinedName);
             return notifications.remove(listID);
         }
 
@@ -458,15 +460,9 @@ final class HttpAdapter extends AbstractResourceAdapter {
             };
         }
 
-        /**
-         * Registers a new notification in this model.
-         *
-         * @param resourceName The name of the resource that supplies the specified notification.
-         * @param category     The notification category.
-         * @param connector    The notification connector.
-         */
         @Override
         public void addNotification(final String resourceName,
+                                    final String userDefinedName,
                                     final String category,
                                     final NotificationConnector connector) {
             beginWrite();
@@ -475,7 +471,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 if(notifications.containsKey(resourceName))
                     broadcaster = notifications.get(resourceName);
                 else notifications.put(broadcaster = new NotificationBroadcaster(resourceName));
-                broadcaster.addNotification(category,
+                broadcaster.addNotification(userDefinedName,
                         connector);
             }
             catch (final JMException e){
@@ -497,22 +493,17 @@ final class HttpAdapter extends AbstractResourceAdapter {
             }
         }
 
-        /**
-         * Removes the notification from this model.
-         *
-         * @param resourceName The name of the resource that supplies the specified notification.
-         * @param category     The notification category.
-         * @return The enabled notification removed from this model.
-         */
         @Override
-        public MBeanNotificationInfo removeNotification(final String resourceName, final String category) {
+        public MBeanNotificationInfo removeNotification(final String resourceName,
+                                                        final String userDefinedName,
+                                                        final String category) {
             beginWrite();
             try{
                 final NotificationBroadcaster broadcaster;
                 if(notifications.containsKey(resourceName))
                     broadcaster = notifications.get(resourceName);
                 else return null;
-                final MBeanNotificationInfo metadata = broadcaster.removeNotification(category);
+                final MBeanNotificationInfo metadata = broadcaster.removeNotification(userDefinedName);
                 if(broadcaster.isEmpty())
                     notifications.remove(resourceName);
                 return metadata;

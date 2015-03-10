@@ -74,10 +74,6 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             super(operationName, ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName);
         }
 
-        private String getAdapterInstanceName(){
-            return getProperty(ADAPTER_INSTANCE_NAME_PROPERTY, String.class, "");
-        }
-
         private static AdapterLogicalOperation restarting(final String adapterInstanceName){
             return new AdapterLogicalOperation("restart", adapterInstanceName);
         }
@@ -88,18 +84,24 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     private static abstract class UnsupportedInternalOperation extends UnsupportedOperationException{
+        private static final long serialVersionUID = 4546952459420219703L;
+
         private UnsupportedInternalOperation(final String message){
             super(message);
         }
     }
 
     private static final class UnsupportedResourceRemovedOperation extends UnsupportedInternalOperation{
+        private static final long serialVersionUID = -7621404696086381259L;
+
         private UnsupportedResourceRemovedOperation(final String resourceName){
             super(String.format("resourceRemoved for %s is not supported", resourceName));
         }
     }
 
     private static final class UnsupportedResourceAddedOperation extends UnsupportedInternalOperation{
+        private static final long serialVersionUID = 122167705023320271L;
+
         private UnsupportedResourceAddedOperation(final String resourceName){
             super(String.format("resourceRemoved for %s is not supported", resourceName));
         }
@@ -436,20 +438,24 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         /**
          * Registers a new notification in this model.
          * @param resourceName The name of the resource that supplies the specified notification.
+         * @param userDefinedName Resource-scoped unique identifier of the notification specified by SNAMP administrator.
          * @param category The notification category.
          * @param connector The notification connector.
          */
         void addNotification(final String resourceName,
+                             final String userDefinedName,
                              final String category,
                              final NotificationConnector connector);
 
         /**
          * Removes the notification from this model.
          * @param resourceName The name of the resource that supplies the specified notification.
+         * @param userDefinedName Resource-scoped unique identifier of the notification specified by SNAMP administrator.
          * @param category The notification category.
          * @return The enabled notification removed from this model.
          */
         MBeanNotificationInfo removeNotification(final String resourceName,
+                                                 final String userDefinedName,
                                                  final String category);
 
         /**
@@ -478,20 +484,24 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          *     method and save the connected attribute into the internal model structure.
          * </p>
          * @param resourceName The name of the resource that supplies the specified attribute.
+         * @param userDefinedName Resource-scoped unique identifier of the attribute specified by SNAMP administrator.
          * @param attributeName The name of the attribute as it is exposed by resource connector.
          * @param connector The attribute connector.
          */
         void addAttribute(final String resourceName,
+                          final String userDefinedName,
                           final String attributeName,
                           final AttributeConnector connector);
 
         /**
          * Removes the attribute from this model.
          * @param resourceName The name of the resource that supplies the specified attribute.
+         * @param userDefinedName Resource-scoped unique identifier of the attribute specified by SNAMP administrator.
          * @param attributeName The name of the attribute as it is exposed by resource connector.
          * @return The connected attribute removed from this accessor.
          */
         AttributeAccessor removeAttribute(final String resourceName,
+                                          final String userDefinedName,
                                         final String attributeName);
 
         /**
@@ -660,6 +670,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     private static KeyedObjects<String, ManagedResourceConnectorConsumer> createConnectors(){
         return new AbstractKeyedObjects<String, ManagedResourceConnectorConsumer>(10) {
+            private static final long serialVersionUID = -326619927154548260L;
+
             @Override
             public String getKey(final ManagedResourceConnectorConsumer item) {
                 return item.resourceName;
@@ -970,6 +982,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         if(resource.isAttributesSupported() && attributes != null)
         for (final Map.Entry<String, AttributeConfiguration> entry : attributes.entrySet())
             model.addAttribute(resource.resourceName,
+                    entry.getKey(),
                     entry.getValue().getAttributeName(),
                     new AttributeConnector(resource.getWeakAttributeSupport(), entry.getValue()));
     }
@@ -996,6 +1009,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         if(notifs != null && resource.isNotificationsSupported()) {
             for (final Map.Entry<String, EventConfiguration> entry : notifs.entrySet())
                 model.addNotification(resource.resourceName,
+                        entry.getKey(),
                         entry.getValue().getCategory(),
                         new NotificationConnector(resource.getWeakNotificationSupport(), entry.getValue()));
             if(!model.isEmpty())
@@ -1015,7 +1029,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         final Map<String, AttributeConfiguration> disconnectedAttrs = resource.resourceConfiguration.getElements(AttributeConfiguration.class);
         if(disconnectedAttrs != null)
             for(final Map.Entry<String, AttributeConfiguration> entry: disconnectedAttrs.entrySet()){
-                final AttributeAccessor accessor = model.removeAttribute(resource.resourceName, entry.getValue().getAttributeName());
+                final AttributeAccessor accessor = model.removeAttribute(resource.resourceName, entry.getKey(), entry.getValue().getAttributeName());
                 if(accessor != null) accessor.disconnect();
             }
     }
@@ -1038,6 +1052,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             final NotificationSupport notifs = resource.getWeakNotificationSupport();
             for(final Map.Entry<String, EventConfiguration> entry: disconnectedEvents.entrySet()){
                 final MBeanNotificationInfo metadata = model.removeNotification(resource.resourceName,
+                        entry.getKey(),
                         entry.getValue().getCategory());
                 if(metadata != null)
                     for(final String notificationID: metadata.getNotifTypes())

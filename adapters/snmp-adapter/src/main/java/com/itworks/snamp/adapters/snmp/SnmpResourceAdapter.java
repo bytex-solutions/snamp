@@ -137,12 +137,14 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
                 return ImmutableList.copyOf(notifications.values());
             }
             finally {
-                endWrite(SNMResource.NOTIFICATIONS);
+                endRead(SNMResource.NOTIFICATIONS);
             }
         }
 
         private static KeyedObjects<String, SnmpNotificationMapping> createNotifs(){
             return new AbstractKeyedObjects<String, SnmpNotificationMapping>(10) {
+                private static final long serialVersionUID = 8947442745955339289L;
+
                 @Override
                 public String getKey(final SnmpNotificationMapping item) {
                     return item.getMetadata().getNotifTypes()[0];
@@ -170,20 +172,16 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             }
         }
 
-        private String makeListID(final String resourceName, final String category){
-            return adapterInstanceName + '.' + resourceName + '.' + category;
+        private String makeListID(final String resourceName, final String userDefinedName){
+            return adapterInstanceName + '.' + resourceName + '.' + userDefinedName;
         }
 
-        /**
-         * Registers a new notification in this model.
-         *
-         * @param resourceName The name of the resource that supplies the specified notification.
-         * @param category     The notification category.
-         * @param connector    The notification connector.
-         */
         @Override
-        public void addNotification(final String resourceName, final String category, final NotificationConnector connector) {
-            final String listID = makeListID(resourceName, category);
+        public void addNotification(final String resourceName,
+                                    final String userDefinedName,
+                                    final String category,
+                                    final NotificationConnector connector) {
+            final String listID = makeListID(resourceName, userDefinedName);
             beginWrite(SNMResource.NOTIFICATIONS);
             try{
                 if(notifications.containsKey(listID))
@@ -196,16 +194,11 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             }
         }
 
-        /**
-         * Removes the notification from this model.
-         *
-         * @param resourceName The name of the resource that supplies the specified notification.
-         * @param category     The notification category.
-         * @return The enabled notification removed from this model.
-         */
         @Override
-        public MBeanNotificationInfo removeNotification(final String resourceName, final String category) {
-            final String listID = makeListID(resourceName, category);
+        public MBeanNotificationInfo removeNotification(final String resourceName,
+                                                        final String userDefinedName,
+                                                        final String category) {
+            final String listID = makeListID(resourceName, userDefinedName);
             beginWrite(SNMResource.NOTIFICATIONS);
             try{
                 return notifications.containsKey(listID) ?
@@ -292,6 +285,8 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
 
         private static KeyedObjects<String, SnmpAttributeMapping> createAttrs(){
             return new AbstractKeyedObjects<String, SnmpAttributeMapping>(10) {
+                private static final long serialVersionUID = 8303706968265686050L;
+
                 @Override
                 public String getKey(final SnmpAttributeMapping item) {
                     return item.getMetadata().getName();
@@ -300,38 +295,31 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
         }
 
         private String makeAttributeID(final String resourceName,
-                                              final String attributeName){
-            return adapterInstanceName + '/' + resourceName + '/' + attributeName;
+                                              final String userDefinedName){
+            return adapterInstanceName + '/' + resourceName + '/' + userDefinedName;
         }
 
-        /**
-         * Registers a new attribute in this model.
-         * <p>
-         * Don't forget to call {@link com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeConnector#connect(String)}
-         * method and save the connected attribute into the internal model structure.
-         * </p>
-         *
-         * @param resourceName  The name of the resource that supplies the specified attribute.
-         * @param attributeName The name of the attribute as it is exposed by resource connector.
-         * @param connector     The attribute connector.
-         */
         @Override
-        public void addAttribute(final String resourceName, final String attributeName, final AttributeConnector connector) {
-            final String attributeID = makeAttributeID(resourceName, attributeName);
+        public void addAttribute(final String resourceName,
+                                 final String userDefinedName,
+                                 final String attributeName,
+                                 final AttributeConnector connector) {
+            final String attributeID = makeAttributeID(resourceName, userDefinedName);
             beginWrite();
             try{
                 final AttributeAccessor accessor = connector.connect(attributeID);
                 if(hasField(accessor.getMetadata().getDescriptor(), OID_PARAM_NAME)){
+                    System.out.println(getField(accessor.getMetadata().getDescriptor(), OID_PARAM_NAME, String.class));
                     final SnmpType type = SnmpType.map(accessor.getType());
                     if(type != null){
                         final SnmpAttributeMapping mapping = type.createManagedObject(accessor);
                         attributes.put(mapping);
                     }
                     else
-                        SnmpHelpers.log(Level.WARNING, "Attribute %s has no SNMP-compliant type projection.", attributeName, null);
+                        SnmpHelpers.log(Level.WARNING, "Attribute %s has no SNMP-compliant type projection.", userDefinedName, null);
                 }
                 else
-                    SnmpHelpers.log(Level.WARNING, "Attribute %s has no OID parameter.", attributeName, null);
+                    SnmpHelpers.log(Level.WARNING, "Attribute %s has no OID parameter.", userDefinedName, null);
             } catch (final JMException e) {
                 SnmpHelpers.log(Level.SEVERE, "Unable to connect %s attribute", attributeID, e);
             } finally {
@@ -339,16 +327,11 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             }
         }
 
-        /**
-         * Removes the attribute from this model.
-         *
-         * @param resourceName  The name of the resource that supplies the specified attribute.
-         * @param attributeName The name of the attribute as it is exposed by resource connector.
-         * @return The connected attribute removed from this accessor.
-         */
         @Override
-        public AttributeAccessor removeAttribute(final String resourceName, final String attributeName) {
-            final String attributeID = makeAttributeID(resourceName, attributeName);
+        public AttributeAccessor removeAttribute(final String resourceName,
+                                                 final String userDefinedName,
+                                                 final String attributeName) {
+            final String attributeID = makeAttributeID(resourceName, userDefinedName);
             beginWrite();
             try{
                 return attributes.containsKey(attributeID) ?

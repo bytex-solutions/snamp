@@ -112,20 +112,16 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
 
         private static String makeListID(final String resourceName,
-                                         final String category){
-            return resourceName + "/" + category;
+                                         final String userDefinedName){
+            return resourceName + '/' + userDefinedName;
         }
 
-        /**
-         * Registers a new notification in this model.
-         *
-         * @param resourceName The name of the resource that supplies the specified notification.
-         * @param category     The notification category.
-         * @param connector    The notification connector.
-         */
         @Override
-        public void addNotification(final String resourceName, final String category, final NotificationConnector connector) {
-            final String listID = makeListID(resourceName, category);
+        public void addNotification(final String resourceName,
+                                    final String userDefinedName,
+                                    final String category,
+                                    final NotificationConnector connector) {
+            final String listID = makeListID(resourceName, userDefinedName);
             beginWrite();
             try{
                 if(notifications.containsKey(listID)) return;
@@ -137,16 +133,11 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             }
         }
 
-        /**
-         * Removes the notification from this model.
-         *
-         * @param resourceName The name of the resource that supplies the specified notification.
-         * @param category     The notification category.
-         * @return The enabled notification removed from this model.
-         */
         @Override
-        public MBeanNotificationInfo removeNotification(final String resourceName, final String category) {
-            final String listID = makeListID(resourceName, category);
+        public MBeanNotificationInfo removeNotification(final String resourceName,
+                                                        final String userDefinedName,
+                                                        final String category) {
+            final String listID = makeListID(resourceName, userDefinedName);
             beginWrite();
             try{
                 return notifications.containsKey(listID) ?
@@ -556,8 +547,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
 
         private static String makeAttributeID(final String resourceName,
-                                              final String attributeName){
-            return resourceName + "/" + attributeName;
+                                              final String userDefinedName){
+            return resourceName + '/' + userDefinedName;
         }
 
         private static AbstractSshAttributeView createAttributeView(final AttributeAccessor accessor){
@@ -612,9 +603,10 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         public void addAttribute(final String resourceName,
+                                 final String userDefinedName,
                                  final String attributeName,
                                  final AttributeConnector connector) {
-            final String attributeID = makeAttributeID(resourceName, attributeName);
+            final String attributeID = makeAttributeID(resourceName, userDefinedName);
             beginWrite();
             try{
                 if(attributes.containsKey(attributeID)) return;
@@ -627,16 +619,11 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             }
         }
 
-        /**
-         * Removes the attribute from this model.
-         *
-         * @param resourceName  The name of the resource that supplies the specified attribute.
-         * @param attributeName The name of the attribute as it is exposed by resource connector.
-         * @return The connected attribute removed from this accessor.
-         */
         @Override
-        public AttributeAccessor removeAttribute(final String resourceName, final String attributeName) {
-            final String attributeID = makeAttributeID(resourceName, attributeName);
+        public AttributeAccessor removeAttribute(final String resourceName,
+                                                 final String userDefinedName,
+                                                 final String attributeName) {
+            final String attributeID = makeAttributeID(resourceName, userDefinedName);
             beginWrite();
             try{
                 return attributes.containsKey(attributeID) ?

@@ -74,37 +74,37 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     private static Attribute attrval(final String name, final Object value){
-        return new Attribute(TEST_RESOURCE_NAME + "/" + name, value);
+        return new Attribute(TEST_RESOURCE_NAME + '/' + name, value);
     }
 
     @Test
     public void testStringProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(attrval("string", "Frank Underwood"));
+        testJmxAttribute(attrval("1.0", "Frank Underwood"));
     }
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Test
     public void testBooleanProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(attrval("boolean", Boolean.TRUE));
+        testJmxAttribute(attrval("2.0", Boolean.TRUE));
     }
 
     @Test
     public void testInt32Property() throws BundleException, JMException, IOException {
-        testJmxAttribute(attrval("int32", 19081));
+        testJmxAttribute(attrval("3.0", 19081));
     }
 
     @Test
     public void testBigintProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(attrval("bigint", new BigInteger("100500")));
+        testJmxAttribute(attrval("4.0", new BigInteger("100500")));
     }
 
     @Test
     public void testArrayProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(attrval("array", new short[]{8, 4, 2, 1}));
+        testJmxAttribute(attrval("5.1", new short[]{8, 4, 2, 1}));
     }
 
     @Test
@@ -116,7 +116,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                 .put("col2", "dummy item", SimpleType.INTEGER, 42)
                 .put("col3", "dummy item", SimpleType.STRING, "Frank Underwood")
                 .build();
-        testJmxAttribute(attrval("dictionary", dict));
+        testJmxAttribute(attrval("6.1", dict));
     }
 
     @Test
@@ -132,12 +132,12 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                 .add(true, 67, "Dostoevsky")
                 .add(false, 98, "Pushkin")
                 .build();
-        testJmxAttribute(attrval("table", table));
+        testJmxAttribute(attrval("7.1", table));
     }
 
     @Test
     public void notificationTest() throws BundleException, JMException, IOException, TimeoutException, InterruptedException {
-        final Attribute attr = attrval("string", "Garry Oldman");
+        final Attribute attr = attrval("1.0", "Garry Oldman");
         final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
         try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
@@ -151,11 +151,11 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                 @Override
                 public void handleNotification(final Notification notification, final Object handback) {
                     switch (notification.getType()){
-                        case TEST_RESOURCE_NAME + "." + AttributeChangeNotification.ATTRIBUTE_CHANGE:
+                        case TEST_RESOURCE_NAME + ".19.1":
                             attributeChangedEvent.fire(notification); return;
-                        case TEST_RESOURCE_NAME + ".com.itworks.snamp.connectors.tests.impl.plainnotif":
+                        case TEST_RESOURCE_NAME + ".21.1":
                             eventWithAttachmentHolder.fire(notification); return;
-                        case TEST_RESOURCE_NAME + ".com.itworks.snamp.connectors.tests.impl.testnotif":
+                        case TEST_RESOURCE_NAME + ".20.1":
                             testEvent.fire(notification);
                     }
                 }

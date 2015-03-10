@@ -459,7 +459,8 @@ public enum  WellKnownType implements Serializable, Type {
      * @see Class#getName()
      */
     public static WellKnownType getType(final String className) {
-        try {
+        if(className == null || className.isEmpty()) return null;
+        else try {
             return cache.get(className);
         } catch (ExecutionException ignored) {
             return null;
@@ -481,9 +482,10 @@ public enum  WellKnownType implements Serializable, Type {
      * @return Inferred well-known SNAMP type; or {@literal null}, if type cannot be detected.
      */
     public static WellKnownType getType(final OpenType<?> openType) {
+        if(openType == null) return null;
         //these conditions are necessary because instances of CompositeType and TabularType
         //can be created manually and it is possible to overflow cache and gets OutOfMemoryException
-        if (openType instanceof CompositeType)
+        else if (openType instanceof CompositeType)
             return DICTIONARY;
         else if (openType instanceof TabularType)
             return TABLE;
@@ -520,7 +522,8 @@ public enum  WellKnownType implements Serializable, Type {
      * @return Inferred well-known SNAMP type; or {@literal null} if type cannot be detected.
      */
     public static WellKnownType getType(final TypeToken<?> token){
-        try {
+        if(token == null) return null;
+        else try {
             return cache.get(token);
         } catch (final ExecutionException ignored) {
             return null;
@@ -582,7 +585,8 @@ public enum  WellKnownType implements Serializable, Type {
     }
 
     public static WellKnownType getType(final Type t){
-        if(t instanceof WellKnownType)
+        if(t == null) return null;
+        else if(t instanceof WellKnownType)
             return (WellKnownType)t;
         else if(t instanceof Class<?>)
             return getType((Class<?>)t);
