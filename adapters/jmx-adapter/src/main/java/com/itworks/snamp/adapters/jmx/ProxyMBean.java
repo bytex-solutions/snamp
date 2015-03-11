@@ -19,7 +19,6 @@ import java.util.logging.Level;
  * @since 1.0
  */
 final class ProxyMBean implements DynamicMBean, NotificationSupport, AttributeSupport {
-
     private final AttributeSupport attributes;
     private final NotificationSupport notifications;
     private final String resourceName;
@@ -28,8 +27,8 @@ final class ProxyMBean implements DynamicMBean, NotificationSupport, AttributeSu
     ProxyMBean(final String resourceName,
                       final AttributeSupport attributes,
                       final NotificationSupport notifications){
-        this.attributes = attributes;
-        this.notifications = notifications;
+        this.attributes = attributes != null ? attributes : AttributeSupportStub.INSTANCE;
+        this.notifications = notifications != null ? notifications : NotificationSupportStub.INSTANCE;
         registration = null;
         this.resourceName = resourceName;
     }

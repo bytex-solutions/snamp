@@ -3,7 +3,7 @@ package com.itworks.snamp.testing.connectors.rshell;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
-import jersey.repackaged.com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;

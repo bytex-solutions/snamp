@@ -146,7 +146,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     @Test
     public void readMemStatusTest() throws BundleException, IOException, JMException {
         Assume.assumeTrue(Utils.IS_OS_LINUX);
-        final Object memStatus = readAttribute("memStatus");
+        final Object memStatus = readAttribute("ms");
         assertNotNull(memStatus);
         assertTrue(memStatus instanceof CompositeData);
         assertTrue(CompositeDataUtils.getLong(((CompositeData) memStatus), "total", 0L) > 0L);
