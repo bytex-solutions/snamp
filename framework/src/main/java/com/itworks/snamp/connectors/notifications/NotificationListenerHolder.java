@@ -51,7 +51,8 @@ public final class NotificationListenerHolder implements NotificationListener, N
      */
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        listener.handleNotification(notification, handback == null ? this.handback : handback);
+        if (isNotificationEnabled(notification))
+            listener.handleNotification(notification, handback == null ? this.handback : handback);
     }
 
     public boolean equals(final NotificationListener listener){

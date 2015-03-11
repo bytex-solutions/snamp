@@ -45,9 +45,14 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             public AttributeAccessor removeAttribute(final String resourceName,
                                                      final String userDefinedName,
                                                      final String attributeName) {
-                for(final AttributeAccessor accessor: this)
-                    if(Objects.equals(resourceName + "/" + attributeName, accessor.getName()))
+                final Iterator<AttributeAccessor> attrs = iterator();
+                while (attrs.hasNext()){
+                    final AttributeAccessor accessor = attrs.next();
+                    if(Objects.equals(resourceName + "/" + attributeName, accessor.getName())) {
+                        attrs.remove();
                         return accessor;
+                    }
+                }
                 return null;
             }
         }
@@ -70,9 +75,14 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             public MBeanNotificationInfo removeNotification(final String resourceName,
                                                             final String userDefinedName,
                                                             final String category) {
-                for(final MBeanNotificationInfo notif: this)
-                    if(Objects.equals(resourceName + '.' + category, notif.getNotifTypes()[0]))
+                final Iterator<MBeanNotificationInfo> notifs = iterator();
+                while (notifs.hasNext()){
+                    final MBeanNotificationInfo notif = notifs.next();
+                    if(Objects.equals(resourceName + '.' + category, notif.getNotifTypes()[0])) {
+                        notifs.remove();
                         return notif;
+                    }
+                }
                 return null;
             }
 
@@ -157,6 +167,11 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         final Method tryStartMethod = AbstractResourceAdapter.class.getDeclaredMethod("tryStart", Map.class);
         tryStartMethod.setAccessible(true);
         return (Boolean)tryStartMethod.invoke(adapter, parameters);
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
     }
 
     @Test

@@ -41,9 +41,9 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @version 1.0
  * @since 1.0
  */
-public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
-    public JmxConnectorWIthOpenMBeanTest() throws MalformedObjectNameException {
+    public JmxConnectorWithOpenMBeanTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
@@ -154,6 +154,11 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         final Notification notif2 = awaitor2.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif2);
         assertEquals("Property changed", notif2.getMessage());
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
     }
 
     @Test
@@ -310,7 +315,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         final Collection<AttributeConfiguration> discoveredAttributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
                 JMX_RMI_CONNECTION_STRING,
-                Collections.<String, String>emptyMap(),
+                ImmutableMap.of("login", AbstractJmxConnectorTest.JMX_LOGIN, "password", AbstractJmxConnectorTest.JMX_PASSWORD),
                 AttributeConfiguration.class);
         assertTrue(discoveredAttributes.size() > 30);
         for(final AttributeConfiguration config: discoveredAttributes) {
@@ -324,7 +329,7 @@ public final class JmxConnectorWIthOpenMBeanTest extends AbstractJmxConnectorTes
         final Collection<EventConfiguration> discoveredEvents = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
                 JMX_RMI_CONNECTION_STRING,
-                Collections.<String, String>emptyMap(),
+                ImmutableMap.of("login", AbstractJmxConnectorTest.JMX_LOGIN, "password", AbstractJmxConnectorTest.JMX_PASSWORD),
                 EventConfiguration.class);
         assertTrue(discoveredEvents.size() > 2);
         for(final EventConfiguration config: discoveredEvents) {

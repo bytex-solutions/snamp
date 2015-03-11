@@ -8,6 +8,7 @@ import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -37,8 +38,11 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
 
     private static interface JmxFeatureMetadata extends Serializable, DescriptorRead {
+        @SpecialUse
         ObjectName getOwner();
+        @SpecialUse
         String getName();
+        @SpecialUse
         String getDescription();
     }
 
@@ -46,10 +50,12 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
      * Represents JMX attribute metadata.
      */
     private static interface JmxAttributeMetadata extends OpenMBeanAttributeInfo, JmxFeatureMetadata {
+        @SpecialUse
         String getType();
     }
 
     private static interface JmxNotificationMetadata extends JmxFeatureMetadata{
+        @SpecialUse
         String[] getNotifTypes();
     }
 
@@ -405,9 +411,17 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
 
         @Override
         public void handleNotification(final Notification notification, final Object handback) {
+            Object userData = null;
+            try {
+                userData = UserDataExtractor.getUserData(notification);
+            } catch (final OpenDataException | IllegalArgumentException e) {
+                JmxConnectorHelpers.log(Level.WARNING, "Unable to process user data %s in notification %s",
+                        notification.getUserData(),
+                        notification.getType(), e);
+            }
             fire(notification.getType(),
                     notification.getMessage(),
-                    notification.getUserData());
+                    userData);
         }
 
         private void unsubscribeAll() throws Exception {
