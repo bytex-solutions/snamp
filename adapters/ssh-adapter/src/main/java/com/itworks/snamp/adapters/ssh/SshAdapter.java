@@ -33,10 +33,7 @@ import org.apache.sshd.server.session.ServerSession;
 
 import javax.management.*;
 import javax.management.openmbean.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.nio.*;
 import java.security.PublicKey;
 import java.util.*;
@@ -306,7 +303,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         @Override
         public final void setValue(final Reader input) throws JMException, IOException {
             if(attributeType != null)
-            accessor.setValue(formatter.fromJson(input, attributeType.getType()));
+                accessor.setValue(formatter.fromJson(input, attributeType.getType()));
             else throw new UnsupportedOperationException(String.format("Attribute %s is read-only", getName()));
         }
 

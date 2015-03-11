@@ -37,8 +37,8 @@ final class GetAttributeCommand extends AbstractManagementShellCommand {
         switch (arguments.length){
             case 1: arguments = new String[]{arguments[0], "text"};
             case 2:
-                final String attributeID = arguments[0], format = arguments[2];
-                if(!getAdapterController().processAttribute(attributeID, new Consumer<SshAttributeView, CommandException>() {
+                final String attributeID = arguments[0], format = arguments[1];
+                if(getAdapterController().processAttribute(attributeID, new Consumer<SshAttributeView, CommandException>() {
                     @Override
                     public void accept(final SshAttributeView attribute) throws CommandException {
                         try(final LogicalOperation ignored = new ReadAttributeLogicalOperation(attribute.getOriginalName(), attributeID)) {
@@ -51,8 +51,8 @@ final class GetAttributeCommand extends AbstractManagementShellCommand {
                             throw new CommandException(e);
                         }
                     }
-                })) throw new CommandException("Attribute %s doesn't exist", attributeID);
-                return;
+                })) return;
+                else throw new CommandException("Attribute %s doesn't exist", attributeID);
             default:
                 throw invalidCommandFormat();
         }

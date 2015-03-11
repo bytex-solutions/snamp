@@ -7,12 +7,11 @@
         <groupId>com.itworks.snamp</groupId>
         <version>1.0.0</version>
     </parent>
-    <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
-    <name>JMX Adapter Karaf Feature</name>
-    <artifactId>jmx-adapter-feature</artifactId>
+    <name>SSH Adapter Karaf Feature</name>
+    <artifactId>ssh-adapter-feature</artifactId>
     <version>1.0.0</version>
-    <description>JMX Adapter in the form of Apache Karaf Feature</description>
+    <description>SSH Adapter wrapped in the form of Apache Karaf Feature</description>
     <build>
         <resources>
             <resource>
@@ -64,7 +63,7 @@
     <dependencies>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
-            <artifactId>jmx-adapter</artifactId>
+            <artifactId>ssh-adapter</artifactId>
             <version>1.0.0</version>
             <scope>provided</scope>
         </dependency>

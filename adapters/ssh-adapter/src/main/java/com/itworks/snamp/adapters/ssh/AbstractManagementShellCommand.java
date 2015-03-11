@@ -27,6 +27,8 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
     static Options EMPTY_OPTIONS = new Options();
 
     static class CommandException extends Exception {
+        private static final long serialVersionUID = -1305857667263784898L;
+
         CommandException(final String message, final Object... args) {
             super(String.format(message, args));
         }
