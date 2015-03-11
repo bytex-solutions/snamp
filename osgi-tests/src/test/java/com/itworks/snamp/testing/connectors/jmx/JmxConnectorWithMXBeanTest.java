@@ -4,6 +4,7 @@ import com.google.common.base.Supplier;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
@@ -45,12 +46,12 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
 
     @Test
     public void testForAttributes() throws Exception {
-        testAttribute("1", "ObjectPendingFinalizationCount", TypeTokens.INTEGER, 0, true);
-        testAttribute("2", "HeapMemoryUsage", TypeToken.of(CompositeData.class), null, new Equator<CompositeData>() {
-            @Override
-            public boolean equate(final CompositeData o1, final CompositeData o2) {
-                return true;
-            }
-        }, true);
+        testAttribute("1", "ObjectPendingFinalizationCount", TypeTokens.INTEGER, 0,
+                AbstractResourceConnectorTest.<Integer>valueEquator(),
+                true);
+        testAttribute("2", "HeapMemoryUsage", TypeToken.of(CompositeData.class),
+                null,
+                AbstractResourceConnectorTest.<CompositeData>successEquator(),
+                true);
     }
 }

@@ -90,6 +90,15 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         };
     }
 
+    protected static <V> Equator<V> successEquator(){
+        return new Equator<V>() {
+            @Override
+            public boolean equate(final V value1, final V value2) {
+                return true;
+            }
+        };
+    }
+
     private static <K, V> boolean areEqual(final Map<K, V> value1, final Map<K, V> value2) {
         if(value1.size() == value2.size())
             for(final K key: value1.keySet()) {
@@ -241,7 +250,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
             final AttributeSupport connector = getManagementConnector().queryObject(AttributeSupport.class);
             assertNotNull(connector);
             final MBeanAttributeInfo metadata = connector.connectAttribute(attributeID, attributeName, TimeSpan.INFINITE, toConfigParameters(attributeOptions));
-            assertEquals(attributeName, metadata.getName());
+            assertEquals(attributeID, metadata.getName());
             if(!readOnlyTest)
                 connector.setAttribute(new Attribute(attributeID, attributeValue));
             final T newValue = TypeTokens.cast(connector.getAttribute(attributeID), attributeType);
