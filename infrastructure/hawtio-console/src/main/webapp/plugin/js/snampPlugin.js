@@ -55,9 +55,7 @@ var SnampShell = (function(SnampShell) {
      * workspace, viewRegistry and layoutFull used by the
      * run function
      */
-    SnampShell.module = angular.module('snamp_shell_plugin', ['hawtioCore'])
-        .config(function($routeProvider) {
-
+    SnampShell.module = angular.module('snamp_shell_plugin', ['hawtioCore']).config(function($routeProvider) {
             /**
              * Here we define the route for our plugin.  One note is
              * to avoid using 'otherwise', as hawtio has a handler
@@ -172,22 +170,25 @@ var SnampShell = (function(SnampShell) {
             Core.$apply($scope);
         };
 
+        var timerId = null;
+
         // Menu items
         $scope.menuSelected = function(section) {
             $scope.template = section;
             if ($scope.template == $scope.sections[3]) {
                 $scope.refreshValues();
-                var timer = jolokia.request({
+                var StatisticRenewalTime = jolokia.request({
                     type: 'read',
                     mbean: SnampShell.mbean,
                     attribute: 'StatisticRenewalTime'
-                });
-                SnampShell.log.info(timer.value);
-                if (timer && timer.value) {
-                    var spinWaitValue = timer.value;
-                    setInterval($scope.refreshValues, timer.value);
+                }).value;
+                if (StatisticRenewalTime) {
+                    timerId = setInterval($scope.refreshValues, StatisticRenewalTime);
                 }
             } else {
+                if (timerId != null) {
+                    clearInterval(timerId);
+                }
                 Core.$apply($scope);
             }
         };
@@ -201,7 +202,6 @@ var SnampShell = (function(SnampShell) {
                 mbean: SnampShell.mbean,
                 attribute: 'InstalledComponents'
             }).value;
-            SnampShell.log.info(JSON.stringify(result));
             angular.forEach(result, function(value, key) {
                 if (key != 'null')
                 this.push({
@@ -300,31 +300,34 @@ var SnampShell = (function(SnampShell) {
             title: "Current installed components info"
         };
 
-        // Other functions
-        $scope.getConfiguration = function() {
-            SnampShell.log.info(SnampShell.pluginName, " get configuration operation (" + $scope + ")");
-                // call mbean
-               jolokia.request({
-                    type: 'read',
-                    mbean: SnampShell.mbean,
-                    attribute: 'configuration'
-                }, onSuccess(render, {error: renderError, maxDepth: 20}));
+        $scope.getConnectors = function() {
+            var result = [];
+            var connectors = jolokia.request({
+                type: 'read',
+                mbean: SnampShell.mbean,
+                attribute: 'InstalledConnectors'
+            }).value;
+
+            if (connectors) {
+                angular.forEach(connectors, function(item) {
+                    var connectorInfo = jolokia.request({
+                        type: 'exec',
+                        mbean: SnampShell.mbean,
+                        operation: 'getConnectorInfo',
+                        arguments: [item, 'en']
+                    }, onSuccess(null, {error: renderError, maxDepth: 20}));
+                    if (connectorInfo && connectorInfo.value ) {
+                        result.push({
+                            Name: connectorInfo.value.DisplayName,
+                            Status: connectorInfo.value.State,
+                            Version: connectorInfo.value.Version,
+                            Description: connectorInfo.value.Description
+                        })
+                    }
+                });
+            }
+            return result;
         };
-
-        // update display with groovy result
-        function render(response) {
-            SnampShell.log.info(SnampShell.pluginName, " --> " + response.value);
-            $scope.output = response.value;
-            $scope.error = null;
-            Core.$apply($scope);
-        }
-
-        function renderError(response) {
-            SnampShell.log.info(SnampShell.pluginName, " error " + response);
-            $scope.output = null;
-            $scope.error = response;
-            Core.$apply($scope);
-        }
     };
 
     return SnampShell;
