@@ -136,6 +136,8 @@ var SnampShell = (function(SnampShell) {
      */
     SnampShell.SnampController = function($scope, $location, jolokia) {
 
+    // ============================================================================================================= //
+        // Menu sections
         $scope.sections = [
             {name: "/snamp_shell_plugin", label: "General Information", url: SnampShell.templatePath + "general.html"},
             {name: "/configuration", label: "Configuration", url: SnampShell.templatePath + "config.html"},
@@ -193,6 +195,7 @@ var SnampShell = (function(SnampShell) {
             }
         };
 
+    // ============================================================================================================= //
         // Grid data
         $scope.getGeneralGridData = function() {
             var array = [];
@@ -218,6 +221,7 @@ var SnampShell = (function(SnampShell) {
             return array;
         };
 
+        // General information section
         var columnDefs = [
             {
                 field: 'UserName',
@@ -299,7 +303,8 @@ var SnampShell = (function(SnampShell) {
             canSelectRows: false,
             title: "Current installed components info"
         };
-
+    // ============================================================================================================= //
+        // Connectors section
         $scope.getConnectors = function() {
             var result = [];
             var connectors = jolokia.request({
@@ -315,20 +320,61 @@ var SnampShell = (function(SnampShell) {
                         mbean: SnampShell.mbean,
                         operation: 'getConnectorInfo',
                         arguments: [item, 'en']
-                    }, onSuccess(null, {error: renderError, maxDepth: 20}));
-                    if (connectorInfo && connectorInfo.value ) {
+                    }).value;
+                    if (connectorInfo) {
                         result.push({
-                            Name: connectorInfo.value.DisplayName,
-                            Status: connectorInfo.value.State,
-                            Version: connectorInfo.value.Version,
-                            Description: connectorInfo.value.Description
+                            Name: connectorInfo.DisplayName,
+                            Status: connectorInfo.State,
+                            Version: connectorInfo.Version,
+                            Description: connectorInfo.Description
                         })
                     }
                 });
             }
             return result;
         };
-    };
+
+        $scope.refreshComponents = function() {
+            $scope.genData = $scope.getGeneralGridData();
+            $scope.connectors = $scope.getConnectors();
+            Core.$apply($scope);
+        };
+
+        // Start connector
+        $scope.startConnector = function(name) {
+            SnampShell.log.info("Starting " + name + " connector...");
+            SnampShell.log.info(jolokia.request({
+                type: 'exec',
+                mbean: SnampShell.mbean,
+                operation: 'startConnector',
+                arguments: [name]
+            }));
+            $scope.refreshComponents();
+        };
+
+        // Stop connector
+        $scope.stopConnector = function(name) {
+            SnampShell.log.info("Stopping " + name + " connector...");
+            SnampShell.log.info(jolokia.request({
+                type: 'exec',
+                mbean: SnampShell.mbean,
+                operation: 'stopConnector',
+                arguments: [name]
+            }));
+            $scope.refreshComponents();
+        };
+
+        $scope.fillModal = function(content, title) {
+            $scope.modalContent = content;
+            $scope.modalTitle = title;
+            Core.$apply($scope);
+        };
+
+        $scope.modalContent = "This is the HUGE mistake, you should not see it";
+        $scope.modalTitle = "Undefined title";
+        // Initial connector's array
+        $scope.connectors = $scope.getConnectors();
+};
 
     return SnampShell;
 

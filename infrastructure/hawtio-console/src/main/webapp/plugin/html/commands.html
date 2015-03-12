@@ -16,19 +16,19 @@
     <strong>Faults</strong> count: {{fc}}
 </div>
 
-<div class="bs-example" ng-if="(angular.isArray(connectors) && (connectors.length > 0))">
+<div class="bs-example" ng-if="(connectors.length > 0)">
     <h5>Snamp connectors management</h5>
     <ul class="nav nav-pills" role="tablist">
-        <li role="presentation" class="dropdown" ng-repeat="connector in getConnectors()">
+        <li role="presentation" class="dropdown" ng-repeat="connector in connectors">
             <a id="drop4" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
-                {{connector.name}}
+                {{connector.Name}}
                 <span class="caret"></span>
             </a>
             <ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
-                <li role="presentation" ng-class="{disabled : connector.status == 32}" ng-click="startConnector(connector.name)"><a role="menuitem" tabindex="-1">Start connector</a></li>
-                <li role="presentation" ng-class="{disabled : connector.status != 32}" ng-click="stopConnector(connector.name)"><a role="menuitem" tabindex="-1">Stop connector</a></li>
+                <li role="presentation" ng-class="{disabled : connector.Status == 32}" ng-click="startConnector(connector.Name)"><a role="menuitem" tabindex="-1">Start connector</a></li>
+                <li role="presentation" ng-class="{disabled : connector.Status != 32}" ng-click="stopConnector(connector.Name)"><a role="menuitem" tabindex="-1">Stop connector</a></li>
                 <li role="presentation" class="divider"></li>
-                <li role="presentation" data-toggle="modal" data-target="#myModal" ng-click="modalText = JSON.stringify(connector); modalTitle = connector.name" ng-init="modalText = {}; modalTitle='Empty'"><a role="menuitem" tabindex="-1">Get connector configuration</a></li>
+                <li role="presentation" data-toggle="modal" data-target="#myModal" ng-click="fillModal(connector, connector.Name)"><a role="menuitem" tabindex="-1">Configuration</a></li>
             </ul>
         </li>
     </ul>
@@ -43,7 +43,7 @@
                 <h4 class="modal-title" id="myModalLabel">{{modalTitle}}</h4>
             </div>
             <div class="modal-body">
-                {{modalText}}
+                {{modalContent}}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
