@@ -16,19 +16,39 @@
     <strong>Faults</strong> count: {{fc}}
 </div>
 
+<!-- Connectors management -->
 <div class="bs-example" ng-if="(connectors.length > 0)">
     <h5>Snamp connectors management</h5>
     <ul class="nav nav-pills" role="tablist">
         <li role="presentation" class="dropdown" ng-repeat="connector in connectors">
-            <a id="drop4" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
                 {{connector.DisplayName}}
                 <span class="caret"></span>
             </a>
-            <ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+            <ul class="dropdown-menu" role="menu" aria-labelledby="drop4">
                 <li role="presentation" ng-if="(connector.Status != 32)" ng-click="startConnector(connector.Name)"><a role="menuitem" tabindex="-1">Start connector</a></li>
                 <li role="presentation" ng-if="(connector.Status == 32)" ng-click="stopConnector(connector.Name)"><a role="menuitem" tabindex="-1">Stop connector</a></li>
                 <li role="presentation" class="divider"></li>
                 <li role="presentation" data-toggle="modal" data-target="#myModal" ng-click="fillModal(connector, connector.DisplayName)"><a role="menuitem" tabindex="-1">Configuration</a></li>
+            </ul>
+        </li>
+    </ul>
+</div>
+
+<!-- Adapters management -->
+<div class="bs-example" ng-if="(adapters.length > 0)">
+    <h5>Snamp adapters management</h5>
+    <ul class="nav nav-pills" role="tablist">
+        <li role="presentation" class="dropdown" ng-repeat="adapter in adapters">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
+                {{adapter.DisplayName}}
+                <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="drop4">
+                <li role="presentation" ng-if="(adapter.Status != 32)" ng-click="startAdapter(adapter.Name)"><a role="menuitem" tabindex="-1">Start adapter</a></li>
+                <li role="presentation" ng-if="(adapter.Status == 32)" ng-click="stopAdapter(adapter.Name)"><a role="menuitem" tabindex="-1">Stop adapter</a></li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation" data-toggle="modal" data-target="#myModal" ng-click="fillModal(adapter, adapter.DisplayName)"><a role="menuitem" tabindex="-1">Configuration</a></li>
             </ul>
         </li>
     </ul>

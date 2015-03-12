@@ -335,9 +335,41 @@ var SnampShell = (function(SnampShell) {
             return result;
         };
 
+        // Adapters section
+        $scope.getAdapters = function() {
+            var result = [];
+            var adapters = jolokia.request({
+                type: 'read',
+                mbean: SnampShell.mbean,
+                attribute: 'InstalledAdapters'
+            }).value;
+
+            if (adapters) {
+                angular.forEach(adapters, function(item) {
+                    var adapterInfo = jolokia.request({
+                        type: 'exec',
+                        mbean: SnampShell.mbean,
+                        operation: 'getAdapterInfo',
+                        arguments: [item, 'en']
+                    }).value;
+                    if (adapterInfo) {
+                        result.push({
+                            DisplayName: adapterInfo.DisplayName,
+                            Name: item,
+                            Status: adapterInfo.State,
+                            Version: adapterInfo.Version,
+                            Description: adapterInfo.Description
+                        })
+                    }
+                });
+            }
+            return result;
+        };
+
         $scope.refreshComponents = function() {
             $scope.genData = $scope.getGeneralGridData();
             $scope.connectors = $scope.getConnectors();
+            $scope.adapters = $scope.getAdapters();
             Core.$apply($scope);
         };
 
@@ -365,6 +397,30 @@ var SnampShell = (function(SnampShell) {
             $scope.refreshComponents();
         };
 
+        // Start adapter
+        $scope.startAdapter = function(name) {
+            SnampShell.log.info("Starting " + name + " adapter...");
+            SnampShell.log.info(JSON.stringify(jolokia.request({
+                type: 'exec',
+                mbean: SnampShell.mbean,
+                operation: 'startAdapter',
+                arguments: [name]
+            })));
+            $scope.refreshComponents();
+        };
+
+        // Stop adapter
+        $scope.stopAdapter = function(name) {
+            SnampShell.log.info("Stopping " + name + " adapter...");
+            SnampShell.log.info(JSON.stringify(jolokia.request({
+                type: 'exec',
+                mbean: SnampShell.mbean,
+                operation: 'stopAdapter',
+                arguments: [name]
+            })));
+            $scope.refreshComponents();
+        };
+
         $scope.fillModal = function(content, title) {
             $scope.modalContent = content;
             $scope.modalTitle = title;
@@ -373,8 +429,13 @@ var SnampShell = (function(SnampShell) {
 
         $scope.modalContent = "This is the HUGE mistake, you should not see it";
         $scope.modalTitle = "Undefined title";
-        // Initial connector's array
+
+        // Initial connectors array
         $scope.connectors = $scope.getConnectors();
+
+        // Initial adapters array
+        $scope.adapters = $scope.getAdapters();
+
 };
 
     return SnampShell;
