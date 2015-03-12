@@ -323,7 +323,8 @@ var SnampShell = (function(SnampShell) {
                     }).value;
                     if (connectorInfo) {
                         result.push({
-                            Name: connectorInfo.DisplayName,
+                            DisplayName: connectorInfo.DisplayName,
+                            Name: item,
                             Status: connectorInfo.State,
                             Version: connectorInfo.Version,
                             Description: connectorInfo.Description
@@ -343,24 +344,24 @@ var SnampShell = (function(SnampShell) {
         // Start connector
         $scope.startConnector = function(name) {
             SnampShell.log.info("Starting " + name + " connector...");
-            SnampShell.log.info(jolokia.request({
+            SnampShell.log.info(JSON.stringify(jolokia.request({
                 type: 'exec',
                 mbean: SnampShell.mbean,
                 operation: 'startConnector',
                 arguments: [name]
-            }));
+            })));
             $scope.refreshComponents();
         };
 
         // Stop connector
         $scope.stopConnector = function(name) {
             SnampShell.log.info("Stopping " + name + " connector...");
-            SnampShell.log.info(jolokia.request({
+            SnampShell.log.info(JSON.stringify(jolokia.request({
                 type: 'exec',
                 mbean: SnampShell.mbean,
                 operation: 'stopConnector',
                 arguments: [name]
-            }));
+            })));
             $scope.refreshComponents();
         };
 

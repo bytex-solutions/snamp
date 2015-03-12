@@ -21,14 +21,14 @@
     <ul class="nav nav-pills" role="tablist">
         <li role="presentation" class="dropdown" ng-repeat="connector in connectors">
             <a id="drop4" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
-                {{connector.Name}}
+                {{connector.DisplayName}}
                 <span class="caret"></span>
             </a>
             <ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
-                <li role="presentation" ng-class="{disabled : connector.Status == 32}" ng-click="startConnector(connector.Name)"><a role="menuitem" tabindex="-1">Start connector</a></li>
-                <li role="presentation" ng-class="{disabled : connector.Status != 32}" ng-click="stopConnector(connector.Name)"><a role="menuitem" tabindex="-1">Stop connector</a></li>
+                <li role="presentation" ng-if="(connector.Status != 32)" ng-click="startConnector(connector.Name)"><a role="menuitem" tabindex="-1">Start connector</a></li>
+                <li role="presentation" ng-if="(connector.Status == 32)" ng-click="stopConnector(connector.Name)"><a role="menuitem" tabindex="-1">Stop connector</a></li>
                 <li role="presentation" class="divider"></li>
-                <li role="presentation" data-toggle="modal" data-target="#myModal" ng-click="fillModal(connector, connector.Name)"><a role="menuitem" tabindex="-1">Configuration</a></li>
+                <li role="presentation" data-toggle="modal" data-target="#myModal" ng-click="fillModal(connector, connector.DisplayName)"><a role="menuitem" tabindex="-1">Configuration</a></li>
             </ul>
         </li>
     </ul>
