@@ -65,6 +65,8 @@ import java.util.Set;
  * @version $Rev$, $Date$
  */
 public class EmbeddedADSVerTrunk{
+    static final String PASSWORD = "snampSimplePassword";
+    static final String PRIVACY_KEY = "snampSimpleEncryptionKey";
     public static final int SERVER_PORT = 10389;
     /** The directory service */
     private DirectoryService service;
@@ -179,6 +181,8 @@ public class EmbeddedADSVerTrunk{
         final String provKeyOID =
                 addAttribute(schemaManager, "snamp-snmp-priv-key", "SNAMP_SNMP_PRIVKEY");
         final ObjectClass snampUserClass = new ObjectClass("1.10.1.2.1"){
+            private static final long serialVersionUID = -2390095923917668183L;
+
             {
                 objectClassType = ObjectClassTypeEnum.AUXILIARY;
             }
@@ -281,8 +285,8 @@ public class EmbeddedADSVerTrunk{
             e.add("objectClass", "top", "person", "snampUser");
             e.add("snamp-snmp-auth-protocol", "sha");
             e.add("snamp-snmp-priv-protocol", "aes128");
-            e.add("snamp-snmp-priv-key", "snampSimpleEncryptionKey");
-            e.add("userpassword", "snampSimplePassword");
+            e.add("snamp-snmp-priv-key", PRIVACY_KEY);
+            e.add("userpassword", PASSWORD);
             e.add("sn", "Sakno");
             service.getAdminSession().add(e);
             //modify admin password

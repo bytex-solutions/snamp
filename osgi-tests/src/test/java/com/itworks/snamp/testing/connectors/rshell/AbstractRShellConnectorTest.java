@@ -1,9 +1,9 @@
 package com.itworks.snamp.testing.connectors.rshell;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
-import com.google.common.collect.ImmutableMap;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
@@ -13,7 +13,6 @@ import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.shell.ProcessShellFactory;
 import org.osgi.framework.BundleContext;
 
-import java.nio.file.Paths;
 import java.util.Objects;
 
 /**
@@ -42,7 +41,7 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
                     "userName", sshUserName,
                     "password", password
         ));
-        this.certificateFile = Paths.get(getProjectRootDir(), certificateFile).toFile().getAbsolutePath();
+        this.certificateFile = certificateFile;
         this.port = port;
         this.sshUserName = sshUserName;
         this.password = password;

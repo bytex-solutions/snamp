@@ -195,15 +195,14 @@ abstract class AbstractSnmpClient implements SnmpClient {
                 strResponse = event.getResponse();
                 if (strResponse!= null) {
                     result = strResponse.getErrorStatusText();
-                    System.out.println("Set Status is: "+result);
+                    System.out.println("Set Status is: " + result);
                 }
                 else
-                    System.out.println("SNMP error occured while sending SET request on OID: " + oid.toDottedString());
+                    System.out.println("SNMP error occurred while sending SET request on OID: " + oid.toDottedString());
             }};
 
         this.set(pdu, listener);
     }
-
 
     /**
      * Read attibute and returns it as some Java class representation
@@ -218,7 +217,6 @@ abstract class AbstractSnmpClient implements SnmpClient {
         final ResponseEvent value = this.get(method, new OID[]{oid});
         //assertNotNull(value);
         return AbstractSnmpTable.deserialize(value.getResponse().getVariable(oid), className);
-
     }
 
     /**
@@ -255,5 +253,16 @@ abstract class AbstractSnmpClient implements SnmpClient {
         //assertEquals(response.getErrorStatusText(), SnmpConstants.SNMP_ERROR_SUCCESS, response.getErrorStatus());
     }
 
-
+    /**
+     * Closes this stream and releases any system resources associated
+     * with it. If the stream is already closed then invoking this
+     * method has no effect.
+     *
+     * @throws java.io.IOException if an I/O error occurs
+     */
+    @Override
+    public final void close() throws IOException {
+        final Snmp client = snmp;
+        if(client != null) client.close();
+    }
 }

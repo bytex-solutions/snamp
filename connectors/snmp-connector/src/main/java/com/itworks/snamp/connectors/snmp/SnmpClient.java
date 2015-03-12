@@ -140,7 +140,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             SecurityLevel.authPriv : SecurityLevel.authNoPriv;
         final ExecutorService threadPool = threadPoolFactory.get();
         final MessageDispatcher dispatcher = new ConcurrentMessageDispatcher(threadPool);
-        final USM userModel = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), engineBoots.getAndIncrement());
+        final USM userModel = new USM(DefaultSecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), engineBoots.getAndIncrement());
         userModel.addUser(userName, engineID,
                 new UsmUser(userName, authenticationProtocol, password, encryptionProtocol, encryptionKey));
         dispatcher.addMessageProcessingModel(new MPv3(userModel));

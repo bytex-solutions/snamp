@@ -16,6 +16,8 @@ import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.snmp4j.security.AuthSHA;
+import org.snmp4j.security.PrivAES128;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.OID;
@@ -50,13 +52,21 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     private static final String LDAP_ADMIN_USER = "uid=admin,ou=system";
     private static final String LDAP_ADMIN_PASSWORD = "1-2-3-4-5-password";
     private static final String LDAP_USER = "cn=Roman";
+    private static final String ENGINE_ID = "80:00:13:70:01:7f:00:01:01:be:1e:8b:35";
     private static EmbeddedADSVerTrunk ads;
     private static File workDir;
-    private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + SNMP_HOST + "/" + SNMP_PORT, LDAP_USER, SecurityLevel.authPriv);
+    private final SnmpClient client;
 
     //ldapsearch -h 127.0.0.1 -p 10389 -w 1-2-3-4-5-password -D uid=admin,ou=system -b dc=ad,dc=microsoft,dc=com
-    public JmxToSnmpV3LDAPTest() throws MalformedObjectNameException {
+    public JmxToSnmpV3LDAPTest() throws MalformedObjectNameException, IOException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
+        client = SnmpClientFactory.createSnmpV3(ENGINE_ID,
+                "udp:" + SNMP_HOST + "/" + SNMP_PORT, LDAP_USER,
+                SecurityLevel.authPriv,
+                EmbeddedADSVerTrunk.PASSWORD,
+                AuthSHA.ID,
+                EmbeddedADSVerTrunk.PRIVACY_KEY,
+                PrivAES128.ID);
     }
 
     @Test
@@ -365,6 +375,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
+        snmpAdapter.getParameters().put("engineID", ENGINE_ID);
         adapters.put("test-snmp", snmpAdapter);
         snmpAdapter.getParameters().put("ldap-uri", "ldap://127.0.0.1:" + EmbeddedADSVerTrunk.SERVER_PORT);
         snmpAdapter.getParameters().put("ldap-user", LDAP_ADMIN_USER);

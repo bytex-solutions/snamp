@@ -32,7 +32,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         super(USER_NAME,
                 PASSWORD,
                 PORT,
-                CERTIFICATE_FILE,
+                getPathToFileInProjectRoot(CERTIFICATE_FILE),
                 FINGERPRINT);
     }
 
@@ -41,28 +41,33 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         Assume.assumeTrue(Utils.IS_OS_LINUX);
         final ManagedResourceConnector<?> connector = getManagementConnector();
         assertNotNull(connector);
-        final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
-        assertNotNull(attributes);
-        assertNotNull(attributes.connectAttribute("ms", "memStatus", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
-                "commandProfileLocation", "freemem-tool-profile.xml",
-                "format", "-m"
-        ))));
-        @SuppressWarnings("unchecked")
-        final FutureThread<Object>[] tables = new FutureThread[10];
-        for (int i = 0; i < tables.length; i++)
-            tables[i] = FutureThread.start(new Callable<Object>() {
-                @Override
-                public Object call() throws JMException {
-                    return attributes.getAttribute("ms");
-                }
-            });
-        for (final FutureThread<Object> thread : tables) {
-            final Object table = thread.get();
-            assertNotNull(table);
-            assertTrue(table instanceof CompositeData);
-            assertTrue(CompositeDataUtils.getLong((CompositeData)table, "total", 0L) > 0L);
-            assertTrue(CompositeDataUtils.getLong((CompositeData)table, "used", 0L) > 0L);
-            assertTrue(CompositeDataUtils.getLong((CompositeData)table, "free", 0L) > 0L);
+        try {
+            final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
+            assertNotNull(attributes);
+            assertNotNull(attributes.connectAttribute("ms", "memStatus", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
+                    "commandProfileLocation", getPathToFileInProjectRoot("freemem-tool-profile.xml"),
+                    "format", "-m"
+            ))));
+            @SuppressWarnings("unchecked")
+            final FutureThread<Object>[] tables = new FutureThread[10];
+            for (int i = 0; i < tables.length; i++)
+                tables[i] = FutureThread.start(new Callable<Object>() {
+                    @Override
+                    public Object call() throws JMException {
+                        return attributes.getAttribute("ms");
+                    }
+                });
+            for (final FutureThread<Object> thread : tables) {
+                final Object table = thread.get();
+                assertNotNull(table);
+                assertTrue(table instanceof CompositeData);
+                assertTrue(CompositeDataUtils.getLong((CompositeData) table, "total", 0L) > 0L);
+                assertTrue(CompositeDataUtils.getLong((CompositeData) table, "used", 0L) > 0L);
+                assertTrue(CompositeDataUtils.getLong((CompositeData) table, "free", 0L) > 0L);
+            }
+        }
+        finally {
+            releaseManagementConnector();
         }
     }
 
@@ -71,18 +76,23 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         Assume.assumeTrue(Utils.IS_OS_LINUX);
         final ManagedResourceConnector<?> connector = getManagementConnector();
         assertNotNull(connector);
-        final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
-        assertNotNull(attributes);
-        assertNotNull(attributes.connectAttribute("ms", "memStatus", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
-                "commandProfileLocation", "freemem-tool-profile.xml",
-                "format", "-m"
-        ))));
-        final Object dict = attributes.getAttribute("ms");
-        assertNotNull(dict);
-        assertTrue(dict instanceof CompositeData);
-        assertTrue(CompositeDataUtils.getLong((CompositeData)dict, "total", 0L) > 0L);
-        assertTrue(CompositeDataUtils.getLong((CompositeData)dict, "used", 0L) > 0L);
-        assertTrue(CompositeDataUtils.getLong((CompositeData)dict, "free", 0L) > 0L);
+        try {
+            final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
+            assertNotNull(attributes);
+            assertNotNull(attributes.connectAttribute("ms", "memStatus", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
+                    "commandProfileLocation", getPathToFileInProjectRoot("freemem-tool-profile.xml"),
+                    "format", "-m"
+            ))));
+            final Object dict = attributes.getAttribute("ms");
+            assertNotNull(dict);
+            assertTrue(dict instanceof CompositeData);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "total", 0L) > 0L);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "used", 0L) > 0L);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "free", 0L) > 0L);
+        }
+        finally {
+            releaseManagementConnector();
+        }
     }
 
     @Override

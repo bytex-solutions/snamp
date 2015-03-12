@@ -5,13 +5,14 @@ import com.itworks.snamp.testing.SnmpTable;
 import org.snmp4j.PDU;
 import org.snmp4j.smi.OID;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
  * Represents SNMP client for flexible testing of snmp adapter
  * @author Evgeniy Kirichenko
  */
-public interface SnmpClient {
+public interface SnmpClient extends Closeable {
 
     /**
      * Returns specific client port for initialised udp connection

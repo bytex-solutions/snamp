@@ -16,6 +16,8 @@ import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.snmp4j.security.AuthSHA;
+import org.snmp4j.security.PrivAES256;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.OID;
@@ -49,10 +51,19 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     private static final String SNMP_HOST = "127.0.0.1";
     private static final String USER_NAME = "testuser";
     private static final String PASSWORD = "1-2-3-4-5-password";
-    private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + SNMP_HOST + "/" + SNMP_PORT, USER_NAME, SecurityLevel.authPriv);
+    private static final String PRIVACY_KEY = "6-7-8-9-0-passphrase";
+    private static final String ENGINE_ID = "80:00:13:70:01:7f:00:01:01:be:1e:8b:35";
+    private final SnmpClient client;
 
-    public JmxToSnmpV3PasswordTest() throws MalformedObjectNameException {
+    public JmxToSnmpV3PasswordTest() throws MalformedObjectNameException, IOException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
+        client = SnmpClientFactory.createSnmpV3(ENGINE_ID,
+                "udp:" + SNMP_HOST + "/" + SNMP_PORT, USER_NAME,
+                SecurityLevel.authPriv,
+                PASSWORD,
+                AuthSHA.ID,
+                PRIVACY_KEY,
+                PrivAES256.ID);
     }
 
     @Override
@@ -77,6 +88,16 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     protected void beforeCleanupTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
         ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        try{
+            client.close();
+        }
+        finally {
+            super.afterCleanupTest(context);
+        }
     }
 
     @Test
@@ -160,6 +181,11 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
             client.writeAttribute(oid, valueToCheck, BigInteger.class);
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, BigInteger.class));
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, BigInteger.class));
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
     }
 
     @Test
@@ -292,6 +318,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
+        snmpAdapter.getParameters().put("engineID", ENGINE_ID);
         adapters.put("test-snmp", snmpAdapter);
         snmpAdapter.getParameters().put("snmpv3-groups", "group1; group2");
         //group1 setup
@@ -300,13 +327,13 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
         snmpAdapter.getParameters().put("group1-users", USER_NAME);
         snmpAdapter.getParameters().put(USER_NAME + "-password", PASSWORD);
         snmpAdapter.getParameters().put(USER_NAME + "-auth-protocol", "sha");
-        snmpAdapter.getParameters().put(USER_NAME + "-privacy-key", "6-7-8-9-0-passphrase");
+        snmpAdapter.getParameters().put(USER_NAME + "-privacy-key", PRIVACY_KEY);
         snmpAdapter.getParameters().put(USER_NAME + "-privacy-protocol", "AES256");
         //group2 setup
         snmpAdapter.getParameters().put("group2-security-level", "authNoPriv");
         snmpAdapter.getParameters().put("group2-access-rights", "read");
         snmpAdapter.getParameters().put("group2-users", "testuser2");
-        snmpAdapter.getParameters().put("testuser2-password", "1-2-3-4-5-password");
+        snmpAdapter.getParameters().put("testuser2-password", PASSWORD);
         snmpAdapter.getParameters().put("testuser2-auth-protocol", "sha");
     }
 

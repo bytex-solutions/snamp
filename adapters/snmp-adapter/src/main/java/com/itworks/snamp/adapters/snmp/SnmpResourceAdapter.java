@@ -9,7 +9,6 @@ import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.agent.mo.snmp.TransportDomains;
-import org.snmp4j.mp.MPv3;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.TransportIpAddress;
@@ -416,14 +415,15 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
         };
     }
 
-    private void start(final int port,
+    private void start(final OctetString engineID,
+                       final int port,
                        final String address,
                        final SecurityConfiguration security,
                        final int socketTimeout,
                        final Supplier<ExecutorService> threadPoolFactory) throws Exception {
         populateModel(attributes);
         populateModel(notifications);
-        final SnmpAgent agent = new SnmpAgent(port, address, security, socketTimeout);
+        final SnmpAgent agent = new SnmpAgent(engineID, port, address, security, socketTimeout);
         notifications.subscribe(agent);
         agent.start(attributes.getAttributes(), notifications.getNotifications(), threadPoolFactory.get());
         this.agent = agent;
@@ -435,13 +435,14 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
         final String port = parameters.containsKey(PORT_PARAM_NAME) ? parameters.get(PORT_PARAM_NAME) : "161";
         final String address = parameters.containsKey(HOST_PARAM_NAME) ? parameters.get(HOST_PARAM_NAME) : "127.0.0.1";
         final String socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ? parameters.get(SOCKET_TIMEOUT_PARAM) : "0";
+        final OctetString engineID = parseEngineID(parameters);
         if (parameters.containsKey(SNMPv3_GROUPS_PARAM) || parameters.containsKey(LDAP_GROUPS_PARAM)) {
             SnmpAdapterLimitations.current().verifyAuthenticationFeature();
-            final SecurityConfiguration security = new SecurityConfiguration(MPv3.createLocalEngineID(), contextFactory);
+            final SecurityConfiguration security = new SecurityConfiguration(engineID.getValue(), contextFactory);
             security.read(parameters);
-            start(Integer.valueOf(port), address, security, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, getInstanceName()));
+            start(engineID, Integer.valueOf(port), address, security, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, getInstanceName()));
         } else
-            start(Integer.valueOf(port), address, null, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, getInstanceName()));
+            start(engineID, Integer.valueOf(port), address, null, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, getInstanceName()));
     }
 
     /**

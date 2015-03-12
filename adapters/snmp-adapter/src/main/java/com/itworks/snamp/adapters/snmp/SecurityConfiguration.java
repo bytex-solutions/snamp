@@ -210,6 +210,7 @@ final class SecurityConfiguration {
      * @version 1.0
      */
     public static final class UserGroup extends HashMap<String, User>{
+        private static final long serialVersionUID = -9033732379101836365L;
         private SecurityLevel level;
         private final EnumSet<AccessRights> rights;
 

@@ -1,12 +1,16 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
-import org.snmp4j.*;
+import org.snmp4j.CommunityTarget;
+import org.snmp4j.MessageDispatcherImpl;
+import org.snmp4j.Snmp;
+import org.snmp4j.mp.MPv2c;
 import org.snmp4j.mp.SnmpConstants;
-import org.snmp4j.smi.*;
+import org.snmp4j.smi.Address;
+import org.snmp4j.smi.GenericAddress;
+import org.snmp4j.smi.OctetString;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 
 import java.io.IOException;
-import java.util.logging.Level;
 
 /**
  * Simple SNMPv2 client
@@ -18,13 +22,9 @@ final class SnmpV2Client extends AbstractSnmpClient {
      * Snmp version 2 constructor
      * @param address
      */
-    SnmpV2Client(String address) {
+    SnmpV2Client(String address) throws IOException {
         this.address = address;
-        try {
-            start();
-        } catch (IOException e) {
-            log.log(Level.SEVERE, "Snmp client initialization error: " + e.getLocalizedMessage());
-        }
+        start();
     }
 
     /**
@@ -34,9 +34,11 @@ final class SnmpV2Client extends AbstractSnmpClient {
      * @throws java.io.IOException
      */
     private void start() throws IOException {
+        final MessageDispatcherImpl dispatcher = new MessageDispatcherImpl();
+        dispatcher.addMessageProcessingModel(new MPv2c());
         transport = new DefaultUdpTransportMapping();
         transport.listen();
-        snmp = new Snmp(transport);
+        snmp = new Snmp(dispatcher, transport);
     }
 
     /**

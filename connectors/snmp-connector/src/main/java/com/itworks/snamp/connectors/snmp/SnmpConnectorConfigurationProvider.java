@@ -6,8 +6,11 @@ import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImp
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ThreadPoolConfigurationDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import org.snmp4j.mp.MPv3;
+import org.snmp4j.smi.OctetString;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -111,5 +114,17 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
         return attributeParams.hasField(RESPONSE_TIMEOUT_PARAM) ?
                 new TimeSpan(Integer.parseInt(attributeParams.getField(RESPONSE_TIMEOUT_PARAM, String.class))):
                 DEFAULT_RESPONSE_TIMEOUT;
+    }
+
+    static OctetString parseEngineID(final Map<String, String> parameters) {
+        if (parameters.containsKey(ENGINE_ID_PARAM))
+            return OctetString.fromHexString(parameters.get(ENGINE_ID_PARAM));
+        else return new OctetString(MPv3.createLocalEngineID());
+    }
+
+    static OctetString parseCommunity(final Map<String, String> parameters){
+        if(parameters.containsKey(COMMUNITY_PARAM))
+            return new OctetString(parameters.get(COMMUNITY_PARAM));
+        else return new OctetString("public");
     }
 }

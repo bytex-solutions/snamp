@@ -50,10 +50,11 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
-    private static final SnmpClient client = SnmpClientFactory.createSnmpV2("udp:" + SNMP_HOST + "/" + SNMP_PORT);
+    private final SnmpClient client;
 
-    public JmxToSnmpV2Test() throws MalformedObjectNameException {
+    public JmxToSnmpV2Test() throws MalformedObjectNameException, IOException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
+        client = SnmpClientFactory.createSnmpV2("udp:" + SNMP_HOST + "/" + SNMP_PORT);
     }
 
     @Override
@@ -78,6 +79,16 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     protected void beforeCleanupTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
         ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        try {
+            client.close();
+        }
+        finally {
+            super.afterCleanupTest(context);
+        }
     }
 
     @Test

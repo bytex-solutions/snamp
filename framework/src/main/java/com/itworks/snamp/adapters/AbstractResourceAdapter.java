@@ -1026,6 +1026,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     private void clearModel(final ManagedResourceConnectorConsumer resource,
                             final AttributesModel model){
+        if(model.isEmpty()) return;
         final Map<String, AttributeConfiguration> disconnectedAttrs = resource.resourceConfiguration.getElements(AttributeConfiguration.class);
         if(disconnectedAttrs != null)
             for(final Map.Entry<String, AttributeConfiguration> entry: disconnectedAttrs.entrySet()){
@@ -1047,6 +1048,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     private void clearModel(final ManagedResourceConnectorConsumer resource,
                             final NotificationsModel model){
+        if(model.isEmpty()) return;
         final Map<String, EventConfiguration> disconnectedEvents = resource.resourceConfiguration.getElements(EventConfiguration.class);
         if(disconnectedEvents != null && resource.isNotificationsSupported()){
             final NotificationSupport notifs = resource.getWeakNotificationSupport();

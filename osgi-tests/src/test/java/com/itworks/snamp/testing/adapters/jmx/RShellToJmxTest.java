@@ -30,7 +30,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
@@ -56,7 +55,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
         super(USER_NAME,
                 PASSWORD,
                 PORT,
-                CERTIFICATE_FILE,
+                getPathToFileInProjectRoot(CERTIFICATE_FILE),
                 FINGERPRINT);
     }
 
@@ -105,7 +104,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
         final AttributeConfiguration attr = attributeFactory.get();
         attr.setAttributeName("memStatus");
-        attr.getParameters().put("commandProfileLocation", Paths.get(getProjectRootDir(), "freemem-tool-profile.xml").toFile().getAbsolutePath());
+        attr.getParameters().put("commandProfileLocation", getPathToFileInProjectRoot("freemem-tool-profile.xml"));
         attr.getParameters().put("format", "-m");
         attributes.put("ms", attr);
     }

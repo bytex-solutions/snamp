@@ -41,7 +41,7 @@ import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
  * Represents SNMP table.
  * @author Roman Sakno
  */
-final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedColumn, MOTableModel<MOMutableTableRow>> implements SnmpAttributeMapping, UpdatableManagedObject{
+final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> implements SnmpAttributeMapping, UpdatableManagedObject{
     static final int SYNTAX = SMIConstants.EXCEPTION_NO_SUCH_OBJECT;
 
     /**
@@ -152,7 +152,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             return getCompletionState(rollbackCounter.get(), commitCounter.get(), cleanupCounter.get());
         }
 
-        private static TransactionInfo pendingState(final Request<?, ?> request, final TransactionState state) {
+        private static TransactionInfo pendingState(final Request<?, ?, ?> request, final TransactionState state) {
             final TransactionInfo info;
             final Object untypedInfo = request.getProcessingUserObject(TRANSACTION_INFO_HOLDER);
             if (untypedInfo instanceof TransactionInfo)
@@ -163,7 +163,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             return info;
         }
 
-        private static TransactionInfo pendingState(final SubRequest<?, ?> subreq, final TransactionState state){
+        private static TransactionInfo pendingState(final SubRequest subreq, final TransactionState state){
             return pendingState(subreq.getRequest(), state);
         }
 
@@ -300,7 +300,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
                 createColumns(connector.getOpenType(), getAccessRestrictions(connector.getMetadata(), true), shouldUseRowStatus(connector.getMetadata().getDescriptor()))
         );
         //setup table model
-        final DefaultMOMutableTableModel<MOMutableTableRow> tableModel = new DefaultMOMutableTableModel<>();
+        final DefaultMOMutableTableModel<DefaultMOMutableRow2PC> tableModel = new DefaultMOMutableTableModel<>();
         tableModel.setRowFactory(new DefaultMOMutableRow2PCFactory());
         this.setModel(tableModel);
         //save additional fields
@@ -334,7 +334,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
     }
 
     private static Object fill(final AttributeAccessor connector,
-                               final MOTable<MOMutableTableRow, MONamedColumn, MOTableModel<MOMutableTableRow>> table) throws JMException{
+                               final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table) throws JMException{
         final Object lastUpdateSource;
         final OpenType<?> ot = connector.getOpenType();
             if (ot instanceof ArrayType<?>) {
@@ -353,7 +353,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
     }
 
     private static void fill(final TabularData data,
-                             final MOTable<MOMutableTableRow, MONamedColumn, MOTableModel<MOMutableTableRow>> table,
+                             final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table,
                              final DescriptorRead conversionOptions){
         final MutableInteger rowIndex = new MutableInteger(0);
         TabularDataUtils.forEachRow(data, new SafeConsumer<CompositeData>() {
@@ -375,7 +375,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
     }
 
     private static void fill(final CompositeData data,
-                             final MOTable<MOMutableTableRow, MONamedColumn, MOTableModel<MOMutableTableRow>> table,
+                             final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table,
                              final DescriptorRead conversionOptions){
         final List<Variable> cells = Lists.newArrayListWithExpectedSize(table.getColumnCount());
         for(int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++){
@@ -387,7 +387,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
     }
 
     private static void fill(final Object array,
-                             final MOTable<MOMutableTableRow, MONamedColumn, MOTableModel<MOMutableTableRow>> table,
+                             final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table,
                              final DescriptorRead conversionOptions){
         //for arrays we have only one column with values
         final MONamedColumn columnDef = table.getColumn(0);

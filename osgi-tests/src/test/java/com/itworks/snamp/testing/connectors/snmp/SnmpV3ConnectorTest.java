@@ -17,7 +17,6 @@ import org.snmp4j.agent.CommandProcessor;
 import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOScalar;
-import org.snmp4j.agent.mo.MOTableRow;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
 import org.snmp4j.mp.MessageProcessingModel;
@@ -47,7 +46,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     private static final String HOST_NAME = "127.0.0.1";
     private static final int REMOTE_PORT = 1161;
     private static final int LOCAL_PORT = 44495;
-    private static final String ENGINE_ID = "Non-local engine ID";
+    private static final String ENGINE_ID = "80:00:13:70:01:7f:00:01:01:be:1e:8b:35";
     private static final String USER_NAME = "roman";
     private static final String PASSWORD = "somePassword";
     private static final String AUTH_PROTOCOL = "sha";
@@ -76,7 +75,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         super(HOST_NAME, REMOTE_PORT, getParameters());
         agent = new BaseAgent(new File("conf.agent"), null,
                 new CommandProcessor(
-                        new OctetString(ENGINE_ID))) {
+                        OctetString.fromHexString(ENGINE_ID))) {
             private static final String GROUP_NAME = "testGroup";
             private boolean coldStart = true;
             private Repeater notifSender;
@@ -140,7 +139,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
             @Override
             protected void addUsmUser(final USM usm) {
                 usm.addUser(new OctetString(USER_NAME),
-                        new OctetString(ENGINE_ID),
+                        OctetString.fromHexString(ENGINE_ID),
                         new UsmUser(new OctetString(USER_NAME), AuthSHA.ID, new OctetString(PASSWORD), PrivAES128.ID, new OctetString(ENC_KEY)));
             }
 
@@ -204,7 +203,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
                         new Integer32(StorageType.nonVolatile), // storage type
                         new Integer32(RowStatus.active) // row status
                 };
-                final MOTableRow row = communityMIB.getSnmpCommunityEntry().createRow(
+                final SnmpCommunityMIB.SnmpCommunityEntryRow row = communityMIB.getSnmpCommunityEntry().createRow(
                         new OctetString("public2public").toSubIndex(true), com2sec);
                 communityMIB.getSnmpCommunityEntry().addRow(row);
             }
@@ -251,6 +250,11 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
                 notifSender.run();
             }
         };
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
     }
 
     @Test

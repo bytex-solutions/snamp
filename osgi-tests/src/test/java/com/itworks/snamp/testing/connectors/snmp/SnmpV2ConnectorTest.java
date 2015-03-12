@@ -22,7 +22,6 @@ import org.snmp4j.agent.CommandProcessor;
 import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOScalar;
-import org.snmp4j.agent.mo.MOTableRow;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
 import org.snmp4j.mp.MPv3;
@@ -194,7 +193,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                         new Integer32(StorageType.nonVolatile), // storage type
                         new Integer32(RowStatus.active) // row status
                 };
-                final MOTableRow row = communityMIB.getSnmpCommunityEntry().createRow(
+                final SnmpCommunityMIB.SnmpCommunityEntryRow row = communityMIB.getSnmpCommunityEntry().createRow(
                         new OctetString("public2public").toSubIndex(true), com2sec);
                 communityMIB.getSnmpCommunityEntry().addRow(row);
             }
