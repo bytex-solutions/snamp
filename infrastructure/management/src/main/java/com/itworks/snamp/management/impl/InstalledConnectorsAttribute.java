@@ -2,7 +2,7 @@ package com.itworks.snamp.management.impl;
 
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.management.jmx.OpenMBean;
+import com.itworks.snamp.jmx.OpenMBean;
 
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;

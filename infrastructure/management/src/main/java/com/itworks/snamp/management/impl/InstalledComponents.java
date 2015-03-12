@@ -7,7 +7,7 @@ import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
-import com.itworks.snamp.management.jmx.OpenMBean;
+import com.itworks.snamp.jmx.OpenMBean;
 
 import javax.management.openmbean.*;
 import java.util.Map;

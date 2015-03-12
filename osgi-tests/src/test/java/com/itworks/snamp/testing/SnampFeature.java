@@ -11,7 +11,7 @@ public enum SnampFeature {
     LICENSING("licensing-feature", "1.0.0"),
     JMX_CONNECTOR("jmx-connector-feature", "1.0.0"),
     SNMP_ADAPTER("snmp-adapter-feature", "1.0.0"),
-    REST_ADAPTER("rest-adapter-feature", "1.0.0"),
+    REST_ADAPTER("http-adapter-feature", "1.0.0"),
     JMX_ADAPTER("jmx-adapter-feature", "1.0.0"),
     SNMP_CONNECTOR("snmp-connector-feature", "1.0.0"),
     RSHELL_CONNECTOR("rshell-connector-feature", "1.0.0"),

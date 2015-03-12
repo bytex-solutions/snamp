@@ -1,11 +1,10 @@
 package com.itworks.jcommands.impl;
 
+import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ObjectArrays;
-import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.ResettableIterator;
+import com.itworks.snamp.*;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.annotations.Internal;
 
 import javax.script.*;
@@ -14,6 +13,7 @@ import javax.xml.bind.annotation.*;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -127,6 +127,8 @@ public class XmlParserDefinition {
     }
 
     private static final class SimpleDateParser extends SimpleDateFormat implements DateParser {
+        private static final long serialVersionUID = 3787599179710232160L;
+
         public SimpleDateParser(final String pattern) {
             super(pattern);
         }
@@ -145,6 +147,8 @@ public class XmlParserDefinition {
     }
 
     private static final class DecimalNumberParser extends DecimalFormat implements NumberParser{
+        private static final long serialVersionUID = 500477579425937782L;
+
         public DecimalNumberParser(final String pattern){
             super(pattern);
         }
@@ -199,6 +203,7 @@ public class XmlParserDefinition {
 
     private static final class HexadecimalNumberParser implements NumberParser {
         private static final String PATTERN_STUB = "hex";
+        private static final long serialVersionUID = -1038188365966872713L;
 
         @Override
         public Number parse(final String input) throws ParseException {
@@ -285,28 +290,32 @@ public class XmlParserDefinition {
         }
     }
 
-    private static final class ArrayBuilder extends ArrayList<Object> {
-        private TypeToken<?> elementType;
+    private static final class ArrayBuilder extends ArrayList<Object> implements Supplier<Object> {
+        private static final long serialVersionUID = 10998420667381405L;
+        private XmlParsingResultType elementType;
 
         public ArrayBuilder() {
             super(10);
-            elementType = XmlParsingResultType.STRING.underlyingType;
-        }
-
-        public void setElementType(final TypeToken<?> value) {
-            this.elementType = value;
+            elementType = XmlParsingResultType.STRING;
         }
 
         public void setElementType(final XmlParsingResultType value) {
-            setElementType(value.underlyingType);
+            this.elementType = value;
         }
 
-        @SuppressWarnings("NullableProblems")
+        /**
+         * Retrieves an instance of the appropriate type. The returned object may or
+         * may not be a new instance, depending on the implementation.
+         *
+         * @return an instance of the appropriate type
+         */
         @Override
-        public Object[] toArray() {
-            final Object[] result = ObjectArrays.newArray(elementType.getRawType(), size());
-            for (int i = 0; i < size(); i++)
-                result[i] = get(i);
+        public Object get() {
+            final XmlParsingResultType elementType = this.elementType;
+            if(elementType == null) return null;
+            final Object result = elementType.newArray(size());
+            for(int i = 0; i < size(); i++)
+                Array.set(result, i, get(i));
             return result;
         }
     }
@@ -839,12 +848,12 @@ public class XmlParserDefinition {
                 }, new Date(0L));
     }
 
-    private static Byte[] parseBLOB(final List parsingTemplate,
+    private static byte[] parseBLOB(final List parsingTemplate,
                                     final BLOBFormat format,
                                     final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                format, new Byte[0]);
+                format, new byte[0]);
     }
 
     private static void runPlaceholder(final String fragment, final ScriptEngine engine) throws ScriptException {
@@ -852,7 +861,7 @@ public class XmlParserDefinition {
             engine.eval(fragment);
     }
 
-    private Object[] parseArray(final ResettableIterator parsingTemplateIter,
+    private Object parseArray(final ResettableIterator parsingTemplateIter,
                                      final ScriptEngine engine) throws ScriptException {
         final ArrayBuilder builder = new ArrayBuilder();
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
@@ -874,12 +883,18 @@ public class XmlParserDefinition {
             } else if (templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule) templateFragment).getRule(), engine);
         }
-        return builder.toArray();
+        return builder.get();
+    }
+
+    private static HashMap<String, Object> newHashMap(final int capacity){
+        return new HashMap<String, Object>(capacity){
+            private static final long serialVersionUID = -6249529434879218365L;
+        };
     }
 
     private Map<String, ?> parseDictionary(final ResettableIterator parsingTemplateIter,
                                                 final ScriptEngine engine) throws ScriptException {
-        final Map<String, Object> result = new HashMap<String, Object>(20){ };
+        final Map<String, Object> result = newHashMap(20);
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){
             final Object templateFragment = parsingTemplateIter.next();
@@ -892,12 +907,19 @@ public class XmlParserDefinition {
             else if(templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule)templateFragment).getRule(), engine);
         }
+        assert com.itworks.snamp.TypeTokens.isInstance(result, TypeTokens.DICTIONARY_TYPE_TOKEN);
         return result;
+    }
+
+    private static LinkedList<HashMap<String, ?>> newLinkedList(){
+        return new LinkedList<HashMap<String, ?>>(){
+            private static final long serialVersionUID = -530553453771270599L;
+        };
     }
 
     private List<? extends Map<String, ?>> parseTable(final ResettableIterator parsingTemplateIter,
                                                        final ScriptEngine engine) throws ScriptException{
-        final List<HashMap<String, ?>> table = new LinkedList<HashMap<String, ?>>(){ };
+        final List<HashMap<String, ?>> table = newLinkedList();
         HashMap<String, Object> row = new HashMap<>(20);
         final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){
@@ -917,6 +939,7 @@ public class XmlParserDefinition {
             else if(templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule)templateFragment).getRule(), engine);
         }
+        assert com.itworks.snamp.TypeTokens.isInstance(table, TypeTokens.TABLE_TYPE_TOKEN);
         return table;
     }
 
@@ -973,43 +996,14 @@ public class XmlParserDefinition {
         }
     }
 
-    public final void exportTableOrDictionaryType(final ImmutableMap.Builder<String, TypeToken<?>> output) {
+    public final <E extends Exception> void exportTableOrDictionaryType(final RecordReader<String, XmlParsingResultType, E> reader) throws E {
         for (final Object templateFragment : getParsingTemplate())
             if (templateFragment instanceof TableColumnParsingRule) {
                 final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;
-                output.put(rule.getColumnName(), rule.getColumnType().underlyingType);
+                reader.read(rule.getColumnName(), rule.getColumnType());
             } else if (templateFragment instanceof DictionaryEntryParsingRule) {
                 final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule) templateFragment;
-                output.put(rule.getKeyName(), rule.getValueType().underlyingType);
-            }
-    }
-
-    /**
-     * Exports description of the table type.
-     * @param columnDef The map that accepts the columns.
-     * @param indexedColumns The set that accepts the indexed columns.
-     */
-    public final void exportTableType(final Map<String, XmlParsingResultType> columnDef, final Set<String> indexedColumns) {
-        for (final Object templateFragment : getParsingTemplate())
-            if (templateFragment instanceof TableColumnParsingRule) {
-                final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;
-                if (rule.isIndexed()) indexedColumns.add(rule.getColumnName());
-                columnDef.put(rule.getColumnName(), rule.getColumnType());
-            }
-    }
-
-    /**
-     * Exports the detailed description of the dictionary type.
-     * <p>
-     *     This method can be called if this definition has {@link com.itworks.jcommands.impl.XmlParsingResultType#DICTIONARY}
-     *     type.
-     * @param dictionaryType The detailed description of the dictionary to fill.
-     */
-    public final void exportDictionaryType(final Map<String, XmlParsingResultType> dictionaryType) {
-        for (final Object templateFragment : getParsingTemplate())
-            if (templateFragment instanceof DictionaryEntryParsingRule) {
-                final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule) templateFragment;
-                dictionaryType.put(rule.getKeyName(), rule.getValueType());
+                reader.read(rule.getKeyName(), rule.getValueType());
             }
     }
 }

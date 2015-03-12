@@ -1,11 +1,12 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.Consumer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Represents shell command that obtains a list of attributes.
@@ -42,15 +43,18 @@ final class ListOfAttributesCommand extends AbstractManagementShellCommand {
     private void printAttributes(final String resourceName,
                                  final boolean withNames,
                                  final boolean details,
-                                 final PrintWriter output) throws TimeoutException {
-        for (final String attributeID : getAdapterController().getAttributes(resourceName)){
-            final SshAttributeView attr = getAdapterController().getAttribute(attributeID);
-            output.println(withNames ? String.format("ID: %s NAME: %s CAN_READ: %s CAN_WRITE %s", attributeID, attr.getName(), attr.canRead(), attr.canWrite()) : attributeID);
-            if(details) {
-                attr.printOptions(output);
-                output.println();
-            }
-        }
+                                 final PrintWriter output) throws IOException {
+        for (final String attributeID : getAdapterController().getAttributes(resourceName))
+            getAdapterController().processAttribute(attributeID, new Consumer<SshAttributeView, IOException>() {
+                @Override
+                public void accept(final SshAttributeView attr) throws IOException{
+                    output.println(withNames ? String.format("ID: %s NAME: %s CAN_READ: %s CAN_WRITE %s", attributeID, attr.getOriginalName(), attr.canRead(), attr.canWrite()) : attributeID);
+                    if(details) {
+                        attr.printOptions(output);
+                        output.println();
+                    }
+                }
+            });
     }
 
     @Override
@@ -64,7 +68,7 @@ final class ListOfAttributesCommand extends AbstractManagementShellCommand {
                     printAttributes(r, withNames, details, output);
             else printAttributes(resourceName, withNames, details, output);
         }
-        catch (final TimeoutException e){
+        catch (final IOException e){
             throw new CommandException(e);
         }
     }

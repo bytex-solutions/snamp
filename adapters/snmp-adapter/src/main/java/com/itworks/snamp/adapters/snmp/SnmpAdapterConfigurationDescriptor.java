@@ -5,12 +5,17 @@ import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfigu
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ThreadPoolConfigurationDescriptor;
+import org.snmp4j.mp.MPv3;
+import org.snmp4j.smi.OctetString;
 
+import javax.management.DescriptorRead;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.itworks.snamp.jmx.DescriptorUtils.getField;
 
 /**
  * Represents descriptor of SnmpAgent-specific configuration elements.
@@ -20,6 +25,11 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @since 1.0
  */
 final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+    /**
+     * Represents authoritative engine ID
+     */
+    static final String ENGINE_ID_PARAM = "engineID";
+
     /**
      * Represents configuration property that provides a set of user groups.
      */
@@ -101,8 +111,9 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
 
 
     private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> implements ThreadPoolConfigurationDescriptor<ResourceAdapterConfiguration> {
-        public ResourceAdapterConfigurationInfo(){
+        private ResourceAdapterConfigurationInfo(){
             super(ResourceAdapterConfiguration.class,
+                    ENGINE_ID_PARAM,
                     SNMPv3_GROUPS_PARAM,
                     SOCKET_TIMEOUT_PARAM,
                     PORT_PARAM_NAME,
@@ -129,7 +140,7 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
-        public AttributeConfigurationInfo(){
+        private AttributeConfigurationInfo(){
             super(AttributeConfiguration.class, DATE_TIME_DISPLAY_FORMAT_PARAM);
         }
 
@@ -141,7 +152,7 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     private static final class EventConfigurationInfo extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
-        public EventConfigurationInfo(){
+        private EventConfigurationInfo(){
             super(EventConfiguration.class,
                     DATE_TIME_DISPLAY_FORMAT_PARAM,
                     TARGET_ADDRESS_PARAM,
@@ -157,7 +168,21 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         }
     }
 
-    public SnmpAdapterConfigurationDescriptor(){
+    SnmpAdapterConfigurationDescriptor(){
         super(new ResourceAdapterConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());
+    }
+
+    static String getOID(final DescriptorRead info){
+        return getField(info.getDescriptor(), OID_PARAM_NAME, String.class);
+    }
+
+    static String getDateTimeDisplayFormat(final DescriptorRead info){
+        return getField(info.getDescriptor(), DATE_TIME_DISPLAY_FORMAT_PARAM, String.class);
+    }
+
+    static OctetString parseEngineID(final Map<String, String> parameters){
+        if(parameters.containsKey(ENGINE_ID_PARAM))
+            return OctetString.fromHexString(parameters.get(ENGINE_ID_PARAM));
+        else return new OctetString(MPv3.createLocalEngineID());
     }
 }

@@ -14,6 +14,7 @@
     <modules>
         <module>jmx-adapter-feature</module>
         <module>snmp-adapter-feature</module>
+        <module>ssh-adapter-feature</module>
     </modules>
 
 </project>

@@ -45,11 +45,9 @@ final class ManagementShell implements Command, SessionAware {
         @SuppressWarnings("ResultOfMethodCallIgnored")
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor,
-                                            final Session session,
                                             final InputStream reader) {
             this(controller, executor);
-            super.equals(SESSION, session)
-                    .equals(INPUT_STREAM, reader);
+            super.equals(INPUT_STREAM, reader);
         }
 
         @Override
@@ -65,15 +63,13 @@ final class ManagementShell implements Command, SessionAware {
         private final OutputStream outStream;
         private final ExitCallback callback;
         private final ExecutorService executor;
-        private final Session session;
 
         public Interpreter(final AdapterController controller,
                            final InputStream is,
                            OutputStream os,
                            final OutputStream es,
                            final ExitCallback callback,
-                           final ExecutorService executor,
-                           final Session session) throws IOException {
+                           final ExecutorService executor) throws IOException {
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             if (TtyOutputStream.needToApply()) {
                 this.outStream = new TtyOutputStream(os);
@@ -83,16 +79,10 @@ final class ManagementShell implements Command, SessionAware {
                 this.outStream = os;
             }
             this.inStream = is;
-            this.session = Objects.requireNonNull(session, "session is null.");
             this.callback = callback;
             this.executor = Objects.requireNonNull(executor, "executor is null.");
             setDaemon(true);
             setName("SSH Adapter Shell Interpreter");
-            NotificationManager.createNotificationManagerWithDisabledNotifs(session, controller);
-        }
-
-        public long getListenerID(){
-            return NotificationManager.getNotificationListenerID(session);
         }
 
         @Override
@@ -112,7 +102,7 @@ final class ManagementShell implements Command, SessionAware {
                 while (!Objects.equals(command = reader.readLine(), ExitCommand.COMMAND_NAME))
                     if (command != null && command.length() > 0) {
                         doCommand(command,
-                                new CommandExecutionContextImpl(controller, executor, session, inStream),
+                                new CommandExecutionContextImpl(controller, executor, inStream),
                                 output, error);
                         output.flush();
                     }
@@ -211,14 +201,12 @@ final class ManagementShell implements Command, SessionAware {
     @Override
     public void start(final Environment env) {
         try {
-            final Session serverSession = session.get();
             final Interpreter i = new Interpreter(controller,
                     inStream.get(),
                     outStream.get(),
                     errStream.get(),
                     exitCallback.get(),
-                    executor,
-                    serverSession);
+                    executor);
             i.start();
             interpreter.set(i);
         }
@@ -236,7 +224,6 @@ final class ManagementShell implements Command, SessionAware {
     public void destroy() {
         final Interpreter i = interpreter.get();
         i.interrupt();
-        controller.removeNotificationListener(i.getListenerID());
     }
 
     /**
@@ -308,12 +295,6 @@ final class ManagementShell implements Command, SessionAware {
                 return new GetAttributeCommand(context);
             case SetAttributeCommand.COMMAND_NAME:
                 return new SetAttributeCommand(context);
-            case SetArrayCommand.COMMAND_NAME:
-                return new SetArrayCommand(context);
-            case SetMapCommand.COMMAND_NAME:
-                return new SetMapCommand(context);
-            case SetTableCommand.COMMAND_NAME:
-                return new SetTableCommand(context);
             case NotificationsCommand.COMMAND_NAME:
                 return new NotificationsCommand(context);
             default:

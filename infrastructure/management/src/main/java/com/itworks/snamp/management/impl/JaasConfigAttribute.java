@@ -1,18 +1,16 @@
 package com.itworks.snamp.management.impl;
 
 import com.itworks.snamp.ServiceReferenceHolder;
-import com.itworks.snamp.management.jmx.OpenMBean;
+import com.itworks.snamp.jmx.OpenMBean;
 import com.itworks.snamp.security.LoginConfigurationManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.SimpleType;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Objects;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
@@ -20,7 +18,6 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  * Description here
  *
  * @author Evgeniy Kirichenko
- * @date 10.02.2015
  */
 final class JaasConfigAttribute extends OpenMBean.OpenAttribute<byte[], ArrayType<byte[]>> {
     private static final String NAME = "jaasConfig";

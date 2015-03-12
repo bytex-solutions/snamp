@@ -2,12 +2,16 @@ package com.itworks.snamp.testing.adapters.jmx;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
+import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
+import com.itworks.snamp.jmx.CompositeDataBuilder;
+import com.itworks.snamp.jmx.TabularDataBuilder;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
@@ -17,13 +21,14 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
 import javax.management.*;
-import javax.management.openmbean.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.TabularData;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -68,64 +73,71 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
             }
     }
 
+    private static Attribute attrval(final String name, final Object value){
+        return new Attribute(TEST_RESOURCE_NAME + '/' + name, value);
+    }
+
     @Test
     public void testStringProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(new Attribute("1.0", "Frank Underwood"));
+        testJmxAttribute(attrval("1.0", "Frank Underwood"));
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
     }
 
     @Test
     public void testBooleanProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(new Attribute("2.0", Boolean.TRUE));
+        testJmxAttribute(attrval("2.0", Boolean.TRUE));
     }
 
     @Test
     public void testInt32Property() throws BundleException, JMException, IOException {
-        testJmxAttribute(new Attribute("3.0", 19081));
+        testJmxAttribute(attrval("3.0", 19081));
     }
 
     @Test
     public void testBigintProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(new Attribute("4.0", new BigInteger("100500")));
+        testJmxAttribute(attrval("4.0", new BigInteger("100500")));
     }
 
     @Test
     public void testArrayProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(new Attribute("5.1", new short[]{8, 4, 2, 1}));
+        testJmxAttribute(attrval("5.1", new short[]{8, 4, 2, 1}));
     }
 
     @Test
     public void testDictionaryProperty() throws BundleException, JMException, IOException {
-        final CompositeType ct = new CompositeType("dictionary", "dummy",
-                new String[]{"col1", "col2", "col3"},
-                new String[]{"col1", "col2", "col3"},
-                new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
-        final Map<String, Object> dict = new HashMap<>(3);
-        dict.put("col1", true);
-        dict.put("col2", 42);
-        dict.put("col3", "Frank Underwood");
-        testJmxAttribute(new Attribute("6.1", new CompositeDataSupport(ct, dict)));
+        final CompositeData dict = new CompositeDataBuilder()
+                .setTypeName("dictionary")
+                .setTypeDescription("dummy")
+                .put("col1", "dummy item", SimpleType.BOOLEAN, true)
+                .put("col2", "dummy item", SimpleType.INTEGER, 42)
+                .put("col3", "dummy item", SimpleType.STRING, "Frank Underwood")
+                .build();
+        testJmxAttribute(attrval("6.1", dict));
     }
 
     @Test
     public void testTableProperty() throws BundleException, JMException, IOException {
-        final CompositeType rowType = new CompositeType("SimpleTable", "dummy",
-                new String[]{"col1", "col2", "col3"},
-                new String[]{"col1", "col2", "col3"},
-                new OpenType<?>[]{SimpleType.BOOLEAN, SimpleType.INTEGER, SimpleType.STRING});
-        final TabularData table = new TabularDataSupport(new TabularType("SimpleTable", "table", rowType,
-                new String[]{"col3"}));
-        table.put(new CompositeDataSupport(rowType,
-                new String[]{"col1", "col2", "col3"},
-                new Object[]{true, 67, "Dostoevsky"}));
-        table.put(new CompositeDataSupport(rowType,
-                new String[]{"col1", "col2", "col3"},
-                new Object[]{false, 98, "Pushkin"}));
-        testJmxAttribute(new Attribute("7.1", table));
+        final TabularData table = new TabularDataBuilder()
+                .setTypeName("SimpleTable", true)
+                .setTypeDescription("Test table", true)
+                .columns()
+                .addColumn("col1", "dummy item", SimpleType.BOOLEAN, false)
+                .addColumn("col2", "dummy item", SimpleType.INTEGER, false)
+                .addColumn("col3", "dummy item", SimpleType.STRING, true)
+                .queryObject(TabularDataBuilder.class)
+                .add(true, 67, "Dostoevsky")
+                .add(false, 98, "Pushkin")
+                .build();
+        testJmxAttribute(attrval("7.1", table));
     }
 
     @Test
     public void notificationTest() throws BundleException, JMException, IOException, TimeoutException, InterruptedException {
-        final Attribute attr = new Attribute("1.0", "Garry Oldman");
+        final Attribute attr = attrval("1.0", "Garry Oldman");
         final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
         try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
@@ -139,17 +151,23 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                 @Override
                 public void handleNotification(final Notification notification, final Object handback) {
                     switch (notification.getType()){
-                        case "19.1": attributeChangedEvent.fire(notification); return;
-                        case "21.1": eventWithAttachmentHolder.fire(notification); return;
-                        case "20.1": testEvent.fire(notification);
+                        case TEST_RESOURCE_NAME + ".19.1":
+                            attributeChangedEvent.fire(notification); return;
+                        case TEST_RESOURCE_NAME + ".21.1":
+                            eventWithAttachmentHolder.fire(notification); return;
+                        case TEST_RESOURCE_NAME + ".20.1":
+                            testEvent.fire(notification);
                     }
                 }
             }, null, null);
+            final Awaitor<Notification, ExceptionPlaceholder> attributeChangedEventAwaitor = attributeChangedEvent.getAwaitor();
+            final Awaitor<Notification, ExceptionPlaceholder> testEventAwaitor = testEvent.getAwaitor();
+            final Awaitor<Notification, ExceptionPlaceholder> eventWithAttachmentHolderAwaitor = eventWithAttachmentHolder.getAwaitor();
             //force attribute change
             connection.setAttribute(resourceObjectName, attr);
-            assertNotNull(attributeChangedEvent.getAwaitor().await(TimeSpan.fromSeconds(10)));
-            assertNotNull(testEvent.getAwaitor().await(TimeSpan.fromSeconds(10)));
-            final Notification withAttachment = eventWithAttachmentHolder.getAwaitor().await(TimeSpan.fromSeconds(10));
+            assertNotNull(attributeChangedEventAwaitor.await(TimeSpan.fromSeconds(10)));
+            assertNotNull(testEventAwaitor.await(TimeSpan.fromSeconds(10)));
+            final Notification withAttachment = eventWithAttachmentHolderAwaitor.await(TimeSpan.fromSeconds(10));
             assertNotNull(withAttachment);
             assertNotNull(withAttachment.getUserData() instanceof TabularData);
         }

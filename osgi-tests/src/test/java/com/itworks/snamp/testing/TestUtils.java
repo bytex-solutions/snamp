@@ -3,19 +3,17 @@ package com.itworks.snamp.testing;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedList;
 
 /**
- * Created by temni on 10.01.15.
+ * Represents internal utility methods for SNAMP Test Framework.
+ * @author Evgeny Kirichenko
  */
 final class TestUtils {
     private TestUtils(){
-
     }
 
     static String join(final Object[] objects, final char delimeter)

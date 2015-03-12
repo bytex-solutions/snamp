@@ -18,6 +18,7 @@ import java.util.Objects;
  * @since 1.0
  */
 public class StringAppender implements Appendable, CharSequence, Serializable {
+    private static final long serialVersionUID = 5383532773187026410L;
     private final StringBuilder builder;
 
     private StringAppender(final StringBuilder builder) {

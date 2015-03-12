@@ -5,8 +5,7 @@ import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.*;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
-import com.itworks.snamp.mapping.RecordReader;
-import com.itworks.snamp.mapping.TypeLiterals;
+import com.itworks.snamp.internal.RecordReader;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
@@ -288,7 +287,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         if (content != null && content.length > 0)
             try (final ByteArrayInputStream stream = new ByteArrayInputStream(content);
                  final ObjectInputStream deserializer = new ObjectInputStream(stream)) {
-                final Map<String, AttributeConfiguration> attributes = TypeLiterals.safeCast(deserializer.readObject(), ATTRS_MAP_TYPE);
+                final Map<String, AttributeConfiguration> attributes = TypeTokens.safeCast(deserializer.readObject(), ATTRS_MAP_TYPE);
                 if (attributes != null)
                     result.setAttributes(attributes);
             } catch (final ClassNotFoundException e) {
@@ -299,7 +298,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         if (content != null && content.length > 0)
             try (final ByteArrayInputStream stream = new ByteArrayInputStream(content);
                  final ObjectInputStream deserializer = new ObjectInputStream(stream)) {
-                final Map<String, EventConfiguration> events = TypeLiterals.safeCast(deserializer.readObject(), EVENTS_MAP_TYPE);
+                final Map<String, EventConfiguration> events = TypeTokens.safeCast(deserializer.readObject(), EVENTS_MAP_TYPE);
                 if (events != null)
                     result.setEvents(events);
             } catch (final ClassNotFoundException e) {

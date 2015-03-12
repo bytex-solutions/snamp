@@ -1,11 +1,13 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.AbstractFuture;
+import com.itworks.snamp.Aggregator;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
-import com.itworks.snamp.internal.CountdownTimer;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
@@ -32,7 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @version 1.0
  * @since 1.0
  */
-abstract class SnmpClient extends Snmp implements Closeable {
+abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
     private static final AtomicInteger engineBoots = new AtomicInteger(0);
 
     private static final class SnmpResponseListener extends SynchronizationEvent<ResponseEvent> implements ResponseListener {
@@ -138,7 +140,7 @@ abstract class SnmpClient extends Snmp implements Closeable {
             SecurityLevel.authPriv : SecurityLevel.authNoPriv;
         final ExecutorService threadPool = threadPoolFactory.get();
         final MessageDispatcher dispatcher = new ConcurrentMessageDispatcher(threadPool);
-        final USM userModel = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), engineBoots.getAndIncrement());
+        final USM userModel = new USM(DefaultSecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), engineBoots.getAndIncrement());
         userModel.addUser(userName, engineID,
                 new UsmUser(userName, authenticationProtocol, password, encryptionProtocol, encryptionKey));
         dispatcher.addMessageProcessingModel(new MPv3(userModel));
@@ -168,6 +170,21 @@ abstract class SnmpClient extends Snmp implements Closeable {
                 if(contextName != null && contextName.length() > 0)
                     result.setContextName(contextName);
                 return result;
+            }
+
+            @Override
+            public <T> T queryObject(final Class<T> objectType) {
+                return objectType.isInstance(threadPool) ? objectType.cast(threadPool) : null;
+            }
+
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                }
+                finally {
+                    threadPool.shutdown();
+                }
             }
         };
     }
@@ -200,6 +217,21 @@ abstract class SnmpClient extends Snmp implements Closeable {
                 final PDU result = new PDU();
                 result.setType(pduType);
                 return result;
+            }
+
+            @Override
+            public <T> T queryObject(final Class<T> objectType) {
+                return objectType.isInstance(threadPool) ? objectType.cast(threadPool) : null;
+            }
+
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                }
+                finally {
+                    threadPool.shutdown();
+                }
             }
         };
     }
@@ -290,12 +322,16 @@ abstract class SnmpClient extends Snmp implements Closeable {
         output.addAll(listener.get(timeout.toMillis(), TimeUnit.MILLISECONDS));
     }
 
-    public final Collection<VariableBinding> walk(final TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {
+    public final Collection<VariableBinding> walk(TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {
         final Collection<VariableBinding> result = new Vector<>(20);
-        final CountdownTimer timer = CountdownTimer.start(timeout);
+        final Stopwatch timer = Stopwatch.createStarted();
         for(int i = 1; i <= 10; i++) {
-            walk(new OID(new int[]{i}), timer.stopAndGetElapsedTime(), result);
-            if(!timer.start()) throw new TimeoutException(String.format("Not enough time to collect all variables. Loop stopped at %s iteration.", i));
+             timeout = timeout == TimeSpan.INFINITE ?
+                    TimeSpan.INFINITE:
+                    timeout.subtract(timer.elapsed(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
+            walk(new OID(new int[]{i}), timeout, result);
+            if(TimeSpan.ZERO.equals(timeout))
+                throw new TimeoutException(String.format("Not enough time to collect all variables. Loop stopped at %s iteration.", i));
         }
         return result;
     }
@@ -304,27 +340,6 @@ abstract class SnmpClient extends Snmp implements Closeable {
         final Collection<VariableBinding> bindings = new ArrayList<>(variables.size());
         for(final OID key: variables.keySet())
             bindings.add(new VariableBinding(key, variables.get(key)));
-        set(bindings.toArray(new VariableBinding[bindings.size()]), timeout);
-    }
-
-    /**
-     * Returns the message dispatcher associated with this SNMP session.
-     *
-     * @return a <code>MessageDispatcher</code> instance.
-     * @since 1.1
-     */
-    @Override
-    public final ConcurrentMessageDispatcher getMessageDispatcher() {
-        return (ConcurrentMessageDispatcher)super.getMessageDispatcher();
-    }
-
-    @Override
-    public final void close() throws IOException {
-        try {
-            super.close();
-        }
-        finally {
-            getMessageDispatcher().close();
-        }
+        set(ArrayUtils.toArray(bindings, VariableBinding.class), timeout);
     }
 }

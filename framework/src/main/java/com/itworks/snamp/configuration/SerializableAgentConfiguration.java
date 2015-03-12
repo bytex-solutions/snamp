@@ -3,7 +3,7 @@ package com.itworks.snamp.configuration;
 import com.google.common.collect.ForwardingMap;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.mapping.RecordReader;
+import com.itworks.snamp.internal.RecordReader;
 
 import java.io.*;
 import java.util.HashMap;
@@ -18,6 +18,7 @@ import java.util.Objects;
  */
 public class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable {
     private final static byte FORMAT_VERSION = 1;
+    private static final long serialVersionUID = 8461144056430141155L;
 
     static abstract class Resettable{
         abstract void reset();
@@ -40,6 +41,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
 
     @SuppressWarnings("NullableProblems")
     private static abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Externalizable, Modifiable{
+        private static final long serialVersionUID = -8689048750446731607L;
         private transient boolean modified = false;
 
         @Override
@@ -106,6 +108,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
 
 
     private static final class ModifiableParameters extends ModifiableMap<String, String> implements Serializable, Modifiable{
+        private static final long serialVersionUID = 6594540590402879949L;
         private final HashMap<String, String> parameters;
 
         public ModifiableParameters(){
@@ -139,6 +142,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     }
 
     private static abstract class ConfigurationEntityRegistry<E extends ConfigurationEntity> extends ModifiableMap<String, E>{
+        private static final long serialVersionUID = -3859844548619883398L;
         private final HashMap<String, E> entities;
 
         private ConfigurationEntityRegistry(){
@@ -188,6 +192,8 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
 
     private static final class AdapterRegistry extends ConfigurationEntityRegistry<ResourceAdapterConfiguration>{
 
+        private static final long serialVersionUID = 8142154170844526063L;
+
         public AdapterRegistry() {
         }
 
@@ -203,6 +209,8 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     }
 
     private static final class ResourceRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration>{
+        private static final long serialVersionUID = 8031527910928209252L;
+
         public ResourceRegistry() {
         }
 
@@ -218,6 +226,8 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     }
 
     private static final class AttributeRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration.AttributeConfiguration>{
+        private static final long serialVersionUID = -9035924377259475433L;
+
         public AttributeRegistry() {
         }
 
@@ -233,6 +243,8 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     }
 
     private static final class EventRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration.EventConfiguration>{
+        private static final long serialVersionUID = -4425614353529830020L;
+
         public EventRegistry() {
         }
 
@@ -248,6 +260,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     }
 
     private abstract static class AbstractConfigurationEntity extends Resettable implements SerializableConfigurationEntity{
+        private static final long serialVersionUID = -8455277079119895844L;
         private transient boolean modified;
         private final ModifiableParameters parameters;
 
@@ -326,6 +339,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      */
     public static final class SerializableResourceAdapterConfiguration extends AbstractConfigurationEntity implements ResourceAdapterConfiguration{
         private static final byte FORMAT_VERSION = 1;
+        private static final long serialVersionUID = 7926704115151740217L;
         private String adapterName;
 
         /**
@@ -416,8 +430,11 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * @version 1.0
      */
     public static final class SerializableManagedResourceConfiguration extends AbstractConfigurationEntity implements ManagedResourceConfiguration{
+        private static final long serialVersionUID = 5044050385424748355L;
+
         private static abstract class AbstractManagedEntity extends AbstractConfigurationEntity implements ManagedEntity{
 
+            private static final long serialVersionUID = -1609210097027316240L;
         }
 
         /**
@@ -427,6 +444,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * @version 1.0
          */
         public static final class SerializableEventConfiguration extends AbstractManagedEntity implements EventConfiguration{
+            private static final long serialVersionUID = -6838585011981639479L;
             private String eventCategory;
 
             /**
@@ -524,6 +542,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * @version 1.0
          */
         public static final class SerializableAttributeConfiguration extends AbstractManagedEntity implements AttributeConfiguration{
+            private static final long serialVersionUID = -2134014000719123759L;
             private TimeSpan readWriteTimeout;
             private String attributeName;
 

@@ -1,5 +1,6 @@
 package com.itworks.jcommands.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.CommandExecutionChannel;
 
 import javax.script.ScriptEngineManager;
@@ -7,7 +8,6 @@ import javax.script.ScriptException;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.*;
 import java.io.*;
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -52,7 +52,7 @@ public class XmlCommandLineToolProfile {
     public final boolean writeToChannel(final CommandExecutionChannel channel,
                                         final Object value) throws ScriptException, IOException {
         if (modifierTemplate == null) return false;
-        final Object success = channel.exec(modifierTemplate, Collections.singletonMap("value", value));
+        final Object success = channel.exec(modifierTemplate, ImmutableMap.of("value", value));
         return success instanceof Boolean && (Boolean) success;
     }
 

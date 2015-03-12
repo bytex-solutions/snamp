@@ -8,7 +8,7 @@ import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.configuration.SerializableAgentConfiguration;
 import com.itworks.snamp.configuration.diff.ConfigurationDiffEngine;
-import com.itworks.snamp.management.jmx.OpenMBean;
+import com.itworks.snamp.jmx.OpenMBean;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;

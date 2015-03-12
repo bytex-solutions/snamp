@@ -10,7 +10,6 @@ import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImp
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.discovery.AbstractDiscoveryService;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
-import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.core.LogicalOperation;
@@ -28,8 +27,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.event.EventAdmin;
 
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -169,8 +166,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector<?>> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector>{
-        private static final String NOTIF_TRANSPORT_LISTENER_ID = "EventAdminTransport";
-
         private final ManagedResourceConnectorLifecycleController<TConnector> controller;
         /**
          * Represents name of the managed resource connector.
@@ -210,32 +205,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                         final Dictionary<String, ?> configuration,
                                         final RequiredService<?>... dependencies) throws Exception {
             final String resourceName = PersistentConfigurationManager.getResourceName(configuration);
-            final TConnector newConnector = controller.updateConnector(oldConnector,
+            return controller.updateConnector(oldConnector,
                     resourceName,
                     PersistentConfigurationManager.getConnectionString(configuration),
                     PersistentConfigurationManager.getResourceConnectorParameters(configuration),
                     dependencies);
-            if(newConnector != oldConnector)
-                subscribe(newConnector.queryObject(NotificationSupport.class), resourceName, findDependency(RequiredServiceAccessor.class, EventAdmin.class, dependencies));
-            return newConnector;
-        }
-
-        private void subscribe(final NotificationSupport connector,
-                               final String resourceName,
-                               final RequiredServiceAccessor<EventAdmin> eventAdmin) throws NotificationSupportException, UnknownSubscriptionException {
-            if(connector != null && eventAdmin != null) {
-                connector.unsubscribe(NOTIF_TRANSPORT_LISTENER_ID);
-                connector.subscribe(NOTIF_TRANSPORT_LISTENER_ID, new EventAdminTransport(connectorType, resourceName, eventAdmin, connector), true);
-            }
-            else try(final OSGiLoggingContext logger = getLoggingContext()){
-                logger.info(String.format("Resource %s doesn't support notifications. Context: %s",
-                        resourceName, LogicalOperation.current()));
-            }
-        }
-
-        private static void unsubscribe(final NotificationSupport connector){
-            if(connector != null)
-                connector.unsubscribe(NOTIF_TRANSPORT_LISTENER_ID);
         }
 
         /**
@@ -293,9 +267,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                     connectionString,
                     options,
                     identity);
-            final TConnector result = controller.createConnector(resourceName, connectionString, options, dependencies);
-            subscribe(result.queryObject(NotificationSupport.class), resourceName, findDependency(RequiredServiceAccessor.class, EventAdmin.class, dependencies));
-            return result;
+            return controller.createConnector(resourceName, connectionString, options, dependencies);
         }
 
         /**
@@ -306,7 +278,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         @Override
         protected void cleanupService(final TConnector service) throws Exception {
-            unsubscribe(service.queryObject(NotificationSupport.class));
             controller.releaseConnector(service);
         }
     }
@@ -684,48 +655,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
             identity.put(CONNECTOR_TYPE_IDENTITY_PROPERTY, getConnectorName());
             return createConfigurationDescriptionProvider(dependencies);
-        }
-    }
-
-    /**
-     * Represents transport for {@link com.itworks.snamp.connectors.notifications.Notification} object
-     * through OSGi environment using {@link org.osgi.service.event.EventAdmin} service.
-     * This class cannot be inherited.
-     */
-    private static final class EventAdminTransport implements NotificationListener{
-        private final String connectorName;
-        private final RequiredServiceAccessor<EventAdmin> eventAdmin;
-        private final Reference<NotificationSupport> notifications;
-        private final String resourceName;
-
-        private EventAdminTransport(final String connectorName,
-                                   final String resourceName,
-                                   final RequiredServiceAccessor<EventAdmin> dependency,
-                                   final NotificationSupport notifSupport){
-            this.eventAdmin = dependency;
-            this.notifications = new WeakReference<>(notifSupport);
-            this.connectorName = connectorName;
-            this.resourceName = resourceName;
-        }
-
-        /**
-         * Handles the specified notification.
-         *
-         * @param listId An identifier of the subscription list.
-         * @param n      The notification to handle.
-         * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
-         */
-        @Override
-        public final boolean handle(final String listId, final Notification n) {
-            final NotificationSupport notifSupport = notifications.get();
-            if(eventAdmin.isResolved() && notifSupport != null){
-                final NotificationMetadata metadata = notifSupport.getNotificationInfo(listId);
-                if(metadata == null) return false;
-                final NotificationEvent event = new NotificationEvent(n, resourceName, listId);
-                eventAdmin.getService().postEvent(event.toEvent(connectorName, metadata.getCategory()));
-                return true;
-            }
-            else return false;
         }
     }
 

@@ -8,15 +8,16 @@ import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.connectors.notifications.Severity;
-import com.itworks.snamp.testing.Matrix;
-import com.itworks.snamp.testing.MatrixImpl;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
+import com.itworks.snamp.testing.SnmpTable;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.snmp4j.security.AuthSHA;
+import org.snmp4j.security.PrivAES128;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.OID;
@@ -32,8 +33,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -53,13 +52,21 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     private static final String LDAP_ADMIN_USER = "uid=admin,ou=system";
     private static final String LDAP_ADMIN_PASSWORD = "1-2-3-4-5-password";
     private static final String LDAP_USER = "cn=Roman";
+    private static final String ENGINE_ID = "80:00:13:70:01:7f:00:01:01:be:1e:8b:35";
     private static EmbeddedADSVerTrunk ads;
     private static File workDir;
-    private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + SNMP_HOST + "/" + SNMP_PORT, LDAP_USER, SecurityLevel.authPriv);
+    private final SnmpClient client;
 
     //ldapsearch -h 127.0.0.1 -p 10389 -w 1-2-3-4-5-password -D uid=admin,ou=system -b dc=ad,dc=microsoft,dc=com
-    public JmxToSnmpV3LDAPTest() throws MalformedObjectNameException {
+    public JmxToSnmpV3LDAPTest() throws MalformedObjectNameException, IOException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
+        client = SnmpClientFactory.createSnmpV3(ENGINE_ID,
+                "udp:" + SNMP_HOST + "/" + SNMP_PORT, LDAP_USER,
+                SecurityLevel.authPriv,
+                EmbeddedADSVerTrunk.PASSWORD,
+                AuthSHA.ID,
+                EmbeddedADSVerTrunk.PRIVACY_KEY,
+                PrivAES128.ID);
     }
 
     @Test
@@ -186,87 +193,110 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     }
 
     @Test
-    public final void testForTableProperty() throws Exception{
-        final Matrix<Variable> table = MatrixImpl.create(ImmutableList.of(
-                new HashMap<Integer, Variable>() {{
-                    put(2, new Integer32(0));//false
-                    put(3, new Integer32(4230));
-                    put(4, new OctetString("Row #1"));
-                }},
-                new HashMap<Integer, Variable>() {{
-                    put(2, new Integer32(1));//true
-                    put(3, new Integer32(4231));
-                    put(4, new OctetString("Row #2"));
-                }},
-                new HashMap<Integer, Variable>() {{
-                    put(2, new Integer32(1));//true
-                    put(3, new Integer32(4232));
-                    put(4, new OctetString("Row #3"));
-                }},
-                new HashMap<Integer, Variable>() {{
-                    put(2, new Integer32(1));//true
-                    put(3, new Integer32(4233));
-                    put(4, new OctetString("Row #4"));
-                }}
-        ));
+    public final void testForTableProperty() throws Exception {
+        final SnmpTable table = new AbstractSnmpTable(Boolean.class, Integer.class, String.class) {
+            private final ImmutableList<Variable[]> rows = ImmutableList.of(
+                    new Variable[]{new Integer32(0), new Integer32(4230), new OctetString("Row #1")},
+                    new Variable[]{new Integer32(1), new Integer32(4231), new OctetString("Row #2")},
+                    new Variable[]{new Integer32(1), new Integer32(4232), new OctetString("Row #3")},
+                    new Variable[]{new Integer32(1), new Integer32(4233), new OctetString("Row #4")}
+            );
+
+            @Override
+            public int getRowCount() {
+                return rows.size();
+            }
+
+            @Override
+            public int getColumnCount() {
+                return 3;
+            }
+
+            @Override
+            public Variable getRawCell(final int columnIndex, final int rowIndex) {
+                return rows.get(rowIndex)[columnIndex];
+            }
+        };
         client.writeTable("1.1.7.1", table);
-        final Matrix<?> result = client.readTable(ReadMethod.GETBULK, new OID("1.1.7.1"), new HashMap<Integer, Class<?>>() {{
-            put(2, Boolean.class);//bool
-            put(3, Integer.class);//int
-            put(4, String.class);//str
-        }});
-        assertEquals(4, result.size());
-        final List<? extends Map<Integer, ?>> rows = MatrixImpl.toList(result);
+        final SnmpTable result = client.readTable(ReadMethod.GETBULK, new OID("1.1.7.1"),
+                Boolean.class,
+                Integer.class,
+                String.class
+        );
+        assertEquals(4, result.getRowCount());
+        assertEquals(false, result.getCell(0, 0));
+        assertEquals(4230, result.getCell(1, 0));
+        assertEquals("Row #1", result.getCell(2, 0));
 
-        assertEquals(false, rows.get(0).get(2));
-        assertEquals(4230, rows.get(0).get(3));
-        assertEquals("Row #1", rows.get(0).get(4));
-
-        assertEquals(true, rows.get(3).get(2));
-        assertEquals(4233, rows.get(3).get(3));
-        assertEquals("Row #4", rows.get(3).get(4));
+        assertEquals(true, result.getCell(0, 3));
+        assertEquals(4233, result.getCell(1, 3));
+        assertEquals("Row #4", result.getCell(2, 3));
     }
 
     @Test
-    public final void testForArrayProperty() throws Exception{
-        final Matrix<Variable> array = MatrixImpl.create(ImmutableList.of(
-                new HashMap<Integer, Variable>(2) {{
-                    put(2, new Integer32(20));
-                }},
-                new HashMap<Integer, Variable>(2) {{
-                    put(2, new Integer32(30));
-                }}
-        ));
+    public final void testForArrayProperty() throws Exception {
+        SnmpTable array = new AbstractSnmpTable() {
+            private final ImmutableList<Variable[]> rows = ImmutableList.of(
+                    new Variable[]{new Integer32(20)},
+                    new Variable[]{new Integer32(30)}
+            );
+
+            @Override
+            public int getRowCount() {
+                return rows.size();
+            }
+
+            @Override
+            public int getColumnCount() {
+                return 1;
+            }
+
+            @Override
+            public Variable getRawCell(final int columnIndex, final int rowIndex) {
+                return rows.get(rowIndex)[columnIndex];
+            }
+        };
         client.writeTable("1.1.5.1", array);
-        final Matrix<?> result = client.readTable(ReadMethod.GETBULK, new OID("1.1.5.1"), new HashMap<Integer, Class<?>>() {{
-            put(2, Integer.class);
-        }});
-        assertEquals(2, result.size());
-        final List<? extends Map<Integer, ?>> rows = MatrixImpl.toList(result);
-        assertEquals(20, rows.get(0).get(2));
-        assertEquals(30, rows.get(1).get(2));
+        array = client.readTable(ReadMethod.GETBULK, new OID("1.1.5.1"), Integer.class);
+        assertEquals(2, array.getRowCount());
+        assertEquals(20, array.getCell(0, 0));
+        assertEquals(30, array.getCell(0, 1));
     }
 
     @Test
-    public final void testForDictionaryProperty() throws Exception{
-        final Matrix<Variable> dict = MatrixImpl.create(ImmutableList.of(
-                new HashMap<Integer, Variable>() {{
-                    put(2, new Integer32(0));//false
-                    put(3, new Integer32(4230));
-                    put(4, new OctetString("Test for dictionary property"));
-                }}
-        ));
+    public final void testForDictionaryProperty() throws Exception {
+        SnmpTable dict = new AbstractSnmpTable() {
+            private final Variable[] row = {
+                    new Integer32(0),
+                    new Integer32(4230),
+                    new OctetString("Test for dictionary property")
+            };
+
+            @Override
+            public int getRowCount() {
+                return 1;
+            }
+
+            @Override
+            public int getColumnCount() {
+                return 3;
+            }
+
+            @Override
+            public Variable getRawCell(final int columnIndex, final int rowIndex) {
+                return row[columnIndex];
+            }
+        };
         client.writeTable("1.1.6.1", dict);
-        final Matrix<?> result = client.readTable(ReadMethod.GETBULK, new OID("1.1.6.1"), new HashMap<Integer, Class<?>>() {{
-            put(2, Boolean.class);
-            put(3, Integer.class);
-            put(4, String.class);
-        }});
-        assertEquals(1, result.size());
-        final List<? extends Map<Integer, ?>> rows = MatrixImpl.toList(result);
-        assertEquals(false, rows.get(0).get(2));
-        assertEquals(4230, rows.get(0).get(3));
-        assertEquals("Test for dictionary property", rows.get(0).get(4));
+        dict = client.readTable(ReadMethod.GETBULK, new OID("1.1.6.1"),
+                Boolean.class,
+                Integer.class,
+                String.class
+        );
+        assertEquals(1, dict.getRowCount());
+        assertEquals(false, dict.getCell(0, 0));
+        assertEquals(4230, dict.getCell(1, 0));
+        assertEquals("Test for dictionary property", dict.getCell(2, 0));
     }
 
     @Test
@@ -345,6 +375,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
+        snmpAdapter.getParameters().put("engineID", ENGINE_ID);
         adapters.put("test-snmp", snmpAdapter);
         snmpAdapter.getParameters().put("ldap-uri", "ldap://127.0.0.1:" + EmbeddedADSVerTrunk.SERVER_PORT);
         snmpAdapter.getParameters().put("ldap-user", LDAP_ADMIN_USER);

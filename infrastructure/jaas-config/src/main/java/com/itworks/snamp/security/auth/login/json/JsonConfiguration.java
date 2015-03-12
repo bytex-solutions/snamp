@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Represents JAAS configuration in the form of the JSON document.
+ * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

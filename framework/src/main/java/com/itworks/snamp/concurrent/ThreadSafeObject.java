@@ -1,11 +1,13 @@
 package com.itworks.snamp.concurrent;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.TimeSpan;
 
-import java.util.*;
+import java.util.EnumSet;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -54,20 +56,20 @@ public abstract class ThreadSafeObject {
         INSTANCE;
     }
 
-    private final Map<Enum<?>, ReentrantReadWriteLock> resourceGroups;
+    private final ImmutableMap<Enum<?>, ReadWriteLock> resourceGroups;
 
     private ThreadSafeObject(final EnumSet<?> groups) {
         switch (groups.size()) {
             case 0:
                 throw new IllegalArgumentException("Set is empty.");
             case 1:
-                resourceGroups = Collections.<Enum<?>, ReentrantReadWriteLock>singletonMap(
-                        groups.iterator().next(), new ReentrantReadWriteLock());
+                resourceGroups = ImmutableMap.<Enum<?>, ReadWriteLock>of(groups.iterator().next(), new ReentrantReadWriteLock());
                 break;
             default:
-                resourceGroups = Maps.newHashMapWithExpectedSize(groups.size());
+                final ImmutableMap.Builder<Enum<?>, ReadWriteLock> builder = ImmutableMap.builder();
                 for (final Enum<?> g : groups)
-                    resourceGroups.put(g, new ReentrantReadWriteLock());
+                    builder.put(g, new ReentrantReadWriteLock());
+                resourceGroups = builder.build();
         }
     }
 
@@ -93,14 +95,14 @@ public abstract class ThreadSafeObject {
     }
 
     private Lock getWriteLock(final Enum<?> group) {
-        final ReentrantReadWriteLock lock = resourceGroups.get(group);
+        final ReadWriteLock lock = resourceGroups.get(group);
         if (lock == null)
             throw createInvalidSectionException(group);
         else return lock.writeLock();
     }
 
     private Lock getReadLock(final Enum<?> group) {
-        final ReentrantReadWriteLock lock = resourceGroups.get(group);
+        final ReadWriteLock lock = resourceGroups.get(group);
         if (lock == null)
             throw createInvalidSectionException(group);
         else return lock.readLock();

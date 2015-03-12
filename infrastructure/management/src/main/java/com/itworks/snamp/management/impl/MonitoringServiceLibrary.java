@@ -5,8 +5,8 @@ import com.itworks.snamp.core.AbstractServiceLibrary;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.management.SnampManager;
-import com.itworks.snamp.management.jmx.FrameworkMBean;
-import com.itworks.snamp.management.jmx.OpenMBeanProvider;
+import com.itworks.snamp.management.FrameworkMBean;
+import com.itworks.snamp.management.OpenMBeanProvider;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
@@ -32,7 +32,7 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
 
     private static final class SnampManagerProvider extends ProvidedService<SnampManager, SnampManagerImpl>{
 
-        public SnampManagerProvider() {
+        private SnampManagerProvider() {
             super(SnampManager.class);
         }
 

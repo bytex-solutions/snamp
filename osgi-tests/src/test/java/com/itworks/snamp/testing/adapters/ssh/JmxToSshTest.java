@@ -37,7 +37,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies(SnampFeature.SSH_ADAPTER)
 public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String FINGERPRINT = "24:aa:e0:cb:d9:89:1d:68:f3:1d:ed:53:0e:99:31:87";
+    private static final String FINGERPRINT = "e8:0d:af:84:bb:ec:05:03:b9:7c:f3:75:19:5a:2a:63";
     private static final String USER_NAME = "Dummy";
     private static final String PASSWORD = "Password";
     private static final int PORT = 22000;
@@ -59,7 +59,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
                 s.exec(String.format("set %s %s", attributeId, value));
             }
             try(final Session s = client.startSession()){
-                final Session.Command result = s.exec(String.format("get %s", attributeId));
+                final Session.Command result = s.exec(String.format("get %s json", attributeId));
                 final String output = IOUtils.readFully(result.getInputStream()).toString();
                 final String error = IOUtils.readFully(result.getErrorStream()).toString();
                 if(error != null && error.length() > 0)
@@ -71,19 +71,30 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         }
     }
 
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
+    }
+
     @Test
     public void integerTest() throws IOException {
         testScalarAttribute("3.0", "42", AbstractResourceConnectorTest.<String>valueEquator());
     }
 
+    private static Equator<String> quotedEquator(){
+        return new Equator<String>() {
+            @Override
+            public boolean equate(String value1, String value2) {
+                value2 = value2.replace('\'', '\"');
+                value1 = '\"' + value1 + '\"';
+                return Objects.equals(value1, value2);
+            }
+        };
+    }
+
     @Test
     public void stringTest() throws IOException{
-        testScalarAttribute("1.0", "\"Hello, world\"", new Equator<String>() {
-            @Override
-            public boolean equate(final String value1, final String value2) {
-                return Objects.equals(String.format("\"%s\"", value1), value2);
-            }
-        });
+        testScalarAttribute("1.0", "\"'Hello, world'\"", quotedEquator());
     }
 
     @Test
@@ -103,78 +114,17 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
 
     @Test
     public void tableTest() throws IOException{
-        try(final SSHClient client = new SSHClient()){
-            client.addHostKeyVerifier(FINGERPRINT);
-            client.connect("localhost", PORT);
-            client.authPassword(USER_NAME, PASSWORD);
-            final String attributeId = String.format("%s/%s", TEST_RESOURCE_NAME, "7.1");
-            //update dictionary
-            try(final Session s = client.startSession()) {
-                s.exec(String.format("set-table %s -r col1=false -r col2=2 -r col3=pp -i 0", attributeId));
-            }
-            try(final Session s = client.startSession()){
-                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
-                assertNotNull(result);
-                assertFalse(result.isEmpty());
-                assertEquals("TABLE col1\tcol2\tcol3false\tpp\t2false\tCiao, monde!\t42true\tLuke Skywalker\t1", result);
-            }
-        }
+        testScalarAttribute("7.1", "\"[{'col1':false,'col2':2,'col3':'pp'}]\"", quotedEquator());
     }
 
     @Test
     public void dictionaryTest() throws IOException{
-        try(final SSHClient client = new SSHClient()){
-            client.addHostKeyVerifier(FINGERPRINT);
-            client.connect("localhost", PORT);
-            client.authPassword(USER_NAME, PASSWORD);
-            final String attributeId = String.format("%s/%s", TEST_RESOURCE_NAME, "6.1");
-            //update dictionary
-            try(final Session s = client.startSession()) {
-                s.exec(String.format("set-map %s -p col1=false -p col2=42", attributeId));
-            }
-            try(final Session s = client.startSession()){
-                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
-                assertNotNull(result);
-                assertFalse(result.isEmpty());
-                assertTrue(result.startsWith("MAP "));
-                assertTrue(result.contains("col1=false"));
-                assertTrue(result.contains("col2=42"));
-            }
-        }
+        testScalarAttribute("6.1", "\"{'col1':false,'col2':42,'col3':'hello, world!'}\"", quotedEquator());
     }
 
     @Test
     public void arrayTest() throws IOException{
-        try(final SSHClient client = new SSHClient()){
-            client.addHostKeyVerifier(FINGERPRINT);
-            client.connect("localhost", PORT);
-            client.authPassword(USER_NAME, PASSWORD);
-            final String attributeId = String.format("%s/%s", TEST_RESOURCE_NAME, "5.1");
-            //update array element
-            try(final Session s = client.startSession()) {
-                s.exec(String.format("set-array %s -i 2 -v 332", attributeId));
-            }
-            try(final Session s = client.startSession()){
-                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
-                assertEquals("ARRAY = [42, 100, 332, 99]", result);
-            }
-            //delete array element
-            try(final Session s = client.startSession()) {
-                s.exec(String.format("set-array %s -i 2 -d", attributeId));
-            }
-            try(final Session s = client.startSession()){
-                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
-                assertEquals("ARRAY = [42, 100, 99]", result);
-            }
-            //insert array element
-            try(final Session s = client.startSession()) {
-                s.exec(String.format("set-array %s -i 1 -v 456 -a", attributeId));
-            }
-            try(final Session s = client.startSession()){
-                final String result = IOUtils.readFully(s.exec(String.format("get %s", attributeId)).getInputStream()).toString();
-                assertEquals("ARRAY = [42, 456, 100, 99]", result);
-            }
-        }
+        testScalarAttribute("5.1", "[42,100,332,99]", AbstractResourceConnectorTest.<String>valueEquator());
     }
 
     @Override
@@ -209,6 +159,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         restAdapter.getParameters().put("port", Integer.toString(PORT));
         restAdapter.getParameters().put("userName", USER_NAME);
         restAdapter.getParameters().put("password", PASSWORD);
+        restAdapter.getParameters().put("certificateFile", getPathToFileInProjectRoot("hostkey.ser"));
         restAdapter.getParameters().put("tty-options", "echo");
         adapters.put("test-jmx", restAdapter);
     }

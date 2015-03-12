@@ -8,7 +8,7 @@ import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
-import com.itworks.snamp.management.jmx.OpenMBean;
+import com.itworks.snamp.jmx.OpenMBean;
 
 import javax.management.openmbean.*;
 import java.util.*;

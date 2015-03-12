@@ -1,17 +1,15 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.itworks.snamp.Consumer;
+import com.google.common.collect.Sets;
+import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.*;
-import com.itworks.snamp.connectors.attributes.AttributeMetadata;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.internal.CountdownTimer;
-import com.itworks.snamp.internal.annotations.Internal;
-import com.itworks.snamp.internal.annotations.Temporary;
-import com.itworks.snamp.mapping.*;
+import com.itworks.snamp.internal.annotations.SpecialUse;
+import com.itworks.snamp.jmx.TabularDataUtils;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.MOQuery;
 import org.snmp4j.agent.MOScope;
@@ -23,23 +21,28 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.SMIConstants;
 import org.snmp4j.smi.Variable;
-import org.snmp4j.smi.VariableBinding;
 
+import javax.management.Descriptor;
+import javax.management.DescriptorRead;
+import javax.management.JMException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.openmbean.*;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
-import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.convertFrom;
-import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.supportsProjection;
+import static com.itworks.snamp.jmx.DescriptorUtils.getField;
+import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
 
 /**
  * Represents SNMP table.
  * @author Roman Sakno
  */
-final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedColumn<Variable>, MOTableModel<MOMutableTableRow>> implements SnmpAttributeMapping, UpdatableManagedObject{
+final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> implements SnmpAttributeMapping, UpdatableManagedObject{
+    static final int SYNTAX = SMIConstants.EXCEPTION_NO_SUCH_OBJECT;
 
     /**
      * Represents transaction state.
@@ -149,7 +152,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             return getCompletionState(rollbackCounter.get(), commitCounter.get(), cleanupCounter.get());
         }
 
-        private static TransactionInfo pendingState(final Request<?, ?> request, final TransactionState state) {
+        private static TransactionInfo pendingState(final Request<?, ?, ?> request, final TransactionState state) {
             final TransactionInfo info;
             final Object untypedInfo = request.getProcessingUserObject(TRANSACTION_INFO_HOLDER);
             if (untypedInfo instanceof TransactionInfo)
@@ -160,7 +163,7 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
             return info;
         }
 
-        private static TransactionInfo pendingState(final SubRequest<?, ?> subreq, final TransactionState state){
+        private static TransactionInfo pendingState(final SubRequest subreq, final TransactionState state){
             return pendingState(subreq.getRequest(), state);
         }
 
@@ -170,34 +173,57 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
         }
     }
 
-    private static final class UpdateManager extends CountdownTimer {
-        public final TimeSpan tableCacheTime;
+    private static final class UpdateManager {
+        private final TimeSpan tableCacheTime;
         private Object updateSource;
         private Date updateTimeStamp;
+        private final Stopwatch timer;
 
-        public UpdateManager(final TimeSpan initial){
-            super(initial);
-            this.tableCacheTime = initial;
+        private UpdateManager(final TimeSpan initial){
+            tableCacheTime = initial;
+            timer = Stopwatch.createUnstarted();
         }
 
-        public UpdateManager(){
+        private boolean stop() {
+            if (timer.isRunning()) {
+                timer.stop();
+                return true;
+            }
+            else return false;
+        }
+
+        private boolean start(){
+            if(timer.isRunning())
+                return false;
+            else {
+                timer.start();
+                return true;
+            }
+        }
+
+        private boolean isEmpty(){
+            final long elapsed = timer.elapsed(tableCacheTime.unit);
+            return elapsed > tableCacheTime.duration;
+        }
+
+        private UpdateManager(){
             this(new TimeSpan(5, TimeUnit.SECONDS));
         }
 
-        public final void reset(){
-            setTimerValue(tableCacheTime);
+        private void reset(){
+            timer.reset();
         }
 
-        public final void updateCompleted(final Object source){
+        private void updateCompleted(final Object source){
             this.updateSource = source;
             this.updateTimeStamp = new Date();
         }
 
-        public final Object getUpdateSource(){
+        private Object getUpdateSource(){
             return updateSource;
         }
 
-        public final Date getUpdateTimeStamp(){
+        private Date getUpdateTimeStamp(){
             return updateTimeStamp;
         }
     }
@@ -206,55 +232,87 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
     private static final String TABLE_CACHE_TIME_PARAM = "tableCacheTime";
     private static final String USE_ROW_STATUS_PARAM = "useRowStatus";
     private final UpdateManager cacheManager;
-    private final boolean useRowStatus;
 
-    @SuppressWarnings("unchecked")
-    private static MONamedColumn<Variable>[] createColumns(final ManagedEntityTabularType tableType, final MOAccess access, final boolean useRowStatus){
+    private static MONamedColumn[] createColumns(final ArrayType<?> tableType,
+                                                           final MOAccess access,
+                                                           final boolean useRowStatus){
         int columnID = 2;
-        final List<MONamedColumn<? extends Variable>> columns = new ArrayList<>(tableType.getColumns().size() + 1);
-        if(ManagedEntityTypeBuilder.isArray(tableType)) //hides column with array indexes
-            columns.add(new MONamedColumn<>(columnID++, ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME, tableType, access));
-        else {
-            for(final String columnName: tableType.getColumns())
-                columns.add(new MONamedColumn<>(columnID++, columnName, tableType, access));
-            return columns.toArray(new MONamedColumn[columns.size()]);
-        }
+        final List<MONamedColumn> columns = Lists.newArrayListWithCapacity(2);
+        //column with array values
+        columns.add(new MONamedColumn(columnID++, tableType, access));
         //add RowStatus column
         if(useRowStatus)
             columns.add(new MORowStatusColumn(columnID));
-        return columns.toArray(new MONamedColumn[columns.size()]);
+        return ArrayUtils.toArray(columns, MONamedColumn.class);
+    }
+
+    private static MONamedColumn[] createColumns(final CompositeType type,
+                                                    final MOAccess access){
+        int columnID = 2;
+        //each key is in separated column
+        final List<MONamedColumn> columns = Lists.newArrayListWithCapacity(type.keySet().size());
+        for(final String itemName: type.keySet())
+            columns.add(new MONamedColumn(columnID++, type, itemName, access));
+        return ArrayUtils.toArray(columns, MONamedColumn.class);
+    }
+
+    private static MONamedColumn[] createColumns(final TabularType type,
+                                                  final MOAccess access,
+                                                  final boolean useRowStatus){
+        int columnID = 2;
+        //each key is in separated column
+
+        final CompositeType rowType = type.getRowType();
+        final List<MONamedColumn> columns = Lists.newArrayListWithCapacity(rowType.keySet().size() + 1);
+        for(final String columnName: rowType.keySet())
+            columns.add(new MONamedColumn(columnID++, type, columnName, access));
+        //add RowStatus column
+        if(useRowStatus)
+            columns.add(new MORowStatusColumn(columnID));
+        return ArrayUtils.toArray(columns, MONamedColumn.class);
+    }
+
+    private static MONamedColumn[] createColumns(final OpenType<?> type,
+                                                           final MOAccess access,
+                                                           final boolean useRowStatus){
+        if(type instanceof ArrayType<?>)
+            return createColumns((ArrayType<?>)type, access, useRowStatus);
+        else if(type instanceof CompositeType)
+            return createColumns((CompositeType)type, access);
+        else if(type instanceof TabularType)
+            return createColumns((TabularType)type, access, useRowStatus);
+        else return new MONamedColumn[0];
     }
 
     private static OID makeRowID(final int rowIndex){
         return new OID(new int[]{rowIndex + 1});
     }
 
-    private static boolean shouldUseRowStatus(final Map<String, String> options){
-        return options.containsKey(USE_ROW_STATUS_PARAM) &&
-                Boolean.valueOf(options.get(USE_ROW_STATUS_PARAM));
+    private static boolean shouldUseRowStatus(final Descriptor options){
+        return hasField(options, USE_ROW_STATUS_PARAM) &&
+                Boolean.valueOf(getField(options, USE_ROW_STATUS_PARAM, String.class));
     }
 
     private SnmpTableObject(final OID oid,
                             final AttributeAccessor connector){
         super(oid,
                 new MOTableIndex(new MOTableSubIndex[]{new MOTableSubIndex(null, SMIConstants.SYNTAX_INTEGER, 1, 1)}),
-                createColumns((ManagedEntityTabularType)connector.getType(), getAccessRestrictions(connector, true), shouldUseRowStatus(connector))
+                createColumns(connector.getOpenType(), getAccessRestrictions(connector.getMetadata(), true), shouldUseRowStatus(connector.getMetadata().getDescriptor()))
         );
         //setup table model
-        final DefaultMOMutableTableModel<MOMutableTableRow> tableModel = new DefaultMOMutableTableModel<>();
+        final DefaultMOMutableTableModel<DefaultMOMutableRow2PC> tableModel = new DefaultMOMutableTableModel<>();
         tableModel.setRowFactory(new DefaultMOMutableRow2PCFactory());
         this.setModel(tableModel);
         //save additional fields
         _connector = connector;
-        cacheManager = connector.containsKey(TABLE_CACHE_TIME_PARAM) ?
-                new UpdateManager(new TimeSpan(Integer.valueOf(connector.get(TABLE_CACHE_TIME_PARAM)))):
+        cacheManager = hasField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM) ?
+                new UpdateManager(new TimeSpan(Integer.valueOf(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class)))):
                 new UpdateManager();
-        useRowStatus = shouldUseRowStatus(connector);
     }
 
-    @Internal
-    SnmpTableObject(final String oid, final AttributeAccessor connector){
-        this(new OID(oid), connector);
+    @SpecialUse
+    SnmpTableObject(final AttributeAccessor connector){
+        this(new OID(SnmpAdapterConfigurationDescriptor.getOID(connector.getMetadata())), connector);
     }
 
     /**
@@ -263,8 +321,8 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
      * @return The metadata of the underlying attribute.
      */
     @Override
-    public final AttributeMetadata getMetadata() {
-        return _connector;
+    public final MBeanAttributeInfo getMetadata() {
+        return _connector.getMetadata();
     }
 
     /**
@@ -275,141 +333,80 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
         return getModel().getRowCount() == 0;
     }
 
-    /**
-     * Returns management type of this table.
-     * @return The management type of this table.
-     */
-    public final ManagedEntityTabularType getTableType(){
-        return (ManagedEntityTabularType)_connector.getType();
-    }
-
-    private static Variable[] createRow(final MONamedColumn<?>[] columns,
-                                        final Map<String, ManagedEntityValue<?>> row,
-                                        final Map<String, String> conversionOptions) throws Throwable{
-        final Variable[] result = new Variable[columns.length];
-        for(int columnIndex = 0; columnIndex < result.length; columnIndex++){
-            final MONamedColumn<?> columnDef = columns[columnIndex];
-            final ManagedEntityValue<?> cell = row.get(columnDef.name);
-            result[columnIndex] = columnDef.createCellValue(cell.rawValue, cell.type, conversionOptions);
-        }
-        return result;
-    }
-
-    private static Variable[] createRow(final MONamedColumn<?>[] columns,
-                                        final RecordSet<String, ManagedEntityValue<?>> row,
-                                        final Map<String, String> conversionOptions) throws Throwable {
-        return createRow(columns, RecordSetUtils.toMap(row), conversionOptions);
-    }
-
-    private static void fill(final RowSet<?> values,
-                             final MOTable<MOMutableTableRow, MONamedColumn<Variable>, MOTableModel<MOMutableTableRow>> table,
-                             final ManagedEntityTabularType type,
-                             final Map<String, String> conversionOptions) throws Exception{
-        values.sequential().forEach(new TableReader<Exception>(type) {
-            @Override
-            protected void read(final int rowIndex, final RecordSet<String, ManagedEntityValue<?>> row) throws Exception{
-                final OID rowID = makeRowID(rowIndex);
-                try {
-                    @Temporary
-                    final MOMutableTableRow newRow = table.createRow(rowID,
-                            createRow(table.getColumns(), row, conversionOptions));
-                    table.addRow(newRow);
-                }
-                catch (final Exception | Error e){
-                    throw e;
-                }
-                catch (final Throwable e){
-                    throw new Exception(e);
-                }
-            }
-        });
-    }
-
-    private static void fill(final Object[] values,
-                             final MOTable<MOMutableTableRow, MONamedColumn<Variable>, MOTableModel<MOMutableTableRow>> table,
-                             final ManagedEntityTabularType type,
-                             final Map<String, String> conversionOptions) throws Exception {
-        fill(new AbstractRowSet<Object>(){
-            private final Set<String> columns = ImmutableSet.of(ManagedEntityTypeBuilder.ManagedEntityArrayType.VALUE_COLUMN_NAME);
-
-            @Override
-            protected Object getCell(final String columnName, final int rowIndex) {
-                return values[rowIndex];
-            }
-
-            @Override
-            public Set<String> getColumns() {
-                return columns;
-            }
-
-            @Override
-            public boolean isIndexed(final String columnName) {
-                return Objects.equals(columnName, ManagedEntityTypeBuilder.ManagedEntityArrayType.INDEX_COLUMN_NAME);
-            }
-
-            @Override
-            public int size() {
-                return values.length;
-            }
-        }, table, type, conversionOptions);
-    }
-
-    private static void forEachVariable(final RowSet<?> table,
-                                           final ManagedEntityTabularType type,
-                                           final Map<String, String> conversionOptions,
-                                           final Consumer<VariableBinding, ? extends Throwable> acceptor) throws Exception {
-        table.sequential().forEach(new TableReader<Exception>(type) {
-            private final MONamedColumn<?>[] columns = createColumns(type, MOAccessImpl.ACCESS_READ_ONLY, false);
-
-            @Override
-            protected void read(final int rowIndex, final RecordSet<String, ManagedEntityValue<?>> row) throws Exception {
-                try {
-                    final Variable[] variables = createRow(columns, row, conversionOptions);
-                    for (int columnIndex = 0; columnIndex < variables.length; columnIndex++)
-                        acceptor.accept(new VariableBinding(new OID(new int[]{rowIndex, columnIndex}), variables[columnIndex]));
-                }
-                catch (final Exception|Error e){
-                    throw e;
-                }
-                catch (final Throwable e) {
-                    throw new Exception(e);
-                }
-            }
-        });
-    }
-
-    static void forEachVariable(final ManagedEntityValue<?> value,
-                                final Map<String, String> conversionOptions,
-                                final Consumer<VariableBinding, ? extends Throwable> acceptor) throws Throwable {
-        if (value.canConvertTo(TypeLiterals.ROW_SET) && value.isTypeOf(ManagedEntityTabularType.class))
-            forEachVariable(value.convertTo(TypeLiterals.ROW_SET),
-                    (ManagedEntityTabularType) value.type,
-                    conversionOptions,
-                    acceptor);
-    }
-
     private static Object fill(final AttributeAccessor connector,
-                               final MOTable<MOMutableTableRow, MONamedColumn<Variable>, MOTableModel<MOMutableTableRow>> table) throws Exception{
+                               final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table) throws JMException{
         final Object lastUpdateSource;
-        if(supportsProjection(connector.getType(), TypeLiterals.ROW_SET) && connector.hasManagedType(ManagedEntityTabularType.class))
-            fill(convertFrom(connector.getType(), lastUpdateSource = connector.getRawValue(), TypeLiterals.ROW_SET), table, (ManagedEntityTabularType)connector.getType(), connector);
-        else if(supportsProjection(connector.getType(), TypeLiterals.OBJECT_ARRAY) && ManagedEntityTypeBuilder.isArray(connector.getType()))
-            fill(convertFrom(connector.getType(), lastUpdateSource = connector.getRawValue(), TypeLiterals.OBJECT_ARRAY), table, (ManagedEntityTabularType)connector.getType(), connector);
-        else {
-            SnmpHelpers.log(Level.WARNING, "Source attribute table %s is not supported", table.getOID(), null);
-            lastUpdateSource = null;
-        }
+        final OpenType<?> ot = connector.getOpenType();
+            if (ot instanceof ArrayType<?>) {
+                fill(lastUpdateSource = connector.getValue(), table, connector.getMetadata());
+            } else if (ot instanceof CompositeType) {
+                lastUpdateSource = connector.getValue(CompositeData.class);
+                fill((CompositeData) lastUpdateSource, table, connector.getMetadata());
+            } else if (ot instanceof TabularType) {
+                lastUpdateSource = connector.getValue(TabularData.class);
+                fill((TabularData) lastUpdateSource, table, connector.getMetadata());
+            } else {
+                SnmpHelpers.log(Level.WARNING, "Source attribute table %s is not supported", table.getOID(), null);
+                lastUpdateSource = null;
+            }
         return lastUpdateSource;
     }
 
-    private void fillTableIfNecessary() throws TimeoutException, AttributeSupportException {
+    private static void fill(final TabularData data,
+                             final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table,
+                             final DescriptorRead conversionOptions){
+        final MutableInteger rowIndex = new MutableInteger(0);
+        TabularDataUtils.forEachRow(data, new SafeConsumer<CompositeData>() {
+            @Override
+            public void accept(final CompositeData row){
+                final List<Variable> cells = Lists.newArrayListWithExpectedSize(table.getColumnCount());
+                for(int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++){
+                    final MONamedColumn columnDef = table.getColumn(columnIndex);
+                    if(MORowStatusColumn.isInstance(columnDef))
+                        cells.add(columnIndex, TableRowStatus.ACTIVE.toManagedScalarValue());
+                    else {
+                        final Variable cell = columnDef.createCellValue(row.get(columnDef.name), conversionOptions);
+                        cells.add(columnIndex, cell);
+                    }
+                }
+                table.addRow(table.createRow(makeRowID(rowIndex.getAndIncrement()), ArrayUtils.toArray(cells, Variable.class)));
+            }
+        });
+    }
+
+    private static void fill(final CompositeData data,
+                             final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table,
+                             final DescriptorRead conversionOptions){
+        final List<Variable> cells = Lists.newArrayListWithExpectedSize(table.getColumnCount());
+        for(int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++){
+            final MONamedColumn columnDef = table.getColumn(columnIndex);
+            final Variable cell = columnDef.createCellValue(data.get(columnDef.name), conversionOptions);
+            cells.add(columnIndex, cell);
+        }
+        table.addRow(table.createRow(makeRowID(0), ArrayUtils.toArray(cells, Variable.class)));
+    }
+
+    private static void fill(final Object array,
+                             final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table,
+                             final DescriptorRead conversionOptions){
+        //for arrays we have only one column with values
+        final MONamedColumn columnDef = table.getColumn(0);
+        final boolean needRowStatus = SnmpHelpers.findColumnIndex(table, MORowStatusColumn.class) >= 0;
+        for(int i = 0; i < Array.getLength(array); i++) {
+            final List<Variable> cells = Lists.newArrayListWithExpectedSize(2);
+            cells.add(0, columnDef.createCellValue(Array.get(array, i), conversionOptions));
+            //handle row status column
+            if(needRowStatus)
+                cells.add(1, TableRowStatus.ACTIVE.toManagedScalarValue());
+            table.addRow(table.createRow(makeRowID(i), ArrayUtils.toArray(cells, Variable.class)));
+        }
+    }
+
+    private void fillTableIfNecessary() throws JMException {
         if (isEmpty()) try {
             cacheManager.updateCompleted(fill(_connector, this));
-        } catch (final TimeoutException | AttributeSupportException e) {
-            throw e;
-        } catch (final Exception e) {
-            throw new AttributeSupportException(e);
-        } finally {
+        }
+        finally {
             cacheManager.stop();
             cacheManager.reset();
             cacheManager.start();
@@ -422,10 +419,6 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
                     cacheManager.updateCompleted(fill(_connector, this));
                     cacheManager.reset();
                 }
-            } catch (final AttributeSupportException | TimeoutException e) {
-                throw e;
-            } catch (final Exception e) {
-                throw new AttributeSupportException(e);
             } finally {
                 cacheManager.start();
             }
@@ -475,108 +468,93 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
         try {
             fillTableIfNecessary();
         }
-        catch (final TimeoutException | AttributeSupportException e) {
+        catch (final JMException e) {
             SnmpHelpers.log(Level.SEVERE, "Unable to update SNMP table.", e);
         }
     }
 
-    private Set<OID> dumpArray(final ManagedEntityType elementType) throws Throwable {
-        final Set<OID> rowsToDelete = new HashSet<>(model.getRowCount());
-        final int rowStatusIndex = useRowStatus ? SnmpHelpers.findColumnIndex(this, MORowStatusColumn.class) : -1;
-        final Object[] array = new Object[model.getRowCount()];
-        for(int i = 0; i < model.getRowCount(); i++){
+    private Set<OID> dump(final ArrayType<?> arrayType) throws JMException {
+        final Set<OID> rowsToDelete = Sets.newHashSetWithExpectedSize(model.getRowCount());
+        final int rowStatusIndex = SnmpHelpers.findColumnIndex(this, MORowStatusColumn.class);
+        final List<Object> array = Lists.newArrayListWithExpectedSize(model.getRowCount());
+        for (int i = 0; i < array.size(); i++) {
             final MOMutableTableRow row = model.getRow(makeRowID(i));
-            if(row == null){ //cancels row sending
+            if (row == null) { //cancels row sending
                 SnmpHelpers.log(Level.SEVERE, "Row %s is null. Sending array is cancelled", makeRowID(i), null);
                 return Collections.emptySet();
-            }
-            else if(rowStatusIndex >= 0)
-                switch(TableRowStatus.parse(row.getValue(rowStatusIndex))){
-                    case ACTIVE: break;
+            } else if (rowStatusIndex >= 0)
+                switch (TableRowStatus.parse(row.getValue(rowStatusIndex))) {
                     case CREATE_AND_GO:
                         row.setValue(rowStatusIndex, TableRowStatus.ACTIVE.toManagedScalarValue());
+                    case ACTIVE:
                         break;
                     case DESTROY:
                         rowsToDelete.add(row.getIndex());
                         continue;
                     default:
                         SnmpHelpers.log(Level.WARNING, "Unsupported row status %s detected at row %s in table %s. Row is ignored.", row.getValue(rowStatusIndex), row.getIndex(), getOID(), null);
-                    continue;
+                        continue;
                 }
-            array[i] = getColumn(0).parseCellValue(row.getValue(0), elementType, _connector);
+            array.add(getColumn(0).parseCellValue(row.getValue(0), getMetadata()));
         }
-        _connector.setValue(array);
+        _connector.setValue(SnmpHelpers.toArray(array, arrayType));
+        return rowsToDelete;
+    }
+
+    private Set<OID> dump(final CompositeType type) throws JMException{
+        if(model.getRowCount() > 0) {
+            final Map<String, Object> items = Maps.newHashMapWithExpectedSize(getColumnCount());
+            for (int columnIndex = 0; columnIndex < getColumnCount(); columnIndex++) {
+                final MONamedColumn columndDef = getColumn(columnIndex);
+                final MOTableRow<?> row = model.getRow(makeRowID(0));
+                if (type.containsKey(columndDef.name))
+                    items.put(columndDef.name, columndDef.parseCellValue(row.getValue(columnIndex), getMetadata()));
+            }
+            _connector.setValue(new CompositeDataSupport(type, items));
+        }
+        return Collections.emptySet();
+    }
+
+    private Set<OID> dump(final TabularType type) throws JMException{
+        final TabularDataSupport result = new TabularDataSupport(type);
+        final Set<OID> rowsToDelete = Sets.newHashSetWithExpectedSize(model.getRowCount());
+        //for each for
+        next_row: for(int rowIndex = 0; rowIndex < model.getRowCount(); rowIndex++){
+            final Map<String, Object> items = Maps.newHashMapWithExpectedSize(getColumnCount());
+            final MOMutableTableRow row = model.getRow(makeRowID(rowIndex));
+            for(int columnIndex = 0; columnIndex < getColumnCount(); columnIndex++){
+                final MONamedColumn column = getColumn(columnIndex);
+                if(MORowStatusColumn.isInstance(column))
+                    switch (TableRowStatus.parse(row.getValue(rowIndex))){
+                        case CREATE_AND_GO:
+                            row.setValue(rowIndex, TableRowStatus.ACTIVE.toManagedScalarValue());
+                        case ACTIVE: continue;
+                        case DESTROY:
+                            rowsToDelete.add(row.getIndex());
+                            continue next_row;
+                        default:
+                            SnmpHelpers.log(Level.WARNING, "Unsupported row status %s detected at row %s in table %s. Row is ignored.", row.getValue(rowIndex), row.getIndex(), getOID(), null);
+                        continue next_row;
+                    }
+                else  //data row
+                    items.put(column.name, column.parseCellValue(row.getValue(columnIndex), getMetadata()));
+            }
+            result.put(new CompositeDataSupport(type.getRowType(), items));
+        }
+        _connector.setValue(result);
         return rowsToDelete;
     }
 
     //this method is synchronized because sending table rows to connector is atomic
-    private synchronized void dumpTable() throws TimeoutException, AttributeSupportException {
-        final Set<OID> rowsToDelete;
-        if(ManagedEntityTypeBuilder.isArray(getTableType()))
-            try {
-                rowsToDelete = dumpArray(getTableType().getColumnType(ManagedEntityTypeBuilder.AbstractManagedEntityArrayType.VALUE_COLUMN_NAME));
-            }
-            catch (final AttributeSupportException|TimeoutException e){
-                throw e;
-            }
-            catch (final Exception e){
-                throw new AttributeSupportException(e);
-            }
-            catch (final Throwable e){
-                throw new AttributeSupportException(new Exception(e));
-            }
-        else {
-            rowsToDelete = new HashSet<>(model.getRowCount());
-            final List<Map<String, Object>> table = new ArrayList<>(model.getRowCount());
-            final Set<String> columns = new HashSet<>(model.getColumnCount());
-            final Set<String> indexedColumns = new HashSet<>(model.getColumnCount());
-            for(int r = 0; r < model.getRowCount(); r++){
-                final MOMutableTableRow row = model.getRow(makeRowID(r));
-                if(row == null){ //cancels row sending
-                    SnmpHelpers.log(Level.SEVERE, "Row %s is null. Sending table %s is cancelled", makeRowID(r), getOID(), null);
-                    return;
-                }
-                final Map<String, Object> cells = Maps.newHashMapWithExpectedSize(getColumnCount());
-                boolean allowToAddRow = true;
-                for(int c = 0; c < getColumnCount(); c++){
-                    final MONamedColumn<Variable> column = getColumn(c);
-                    if(column.isSynthetic()){
-                        if(MORowStatusColumn.isInstance(column))
-                            switch (TableRowStatus.parse(row.getValue(c))){
-                                case CREATE_AND_GO:
-                                    row.setValue(c, TableRowStatus.ACTIVE.toManagedScalarValue());
-                                case ACTIVE:
-                                    allowToAddRow = true;
-                                    break;
-                                case DESTROY:
-                                    rowsToDelete.add(row.getIndex());
-                                    allowToAddRow = false;
-                                    break;
-                                default:
-                                    SnmpHelpers.log(Level.WARNING, "Unsupported row status %s detected at row %s in table %s. Row is ignored.", row.getValue(c), row.getIndex(), getOID(), null);
-                                    allowToAddRow = true;
-                                    break;
-                            }
-                    }
-                    else try {
-                        columns.add(column.name);
-                        if(column.isIndexed) indexedColumns.add(column.name);
-                        cells.put(column.name, column.parseCellValue(row.getValue(c), getTableType().getColumnType(column.name), getMetadata()));
-                    }
-                    catch (final AttributeSupportException|TimeoutException|Error e){
-                        throw e;
-                    }
-                    catch (final Exception e){
-                        throw new AttributeSupportException(e);
-                    }
-                    catch (final Throwable e){
-                        throw new AttributeSupportException(new Exception(e));
-                    }
-                }
-                if(allowToAddRow) table.add(cells);
-            }
-            _connector.setRowSet(columns, indexedColumns, table);
-        }
+    private synchronized void dumpTable() throws JMException {
+        Set<OID> rowsToDelete = Collections.emptySet();
+        final OpenType<?> attributeType = _connector.getOpenType();
+        if(attributeType instanceof ArrayType<?>)
+            rowsToDelete = dump((ArrayType<?>) attributeType);
+        else if(attributeType instanceof CompositeType)
+            rowsToDelete = dump((CompositeType) attributeType);
+        else if(attributeType instanceof TabularType)
+            rowsToDelete = dump((TabularType)attributeType);
         //remove rows
         for(final OID row: rowsToDelete)
             removeRow(row);
@@ -642,5 +620,16 @@ final class SnmpTableObject extends DefaultMOTable<MOMutableTableRow, MONamedCol
         finally {
             super.cleanup(request);
         }
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the requested object.
+     * @return An instance of the aggregated object; or {@literal null} if object is not available.
+     */
+    @Override
+    public <T> T queryObject(final Class<T> objectType) {
+        return objectType.isAssignableFrom(AttributeAccessor.class) ? objectType.cast(_connector) : null;
     }
 }

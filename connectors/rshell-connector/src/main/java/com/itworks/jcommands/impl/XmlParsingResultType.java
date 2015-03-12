@@ -2,8 +2,8 @@ package com.itworks.jcommands.impl;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
-import com.google.common.reflect.TypeToken;
 
+import javax.management.openmbean.*;
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlType;
@@ -29,19 +29,34 @@ public enum XmlParsingResultType {
      *     Possible string values are 0, 1, true, false, yes, no.
      */
     @XmlEnumValue("boolean")
-    BOOLEAN(true, TypeToken.of(Boolean.class)),
+    BOOLEAN(SimpleType.BOOLEAN) {
+        @Override
+        public boolean[] newArray(final int length) {
+            return new boolean[length];
+        }
+    },
 
     /**
      * Represents string value.
      */
     @XmlEnumValue("string")
-    STRING(true, TypeToken.of(String.class)),
+    STRING(SimpleType.STRING){
+        @Override
+        public String[] newArray(final int length) {
+            return new String[length];
+        }
+    },
 
     /**
      * Represents single character.
      */
     @XmlEnumValue("char")
-    CHARACTER(true, TypeToken.of(Character.class)),
+    CHARACTER(SimpleType.CHARACTER) {
+        @Override
+        public char[] newArray(final int length) {
+            return new char[length];
+        }
+    },
 
     /**
      * Represents an array of bytes.
@@ -49,58 +64,129 @@ public enum XmlParsingResultType {
      *     This type converts hex string into the array of bytes.
      */
     @XmlEnumValue("blob")
-    BLOB(false, TypeToken.of(Byte[].class)),
+    BLOB(ArrayType.getPrimitiveArrayType(byte[].class)) {
+        @Override
+        public byte[][] newArray(final int length) {
+            return new byte[length][];
+        }
+    },
 
     @XmlEnumValue("8bit")
-    BYTE(true, TypeToken.of(Byte.class)),
+    BYTE(SimpleType.BYTE) {
+        @Override
+        public byte[] newArray(final int length) {
+            return new byte[length];
+        }
+    },
 
     @XmlEnumValue("16bit")
-    SHORT(true, TypeToken.of(Short.class)),
+    SHORT(SimpleType.SHORT) {
+        @Override
+        public short[] newArray(final int length) {
+            return new short[length];
+        }
+    },
 
     @XmlEnumValue("32bit")
-    INTEGER(true, TypeToken.of(Integer.class)),
+    INTEGER(SimpleType.INTEGER) {
+        @Override
+        public int[] newArray(final int length) {
+            return new int[length];
+        }
+    },
 
     @XmlEnumValue("64bit")
-    LONG(true, TypeToken.of(Long.class)),
+    LONG(SimpleType.LONG) {
+        @Override
+        public long[] newArray(final int length) {
+            return new long[length];
+        }
+    },
 
     @XmlEnumValue("integer")
-    BIG_INTEGER(true, TypeToken.of(BigInteger.class)),
+    BIG_INTEGER(SimpleType.BIGINTEGER) {
+        @Override
+        public BigInteger[] newArray(final int length) {
+            return new BigInteger[length];
+        }
+    },
 
     @XmlEnumValue("decimal")
-    BIG_DECIMAL(true, TypeToken.of(BigDecimal.class)),
+    BIG_DECIMAL(SimpleType.BIGDECIMAL) {
+        @Override
+        public BigDecimal[] newArray(final int length) {
+            return new BigDecimal[length];
+        }
+    },
 
     @XmlEnumValue("dictionary")
-    DICTIONARY(false, TypeTokens.DICTIONARY_TYPE_TOKEN),
+    DICTIONARY {
+        @Override
+        public CompositeData[] newArray(final int length) {
+            return new CompositeData[length];
+        }
+    },
 
     @XmlEnumValue("array")
-    ARRAY(false, TypeToken.of(Object[].class)),
+    ARRAY {
+        @Override
+        public Object newArray(final int length) {
+            return new Object[length];
+        }
+    },
 
     @XmlEnumValue("table")
-    TABLE(false, TypeTokens.TABLE_TYPE_TOKEN),
+    TABLE {
+        @Override
+        public TabularData[] newArray(final int length) {
+            return new TabularData[length];
+        }
+    },
 
     @XmlEnumValue("date")
-    DATE_TIME(true, TypeToken.of(Date.class)),
+    DATE_TIME(SimpleType.DATE) {
+        @Override
+        public Date[] newArray(final int length) {
+            return new Date[length];
+        }
+    },
 
     @XmlEnumValue("float")
-    FLOAT(true, TypeToken.of(Float.class)),
+    FLOAT(SimpleType.FLOAT) {
+        @Override
+        public float[] newArray(final int length) {
+            return new float[length];
+        }
+    },
 
     @XmlEnumValue("double")
-    DOUBLE(true, TypeToken.of(Double.class));
+    DOUBLE(SimpleType.DOUBLE) {
+        @Override
+        public double[] newArray(final int length) {
+            return new double[length];
+        }
+    };
 
-    /**
-     * Determines whether this type is scalar.
-     */
-    public final boolean isScalar;
+    private final OpenType<?> openType;
 
-    /**
-     * Represents underying SNAMP-compliant type.
-     */
-    public final TypeToken<?> underlyingType;
+    private XmlParsingResultType(final SimpleType<?> type){
+        this.openType = type;
+    }
 
-    private XmlParsingResultType(final boolean scalar,
-                                 final TypeToken<?> type){
-        this.isScalar = scalar;
-        this.underlyingType = type;
+    private XmlParsingResultType(final ArrayType<?> type){
+        this.openType = type;
+    }
+
+    private XmlParsingResultType(){
+        this.openType = null;
+    }
+
+    public OpenType<?> getOpenType(){
+        return openType;
+    }
+
+    public boolean isScalar(){
+        return openType != null;
     }
 
     /**
@@ -111,8 +197,10 @@ public enum XmlParsingResultType {
         return Sets.filter(EnumSet.allOf(XmlParsingResultType.class), new Predicate<XmlParsingResultType>() {
             @Override
             public boolean apply(final XmlParsingResultType input) {
-                return input.isScalar;
+                return input.isScalar();
             }
         });
     }
+
+    public abstract Object newArray(final int length);
 }

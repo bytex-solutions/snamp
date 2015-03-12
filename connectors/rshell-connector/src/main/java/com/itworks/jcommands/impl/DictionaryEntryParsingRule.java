@@ -70,7 +70,7 @@ public final class DictionaryEntryParsingRule extends ParsingRule{
      * @param value The type of the entry value. Only scalar types are allowed.
      */
     public void setValueType(final XmlParsingResultType value){
-        if(value == null || !value.isScalar)
+        if(value == null || !value.isScalar())
             throw new IllegalArgumentException(String.format("Expecting scalar type but %s found", value));
         else this.valueType = value;
     }

@@ -1,11 +1,10 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.google.common.eventbus.Subscribe;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
 import org.snmp4j.agent.DuplicateRegistrationException;
-import org.snmp4j.agent.mo.MOTableRow;
+import org.snmp4j.agent.NotificationOriginator;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
 import org.snmp4j.mp.MPv1;
@@ -31,7 +30,7 @@ import java.util.logging.Level;
  * @author Roman Sakno, Evgeniy Kirichenko
  * 
  */
-final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
+final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
     private static final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
 
 	private final String hostName;
@@ -43,15 +42,16 @@ final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
     private ExecutorService threadPool;
     private final SecurityConfiguration security;
 
-    SnmpAgent(final int port,
-                     final String hostName,
-                     final SecurityConfiguration securityOptions,
-                     final int socketTimeout) throws IOException {
+    SnmpAgent(final OctetString engineID,
+            final int port,
+            final String hostName,
+            final SecurityConfiguration securityOptions,
+            final int socketTimeout) throws IOException {
 		// These files does not exist and are not used but has to be specified
 		// Read snmp4j docs for more info
 		super(new File("conf.agent"), null,
                 new CommandProcessor(
-                        new OctetString(MPv3.createLocalEngineID())));
+                        new OctetString(engineID)));
         coldStart = true;
         this.attributes = new ArrayList<>(10);
         this.notifications = new ArrayList<>(10);
@@ -68,13 +68,13 @@ final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
             boolean wasWriteViewAdded = false;
             for(final SnmpAttributeMapping mo: SnmpHelpers.getObjectsByPrefix(prefix, attributes))
                 try {
-                    if (mo.getMetadata().canRead() && !wasReadViewAdded){
+                    if (mo.getMetadata().isReadable() && !wasReadViewAdded){
                         vacmMIB.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
                                 new OctetString(), VacmMIB.vacmViewIncluded,
                                 StorageType.nonVolatile);
                         wasReadViewAdded = true;
                     }
-                    if (mo.getMetadata().canWrite() && !wasWriteViewAdded){
+                    if (mo.getMetadata().isWritable() && !wasWriteViewAdded){
                         vacmMIB.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
                                 new OctetString(), VacmMIB.vacmViewIncluded,
                                 StorageType.nonVolatile);
@@ -138,12 +138,9 @@ final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
     protected void initMessageDispatcher() {
         if (threadPool != null) {
             dispatcher = new ConcurrentMessageDispatcher(threadPool);
-            mpv3 = new MPv3(agent.getContextEngineID().getValue());
-            usm = new USM(SecurityProtocols.getInstance(),
+            mpv3 = new MPv3(usm = new USM(DefaultSecurityProtocols.getInstance(),
                     agent.getContextEngineID(),
-                    updateEngineBoots());
-            SecurityModels.getInstance().addSecurityModel(usm);
-            SecurityProtocols.getInstance().addDefaultProtocols();
+                    updateEngineBoots()));
             dispatcher.addMessageProcessingModel(new MPv1());
             dispatcher.addMessageProcessingModel(new MPv2c());
             dispatcher.addMessageProcessingModel(mpv3);
@@ -258,17 +255,17 @@ final class SnmpAgent extends BaseAgent implements SnmpNoitificationListener {
 				new Integer32(StorageType.nonVolatile), // storage type
 				new Integer32(RowStatus.active) // row status
 		};
-		final MOTableRow row = communityMIB.getSnmpCommunityEntry().createRow(
+		final SnmpCommunityMIB.SnmpCommunityEntryRow row = communityMIB.getSnmpCommunityEntry().createRow(
 				new OctetString("public2public").toSubIndex(true), com2sec);
 		communityMIB.getSnmpCommunityEntry().addRow(row);
 	}
 
-    @Subscribe
     @Override
     public void processNotification(final SnmpNotification wrappedNotification){
-        if(notificationOriginator != null){
-            notificationOriginator.notify(new OctetString(), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv3 sending
-            notificationOriginator.notify(new OctetString("public"), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv2 sending
+        final NotificationOriginator originator = super.notificationOriginator;
+        if(originator != null){
+            originator.notify(new OctetString(), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv3 sending
+            originator.notify(new OctetString("public"), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv2 sending
         }
     }
 

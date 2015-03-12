@@ -12,6 +12,7 @@
     <name>JMX Adapter Karaf Feature</name>
     <artifactId>jmx-adapter-feature</artifactId>
     <version>1.0.0</version>
+    <description>JMX Adapter in the form of Apache Karaf Feature</description>
     <build>
         <resources>
             <resource>

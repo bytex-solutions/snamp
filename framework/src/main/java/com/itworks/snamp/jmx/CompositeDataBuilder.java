@@ -2,6 +2,7 @@ package com.itworks.snamp.jmx;
 
 import com.google.common.base.Supplier;
 
+import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -17,6 +18,7 @@ import java.util.LinkedHashMap;
  * @see javax.management.openmbean.CompositeDataSupport
  */
 public class CompositeDataBuilder extends LinkedHashMap<String, Object> implements Supplier<CompositeData> {
+    private static final long serialVersionUID = 4339347653114240740L;
     private final CompositeTypeBuilder typeBuilder;
 
     /**
@@ -292,6 +294,12 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
                                                        final String itemDescription,
                                                        final CompositeData dict) {
         return put(itemName, itemDescription, dict.getCompositeType(), dict);
+    }
+
+    public final CompositeDataBuilder put(final String itemName,
+                                          final String itemDescription,
+                                          final ObjectName value){
+        return put(itemName, itemDescription, SimpleType.OBJECTNAME, value);
     }
 
     public final CompositeDataBuilder put(final String itemName,

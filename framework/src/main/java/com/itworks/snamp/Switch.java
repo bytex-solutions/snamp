@@ -1,6 +1,7 @@
 package com.itworks.snamp;
 
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
@@ -15,25 +16,25 @@ import java.util.Objects;
  */
 public class Switch<I, O> implements Function<I, O> {
     private static final class SwitchNode<I, O> {
-        private final Predicate<I> predicate;
-        private final Function<I, O> transformer;
+        private final Predicate<? super I> predicate;
+        private final Function<? super I, ? extends O> transformer;
         private SwitchNode<I, O> nextNode = null;
 
-        private SwitchNode(final Predicate<I> condition,
-                           final Function<I, O> action) {
+        private SwitchNode(final Predicate<? super I> condition,
+                           final Function<? super I, ? extends O> action) {
             this.predicate = Objects.requireNonNull(condition, "condition is null.");
             this.transformer = Objects.requireNonNull(action, "action is null.");
         }
 
-        private SwitchNode<I, O> append(final Predicate<I> condition,
-                                        final Function<I, O> action) {
+        private SwitchNode<I, O> append(final Predicate<? super I> condition,
+                                        final Function<? super I, ? extends O> action) {
             return this.nextNode = new SwitchNode<>(condition, action);
         }
     }
 
     private SwitchNode<I, O> first;
     private SwitchNode<I, O> last;
-    private Function<I, O> defaultCase;
+    private Function<? super I, ? extends O> defaultCase;
 
     /**
      * Initializes a new empty switch-block.
@@ -50,38 +51,29 @@ public class Switch<I, O> implements Function<I, O> {
      * @return This object.
      */
     @ThreadSafe(false)
-    public final Switch<I, O> addCase(final Predicate<I> condition,
-                        final Function<I, O> action){
+    public final Switch<I, O> addCase(final Predicate<? super I> condition,
+                        final Function<? super I, ? extends O> action){
         if(first == null)
             first = last = new SwitchNode<>(condition, action);
         else last = last.append(condition, action);
         return this;
     }
 
-    private static <I, O> Function<I, O> valueProvider(final O value) {
-        return new Function<I, O>() {
-            @Override
-            public O apply(final I input) {
-                return value;
-            }
-        };
-    }
-
     @ThreadSafe(false)
     public final Switch<I, O> equals(final I value,
-                               final Function<I, O> action) {
+                               final Function<? super I, ? extends O> action) {
         return addCase(Predicates.equalTo(value), action);
     }
 
     @ThreadSafe(false)
     public final Switch<I, O> equals(final I value,
                                final O output) {
-        return equals(value, Switch.<I, O>valueProvider(output));
+        return equals(value, Functions.constant(output));
     }
 
     @ThreadSafe(false)
     public final Switch<I, O> theSame(final I value,
-                                final Function<I, O> action){
+                                final Function<? super I, ? extends O> action){
         return addCase(new Predicate<I>() {
             @Override
             public boolean apply(final I other) {
@@ -93,7 +85,7 @@ public class Switch<I, O> implements Function<I, O> {
     @ThreadSafe(false)
     public final Switch<I, O> theSame(final I value,
                                 final O output) {
-        return theSame(value, Switch.<I, O>valueProvider(output));
+        return theSame(value, Functions.constant(output));
     }
 
     /**
@@ -102,19 +94,14 @@ public class Switch<I, O> implements Function<I, O> {
      * @return This object.
      */
     @ThreadSafe(false)
-    public final Switch<I, O> defaultCase(final Function<I, O> action){
+    public final Switch<I, O> defaultCase(final Function<? super I, ? extends O> action){
         this.defaultCase = action;
         return this;
     }
 
     @ThreadSafe(false)
     public final Switch<I, O> defaultCase(final O output) {
-        return defaultCase(new Function<I, O>() {
-            @Override
-            public O apply(final I input) {
-                return output;
-            }
-        });
+        return defaultCase(Functions.constant(output));
     }
 
     /**

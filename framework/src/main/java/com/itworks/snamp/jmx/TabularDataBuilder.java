@@ -8,11 +8,13 @@ import javax.management.openmbean.*;
 import java.util.*;
 
 /**
+ * Represents {@link javax.management.openmbean.TabularData} instance builder.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
 public class TabularDataBuilder extends LinkedList<CompositeData> implements Supplier<TabularData> {
+    private static final long serialVersionUID = 6161683440252406652L;
     private final TabularTypeBuilder columns;
 
     public TabularDataBuilder(){

@@ -7,6 +7,7 @@ import org.stringtemplate.v4.ST;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.xml.bind.annotation.*;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -19,8 +20,9 @@ import java.util.Map;
 @XmlRootElement(name = "template", namespace = XmlConstants.NAMESPACE)
 @XmlType(namespace = XmlConstants.NAMESPACE, name = "XmlCommandLineTemplate")
 @XmlAccessorType(XmlAccessType.PROPERTY)
-public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, Object, ScriptException> {
+public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Map<String, ?>, Object, ScriptException> {
 
+    private static final long serialVersionUID = -7260435161943556221L;
     private String template;
     private transient ST precompiledTemplate;
     private XmlParserDefinition outputParser;
@@ -82,7 +84,8 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, 
      */
     public static ST createCommandTemplate(final String template) {
         final ST result = new ST(template, TEMPLATE_DELIMITER_START_CHAR, TEMPLATE_DELIMITER_STOP_CHAR);
-        StringTemplateExtender.register(result.groupThatCreatedThisInstance);
+        CommonExtender.register(result.groupThatCreatedThisInstance);
+        CompositeDataExtender.register(result.groupThatCreatedThisInstance);
         return result;
     }
 

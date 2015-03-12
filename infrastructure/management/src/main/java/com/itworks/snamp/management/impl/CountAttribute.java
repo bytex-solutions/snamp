@@ -1,6 +1,6 @@
 package com.itworks.snamp.management.impl;
 
-import com.itworks.snamp.management.jmx.OpenMBean;
+import com.itworks.snamp.jmx.OpenMBean;
 import org.osgi.service.log.LogService;
 
 import javax.management.openmbean.SimpleType;

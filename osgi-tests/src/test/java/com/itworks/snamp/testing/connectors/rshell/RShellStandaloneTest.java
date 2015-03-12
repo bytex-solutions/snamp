@@ -1,23 +1,20 @@
 package com.itworks.snamp.testing.connectors.rshell;
 
-import com.itworks.snamp.concurrent.FutureThread;
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.FutureThread;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.mapping.RecordSetUtils;
-import com.itworks.snamp.mapping.TypeLiterals;
+import com.itworks.snamp.jmx.CompositeDataUtils;
 import org.junit.Assume;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.management.JMException;
+import javax.management.openmbean.CompositeData;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
@@ -35,59 +32,67 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         super(USER_NAME,
                 PASSWORD,
                 PORT,
-                CERTIFICATE_FILE,
+                getPathToFileInProjectRoot(CERTIFICATE_FILE),
                 FINGERPRINT);
     }
 
     @Test()
-    public void loadTest() throws InterruptedException, ExecutionException, AttributeSupportException {
+    public void loadTest() throws InterruptedException, ExecutionException, JMException {
         Assume.assumeTrue(Utils.IS_OS_LINUX);
         final ManagedResourceConnector<?> connector = getManagementConnector();
         assertNotNull(connector);
-        final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
-        assertNotNull(attributes);
-        assertNotNull(attributes.connectAttribute("ms", "memStatus", new HashMap<String, String>(1) {{
-            put("commandProfileLocation", "freemem-tool-profile.xml");
-            put("format", "-m");
-        }}));
-        @SuppressWarnings("unchecked")
-        final FutureThread<Object>[] tables = new FutureThread[10];
-        for (int i = 0; i < tables.length; i++)
-            tables[i] = FutureThread.start(new Callable<Object>() {
-                @Override
-                public Object call() throws TimeoutException, AttributeSupportException, UnknownAttributeException {
-                    return attributes.getAttribute("ms", TimeSpan.INFINITE);
-                }
-            });
-        for (final FutureThread<Object> thread : tables) {
-            final Object table = thread.get();
-            assertNotNull(table);
-            assertTrue(TypeLiterals.isInstance(table, TypeLiterals.NAMED_RECORD_SET));
-            final Map<String, ?> map = RecordSetUtils.toMap(TypeLiterals.cast(table, TypeLiterals.NAMED_RECORD_SET));
-            assertTrue(map.get("total") instanceof Long);
-            assertTrue(map.get("used") instanceof Long);
-            assertTrue(map.get("free") instanceof Long);
+        try {
+            final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
+            assertNotNull(attributes);
+            assertNotNull(attributes.connectAttribute("ms", "memStatus", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
+                    "commandProfileLocation", getPathToFileInProjectRoot("freemem-tool-profile.xml"),
+                    "format", "-m"
+            ))));
+            @SuppressWarnings("unchecked")
+            final FutureThread<Object>[] tables = new FutureThread[10];
+            for (int i = 0; i < tables.length; i++)
+                tables[i] = FutureThread.start(new Callable<Object>() {
+                    @Override
+                    public Object call() throws JMException {
+                        return attributes.getAttribute("ms");
+                    }
+                });
+            for (final FutureThread<Object> thread : tables) {
+                final Object table = thread.get();
+                assertNotNull(table);
+                assertTrue(table instanceof CompositeData);
+                assertTrue(CompositeDataUtils.getLong((CompositeData) table, "total", 0L) > 0L);
+                assertTrue(CompositeDataUtils.getLong((CompositeData) table, "used", 0L) > 0L);
+                assertTrue(CompositeDataUtils.getLong((CompositeData) table, "free", 0L) > 0L);
+            }
+        }
+        finally {
+            releaseManagementConnector();
         }
     }
 
     @Test
-    public void readMemStatusAttribute() throws TimeoutException, AttributeSupportException, UnknownAttributeException {
+    public void readMemStatusAttribute() throws JMException {
         Assume.assumeTrue(Utils.IS_OS_LINUX);
         final ManagedResourceConnector<?> connector = getManagementConnector();
         assertNotNull(connector);
-        final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
-        assertNotNull(attributes);
-        assertNotNull(attributes.connectAttribute("ms", "memStatus", new HashMap<String, String>(1) {{
-            put("commandProfileLocation", "freemem-tool-profile.xml");
-            put("format", "-m");
-        }}));
-        final Object dict = attributes.getAttribute("ms", TimeSpan.INFINITE);
-        assertNotNull(dict);
-        assertTrue(TypeLiterals.isInstance(dict, TypeLiterals.NAMED_RECORD_SET));
-        final Map<String, ?> m = RecordSetUtils.toMap(TypeLiterals.cast(dict, TypeLiterals.NAMED_RECORD_SET));
-        assertTrue(m.get("total") instanceof Long);
-        assertTrue(m.get("used") instanceof Long);
-        assertTrue(m.get("free") instanceof Long);
+        try {
+            final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
+            assertNotNull(attributes);
+            assertNotNull(attributes.connectAttribute("ms", "memStatus", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
+                    "commandProfileLocation", getPathToFileInProjectRoot("freemem-tool-profile.xml"),
+                    "format", "-m"
+            ))));
+            final Object dict = attributes.getAttribute("ms");
+            assertNotNull(dict);
+            assertTrue(dict instanceof CompositeData);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "total", 0L) > 0L);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "used", 0L) > 0L);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "free", 0L) > 0L);
+        }
+        finally {
+            releaseManagementConnector();
+        }
     }
 
     @Override

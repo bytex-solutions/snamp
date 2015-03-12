@@ -1,7 +1,7 @@
 package com.itworks.snamp.management.impl;
 
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.management.jmx.OpenMBean;
+import com.itworks.snamp.jmx.OpenMBean;
 
 import javax.management.openmbean.SimpleType;
 import java.util.concurrent.TimeUnit;

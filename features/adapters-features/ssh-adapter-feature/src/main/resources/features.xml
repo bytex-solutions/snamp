@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
+    <feature name="ssh-adapter-feature" description="SNAMP JMX Adapter" version="1.0.0">
+        <details>Represents SNAMP SSH Adapter as Apache Karaf Feature</details>
+        <bundle>mvn:com.itworks.snamp/sshj/0.10.0</bundle>
+        <bundle>mvn:com.itworks.snamp/ssh-adapter/1.0.0</bundle>
+    </feature>
+</features>

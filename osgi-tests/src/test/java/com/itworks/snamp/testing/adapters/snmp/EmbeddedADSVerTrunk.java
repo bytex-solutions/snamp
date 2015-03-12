@@ -65,14 +65,14 @@ import java.util.Set;
  * @version $Rev$, $Date$
  */
 public class EmbeddedADSVerTrunk{
+    static final String PASSWORD = "snampSimplePassword";
+    static final String PRIVACY_KEY = "snampSimpleEncryptionKey";
     public static final int SERVER_PORT = 10389;
     /** The directory service */
     private DirectoryService service;
 
     /** The LDAP server */
     private LdapServer server;
-
-    private static File workDir;
 
 
     /**
@@ -181,6 +181,8 @@ public class EmbeddedADSVerTrunk{
         final String provKeyOID =
                 addAttribute(schemaManager, "snamp-snmp-priv-key", "SNAMP_SNMP_PRIVKEY");
         final ObjectClass snampUserClass = new ObjectClass("1.10.1.2.1"){
+            private static final long serialVersionUID = -2390095923917668183L;
+
             {
                 objectClassType = ObjectClassTypeEnum.AUXILIARY;
             }
@@ -283,8 +285,8 @@ public class EmbeddedADSVerTrunk{
             e.add("objectClass", "top", "person", "snampUser");
             e.add("snamp-snmp-auth-protocol", "sha");
             e.add("snamp-snmp-priv-protocol", "aes128");
-            e.add("snamp-snmp-priv-key", "snampSimpleEncryptionKey");
-            e.add("userpassword", "snampSimplePassword");
+            e.add("snamp-snmp-priv-key", PRIVACY_KEY);
+            e.add("userpassword", PASSWORD);
             e.add("sn", "Sakno");
             service.getAdminSession().add(e);
             //modify admin password
@@ -332,16 +334,16 @@ public class EmbeddedADSVerTrunk{
      *
      * @param args Not used.
      */
-    public static void main( String[] args )
+    public static void main(final String[] args )
     {
         try
         {
-            workDir = new File( System.getProperty( "java.io.tmpdir" ) + "/server-work" );
+            final File workDir = new File(System.getProperty("java.io.tmpdir") + "/server-work");
 
             workDir.mkdirs();
 
             // Create the server
-            EmbeddedADSVerTrunk ads = new EmbeddedADSVerTrunk( workDir );
+            EmbeddedADSVerTrunk ads = new EmbeddedADSVerTrunk(workDir);
 
             // Read an entry
             Entry result = ads.service.getAdminSession().lookup( new Dn( "dc=apache,dc=org" ) );
@@ -352,7 +354,7 @@ public class EmbeddedADSVerTrunk{
             // optionally we can start a server too
             ads.startServer();
         }
-        catch ( Exception e )
+        catch (final Exception e )
         {
             // Ok, we have something wrong going on ...
             e.printStackTrace();

@@ -1,43 +1,44 @@
 package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.itworks.snamp.ConversionException;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.itworks.snamp.concurrent.ConcurrentResourceAccessor;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
-import com.itworks.snamp.connectors.ManagedEntityType;
-import com.itworks.snamp.connectors.ManagedEntityValue;
-import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
+import com.itworks.snamp.connectors.attributes.OpenTypeAttributeInfo;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.LogicalOperation;
-import com.itworks.snamp.licensing.LicensingException;
-import com.itworks.snamp.mapping.KeyedRecordSet;
+import com.itworks.snamp.io.Buffers;
+import com.itworks.snamp.jmx.JMExceptionUtils;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
-import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.smi.*;
 
+import javax.management.*;
+import javax.management.openmbean.*;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
 import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
-import static com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory.ExceptionHandler;
-import static com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker;
-import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.*;
+import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.MESSAGE_OID_PARAM;
+import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.MESSAGE_TEMPLATE_PARAM;
 
 /**
  * Represents SNMP-compliant managed resource.
@@ -49,224 +50,49 @@ import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvid
 final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpConnectionOptions> implements AttributeSupport, NotificationSupport {
     static final String NAME = SnmpConnectorHelpers.CONNECTOR_NAME;
 
-    private static final class SnmpNotification extends NotificationImpl{
-        private SnmpNotification(final Severity severity,
-                                 final long sequenceNumber,
-                                 final String message,
-                                 final Integer32 requestID,
-                                 final ManagedEntityValue<?> attachment){
-            super(severity,
-                    sequenceNumber,
-                    new Date(),
-                    message,
-                    requestID != null ? requestID.toString() : null,
-                    attachment);
+    private static final class SnmpNotificationInfo extends CustomNotificationInfo{
+
+
+        private SnmpNotificationInfo(final String listID,
+                                     final NotificationDescriptor descriptor){
+            super(listID, getDescription(descriptor), descriptor);
         }
+
+        private static String getDescription(final NotificationDescriptor descriptor){
+            final String result = descriptor.getDescription();
+            return result == null || result.isEmpty() ? "SNMP Trap" : result;
+        }
+
+        private OID getNotificationID(){
+            return new OID(getDescriptor().getNotificationCategory());
+        }
+
     }
 
-    private static final class SnmpNotificationMetadata extends GenericNotificationMetadata implements CommandResponder{
-        private final Map<String, String> options;
-        private final AtomicLong sequenceNumber;
+    private static final class SnmpNotificationSupport extends AbstractNotificationSupport<SnmpNotificationInfo> implements CommandResponder{
+        private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final NotificationListenerInvoker listenerInvoker;
-        private final SnmpTypeSystem typeSystem;
 
-        private SnmpNotificationMetadata(final OID category,
-                                        final Map<String, String> options,
-                                        final SnmpTypeSystem typeSystem){
-            super(category.toDottedString());
-            this.options = Collections.unmodifiableMap(options);
-            this.sequenceNumber = new AtomicLong(0L);
-            this.listenerInvoker = createInvoker();
-            this.typeSystem = typeSystem;
+        private SnmpNotificationSupport(final AbstractConcurrentResourceAccessor<SnmpClient> client){
+            super(SnmpNotificationInfo.class);
+            this.client = client;
+            final Executor executor = client.read(new ConsistentAction<SnmpClient, Executor>() {
+                @Override
+                public Executor invoke(final SnmpClient client) {
+                    return client.queryObject(Executor.class);
+                }
+            });
+            listenerInvoker = createListenerInvoker(executor);
         }
 
-        private static NotificationListenerInvoker createInvoker(){
-            return createParallelExceptionResistantInvoker(Executors.newSingleThreadExecutor(), new ExceptionHandler() {
+        private static NotificationListenerInvoker createListenerInvoker(final Executor executor){
+            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
                 @Override
-                public final void handle(final Throwable e, final NotificationListener source) {
+                public void handle(final Throwable e, final NotificationListener source) {
                     SnmpConnectorHelpers.log(Level.SEVERE, "Unable to process SNMP notification. Context: null",
                             LogicalOperation.current(), e);
                 }
             });
-        }
-
-        private OID getNotificationID(){
-            return new OID(getCategory());
-        }
-
-        public final Severity getSeverity(){
-            if(options.containsKey(SEVERITY_PARAM))
-                switch (options.get(SEVERITY_PARAM)){
-                    case "panic": return Severity.PANIC;
-                    case "alert": return Severity.ALERT;
-                    case "critical": return Severity.CRITICAL;
-                    case "error": return Severity.ERROR;
-                    case "warning": return Severity.WARNING;
-                    case "notice": return Severity.NOTICE;
-                    case "info": return Severity.INFO;
-                    case "debug": return Severity.DEBUG;
-                    default: return Severity.UNKNOWN;
-
-                }
-            else return Severity.UNKNOWN;
-        }
-
-        private static ManagedEntityValue<?> getAttachments(final List<VariableBinding> bindings,
-                                                     final Map<String, String> options,
-                                                     final SnmpTypeSystem typeSystem){
-            switch (bindings.size()){
-                case 0: return null;
-                case 1:
-                    final Variable binding = bindings.get(0).getVariable();
-                    return new ManagedEntityValue<>(binding,
-                            typeSystem.resolveSnmpScalarType(binding, options));
-                default:
-                    final Map<String, Object> attachment = Maps.newHashMapWithExpectedSize(bindings.size());
-                    final Map<String, ManagedEntityType> attachmentType = Maps.newHashMapWithExpectedSize(bindings.size());
-                    for(final VariableBinding b: bindings){
-                        final String key = b.getOid().toDottedString();
-                        attachment.put(key, b.getVariable());
-                        attachmentType.put(key, typeSystem.resolveSnmpScalarType(b.getVariable(), options));
-                    }
-                    return new ManagedEntityValue<>(new KeyedRecordSet<String, Object>() {
-                        @Override
-                        protected Set<String> getKeys() {
-                            return attachment.keySet();
-                        }
-
-                        @Override
-                        protected Object getRecord(final String key) {
-                            return attachment.get(key);
-                        }
-                    },
-                   typeSystem.createEntityDictionaryType(attachmentType));
-            }
-        }
-
-        private void processPdu(final PDU event){
-            List<VariableBinding> bindings = event.getBindingList(getNotificationID());
-            if(bindings.size() == 0) return;
-
-            String message;
-            if(containsKey(MESSAGE_TEMPLATE_PARAM)){  //format message, no attachments
-                message = get(MESSAGE_TEMPLATE_PARAM);
-                for(final VariableBinding binding: bindings) {
-                    final OID postfix = SnmpConnectorHelpers.getPostfix(getNotificationID(), binding.getOid());
-                    if (postfix.size() == 0) continue;
-                    message = message.replaceAll(String.format("\\{%s\\}", postfix), binding.getVariable().toString());
-                }
-                bindings = Collections.emptyList();
-            }
-            else if(containsKey(MESSAGE_OID_PARAM)){      //extract message, add attachments
-                final OID messageOID = new OID(message = get(MESSAGE_OID_PARAM));
-                bindings = new ArrayList<>(bindings);
-                final Iterator<VariableBinding> iterator = bindings.iterator();
-                while (iterator.hasNext()){
-                    final VariableBinding b = iterator.next();
-                    if(Objects.equals(messageOID, SnmpConnectorHelpers.getPostfix(getNotificationID(), b.getOid()))){
-                        message = b.getVariable().toString();
-                        iterator.remove();
-                        break;
-                    }
-                }
-            }
-            else {              //concatenate bindings, no attachments
-                message = Joiner.on(System.lineSeparator()).join(bindings);
-                bindings = Collections.emptyList();
-            }
-            fire(message, event.getRequestID(), bindings);
-        }
-
-        private void fire(final String message,
-                          final Integer32 requestID,
-                          final List<VariableBinding> attachment){
-            fire(new SnmpNotification(getSeverity(),
-                    sequenceNumber.getAndIncrement(),
-                    message,
-                    requestID,
-                    getAttachments(attachment, options, typeSystem)), listenerInvoker);
-        }
-
-        @Override
-        public void processPdu(final CommandResponderEvent event) {
-            processPdu(event.getPDU());
-        }
-
-        /**
-         * Gets listeners invocation model for this notification type.
-         *
-         * @return Listeners invocation model for this notification type.
-         */
-        @Override
-        public NotificationModel getNotificationModel() {
-            return NotificationModel.MULTICAST_SEQUENTIAL;
-        }
-
-        /**
-         * Detects the attachment type.
-         * <p/>
-         * This method will be called automatically by SNAMP infrastructure
-         * and once for this instance of notification metadata.
-         *
-         * @return The attachment type.
-         */
-        @Override
-        protected ManagedEntityType detectAttachmentType() {
-            return null;
-        }
-
-        @Override
-        public int size() {
-            return options.size();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return options.isEmpty();
-        }
-
-        @Override
-        public boolean containsKey(final Object key) {
-            return options.containsKey(key);
-        }
-
-        @Override
-        public boolean containsValue(final Object value) {
-            return options.containsValue(value);
-        }
-
-        @Override
-        public String get(final Object key) {
-            return options.get(key);
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public Set<String> keySet() {
-            return options.keySet();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public Collection<String> values() {
-            return options.values();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public Set<Entry<String, String>> entrySet() {
-            return options.entrySet();
-        }
-    }
-
-    private static final class SnmpNotificationSupport extends AbstractNotificationSupport{
-        private final AbstractConcurrentResourceAccessor<SnmpClient> client;
-        private final SnmpTypeSystem typeSystem;
-
-        private SnmpNotificationSupport(final AbstractConcurrentResourceAccessor<SnmpClient> client,
-                                        final SnmpTypeSystem typeSystem){
-            this.client = client;
-            this.typeSystem = typeSystem;
         }
 
         /**
@@ -287,197 +113,436 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
             });
         }
 
-        /**
-         * Reports an error when disabling notifications.
-         *
-         * @param listID Subscription list identifier.
-         * @param e      Internal connector error.
-         * @see #failedToDisableNotifications(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
         @Override
-        protected void failedToDisableNotifications(final String listID, final Exception e) {
-            SnmpConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToDisableNotifications(logger, Level.WARNING, listID, e);
-                }
-            });
-        }
-
-        /**
-         * Reports an error when subscribing the listener.
-         *
-         * @param listenerID Subscription list identifier.
-         * @param e          Internal connector error.
-         * @see #failedToSubscribe(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToSubscribe(final String listenerID, final Exception e) {
-            SnmpConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToSubscribe(logger, Level.WARNING, listenerID, e);
-                }
-            });
-        }
-
-        /**
-         * Enables event listening for the specified category of events.
-         * <p>
-         * In the default implementation this method does nothing.
-         * </p>
-         *
-         * @param category The name of the category to listen.
-         * @param options  Event discovery options.
-         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-         */
-        @Override
-        protected SnmpNotificationMetadata enableNotifications(final String category, final Map<String, String> options) {
-            try {
-                return client.write(new Action<SnmpClient, SnmpNotificationMetadata, ParseException>() {
-                    @Override
-                    public SnmpNotificationMetadata invoke(final SnmpClient client) throws ParseException {
-                        final SnmpNotificationMetadata listener = new SnmpNotificationMetadata(new OID(SNMP4JSettings.getOIDTextFormat().parse(category)), options, typeSystem);
-                        client.addCommandResponder(listener);
-                        return listener;
-                    }
-                });
-            }
-            catch (final Exception e) {
-                SnmpConnectorHelpers.log(Level.WARNING, "Subscription to SNMP event %s failed. Context: %s",
-                        category, LogicalOperation.current(), e);
-                return null;
-            }
-        }
-
-        private void disableNotifications(final SnmpNotificationMetadata notifMeta) {
-            try {
+        protected SnmpNotificationInfo enableNotifications(final String listID,
+                                                           final NotificationDescriptor metadata) throws ParseException {
+            final SnmpNotificationInfo result = new SnmpNotificationInfo(listID, metadata);
+            //enable for a first time only
+            if (hasNoNotifications())
                 client.write(new ConsistentAction<SnmpClient, Void>() {
                     @Override
                     public Void invoke(final SnmpClient client) {
-                        client.removeCommandResponder(notifMeta);
+                        client.addCommandResponder(SnmpNotificationSupport.this);
                         return null;
                     }
                 });
-            } catch (final Exception e) {
-                SnmpConnectorHelpers.log(Level.WARNING, "Problem occurs when unsubscribing event %s. Context: %s",
-                        notifMeta.getCategory(), LogicalOperation.current(), e);
+            return result;
+        }
+
+        @Override
+        protected boolean disableNotifications(final SnmpNotificationInfo metadata) {
+            if(hasNoNotifications())
+                try {
+                    client.write(new ConsistentAction<SnmpClient, Void>() {
+                        @Override
+                        public Void invoke(final SnmpClient client) {
+                            client.removeCommandResponder(SnmpNotificationSupport.this);
+                            return null;
+                        }
+                    });
+                }
+                catch (final Exception e) {
+                    SnmpConnectorHelpers.log(Level.WARNING, "Subscription to SNMP event %s failed. Context: %s",
+                            metadata.getNotificationID(), LogicalOperation.current(), e);
+                    return false;
+                }
+            return true;
+        }
+
+        /**
+         * Gets the invoker used to executed notification listeners.
+         *
+         * @return The notification listener invoker.
+         */
+        @Override
+        protected NotificationListenerInvoker getListenerInvoker() {
+            return listenerInvoker;
+        }
+
+        private void processPdu(final PDU event){
+            final List<VariableBinding> bindings = new ArrayList<>(event.getVariableBindings());
+            if(bindings.size() == 0) return;
+            //tries to detect event category
+            final SnmpNotificationInfo notificationInfo = ArrayUtils.find(getNotificationInfo(), new Predicate<SnmpNotificationInfo>() {
+                @Override
+                public boolean apply(final SnmpNotificationInfo input) {
+                    for (final VariableBinding bnd : bindings)
+                        if (bnd.getOid().startsWith(input.getNotificationID()))
+                            return true;
+                    return false;
+                }
+            });
+            //unknown notification
+            if(notificationInfo == null) return;
+            String message;
+            if(notificationInfo.getDescriptor().hasField(MESSAGE_TEMPLATE_PARAM)){  //format message, no attachments
+                message = notificationInfo.getDescriptor().getField(MESSAGE_TEMPLATE_PARAM, String.class);
+                for(final VariableBinding binding: bindings) {
+                    final OID postfix = SnmpConnectorHelpers.getPostfix(notificationInfo.getNotificationID(),
+                            binding.getOid());
+                    if (postfix.size() == 0) continue;
+                    message = message.replaceAll(String.format("\\{%s\\}", postfix),
+                            binding.getVariable().toString());
+                }
+                bindings.clear();
             }
+            else if(notificationInfo.getDescriptor().hasField(MESSAGE_OID_PARAM)){      //extract message, add attachments
+                final OID messageOID = new OID(message = notificationInfo.getDescriptor().getField(MESSAGE_OID_PARAM, String.class));
+                final Iterator<VariableBinding> iterator = bindings.iterator();
+                while (iterator.hasNext()){
+                    final VariableBinding b = iterator.next();
+                    if(Objects.equals(messageOID, SnmpConnectorHelpers.getPostfix(notificationInfo.getNotificationID(), b.getOid()))){
+                        message = b.getVariable().toString();
+                        iterator.remove();
+                        break;
+                    }
+                }
+            }
+            else {//concatenate bindings, no attachments
+                message = Joiner.on(System.lineSeparator()).join(bindings);
+                bindings.clear();
+            }
+            fire(notificationInfo.getDescriptor().getNotificationCategory(),
+                    message,
+                    bindings);
+        }
+
+        private static HashMap<String, ?> toArray(final List<VariableBinding> bindings){
+            if(bindings.isEmpty()) return null;
+            final HashMap<String, Object> result = Maps.newHashMapWithExpectedSize(bindings.size());
+            for(final VariableBinding bnd: bindings)
+                if(bnd.getVariable() instanceof Null)
+                    result.put(bnd.getOid().toDottedString(), null);
+                else if(bnd.getVariable() instanceof AssignableFromInteger)
+                    result.put(bnd.getOid().toDottedString(), bnd.getVariable().toInt());
+                else if(bnd.getVariable() instanceof AssignableFromLong)
+                    result.put(bnd.getOid().toDottedString(), bnd.getVariable().toLong());
+                else if(bnd.getVariable() instanceof OID)
+                    result.put(bnd.getOid().toDottedString(), ((OID)bnd.getVariable()).toDottedString());
+                else if(bnd.getVariable() instanceof OctetString){
+                    final OctetString str = (OctetString)bnd.getVariable();
+                    result.put(bnd.getOid().toDottedString(), str.isPrintable() ? new String(str.getValue()) : str.toByteArray());
+                }
+                else if(bnd.getVariable() instanceof Address)
+                    result.put(bnd.getOid().toDottedString(), bnd.getVariable().toString());
+                else if(bnd.getVariable() instanceof AssignableFromIntArray)
+                    result.put(bnd.getOid().toDottedString(), ((AssignableFromIntArray)bnd.getVariable()).toIntArray());
+                else if(bnd.getVariable() instanceof AssignableFromByteArray)
+                    result.put(bnd.getOid().toDottedString(), ((AssignableFromByteArray)bnd.getVariable()).toByteArray());
+                else result.put(bnd.getOid().toDottedString(), bnd.getVariable().toString());
+            return result;
+        }
+
+        private void fire(final String category,
+                          final String message,
+                          final List<VariableBinding> attachment){
+            super.fire(category,
+                    message,
+                    toArray(attachment));
         }
 
         /**
-         * Disable all notifications associated with the specified event.
-         * <p>
-         * In the default implementation this method does nothing.
-         * </p>
+         * Process an incoming request, report or notification PDU.
          *
-         * @param notificationType The event descriptor.
+         * @param event a <code>CommandResponderEvent</code> instance containing the PDU to
+         *              process and some additional information returned by the message
+         *              processing model that decoded the SNMP message.
          */
         @Override
-        protected void disableNotifications(final GenericNotificationMetadata notificationType) {
-            if(notificationType instanceof SnmpNotificationMetadata)
-                disableNotifications((SnmpNotificationMetadata)notificationType);
-        }
-
-        /**
-         * Adds a new listener for the specified notification.
-         *
-         * @param listener The event listener.
-         * @return Any custom data associated with the subscription.
-         */
-        @Override
-        protected Object subscribe(final NotificationListener listener) {
-            return null;
-        }
-
-        /**
-         * Cancels the notification listening.
-         *
-         * @param listener The notification listener to remove.
-         * @param data     The custom data associated with subscription that returned from {@link #subscribe(com.itworks.snamp.connectors.notifications.NotificationListener)}
-         */
-        @Override
-        protected void unsubscribe(final NotificationListener listener, final Object data) {
-
+        public void processPdu(final CommandResponderEvent event) {
+            processPdu(event.getPDU());
         }
     }
 
-    private static final class SnmpAttributeMetadata extends GenericAttributeMetadata<SnmpManagedEntityType> {
-        private final SnmpManagedEntityType attributeType;
-        private final Map<String, String> options;
-
-        public SnmpAttributeMetadata(final OID attributeID, final SnmpManagedEntityType entityType, final Map<String, String> options){
-            super(attributeID.toDottedString());
-            this.attributeType = entityType;
-            this.options = Collections.unmodifiableMap(options);
+    private static abstract class SnmpAttributeInfo<V extends Variable> extends OpenTypeAttributeInfo implements SnmpObjectConverter<V> {
+        private SnmpAttributeInfo(final String attributeID,
+                                  final OpenType<?> openType,
+                                  final AttributeDescriptor descriptor) {
+            this(attributeID,
+                    openType,
+                    AttributeSpecifier.READ_WRITE,
+                    descriptor);
         }
 
-        public final OID getAttributeID(){
-            return new OID(getName());
+        private SnmpAttributeInfo(final String attributeID,
+                                  final OpenType<?> openType,
+                                  final AttributeSpecifier specifier,
+                                  final AttributeDescriptor descriptor) {
+            super(attributeID,
+                    openType,
+                    getDescription(descriptor),
+                    specifier,
+                    descriptor);
         }
 
-        /**
-         * Detects the attribute type (this method will be called by infrastructure once).
-         *
-         * @return Detected attribute type.
-         */
-        @Override
-        protected SnmpManagedEntityType detectAttributeType() {
-            return attributeType;
+        private static String getDescription(final AttributeDescriptor descriptor){
+            final String result = descriptor.getDescription();
+            return result == null || result.isEmpty() ? "SNMP Object" : result;
         }
 
-        @Override
-        public int size() {
-            return options.size();
+        protected final InvalidAttributeValueException invalidAttribute(final Object value,
+                                                                        final Class<V> snmpType){
+            return new InvalidAttributeValueException(String.format("Unable convert %s to SNMP %s", value, snmpType));
         }
 
-        @Override
-        public boolean isEmpty() {
-            return options.isEmpty();
-        }
-
-        @Override
-        public boolean containsKey(final Object key) {
-            return options.containsKey(key);
-        }
-
-        @Override
-        public boolean containsValue(final Object value) {
-            return options.containsValue(value);
-        }
-
-        @Override
-        public String get(final Object key) {
-            return options.get(key);
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public Set<String> keySet() {
-            return options.keySet();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public Collection<String> values() {
-            return options.values();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public Set<Entry<String, String>> entrySet() {
-            return options.entrySet();
+        private OID getAttributeID(){
+            return new OID(getDescriptor().getAttributeName());
         }
     }
 
-    private static final class SnmpAttributeSupport extends AbstractAttributeSupport{
+    private static final class ReadOnlyAttributeInfo extends SnmpAttributeInfo<Variable>{
+        private ReadOnlyAttributeInfo(final String attributeID,
+                                      final AttributeDescriptor descriptor){
+            super(attributeID, SimpleType.STRING, AttributeSpecifier.READ_ONLY, descriptor);
+        }
+
+        @Override
+        public Variable convert(final Object value) throws InvalidAttributeValueException {
+            throw new InvalidAttributeValueException();
+        }
+
+        @Override
+        public Object convert(final Variable value) {
+            return Objects.toString(value, "");
+        }
+    }
+
+    private static final class Integer32AttributeInfo extends SnmpAttributeInfo<Integer32>{
+
+        private Integer32AttributeInfo(final String attributeID,
+                                       final AttributeDescriptor descriptor) {
+            super(attributeID, SimpleType.INTEGER, descriptor);
+        }
+
+        @Override
+        public Integer32 convert(final Object value) throws InvalidAttributeValueException {
+            if(value instanceof Byte)
+                return new Integer32((Byte)value);
+            else if(value instanceof Short)
+                return new Integer32((Short)value);
+            else if(value instanceof Integer)
+                return new Integer32((Integer)value);
+            else throw invalidAttribute(value, Integer32.class);
+        }
+
+        @Override
+        public Integer convert(final Integer32 value) {
+            return value.toInt();
+        }
+    }
+
+    private static final class UnsignedInteger32AttributeInfo extends SnmpAttributeInfo<UnsignedInteger32>{
+
+        private UnsignedInteger32AttributeInfo(final String attributeID,
+                                       final AttributeDescriptor descriptor) {
+            super(attributeID, SimpleType.LONG, descriptor);
+        }
+
+        @Override
+        public UnsignedInteger32 convert(final Object value) throws InvalidAttributeValueException {
+            if(value instanceof Byte)
+                return new UnsignedInteger32((Byte)value);
+            else if(value instanceof Short)
+                return new UnsignedInteger32((Short)value);
+            else if(value instanceof Integer)
+                return new UnsignedInteger32((Integer)value);
+            else if(value instanceof Long)
+                return new UnsignedInteger32((Long)value);
+            else throw invalidAttribute(value, UnsignedInteger32.class);
+        }
+
+        @Override
+        public Long convert(final UnsignedInteger32 value) {
+            return value.toLong();
+        }
+    }
+
+    private static final class Counter32AttributeInfo extends SnmpAttributeInfo<Counter32>{
+
+        private Counter32AttributeInfo(final String attributeID,
+                                               final AttributeDescriptor descriptor) {
+            super(attributeID, SimpleType.LONG, descriptor);
+        }
+
+        @Override
+        public Counter32 convert(final Object value) throws InvalidAttributeValueException {
+            if(value instanceof Byte)
+                return new Counter32((Byte)value);
+            else if(value instanceof Short)
+                return new Counter32((Short)value);
+            else if(value instanceof Integer)
+                return new Counter32((Integer)value);
+            else if(value instanceof Long)
+                return new Counter32((Long)value);
+            else throw invalidAttribute(value, Counter32.class);
+        }
+
+        @Override
+        public Long convert(final Counter32 value) {
+            return value.toLong();
+        }
+    }
+
+    private static final class TimeTicksAttributeInfo extends CustomFormatterAttributeInfo<TimeTicks>{
+
+        private TimeTicksAttributeInfo(final String attributeID,
+                                       final AttributeDescriptor descriptor) {
+            super(attributeID, TimeTicksConversionFormat.getFormat(descriptor), descriptor);
+        }
+    }
+
+    private static final class Counter64AttributeInfo extends SnmpAttributeInfo<Counter64>{
+
+        private Counter64AttributeInfo(final String attributeID,
+                                       final AttributeDescriptor descriptor) {
+            super(attributeID, SimpleType.LONG, descriptor);
+        }
+
+        @Override
+        public Counter64 convert(final Object value) throws InvalidAttributeValueException {
+            if(value instanceof Byte)
+                return new Counter64((Byte)value);
+            else if(value instanceof Short)
+                return new Counter64((Short)value);
+            else if(value instanceof Integer)
+                return new Counter64((Integer)value);
+            else if(value instanceof Long)
+                return new Counter64((Long)value);
+            else throw invalidAttribute(value, Counter64.class);
+        }
+
+        @Override
+        public Long convert(final Counter64 value) {
+            return value.toLong();
+        }
+    }
+
+    private static final class Gauge32AttributeInfo extends SnmpAttributeInfo<Gauge32>{
+
+        private Gauge32AttributeInfo(final String attributeID,
+                                       final AttributeDescriptor descriptor) {
+            super(attributeID, SimpleType.LONG, descriptor);
+        }
+
+        @Override
+        public Gauge32 convert(final Object value) throws InvalidAttributeValueException {
+            if(value instanceof Byte)
+                return new Gauge32((Byte)value);
+            else if(value instanceof Short)
+                return new Gauge32((Short)value);
+            else if(value instanceof Integer)
+                return new Gauge32((Integer)value);
+            else if(value instanceof Long)
+                return new Gauge32((Long)value);
+            else throw invalidAttribute(value, Gauge32.class);
+        }
+
+        @Override
+        public Long convert(final Gauge32 value) {
+            return value.toLong();
+        }
+    }
+
+    private static abstract class CustomFormatterAttributeInfo<V extends Variable> extends SnmpAttributeInfo<V> implements SnmpObjectConverter<V>{
+        private final SnmpObjectConverter<V> formatter;
+
+        private CustomFormatterAttributeInfo(final String attributeID,
+                                             final SnmpObjectConverter<V> converter,
+                                             final AttributeDescriptor descriptor) {
+            super(attributeID, converter.getOpenType(), descriptor);
+            this.formatter = converter;
+        }
+
+        @Override
+        public final V convert(final Object value) throws InvalidAttributeValueException {
+            return formatter.convert(value);
+        }
+
+        @Override
+        public Object convert(final V value) {
+            return formatter.convert(value);
+        }
+    }
+
+    private static final class IpAddressAttributeInfo extends CustomFormatterAttributeInfo<IpAddress>{
+        private IpAddressAttributeInfo(final String attributeID,
+                                       final AttributeDescriptor descriptor) {
+            super(attributeID, IpAddressConversionFormat.getFormat(descriptor), descriptor);
+        }
+    }
+
+    private static final class NullAttributeInfo extends SnmpAttributeInfo<Null>{
+
+        private NullAttributeInfo(final String attributeID,
+                                  final AttributeDescriptor descriptor) {
+            super(attributeID, SimpleType.BOOLEAN, descriptor);
+        }
+
+        @Override
+        public Null convert(final Object value) throws InvalidAttributeValueException {
+            return Null.instance;
+        }
+
+        @Override
+        public Boolean convert(final Null value) {
+            return Boolean.FALSE;
+        }
+    }
+
+    private static final class OpaqueAttributeInfo extends SnmpAttributeInfo<Opaque>{
+
+        private OpaqueAttributeInfo(final String attributeID, final AttributeDescriptor descriptor) throws OpenDataException {
+            super(attributeID, new ArrayType<byte[]>(SimpleType.BYTE, true), descriptor);
+        }
+
+        @Override
+        public Opaque convert(final Object value) throws InvalidAttributeValueException {
+            if(value instanceof byte[])
+                return new Opaque((byte[])value);
+            else if(value instanceof Byte[])
+                return new Opaque(ArrayUtils.unboxArray((Byte[])value));
+            else if(value instanceof ByteBuffer)
+                return new Opaque(Buffers.readRemaining((ByteBuffer)value));
+            else throw invalidAttribute(value, Opaque.class);
+        }
+
+        @Override
+        public Object convert(final Opaque value) {
+            return value.toByteArray();
+        }
+    }
+
+    private static final class OctetStringAttributeInfo extends CustomFormatterAttributeInfo<OctetString>{
+
+        private OctetStringAttributeInfo(final String attributeID,
+                                         final OctetString value,
+                                         final AttributeDescriptor descriptor) {
+            super(attributeID, OctetStringConversionFormat.getFormat(value, descriptor), descriptor);
+        }
+    }
+
+    private static final class OidAttributeInfo extends CustomFormatterAttributeInfo<OID>{
+
+        private OidAttributeInfo(final String attributeID,
+                                         final AttributeDescriptor descriptor) {
+            super(attributeID, OidConversionFormat.getFormat(descriptor), descriptor);
+        }
+    }
+
+    private static final class SnmpAttributeSupport extends AbstractAttributeSupport<SnmpAttributeInfo>{
+        private static TimeSpan BATCH_READ_WRITE_TIMEOUT = TimeSpan.fromSeconds(30);
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
-        private final SnmpTypeSystem typeSystem;
+        private final ExecutorService executor;
 
-        private SnmpAttributeSupport(final AbstractConcurrentResourceAccessor<SnmpClient> client,
-                                     final SnmpTypeSystem typeSystem){
+        private SnmpAttributeSupport(final AbstractConcurrentResourceAccessor<SnmpClient> client){
+            super(SnmpAttributeInfo.class);
             this.client = client;
-            this.typeSystem = typeSystem;
+            this.executor = client.read(new ConsistentAction<SnmpClient, ExecutorService>() {
+                @Override
+                public ExecutorService invoke(final SnmpClient client) {
+                    return client.queryObject(ExecutorService.class);
+                }
+            });
         }
 
         /**
@@ -542,105 +607,134 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
             });
         }
 
-        private SnmpAttributeMetadata connectAttribute(final OID attributeID, final Map<String, String> options) throws Exception{
-            final Variable value = client.read(new Action<SnmpClient, Variable, Exception>() {
-                private final TimeSpan responseTimeout = SnmpConnectorConfigurationProvider.getResponseTimeout(options);
-
-                @Override
-                public Variable invoke(final SnmpClient client) throws IOException, TimeoutException, InterruptedException {
-                    return client.get(attributeID, responseTimeout);
-                }
-            });
-            if(value == null) throw new IOException(String.format("Attribute %s doesn't exist on SNMP agent", attributeID));
-            final SnmpManagedEntityType attributeType = typeSystem.resolveSnmpScalarType(value, options);
-            if(attributeType == null) throw new Exception(String.format("Type of the attribute %s cannot be determined. SMI syntax is %s. Wrapped is %s.", attributeID, value.getSyntax(), value.getClass()));
-            return new SnmpAttributeMetadata(attributeID, attributeType, options);
-        }
-
         /**
          * Connects to the specified attribute.
          *
-         * @param attributeName The name of the attribute.
-         * @param options       Attribute discovery options.
+         * @param attributeID The id of the attribute.
+         * @param descriptor  Attribute descriptor.
          * @return The description of the attribute.
+         * @throws Exception Internal connector error.
          */
         @Override
-        protected SnmpAttributeMetadata connectAttribute(final String attributeName, final Map<String, String> options) {
-            try {
-                SnmpConnectorLicenseLimitations.current().verifyMaxAttributeCount(attributesCount());
-                return connectAttribute(new OID(attributeName), options);
-            }
-            catch (final LicensingException e){
-                SnmpConnectorHelpers.log(Level.INFO, "Maximum count of attributes is reached: %s. Unable to connect %s attribute. Context: %s",
-                        attributesCount(), attributeName, LogicalOperation.current(), e);
-            }
-            catch (final Exception e) {
-                SnmpConnectorHelpers.log(Level.SEVERE, "Unable to connect attribute %s. Context: %s",
-                        attributeName, LogicalOperation.current(), e);
-            }
-            return null;
+        protected SnmpAttributeInfo connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws Exception {
+            SnmpConnectorLicenseLimitations.current().verifyMaxAttributeCount(attributesCount());
+            final Variable value = client.read(new Action<SnmpClient, Variable, Exception>() {
+                private final TimeSpan responseTimeout = SnmpConnectorConfigurationProvider.getResponseTimeout(descriptor);
+
+                @Override
+                public Variable invoke(final SnmpClient client) throws IOException, TimeoutException, InterruptedException {
+                    return client.get(new OID(descriptor.getAttributeName()), responseTimeout);
+                }
+            });
+            if(value == null) throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
+            else if(value instanceof Integer32)
+                return new Integer32AttributeInfo(attributeID, descriptor);
+            else if(value instanceof Null)
+                return new NullAttributeInfo(attributeID, descriptor);
+            else if(value instanceof Opaque)
+                return new OpaqueAttributeInfo(attributeID, descriptor);
+            else if(value instanceof OctetString)
+                return new OctetStringAttributeInfo(attributeID, (OctetString)value, descriptor);
+            else if(value instanceof OID)
+                return new OidAttributeInfo(attributeID, descriptor);
+            else if(value instanceof TimeTicks)
+                return new TimeTicksAttributeInfo(attributeID, descriptor);
+            else if(value instanceof Counter32)
+                return new Counter32AttributeInfo(attributeID, descriptor);
+            else if(value instanceof Counter64)
+                return new Counter64AttributeInfo(attributeID, descriptor);
+            else if(value instanceof Gauge32)
+                return new Gauge32AttributeInfo(attributeID, descriptor);
+            else if(value instanceof UnsignedInteger32)
+                return new UnsignedInteger32AttributeInfo(attributeID, descriptor);
+            else if(value instanceof IpAddress)
+                return new IpAddressAttributeInfo(attributeID, descriptor);
+            else return new ReadOnlyAttributeInfo(attributeID, descriptor);
         }
 
         /**
-         * Removes the attribute from the connector.
+         * Obtains the value of a specific attribute of the managed resource.
          *
-         * @param id            The unique identifier of the attribute.
-         * @param attributeInfo An attribute metadata.
-         * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
+         * @param metadata The metadata of the attribute.
+         * @return The value of the attribute retrieved.
+         * @throws Exception Internal connector error.
          */
         @Override
-        protected boolean disconnectAttribute(final String id, final GenericAttributeMetadata<?> attributeInfo) {
-            return true;
-        }
-
-        private Variable getAttributeValue(final SnmpAttributeMetadata metadata, final TimeSpan readTimeout) throws Exception{
-            return client.read(new Action<SnmpClient, Variable, Exception>() {
+        protected Object getAttribute(final SnmpAttributeInfo metadata) throws Exception {
+            return client.read(new Action<SnmpClient, Object, Exception>() {
+                @SuppressWarnings("unchecked")
                 @Override
-                public Variable invoke(final SnmpClient client) throws Exception {
-                    return client.get(metadata.getAttributeID(), readTimeout);
+                public Object invoke(final SnmpClient client) throws Exception {
+                    final Variable attribute = client.get(metadata.getAttributeID(), metadata.getDescriptor().getReadWriteTimeout());
+                    switch (attribute.getSyntax()){
+                        case SMIConstants.EXCEPTION_END_OF_MIB_VIEW:
+                        case SMIConstants.EXCEPTION_NO_SUCH_INSTANCE:
+                        case SMIConstants.EXCEPTION_NO_SUCH_OBJECT:
+                            throw new AttributeNotFoundException(String.format("SNMP Object %s doesn't exist. Error info: %s. Context: %s",
+                                    metadata.getAttributeID(),
+                                    attribute.getSyntax(),
+                                    LogicalOperation.current()));
+                        default: return metadata.convert(attribute);
+                    }
                 }
             });
         }
 
         /**
-         * Returns the value of the attribute.
+         * Set the value of a specific attribute of the managed resource.
          *
-         * @param attribute    The metadata of the attribute to get.
-         * @param readTimeout  The attribute value invoke operation timeout.
-         * @return The value of the attribute.
-         * @throws java.util.concurrent.TimeoutException
+         * @param attribute The attribute of to set.
+         * @param value     The value of the attribute.
+         * @throws Exception                                       Internal connector error.
+         * @throws javax.management.InvalidAttributeValueException Incompatible attribute type.
          */
         @Override
-        protected Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout) throws Exception {
-            if (attribute instanceof SnmpAttributeMetadata)
-                return getAttributeValue((SnmpAttributeMetadata) attribute, readTimeout);
-            else throw new ConversionException(attribute, SnmpAttributeMetadata.class);
-        }
-
-        /**
-         * Sends the attribute value to the remote agent.
-         *
-         * @param attribute    The metadata of the attribute to set.
-         * @param writeTimeout The attribute value write operation timeout.
-         * @param value        The value to write.
-         * @throws java.lang.Exception Internal connector error.
-         */
-        @Override
-        protected void setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws Exception{
-            if(attribute instanceof SnmpAttributeMetadata)
-                setAttributeValue((SnmpAttributeMetadata)attribute, writeTimeout, value);
-
-        }
-
-        private void setAttributeValue(final SnmpAttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws Exception {
+        protected void setAttribute(final SnmpAttributeInfo attribute, final Object value) throws Exception {
             client.read(new Action<SnmpClient, Void, Exception>() {
                 @Override
-                public Void invoke(final SnmpClient client) throws IOException, InvalidSnmpValueException, TimeoutException, InterruptedException {
-                    client.set(Collections.singletonMap(attribute.getAttributeID(),
-                            attribute.getType().convertToSnmp(value).get(new OID())), writeTimeout);
+                public Void invoke(final SnmpClient client) throws Exception {
+                    client.set(ImmutableMap.of(attribute.getAttributeID(), attribute.convert(value)),
+                        attribute.getDescriptor().getReadWriteTimeout());
                     return null;
                 }
             });
+        }
+
+        /**
+         * Get the values of several attributes of the managed resource.
+         *
+         * @param attributes A list of the attributes to be retrieved.
+         * @return The list of attributes retrieved.
+         * @see #getAttributesSequential(String[])
+         * @see #getAttributesParallel(java.util.concurrent.ExecutorService, String[], com.itworks.snamp.TimeSpan)
+         */
+        @Override
+        public AttributeList getAttributes(final String[] attributes) {
+            try {
+                return getAttributesParallel(executor, attributes, BATCH_READ_WRITE_TIMEOUT);
+            } catch (final InterruptedException | TimeoutException e) {
+                SnmpConnectorHelpers.log(Level.SEVERE, e.getMessage(), e);
+                return new AttributeList();
+            }
+        }
+
+        /**
+         * Sets the values of several attributes of the managed resource.
+         *
+         * @param attributes A list of attributes: The identification of the
+         *                   attributes to be set and  the values they are to be set to.
+         * @return The list of attributes that were set, with their new values.
+         * @see #setAttributesSequential(javax.management.AttributeList)
+         * @see #setAttributesParallel(java.util.concurrent.ExecutorService, javax.management.AttributeList, com.itworks.snamp.TimeSpan)
+         */
+        @Override
+        public AttributeList setAttributes(final AttributeList attributes) {
+            try {
+                return setAttributesParallel(executor, attributes, BATCH_READ_WRITE_TIMEOUT);
+            } catch (final TimeoutException | InterruptedException e) {
+                SnmpConnectorHelpers.log(Level.SEVERE, e.getMessage(), e);
+                return new AttributeList();
+            }
         }
     }
 
@@ -656,9 +750,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
     SnmpResourceConnector(final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
         super(snmpConnectionOptions);
         client = new ConcurrentResourceAccessor<>(snmpConnectionOptions.createSnmpClient());
-        final SnmpTypeSystem typeSystem = new SnmpTypeSystem();
-        attributes = new SnmpAttributeSupport(client, typeSystem);
-        notifications = new SnmpNotificationSupport(client, typeSystem);
+        attributes = new SnmpAttributeSupport(client);
+        notifications = new SnmpNotificationSupport(client);
     }
 
     SnmpResourceConnector(final String connectionString,
@@ -677,78 +770,90 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
     }
 
     /**
+     * Obtain the value of a specific attribute of the managed resource.
+     *
+     * @param attribute The name of the attribute to be retrieved
+     * @return The value of the attribute retrieved.
+     * @throws javax.management.AttributeNotFoundException
+     * @throws javax.management.MBeanException             Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's getter.
+     * @throws javax.management.ReflectionException        Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the getter.
+     * @see #setAttribute(javax.management.Attribute)
+     */
+    @Override
+    public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
+        verifyInitialization();
+        return attributes.getAttribute(attribute);
+    }
+
+    /**
+     * Set the value of a specific attribute of the managed resource.
+     *
+     * @param attribute The identification of the attribute to
+     *                  be set and  the value it is to be set to.
+     * @throws javax.management.AttributeNotFoundException
+     * @throws javax.management.InvalidAttributeValueException
+     * @throws javax.management.MBeanException                 Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
+     * @throws javax.management.ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
+     * @see #getAttribute
+     */
+    @Override
+    public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+        verifyInitialization();
+        attributes.setAttribute(attribute);
+    }
+
+    /**
+     * Get the values of several attributes of the Dynamic MBean.
+     *
+     * @param attributes A list of the attributes to be retrieved.
+     * @return The list of attributes retrieved.
+     * @see #setAttributes
+     */
+    @Override
+    public AttributeList getAttributes(final String[] attributes) {
+        verifyInitialization();
+        return this.attributes.getAttributes(attributes);
+    }
+
+    /**
+     * Sets the values of several attributes of the Dynamic MBean.
+     *
+     * @param attributes A list of attributes: The identification of the
+     *                   attributes to be set and  the values they are to be set to.
+     * @return The list of attributes that were set, with their new values.
+     * @see #getAttributes
+     */
+    @Override
+    public AttributeList setAttributes(final AttributeList attributes) {
+        verifyInitialization();
+        return this.attributes.setAttributes(attributes);
+    }
+
+    /**
      * Connects to the specified attribute.
      *
-     * @param id            A key string that is used to invoke attribute from this connector.
-     * @param attributeName The name of the attribute.
-     * @param options       The attribute discovery options.
+     * @param id               A key string that is used to invoke attribute from this connector.
+     * @param attributeName    The name of the attribute.
+     * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
+     * @param options          The attribute discovery options.
      * @return The description of the attribute.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
+     * @throws javax.management.AttributeNotFoundException The managed resource doesn't provide the attribute with the specified name.
+     * @throws javax.management.JMException                Internal connector error.
      */
     @Override
-    public AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) throws AttributeSupportException{
+    public MBeanAttributeInfo connectAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) throws JMException {
         verifyInitialization();
-        return attributes.connectAttribute(id, attributeName, options);
+        return attributes.connectAttribute(id, attributeName, readWriteTimeout, options);
     }
 
     /**
-     * Returns the attribute value.
+     * Gets an array of connected attributes.
      *
-     * @param id           A key string that is used to invoke attribute from this connector.
-     * @param readTimeout  The attribute value invoke operation timeout.
-     * @return The value of the attribute, or default value.
-     * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
+     * @return An array of connected attributes.
      */
     @Override
-    public Object getAttribute(final String id, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException, UnknownAttributeException {
-        verifyInitialization();
-        return attributes.getAttribute(id, readTimeout);
-    }
-
-    /**
-     * Reads a set of managementAttributes.
-     *
-     * @param output      The dictionary with set of attribute keys to invoke and associated default values.
-     * @param readTimeout The attribute value invoke operation timeout.
-     * @return The set of managementAttributes ids really written to the dictionary.
-     * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-     */
-    @Override
-    public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException {
-        verifyInitialization();
-        return attributes.getAttributes(output, readTimeout);
-    }
-
-    /**
-     * Writes the value of the specified attribute.
-     *
-     * @param id           An identifier of the attribute,
-     * @param writeTimeout The attribute value write operation timeout.
-     * @param value        The value to write.
-     * @throws java.util.concurrent.TimeoutException The attribute value cannot be write in the specified duration.
-     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException Unregistered attribute requested.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-     */
-    @Override
-    public void setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException, AttributeSupportException, UnknownAttributeException {
-        verifyInitialization();
-        attributes.setAttribute(id, writeTimeout, value);
-    }
-
-    /**
-     * Writes a set of managementAttributes inside of the transaction.
-     *
-     * @param values       The dictionary of managementAttributes keys and its values.
-     * @param writeTimeout The attribute value write operation timeout.
-     * @throws java.util.concurrent.TimeoutException
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException
-     */
-    @Override
-    public void setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException, AttributeSupportException {
-        verifyInitialization();
-        attributes.setAttributes(values, writeTimeout);
+    public MBeanAttributeInfo[] getAttributeInfo() {
+        return attributes.getAttributeInfo();
     }
 
     /**
@@ -759,47 +864,26 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      */
     @Override
     public boolean disconnectAttribute(final String id) {
-        verifyInitialization();
         return attributes.disconnectAttribute(id);
     }
 
     /**
-     * Returns the information about the connected attribute.
-     *
-     * @param id An identifier of the attribute.
-     * @return The attribute descriptor; or {@literal null} if attribute is not connected.
-     */
-    @Override
-    public AttributeMetadata getAttributeInfo(final String id) {
-        verifyInitialization();
-        return attributes.getAttributeInfo(id);
-    }
-
-    /**
-     * Returns a read-only collection of registered IDs of managementAttributes.
-     *
-     * @return A read-only collection of registered IDs of managementAttributes.
-     */
-    @Override
-    public Collection<String> getConnectedAttributes() {
-        return attributes.getConnectedAttributes();
-    }
-
-    /**
      * Enables event listening for the specified category of events.
-     * <p>
-     * categoryId can be used for enabling notifications for the same category
+     * <p/>
+     * category can be used for enabling notifications for the same category
      * but with different options.
-     * </p>
+     * <p/>
+     * listId parameter
+     * is used as a value of {@link javax.management.Notification#getType()}.
      *
      * @param listId   An identifier of the subscription list.
-     * @param category The name of the category to listen.
+     * @param category The name of the event category to listen.
      * @param options  Event discovery options.
      * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
+     * @throws javax.management.JMException Internal connector error.
      */
     @Override
-    public NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) throws NotificationSupportException{
+    public MBeanNotificationInfo enableNotifications(final String listId, final String category, final CompositeData options) throws JMException {
         verifyInitialization();
         return notifications.enableNotifications(listId, category, options);
     }
@@ -812,50 +896,66 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      *
      * @param listId The identifier of the subscription list.
      * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
-     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
     @Override
-    public boolean disableNotifications(final String listId) throws NotificationSupportException{
-        verifyInitialization();
+    public boolean disableNotifications(final String listId) {
         return notifications.disableNotifications(listId);
     }
 
     /**
-     * Gets the notification metadata by its category.
+     * Adds a listener to this MBean.
      *
-     * @param listId The identifier of the subscription list.
-     * @return The metadata of the specified notification category; or {@literal null}, if notifications
-     * for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
+     * @param listener The listener object which will handle the
+     *                 notifications emitted by the broadcaster.
+     * @param filter   The filter object. If filter is null, no
+     *                 filtering will be performed before handling notifications.
+     * @param handback An opaque object to be sent back to the
+     *                 listener when a notification is emitted. This object cannot be
+     *                 used by the Notification broadcaster object. It should be
+     *                 resent unchanged with the notification to the listener.
+     * @throws IllegalArgumentException Listener parameter is null.
+     * @see #removeNotificationListener
      */
     @Override
-    public NotificationMetadata getNotificationInfo(final String listId) {
-        return notifications.getNotificationInfo(listId);
-    }
-
-    /**
-     * Returns a read-only collection of enabled notifications (subscription list identifiers).
-     *
-     * @return A read-only collection of enabled notifications (subscription list identifiers).
-     */
-    @Override
-    public Collection<String> getEnabledNotifications() {
-        return notifications.getEnabledNotifications();
-    }
-
-    /**
-     * Attaches the notification listener.
-     *
-     * @param listenerId Unique identifier of the listener.
-     * @param listener   The notification listener.
-     * @param delayed    {@literal true} to force delayed subscription. This flag indicates
-     *                   that you can attach a listener even if this object
-     *                   has no enabled notifications.
-     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
-     */
-    @Override
-    public void subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) throws NotificationSupportException{
+    public void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
         verifyInitialization();
-        notifications.subscribe(listenerId, listener, delayed);
+        notifications.addNotificationListener(listener, filter, handback);
+    }
+
+    /**
+     * Removes a listener from this MBean.  If the listener
+     * has been registered with different handback objects or
+     * notification filters, all entries corresponding to the listener
+     * will be removed.
+     *
+     * @param listener A listener that was previously added to this
+     *                 MBean.
+     * @throws javax.management.ListenerNotFoundException The listener is not
+     *                                                    registered with the MBean.
+     * @see #addNotificationListener
+     * @see javax.management.NotificationEmitter#removeNotificationListener
+     */
+    @Override
+    public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
+        verifyInitialization();
+        notifications.removeNotificationListener(listener);
+    }
+
+    /**
+     * <p>Returns an array indicating, for each notification this
+     * MBean may send, the name of the Java class of the notification
+     * and the notification type.</p>
+     * <p/>
+     * <p>It is not illegal for the MBean to send notifications not
+     * described in this array.  However, some clients of the MBean
+     * server may depend on the array being complete for their correct
+     * functioning.</p>
+     *
+     * @return the array of possible notifications.
+     */
+    @Override
+    public MBeanNotificationInfo[] getNotificationInfo() {
+        return notifications.getNotificationInfo();
     }
 
     /**
@@ -870,18 +970,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
 
     static Logger getLoggerImpl(){
         return getLogger(NAME);
-    }
-
-    /**
-     * Removes the notification listener.
-     *
-     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.itworks.snamp.connectors.notifications.NotificationListener, boolean)}.
-     * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
-     */
-    @Override
-    public boolean unsubscribe(final String listenerId) {
-        verifyInitialization();
-        return notifications.unsubscribe(listenerId);
     }
 
     /**

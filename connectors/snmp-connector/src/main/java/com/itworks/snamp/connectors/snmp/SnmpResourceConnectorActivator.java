@@ -2,6 +2,7 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -36,6 +37,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         }
     }
 
+    @SpecialUse
     public SnmpResourceConnectorActivator(){
         super(SnmpConnectorHelpers.CONNECTOR_NAME,
                 new SnmpConnectorFactory(),

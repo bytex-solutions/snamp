@@ -1,7 +1,6 @@
 package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Supplier;
-import org.snmp4j.mp.MPv3;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.Address;
 import org.snmp4j.smi.GenericAddress;
@@ -38,12 +37,8 @@ final class SnmpConnectionOptions {
                                  final Map<String, String> parameters) {
         connectionAddress = GenericAddress.parse(connectionString);
         threadPoolConfig = new SnmpThreadPoolConfig(parameters, connectionString);
-        engineID = parameters.containsKey(ENGINE_ID_PARAM) ?
-                new OctetString(parameters.get(ENGINE_ID_PARAM)) :
-                new OctetString(MPv3.createLocalEngineID());
-        community = parameters.containsKey(COMMUNITY_PARAM) ?
-                new OctetString(parameters.get(COMMUNITY_PARAM)) :
-                new OctetString("public");
+        engineID = parseEngineID(parameters);
+        community = parseCommunity(parameters);
         userName = parameters.containsKey(USER_NAME_PARAM) ?
                 new OctetString(parameters.get(USER_NAME_PARAM)) :
                 null;

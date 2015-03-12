@@ -1,8 +1,7 @@
 package com.itworks.snamp.management.impl;
 
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
-import com.itworks.snamp.connectors.ManagedResourceActivator;
-import com.itworks.snamp.management.jmx.OpenMBean;
+import com.itworks.snamp.jmx.OpenMBean;
 
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenMBeanParameterInfoSupport;

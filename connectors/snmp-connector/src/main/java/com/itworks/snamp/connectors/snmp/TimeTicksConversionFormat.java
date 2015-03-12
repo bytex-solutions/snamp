@@ -1,10 +1,15 @@
 package com.itworks.snamp.connectors.snmp;
 
-import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.mapping.TypeLiterals;
 import org.snmp4j.smi.TimeTicks;
 
-import java.util.Map;
+import javax.management.Descriptor;
+import javax.management.InvalidAttributeValueException;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.SimpleType;
+
+import java.util.Objects;
+
+import static com.itworks.snamp.jmx.DescriptorUtils.*;
 
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
 
@@ -14,39 +19,55 @@ import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvid
  * @version 1.0
  * @since 1.0
  */
-enum TimeTicksConversionFormat {
-    TEXT,
-    LONG;
+enum TimeTicksConversionFormat implements SnmpObjectConverter<TimeTicks> {
+    TEXT(SimpleType.STRING) {
+        @Override
+        public String convert(final TimeTicks value) {
+            return value.toString();
+        }
+    },
+    LONG(SimpleType.LONG) {
+        @Override
+        public Long convert(final TimeTicks value) {
+            return value.toLong();
+        }
+    };
 
-    static final TypeToken<TimeTicks> TIME_TICKS = TypeToken.of(TimeTicks.class);
+    private final OpenType<?> openType;
 
-    public static TimeTicksConversionFormat getFormat(final Map<String, String> options){
-        if(options.containsKey(SNMP_CONVERSION_FORMAT_PARAM))
-            return getFormat(options.get(SNMP_CONVERSION_FORMAT_PARAM));
+    private TimeTicksConversionFormat(final OpenType<?> type){
+        this.openType = type;
+    }
+
+
+
+
+    static TimeTicksConversionFormat getFormat(final Descriptor options){
+        if(hasField(options, SNMP_CONVERSION_FORMAT_PARAM))
+            return getFormat(getField(options, SNMP_CONVERSION_FORMAT_PARAM, String.class));
         else return LONG;
     }
 
-    public static TimeTicksConversionFormat getFormat(final String formatName){
+    static TimeTicksConversionFormat getFormat(final String formatName){
         switch (formatName){
             case "text": return TEXT;
             default: return LONG;
         }
     }
 
-    public SMITypeProjection<TimeTicks, ?> createTypeProjection(){
-        switch (this){
-            case TEXT: return new SMITypeProjection<TimeTicks, String>(TIME_TICKS, TypeLiterals.STRING) {
-                @Override
-                protected String convertFrom(final TimeTicks value) throws IllegalArgumentException {
-                    return value.toString();
-                }
-            };
-            default: return new SMITypeProjection<TimeTicks, Long>(TIME_TICKS, TypeLiterals.LONG) {
-                @Override
-                protected Long convertFrom(final TimeTicks value) throws IllegalArgumentException {
-                    return value.toLong();
-                }
-            };
+    @Override
+    public TimeTicks convert(final Object value) throws InvalidAttributeValueException {
+        if(value instanceof Long)
+            return new TimeTicks((Long)value);
+        else{
+            final TimeTicks result = new TimeTicks();
+            result.setValue(Objects.toString(value, "0"));
+            return result;
         }
+    }
+
+    @Override
+    public final OpenType<?> getOpenType() {
+        return openType;
     }
 }

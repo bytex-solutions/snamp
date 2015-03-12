@@ -1,40 +1,40 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagedEntityType;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.snmp4j.smi.Counter64;
 import org.snmp4j.smi.Variable;
 
-import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.convertFrom;
-import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.supportsProjection;
 import static org.snmp4j.smi.SMIConstants.SYNTAX_COUNTER64;
 
-@MOSyntax(SYNTAX_COUNTER64)
 final class SnmpLongObject extends SnmpScalarObject<Counter64>{
-    public static final long defaultValue = -1;
+    final static int SYNTAX = SYNTAX_COUNTER64;
+    static final long DEFAULT_VALUE = -1;
 
-    public SnmpLongObject(final String oid, final AttributeAccessor connector){
-        super(oid, connector, new Counter64(defaultValue));
+    @SpecialUse
+    SnmpLongObject(final AttributeAccessor connector){
+        super(connector, new Counter64(DEFAULT_VALUE));
     }
 
-    public static Counter64 convert(final Object value, final ManagedEntityType attributeTypeInfo){
-        final Number convertedValue = convertFrom(attributeTypeInfo, value, TypeLiterals.NUMBER, TypeLiterals.BYTE, TypeLiterals.SHORT, TypeLiterals.INTEGER, TypeLiterals.LONG);
-        return new Counter64(convertedValue.longValue());
+    @SpecialUse
+    static Counter64 toSnmpObject(final Object value){
+        if(value instanceof Number)
+            return new Counter64(((Number)value).longValue());
+        else return new Counter64(DEFAULT_VALUE);
     }
 
-    public static Long convert(final Variable value, final ManagedEntityType attributeTypeInfo){
-        if(supportsProjection(attributeTypeInfo, TypeLiterals.LONG)) return value.toLong();
-        else return logAndReturnDefaultValue(defaultValue, value, attributeTypeInfo);
+    @SpecialUse
+    static long fromSnmpObject(final Variable value){
+        return value.toLong();
     }
 
     @Override
     protected Counter64 convert(final Object value) {
-        return convert(value, getMetadata().getType());
+        return toSnmpObject(value);
     }
 
     @Override
     protected Long convert(final Counter64 value) {
-        return convert(value, getMetadata().getType());
+        return fromSnmpObject(value);
     }
 }

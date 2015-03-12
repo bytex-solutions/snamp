@@ -1,8 +1,9 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
+
+import javax.management.MBeanNotificationInfo;
 
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
 
@@ -26,5 +27,7 @@ interface SnmpNotificationMapping extends SnmpEntity {
 
     OID getID();
 
-    NotificationMetadata getMetadata();
+    MBeanNotificationInfo getMetadata();
+
+    String getSource();
 }

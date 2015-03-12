@@ -7,10 +7,13 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.jmx.CompositeDataUtils;
 import com.itworks.snamp.scripting.OSGiScriptEngineManager;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.rshell.AbstractRShellConnectorTest;
+import org.junit.Assume;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -27,7 +30,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +55,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
         super(USER_NAME,
                 PASSWORD,
                 PORT,
-                CERTIFICATE_FILE,
+                getPathToFileInProjectRoot(CERTIFICATE_FILE),
                 FINGERPRINT);
     }
 
@@ -102,12 +104,13 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
         final AttributeConfiguration attr = attributeFactory.get();
         attr.setAttributeName("memStatus");
-        attr.getParameters().put("commandProfileLocation", Paths.get(getProjectRootDir(), "freemem-tool-profile.xml").toFile().getAbsolutePath());
+        attr.getParameters().put("commandProfileLocation", getPathToFileInProjectRoot("freemem-tool-profile.xml"));
         attr.getParameters().put("format", "-m");
         attributes.put("ms", attr);
     }
 
-    private Object readAttribute(final String attributeName) throws IOException, JMException {
+    private Object readAttribute(String attributeName) throws IOException, JMException {
+        attributeName = TEST_RESOURCE_NAME + "/" + attributeName;
         final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
@@ -141,11 +144,12 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
 
     @Test
     public void readMemStatusTest() throws BundleException, IOException, JMException {
+        Assume.assumeTrue(Utils.IS_OS_LINUX);
         final Object memStatus = readAttribute("ms");
         assertNotNull(memStatus);
         assertTrue(memStatus instanceof CompositeData);
-        assertTrue(((CompositeData) memStatus).get("total") instanceof Long);
-        assertTrue(((CompositeData) memStatus).get("used") instanceof Long);
-        assertTrue(((CompositeData) memStatus).get("free") instanceof Long);
+        assertTrue(CompositeDataUtils.getLong(((CompositeData) memStatus), "total", 0L) > 0L);
+        assertTrue(CompositeDataUtils.getLong(((CompositeData) memStatus), "used", 0L) > 0L);
+        assertTrue(CompositeDataUtils.getLong(((CompositeData) memStatus), "free", 0L) > 0L);
     }
 }

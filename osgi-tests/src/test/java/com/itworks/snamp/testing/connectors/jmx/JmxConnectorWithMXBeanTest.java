@@ -1,14 +1,16 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
+import com.google.common.reflect.TypeToken;
+import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.itworks.snamp.mapping.RecordSet;
-import com.itworks.snamp.mapping.TypeLiterals;
+import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.openmbean.CompositeData;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.util.Map;
@@ -44,12 +46,12 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
 
     @Test
     public void testForAttributes() throws Exception {
-        testAttribute("1", "ObjectPendingFinalizationCount", TypeLiterals.INTEGER, 0, true);
-        testAttribute("2", "HeapMemoryUsage", TypeLiterals.NAMED_RECORD_SET, null, new Equator<RecordSet<String, ?>>() {
-            @Override
-            public boolean equate(final RecordSet o1, final RecordSet o2) {
-                return true;
-            }
-        }, true);
+        testAttribute("1", "ObjectPendingFinalizationCount", TypeTokens.INTEGER, 0,
+                AbstractResourceConnectorTest.<Integer>valueEquator(),
+                true);
+        testAttribute("2", "HeapMemoryUsage", TypeToken.of(CompositeData.class),
+                null,
+                AbstractResourceConnectorTest.<CompositeData>successEquator(),
+                true);
     }
 }

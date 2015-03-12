@@ -1,7 +1,7 @@
 package com.itworks.snamp.management.impl;
 
+import com.google.common.base.Stopwatch;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.internal.CountdownTimer;
 import org.osgi.service.log.LogService;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -11,12 +11,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  * @since 1.0
  */
-final class StatisticCounters extends CountdownTimer {
+final class StatisticCounters {
     private TimeSpan frequency;
     private final AtomicLong numberOfFaults;
     private final AtomicLong numberOfWarnings;
     private final AtomicLong numberOfDebugMessages;
     private final AtomicLong numberOfInformationMessages;
+    private final Stopwatch timer;
 
     /**
      * Initializes a new countdown timer.
@@ -25,19 +26,19 @@ final class StatisticCounters extends CountdownTimer {
      * @throws IllegalArgumentException initial is null.
      */
     public StatisticCounters(final TimeSpan frequency) {
-        super(frequency);
         this.frequency = frequency;
         numberOfFaults = new AtomicLong(0L);
         numberOfDebugMessages = new AtomicLong(0L);
         numberOfInformationMessages = new AtomicLong(0L);
         numberOfWarnings = new AtomicLong(0L);
+        timer = Stopwatch.createUnstarted();
     }
 
     public synchronized void setRenewalTime(final TimeSpan value){
-        stop();
-        setTimerValue(frequency = value);
+        timer.stop();
+        this.frequency = value;
         resetCounters();
-        start();
+        timer.start();
     }
 
     public TimeSpan getRenewalTime(){
@@ -62,14 +63,19 @@ final class StatisticCounters extends CountdownTimer {
         numberOfDebugMessages.set(0L);
     }
 
+    private boolean isEmpty(){
+        final long duration = timer.elapsed(frequency.unit);
+        return duration >= frequency.duration;
+    }
+
     private synchronized boolean resetTimerIfNecessary(){
-        stop();
+        timer.stop();
         if(isEmpty()) {
-            setTimerValue(frequency);
-            return start();
+            timer.reset().start();
+            return true;
         }
         else{
-            start();
+            timer.start();
             return false;
         }
     }
@@ -85,5 +91,9 @@ final class StatisticCounters extends CountdownTimer {
             default: counter = numberOfInformationMessages; break;
         }
         counter.incrementAndGet();
+    }
+
+    void start() {
+        timer.start();
     }
 }

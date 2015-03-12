@@ -7,6 +7,7 @@ import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfigu
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
+import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
 
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
@@ -32,7 +33,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
      */
     static final String CONNECTION_CHECK_PERIOD = "connectionCheckPeriod";
     static final String OBJECT_NAME_PROPERTY = "objectName";
-    static final String SEVERITY_PARAM = "severity";
+    static final String SEVERITY_PARAM = NotificationDescriptor.SEVERITY_PARAM;
     static final String USE_REGEXP_PARAM = "useRegexp";
 
     private static final class EventConfigurationInfo extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{

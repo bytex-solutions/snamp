@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.osgi.service.jndi.JNDIContextManager;
 
 /**
@@ -36,6 +37,7 @@ public final class SnmpResourceAdapterActivator extends ResourceAdapterActivator
     /**
      * Initializes a new instance of the resource adapter lifetime manager.
      */
+    @SpecialUse
     public SnmpResourceAdapterActivator() {
         super(SnmpResourceAdapter.NAME,
                 new SnmpAdapterFactory(),

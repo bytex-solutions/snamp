@@ -6,7 +6,7 @@ package com.itworks.snamp.connectors.rshell;
  * @since 1.0
  */
 final class CommandProfileNotFoundException extends Exception {
-    CommandProfileNotFoundException(final String profilePath) {
+    CommandProfileNotFoundException(final Object profilePath) {
         super(String.format("Command-line profile %s not found", profilePath));
     }
 }

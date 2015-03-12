@@ -6,6 +6,7 @@ import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfigu
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.management.AbstractMaintainable;
 import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.BundleContext;
@@ -32,7 +33,6 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  * @version 1.0
  * @since 1.0
  */
-@SuppressWarnings("UnusedDeclaration")
 public final class JmxConnectorBundleActivator extends ManagedResourceActivator<JmxConnector> {
 
     private static final class JmxMaintenanceService extends AbstractAggregator implements Maintainable{
@@ -74,6 +74,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
          * action doesn't exist.
          */
         @Override
+        @SpecialUse
         public Future<String> doAction(final String actionName, final String arguments, final Locale loc) {
             if(Objects.equals(actionName, JmxMaintenanceActions.SIMULATE_CONNECTION_ABORT.getName())){
                 final BundleContext context = getBundleContextByObject(this);
@@ -105,6 +106,8 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
          * @return The logger associated with this service.
          */
         @Override
+        @Aggregation
+        @SpecialUse
         public Logger getLogger() {
             return JmxConnector.getLoggerImpl();
         }
@@ -159,7 +162,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
     /**
      * Initializes a new instance of the JMX connector bundle activator.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @SpecialUse
     public JmxConnectorBundleActivator() {
         super(JmxConnector.NAME,
                 new JmxConnectorFactory(),

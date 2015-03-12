@@ -16,7 +16,13 @@ public final class TypeTokens {
 
     }
 
+    /**
+     * Represents type of the {@link com.itworks.jcommands.impl.XmlParsingResultType#DICTIONARY} object.
+     */
     public static final TypeToken<Map<String, ?>> DICTIONARY_TYPE_TOKEN = new TypeToken<Map<String, ?>>() {};
 
+    /**
+     * Represents type of the {@link com.itworks.jcommands.impl.XmlParsingResultType#TABLE} object.
+     */
     public static final TypeToken<List<? extends Map<String, ?>>> TABLE_TYPE_TOKEN = new TypeToken<List<? extends Map<String, ?>>>(){};
 }

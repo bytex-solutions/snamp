@@ -5,19 +5,13 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
-import com.itworks.snamp.connectors.ResourceConnectorException;
-import com.itworks.snamp.connectors.notifications.Notification;
-import com.itworks.snamp.connectors.notifications.NotificationMetadata;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
-import javax.management.AttributeChangeNotification;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
+import javax.management.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -29,27 +23,80 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @since 1.0
  */
 public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+
+
     private static final class TestAdapter extends AbstractResourceAdapter{
+        private static final class TestAttributesModel extends ArrayList<AttributeAccessor> implements AttributesModel{
+            private static final long serialVersionUID = -4679265669843153720L;
+
+            @Override
+            public void addAttribute(final String resourceName,
+                                     final String userDefinedName,
+                                     final String attributeName,
+                                     final AttributeConnector connector) {
+                try {
+                    add(connector.connect(resourceName + "/" + attributeName));
+                } catch (final JMException e) {
+                    fail(e.getMessage());
+                }
+            }
+
+            @Override
+            public AttributeAccessor removeAttribute(final String resourceName,
+                                                     final String userDefinedName,
+                                                     final String attributeName) {
+                final Iterator<AttributeAccessor> attrs = iterator();
+                while (attrs.hasNext()){
+                    final AttributeAccessor accessor = attrs.next();
+                    if(Objects.equals(resourceName + "/" + attributeName, accessor.getName())) {
+                        attrs.remove();
+                        return accessor;
+                    }
+                }
+                return null;
+            }
+        }
+        private static final class TestNotificationsModel extends ArrayList<MBeanNotificationInfo> implements NotificationsModel{
+            private static final long serialVersionUID = 943992701825986769L;
+
+            @Override
+            public void addNotification(final String resourceName,
+                                        final String userDefinedName,
+                                        final String category,
+                                        final NotificationConnector connector) {
+                try {
+                    add(connector.enable(resourceName + '.' + category));
+                } catch (final JMException e) {
+                    fail(e.getMessage());
+                }
+            }
+
+            @Override
+            public MBeanNotificationInfo removeNotification(final String resourceName,
+                                                            final String userDefinedName,
+                                                            final String category) {
+                final Iterator<MBeanNotificationInfo> notifs = iterator();
+                while (notifs.hasNext()){
+                    final MBeanNotificationInfo notif = notifs.next();
+                    if(Objects.equals(resourceName + '.' + category, notif.getNotifTypes()[0])) {
+                        notifs.remove();
+                        return notif;
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            public void handleNotification(final Notification notification, final Object handback) {
+
+            }
+        }
         private final SynchronizationEvent<Void> restartEvent = new SynchronizationEvent<>(true);
 
-        private final AbstractAttributesModel<AttributeAccessor> attributesModel = new AbstractAttributesModel<AttributeAccessor>() {
-            @Override
-            protected AttributeAccessor createAttributeView(final String resourceName, final String userDefinedAttributeName, final AttributeAccessor accessor) {
-                return accessor;
-            }
-        };
 
-        private final AbstractNotificationsModel<NotificationMetadata> notificationsModel = new AbstractNotificationsModel<NotificationMetadata>() {
-            @Override
-            protected NotificationMetadata createNotificationView(final String resourceName, final String eventName, final NotificationMetadata notifMeta) {
-                return notifMeta;
-            }
+        private final TestAttributesModel attributes = new TestAttributesModel();
 
-            @Override
-            protected void handleNotification(final String sender, final Notification notif, final NotificationMetadata notificationMetadata) {
-
-            }
-        };
+        private final TestNotificationsModel notifications = new TestNotificationsModel();
 
         private final boolean enableTracking;
 
@@ -58,56 +105,44 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             enableTracking = tracking;
         }
 
-        private Map<String, AttributeAccessor> getAttributes(){
-            return attributesModel;
+        private List<AttributeAccessor> getAttributes(){
+            return attributes;
         }
 
-        private Map<String, NotificationMetadata> getNotifications(){
-            return notificationsModel;
+        private List<MBeanNotificationInfo> getNotifications(){
+            return notifications;
         }
 
         @Override
         protected void start(final Map<String, String> parameters) throws Exception {
-            populateModel(attributesModel);
-            populateModel(notificationsModel);
+            populateModel(attributes);
+            populateModel(notifications);
             restartEvent.fire(null);
         }
 
         @Override
         protected void stop() throws Exception {
-            clearModel(attributesModel);
-            clearModel(notificationsModel);
+            clearModel(attributes);
+            clearModel(notifications);
         }
 
         @Override
         protected void resourceRemoved(final String resourceName) {
             if(enableTracking) {
-                clearModel(resourceName, attributesModel);
-                clearModel(resourceName, notificationsModel);
+                clearModel(resourceName, attributes);
+                clearModel(resourceName, notifications);
             }
             else super.resourceRemoved(resourceName);
         }
 
-        /**
-         * Invokes when a new resource connector is activated or new resource configuration is added.
-         * <p/>
-         * This method will be called automatically by SNAMP infrastructure.
-         * In the default implementation this method throws internal exception
-         * derived from {@link UnsupportedOperationException} indicating
-         * that the adapter should be restarted.
-         * </p
-         *
-         * @param resourceName The name of the resource to be added.
-         * @see #enlargeModel(String, com.itworks.snamp.adapters.AbstractResourceAdapter.AbstractAttributesModel)
-         */
         @Override
         protected void resourceAdded(final String resourceName) {
             if(enableTracking)try{
-                enlargeModel(resourceName, notificationsModel);
-                enlargeModel(resourceName, attributesModel);
+                enlargeModel(resourceName, notifications);
+                enlargeModel(resourceName, attributes);
                 restartEvent.fire(null);
             }
-            catch (final ResourceConnectorException e){
+            catch (final JMException e){
                 fail(e.getMessage());
             }
             else super.resourceAdded(resourceName);
@@ -132,6 +167,11 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         final Method tryStartMethod = AbstractResourceAdapter.class.getDeclaredMethod("tryStart", Map.class);
         tryStartMethod.setAccessible(true);
         return (Boolean)tryStartMethod.invoke(adapter, parameters);
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
     }
 
     @Test

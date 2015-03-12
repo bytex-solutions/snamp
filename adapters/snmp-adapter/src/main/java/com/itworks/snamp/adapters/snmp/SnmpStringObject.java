@@ -1,38 +1,60 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.mapping.TypeLiterals;
 import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagedEntityType;
-import org.snmp4j.smi.*;
-import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.*;
+import com.itworks.snamp.internal.annotations.SpecialUse;
+import com.itworks.snamp.jmx.WellKnownType;
+import org.snmp4j.smi.OctetString;
+import org.snmp4j.smi.Variable;
+
+import javax.management.*;
+import java.io.Serializable;
+import java.lang.reflect.Type;
+import java.util.Objects;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
 
-@MOSyntax(SYNTAX_OCTET_STRING)
 final class SnmpStringObject extends SnmpScalarObject<OctetString>{
-    public static final String defaultValue = "";
+    static int SYNTAX = SYNTAX_OCTET_STRING;
+    static final String DEFAULT_VALUE = "";
 
-    public SnmpStringObject(final String oid, final AttributeAccessor connector){
-        super(oid, connector, new OctetString(defaultValue));
+    @SpecialUse
+    SnmpStringObject(final AttributeAccessor connector){
+        super(connector, new OctetString(DEFAULT_VALUE));
     }
 
-    public static OctetString convert(final Object value, final ManagedEntityType attributeTypeInfo){
-        return new OctetString(convertFrom(attributeTypeInfo, value, TypeLiterals.STRING));
+    @SpecialUse
+    static OctetString toSnmpObject(final Object value){
+        if(value instanceof ObjectName)
+            return new OctetString(((ObjectName)value).getCanonicalName());
+        else if(value instanceof String)
+            return new OctetString((String)value);
+        else if(value instanceof Character)
+            return new OctetString(String.valueOf((char)value));
+        else return new OctetString(Objects.toString(value, DEFAULT_VALUE));
     }
 
-    //do not remove 'type' argument because it is used by reflection in SnmpType
-    @SuppressWarnings("UnusedParameters")
-    public static String convert(final Variable value, final ManagedEntityType type){
-        return value.toString();
+    @SpecialUse
+    static Serializable fromSnmpObject(final Variable value, final Type expectedType) throws InvalidAttributeValueException {
+        switch (WellKnownType.getType(expectedType)){
+            case STRING: return value.toString();
+            case CHAR: return SnmpHelpers.toChar(value.toString());
+            case OBJECT_NAME:
+                try {
+                    return new ObjectName(value.toString());
+                } catch (final MalformedObjectNameException e) {
+                    throw new InvalidAttributeValueException(e.getMessage());
+                }
+            default: throw unexpectedAttributeType(expectedType);
+        }
     }
 
     @Override
     protected OctetString convert(final Object value) {
-        return convert(value, getMetadata().getType());
+        return toSnmpObject(value);
     }
 
     @Override
-    protected String convert(final OctetString value) {
-        return convert(value, getMetadata().getType());
+    protected Serializable convert(final OctetString value) throws ReflectionException, InvalidAttributeValueException {
+        return fromSnmpObject(value, getAttributeType());
     }
 }

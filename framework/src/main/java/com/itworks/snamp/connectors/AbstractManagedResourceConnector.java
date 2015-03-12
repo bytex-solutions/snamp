@@ -1,26 +1,29 @@
 package com.itworks.snamp.connectors;
 
-import com.google.common.collect.Maps;
-import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.google.common.collect.Lists;
+import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
-import com.itworks.snamp.internal.CountdownTimer;
 import com.itworks.snamp.internal.IllegalStateFlag;
 import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
+import com.itworks.snamp.jmx.JMExceptionUtils;
 
+import javax.management.*;
+import javax.management.openmbean.CompositeData;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,218 +41,37 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractManagedResourceConnector<TConnectionOptions> extends AbstractFrameworkService implements ManagedResourceConnector<TConnectionOptions> {
-
-    /**
-     * Represents default implementation of the attribute descriptor.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    protected static abstract class GenericAttributeMetadata<T extends ManagedEntityType> implements AttributeMetadata {
-        /**
-         * Represents the name of the attribute configuration parameter that assigns the display
-         * name for the attribute.
-         * <p>
-         *     If you want to store display names for each language then you should use the following notation:
-         *     displayName.en-US,
-         *     display.ru-RU
-         * </p>
-         */
-        public static final String DISPLAY_NAME_PARAM = "displayName";
-
-        /**
-         * Represents the name of the attribute configuration parameters that assigns the
-         * description for the attribute.
-         * <p>
-         *     If you want to store display names for each language then you should use the following notation:
-         *     description.en-US,
-         *     description.ru-RU
-         * </p>
-         */
-        public static final String DESCRIPTION_PARAM = "description";
-
-        private final String attributeName;
-        private volatile T attributeType;
-
-        /**
-         * Initializes a new attribute metadata.
-         * @param attributeName The name of the attribute. Cannot be {@literal null}.
-         * @throws IllegalArgumentException attributeName or namespace is {@literal null}.
-         */
-        public GenericAttributeMetadata(final String attributeName){
-            if(attributeName == null) throw new IllegalArgumentException("attributeName is null.");
-            this.attributeName = attributeName;
-        }
-
-        private String readLocalizedParam(String paramName, final Locale locale, final String defaultValue){
-            if(locale == null)
-                return containsKey(paramName) ? get(paramName) : defaultValue;
-            else{
-                paramName = String.format("%s.%s", paramName, locale.toLanguageTag());
-                return containsKey(paramName) ? get(paramName) : defaultValue;
-            }
-        }
-
-        /**
-         * Returns the localized description of this attribute.
-         * <p>
-         *     In the default implementation, this method reads description from {@link #DESCRIPTION_PARAM}
-         *     attribute configuration parameter.
-         * </p>
-         * @param locale The locale of the description. If it is {@literal null} then returns description
-         *               in the default locale.
-         * @return The localized description of this attribute.
-         * @see #DESCRIPTION_PARAM
-         */
-        @Override
-        public String getDescription(final Locale locale) {
-            return readLocalizedParam(DESCRIPTION_PARAM, locale, "");
-        }
-
-        /**
-         * Returns the localized name of this attribute.
-         * <p>
-         *     In the default implementation, this method reads description from {@link #DISPLAY_NAME_PARAM}
-         *     attribute configuration parameter.
-         * </p>
-         * @param locale The locale of the display name. If it is {@literal null} then returns display name
-         *               in the default locale.
-         * @return The localized name of this attribute.
-         * @see #DISPLAY_NAME_PARAM
-         */
-        @Override
-        public String getDisplayName(final Locale locale) {
-            return readLocalizedParam(DISPLAY_NAME_PARAM, locale, attributeName);
-        }
-
-        /**
-         * Detects the attribute type (this method will be called by infrastructure once).
-         * @return Detected attribute type.
-         */
-        protected abstract T detectAttributeType();
-
-        /**
-         * Returns the type of the attribute value.
-         *
-         * @return The type of the attribute value.
-         */
-        @Override
-        public final T getType() {
-            // use a temporary variable to reduce the number of reads of the
-            // volatile field
-            T result = attributeType;
-            if (result == null)
-                synchronized (this) {
-                    result = attributeType;
-                    if (result == null)
-                        result = attributeType = detectAttributeType();
-                }
-            return result;
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception because
-         * this map is read-only.
-         * @param option The name of the option to put.
-         * @param value The value of the option to put.
-         * @return The previously option value.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @Override
-        public final String put(final String option, final String value) {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception because
-         * this map is read-only.
-         * @param option The name of the option to remove.
-         * @return The value of the remove option.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @Override
-        public final String remove(final Object option) {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception because
-         * this map is read-only.
-         * @param options A map of attribute discovery options.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public final void putAll(Map<? extends String, ? extends String> options) {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception because
-         * this map is read-only.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @Override
-        public final void clear() {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Returns the attribute name.
-         * @return The attribute name.
-         */
-        @Override
-        public final String getName() {
-            return attributeName;
-        }
-
-        /**
-         * By default, returns {@literal true}, but you can override this method
-         * in the derived class.
-         * @return {@literal true}
-         */
-        @Override
-        public boolean canRead() {
-            return true;
-        }
-
-        /**
-         * Determines whether the value of this attribute can be changed, returns {@literal true} by default.
-         *
-         * @return {@literal true}, if the attribute value can be changed; otherwise, {@literal false}.
-         */
-        @Override
-        public boolean canWrite() {
-            return true;
-        }
-
-        /**
-         * Determines whether the value of the attribute can be cached after first reading
-         * and supplied as real attribute value before first write, return {@literal false} by default.
-         *
-         * @return {@literal true}, if the value of this attribute can be cached; otherwise, {@literal false}.
-         */
-        @Override
-        public boolean cacheable() {
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-    }
+public abstract class AbstractManagedResourceConnector<TConnectionOptions> extends AbstractFrameworkService implements ManagedResourceConnector<TConnectionOptions>, Descriptive {
 
     /**
      * Provides a base support of management attributes.
+     * @param <M> Type of the attribute metadata.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class AbstractAttributeSupport extends ThreadSafeObject implements AttributeSupport {
-        private final Map<String, GenericAttributeMetadata<?>> attributes;
+    protected static abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> extends ThreadSafeObject implements AttributeSupport {
+        private final KeyedObjects<String, M> attributes;
+        private final Class<M> metadataType;
 
         /**
          * Initializes a new support of management attributes.
+         * @param attributeMetadataType The type of the attribute metadata.
          */
-        protected AbstractAttributeSupport() {
-            attributes = new HashMap<>(10);
+        protected AbstractAttributeSupport(final Class<M> attributeMetadataType) {
+            attributes = createAttributes();
+            metadataType = Objects.requireNonNull(attributeMetadataType);
+        }
+
+        private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, M> createAttributes(){
+            return new AbstractKeyedObjects<String, M>(10) {
+                private static final long serialVersionUID = 6284468803876344036L;
+
+                @Override
+                public String getKey(final MBeanAttributeInfo metadata) {
+                    return metadata.getName();
+                }
+            };
         }
 
         /**
@@ -268,40 +90,203 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         }
 
         /**
-         * Connects to the specified attribute.
+         * Gets an array of connected attributes.
          *
-         * @param attributeName The name of the attribute.
-         * @param options       Attribute discovery options.
-         * @return The description of the attribute.
-         * @throws java.lang.Exception Internal connector error.
+         * @return An array of connected attributes.
          */
-        protected abstract GenericAttributeMetadata<?> connectAttribute(final String attributeName, final Map<String, String> options) throws Exception;
+        @Override
+        public final M[] getAttributeInfo() {
+            beginRead();
+            try {
+                return ArrayUtils.toArray(attributes.values(), metadataType);
+            } finally {
+                endRead();
+            }
+        }
+
+        /**
+         * Gets a set of attributes in sequential manner.
+         * @param attributes A set of attributes to read. Cannot be {@literal null}.
+         * @return output A list of obtained attributes.
+         */
+        protected final AttributeList getAttributesSequential(final String[] attributes) {
+            final List<Attribute> result = Lists.newArrayListWithExpectedSize(attributes.length);
+            for(final String attributeID: attributes)
+                try {
+                    result.add(new Attribute(attributeID, getAttribute(attributeID)));
+                } catch (final JMException e) {
+                    failedToGetAttribute(attributeID, e);
+                }
+            return new AttributeList(result);
+        }
+
+        /**
+         * Gets a set of attributes in parallel manner.
+         * @param executor The executor used to schedule attribute reader. Cannot be {@literal null}.
+         * @param attributes A set of attributes to read. Cannot be {@literal null}.
+         * @param timeout Synchronization timeout. May be {@link com.itworks.snamp.TimeSpan#INFINITE}.
+         * @return  A list of obtained attributes.
+         * @throws InterruptedException Operation is interrupted.
+         * @throws TimeoutException Unable to read attributes in the specified time duration.
+         */
+        protected final AttributeList getAttributesParallel(final ExecutorService executor,
+                                                            final String[] attributes,
+                                                            final TimeSpan timeout) throws InterruptedException, TimeoutException {
+            final List<Attribute> result = Collections.
+                    synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.length));
+            final CountDownLatch synchronizer = new CountDownLatch(attributes.length);
+            for (final String attributeID : attributes)
+                executor.submit(new Callable<Object>() {
+                    @Override
+                    public Object call() throws JMException {
+                        try {
+                            return result.add(new Attribute(attributeID, getAttribute(attributeID)));
+                        }
+                        catch (final JMException e){
+                            failedToGetAttribute(attributeID, e);
+                            return null;
+                        }
+                        finally {
+                            synchronizer.countDown();
+                        }
+                    }
+                });
+            if (timeout == null)
+                synchronizer.await();
+            else if (!synchronizer.await(timeout.duration, timeout.unit))
+                throw new TimeoutException();
+            return new AttributeList(result);
+        }
+
+        /**
+         * Get the values of several attributes of the managed resource.
+         *
+         * @param attributes A list of the attributes to be retrieved.
+         * @return The list of attributes retrieved.
+         * @see #getAttributesSequential(String[])
+         * @see #getAttributesParallel(java.util.concurrent.ExecutorService, String[], com.itworks.snamp.TimeSpan)
+         */
+        @Override
+        public AttributeList getAttributes(final String[] attributes) {
+            return getAttributesSequential(attributes);
+        }
+
+        /**
+         * Sets the values of several attributes of the managed resource in sequential manner.
+         *
+         * @param attributes A list of attributes: The identification of the
+         *                   attributes to be set and  the values they are to be set to.
+         * @return The list of attributes that were set, with their new values.
+         */
+        protected final AttributeList setAttributesSequential(final AttributeList attributes) {
+            final List<Attribute> result = Lists.newArrayListWithExpectedSize(attributes.size());
+            for(final Attribute attr: attributes.asList()) {
+                try {
+                    setAttribute(attr);
+                    result.add(attr);
+                }
+                catch (final JMException e){
+                    failedToSetAttribute(attr.getName(), attr.getValue(), e);
+                }
+            }
+            return new AttributeList(result);
+        }
+
+        /**
+         * Sets the values of several attributes of the managed resource in sequential manner.
+         *
+         * @param executor The executor used to schedule attribute writer. Cannot be {@literal null}.
+         * @param attributes A list of attributes: The identification of the
+         *                   attributes to be set and  the values they are to be set to.
+         * @param timeout Synchronization timeout. May be {@link com.itworks.snamp.TimeSpan#INFINITE}.
+         * @return The list of attributes that were set, with their new values.
+         * @throws java.lang.InterruptedException Operation is interrupted.
+         * @throws java.util.concurrent.TimeoutException Unable to set attributes in the specified time duration.
+         */
+        protected final AttributeList setAttributesParallel(final ExecutorService executor,
+                                                            final AttributeList attributes,
+                                                            final TimeSpan timeout) throws TimeoutException, InterruptedException {
+            if(attributes.isEmpty()) return attributes;
+            final List<Attribute> result =
+                    Collections.synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.size()));
+            final CountDownLatch synchronizer = new CountDownLatch(attributes.size());
+            for (final Attribute attr : attributes.asList())
+                executor.submit(new Callable<Object>() {
+                    @Override
+                    public Object call() throws Exception {
+                        try {
+                            setAttribute(attr);
+                            return result.add(new Attribute(attr.getName(), attr.getValue()));
+                        }
+                        catch (final JMException e){
+                            failedToSetAttribute(attr.getName(), attr.getValue(), e);
+                            return null;
+                        }
+                        finally {
+                            synchronizer.countDown();
+                        }
+                    }
+                });
+            if(timeout == null)
+                synchronizer.await();
+            else if(!synchronizer.await(timeout.duration, timeout.unit))
+                throw new TimeoutException();
+            return new AttributeList(result);
+        }
+
+        /**
+         * Sets the values of several attributes of the managed resource.
+         *
+         * @param attributes A list of attributes: The identification of the
+         *                   attributes to be set and  the values they are to be set to.
+         * @return The list of attributes that were set, with their new values.
+         * @see #setAttributesSequential(javax.management.AttributeList)
+         * @see #setAttributesParallel(java.util.concurrent.ExecutorService, javax.management.AttributeList, com.itworks.snamp.TimeSpan)
+         */
+        @Override
+        public AttributeList setAttributes(final AttributeList attributes) {
+            return setAttributesSequential(attributes);
+        }
 
         /**
          * Connects to the specified attribute.
+         *
+         * @param attributeID The id of the attribute.
+         * @param descriptor Attribute descriptor.
+         * @return The description of the attribute.
+         * @throws java.lang.Exception Internal connector error.
+         */
+        protected abstract M connectAttribute(final String attributeID,
+                                                               final AttributeDescriptor descriptor) throws Exception;
+
+        /**
          * Connects to the specified attribute.
          *
-         * @param id            A key string that is used to invoke attribute from this connector.
-         * @param attributeName The name of the attribute.
-         * @param options       Attribute discovery options.
+         * @param id               A key string that is used to invoke attribute from this connector.
+         * @param attributeName    The name of the attribute.
+         * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
+         * @param options          The attribute discovery options.
          * @return The description of the attribute.
-         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
+         * @throws javax.management.AttributeNotFoundException The managed resource doesn't provide the attribute with the specified name.
+         * @throws javax.management.JMException                Internal connector error.
          */
         @Override
-        @ThreadSafe
-        public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) throws AttributeSupportException{
+        public final M connectAttribute(final String id,
+                                                         final String attributeName,
+                                                         final TimeSpan readWriteTimeout,
+                                                         final CompositeData options) throws JMException {
             beginWrite();
             try {
                 //return existed attribute without exception to increase flexibility of the API
                 if (attributes.containsKey(id)) return attributes.get(id);
-                final GenericAttributeMetadata<?> attr;
-                if ((attr = connectAttribute(attributeName, options)) != null)
-                    attributes.put(id, attr);
+                final M attr;
+                if ((attr = connectAttribute(id, new AttributeDescriptor(attributeName, readWriteTimeout, options))) != null)
+                    attributes.put(attr);
                 return attr;
             }
             catch (final Exception e){
                 failedToConnectAttribute(id, attributeName, e);
-                throw new AttributeSupportException(e);
+                throw new MBeanException(e);
             }
             finally {
                 endWrite();
@@ -337,43 +322,43 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                                                          final Exception e);
 
         /**
-         * Returns the value of the attribute.
-         *
-         * @param attribute    The metadata of the attribute to get.
-         * @param readTimeout  The attribute value invoke operation timeout.
-         * @return The value of the attribute.
-         * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
-         * @throws java.lang.Exception Internal connector error.
+         * Obtains the value of a specific attribute of the managed resource.
+         * @param metadata The metadata of the attribute.
+         * @return The value of the attribute retrieved.
+         * @throws Exception Internal connector error.
          */
-        protected abstract Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout) throws Exception;
+        protected abstract Object getAttribute(final M metadata) throws Exception;
 
         /**
-         * Returns the attribute value.
+         * Obtains the value of a specific attribute of the managed resource.
          *
-         * @param id           A key string that is used to invoke attribute from this connector.
-         * @param readTimeout  The attribute value invoke operation timeout.
-         * @return The value of the attribute, or default value.
-         * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
-         * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException The requested attribute doesn't exist.
-         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
+         * @param attributeID The name of the attribute to be retrieved
+         * @return The value of the attribute retrieved.
+         * @throws javax.management.AttributeNotFoundException
+         * @throws javax.management.MBeanException             Wraps a {@link java.lang.Exception} thrown by the MBean's getter.
+         * @throws javax.management.ReflectionException Wraps any exception associated with Java Reflection.
+         * @see #setAttribute
          */
         @Override
-        @ThreadSafe
-        public final Object getAttribute(final String id, final TimeSpan readTimeout) throws TimeoutException,
-                UnknownAttributeException,
-                AttributeSupportException {
-            final CountdownTimer timer = CountdownTimer.start(readTimeout);
+        public final Object getAttribute(final String attributeID) throws AttributeNotFoundException, MBeanException, ReflectionException {
             beginRead();
-            try {
-                if (attributes.containsKey(id))
-                    return getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime());
-                else throw new UnknownAttributeException(id);
-            } catch (final UnknownAttributeException | TimeoutException e) {
+            try{
+                if(attributes.containsKey(attributeID))
+                    return getAttribute(attributes.get(attributeID));
+                else throw JMExceptionUtils.attributeNotFound(attributeID);
+            }
+            catch (final AttributeNotFoundException e){
                 throw e;
-            } catch (final Exception e) {
-                failedToGetAttribute(id, e);
-                throw new AttributeSupportException(e);
-            } finally {
+            }
+            catch (final MBeanException | ReflectionException e){
+                failedToGetAttribute(attributeID, e);
+                throw e;
+            }
+            catch (final Exception e){
+                failedToGetAttribute(attributeID, e);
+                throw new MBeanException(e);
+            }
+            finally {
                 endRead();
             }
         }
@@ -403,81 +388,47 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                                                      final Exception e);
 
         /**
-         * Reads a set of managementAttributes.
+         * Set the value of a specific attribute of the managed resource.
+         * @param attribute The attribute of to set.
+         * @param value The value of the attribute.
+         * @throws Exception Internal connector error.
+         * @throws javax.management.InvalidAttributeValueException Incompatible attribute type.
+         */
+        protected abstract void setAttribute(final M attribute,
+                                             final Object value) throws Exception;
+
+        /**
+         * Set the value of a specific attribute of the managed resource.
          *
-         * @param output      The dictionary with set of attribute keys to invoke and associated default values.
-         * @param readTimeout The attribute value invoke operation timeout.
-         * @return The set of managementAttributes ids really written to the dictionary.
-         * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
-         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector exception.
+         * @param attribute The identification of the attribute to
+         *                  be set and  the value it is to be set to.
+         * @throws javax.management.AttributeNotFoundException
+         * @throws javax.management.InvalidAttributeValueException
+         * @throws javax.management.MBeanException                 Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
+         * @throws javax.management.ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
+         * @see #getAttribute
          */
         @Override
-        @ThreadSafe
-        public Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException {
-            final CountdownTimer timer = CountdownTimer.start(readTimeout);
+        public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
             beginRead();
-            String attributeID = null;
-            try {
-                //accumulator for really existed attribute IDs
-                final Set<String> result = new HashSet<>(attributes.size());
-                //whether the attribute value is unavailable
-                timer.stop();
-                for (final String id : output.keySet())
-                    if (attributes.containsKey(attributeID = id)) {
-                        timer.start();
-                        final Object value = getAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime());
-                        result.add(id);
-                        output.put(id, value);
-
-                    }
-                return result;
-            } catch (final TimeoutException e) {
-                throw e;
-            } catch (final Exception e) {
-                failedToGetAttribute(attributeID, e);
-                throw new AttributeSupportException(e);
-            } finally {
-                endRead();
+            try{
+                if(attributes.containsKey(attribute.getName()))
+                    setAttribute(attributes.get(attribute.getName()), attribute.getValue());
+                else throw JMExceptionUtils.attributeNotFound(attribute.getName());
             }
-        }
-
-        /**
-         * Sends the attribute value to the remote agent.
-         *
-         * @param attribute    The metadata of the attribute to set.
-         * @param writeTimeout The attribute value write operation timeout.
-         * @param value        The value to write.
-         * @throws java.util.concurrent.TimeoutException The attribute value cannot be written in the specified time constraint.
-         * @throws java.lang.Exception Internal connector error.
-         */
-        protected abstract void setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws Exception;
-
-        /**
-         * Writes the value of the specified attribute.
-         *
-         * @param id           An identifier of the attribute,
-         * @param writeTimeout The attribute value write operation timeout.
-         * @param value        The value to write.
-         * @throws TimeoutException The attribute value cannot be written in the specified time constraint.
-         * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException The requested attribute doesn't exist.
-         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-         */
-        @Override
-        @ThreadSafe
-        public final void setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException, UnknownAttributeException, AttributeSupportException {
-            final CountdownTimer timer = CountdownTimer.start(writeTimeout);
-            beginWrite();
-            try {
-                if (attributes.containsKey(id))
-                    setAttributeValue(attributes.get(id), timer.stopAndGetElapsedTime(), value);
-                else throw new UnknownAttributeException(id);
-            } catch (final UnknownAttributeException | TimeoutException e) {
+            catch (final AttributeNotFoundException e){
                 throw e;
-            } catch (final Exception e) {
-                failedToSetAttribute(id, value, e);
-                throw new AttributeSupportException(e);
-            } finally {
-                endWrite();
+            }
+            catch (final InvalidAttributeValueException | MBeanException | ReflectionException e){
+                failedToSetAttribute(attribute.getName(), attribute.getValue(), e);
+                throw e;
+            }
+            catch (final Exception e){
+                failedToSetAttribute(attribute.getName(), attribute.getValue(), e);
+                throw new MBeanException(e);
+            }
+            finally {
+                endRead();
             }
         }
 
@@ -510,38 +461,6 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                                                      final Exception e);
 
         /**
-         * Writes a set of managementAttributes inside of the transaction.
-         *
-         * @param values       The dictionary of managementAttributes keys and its values.
-         * @param writeTimeout Batch write timeout.
-         * @throws TimeoutException The attribute value cannot be written in the specified time constraint.
-         * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-         */
-        @Override
-        @ThreadSafe
-        public void setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException, AttributeSupportException {
-            final CountdownTimer timer = CountdownTimer.start(writeTimeout);
-            beginWrite();
-            String attributeID = null;
-            Object attributeValue = null;
-            try {
-                //whether the attribute value is unavailable
-                timer.stop();
-                for (final Map.Entry<String, Object> entry : values.entrySet()) {
-                    timer.start();
-                    setAttributeValue(attributes.get(attributeID = entry.getKey()), timer.stopAndGetElapsedTime(), attributeValue = entry.getValue());
-                }
-            } catch (final TimeoutException e) {
-                throw e;
-            } catch (final Exception e) {
-                failedToSetAttribute(attributeID, attributeValue, e);
-                throw new AttributeSupportException(e);
-            } finally {
-                endWrite();
-            }
-        }
-
-        /**
          * Removes the attribute from the connector.
          *
          * @param id            The unique identifier of the attribute.
@@ -549,7 +468,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
          */
         @SuppressWarnings("UnusedParameters")
-        protected boolean disconnectAttribute(final String id, final GenericAttributeMetadata<?> attributeInfo) {
+        protected boolean disconnectAttribute(final String id, final M attributeInfo) {
             return true;
         }
 
@@ -564,45 +483,9 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         public final boolean disconnectAttribute(final String id) {
             beginWrite();
             try {
-                if (attributes.containsKey(id) && disconnectAttribute(id, attributes.get(id))) {
-                    attributes.remove(id);
-                    return true;
-                } else return false;
+                return attributes.containsKey(id) && disconnectAttribute(id, attributes.remove(id));
             } finally {
                 endWrite();
-            }
-        }
-
-        /**
-         * Returns the information about the connected attribute.
-         *
-         * @param id An identifier of the attribute.
-         * @return The attribute descriptor; or {@literal null} if attribute is not connected.
-         */
-        @Override
-        @ThreadSafe
-        public final AttributeMetadata getAttributeInfo(final String id) {
-            beginRead();
-            try {
-                return attributes.get(id);
-            } finally {
-                endRead();
-            }
-        }
-
-        /**
-         * Returns a read-only collection of registered managementAttributes.
-         *
-         * @return A read-only collection of registered managementAttributes.
-         */
-        @Override
-        @ThreadSafe
-        public final Collection<String> getConnectedAttributes() {
-            beginRead();
-            try {
-                return Collections.unmodifiableCollection(attributes.keySet());
-            } finally {
-                endRead();
             }
         }
 
@@ -620,425 +503,258 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
     }
 
     /**
-     * Represents default implementation of the notification metadata.
-     * <p>
-     *     This class holds the list of notification listeners.
-     * </p>
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    protected static abstract class GenericNotificationMetadata implements Map<String, String>, NotificationMetadata{
-        private static final String UNKNOWN_LIST_ID = "unknown";
-        /**
-         * Represents subscribed version of the notification listener. This class cannot be inherited.
-         * @author Roman Sakno
-         * @since 1.0
-         * @version 1.0
-         */
-        protected static final class SubscribedNotificationListener implements NotificationListener{
-            /**
-             * Represents user data associated with the notification listener.
-             */
-            public final Object userData;
-
-            /**
-             * Represents underlying notification listener.
-             */
-            public final NotificationListener listener;
-
-            /**
-             * Initializes a new subscribed version of the notification listener.
-             * @param listener A listener to wrap. Cannot be {@literal null}.
-             * @param userData User data associated with the notification listener.
-             * @throws IllegalArgumentException listener is {@literal null}.
-             */
-            public SubscribedNotificationListener(final NotificationListener listener, final Object userData){
-                if(listener == null) throw new IllegalArgumentException("listener is null.");
-                this.userData = userData;
-                this.listener = listener;
-            }
-
-            /**
-             * Initializes a new subscribed version of the notification listener.
-             * @param listener A listener to wrap. Cannot be {@literal null}.
-             * @throws IllegalArgumentException listener is {@literal null}.
-             */
-            @SuppressWarnings("UnusedDeclaration")
-            public SubscribedNotificationListener(final NotificationListener listener){
-                this(listener, null);
-            }
-
-            /**
-             * Handles the specified notification.
-             *
-             * @param listId An identifier of the subscription list.
-             * @param n The notification to handle.
-             * @return {@literal true}, if notification is handled successfully; otherwise, {@literal false}.
-             */
-            @Override
-            public final boolean handle(final String listId, final Notification n) {
-                return listener.handle(listId, n);
-            }
-        }
-
-        private final String eventCategory;
-        private final Map<String, SubscribedNotificationListener> listeners;
-        private final ReadWriteLock coordinator;
-        private String subscriptionList;
-        private volatile ManagedEntityType attachmentType;
-
-        /**
-         * Initializes a new event metadata.
-         * @param category The category of the event.
-         */
-        protected GenericNotificationMetadata(final String category){
-            this.eventCategory = category;
-            this.listeners = new HashMap<>(10);
-            this.coordinator = new ReentrantReadWriteLock();
-            this.subscriptionList = UNKNOWN_LIST_ID;
-            attachmentType = null;
-        }
-
-        private void setSubscriptionList(final String value){
-            this.subscriptionList = value != null && value.length() > 0 ? value : UNKNOWN_LIST_ID;
-        }
-
-        /**
-         * Detects the attachment type.
-         * <p>
-         *     This method will be called automatically by SNAMP infrastructure
-         *     and once for this instance of notification metadata.
-         * @return The attachment type.
-         */
-        protected abstract ManagedEntityType detectAttachmentType();
-
-        /**
-         * Gets attachment descriptor that can be used to convert notification attachment
-         * into well-known object.
-         *
-         * @return An attachment descriptor; or {@literal null} if attachments are not supported.
-         * @see #detectAttachmentType()
-         */
-        @Override
-        public final ManagedEntityType getAttachmentType() {
-            ManagedEntityType result = attachmentType;
-            if (result == null)
-                synchronized (this) {
-                    result = attachmentType;
-                    if (result == null)
-                        result = attachmentType = detectAttachmentType();
-                }
-            return result;
-        }
-
-        /**
-         * Gets subscription list identifier.
-         * @return A subscription list identifier.
-         */
-        protected final String getSubscriptionList(){
-            return subscriptionList;
-        }
-
-        /**
-         * Returns the localized description of this management entity.
-         * <p>
-         *     In the default implementation, this method returns an empty string.
-         * </p>
-         * @param locale The locale of the description. If it is {@literal null} then returns description
-         *               in the default locale.
-         * @return The localized description of this management entity.
-         */
-        @Override
-        public final String getDescription(final Locale locale) {
-            return "";
-        }
-
-        /**
-         * Fires the notification listeners.
-         * @param n The notification to pass into listeners.
-         * @param invoker Notification listener invoker.
-         * @see NotificationListenerInvoker
-         * @see com.itworks.snamp.connectors.notifications.NotificationListenerInvokerFactory
-         */
-        protected final void fire(final Notification n, final NotificationListenerInvoker invoker){
-            final Lock readLock = coordinator.readLock();
-            readLock.lock();
-            try{
-                invoker.invoke(subscriptionList, n, listeners.values());
-            }
-            finally {
-                readLock.unlock();
-            }
-        }
-
-        final boolean hasListener(final String listenerId){
-            final Lock readLock = coordinator.readLock();
-            readLock.lock();
-            try{
-                return listeners.containsKey(listenerId);
-            }
-            finally {
-                readLock.unlock();
-            }
-        }
-
-        /**
-         * Gets the category of the notification.
-         *
-         * @return The category of the notification.
-         */
-        @Override
-        public final String getCategory() {
-            return eventCategory;
-        }
-
-        /**
-         * Removes all listeners.
-         */
-        public final void removeListeners(){
-            final Lock writeLock = coordinator.readLock();
-            writeLock.lock();
-            try{
-                listeners.clear();
-            }
-            finally {
-                writeLock.unlock();
-            }
-
-        }
-
-        /**
-         * Gets the listener for the specified listener identifier.
-         * @param listenerId An identifier of the listener.
-         * @return An instance of the notification listener.
-         */
-         final SubscribedNotificationListener getListener(final String listenerId){
-            final Lock readLock = coordinator.readLock();
-            readLock.lock();
-            try{
-                return listeners.containsKey(listenerId) ? listeners.get(listenerId) : null;
-            }
-            finally {
-                readLock.unlock();
-            }
-        }
-
-        /**
-         * Adds a new listener for this event.
-         * @param listenerId Unique identifier of the listener.
-         * @param listener The notification listener.
-         * @param userData The user data associated with the listener.
-         * @return A new unique identifier of the added listener.
-         */
-        public final boolean addListener(final String listenerId, final NotificationListener listener, final Object userData){
-            if(listenerId == null || listenerId.isEmpty()) return false;
-            final Lock writeLock = coordinator.writeLock();
-            writeLock.lock();
-            try{
-                if(listeners.containsKey(listenerId))
-                    return false;
-                else {
-                    listeners.put(listenerId, new SubscribedNotificationListener(listener, userData));
-                    return true;
-                }
-            }
-            finally {
-                writeLock.unlock();
-            }
-        }
-
-        /**
-         * Removes the listener from this event.
-         * @param listenerId An identifier of the listener obtained with {@link #addListener(String, NotificationListener, Object)}
-         *                   method.
-         * @return {@literal true} if the listener with the specified ID was registered; otherwise, {@literal false}.
-         */
-        public final boolean removeListener(final String listenerId){
-            final Lock writeLock = coordinator.writeLock();
-            writeLock.lock();
-            try{
-                return listeners.remove(listenerId) != null;
-            }
-            finally {
-                writeLock.unlock();
-            }
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception because
-         * this map is read-only.
-         * @param option The name of the event option.
-         * @param value The value of the event option.
-         * @return The previous value of the event option.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @Override
-        public final String put(final String option, final String value) {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception because
-         * this map is read-only.
-         * @param option The name of the event option to remove.
-         * @return The value of the removed option.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @Override
-        public final String remove(final Object option) {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception
-         * because this map is read-only.
-         * @param options The map of event options to add.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public final void putAll(final Map<? extends String, ? extends String> options) {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Always throws {@link UnsupportedOperationException} exception because
-         * this map is read-only.
-         * @throws UnsupportedOperationException This operation is not supported.
-         */
-        @Override
-        public final void clear() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    /**
      * Represents a base class that allows to enable notification support for the management connector.
+     * @param <M> Notification metadata.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class AbstractNotificationSupport extends ThreadSafeObject implements NotificationSupport{
+    protected static abstract class AbstractNotificationSupport<M extends MBeanNotificationInfo> extends ThreadSafeObject implements NotificationSupport{
         private static enum ANSResource{
-            DELAYED_NOTIFS,
-            CONNECTED_NOTIFS
+            NOTIFICATIONS,
+            LISTENERS
         }
 
-        private final KeyedObjects<String, GenericNotificationMetadata> notifications;
-        private final Map<String, NotificationListener> delayedNotifications;
+        private final KeyedObjects<String, M> notifications;
+        private final NotificationListenerList listeners;
+        private final AtomicLong sequenceCounter;
+        private final Class<M> metadataType;
 
         /**
          * Initializes a new notification manager.
+         * @param notifMetadataType Type of the notification metadata;
          */
-        protected AbstractNotificationSupport() {
+        protected AbstractNotificationSupport(final Class<M> notifMetadataType) {
             super(ANSResource.class);
-            this.notifications = new AbstractKeyedObjects<String, GenericNotificationMetadata>(10) {
+            notifications = createNotifications();
+            listeners = new NotificationListenerList();
+            sequenceCounter = new AtomicLong(0L);
+            metadataType = Objects.requireNonNull(notifMetadataType);
+        }
+
+        private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, M> createNotifications(){
+            return new AbstractKeyedObjects<String, M>(10) {
+                private static final long serialVersionUID = 6753355822109787406L;
+
                 @Override
-                public final String getKey(final GenericNotificationMetadata item) {
-                    return item.getSubscriptionList();
+                public String getKey(final MBeanNotificationInfo item) {
+                    return item.getNotifTypes()[0];
                 }
             };
-            this.delayedNotifications = new HashMap<>(3);
         }
 
         /**
-         * Returns a read-only collection of enabled notifications (subscription list identifiers).
+         * Gets subscription model.
+         * @return The subscription model.
+         */
+        public final NotificationSubscriptionModel getSubscriptionModel(){
+            final NotificationListenerInvoker invoker = getListenerInvoker();
+            if(invoker instanceof NotificationListenerSequentialInvoker)
+                return NotificationSubscriptionModel.MULTICAST_SEQUENTIAL;
+            else if(invoker instanceof NotificationListenerParallelInvoker)
+                return NotificationSubscriptionModel.MULTICAST_PARALLEL;
+            else return NotificationSubscriptionModel.MULTICAST;
+        }
+
+        /**
+         * Gets the invoker used to executed notification listeners.
+         * @return The notification listener invoker.
+         */
+        protected abstract NotificationListenerInvoker getListenerInvoker();
+
+        /**
+         * Invokes all listeners associated with the specified notification category.
+         * @param category An event category.
+         * @param message The human-readable message associated with the notification.
+         * @param userData Advanced object associated with the notification.
+         */
+        protected final void fire(final String category,
+                                  final String message,
+                                  final Object userData){
+            final Collection<Notification> notifs;
+            beginRead(ANSResource.NOTIFICATIONS);
+            try{
+                notifs = Lists.newArrayListWithExpectedSize(notifications.size());
+                for(final M metadata: notifications.values())
+                    if(Objects.equals(NotificationDescriptor.getNotificationCategory(metadata), category))
+                        for(final String listId: metadata.getNotifTypes()){
+                            final Notification n = new Notification(listId,
+                                    this,
+                                    sequenceCounter.getAndIncrement(),
+                                    message);
+                            n.setTimeStamp(System.currentTimeMillis());
+                            n.setUserData(userData);
+                            notifs.add(n);
+                        }
+            }
+            finally {
+                endRead(ANSResource.NOTIFICATIONS);
+            }
+            //fire listeners
+            beginRead(ANSResource.LISTENERS);
+            try{
+                for(final Notification n: notifs)
+                    getListenerInvoker().invoke(n, null, listeners);
+            }
+            finally {
+                endRead(ANSResource.LISTENERS);
+            }
+        }
+
+        protected abstract M enableNotifications(final String notifType,
+                                                final NotificationDescriptor metadata) throws Exception;
+
+        /**
+         * Enables event listening for the specified category of events.
+         * <p/>
+         * category can be used for enabling notifications for the same category
+         * but with different options.
+         * <p/>
+         * listId parameter
+         * is used as a value of {@link javax.management.Notification#getType()}.
          *
-         * @return A read-only collection of enabled notifications (subscription list identifiers).
+         * @param listId   An identifier of the subscription list.
+         * @param category The name of the event category to listen.
+         * @param options  Event discovery options.
+         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+         * @throws javax.management.JMException Internal connector error.
          */
         @Override
-        public final Collection<String> getEnabledNotifications() {
-            beginRead(ANSResource.CONNECTED_NOTIFS);
-            try {
-                return Collections.unmodifiableSet(notifications.keySet());
-            } finally {
-                endRead(ANSResource.CONNECTED_NOTIFS);
-            }
-        }
-
-        /**
-         * Returns all notifications associated with the specified category.
-         * @param category The category of the event.
-         * @param metadataType The type of requested notification metadata.
-         * @param <T> The type of requested notification metadata.
-         * @return A map of registered notifications (values) and subscription lists (keys).
-         */
-        @ThreadSafe
-        protected final <T extends GenericNotificationMetadata> Map<String, T> getEnabledNotifications(final String category, final Class<T> metadataType) {
-            beginRead(ANSResource.CONNECTED_NOTIFS);
-            try {
-                final Map<String, T> result = Maps.newHashMapWithExpectedSize(notifications.size());
-                for (final Map.Entry<String, GenericNotificationMetadata> metadata : notifications.entrySet())
-                    if (Objects.equals(metadata.getValue().getCategory(), category) && metadataType.isInstance(metadata.getValue()))
-                        result.put(metadata.getKey(), metadataType.cast(metadata.getValue()));
+        public final M enableNotifications(final String listId, final String category, final CompositeData options) throws JMException {
+            beginWrite(ANSResource.NOTIFICATIONS);
+            try{
+                if(notifications.containsKey(listId))
+                    return notifications.get(listId);
+                final M result;
+                notifications.put(result = enableNotifications(listId,
+                        new NotificationDescriptor(category, getSubscriptionModel(), options)));
                 return result;
-            } finally {
-                endRead(ANSResource.CONNECTED_NOTIFS);
+            }
+            catch (final Exception e){
+                failedToEnableNotifications(listId, category, e);
+                throw new MBeanException(e);
+            }
+            finally {
+                endWrite(ANSResource.NOTIFICATIONS);
             }
         }
 
         /**
-         * Returns a collection of active categories.
-         * @return A collection of active categories.
+         * Determines whether all notifications disabled.
+         * @return {@literal true}, if all notifications disabled; otherwise, {@literal false}.
          */
-        @ThreadSafe
-        protected final Set<String> getCategories() {
-            beginRead(ANSResource.CONNECTED_NOTIFS);
-            try {
-                final Set<String> categories = new HashSet<>(notifications.size());
-                for (final GenericNotificationMetadata eventData : notifications.values())
-                    categories.add(eventData.getCategory());
-                return categories;
-            } finally {
-                endRead(ANSResource.CONNECTED_NOTIFS);
+        protected final boolean hasNoNotifications(){
+            beginRead(ANSResource.NOTIFICATIONS);
+            try{
+                return notifications.isEmpty();
+            }
+            finally {
+                endRead(ANSResource.NOTIFICATIONS);
             }
         }
 
+        protected abstract boolean disableNotifications(final M metadata);
+
         /**
-         * Enables event listening for the specified category of events.
+         * Disables event listening for the specified category of events.
          * <p>
-         *     In the default implementation this method does nothing.
+         * This method removes all listeners associated with the specified subscription list.
          * </p>
-         * @param category The name of the category to listen.
-         * @param options  Event discovery options.
-         * @return The metadata of the event to listen;
-         * @throws java.lang.Exception Internal connector error.
-         */
-        protected abstract GenericNotificationMetadata enableNotifications(final String category, final Map<String, String> options) throws Exception;
-
-        /**
-         * Enables event listening for the specified category of events.
-         * @param listId An identifier of the subscription list.
-         * @param category A name of the category to listen.
-         * @param options  Event discovery options.
-         * @return The metadata of the event to listen.
-         * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
+         *
+         * @param listId The identifier of the subscription list.
+         * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
          */
         @Override
-        public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) throws NotificationSupportException {
-            beginWrite(ANSResource.CONNECTED_NOTIFS);
+        public final boolean disableNotifications(final String listId) {
+            beginWrite(ANSResource.NOTIFICATIONS);
+            try{
+                return notifications.containsKey(listId) &&
+                        disableNotifications(notifications.remove(listId));
+            }
+            finally {
+                endWrite(ANSResource.NOTIFICATIONS);
+            }
+        }
+
+        /**
+         * Adds a listener to this MBean.
+         *
+         * @param listener The listener object which will handle the
+         *                 notifications emitted by the broadcaster.
+         * @param filter   The filter object. If filter is null, no
+         *                 filtering will be performed before handling notifications.
+         * @param handback An opaque object to be sent back to the
+         *                 listener when a notification is emitted. This object cannot be
+         *                 used by the Notification broadcaster object. It should be
+         *                 resent unchanged with the notification to the listener.
+         * @throws IllegalArgumentException Listener parameter is null.
+         * @see #removeNotificationListener
+         */
+        @Override
+        public final void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
+            beginWrite(ANSResource.LISTENERS);
+            try{
+                listeners.addNotificationListener(listener, filter, handback);
+            }
+            finally {
+                endWrite(ANSResource.LISTENERS);
+            }
+        }
+
+        /**
+         * Removes a listener from this MBean.  If the listener
+         * has been registered with different handback objects or
+         * notification filters, all entries corresponding to the listener
+         * will be removed.
+         *
+         * @param listener A listener that was previously added to this
+         *                 MBean.
+         * @throws javax.management.ListenerNotFoundException The listener is not
+         *                                                    registered with the MBean.
+         * @see #addNotificationListener
+         * @see javax.management.NotificationEmitter#removeNotificationListener
+         */
+        @Override
+        public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
+            beginWrite(ANSResource.LISTENERS);
             try {
-                if (notifications.containsKey(category)) return notifications.get(category);
-                final GenericNotificationMetadata metadata = enableNotifications(category, options);
-                if (metadata != null) {
-                    metadata.setSubscriptionList(listId);
-                    notifications.put(metadata);
-                    //add delayed listeners
-                    beginWrite(ANSResource.DELAYED_NOTIFS);
-                    try {
-                        for (final String listenerId : delayedNotifications.keySet())
-                            subscribe(listenerId, delayedNotifications.get(listenerId), false);
-                    } finally {
-                        endWrite(ANSResource.DELAYED_NOTIFS);
-                    }
-                }
-                return metadata;
-            } catch (final Exception e) {
-                failedToEnableNotifications(listId, category, e);
-                throw new NotificationSupportException(e);
-            } finally {
-                endWrite(ANSResource.CONNECTED_NOTIFS);
+                listeners.removeNotificationListener(listener);
+            }
+            finally {
+                endWrite(ANSResource.LISTENERS);
+            }
+        }
+
+        /**
+         * <p>Returns an array indicating, for each notification this
+         * MBean may send, the name of the Java class of the notification
+         * and the notification type.</p>
+         * <p/>
+         * <p>It is not illegal for the MBean to send notifications not
+         * described in this array.  However, some clients of the MBean
+         * server may depend on the array being complete for their correct
+         * functioning.</p>
+         *
+         * @return the array of possible notifications.
+         */
+        @Override
+        public final M[] getNotificationInfo() {
+            beginRead(ANSResource.NOTIFICATIONS);
+            try{
+                return ArrayUtils.toArray(notifications.values(), metadataType);
+            }
+            finally {
+                endRead(ANSResource.NOTIFICATIONS);
+            }
+        }
+
+        protected final M getNotificationInfo(final String category){
+            beginRead(ANSResource.NOTIFICATIONS);
+            try{
+                return notifications.get(category);
+            }
+            finally {
+                endRead(ANSResource.NOTIFICATIONS);
             }
         }
 
@@ -1071,192 +787,6 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
                                                             final Exception e);
 
         /**
-         * Disable all notifications associated with the specified event.
-         * <p>
-         *     In the default implementation this method does nothing.
-         * </p>
-         * @param notificationType The event descriptor.
-         * @throws java.lang.Exception Internal connector error.
-         */
-        protected void disableNotifications(final GenericNotificationMetadata notificationType) throws Exception{
-            notificationType.removeListeners();
-        }
-
-        /**
-         * Disables event listening for the specified category of events.
-         *
-         * @param listId An identifier of the subscription list.
-         * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
-         * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
-         */
-        @Override
-        public final boolean disableNotifications(final String listId) throws NotificationSupportException{
-            beginWrite(ANSResource.CONNECTED_NOTIFS);
-            try {
-                if (notifications.containsKey(listId)) {
-                    disableNotifications(notifications.remove(listId));
-                    return true;
-                } else return false;
-            }
-            catch (final Exception e){
-                failedToDisableNotifications(listId, e);
-                throw new NotificationSupportException(e);
-            }
-            finally {
-                endWrite(ANSResource.CONNECTED_NOTIFS);
-            }
-        }
-
-        /**
-         * Reports an error when disabling notifications.
-         * @param logger The logger instance. Cannot be {@literal null}.
-         * @param logLevel Logging level.
-         * @param listID Subscription list identifier.
-         * @param e Internal connector error.
-         */
-        protected static void failedToDisableNotifications(final Logger logger,
-                                                           final Level logLevel,
-                                                           final String listID,
-                                                           final Exception e){
-            logger.log(logLevel, String.format("Failed to disable notifications at %s topic. Context: %s",
-                    listID, LogicalOperation.current()), e);
-        }
-
-        /**
-         * Reports an error when disabling notifications.
-         * @param listID Subscription list identifier.
-         * @param e Internal connector error.
-         * @see #failedToDisableNotifications(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        protected abstract void failedToDisableNotifications(final String listID, final Exception e);
-
-        /**
-         * Gets the notification metadata by its category.
-         *
-         * @param listId An identifier of the subscription list.
-         * @return The metadata of the specified notification category; or {@literal null}, if notifications
-         *         for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
-         */
-        @Override
-        public final NotificationMetadata getNotificationInfo(final String listId) {
-            beginRead(ANSResource.CONNECTED_NOTIFS);
-            try {
-                return notifications.get(listId);
-            } finally {
-                endRead(ANSResource.CONNECTED_NOTIFS);
-            }
-        }
-
-        /**
-         * Adds a new listener for the specified notification.
-         * @param listener The event listener.
-         * @return Any custom data associated with the subscription.
-         * @throws java.lang.Exception Internal connector error.
-         */
-        protected abstract Object subscribe(final NotificationListener listener) throws Exception;
-
-        /**
-         * Attaches the notification listener.
-         *
-         * @param listenerId An identifier of the notification listener.
-         * @param listener The notification listener.
-         * @param delayed {@literal true} to add notification listener event if this
-         *                               object has no enabled notifications.
-         * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
-         */
-
-        @Override
-        public final void subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) throws NotificationSupportException{
-            if (listenerId == null || listenerId.isEmpty())
-                throw new IllegalArgumentException("Invalid subscription list identifier");
-            else if(listener == null)
-                throw new IllegalArgumentException("listener is null.");
-            else if (delayed) {
-                beginWrite(ANSResource.DELAYED_NOTIFS);
-                try {
-                    delayedNotifications.put(listenerId, listener);
-                } finally {
-                    endWrite(ANSResource.DELAYED_NOTIFS);
-                }
-            } else {
-                beginRead(ANSResource.CONNECTED_NOTIFS);
-                try {
-                    final Object userData = subscribe(listener);
-                    for (final GenericNotificationMetadata metadata : notifications.values())
-                        metadata.addListener(listenerId, listener, userData);
-                }
-                catch (final Exception e){
-                    failedToSubscribe(listenerId, e);
-                    throw new NotificationSupportException(e);
-                }
-                finally {
-                    endRead(ANSResource.CONNECTED_NOTIFS);
-                }
-            }
-        }
-
-
-        /**
-         * Reports an error when subscribing the listener.
-         * @param logger The logger instance. Cannot be {@literal null}.
-         * @param logLevel Logging level.
-         * @param listenerID Subscription list identifier.
-         * @param e Internal connector error.
-         */
-        protected static void failedToSubscribe(final Logger logger,
-                                                final Level logLevel,
-                                                final String listenerID,
-                                                final Exception e){
-            logger.log(logLevel, String.format("Failed to subscribe on %s topic. Context: %s",
-                    listenerID, LogicalOperation.current()), e);
-        }
-
-        /**
-         * Reports an error when subscribing the listener.
-         * @param listenerID Subscription list identifier.
-         * @param e Internal connector error.
-         * @see #failedToSubscribe(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        protected abstract void failedToSubscribe(final String listenerID,
-                                                  final Exception e);
-
-        /**
-         * Cancels the notification listening.
-         * @param listener The notification listener to remove.
-         * @param data The custom data associated with subscription that returned from {@link #subscribe(NotificationListener)}
-         *             method.
-         */
-        protected abstract void unsubscribe(final NotificationListener listener, final Object data);
-
-        /**
-         * Removes the notification listener.
-         * @param listenerId An identifier of the notification listener previously passed
-         *                   to {@link #subscribe(String, com.itworks.snamp.connectors.notifications.NotificationListener, boolean)} method.
-         * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
-         */
-        public final boolean unsubscribe(final String listenerId) {
-            beginRead(ANSResource.CONNECTED_NOTIFS);
-            try {
-                for (final GenericNotificationMetadata metadata : notifications.values()) {
-                    if (metadata.hasListener(listenerId)) {
-                        final GenericNotificationMetadata.SubscribedNotificationListener pair = metadata.getListener(listenerId);
-                        if (pair == null) continue;
-                        unsubscribe(pair.listener, pair.userData);
-                        if (metadata.removeListener(listenerId)) return true;
-                    }
-                }
-            } finally {
-                endRead(ANSResource.CONNECTED_NOTIFS);
-            }
-            beginWrite(ANSResource.DELAYED_NOTIFS);
-            try {
-                return delayedNotifications.remove(listenerId) != null;
-            } finally {
-                endWrite(ANSResource.DELAYED_NOTIFS);
-            }
-        }
-
-        /**
          * Removes all listeners from this notification manager.
          * <p>
          *     It is recommended to call this method in the implementation of {@link AutoCloseable#close()}
@@ -1264,14 +794,14 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
          * </p>
          */
         public final void clear() {
-            beginWrite(ANSResource.CONNECTED_NOTIFS);
-            beginWrite(ANSResource.DELAYED_NOTIFS);
+            beginWrite(ANSResource.NOTIFICATIONS);
+            beginWrite(ANSResource.LISTENERS);
             try {
                 notifications.clear();
-                delayedNotifications.clear();
+                listeners.clear();
             } finally {
-                endWrite(ANSResource.DELAYED_NOTIFS);
-                endWrite(ANSResource.CONNECTED_NOTIFS);
+                endWrite(ANSResource.LISTENERS);
+                endWrite(ANSResource.NOTIFICATIONS);
             }
         }
     }
@@ -1314,6 +844,7 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
     protected void verifyInitialization() throws IllegalStateException{
         closed.verify();
     }
+
     /**
      * Releases all resources associated with this connector.
      * @throws Exception Unable to release resources associated with this connector.
@@ -1323,6 +854,127 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
     public void close() throws Exception {
         //change state of the connector
         closed.set();
+    }
+
+    /**
+     * Obtain the value of a specific attribute of the managed resource.
+     *
+     * @param attribute The name of the attribute to be retrieved
+     * @return The value of the attribute retrieved.
+     * @throws javax.management.AttributeNotFoundException
+     * @throws javax.management.MBeanException             Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's getter.
+     * @throws javax.management.ReflectionException        Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the getter.
+     * @see #setAttribute(javax.management.Attribute)
+     */
+    @Override
+    public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
+        throw JMExceptionUtils.attributeNotFound(attribute);
+    }
+
+    /**
+     * Set the value of a specific attribute of the managed resource.
+     *
+     * @param attribute The identification of the attribute to
+     *                  be set and  the value it is to be set to.
+     * @throws javax.management.AttributeNotFoundException
+     * @throws javax.management.InvalidAttributeValueException
+     * @throws javax.management.MBeanException                 Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
+     * @throws javax.management.ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
+     * @see #getAttribute
+     */
+    @Override
+    public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+        throw JMExceptionUtils.attributeNotFound(attribute.getName());
+    }
+
+    /**
+     * Get the values of several attributes of the Dynamic MBean.
+     *
+     * @param attributes A list of the attributes to be retrieved.
+     * @return The list of attributes retrieved.
+     * @see #setAttributes
+     */
+    @Override
+    public AttributeList getAttributes(final String[] attributes) {
+        return new AttributeList();
+    }
+
+    /**
+     * Sets the values of several attributes of the Dynamic MBean.
+     *
+     * @param attributes A list of attributes: The identification of the
+     *                   attributes to be set and  the values they are to be set to.
+     * @return The list of attributes that were set, with their new values.
+     * @see #getAttributes
+     */
+    @Override
+    public AttributeList setAttributes(final AttributeList attributes) {
+        return new AttributeList();
+    }
+
+    /**
+     * Allows an action to be invoked on the Dynamic MBean.
+     *
+     * @param actionName The name of the action to be invoked.
+     * @param params     An array containing the parameters to be set when the action is
+     *                   invoked.
+     * @param signature  An array containing the signature of the action. The class objects will
+     *                   be loaded through the same class loader as the one used for loading the
+     *                   MBean on which the action is invoked.
+     * @return The object returned by the action, which represents the result of
+     * invoking the action on the MBean specified.
+     * @throws javax.management.MBeanException      Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's invoked method.
+     * @throws javax.management.ReflectionException Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the method
+     */
+    @Override
+    public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
+        throw new MBeanException(new UnsupportedOperationException("Operation invocation is not supported."));
+    }
+
+    private String getClassName(){
+        return getClass().getName();
+    }
+
+    /**
+     * Returns the localized description of this connector.
+     *
+     * @param locale The locale of the description. If it is {@literal null} then returns description
+     *               in the default locale.
+     * @return The localized description of this connector.
+     */
+    @Override
+    public String getDescription(final Locale locale) {
+        return getClassName();
+    }
+
+    private MBeanAttributeInfo[] getAttributes(){
+        final AttributeSupport attributes = queryObject(AttributeSupport.class);
+        return attributes != null ? attributes.getAttributeInfo() : new MBeanAttributeInfo[0];
+    }
+
+    private MBeanNotificationInfo[] getNotifications(){
+        final NotificationSupport notifs = queryObject(NotificationSupport.class);
+        return notifs != null ? notifs.getNotificationInfo() : new MBeanNotificationInfo[0];
+    }
+
+    private MBeanOperationInfo[] getOperations(){
+        return new MBeanOperationInfo[0];
+    }
+
+    /**
+     * Provides the exposed attributes and actions of the Dynamic MBean using an MBeanInfo object.
+     *
+     * @return An instance of <CODE>MBeanInfo</CODE> allowing all attributes and actions
+     * exposed by this Dynamic MBean to be retrieved.
+     */
+    @Override
+    public final MBeanInfo getMBeanInfo() {
+        return new MBeanInfo(getClassName(),
+                getDescription(Locale.getDefault()),
+                getAttributes(),
+                new MBeanConstructorInfo[0],
+                getOperations(),
+                getNotifications());
     }
 
     /**
@@ -1342,6 +994,4 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
     public static Logger getLogger(final String connectorName){
         return Logger.getLogger(getLoggerName(connectorName));
     }
-
-
 }

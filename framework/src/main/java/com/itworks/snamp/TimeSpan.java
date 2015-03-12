@@ -2,6 +2,7 @@ package com.itworks.snamp;
 
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * @since 1.0
  */
-public final class TimeSpan  {
+public final class TimeSpan implements Serializable {
     /**
      * Represents infinite time interval.
      */
@@ -32,12 +33,13 @@ public final class TimeSpan  {
     /**
      * Represents empty time span.
      */
-    public static final TimeSpan ZERO = new TimeSpan(0L);
+    public static final TimeSpan ZERO = new TimeSpan(0L, TimeUnit.NANOSECONDS);
 
     /**
      * Represents maximum value.
      */
-    public static final TimeSpan MAX_VALUE = new TimeSpan(Long.MAX_VALUE);
+    public static final TimeSpan MAX_VALUE = new TimeSpan(Long.MAX_VALUE, TimeUnit.DAYS);
+    private static final long serialVersionUID = -5363358862646385345L;
 
     /**
      * Represents the duration value.
@@ -198,7 +200,9 @@ public final class TimeSpan  {
      */
     @ThreadSafe
     public boolean equals(final TimeSpan obj) {
-        return obj != null && unit.toMillis(duration) == obj.unit.toMillis(obj.duration);
+        if(obj == null) return false;
+        else if(unit == obj.unit) return duration == obj.duration;
+        else return unit.toNanos(duration) == obj.unit.toNanos(obj.duration);
     }
 
     /**
@@ -235,22 +239,33 @@ public final class TimeSpan  {
         return temp.convert(unit);
     }
 
-    /**
-     * Computes subtraction between the current span and the specified time span.
-     * @param right The right operand of the subtraction.
-     * @param resultUnit The time unit of the result.
-     * @return The subtraction result.
-     */
-    public TimeSpan subtract(final TimeSpan right, final TimeUnit resultUnit) {
-        return right == null ?
-                convert(resultUnit):
-                new TimeSpan(convert(resultUnit).duration - right.convert(resultUnit).duration, resultUnit);
+    public TimeSpan subtract(final TimeSpan value){
+        if(value == null)
+            return null;
+        else if(unit == value.unit){
+            final long dur = duration - value.duration;
+            return dur <= 0L ? ZERO : new TimeSpan(dur, unit);
+        }
+        else {
+            final long dur = toNanos() - value.toNanos();
+            return dur <= 0L ? ZERO : new TimeSpan(dur, TimeUnit.NANOSECONDS);
+        }
     }
 
-    public TimeSpan add(final TimeSpan right, final TimeUnit resultUnit){
-        return right == null ?
-                convert(resultUnit):
-                new TimeSpan(convert(resultUnit).duration + right.convert(resultUnit).duration, resultUnit);
+    public TimeSpan subtract(final long duration, final TimeUnit unit) {
+        return subtract(new TimeSpan(duration, unit));
+    }
+
+    public TimeSpan add(final TimeSpan value){
+        if(value == INFINITE)
+            return INFINITE;
+        else if(unit == value.unit)
+            return new TimeSpan(duration + value.duration, unit);
+        else return new TimeSpan(toNanos() + value.toNanos(), TimeUnit.NANOSECONDS);
+    }
+
+    public TimeSpan add(final long duration, final TimeUnit unit){
+        return add(new TimeSpan(duration, unit));
     }
 
     public long toNanos(){

@@ -56,7 +56,7 @@ public final class TableColumnParsingRule extends ParsingRule{
     }
 
     public void setColumnType(final XmlParsingResultType value){
-        if(value == null || !value.isScalar)
+        if(value == null || !value.isScalar())
             throw new IllegalArgumentException(String.format("Expecting scalar type but found %s", value));
         else columnType = value;
     }

@@ -36,6 +36,7 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
+
     private static final class WeakInvocationHandler<T> extends WeakReference<T> implements InvocationHandler, Wrapper<T>{
         private WeakInvocationHandler(final T obj){
             super(obj);
