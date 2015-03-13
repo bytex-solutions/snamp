@@ -25,7 +25,7 @@ public final class HttpAdapterActivator extends ResourceAdapterActivator<HttpAda
         @Override
         public HttpAdapter createAdapter(final String adapterInstance,
                                          final RequiredService<?>... dependencies) throws Exception {
-            return new HttpAdapter(adapterInstance, getDependency(RequiredServiceAccessor.class, HttpService.class));
+            return new HttpAdapter(adapterInstance, getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies));
         }
     }
 

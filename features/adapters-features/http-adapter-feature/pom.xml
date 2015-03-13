@@ -8,10 +8,10 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>SSH Adapter Karaf Feature</name>
-    <artifactId>ssh-adapter-feature</artifactId>
+    <name>HTTP Adapter Karaf Feature</name>
+    <artifactId>http-adapter-feature</artifactId>
     <version>1.0.0</version>
-    <description>SSH Adapter wrapped in the form of Apache Karaf Feature</description>
+    <description>HTTP Adapter wrapped in the form of Apache Karaf Feature</description>
     <packaging>pom</packaging>
     <build>
         <resources>
@@ -64,7 +64,7 @@
     <dependencies>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
-            <artifactId>ssh-adapter</artifactId>
+            <artifactId>http-adapter</artifactId>
             <version>1.0.0</version>
             <scope>provided</scope>
         </dependency>

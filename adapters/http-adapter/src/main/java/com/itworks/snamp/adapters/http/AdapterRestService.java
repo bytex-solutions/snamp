@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.itworks.snamp.ArrayUtils;
 import com.sun.jersey.spi.resource.Singleton;
+import org.atmosphere.annotation.Suspend;
 import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.jersey.SuspendResponse;
 
@@ -33,7 +34,8 @@ public final class AdapterRestService {
 
     @GET
     @Path("/notifications/{" + RESOURCE_NAME_PARAM + "}")
-    public SuspendResponse<String> subscribe(final String resourceName) throws WebApplicationException{
+    @Suspend(contentType = MediaType.APPLICATION_JSON)
+    public SuspendResponse<String> subscribe(@PathParam(RESOURCE_NAME_PARAM) final String resourceName) throws WebApplicationException{
         final Broadcaster broadcaster = notifications.getBroadcaster(resourceName);
         if(broadcaster != null)
             return new SuspendResponse.SuspendResponseBuilder<String>()

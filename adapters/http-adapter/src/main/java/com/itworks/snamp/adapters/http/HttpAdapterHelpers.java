@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class HttpAdapterHelpers {
-    static final String ADAPTER_NAME = "HTTP";
+    static final String ADAPTER_NAME = "http";
     private static final String LOGGER_NAME = AbstractResourceAdapter.getLoggerName(ADAPTER_NAME);
 
     private HttpAdapterHelpers(){

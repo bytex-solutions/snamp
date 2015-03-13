@@ -1,5 +1,6 @@
 package com.itworks.jcommands;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.channels.CommandExecutionChannels;
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlParserDefinition;
@@ -12,7 +13,6 @@ import org.junit.Test;
 import javax.script.ScriptException;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -23,6 +23,7 @@ import java.util.Map;
 public class LocalProcessExecutionChannelTest extends Assert {
     @Test
     public void echoTest() throws Exception {
+        Assume.assumeTrue("Linux-specific test", Utils.IS_OS_LINUX);
         try(final CommandExecutionChannel channel = CommandExecutionChannels.createLocalProcessExecutionChannel()){
             final String str = "Hello, world!";
             final String result = channel.exec(new ChannelProcessor<String, String, Exception>() {
@@ -43,7 +44,7 @@ public class LocalProcessExecutionChannelTest extends Assert {
 
     @Test
     public void freeMemTest() throws IOException, ScriptException {
-        Assume.assumeTrue(Utils.IS_OS_LINUX);
+        Assume.assumeTrue("Linux-specific test", Utils.IS_OS_LINUX);
         final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
         template.setCommandTemplate("free {format}");
         template.getCommandOutputParser().setParsingLanguage(XmlParserDefinition.REGEXP_LANG);
@@ -58,9 +59,9 @@ public class LocalProcessExecutionChannelTest extends Assert {
         template.getCommandOutputParser().addDictionaryEntryRule("total", "[0-9]+", XmlParsingResultType.INTEGER);
         template.getCommandOutputParser().addDictionaryEntryRule("used", "[0-9]+", XmlParsingResultType.INTEGER);
         template.getCommandOutputParser().addDictionaryEntryRule("free", "[0-9]+", XmlParsingResultType.INTEGER);
-        final CommandExecutionChannel channel = CommandExecutionChannels.createLocalProcessExecutionChannel(new HashMap<String, String>(1){{
-            put("format", "-m");
-        }});
+        final CommandExecutionChannel channel = CommandExecutionChannels.createLocalProcessExecutionChannel(ImmutableMap.of(
+            "format", "-m"
+        ));
         final Object memStatus = channel.exec(template, Collections.<String, Object>emptyMap());
         assertTrue(memStatus instanceof Map);
         assertEquals(3, ((Map)memStatus).size());

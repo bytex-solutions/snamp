@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <version>1.0.0</version>
     <packaging>bundle</packaging>
-    <name>REST Adapter</name>
+    <name>HTTP Adapter</name>
     <artifactId>http-adapter</artifactId>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -28,8 +28,25 @@
                         <Bundle-SymbolicName>com.itworks.snamp.adapters.http</Bundle-SymbolicName>
                         <Bundle-Activator>com.itworks.snamp.adapters.http.HttpAdapterActivator</Bundle-Activator>
                         <Export-Package/>
+                        <Import-Package>
+                            !org.eclipse.jetty.websocket.*,
+                            !org.atmosphere.jboss.*,
+                            !org.apache.tomcat.*,
+                            !javax.websocket.*,
+                            !com.sun.grizzly*,
+                            !com.sun.enterprise.*,
+                            !weblogic.*,
+                            !org.apache.catalina.*,
+                            !org.apache.coyote.*,
+                            !org.apache.shiro.*,
+                            !org.glassfish.*,
+                            !org.jboss.*,
+                            !org.mortbay.*,
+                            *
+                        </Import-Package>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Adapter>HTTP</SNAMP-Resource-Adapter>
+                        <SNAMP-Resource-Adapter>http</SNAMP-Resource-Adapter>
+                        <Embed-Dependency>*;scope=compile</Embed-Dependency>
                     </instructions>
                 </configuration>
             </plugin>
@@ -93,8 +110,20 @@
         <dependency>
             <groupId>org.atmosphere</groupId>
             <artifactId>atmosphere-jersey</artifactId>
-            <version>2.2.5</version>
-            <scope>provided</scope>
+            <version>2.2.6</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.atmosphere</groupId>
+            <artifactId>atmosphere-annotations</artifactId>
+            <version>2.2.6</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.atmosphere</groupId>
+            <artifactId>atmosphere-runtime</artifactId>
+            <version>2.2.6</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>

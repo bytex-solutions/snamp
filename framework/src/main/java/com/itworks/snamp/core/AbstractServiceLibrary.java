@@ -287,6 +287,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     }
 
     private static abstract class ManagedServiceFactoryImpl<TService> extends HashMap<String, TService> implements ManagedServiceFactory{
+        private static final long serialVersionUID = 6353271076932722292L;
+
         private synchronized <V, E extends Exception> V synchronizedInvoke(final ExceptionalCallable<V, E> action) throws E{
             return action.call();
         }
@@ -405,6 +407,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected final ManagedServiceFactoryImpl<TService> activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
             identity.put(Constants.SERVICE_PID, factoryPID);
             return new ManagedServiceFactoryImpl<TService>(){
+                private static final long serialVersionUID = -7596205835324011065L;
+
                 @Override
                 public String getName() {
                     return factoryPID;
@@ -646,6 +650,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     }
 
     private static final class ListOfProvidedServices extends ArrayList<ProvidedService<?, ?>> implements ProvidedServices{
+        private static final long serialVersionUID = 341418339520679799L;
 
         public ListOfProvidedServices(final ProvidedService<?, ?>... services){
             super(Arrays.asList(services));

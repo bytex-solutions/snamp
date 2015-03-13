@@ -47,7 +47,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     private String getServletContext(){
-        final String SERVLET_CONTEXT = "/snamp/adapters/%s/http";
+        final String SERVLET_CONTEXT = "/snamp/adapters/http/%s";
         return String.format(SERVLET_CONTEXT, getInstanceName());
     }
 
@@ -111,7 +111,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
     private static final class HttpAttributeManager extends AbstractKeyedObjects<String, HttpAttributeMapping>{
         private static final long serialVersionUID = 2767603193006584834L;
-        private static String ATTR_NAME_SPLITTER = "/";
+        private static char ATTR_NAME_SPLITTER = '/';
         private final String resourceName;
 
         private HttpAttributeManager(final String resourceName){
