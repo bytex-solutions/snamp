@@ -26,19 +26,20 @@ import java.util.Set;
 final class LocalProcessExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel {
     static final String CHANNEL_NAME = "process";
     private static final String NORMAL_EXIT_CODE_PARAM = "normalExitCode";
+    private static final long serialVersionUID = 5308027932652020638L;
 
     private final Runtime rt;
 
-    public LocalProcessExecutionChannel(final Map<String, String> params){
+    LocalProcessExecutionChannel(final Map<String, String> params){
         super(params);
         rt = Runtime.getRuntime();
     }
 
-    public LocalProcessExecutionChannel(final int normalExitCode) {
+    LocalProcessExecutionChannel(final int normalExitCode) {
         this(ImmutableMap.of(NORMAL_EXIT_CODE_PARAM, Integer.toString(normalExitCode)));
     }
 
-    public int getNormalExitCode() {
+    int getNormalExitCode() {
         if (containsKey(NORMAL_EXIT_CODE_PARAM))
             return Integer.valueOf(get(NORMAL_EXIT_CODE_PARAM));
         else if (Utils.IS_OS_LINUX)
@@ -48,7 +49,7 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
         else return 0;
     }
 
-    public void setNormalExitCode(final int value){
+    void setNormalExitCode(final int value){
         put(NORMAL_EXIT_CODE_PARAM, Integer.toString(value));
     }
 

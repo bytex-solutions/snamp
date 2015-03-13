@@ -26,6 +26,7 @@ final class RExecExecutionChannel extends HashMap<String, String> implements Com
     private static final String REMOTE_HOST_PROPERTY = "host";
     private static final String REMOTE_PORT_PROPERTY = "port";
     private static final int DEFAULT_PORT = 514;
+    private static final long serialVersionUID = 6937841976838538881L;
 
     public RExecExecutionChannel(final Map<String, String> params){
         super(params);

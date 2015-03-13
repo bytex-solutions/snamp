@@ -82,7 +82,7 @@ public final class XmlCommandLineTemplateTest extends Assert {
         parser.addConstantDef("3.14");
         final Object result = parser.parse("fkneknehg", new ScriptEngineManager());
         assertTrue(result instanceof Float);
-        assertEquals(3.14F, result);
+        assertEquals(3.14F, (Float)result, 0.001);
     }
 
     @Test
