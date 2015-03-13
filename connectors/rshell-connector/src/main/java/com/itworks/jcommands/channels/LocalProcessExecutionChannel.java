@@ -108,7 +108,11 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
     @Override
     public <I, O, E extends Exception> O exec(final ChannelProcessor<I, O, E> command,
                                            final I obj) throws IOException, E {
-        final Process proc = rt.exec(command.renderCommand(obj, this));
+
+        // On OS of Windows family we have to set interpreter before the command
+        final String commandString = com.itworks.snamp.internal.Utils.IS_OS_LINUX ? "" : "cmd /c " +
+                command.renderCommand(obj, this);
+        final Process proc = rt.exec(commandString);
         try (final Reader input = new InputStreamReader(proc.getInputStream());
              final Reader error = new InputStreamReader(proc.getErrorStream())) {
             final int processExitCode = proc.waitFor();
