@@ -39,4 +39,14 @@ public final class HttpAdapterActivator extends ResourceAdapterActivator<HttpAda
                         new LicensingDescriptionServiceManager<>(HttpAdapterLimitations.class, HttpAdapterLimitations.fallbackFactory)
                 });
     }
+
+    /**
+     * Releases all resources associated with this library.
+     *
+     * @throws Exception Abnormal library termination.
+     */
+    @Override
+    protected void shutdown() throws Exception {
+        super.shutdown();
+    }
 }

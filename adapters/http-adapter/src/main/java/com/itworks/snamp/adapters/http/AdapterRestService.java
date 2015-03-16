@@ -5,10 +5,11 @@ import com.google.gson.JsonObject;
 import com.itworks.snamp.ArrayUtils;
 import com.sun.jersey.spi.resource.Singleton;
 import org.atmosphere.annotation.Suspend;
-import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.jersey.SuspendResponse;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Objects;
@@ -32,16 +33,24 @@ public final class AdapterRestService {
         this.notifications = Objects.requireNonNull(notifications);
     }
 
+    //the context is a root because access to this operation organized via AtmosphereServletBridge
     @GET
-    @Path("/notifications/{" + RESOURCE_NAME_PARAM + "}")
+    @Path("/{" + RESOURCE_NAME_PARAM + "}")
     @Suspend(contentType = MediaType.APPLICATION_JSON)
-    public SuspendResponse<String> subscribe(@PathParam(RESOURCE_NAME_PARAM) final String resourceName) throws WebApplicationException{
-        final Broadcaster broadcaster = notifications.getBroadcaster(resourceName);
-        if(broadcaster != null)
-            return new SuspendResponse.SuspendResponseBuilder<String>()
-                .broadcaster(broadcaster)
-                .build();
-        else throw new WebApplicationException(new IllegalArgumentException(String.format("Unknown resource %s", resourceName)), Response.Status.NOT_FOUND);
+    public SuspendResponse<String> subscribe(@PathParam(RESOURCE_NAME_PARAM) final String resourceName,
+                                             @Context final HttpServletRequest request) throws WebApplicationException {
+        final InternalBroadcaster broadcaster = notifications.getBroadcaster(resourceName);
+        if (broadcaster != null)
+            switch (broadcaster.init(request)) {
+                case NOT_INITIALIZED:
+                    throw new WebApplicationException(new RuntimeException(String.format("Unable to initialize broadcaster for %s resource", resourceName)), Response.Status.INTERNAL_SERVER_ERROR);
+                default:
+                    return new SuspendResponse.SuspendResponseBuilder<String>()
+                            .broadcaster(broadcaster)
+                            .build();
+            }
+        else
+            throw new WebApplicationException(new IllegalArgumentException(String.format("Unknown resource %s", resourceName)), Response.Status.NOT_FOUND);
     }
 
     @GET

@@ -10,13 +10,18 @@ import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.jmx.json.*;
+import org.atmosphere.cpr.AtmosphereConfig;
+import org.atmosphere.cpr.BroadcasterConfig;
 import org.atmosphere.jersey.JerseyBroadcaster;
 import org.osgi.service.http.HttpService;
 
 import javax.management.*;
 import javax.management.openmbean.*;
+import javax.servlet.Servlet;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.nio.*;
@@ -25,6 +30,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.atmosphere.cpr.FrameworkConfig.ATMOSPHERE_CONFIG;
 
 /**
  * Represents HTTP adapter that exposes management information through HTTP and WebSocket to the outside world.
@@ -46,9 +53,13 @@ final class HttpAdapter extends AbstractResourceAdapter {
         this.publisher = Objects.requireNonNull(servletPublisher, "servletPublisher is null.");
     }
 
-    private String getServletContext(){
+    private String getAttributesServletContext(){
         final String SERVLET_CONTEXT = "/snamp/adapters/http/%s";
         return String.format(SERVLET_CONTEXT, getInstanceName());
+    }
+
+    private String getNotificationsServletContext(){
+        return getAttributesServletContext() + "/notifications";
     }
 
     private static final class HttpAttributeMapping{
@@ -382,13 +393,35 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NotificationBroadcaster extends JerseyBroadcaster{
+    private static final class NotificationBroadcaster extends JerseyBroadcaster implements InternalBroadcaster {
         private final KeyedObjects<String, MBeanNotificationInfo> notifications;
         private final String resourceName;
 
         private NotificationBroadcaster(final String resourceName){
             notifications = createNotifs();
             this.resourceName = resourceName;
+        }
+
+        private static BroadcasterConfig createConfig(final AtmosphereConfig config,
+                                                      final String resourceName){
+            return AtmosphereServletBridge.createBroadcasterConfig(config, resourceName);
+        }
+
+        @Override
+        public BroadcasterState init(final HttpServletRequest request) {
+            BroadcasterConfig config = getBroadcasterConfig();
+            if(config == null)
+                synchronized (this){
+                    config = getBroadcasterConfig();
+                    if(config == null){
+                        final AtmosphereConfig frameworkConfig = Utils.safeCast(request.getAttribute(ATMOSPHERE_CONFIG), AtmosphereConfig.class);
+                        if(frameworkConfig == null) return BroadcasterState.NOT_INITIALIZED;
+                        setBroadcasterConfig(createConfig(frameworkConfig, resourceName));
+                        return BroadcasterState.INITIALIZED;
+                    }
+                    else return BroadcasterState.ALREADY_INITIALIZED;
+                }
+            else return BroadcasterState.ALREADY_INITIALIZED;
         }
 
         private static KeyedObjects<String, MBeanNotificationInfo> createNotifs(){
@@ -582,7 +615,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
         populateModel(attributes);
         populateModel(notifications);
         //register RestAdapterServlet as a OSGi service
-        publisher.registerServlet(getServletContext(), new HttpAdapterServlet(attributes, notifications), null, null);
+        final Servlet servlet = new HttpAdapterServlet(attributes, notifications);
+        publisher.registerServlet(getAttributesServletContext(), servlet, null, null);
+        //register notifications listener as a OSGi service
+        publisher.registerServlet(getNotificationsServletContext(), new AtmosphereServletBridge(servlet), null, null);
     }
 
     /**
@@ -598,7 +634,8 @@ final class HttpAdapter extends AbstractResourceAdapter {
     @Override
     protected void stop() throws Exception {
         //unregister RestAdapter Servlet as a OSGi service.
-        publisher.unregister(getServletContext());
+        publisher.unregister(getAttributesServletContext());
+        publisher.unregister(getNotificationsServletContext());
         clearModel(attributes);
         clearModel(notifications);
     }
