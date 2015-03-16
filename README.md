@@ -15,7 +15,7 @@ RAM: 2Gb or higher
 Maven
 JDK 7 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
 
-## How to run tests
+## How to build
 Not all dependencies located in the Maven Central, therefore, you should download artifacts from the
 following repositories:
 
