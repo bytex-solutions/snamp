@@ -16,12 +16,12 @@ import com.itworks.snamp.jmx.json.*;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.atmosphere.cpr.AtmosphereConfig;
-import org.atmosphere.cpr.BroadcasterConfig;
 import org.atmosphere.jersey.JerseyBroadcaster;
 import org.osgi.service.http.HttpService;
 
 import javax.management.*;
 import javax.management.openmbean.*;
+import javax.servlet.Servlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Application;
@@ -386,11 +386,6 @@ final class HttpAdapter extends AbstractResourceAdapter {
             this.resourceName = resourceName;
         }
 
-        private static BroadcasterConfig createConfig(final AtmosphereConfig config,
-                                                      final String resourceName){
-            return AtmosphereServletBridge.createBroadcasterConfig(config, resourceName);
-        }
-
         private static URI getRequestURI(final HttpServletRequest request) throws URISyntaxException {
             return new URI(request.getRequestURL().toString());
         }
@@ -642,8 +637,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
     protected void start(final Map<String, String> parameters) throws Exception {
         populateModel(servletFactory.attributes);
         populateModel(servletFactory.notifications);
+        final AtmosphereObjectFactoryBuilder objectFactory = new AtmosphereObjectFactoryBuilder()
+                .add(Servlet.class, servletFactory);
         //register RestAdapterServlet as a OSGi service
-        publisher.registerServlet(getServletContext(), new AtmosphereServletBridge(servletFactory), null, null);
+        publisher.registerServlet(getServletContext(), new AtmosphereServletBridge(objectFactory.build()), null, null);
     }
 
     /**
