@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +80,8 @@ public final class XmlCommandLineTemplateTest extends Assert {
         final XmlParserDefinition parser = new XmlParserDefinition();
         parser.setParsingLanguage(XmlParserDefinition.JAVASCRIPT_LANG);
         parser.setParsingResultType(XmlParsingResultType.FLOAT);
-        parser.addConstantDef("3.14");
+        final DecimalFormat format = new DecimalFormat();
+        parser.addConstantDef(format.format(3.14));
         final Object result = parser.parse("fkneknehg", new ScriptEngineManager());
         assertTrue(result instanceof Float);
         assertEquals(3.14F, (Float)result, 0.001);
