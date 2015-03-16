@@ -12,18 +12,18 @@ import javax.servlet.ServletException;
  * @version 1.0
  * @since 1.0
  */
-final class AtmosphereServletBridge extends AtmosphereServlet {
+final class HttpAdapterServlet extends AtmosphereServlet {
     private static final long serialVersionUID = 1446026354420742643L;
 
     private final AtmosphereObjectFactory objectFactory;
 
-    AtmosphereServletBridge(final AtmosphereObjectFactory objectFactory){
+    HttpAdapterServlet(final AtmosphereObjectFactory objectFactory){
         super(false, true);
         this.objectFactory = objectFactory;
     }
 
     @Override
-    protected AtmosphereServletBridge configureFramework(final ServletConfig sc, final boolean init) throws ServletException {
+    protected HttpAdapterServlet configureFramework(final ServletConfig sc, final boolean init) throws ServletException {
         super.configureFramework(sc, false);
         framework.objectFactory(objectFactory);
         if(init) framework.init(sc);

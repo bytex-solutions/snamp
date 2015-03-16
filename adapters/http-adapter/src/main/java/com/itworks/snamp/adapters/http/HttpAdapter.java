@@ -640,7 +640,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         final AtmosphereObjectFactoryBuilder objectFactory = new AtmosphereObjectFactoryBuilder()
                 .add(Servlet.class, servletFactory);
         //register RestAdapterServlet as a OSGi service
-        publisher.registerServlet(getServletContext(), new AtmosphereServletBridge(objectFactory.build()), null, null);
+        publisher.registerServlet(getServletContext(), new HttpAdapterServlet(objectFactory.build()), null, null);
     }
 
     /**
