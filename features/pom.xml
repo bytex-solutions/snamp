@@ -16,7 +16,7 @@
         <module>licensing-feature</module>
         <module>connectors-features</module>
         <module>adapters-features</module>
-        <module>third-party-features</module>
+        <module>wrapped-libs-for-tests</module>
     </modules>
 
     <build>

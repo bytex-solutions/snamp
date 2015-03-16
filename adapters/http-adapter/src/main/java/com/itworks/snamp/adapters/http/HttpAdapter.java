@@ -13,6 +13,8 @@ import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.jmx.json.*;
+import com.sun.jersey.api.core.DefaultResourceConfig;
+import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.atmosphere.cpr.AtmosphereConfig;
 import org.atmosphere.cpr.BroadcasterConfig;
 import org.atmosphere.jersey.JerseyBroadcaster;
@@ -20,10 +22,12 @@ import org.osgi.service.http.HttpService;
 
 import javax.management.*;
 import javax.management.openmbean.*;
-import javax.servlet.Servlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.*;
 import java.util.Map;
 import java.util.Objects;
@@ -41,26 +45,6 @@ import static org.atmosphere.cpr.FrameworkConfig.ATMOSPHERE_CONFIG;
 final class HttpAdapter extends AbstractResourceAdapter {
     static final String NAME = HttpAdapterHelpers.ADAPTER_NAME;
     private static final int METHOD_NOT_ALLOWED = 405;
-
-    private final HttpAttributesModel attributes;
-    private final HttpService publisher;
-    private final HttpNotificationsModel notifications;
-
-    HttpAdapter(final String instanceName, final HttpService servletPublisher){
-        super(instanceName);
-        attributes = new HttpAttributesModel();
-        notifications = new HttpNotificationsModel();
-        this.publisher = Objects.requireNonNull(servletPublisher, "servletPublisher is null.");
-    }
-
-    private String getAttributesServletContext(){
-        final String SERVLET_CONTEXT = "/snamp/adapters/http/%s";
-        return String.format(SERVLET_CONTEXT, getInstanceName());
-    }
-
-    private String getNotificationsServletContext(){
-        return getAttributesServletContext() + "/notifications";
-    }
 
     private static final class HttpAttributeMapping{
         private final AttributeAccessor accessor;
@@ -407,21 +391,20 @@ final class HttpAdapter extends AbstractResourceAdapter {
             return AtmosphereServletBridge.createBroadcasterConfig(config, resourceName);
         }
 
+        private static URI getRequestURI(final HttpServletRequest request) throws URISyntaxException {
+            return new URI(request.getRequestURL().toString());
+        }
+
         @Override
-        public BroadcasterState init(final HttpServletRequest request) {
-            BroadcasterConfig config = getBroadcasterConfig();
-            if(config == null)
-                synchronized (this){
-                    config = getBroadcasterConfig();
-                    if(config == null){
-                        final AtmosphereConfig frameworkConfig = Utils.safeCast(request.getAttribute(ATMOSPHERE_CONFIG), AtmosphereConfig.class);
-                        if(frameworkConfig == null) return BroadcasterState.NOT_INITIALIZED;
-                        setBroadcasterConfig(createConfig(frameworkConfig, resourceName));
-                        return BroadcasterState.INITIALIZED;
-                    }
-                    else return BroadcasterState.ALREADY_INITIALIZED;
+        public void init(final HttpServletRequest request) throws URISyntaxException {
+            if (request != null && !isInitialized() && !isDestroyed())
+                synchronized (this) {
+                    if (isInitialized() || isDestroyed()) return;
+                    final AtmosphereConfig frameworkConfig = Utils.safeCast(request.getAttribute(ATMOSPHERE_CONFIG), AtmosphereConfig.class);
+                    if (frameworkConfig == null)
+                        throw new RuntimeException(String.format("%s resource broadcaster cannot catch Atmosphere Framework config", resourceName));
+                    else initialize(resourceName, getRequestURI(request), frameworkConfig);
                 }
-            else return BroadcasterState.ALREADY_INITIALIZED;
         }
 
         private static KeyedObjects<String, MBeanNotificationInfo> createNotifs(){
@@ -435,10 +418,19 @@ final class HttpAdapter extends AbstractResourceAdapter {
             };
         }
 
+        private boolean isInitialized(){
+            return initialized.get();
+        }
+
         private void handleNotification(final Notification notif, final Gson formatter){
             notif.setSource(resourceName);
-            if(notifications.containsKey(notif.getType()))
+            if(isInitialized() && !isDestroyed() && notifications.containsKey(notif.getType()))
                 broadcast(formatter.toJson(notif));
+        }
+
+        @Override
+        public synchronized void destroy() {
+            super.destroy();
         }
 
         private String makeListID(final String userDefinedName){
@@ -599,6 +591,42 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
     }
 
+    private static final class JerseyServletFactory implements ServletFactory<ServletContainer> {
+        private final HttpNotificationsModel notifications;
+        private final HttpAttributesModel attributes;
+
+        JerseyServletFactory(final HttpAttributesModel attributes, final HttpNotificationsModel notifications){
+            this.notifications = Objects.requireNonNull(notifications);
+            this.attributes = Objects.requireNonNull(attributes);
+        }
+
+        private static Application createResourceConfig(final AdapterRestService serviceInstance){
+            final DefaultResourceConfig result = new DefaultResourceConfig();
+            result.getSingletons().add(serviceInstance);
+            return result;
+        }
+
+        @Override
+        public ServletContainer get() {
+            return new ServletContainer(createResourceConfig(new AdapterRestService(attributes, notifications)));
+        }
+    }
+
+    private final HttpService publisher;
+    private final JerseyServletFactory servletFactory;
+
+    HttpAdapter(final String instanceName, final HttpService servletPublisher) {
+        super(instanceName);
+        publisher = Objects.requireNonNull(servletPublisher, "servletPublisher is null.");
+        servletFactory = new JerseyServletFactory(new HttpAttributesModel(),
+                new HttpNotificationsModel());
+    }
+
+    private String getServletContext(){
+        final String SERVLET_CONTEXT = "/snamp/adapters/http/%s";
+        return String.format(SERVLET_CONTEXT, getInstanceName());
+    }
+
     /**
      * Starts the adapter.
      * <p>
@@ -612,13 +640,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
      */
     @Override
     protected void start(final Map<String, String> parameters) throws Exception {
-        populateModel(attributes);
-        populateModel(notifications);
+        populateModel(servletFactory.attributes);
+        populateModel(servletFactory.notifications);
         //register RestAdapterServlet as a OSGi service
-        final Servlet servlet = new HttpAdapterServlet(attributes, notifications);
-        publisher.registerServlet(getAttributesServletContext(), servlet, null, null);
-        //register notifications listener as a OSGi service
-        publisher.registerServlet(getNotificationsServletContext(), new AtmosphereServletBridge(servlet), null, null);
+        publisher.registerServlet(getServletContext(), new AtmosphereServletBridge(servletFactory), null, null);
     }
 
     /**
@@ -634,17 +659,16 @@ final class HttpAdapter extends AbstractResourceAdapter {
     @Override
     protected void stop() throws Exception {
         //unregister RestAdapter Servlet as a OSGi service.
-        publisher.unregister(getAttributesServletContext());
-        publisher.unregister(getNotificationsServletContext());
-        clearModel(attributes);
-        clearModel(notifications);
+        publisher.unregister(getServletContext());
+        clearModel(servletFactory.attributes);
+        clearModel(servletFactory.notifications);
     }
 
     @Override
     protected void resourceAdded(final String resourceName) {
         try {
-            enlargeModel(resourceName, attributes);
-            enlargeModel(resourceName, notifications);
+            enlargeModel(resourceName, servletFactory.attributes);
+            enlargeModel(resourceName, servletFactory.notifications);
         } catch (final JMException e) {
             HttpAdapterHelpers.log(Level.SEVERE, String.format("Unable to process a new resource %s", resourceName), e);
         }
@@ -652,8 +676,8 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
     @Override
     protected void resourceRemoved(final String resourceName) {
-        clearModel(resourceName, attributes);
-        clearModel(resourceName, notifications);
+        clearModel(resourceName, servletFactory.attributes);
+        clearModel(resourceName, servletFactory.notifications);
     }
 
     /**

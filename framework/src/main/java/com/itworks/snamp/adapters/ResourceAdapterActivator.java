@@ -403,6 +403,12 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
         bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
         addDependencies(bundleLevelDependencies);
+        start();
+    }
+
+    @MethodStub
+    protected void start(){
+
     }
 
     /**

@@ -240,4 +240,8 @@ public final class ArrayUtils {
         }
         else return false;
     }
+
+    public static <T> T[] emptyIfNull(final T[] items, final Class<T> elementType) {
+        return items == null ? ObjectArrays.newArray(elementType, 0) : items;
+    }
 }

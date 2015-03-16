@@ -33,22 +33,22 @@ public final class AdapterRestService {
         this.notifications = Objects.requireNonNull(notifications);
     }
 
-    //the context is a root because access to this operation organized via AtmosphereServletBridge
     @GET
-    @Path("/{" + RESOURCE_NAME_PARAM + "}")
+    @Path("/notifications/{" + RESOURCE_NAME_PARAM + "}")
     @Suspend(contentType = MediaType.APPLICATION_JSON)
     public SuspendResponse<String> subscribe(@PathParam(RESOURCE_NAME_PARAM) final String resourceName,
                                              @Context final HttpServletRequest request) throws WebApplicationException {
         final InternalBroadcaster broadcaster = notifications.getBroadcaster(resourceName);
-        if (broadcaster != null)
-            switch (broadcaster.init(request)) {
-                case NOT_INITIALIZED:
-                    throw new WebApplicationException(new RuntimeException(String.format("Unable to initialize broadcaster for %s resource", resourceName)), Response.Status.INTERNAL_SERVER_ERROR);
-                default:
-                    return new SuspendResponse.SuspendResponseBuilder<String>()
-                            .broadcaster(broadcaster)
-                            .build();
+        if (broadcaster != null) {
+            try {
+                broadcaster.init(request);
+                return new SuspendResponse.SuspendResponseBuilder<String>()
+                        .broadcaster(broadcaster)
+                        .build();
+            } catch (final Exception e) {
+                throw new WebApplicationException(e);
             }
+        }
         else
             throw new WebApplicationException(new IllegalArgumentException(String.format("Unknown resource %s", resourceName)), Response.Status.NOT_FOUND);
     }

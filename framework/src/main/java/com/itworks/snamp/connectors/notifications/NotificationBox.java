@@ -11,6 +11,8 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @since 1.0
  */
 public class NotificationBox extends ArrayBlockingQueue<Notification> implements NotificationListener {
+    private static final long serialVersionUID = 7011237951803102271L;
+
     /**
      * Initializes a new mailbox.
      * @param maxCapacity The capacity of the new mailbox.

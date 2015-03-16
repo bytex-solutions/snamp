@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="features_for_snamp_framework">
-    <feature name="apache-ds-feature" description="apache-ds" version="1.0.0">
-        <details>Apache ds wrapped feature</details>
-        <bundle>wrap:mvn:org.apache.directory.server/apacheds-all/2.0.0-M16$Export-Package=org.apache.directory.*;version="2.0.0.16"</bundle>    </feature>
-</features>

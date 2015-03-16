@@ -29,7 +29,9 @@
                         <Bundle-Activator>com.itworks.snamp.adapters.http.HttpAdapterActivator</Bundle-Activator>
                         <Export-Package/>
                         <Import-Package>
-                            !org.eclipse.jetty.websocket.*,
+                            !org.eclipse.jetty.websocket.api.*,
+                            !org.eclipse.jetty.websocket.server.*,
+                            !org.eclipse.jetty.websocket.servlet.*,
                             !org.atmosphere.jboss.*,
                             !org.apache.tomcat.*,
                             !javax.websocket.*,
@@ -124,6 +126,12 @@
             <artifactId>atmosphere-runtime</artifactId>
             <version>2.2.6</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.aggregate</groupId>
+            <artifactId>jetty-all-server</artifactId>
+            <version>8.1.15.v20140411</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>

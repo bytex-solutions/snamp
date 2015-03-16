@@ -16,7 +16,7 @@ public enum SnampFeature {
     SNMP_CONNECTOR("snmp-connector-feature", "1.0.0"),
     RSHELL_CONNECTOR("rshell-connector-feature", "1.0.0"),
     SSH_ADAPTER("ssh-adapter-feature", "1.0.0"),
-    APACHE_DS("apache-ds-feature", "1.0.0"),
+    WRAPPED_LIBS("wrapped-libs-for-tests", "1.0.0"),
     HTTP_ADAPTER("http-adapter-feature", "1.0.0");
 
     final String featureName;

@@ -8,7 +8,7 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-interface AttributeSupport {
+public interface AttributeSupport {
     String getAttribute(final String resourceName,
                         final String attributeName) throws WebApplicationException;
 

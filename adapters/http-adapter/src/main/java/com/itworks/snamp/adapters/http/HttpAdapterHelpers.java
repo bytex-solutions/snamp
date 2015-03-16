@@ -4,6 +4,9 @@ import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.core.OSGiLoggingContext;
+import com.itworks.snamp.internal.annotations.SpecialUse;
+import org.eclipse.jetty.continuation.Continuation;
+import org.eclipse.jetty.continuation.Servlet3Continuation;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,6 +22,12 @@ final class HttpAdapterHelpers {
 
     private HttpAdapterHelpers(){
 
+    }
+
+    //do not remove. It is necessary for Atmosphere and maven-bundle-plugin for correct import of Jetty package
+    @SpecialUse
+    private static Class<? extends Continuation> getJettyContinuationClass(){
+        return Servlet3Continuation.class;
     }
 
     static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {

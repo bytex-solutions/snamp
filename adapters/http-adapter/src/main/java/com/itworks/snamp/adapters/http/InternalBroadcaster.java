@@ -10,29 +10,11 @@ import javax.servlet.http.HttpServletRequest;
  * @version 1.0
  * @since 1.0
  */
-interface InternalBroadcaster extends Broadcaster {
-    /**
-     * Represents broadcaster initialization state.
-     */
-    static enum BroadcasterState {
-        /**
-         * Indicates that the broadcaster is initialized successfully.
-         */
-        INITIALIZED,
-        /**
-         * Indicates that the broadcaster could not be initialized.
-         */
-        NOT_INITIALIZED,
-        /**
-         * Indicates that the broadcaster was been initialized.
-         */
-        ALREADY_INITIALIZED
-    }
+public interface InternalBroadcaster extends Broadcaster {
 
     /**
      * Initializes broadcaster using the request.
      * @param request The subscription request.
-     * @return Broadcaster state.
      */
-    BroadcasterState init(final HttpServletRequest request);
+    void init(final HttpServletRequest request) throws Exception;
 }

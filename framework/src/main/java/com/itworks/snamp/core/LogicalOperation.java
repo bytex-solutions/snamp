@@ -39,6 +39,8 @@ public class LogicalOperation implements AutoCloseable {
     }
 
     protected static final class DefaultCorrelationIdentifierGenerator extends AtomicLong implements CorrelationIdentifierGenerator{
+        private static final long serialVersionUID = 1744163230081925999L;
+
         public DefaultCorrelationIdentifierGenerator(final long initialValue){
             super(initialValue);
         }
@@ -224,7 +226,10 @@ public class LogicalOperation implements AutoCloseable {
      */
     public static <L extends LogicalOperation> L find(final Class<L> operationClass){
         LogicalOperation lookup = current();
-        return lookup != null ? lookup.findParent(operationClass) : null;
+        if(lookup == null) return null;
+        else if(operationClass.isInstance(lookup))
+            return operationClass.cast(lookup);
+        else return lookup.findParent(operationClass);
     }
 
     /**

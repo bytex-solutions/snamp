@@ -8,15 +8,19 @@ import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.io.IOUtils;
+import com.itworks.snamp.testing.CollectionSizeAwaitor;
 import com.itworks.snamp.testing.ImportPackages;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
+import org.atmosphere.wasync.*;
+import org.atmosphere.wasync.impl.AtmosphereClient;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
+import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.IOException;
@@ -25,10 +29,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.jmx.json.JsonUtils.toJsonArray;
+import static com.itworks.snamp.jmx.json.JsonUtils.toJsonObject;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -36,9 +44,26 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  * @version 1.0
  * @since 1.0
  */
-@SnampDependencies(SnampFeature.HTTP_ADAPTER)
-@ImportPackages("com.itworks.snamp.jmx.json;version=\"[1.0,2)\"")
+@SnampDependencies({SnampFeature.HTTP_ADAPTER, SnampFeature.WRAPPED_LIBS})
+@ImportPackages({"com.itworks.snamp.jmx.json;version=\"[1.0,2)\"",
+        "org.atmosphere.wasync;version=\"[2.0.0,3)\""})
 public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final class NotificationReceiver extends ArrayBlockingQueue<JsonElement> implements Function<String>{
+        private static final long serialVersionUID = 2056675059549300951L;
+        private final Gson formatter;
+
+        public NotificationReceiver(final int capacity,
+                                    final Gson formatter) {
+            super(capacity);
+            this.formatter = formatter;
+        }
+
+        @Override
+        public void on(final String notification) {
+            offer(formatter.toJsonTree(notification));
+        }
+    }
+
     private static final String ADAPTER_NAME = "http";
     private static final String ADAPTER_INSTANCE = "test-http";
     private final Gson formatter;
@@ -109,12 +134,62 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void testArrayAttribute() throws IOException{
-        testAttribute("5.1", toJsonArray((short)4, (short)3));
+        testAttribute("5.1", toJsonArray((short) 4, (short) 3));
+    }
+
+    @Test
+    public void testTableAttribute() throws IOException{
+        //[{'col1':false,'col2':2,'col3':'pp'}]
+        testAttribute("7.1", toJsonArray(toJsonObject("col1", new JsonPrimitive(false),
+                "col2", new JsonPrimitive(2),
+                "col3", new JsonPrimitive("pp"))));
+    }
+
+    @Test
+    public void testDictionaryAttribute() throws IOException{
+        //{'col1':false,'col2':42,'col3':'hello, world!'}
+        testAttribute("6.1", toJsonObject("col1", new JsonPrimitive(false),
+                "col2", new JsonPrimitive(42),
+                "col3", new JsonPrimitive("Hello, world!")));
+
+    }
+
+    private void testNotificationTransport(final Request.TRANSPORT transport) throws IOException{
+        final AtmosphereClient client = ClientFactory.getDefault().newClient(AtmosphereClient.class);
+        final RequestBuilder requestBuilder = client.newRequestBuilder()
+                .method(Request.METHOD.GET)
+                .uri(String.format("http://localhost:8181/snamp/adapters/http/%s/notifications/%s", ADAPTER_INSTANCE, TEST_RESOURCE_NAME))
+                //.trackMessageLength(true)
+                .transport(transport);
+        final Socket sock = client.create();
+        final NotificationReceiver receiver = new NotificationReceiver(10, formatter);
+        final CollectionSizeAwaitor awaitor = new CollectionSizeAwaitor(receiver, 3);
+        sock.on("message", receiver).open(requestBuilder.build());
+        try{
+            //force attribute change
+            testStringAttribute();
+            //wait for notifications
+            assertTrue(awaitor.await(TimeSpan.fromSeconds(3)));
+        } catch (final InterruptedException | TimeoutException e) {
+            fail(e.getMessage());
+        } finally {
+            sock.close();
+        }
+    }
+
+    @Test
+    public void testNotificationViaWebSocket() throws IOException {
+        testNotificationTransport(Request.TRANSPORT.WEBSOCKET);
+    }
+
+    @Test
+    public void testNotificationViaComet() throws IOException{
+        testNotificationTransport(Request.TRANSPORT.LONG_POLLING);
     }
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Override
@@ -132,7 +207,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromSeconds(4));
+        }, TimeSpan.fromSeconds(15));
     }
 
     @Override
@@ -189,5 +264,26 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attributes.put("9.0", attribute);
+    }
+
+    @Override
+    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
+        EventConfiguration event = eventFactory.get();
+        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("objectName", BEAN_NAME);
+        events.put("19.1", event);
+
+        event = eventFactory.get();
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.testnotif");
+        event.getParameters().put("severity", "panic");
+        event.getParameters().put("objectName", BEAN_NAME);
+        events.put("20.1", event);
+
+        event = eventFactory.get();
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.plainnotif");
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("objectName", BEAN_NAME);
+        events.put("21.1", event);
     }
 }

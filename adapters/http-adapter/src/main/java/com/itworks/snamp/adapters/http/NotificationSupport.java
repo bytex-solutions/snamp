@@ -5,6 +5,6 @@ package com.itworks.snamp.adapters.http;
  * @version 1.0
  * @since 1.0
  */
-interface NotificationSupport {
+public interface NotificationSupport {
     InternalBroadcaster getBroadcaster(final String resourceName);
 }

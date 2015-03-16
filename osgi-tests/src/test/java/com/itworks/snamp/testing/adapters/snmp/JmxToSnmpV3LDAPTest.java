@@ -2,6 +2,7 @@ package com.itworks.snamp.testing.adapters.snmp;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
@@ -44,7 +45,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  * @version 1.0
  * @since 1.0
  */
-@SnampDependencies({SnampFeature.SNMP_ADAPTER, SnampFeature.APACHE_DS})
+@SnampDependencies({SnampFeature.SNMP_ADAPTER, SnampFeature.WRAPPED_LIBS})
 public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
@@ -322,7 +323,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
 
     private static void delete(final File f) throws IOException {
         if (f.isDirectory())
-            for (final File c : f.listFiles())
+            for (final File c : ArrayUtils.emptyIfNull(f.listFiles(), File.class))
                 delete(c);
         if (!f.delete())
             throw new FileNotFoundException("Failed to delete file: " + f);
@@ -333,6 +334,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
         workDir = new File( System.getProperty( "java.io.tmpdir" ) + "/server-work" );
 
         if (workDir.exists()) delete(workDir);
+        //noinspection ResultOfMethodCallIgnored
         workDir.mkdirs();
         // Create the server
         ads = new EmbeddedADSVerTrunk( workDir );
@@ -365,6 +367,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     protected void afterCleanupTest(final BundleContext context) throws Exception {
         super.afterCleanupTest(context);
         ads.stopServer();
+        //noinspection ResultOfMethodCallIgnored
         workDir.delete();
     }
 
