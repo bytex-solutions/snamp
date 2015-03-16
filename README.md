@@ -6,14 +6,14 @@ protocols and your monitoring&management software. This ability allows to reduce
 of your IT infrastructure.
 
 ## Prerequisites
-CPU Arch: x86/x64
-Runtime: Java SE 7 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
-OS: Ubuntu (Server) 10.04 or higher, Windows 7/8, Windows Server 2003/2012, RedHat, OpenSUSE, CentOS
-RAM: 2Gb or higher
+* CPU Arch: x86/x64
+* Runtime: Java SE 7 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
+* OS: Ubuntu (Server) 10.04 or higher, Windows 7/8, Windows Server 2003/2012, RedHat, OpenSUSE, CentOS
+* RAM: 2Gb or higher
 
 ### For developers
-Maven
-JDK 7 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
+* Maven
+* JDK 7 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
 
 ## How to build
 Not all dependencies located in the Maven Central, therefore, you should download artifacts from the
