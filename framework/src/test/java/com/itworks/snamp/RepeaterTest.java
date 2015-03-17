@@ -37,7 +37,7 @@ public class RepeaterTest extends Assert {
         @Override
         protected final void stateChanged(final State s) {
             switch (s){
-                case STARTED: c.getAndSet(0L); return;
+                case STARTED: c.getAndSet(0L);
             }
         }
 

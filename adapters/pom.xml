@@ -22,5 +22,6 @@
       <module>jmx-adapter</module>
       <module>ssh-adapter</module>
       <module>http-adapter</module>
+      <module>nagios-adapter</module>
   </modules>
 </project>
