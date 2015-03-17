@@ -10,7 +10,7 @@ import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
 import com.itworks.snamp.jmx.CompositeTypeBuilder;
-import com.itworks.snamp.jmx.TabularDataBuilder2;
+import com.itworks.snamp.jmx.TabularDataBuilderRowFill;
 import com.itworks.snamp.jmx.TabularTypeBuilder;
 import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
@@ -115,7 +115,7 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
     }
 
     private static TabularData getConfigurationSchema(final ConfigurationEntityDescription<?> description, final Locale loc) throws OpenDataException{
-        final TabularDataBuilder2 builder = new TabularDataBuilder2(CONFIG_ENTITY_SCHEMA);
+        final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONFIG_ENTITY_SCHEMA);
         if(description != null)
             for(final String parameterName: description){
                 final Map<String, Object> parameter = new HashMap<>();

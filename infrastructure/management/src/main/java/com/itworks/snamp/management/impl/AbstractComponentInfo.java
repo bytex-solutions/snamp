@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.jmx.CompositeTypeBuilder;
 import com.itworks.snamp.jmx.OpenMBean;
-import com.itworks.snamp.jmx.TabularDataBuilder2;
+import com.itworks.snamp.jmx.TabularDataBuilderRowFill;
 import com.itworks.snamp.jmx.TabularTypeBuilder;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.AbstractSnampManager;
@@ -90,7 +90,7 @@ abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeDa
      * @throws OpenDataException the open data exception
      */
     protected static CompositeData getSnampComponentInfo(final SnampComponentDescriptor component, final Locale loc) throws OpenDataException {
-        final TabularDataBuilder2 builder = new TabularDataBuilder2(LIMITATION_SCHEMA);
+        final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(LIMITATION_SCHEMA);
         component.invokeSupportService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
             @Override
             public void accept(final LicensingDescriptionService input) {

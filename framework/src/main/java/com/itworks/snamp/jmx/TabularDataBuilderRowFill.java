@@ -18,7 +18,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-public class TabularDataBuilder2 implements Supplier<TabularData> {
+public class TabularDataBuilderRowFill implements Supplier<TabularData> {
     /**
      * Represents row builder.
      * This class cannot be inherited or instantiated directly from your code.
@@ -78,9 +78,9 @@ public class TabularDataBuilder2 implements Supplier<TabularData> {
          * @return The underlying table row builder.
          * @throws OpenDataException
          */
-        public TabularDataBuilder2 flush() throws OpenDataException {
-            TabularDataBuilder2.this.addRow(cells.build());
-            return TabularDataBuilder2.this;
+        public TabularDataBuilderRowFill flush() throws OpenDataException {
+            TabularDataBuilderRowFill.this.addRow(cells.build());
+            return TabularDataBuilderRowFill.this;
         }
     }
 
@@ -91,7 +91,7 @@ public class TabularDataBuilder2 implements Supplier<TabularData> {
      * Initializes a new row builder.
      * @param type The type of the table. Cannot be {@literal null}.
      */
-    public TabularDataBuilder2(final TabularType type){
+    public TabularDataBuilderRowFill(final TabularType type){
         table = new TabularDataSupport(type);
     }
 
