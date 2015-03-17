@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 
@@ -39,19 +40,21 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
     private boolean coldStart;
     private final Collection<SnmpAttributeMapping> attributes;
     private final Collection<SnmpNotificationMapping> notifications;
-    private ExecutorService threadPool;
+    private final ExecutorService threadPool;
     private final SecurityConfiguration security;
 
     SnmpAgent(final OctetString engineID,
             final int port,
             final String hostName,
             final SecurityConfiguration securityOptions,
-            final int socketTimeout) throws IOException {
+            final int socketTimeout,
+            final ExecutorService threadPool) throws IOException {
 		// These files does not exist and are not used but has to be specified
 		// Read snmp4j docs for more info
 		super(new File("conf.agent"), null,
                 new CommandProcessor(
                         new OctetString(engineID)));
+        this.threadPool = Objects.requireNonNull(threadPool);
         coldStart = true;
         this.attributes = new ArrayList<>(10);
         this.notifications = new ArrayList<>(10);
@@ -219,13 +222,11 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
         }
 	}
 
-    boolean start(final Collection<SnmpAttributeMapping> attrs,
-                         final Collection<SnmpNotificationMapping> notifs,
-                         final ExecutorService threadPool) throws IOException {
+    boolean start(final Collection<? extends SnmpAttributeMapping> attrs,
+                         final Collection<? extends SnmpNotificationMapping> notifs) throws IOException {
 		switch (agentState){
             case STATE_STOPPED:
             case STATE_CREATED:
-                this.threadPool = threadPool;
                 attributes.addAll(attrs);
                 notifications.addAll(notifs);
                 init();
@@ -279,8 +280,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
     public void stop(){
         switch (agentState){
             case STATE_RUNNING:
-                if(threadPool != null)
-                    threadPool.shutdownNow();
+                threadPool.shutdownNow();
                 super.stop();
             case STATE_STOPPED:
             case STATE_CREATED:
@@ -290,7 +290,6 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
             default:
                 attributes.clear();
                 notifications.clear();
-                threadPool = null;
         }
     }
 }

@@ -2,6 +2,7 @@ package com.itworks.snamp.adapters.jmx;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
@@ -42,7 +43,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     private static final class ResourceNotificationManager extends NotificationListenerList implements NotificationSupport{
         private static final String ID_SEPARATOR = ".";
         private static final long serialVersionUID = 1867949634037507264L;
-        private final KeyedObjects<String, MBeanNotificationInfo> notifications;
+        private final KeyedObjects<String, NotificationAccessor> notifications;
         private final String resourceName;
 
         private ResourceNotificationManager(final String resourceName){
@@ -50,20 +51,35 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             this.resourceName = resourceName;
         }
 
-        private static KeyedObjects<String, MBeanNotificationInfo> createNotifs(){
-            return new AbstractKeyedObjects<String, MBeanNotificationInfo>(10) {
+        private static KeyedObjects<String, NotificationAccessor> createNotifs(){
+            return new AbstractKeyedObjects<String, NotificationAccessor>(10) {
                 private static final long serialVersionUID = 2575912832570284515L;
 
                 @Override
-                public String getKey(final MBeanNotificationInfo item) {
-                    return item.getNotifTypes()[0];
+                public String getKey(final NotificationAccessor item) {
+                    return item.getType();
+                }
+
+                @Override
+                public void clear() {
+                    for(final NotificationAccessor accessor: values())
+                        accessor.disconnect();
+                    super.clear();
                 }
             };
         }
 
         @Override
         public MBeanNotificationInfo[] getNotificationInfo() {
-            return ArrayUtils.toArray(notifications.values(), MBeanNotificationInfo.class);
+            final List<MBeanNotificationInfo> result = Lists.newArrayListWithExpectedSize(notifications.size());
+            for(final NotificationAccessor connector: notifications.values()){
+                //clone metadata because resource connector may return unserializable metadata
+                result.add(new MBeanNotificationInfo(connector.getMetadata().getNotifTypes(),
+                        connector.getMetadata().getName(),
+                        connector.getMetadata().getDescription(),
+                        connector.getMetadata().getDescriptor()));
+            }
+            return ArrayUtils.toArray(result, MBeanNotificationInfo.class);
         }
 
         private String makeListID(final String userDefinedName){
@@ -72,16 +88,10 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
         private void addNotification(final String userDefinedName,
                                      final NotificationConnector connector) throws JMException {
-            MBeanNotificationInfo metadata = connector.enable(makeListID(userDefinedName));
-            //clone metadata because resource connector may return unserializable metadata
-            metadata = new MBeanNotificationInfo(metadata.getNotifTypes(),
-                    metadata.getName(),
-                    metadata.getDescription(),
-                    metadata.getDescriptor());
-            notifications.put(metadata);
+            notifications.put(connector.enable(makeListID(userDefinedName)));
         }
 
-        private MBeanNotificationInfo removeNotification(final String userDefinedName){
+        private NotificationAccessor removeNotification(final String userDefinedName){
             return notifications.remove(makeListID(userDefinedName));
         }
 
@@ -96,6 +106,12 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             notification.setSource(resourceName);
             if(notifications.containsKey(notification.getType()))
                 super.handleNotification(notification, handback);
+        }
+
+        @Override
+        public void clear() {
+            notifications.clear();
+            super.clear();
         }
     }
 
@@ -114,6 +130,13 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
                 @Override
                 public String getKey(final ResourceNotificationManager item) {
                     return item.resourceName;
+                }
+
+                @Override
+                public void clear() {
+                    for(final ResourceNotificationManager manager: values())
+                        manager.clear();
+                    super.clear();
                 }
             };
         }
@@ -150,7 +173,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public MBeanNotificationInfo removeNotification(final String resourceName,
+        public NotificationAccessor removeNotification(final String resourceName,
                                                         final String userDefinedName,
                                                         final String category) {
             beginWrite();
@@ -159,7 +182,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
                 if(notifications.containsKey(resourceName))
                     manager = notifications.get(resourceName);
                 else return null;
-                final MBeanNotificationInfo metadata = manager.removeNotification(userDefinedName);
+                final NotificationAccessor metadata = manager.removeNotification(userDefinedName);
                 if(manager.hasNoNotifications()){
                     manager.clear();
                     notifications.remove(resourceName);
@@ -487,9 +510,12 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
         @Override
         public void clear() {
-            for(final AbstractAttributeMapping mapping: values())
-                mapping.accessor.disconnect();
-            super.clear();
+            try {
+                for (final AbstractAttributeMapping mapping : values())
+                    mapping.accessor.disconnect();
+            }finally {
+                super.clear();
+            }
         }
 
         @Override
@@ -632,9 +658,10 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             try{
                 for(final ResourceAttributeManager manager: attributes.values())
                     manager.clear();
-                attributes.clear();
+
             }
             finally {
+                attributes.clear();
                 endWrite();
             }
         }

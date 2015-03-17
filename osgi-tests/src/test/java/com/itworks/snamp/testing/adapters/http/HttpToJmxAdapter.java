@@ -113,6 +113,34 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Test
+    public void startStopTest() throws Exception {
+        final TimeSpan TIMEOUT = TimeSpan.fromSeconds(15);
+        //stop adapter and connector
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        stopResourceConnector(getTestBundleContext());
+        //start empty adapter
+        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
+            @Override
+            public Void call() throws BundleException {
+                ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+                return null;
+            }
+        }, TIMEOUT);
+        //start connector, this causes attribute registration and SNMP adapter restarting,
+        //waiting is not required because HTTP adapter supports hot reconfiguring
+        startResourceConnector(getTestBundleContext());
+        //Reconfiguration of HTTP Adapter is asynchronous event so we
+        //should give a chance to catch a connector starting event
+        Thread.sleep(2000);
+        //check whether the attribute is accessible
+        testStringAttribute();
+        //now stops the connector again
+        stopResourceConnector(getTestBundleContext());
+        //stop the adapter
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    }
+
+    @Test
     public void testStringAttribute() throws IOException {
         testAttribute("1.0", new JsonPrimitive("Hello, world!"));
     }
@@ -189,7 +217,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Override
@@ -204,7 +232,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
             @Override
             public Void call() throws BundleException {
-                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
                 return null;
             }
         }, TimeSpan.fromSeconds(15));

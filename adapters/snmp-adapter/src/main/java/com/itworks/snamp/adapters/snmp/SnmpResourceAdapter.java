@@ -40,17 +40,17 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     static final String NAME = SnmpHelpers.ADAPTER_NAME;
 
     private static final class SnmpNotificationMappingImpl implements SnmpNotificationMapping{
-        private final MBeanNotificationInfo metadata;
+        private final NotificationAccessor accessor;
         private final DateTimeFormatter formatter;
         private final String resourceName;
 
         private SnmpNotificationMappingImpl(final String resourceName,
-                                            final MBeanNotificationInfo metadata) throws IllegalArgumentException{
-            if(hasField(metadata.getDescriptor(), TARGET_ADDRESS_PARAM) &&
-                    hasField(metadata.getDescriptor(), TARGET_NAME_PARAM) &&
-                    hasField(metadata.getDescriptor(), OID_PARAM_NAME)) {
-                this.metadata = metadata;
-                this.formatter = SnmpHelpers.createDateTimeFormatter(getDateTimeDisplayFormat(metadata));
+                                            final NotificationAccessor accessor) throws IllegalArgumentException{
+            if(hasField(accessor.getMetadata().getDescriptor(), TARGET_ADDRESS_PARAM) &&
+                    hasField(accessor.getMetadata().getDescriptor(), TARGET_NAME_PARAM) &&
+                    hasField(accessor.getMetadata().getDescriptor(), OID_PARAM_NAME)) {
+                this.accessor = accessor;
+                this.formatter = SnmpHelpers.createDateTimeFormatter(getDateTimeDisplayFormat(accessor.getMetadata()));
             } else throw new IllegalArgumentException("Target address, target name and event OID parameters are not specified for SNMP trap");
             this.resourceName = resourceName;
         }
@@ -67,7 +67,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
 
         @Override
         public OID getTransportDomain() {
-            return kindOfIP(getField(metadata.getDescriptor(), TARGET_ADDRESS_PARAM, String.class));
+            return kindOfIP(getField(accessor.getMetadata().getDescriptor(), TARGET_ADDRESS_PARAM, String.class));
         }
 
         private static OID kindOfIP(final String addr){
@@ -80,35 +80,35 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
 
         @Override
         public OctetString getReceiverAddress() {
-            final TransportIpAddress addr = new UdpAddress(getField(metadata.getDescriptor(), TARGET_ADDRESS_PARAM, String.class));
+            final TransportIpAddress addr = new UdpAddress(getField(accessor.getMetadata().getDescriptor(), TARGET_ADDRESS_PARAM, String.class));
             return new OctetString(addr.getValue());
         }
 
         @Override
         public OctetString getReceiverName() {
-            return new OctetString(getField(metadata.getDescriptor(), TARGET_NAME_PARAM, String.class));
+            return new OctetString(getField(accessor.getMetadata().getDescriptor(), TARGET_NAME_PARAM, String.class));
         }
 
         @Override
         public int getTimeout() {
-            return hasField(metadata.getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM) ?
-                    Integer.valueOf(getField(metadata.getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM, String.class)) : 0;
+            return hasField(accessor.getMetadata().getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM) ?
+                    Integer.valueOf(getField(accessor.getMetadata().getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM, String.class)) : 0;
         }
 
         @Override
         public int getRetryCount() {
-            return hasField(metadata.getDescriptor(), TARGET_RETRY_COUNT_PARAM) ?
-                 Integer.valueOf(getField(metadata.getDescriptor(), TARGET_RETRY_COUNT_PARAM, String.class)) : 3;
+            return hasField(accessor.getMetadata().getDescriptor(), TARGET_RETRY_COUNT_PARAM) ?
+                 Integer.valueOf(getField(accessor.getMetadata().getDescriptor(), TARGET_RETRY_COUNT_PARAM, String.class)) : 3;
         }
 
         @Override
         public OID getID() {
-            return new OID(getOID(metadata));
+            return new OID(getOID(accessor.getMetadata()));
         }
 
         @Override
         public MBeanNotificationInfo getMetadata() {
-            return metadata;
+            return accessor.getMetadata();
         }
     }
 
@@ -118,7 +118,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             NOTIFICATIONS
         }
         private final Collection<SnmpNotificationListener> listeners;
-        private final KeyedObjects<String, SnmpNotificationMapping> notifications;
+        private final KeyedObjects<String, SnmpNotificationMappingImpl> notifications;
         private final String adapterInstanceName;
 
         private SnmpNotificationsModel(final String instanceName){
@@ -138,7 +138,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             }
         }
 
-        private ImmutableList<SnmpNotificationMapping> getNotifications(){
+        private ImmutableList<? extends SnmpNotificationMapping> getNotifications(){
             beginRead(SNMResource.NOTIFICATIONS);
             try{
                 return ImmutableList.copyOf(notifications.values());
@@ -148,13 +148,20 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             }
         }
 
-        private static KeyedObjects<String, SnmpNotificationMapping> createNotifs(){
-            return new AbstractKeyedObjects<String, SnmpNotificationMapping>(10) {
+        private static KeyedObjects<String, SnmpNotificationMappingImpl> createNotifs(){
+            return new AbstractKeyedObjects<String, SnmpNotificationMappingImpl>(10) {
                 private static final long serialVersionUID = 8947442745955339289L;
 
                 @Override
-                public String getKey(final SnmpNotificationMapping item) {
-                    return item.getMetadata().getNotifTypes()[0];
+                public String getKey(final SnmpNotificationMappingImpl item) {
+                    return item.accessor.getType();
+                }
+
+                @Override
+                public void clear() {
+                    for(final SnmpNotificationMappingImpl mapping: values())
+                        mapping.accessor.disconnect();
+                    super.clear();
                 }
             };
         }
@@ -202,14 +209,14 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public MBeanNotificationInfo removeNotification(final String resourceName,
+        public NotificationAccessor removeNotification(final String resourceName,
                                                         final String userDefinedName,
                                                         final String category) {
             final String listID = makeListID(resourceName, userDefinedName);
             beginWrite(SNMResource.NOTIFICATIONS);
             try{
                 return notifications.containsKey(listID) ?
-                        notifications.remove(listID).getMetadata():
+                        notifications.remove(listID).accessor:
                         null;
             }
             finally {
@@ -238,12 +245,15 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
          */
         @Override
         public void clear() {
+            beginWrite(SNMResource.LISTENERS);
             beginWrite(SNMResource.NOTIFICATIONS);
             try{
                 notifications.clear();
+                listeners.clear();
             }
             finally {
                 endWrite(SNMResource.NOTIFICATIONS);
+                endWrite(SNMResource.LISTENERS);
             }
         }
 
@@ -363,6 +373,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
                 }
             }
             finally {
+                attributes.clear();
                 endWrite();
             }
         }
@@ -423,9 +434,14 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
                        final Supplier<ExecutorService> threadPoolFactory) throws Exception {
         populateModel(attributes);
         populateModel(notifications);
-        final SnmpAgent agent = new SnmpAgent(engineID, port, address, security, socketTimeout);
+        final SnmpAgent agent = new SnmpAgent(engineID,
+                port,
+                address,
+                security,
+                socketTimeout,
+                threadPoolFactory.get());
         notifications.subscribe(agent);
-        agent.start(attributes.getAttributes(), notifications.getNotifications(), threadPoolFactory.get());
+        agent.start(attributes.getAttributes(), notifications.getNotifications());
         this.agent = agent;
     }
 

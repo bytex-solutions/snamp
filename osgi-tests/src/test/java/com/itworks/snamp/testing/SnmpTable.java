@@ -8,6 +8,7 @@ import org.snmp4j.smi.Variable;
  * @since 1.0
  */
 public interface SnmpTable {
+
     /**
      * Gets number of rows in this table.
      * @return The number of rows in this table.

@@ -834,6 +834,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return factory instanceof ManagedResourceActivator && equals((ManagedResourceActivator<?>) factory);
     }
 
+    @Override
+    public final int hashCode() {
+        return connectorType.hashCode();
+    }
+
     static String getConnectorType(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
         return connectorRef != null ?
                 Objects.toString(connectorRef.getProperty(CONNECTOR_TYPE_IDENTITY_PROPERTY), ""):

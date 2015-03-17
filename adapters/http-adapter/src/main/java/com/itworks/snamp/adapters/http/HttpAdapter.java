@@ -129,9 +129,12 @@ final class HttpAdapter extends AbstractResourceAdapter {
          */
         @Override
         public void clear() {
-            for(final HttpAttributeMapping attr: values())
-                attr.accessor.disconnect();
-            super.clear();
+            try {
+                for (final HttpAttributeMapping attr : values())
+                    attr.accessor.disconnect();
+            }finally {
+                super.clear();
+            }
         }
 
         private String getAtttribute(final String userDefinedName) throws WebApplicationException{
@@ -292,9 +295,9 @@ final class HttpAdapter extends AbstractResourceAdapter {
             try {
                 for (final HttpAttributeManager manager : managers.values())
                     manager.clear();
-                managers.clear();
             }
             finally {
+                managers.clear();
                 endWrite();
             }
         }
@@ -378,7 +381,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     private static final class NotificationBroadcaster extends JerseyBroadcaster implements InternalBroadcaster {
-        private final KeyedObjects<String, MBeanNotificationInfo> notifications;
+        private final KeyedObjects<String, NotificationAccessor> notifications;
         private final String resourceName;
 
         private NotificationBroadcaster(final String resourceName){
@@ -402,13 +405,20 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 }
         }
 
-        private static KeyedObjects<String, MBeanNotificationInfo> createNotifs(){
-            return new AbstractKeyedObjects<String, MBeanNotificationInfo>(10) {
+        private static KeyedObjects<String, NotificationAccessor> createNotifs(){
+            return new AbstractKeyedObjects<String, NotificationAccessor>(10) {
                 private static final long serialVersionUID = 4500795792209189652L;
 
                 @Override
-                public String getKey(final MBeanNotificationInfo item) {
-                    return item.getNotifTypes()[0];
+                public String getKey(final NotificationAccessor item) {
+                    return item.getType();
+                }
+
+                @Override
+                public void clear() {
+                    for(final NotificationAccessor accessor: values())
+                        accessor.disconnect();
+                    super.clear();
                 }
             };
         }
@@ -438,13 +448,17 @@ final class HttpAdapter extends AbstractResourceAdapter {
             notifications.put(connector.enable(listID));
         }
 
-        private MBeanNotificationInfo removeNotification(final String userDefinedName) {
+        private NotificationAccessor removeNotification(final String userDefinedName) {
             final String listID = makeListID(userDefinedName);
             return notifications.remove(listID);
         }
 
         private boolean isEmpty(){
             return notifications.isEmpty();
+        }
+
+        private void clear() {
+            notifications.clear();
         }
     }
 
@@ -476,6 +490,13 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 @Override
                 public String getKey(final NotificationBroadcaster item) {
                     return item.resourceName;
+                }
+
+                @Override
+                public void clear() {
+                    for(final NotificationBroadcaster broadcaster: values())
+                        broadcaster.clear();
+                    super.clear();
                 }
             };
         }
@@ -514,7 +535,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public MBeanNotificationInfo removeNotification(final String resourceName,
+        public NotificationAccessor removeNotification(final String resourceName,
                                                         final String userDefinedName,
                                                         final String category) {
             beginWrite();
@@ -523,7 +544,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 if(notifications.containsKey(resourceName))
                     broadcaster = notifications.get(resourceName);
                 else return null;
-                final MBeanNotificationInfo metadata = broadcaster.removeNotification(userDefinedName);
+                final NotificationAccessor metadata = broadcaster.removeNotification(userDefinedName);
                 if(broadcaster.isEmpty())
                     notifications.remove(resourceName);
                 return metadata;
@@ -662,7 +683,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected void resourceAdded(final String resourceName) {
+    protected synchronized void resourceAdded(final String resourceName) {
         try {
             enlargeModel(resourceName, servletFactory.attributes);
             enlargeModel(resourceName, servletFactory.notifications);
@@ -672,7 +693,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected void resourceRemoved(final String resourceName) {
+    protected synchronized void resourceRemoved(final String resourceName) {
         clearModel(resourceName, servletFactory.attributes);
         clearModel(resourceName, servletFactory.notifications);
     }

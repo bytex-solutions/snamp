@@ -54,19 +54,19 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class SshNotificationViewImpl extends NotificationBox implements SshNotificationView{
         private static final long serialVersionUID = -1887404933016444754L;
-        private final MBeanNotificationInfo metadata;
+        private final NotificationAccessor accessor;
         private final Gson formatter;
         private final String resourceName;
 
-        private SshNotificationViewImpl(final MBeanNotificationInfo metadata,
+        private SshNotificationViewImpl(final NotificationAccessor accessor,
                                         final String resourceName){
             super(20);
-            this.metadata = metadata;
+            this.accessor = accessor;
             this.resourceName = resourceName;
             GsonBuilder builder = new GsonBuilder()
                     .registerTypeHierarchyAdapter(Notification.class, new NotificationSerializer())
                     .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter());
-            final OpenType<?> userDataType = NotificationDescriptor.getUserDataType(metadata);
+            final OpenType<?> userDataType = NotificationDescriptor.getUserDataType(accessor.getMetadata());
             if(userDataType instanceof CompositeType)
                 builder = builder.registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataSerializer());
             else if(userDataType instanceof TabularType)
@@ -80,7 +80,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         public String getEventName() {
-            return metadata.getNotifTypes()[0];
+            return accessor.getType();
         }
 
         @Override
@@ -104,6 +104,13 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                 @Override
                 public String getKey(final SshNotificationViewImpl item) {
                     return item.getEventName();
+                }
+
+                @Override
+                public void clear() {
+                    for(final SshNotificationViewImpl view: values())
+                        view.accessor.disconnect();
+                    super.clear();
                 }
             };
         }
@@ -131,14 +138,14 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
 
         @Override
-        public MBeanNotificationInfo removeNotification(final String resourceName,
+        public NotificationAccessor removeNotification(final String resourceName,
                                                         final String userDefinedName,
                                                         final String category) {
             final String listID = makeListID(resourceName, userDefinedName);
             beginWrite();
             try{
                 return notifications.containsKey(listID) ?
-                        notifications.remove(listID).metadata:
+                        notifications.remove(listID).accessor :
                         null;
             }
             finally {
@@ -639,9 +646,11 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         public void clear() {
             beginWrite();
             try{
-                attributes.clear();
+                for(final AbstractSshAttributeView attribute: attributes.values())
+                    attribute.accessor.disconnect();
             }
             finally {
+                attributes.clear();
                 endWrite();
             }
         }
@@ -915,7 +924,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     }
 
     @Override
-    protected void resourceAdded(final String resourceName) {
+    protected synchronized void resourceAdded(final String resourceName) {
         try {
             enlargeModel(resourceName, attributes);
             enlargeModel(resourceName, notifications);
@@ -930,7 +939,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     }
 
     @Override
-    protected void resourceRemoved(final String resourceName) {
+    protected synchronized void resourceRemoved(final String resourceName) {
         clearModel(resourceName, attributes);
         clearModel(resourceName, notifications);
     }

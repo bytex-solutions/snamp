@@ -56,7 +56,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
                 return null;
             }
         }
-        private static final class TestNotificationsModel extends ArrayList<MBeanNotificationInfo> implements NotificationsModel{
+        private static final class TestNotificationsModel extends ArrayList<NotificationAccessor> implements NotificationsModel{
             private static final long serialVersionUID = 943992701825986769L;
 
             @Override
@@ -72,13 +72,13 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             }
 
             @Override
-            public MBeanNotificationInfo removeNotification(final String resourceName,
+            public NotificationAccessor removeNotification(final String resourceName,
                                                             final String userDefinedName,
                                                             final String category) {
-                final Iterator<MBeanNotificationInfo> notifs = iterator();
+                final Iterator<NotificationAccessor> notifs = iterator();
                 while (notifs.hasNext()){
-                    final MBeanNotificationInfo notif = notifs.next();
-                    if(Objects.equals(resourceName + '.' + category, notif.getNotifTypes()[0])) {
+                    final NotificationAccessor notif = notifs.next();
+                    if(Objects.equals(resourceName + '.' + category, notif.getType())) {
                         notifs.remove();
                         return notif;
                     }
@@ -109,7 +109,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             return attributes;
         }
 
-        private List<MBeanNotificationInfo> getNotifications(){
+        private List<NotificationAccessor> getNotifications(){
             return notifications;
         }
 

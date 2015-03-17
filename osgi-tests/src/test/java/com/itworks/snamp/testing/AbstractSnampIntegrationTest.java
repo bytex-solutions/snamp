@@ -203,19 +203,4 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
             ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
         }
     }
-
-    protected static <V, E extends Exception> V syncWithAdapterStoppedEvent(final String adapterName,
-                                                                            final ExceptionalCallable<V, E> handler,
-                                                                            final TimeSpan timeout) throws E, TimeoutException, InterruptedException{
-        final AdapterStoppedSynchronizationEvent synchronizer = new AdapterStoppedSynchronizationEvent();
-        ResourceAdapterClient.addEventListener(adapterName, synchronizer);
-        try{
-            final V result = handler.call();
-            synchronizer.getAwaitor().await(timeout);
-            return result;
-        }
-        finally {
-            ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
-        }
-    }
 }

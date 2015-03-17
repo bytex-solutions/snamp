@@ -20,6 +20,7 @@ import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
+import com.itworks.snamp.connectors.notifications.TypeBasedNotificationFilter;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.RichLogicalOperation;
@@ -107,17 +108,104 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
     }
 
+    private static interface ElementAccessor<M extends MBeanFeatureInfo>{
+        boolean disconnect();
+        M getMetadata();
+    }
+
+    private static abstract class AbstractElementAccessor<M extends MBeanFeatureInfo> implements ElementAccessor<M>{
+        public final String getName(){
+            return getMetadata().getName();
+        }
+    }
+
     /**
-     * Represents an accessor for individual management attribute.
+     * Exposes access to the individual notification.
+     * This class cannot be inherited or instantiated directly in your code.
+     * @author Roman Sakno
+     * @since 1.0
+     */
+    public static final class NotificationAccessor extends AbstractElementAccessor<MBeanNotificationInfo>{
+        private final MBeanNotificationInfo metadata;
+        private final NotificationSupport notificationSupport;
+
+        private NotificationAccessor(final String listID,
+                                     final EventConfiguration eventConfig,
+                                     final NotificationSupport notificationSupport) throws JMException{
+            this.metadata = (this.notificationSupport = notificationSupport).enableNotifications(listID,
+                    eventConfig.getCategory(),
+                    new ConfigParameters(eventConfig));
+            if(metadata == null)
+                throw new JMException(String.format("Notification %s doesn't exist", eventConfig.getCategory()));
+        }
+
+        /**
+         * Disconnects element from the resource connector.
+         */
+        @Override
+        public boolean disconnect() {
+            return notificationSupport.disableNotifications(getName());
+        }
+
+        /**
+         * Gets notification metadata associated with this accessor.
+         * @return The notification metadata.
+         */
+        @Override
+        public MBeanNotificationInfo getMetadata() {
+            return metadata;
+        }
+
+        /**
+         * Gets notification type.
+         * @return The notification type.
+         */
+        public String getType(){
+            return getMetadata().getNotifTypes()[0];
+        }
+
+        /**
+         * Creates a new notification filter for this type of the metadata.
+         * @return A new notification filter.
+         * @see javax.management.MBeanNotificationInfo#getNotifTypes()
+         */
+        public NotificationFilter createFilter(){
+            return new TypeBasedNotificationFilter(getMetadata());
+        }
+
+        /**
+         * Adds a new notification listener for this notification.
+         * @param listener The listener to attach. Cannot be {@literal null}.
+         * @param handback The handback to be passed into the listener.
+         */
+        public void addNotificationListener(final NotificationListener listener,
+                                            final Object handback){
+            notificationSupport.addNotificationListener(listener,
+                    createFilter(),
+                    handback);
+        }
+
+        /**
+         * Removes notification listener from the underlying resource connector.
+         * @param listener The listener to detach.
+         * @throws ListenerNotFoundException The specified listener was not previously attached
+         *      to the underlying resource connector.
+         */
+        public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
+            notificationSupport.removeNotificationListener(listener);
+        }
+    }
+
+    /**
+     * Exposes access to individual management attribute.
      * This class cannot be inherited.
      * <p>
      *     This accessor can be used for retrieving and changing value of the attribute.
-     * </p>
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    public static final class AttributeAccessor implements AttributeValueReader, Consumer<Object, JMException> {
+    public static final class AttributeAccessor extends AbstractElementAccessor<MBeanAttributeInfo> implements AttributeValueReader, Consumer<Object, JMException> {
         private final AttributeSupport attributeSupport;
         private final MBeanAttributeInfo metadata;
 
@@ -137,8 +225,9 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * Disconnects this attribute.
          * @return {@literal true}, if this attribute is disconnected successfully; otherwise, {@literal false}.
          */
+        @Override
         public boolean disconnect(){
-            return attributeSupport.disconnectAttribute(metadata.getName());
+            return attributeSupport.disconnectAttribute(getName());
         }
 
         /**
@@ -347,14 +436,6 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
 
         /**
-         * Gets the name of the attribute.
-         * @return The name of the attribute.
-         */
-        public String getName(){
-            return getMetadata().getName();
-        }
-
-        /**
          * Gets the attribute metadata associated with this attribute.
          * @return The attribute metadata.
          */
@@ -423,8 +504,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * @return The metadata of the enabled notification.
          * @throws JMException Could not enable notification.
          */
-        public MBeanNotificationInfo enable(final String listID) throws JMException{
-            return notifications.enableNotifications(listID, eventConfig.getCategory(), new ConfigParameters(eventConfig));
+        public NotificationAccessor enable(final String listID) throws JMException{
+            return new NotificationAccessor(listID, eventConfig, notifications);
         }
     }
 
@@ -454,7 +535,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
          * @param category The notification category.
          * @return The enabled notification removed from this model.
          */
-        MBeanNotificationInfo removeNotification(final String resourceName,
+        NotificationAccessor removeNotification(final String resourceName,
                                                  final String userDefinedName,
                                                  final String category);
 
@@ -930,7 +1011,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
     }
 
-    private boolean tryStop() throws Exception{
+    private synchronized boolean tryStop() throws Exception{
         final InternalState currentState = mutableState;
         switch (currentState.state){
             case STARTED:
@@ -1053,12 +1134,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         if(disconnectedEvents != null && resource.isNotificationsSupported()){
             final NotificationSupport notifs = resource.getWeakNotificationSupport();
             for(final Map.Entry<String, EventConfiguration> entry: disconnectedEvents.entrySet()){
-                final MBeanNotificationInfo metadata = model.removeNotification(resource.resourceName,
+                final NotificationAccessor metadata = model.removeNotification(resource.resourceName,
                         entry.getKey(),
                         entry.getValue().getCategory());
-                if(metadata != null)
-                    for(final String notificationID: metadata.getNotifTypes())
-                        notifs.disableNotifications(notificationID);
+                if(metadata != null) metadata.disconnect();
             }
             if(model.isEmpty())
                 try {
@@ -1190,6 +1269,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 final ServiceReference<ManagedResourceConnector<?>> connectorRef = (ServiceReference<ManagedResourceConnector<?>>) event.getServiceReference();
                 final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(connectorRef);
                 switch (event.getType()) {
+                    case ServiceEvent.MODIFIED_ENDMATCH:
                     case ServiceEvent.UNREGISTERING:
                         resourceRemovedImpl(resourceName);
                         return;

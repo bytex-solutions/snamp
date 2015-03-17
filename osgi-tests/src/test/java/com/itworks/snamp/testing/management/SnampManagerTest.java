@@ -2,6 +2,7 @@ package com.itworks.snamp.testing.management;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
@@ -356,7 +357,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
 
@@ -561,7 +562,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             Object installedConnectors = connection.getAttribute(commonsObj, "InstalledConnectors");
             assertNotNull(installedConnectors);
             assertTrue(installedConnectors instanceof String[]);
-            assertTrue(new ArrayList<>(Arrays.asList((String[]) installedConnectors)).contains("jmx"));
+            assertTrue(ArrayUtils.contains((String[])installedConnectors, "jmx"));
 
             // check if connector is alive
             connectorJmxRunned();
