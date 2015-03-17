@@ -7,6 +7,7 @@ import com.itworks.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.itworks.snamp.jmx.TabularTypeBuilder;
 import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.jmx.OpenMBean;
@@ -15,45 +16,36 @@ import javax.management.openmbean.*;
 import java.util.*;
 
 /**
- * Created by temni on 2/8/2015.
+ * The type Abstract snamp component param value operation.
+ * @author Evgeniy Kirichenko
  */
-abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenOperation<String [], ArrayType<String []>> {
+abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenOperation<String [], ArrayType<String []>>
+    implements CommonOpenTypesSupport{
 
-    protected static final OpenMBeanParameterInfo LOCALE_PARAM = new OpenMBeanParameterInfoSupport(
-            "locale",
-            "The expected localization of the configuration schema",
-            SimpleType.STRING);
-
+    /**
+     * The constant PARAM_NAME_PARAM.
+     */
     protected static final OpenMBeanParameterInfo PARAM_NAME_PARAM = new OpenMBeanParameterInfoSupport(
             "parameterName",
             "The name of the parameter which values should be suggested",
             SimpleType.STRING
     );
 
-    protected static final TabularType CONNECTION_PARAMS_SCHEMA;
-
-    static {
-        try {
-            CONNECTION_PARAMS_SCHEMA = new TabularType("com.itworks.management.ConnectionParams",
-                    "Configuration entity schema",
-                    new CompositeType("com.itworks.management.ConnectionParam",
-                            "Additional parameters for filtering suggested values",
-                            new String[]{"key", "value"},
-                            new String[]{"Parameter key", "Parameter value"},
-                            new OpenType<?>[]{SimpleType.STRING, SimpleType.STRING}),
-                    new String[]{"key"}
-            );
-        } catch (OpenDataException e) {
-            throw new ExceptionInInitializerError(e);
-        }
-    }
-
+    /**
+     * The constant CONNECTION_STRING_PARAM.
+     */
     protected static final OpenMBeanParameterInfo CONNECTION_STRING_PARAM = new OpenMBeanParameterInfoSupport(
             "connectionStringData",
             "Additional parameters for filtering suggested values",
-            CONNECTION_PARAMS_SCHEMA
+            SIMPLE_MAP_TYPE
     );
 
+    /**
+     * Transform tabular data to map.
+     *
+     * @param data the data
+     * @return the map
+     */
     protected static Map<String, String> transformTabularDataToMap(final TabularData data) {
         if (data == null || data.isEmpty()) {
             return Collections.emptyMap();
@@ -70,8 +62,19 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
     }
 
 
+    /**
+     * The Snamp manager.
+     */
     protected final AbstractSnampManager snampManager;
 
+    /**
+     * Instantiates a new Abstract snamp component param value operation.
+     *
+     * @param manager the manager
+     * @param operationName the operation name
+     * @param parameters the parameters
+     * @throws OpenDataException the open data exception
+     */
     protected AbstractSnampComponentParamValueOperation(final AbstractSnampManager manager,
                                                         final String operationName,
                                                         final OpenMBeanParameterInfo... parameters) throws OpenDataException {
@@ -79,6 +82,17 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
         this.snampManager = Objects.requireNonNull(manager);
     }
 
+    /**
+     * Get snamp component suggested value.
+     *
+     * @param snampComponentDescriptor the snamp component descriptor
+     * @param parameterName the parameter name
+     * @param locale the locale
+     * @param configurationEntity the configuration entity
+     * @param tabularData the tabular data
+     * @return the string [ ]
+     * @throws Exception the exception
+     */
     protected final String[] getSnampComponentSuggestedValue(final SnampComponentDescriptor snampComponentDescriptor,
                                                              final String parameterName, final String locale,
                                                              final Class<? extends AgentConfiguration.ConfigurationEntity> configurationEntity,

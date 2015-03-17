@@ -7,8 +7,10 @@ import com.itworks.snamp.management.SnampComponentDescriptor;
 import javax.management.openmbean.*;
 import java.util.Map;
 
+
 /**
- * Created by temni on 2/8/2015.
+ * The type Suggest adapter parameter values operation.
+ * @author Evgeniy Kirichenko
  */
 final class SuggestAdapterParameterValuesOperation extends AbstractSnampComponentParamValueOperation {
 

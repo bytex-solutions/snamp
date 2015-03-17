@@ -7,8 +7,10 @@ import com.itworks.snamp.management.SnampComponentDescriptor;
 import javax.management.openmbean.*;
 import java.util.Map;
 
+
 /**
- * Created by temni on 2/8/2015.
+ * The type Suggest connector parameter values operation.
+ * @author Evgeniy Kirichenko
  */
 final class SuggestConnectorParameterValuesOperation extends AbstractSnampComponentParamValueOperation {
     private static final String NAME = "suggestConnectorParameterValues";
