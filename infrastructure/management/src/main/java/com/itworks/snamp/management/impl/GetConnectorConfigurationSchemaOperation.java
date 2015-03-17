@@ -7,22 +7,19 @@ import javax.management.openmbean.*;
 import java.util.Map;
 
 /**
-* @author Roman Sakno
-* @version 1.0
-* @since 1.0
-*/
+ * The type Get connector configuration schema operation.
+ * @author Roman Sakno
+ * @version 1.0
+ * @since 1.0
+ */
 final class GetConnectorConfigurationSchemaOperation extends ConfigurationSchemaOperation {
     private static final String NAME = "getConnectorConfigurationSchema";
-    private static final OpenMBeanParameterInfo CONNECTOR_NAME_PARAM = new OpenMBeanParameterInfoSupport(
-        "connectorName",
-        "The name of the managed resource connector",
-        SimpleType.STRING
-    );
-    private static final OpenMBeanParameterInfo LOCALE_PARAM = new OpenMBeanParameterInfoSupport(
-            "locale",
-            "The expected localization of the configuration schema",
-            SimpleType.STRING);
 
+    /**
+     * Instantiates a new Get connector configuration schema operation.
+     *
+     * @param manager the manager
+     */
     GetConnectorConfigurationSchemaOperation(final AbstractSnampManager manager){
         super(manager, NAME, CONNECTOR_NAME_PARAM, LOCALE_PARAM);
     }

@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
 /**
+ * The type Snamp manager impl.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -17,6 +18,11 @@ final class SnampManagerImpl extends AbstractSnampManager {
     private static final class ResourceConnectorDescriptorImpl extends ResourceConnectorDescriptor{
         private static final long serialVersionUID = -9051897273537657012L;
 
+        /**
+         * Instantiates a new Resource connector descriptor impl.
+         *
+         * @param connectorName the connector name
+         */
         protected ResourceConnectorDescriptorImpl(final String connectorName) {
             super(connectorName);
         }
@@ -39,6 +45,11 @@ final class SnampManagerImpl extends AbstractSnampManager {
     private final static class ResourceAdapterDescriptorImpl extends ResourceAdapterDescriptor{
         private static final long serialVersionUID = 6911837979438477985L;
 
+        /**
+         * Instantiates a new Resource adapter descriptor impl.
+         *
+         * @param systemName the system name
+         */
         public ResourceAdapterDescriptorImpl(final String systemName) {
             super(systemName);
         }

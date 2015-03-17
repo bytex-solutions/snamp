@@ -14,23 +14,22 @@ import java.util.Map;
  * Description here
  *
  * @author Evgeniy Kirichenko
- * @date 09.02.2015
  */
 final class GetConnectorInfoOperation extends AbstractComponentInfo{
     private static final String NAME = "getConnectorInfo";
 
-    private static final OpenMBeanParameterInfo CONNECTOR_NAME = new OpenMBeanParameterInfoSupport(
-            "connectorName",
-            "Snamp connector name",
-            SimpleType.STRING);
-
+    /**
+     * Instantiates a new Get connector info operation.
+     *
+     * @param snampManager the snamp manager
+     */
     GetConnectorInfoOperation(final AbstractSnampManager snampManager) {
-        super(snampManager, NAME, CONNECTOR_NAME, LOCALE_PARAM);
+        super(snampManager, NAME, CONNECTOR_NAME_PARAM, LOCALE_PARAM);
     }
 
     @Override
     public CompositeData invoke(final Map<String, ?> arguments) throws Exception {
-        final String connectorName = getArgument(CONNECTOR_NAME.getName(), String.class, arguments);
+        final String connectorName = getArgument(CONNECTOR_NAME_PARAM.getName(), String.class, arguments);
         final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
         final SnampComponentDescriptor connector = snampManager.getResourceConnector(connectorName);
         if (connector == null) throw new IllegalArgumentException(String.format("Connector %s doesn't exist", connectorName));

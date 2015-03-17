@@ -22,6 +22,11 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 final class JaasConfigAttribute extends OpenMBean.OpenAttribute<byte[], ArrayType<byte[]>> {
     private static final String NAME = "jaasConfig";
 
+    /**
+     * Instantiates a new Jaas config attribute.
+     *
+     * @throws OpenDataException the open data exception
+     */
     JaasConfigAttribute() throws OpenDataException {
         super(NAME, ArrayType.getPrimitiveArrayType(byte[].class));
     }

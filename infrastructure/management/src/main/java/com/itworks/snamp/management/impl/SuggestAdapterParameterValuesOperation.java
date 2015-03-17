@@ -16,12 +16,12 @@ final class SuggestAdapterParameterValuesOperation extends AbstractSnampComponen
 
     private static final String NAME = "suggestAdapterParameterValuesOperation";
 
-    private static final OpenMBeanParameterInfo ADAPTER_NAME_PARAM = new OpenMBeanParameterInfoSupport(
-            "adapterName",
-            "The name of the managed resource adapter",
-            SimpleType.STRING
-    );
-
+    /**
+     * Instantiates a new Suggest adapter parameter values operation.
+     *
+     * @param snampManager the snamp manager
+     * @throws OpenDataException the open data exception
+     */
     SuggestAdapterParameterValuesOperation(final AbstractSnampManager snampManager) throws OpenDataException {
         super(snampManager, NAME, ADAPTER_NAME_PARAM, PARAM_NAME_PARAM, CONNECTION_STRING_PARAM, LOCALE_PARAM);
     }

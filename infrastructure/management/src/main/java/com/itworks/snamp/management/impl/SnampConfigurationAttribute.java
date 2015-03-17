@@ -25,7 +25,6 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  * Description here
  *
  * @author Evgeniy Kirichenko
- * @date 10.02.2015
  */
 final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<CompositeData, CompositeType> {
 

@@ -10,8 +10,10 @@ import java.util.Map;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
+
 /**
- * Created by temni on 2/8/2015.
+ * The type Start connector operation.
+ * @author Evgeniy Kirichenko
  */
 final class StartConnectorOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>>  {
 
@@ -19,6 +21,11 @@ final class StartConnectorOperation extends OpenMBean.OpenOperation<Void, Simple
 
     private static final String CONNECTOR_NAME_PARAM = "Name";
 
+    /**
+     * Instantiates a new Start connector operation.
+     *
+     * @throws OpenDataException the open data exception
+     */
     StartConnectorOperation() throws OpenDataException {
         super(NAME, SimpleType.VOID, new OpenMBeanParameterInfoSupport(CONNECTOR_NAME_PARAM, "Connector name", SimpleType.STRING));
     }

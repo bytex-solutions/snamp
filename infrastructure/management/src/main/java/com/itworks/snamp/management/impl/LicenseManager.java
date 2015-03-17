@@ -15,6 +15,7 @@ import static com.itworks.snamp.licensing.LicenseReader.LICENSE_CONTENT_ENCODING
 import static com.itworks.snamp.licensing.LicenseReader.LICENSE_PID;
 
 /**
+ * The type License manager.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -24,6 +25,13 @@ final class LicenseManager {
 
     }
 
+    /**
+     * Gets license content.
+     *
+     * @param context the context
+     * @return the license content
+     * @throws IOException the iO exception
+     */
     static String getLicenseContent(final BundleContext context) throws IOException {
         final ServiceReferenceHolder<ConfigurationAdmin> adminRef = new ServiceReferenceHolder<>(context,
                 ConfigurationAdmin.class);
@@ -41,6 +49,13 @@ final class LicenseManager {
         }
     }
 
+    /**
+     * Sets license content.
+     *
+     * @param context the context
+     * @param licenseContent the license content
+     * @throws IOException the iO exception
+     */
     static void setLicenseContent(final BundleContext context, final String licenseContent) throws IOException{
         if(licenseContent == null || licenseContent.isEmpty()) return;
         final ServiceReferenceHolder<ConfigurationAdmin> adminRef = new ServiceReferenceHolder<>(context,

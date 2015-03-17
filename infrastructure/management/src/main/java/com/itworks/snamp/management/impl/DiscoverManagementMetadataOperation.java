@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit;
  * Description here
  *
  * @author Evgeniy Kirichenko
- * @date 09.02.2015
  */
 final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<CompositeData, CompositeType> {
 
@@ -153,6 +152,11 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
     );
 
 
+    /**
+     * Instantiates a new Discover management metadata operation.
+     *
+     * @param snampManager the snamp manager
+     */
     DiscoverManagementMetadataOperation(final AbstractSnampManager snampManager) {
         super(NAME, CONNECTOR_METADATA, CONNECTOR_NAME, CONNECTION_STRING, CONNECTION_STRING_PARAM, LOCALE_PARAM);
         this.snampManager = snampManager;

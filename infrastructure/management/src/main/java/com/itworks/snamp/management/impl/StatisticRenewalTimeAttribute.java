@@ -7,14 +7,20 @@ import javax.management.openmbean.SimpleType;
 import java.util.concurrent.TimeUnit;
 
 /**
-* @author Roman Sakno
-* @version 1.0
-* @since 1.0
-*/
+ * The type Statistic renewal time attribute.
+ * @author Roman Sakno
+ * @version 1.0
+ * @since 1.0
+ */
 final class StatisticRenewalTimeAttribute extends OpenMBean.OpenAttribute<Long, SimpleType<Long>> {
     private final StatisticCounters counter;
     private static final String NAME = "StatisticRenewalTime";
 
+    /**
+     * Instantiates a new Statistic renewal time attribute.
+     *
+     * @param counter the counter
+     */
     StatisticRenewalTimeAttribute(final StatisticCounters counter){
         super(NAME, SimpleType.LONG);
         this.counter = counter;

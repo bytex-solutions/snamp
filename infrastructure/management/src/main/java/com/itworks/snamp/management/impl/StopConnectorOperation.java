@@ -10,8 +10,10 @@ import java.util.Map;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
+
 /**
- * Created by temni on 2/8/2015.
+ * The type Stop connector operation.
+ * @author Evgeniy Kirichenko
  */
 final class StopConnectorOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>>  {
 
@@ -19,6 +21,11 @@ final class StopConnectorOperation extends OpenMBean.OpenOperation<Void, SimpleT
 
     private static final String CONNECTOR_NAME_PARAM = "Name";
 
+    /**
+     * Instantiates a new Stop connector operation.
+     *
+     * @throws OpenDataException the open data exception
+     */
     StopConnectorOperation() throws OpenDataException {
         super(NAME, SimpleType.VOID, new OpenMBeanParameterInfoSupport(CONNECTOR_NAME_PARAM, "Connector name", SimpleType.STRING));
     }

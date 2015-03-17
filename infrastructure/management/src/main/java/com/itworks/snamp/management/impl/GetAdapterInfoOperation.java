@@ -14,23 +14,17 @@ import java.util.Map;
  * Description here
  *
  * @author Evgeniy Kirichenko
- * @date 09.02.2015
  */
 final class GetAdapterInfoOperation extends AbstractComponentInfo {
     private static final String NAME = "getAdapterInfo";
 
-    private static final OpenMBeanParameterInfo ADAPTER_NAME = new OpenMBeanParameterInfoSupport(
-            "adapterName",
-            "Snamp adapter name",
-            SimpleType.STRING);
-
     GetAdapterInfoOperation(final AbstractSnampManager snampManager) {
-        super(snampManager, NAME, ADAPTER_NAME, LOCALE_PARAM);
+        super(snampManager, NAME, ADAPTER_NAME_PARAM, LOCALE_PARAM);
     }
 
     @Override
     public CompositeData invoke(final Map<String, ?> arguments) throws Exception {
-        final String adapterName = getArgument(ADAPTER_NAME.getName(), String.class, arguments);
+        final String adapterName = getArgument(ADAPTER_NAME_PARAM.getName(), String.class, arguments);
         final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
         final SnampComponentDescriptor connector = snampManager.getResourceAdapter(adapterName);
         if (connector == null) throw new IllegalArgumentException(String.format("Adapter %s doesn't exist", adapterName));

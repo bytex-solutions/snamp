@@ -8,13 +8,17 @@ import java.io.IOException;
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
 /**
-* @author Roman Sakno
-* @version 1.0
-* @since 1.0
-*/
+ * The type License attribute.
+ * @author Roman Sakno
+ * @version 1.0
+ * @since 1.0
+ */
 final class LicenseAttribute extends OpenMBean.OpenAttribute<String, SimpleType<String>> {
     private static final String NAME = "license";
 
+    /**
+     * Instantiates a new License attribute.
+     */
     LicenseAttribute(){
         super(NAME, SimpleType.STRING);
     }

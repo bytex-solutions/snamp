@@ -7,7 +7,6 @@ import com.itworks.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.itworks.snamp.jmx.TabularTypeBuilder;
 import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.jmx.OpenMBean;

@@ -6,21 +6,19 @@ import com.itworks.snamp.management.SnampComponentDescriptor;
 import javax.management.openmbean.*;
 import java.util.Map;
 
+
 /**
- * Created by temni on 2/8/2015.
+ * The type Get adapter configuration schema operation.
+ * @author Evgeniy Kirichenko
  */
 final class GetAdapterConfigurationSchemaOperation extends ConfigurationSchemaOperation {
     private static final String NAME = "getAdapterConfigurationSchema";
-    private static final OpenMBeanParameterInfo ADAPTER_NAME_PARAM = new OpenMBeanParameterInfoSupport(
-            "adapterName",
-            "The name of the managed resource adapter",
-            SimpleType.STRING
-    );
-    private static final OpenMBeanParameterInfo LOCALE_PARAM = new OpenMBeanParameterInfoSupport(
-            "locale",
-            "The expected localization of the configuration schema",
-            SimpleType.STRING);
 
+    /**
+     * Instantiates a new Get adapter configuration schema operation.
+     *
+     * @param manager the manager
+     */
     GetAdapterConfigurationSchemaOperation(final AbstractSnampManager manager) {
         super(manager, NAME, ADAPTER_NAME_PARAM, LOCALE_PARAM);
     }

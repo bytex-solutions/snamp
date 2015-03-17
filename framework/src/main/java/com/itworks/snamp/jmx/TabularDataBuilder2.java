@@ -48,6 +48,11 @@ public class TabularDataBuilder2 implements Supplier<TabularData> {
             return this;
         }
 
+        public RowBuilder cell(final String name, final String[] value){
+            cells.put(name, value);
+            return this;
+        }
+
         public RowBuilder cell(final String name, final char value){
             cells.put(name, value);
             return this;

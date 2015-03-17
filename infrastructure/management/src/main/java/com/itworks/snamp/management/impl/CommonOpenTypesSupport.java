@@ -25,6 +25,23 @@ public interface CommonOpenTypesSupport {
             SimpleType.STRING);
 
     /**
+     * The CONNECTOR name param.
+     */
+    static final OpenMBeanParameterInfo CONNECTOR_NAME_PARAM = new OpenMBeanParameterInfoSupport(
+            "connectorName",
+            "Snamp connector name",
+            SimpleType.STRING);
+
+    /**
+     * The ADAPTER name param.
+     */
+    static final OpenMBeanParameterInfo ADAPTER_NAME_PARAM = new OpenMBeanParameterInfoSupport(
+            "adapterName",
+            "The name of the managed resource adapter",
+            SimpleType.STRING
+    );
+
+    /**
      * The constant CONNECTION_PARAMS_SCHEMA.
      */
     static final TabularType SIMPLE_MAP_TYPE = SnampCoreMBean.interfaceStaticInitialize(

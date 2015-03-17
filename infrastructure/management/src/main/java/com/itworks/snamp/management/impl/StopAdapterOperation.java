@@ -11,7 +11,8 @@ import java.util.Map;
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
 /**
- * Created by temni on 2/8/2015.
+ * The type Stop adapter operation.
+ * @author Evgeniy Kirichenko
  */
 final class StopAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>>  {
 
@@ -19,6 +20,11 @@ final class StopAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleTyp
 
     private static final String ADAPTER_NAME_PARAM = "Name";
 
+    /**
+     * Instantiates a new Stop adapter operation.
+     *
+     * @throws OpenDataException the open data exception
+     */
     StopAdapterOperation() throws OpenDataException {
         super(NAME, SimpleType.VOID, new OpenMBeanParameterInfoSupport(ADAPTER_NAME_PARAM, "Adapter name", SimpleType.STRING));
     }
