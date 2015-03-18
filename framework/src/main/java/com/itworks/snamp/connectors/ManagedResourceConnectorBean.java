@@ -4,12 +4,9 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.concurrent.WriteOnceRef;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 
@@ -64,7 +61,7 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 1.0
  */
-public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector<ManagedResourceConnectorBean.ManagedBeanDescriptor<?>>
+public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector
         implements NotificationSupport, AttributeSupport {
 
     /**
@@ -154,8 +151,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @since 1.0
      * @version 1.0
      */
-    @Internal
-    public static interface ManagedBeanDescriptor<T>{
+    private static interface ManagedBeanDescriptor<T>{
         /**
          * Gets metadata of the manageable bean.
          * @return The metadata of the manageable bean.
@@ -205,11 +201,11 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     private static final class SelfDescriptor implements ManagedBeanDescriptor<ManagedResourceConnectorBean> {
         private Reference<ManagedResourceConnectorBean> connectorRef;
-        private final WriteOnceRef<BeanInfo> metadata = new WriteOnceRef<>();
+        private final BeanInfo metadata;
 
-        private void setSelfReference(final ManagedResourceConnectorBean instance) throws IntrospectionException {
+        private SelfDescriptor(final ManagedResourceConnectorBean instance) throws IntrospectionException {
             connectorRef = new WeakReference<>(instance);
-            metadata.set(Introspector.getBeanInfo(instance.getClass(), ManagedResourceConnectorBean.class));
+            metadata = Introspector.getBeanInfo(instance.getClass(), ManagedResourceConnectorBean.class);
         }
 
         /**
@@ -219,7 +215,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
          */
         @Override
         public BeanInfo getBeanInfo() {
-            return metadata.get();
+            return metadata;
         }
 
         /**
@@ -657,10 +653,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     private final JavaBeanAttributeSupport attributes;
     private final JavaBeanNotificationSupport notifications;
+    private final ManagedBeanDescriptor<?> beanDescriptor;
 
-    private ManagedResourceConnectorBean(final ManagedBeanDescriptor<?> descriptor,
-                                         final Set<? extends ManagementNotificationType<?>> notifTypes){
-        super(descriptor);
+    private ManagedResourceConnectorBean(ManagedBeanDescriptor<?> descriptor,
+                                         final Set<? extends ManagementNotificationType<?>> notifTypes) throws IntrospectionException {
+        if(descriptor == null) descriptor = new SelfDescriptor(this);
+        beanDescriptor = descriptor;
         attributes = new JavaBeanAttributeSupport(descriptor, getLogger());
         notifications = new JavaBeanNotificationSupport(notifTypes, getLogger());
     }
@@ -693,9 +691,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @throws IntrospectionException Unable to reflect managed resource connector.
      */
     protected <N extends Enum<N> & ManagementNotificationType<?>> ManagedResourceConnectorBean(final EnumSet<N> notifTypes) throws IntrospectionException {
-        this(new SelfDescriptor(), notifTypes);
-        //creates weak reference to this object
-        Utils.safeCast(getConnectionOptions(), SelfDescriptor.class).setSelfReference(this);
+        this(null, notifTypes);
     }
 
     /**

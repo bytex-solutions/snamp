@@ -44,7 +44,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @since 1.0
  * @version 1.0
  */
-public class ManagedResourceActivator<TConnector extends ManagedResourceConnector<?>> extends AbstractServiceLibrary {
+public class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
     /**
      * Represents name of the manifest header which contains the name of the management connector.
      * <p>
@@ -70,7 +70,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ManagedResourceConnectorLifecycleController<TConnector extends ManagedResourceConnector<?>>{
+    protected static interface ManagedResourceConnectorLifecycleController<TConnector extends ManagedResourceConnector>{
 
         /**
          * Creates a new instance of the managed resource connector.
@@ -128,7 +128,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class ManagedResourceConnectorFactory<TConnector extends ManagedResourceConnector<?> & AutoCloseable> implements ManagedResourceConnectorLifecycleController<TConnector>{
+    protected static abstract class ManagedResourceConnectorFactory<TConnector extends ManagedResourceConnector> implements ManagedResourceConnectorLifecycleController<TConnector>{
 
         /**
          * Updates the resource connector with a new configuration.
@@ -147,8 +147,16 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                           final String connectionString,
                                           final Map<String, String> connectionParameters,
                                           final RequiredService<?>... dependencies) throws Exception {
-            releaseConnector(connector);
-            return createConnector(resourceName, connectionString, connectionParameters, dependencies);
+            //trying to update resource connector on-the-fly
+            try {
+                connector.update(connectionString, connectionParameters);
+            }
+            catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored){
+                //Update operation is not supported -> forces recreation
+                releaseConnector(connector);
+                connector = createConnector(resourceName, connectionString, connectionParameters, dependencies);
+            }
+            return connector;
         }
 
         /**
@@ -165,7 +173,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
     }
 
-    private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector<?>> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector>{
+    private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector>{
         private final ManagedResourceConnectorLifecycleController<TConnector> controller;
         /**
          * Represents name of the managed resource connector.
@@ -839,19 +847,19 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return connectorType.hashCode();
     }
 
-    static String getConnectorType(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
+    static String getConnectorType(final ServiceReference<ManagedResourceConnector> connectorRef){
         return connectorRef != null ?
                 Objects.toString(connectorRef.getProperty(CONNECTOR_TYPE_IDENTITY_PROPERTY), ""):
                 "";
     }
 
-    static String getConnectionString(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
+    static String getConnectionString(final ServiceReference<ManagedResourceConnector> connectorRef){
         return connectorRef != null ?
                 Objects.toString(connectorRef.getProperty(CONNECTOR_STRING_IDENTITY_PROPERTY), ""):
                 "";
     }
 
-    static String getManagedResourceName(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
+    static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef){
         return connectorRef != null ?
                 Objects.toString(connectorRef.getProperty(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY), ""):
                 "";

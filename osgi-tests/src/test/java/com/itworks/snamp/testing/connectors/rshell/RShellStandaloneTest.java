@@ -39,7 +39,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
     @Test()
     public void loadTest() throws InterruptedException, ExecutionException, JMException {
         Assume.assumeTrue(Utils.IS_OS_LINUX);
-        final ManagedResourceConnector<?> connector = getManagementConnector();
+        final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {
             final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
@@ -74,7 +74,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
     @Test
     public void readMemStatusAttribute() throws JMException {
         Assume.assumeTrue(Utils.IS_OS_LINUX);
-        final ManagedResourceConnector<?> connector = getManagementConnector();
+        final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {
             final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);

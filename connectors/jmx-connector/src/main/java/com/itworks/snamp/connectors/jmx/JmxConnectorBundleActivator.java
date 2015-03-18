@@ -78,14 +78,14 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         public Future<String> doAction(final String actionName, final String arguments, final Locale loc) {
             if(Objects.equals(actionName, JmxMaintenanceActions.SIMULATE_CONNECTION_ABORT.getName())){
                 final BundleContext context = getBundleContextByObject(this);
-                final Map<String, ServiceReference<ManagedResourceConnector<?>>> connectors = ManagedResourceConnectorClient.getConnectors(context);
+                final Map<String, ServiceReference<ManagedResourceConnector>> connectors = ManagedResourceConnectorClient.getConnectors(context);
                 final FutureThread<String> result = new FutureThread<>(new Callable<String>() {
                     @Override
                     public final String call() throws IOException, InterruptedException{
-                        for(final ServiceReference<ManagedResourceConnector<?>> ref: connectors.values())
+                        for(final ServiceReference<ManagedResourceConnector> ref: connectors.values())
                             if(Objects.equals(getConnectorType(ref), JmxConnector.NAME))
                                 try{
-                                    final ManagedResourceConnector<?> connector = context.getService(ref);
+                                    final ManagedResourceConnector connector = context.getService(ref);
                                     connector.queryObject(JmxConnectionManager.class).simulateConnectionAbort();
                                 }
                                 finally {

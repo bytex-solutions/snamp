@@ -18,6 +18,7 @@ import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -305,15 +306,15 @@ public final class ManagedResourceConnectorClient {
      * @return A map of management connector references where the key of the map represents
      *          a name of the management target.
      */
-    public static Map<String, ServiceReference<ManagedResourceConnector<?>>> getConnectors(final BundleContext context){
+    public static Map<String, ServiceReference<ManagedResourceConnector>> getConnectors(final BundleContext context){
         if(context == null) return Collections.emptyMap();
         else try {
             ServiceReference<?>[] connectors = context.getAllServiceReferences(ManagedResourceConnector.class.getName(), null);
             if(connectors == null) connectors = new ServiceReference<?>[0];
-            final Map<String, ServiceReference<ManagedResourceConnector<?>>> result = new HashMap<>(connectors.length);
+            final Map<String, ServiceReference<ManagedResourceConnector>> result = new HashMap<>(connectors.length);
             for(final ServiceReference<?> serviceRef: connectors) {
                 @SuppressWarnings("unchecked")
-                final ServiceReference<ManagedResourceConnector<?>> connectorRef = (ServiceReference<ManagedResourceConnector<?>>)serviceRef;
+                final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>)serviceRef;
                 result.put(getManagedResourceName(connectorRef), connectorRef);
             }
             return result;
@@ -331,7 +332,7 @@ public final class ManagedResourceConnectorClient {
      * @param connectorRef The reference to the management connector.
      * @return The type of the management connector.
      */
-    public static String getConnectorType(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
+    public static String getConnectorType(final ServiceReference<ManagedResourceConnector> connectorRef){
         return ManagedResourceActivator.getConnectorType(connectorRef);
     }
 
@@ -340,7 +341,7 @@ public final class ManagedResourceConnectorClient {
      * @param connectorRef The reference to the management connector.
      * @return The connection string used by management connector.
      */
-    public static String getConnectionString(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
+    public static String getConnectionString(final ServiceReference<ManagedResourceConnector> connectorRef){
         return ManagedResourceActivator.getConnectionString(connectorRef);
     }
 
@@ -350,7 +351,7 @@ public final class ManagedResourceConnectorClient {
      * @param connectorRef The reference to the management connector.
      * @return The name of the management target.
      */
-    public static String getManagedResourceName(final ServiceReference<ManagedResourceConnector<?>> connectorRef){
+    public static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef){
         return ManagedResourceActivator.getManagedResourceName(connectorRef);
     }
 
@@ -361,7 +362,7 @@ public final class ManagedResourceConnectorClient {
      * @return A reference to the managed resource connector that serves the specified resource; or {@literal null}, if connector doesn't exist.
      */
     @SuppressWarnings("unchecked")
-    public static ServiceReference<ManagedResourceConnector<?>> getResourceConnector(final BundleContext context,
+    public static ServiceReference<ManagedResourceConnector> getResourceConnector(final BundleContext context,
                                                                           final String resourceName) {
         try {
             return Iterables.<ServiceReference>getFirst(context.getServiceReferences(ManagedResourceConnector.class, ManagedResourceActivator.createFilter(resourceName)), null);
@@ -402,7 +403,7 @@ public final class ManagedResourceConnectorClient {
     }
 
     public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,
-                                                                        final ServiceReference<ManagedResourceConnector<?>> connectorRef) throws IOException{
+                                                                        final ServiceReference<ManagedResourceConnector> connectorRef) throws IOException{
         return getResourceConfiguration(context, getManagedResourceName(connectorRef));
     }
 
@@ -415,5 +416,21 @@ public final class ManagedResourceConnectorClient {
         } finally {
             admin.release(context);
         }
+    }
+
+    /**
+     * Computes unique hash code for the specified connection parameters.
+     * @param connectionString The managed resource connection string.
+     * @param connectionParameters The managed resource connection parameters.
+     * @return A unique hash code generated from connection string and connection parameters.
+     */
+    public static BigInteger computeConnectionParamsHashCode(final String connectionString,
+                                                             final Map<String, String> connectionParameters){
+        BigInteger result = new BigInteger(connectionString.getBytes());
+        for(final Map.Entry<String, String> entry: connectionParameters.entrySet()){
+            result = result.xor(new BigInteger(entry.getKey().getBytes()));
+            result = result.xor(new BigInteger(entry.getValue().getBytes()));
+        }
+        return result;
     }
 }

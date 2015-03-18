@@ -599,7 +599,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     private static final class ManagedResourceConnectorConsumer implements ServiceListener, AutoCloseable{
         private final ManagedResourceConfiguration resourceConfiguration;
-        private ServiceReferenceHolder<ManagedResourceConnector<?>> resourceConnector;
+        private ServiceReferenceHolder<ManagedResourceConnector> resourceConnector;
         private final BundleContext context;
 
         /**
@@ -654,7 +654,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             return resourceConnector != null;
         }
 
-        private synchronized void processResourceConnector(final ServiceReference<ManagedResourceConnector<?>> connectorRef,
+        private synchronized void processResourceConnector(final ServiceReference<ManagedResourceConnector> connectorRef,
                                                            final int eventType){
             if(Objects.equals(ManagedResourceConnectorClient.getManagedResourceName(connectorRef), resourceName))
                 switch (eventType){
@@ -682,12 +682,12 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         public void serviceChanged(final ServiceEvent event) {
             if(ManagedResourceConnectorClient.isResourceConnector(event.getServiceReference()))
                 processResourceConnector(
-                        (ServiceReference<ManagedResourceConnector<?>>)event.getServiceReference(),
+                        (ServiceReference<ManagedResourceConnector>)event.getServiceReference(),
                         event.getType());
         }
 
         private boolean connect() {
-            final ServiceReference<ManagedResourceConnector<?>> connectorRef = ManagedResourceConnectorClient.getResourceConnector(context, resourceName);
+            final ServiceReference<ManagedResourceConnector> connectorRef = ManagedResourceConnectorClient.getResourceConnector(context, resourceName);
             if (connectorRef != null) {
                 processResourceConnector(
                         connectorRef,
@@ -1216,7 +1216,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     private void resourceAddedImpl(final String resourceName,
-                                   final ServiceReference<ManagedResourceConnector<?>> connectorRef) {
+                                   final ServiceReference<ManagedResourceConnector> connectorRef) {
         boolean restartRequired = true;
         ManagedResourceConnectorConsumer consumer = connectors.get(resourceName);
         if (consumer == null) try{
@@ -1266,7 +1266,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         if (ManagedResourceConnectorClient.isResourceConnector(event.getServiceReference()))
             try (final LogicalOperation ignored = AdapterLogicalOperation.connectorChangesDetected(adapterInstanceName)) {
                 @SuppressWarnings("unchecked")
-                final ServiceReference<ManagedResourceConnector<?>> connectorRef = (ServiceReference<ManagedResourceConnector<?>>) event.getServiceReference();
+                final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>) event.getServiceReference();
                 final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(connectorRef);
                 switch (event.getType()) {
                     case ServiceEvent.MODIFIED_ENDMATCH:

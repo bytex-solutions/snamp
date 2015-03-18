@@ -248,7 +248,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
 
     @Test
     public void notificationTest() throws TimeoutException, InterruptedException, JMException {
-        final ManagedResourceConnector<?> connector = getManagementConnector();
+        final ManagedResourceConnector connector = getManagementConnector();
         try {
             final NotificationSupport notifications = connector.queryObject(NotificationSupport.class);
             assertNotNull(notifications);

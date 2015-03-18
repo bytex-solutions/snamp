@@ -31,7 +31,7 @@ import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescript
  * Represents JMX connector.
  * @author Roman Sakno
  */
-final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionOptions> implements AttributeSupport, NotificationSupport {
+final class JmxConnector extends AbstractManagedResourceConnector implements AttributeSupport, NotificationSupport {
     /**
      * Represents JMX connector name.
      */
@@ -601,9 +601,10 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     private final JmxNotificationSupport notifications;
     private final JmxAttributeSupport attributes;
     private final JmxConnectionManager connectionManager;
+    private final JmxConnectionOptions options;
 
     JmxConnector(final JmxConnectionOptions connectionOptions) {
-        super(connectionOptions);
+        this.options = connectionOptions;
         this.connectionManager = connectionOptions.createConnectionManager();
         //attempts to establish connection immediately
         connectionManager.connect();
@@ -652,6 +653,21 @@ final class JmxConnector extends AbstractManagedResourceConnector<JmxConnectionO
     public boolean disconnectAttribute(final String id) {
         verifyInitialization();
         return attributes.disconnectAttribute(id);
+    }
+
+    /**
+     * Updates resource connector with a new connection options.
+     *
+     * @param connectionString     A new connection string.
+     * @param connectionParameters A new connection parameters.
+     * @throws Exception                                                                                 Unable to update managed resource connector.
+     * @throws com.itworks.snamp.connectors.ManagedResourceConnector.UnsupportedUpdateOperationException This operation is not supported
+     *                                                                                                   by this resource connector.
+     */
+    @Override
+    public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
+        if(!options.equals(connectionString, connectionParameters))
+            throw new UnsupportedUpdateOperationException("JMX Connector doesn't support updating");
     }
 
     /**

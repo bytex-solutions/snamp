@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AttributeValue;
@@ -27,7 +28,7 @@ import java.util.logging.Logger;
  * @author Roman Sakno
  */
 public final class ManagedResourceConnectorBeanTest extends Assert {
-    private static final class TestManagementConnectorBeanTest extends ManagedResourceConnectorBean {
+    private static final class TestManagementConnectorBean extends ManagedResourceConnectorBean {
         private static enum TestNotificationType implements ManagementNotificationType<String>{
             PROPERTY_CHANGED;
 
@@ -51,7 +52,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         private int field2;
         private boolean field3;
 
-        public TestManagementConnectorBeanTest() throws IntrospectionException {
+        public TestManagementConnectorBean() throws IntrospectionException {
             super(EnumSet.allOf(TestNotificationType.class));
         }
 
@@ -108,7 +109,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
 
     @Test
     public final void testConnectorBean() throws IntrospectionException, JMException, InterruptedException, TimeoutException {
-        final TestManagementConnectorBeanTest connector = new TestManagementConnectorBeanTest();
+        final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         connector.field1 = "123";
         final MBeanAttributeInfo md;
         assertNotNull(md = connector.connectAttribute("0", "property1", TimeSpan.fromSeconds(1), ConfigParameters.empty()));
@@ -128,5 +129,15 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         assertTrue(md.isWritable());
         assertEquals("property1", AttributeDescriptor.getAttributeName(md));
         assertEquals(SimpleType.STRING, AttributeDescriptor.getOpenType(md));
+    }
+
+    @Test
+    public void connectionParamsHashCodeTest(){
+        final String connectionString = "aaa";
+        final ImmutableMap<String, String> params1 = ImmutableMap.of("1", "value", "2", "value2");
+        final ImmutableMap<String, String> params2 = ImmutableMap.of("2", "value2", "1", "value");
+        assertEquals(params1, params2);
+        assertEquals(ManagedResourceConnectorClient.computeConnectionParamsHashCode(connectionString, params1),
+                ManagedResourceConnectorClient.computeConnectionParamsHashCode(connectionString, params2));
     }
 }

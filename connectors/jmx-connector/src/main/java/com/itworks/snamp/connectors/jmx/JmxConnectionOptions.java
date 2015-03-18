@@ -1,12 +1,14 @@
 package com.itworks.snamp.connectors.jmx;
 
 import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.internal.Utils;
 
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +28,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
     private final String login;
     private final String password;
     private final long watchDogPeriod;
+    private final BigInteger connectionParametersHash;
 
     /**
      * Initializes a new JMX connection parameters.
@@ -46,6 +49,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
         else login = password = "";
         this.watchDogPeriod = options.containsKey(CONNECTION_CHECK_PERIOD) ?
                 Integer.valueOf(options.get(CONNECTION_CHECK_PERIOD)) : 3000L;
+        this.connectionParametersHash = ManagedResourceConnectorClient.computeConnectionParamsHashCode(connectionString, options);
     }
 
     private Map<String, Object> getJmxOptions(){
@@ -81,5 +85,10 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
                 return JMXConnectorFactory.connect(JmxConnectionOptions.this, getJmxOptions());
             }
         });
+    }
+
+    public boolean equals(final String connectionString,
+                          final Map<String, String> options){
+        return connectionParametersHash.equals(ManagedResourceConnectorClient.computeConnectionParamsHashCode(connectionString, options));
     }
 }

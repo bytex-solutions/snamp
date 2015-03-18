@@ -47,7 +47,7 @@ import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvid
  * @version 1.0
  * @since 1.0
  */
-final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpConnectionOptions> implements AttributeSupport, NotificationSupport {
+final class SnmpResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport, NotificationSupport {
     static final String NAME = SnmpConnectorHelpers.CONNECTOR_NAME;
 
     private static final class SnmpNotificationInfo extends CustomNotificationInfo{
@@ -741,6 +741,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
     private final SnmpAttributeSupport attributes;
     private final SnmpNotificationSupport notifications;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
+    private final SnmpConnectionOptions options;
 
     /**
      * Initializes a new management connector.
@@ -748,7 +749,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
      * @throws java.io.IOException Unable to instantiate SNMP client.
      */
     SnmpResourceConnector(final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
-        super(snmpConnectionOptions);
+        this.options = snmpConnectionOptions;
         client = new ConcurrentResourceAccessor<>(snmpConnectionOptions.createSnmpClient());
         attributes = new SnmpAttributeSupport(client);
         notifications = new SnmpNotificationSupport(client);
@@ -767,6 +768,21 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector<SnmpC
                 return null;
             }
         });
+    }
+
+    /**
+     * Updates resource connector with a new connection options.
+     *
+     * @param connectionString     A new connection string.
+     * @param connectionParameters A new connection parameters.
+     * @throws Exception                                                                                 Unable to update managed resource connector.
+     * @throws com.itworks.snamp.connectors.ManagedResourceConnector.UnsupportedUpdateOperationException This operation is not supported
+     *                                                                                                   by this resource connector.
+     */
+    @Override
+    public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
+        if(!options.equals(connectionString, connectionParameters))
+            throw new UnsupportedUpdateOperationException("SNMP Connector doesn't support updating");
     }
 
     /**

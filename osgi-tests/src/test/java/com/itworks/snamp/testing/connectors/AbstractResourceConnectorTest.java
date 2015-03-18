@@ -132,9 +132,9 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     }
 
     private void waitForConnector(final TimeSpan timeout) throws TimeoutException, InterruptedException {
-        final Awaitor<ServiceReference<ManagedResourceConnector<?>>, ExceptionPlaceholder> awaitor = new SpinWait<ServiceReference<ManagedResourceConnector<?>>, ExceptionPlaceholder>() {
+        final Awaitor<ServiceReference<ManagedResourceConnector>, ExceptionPlaceholder> awaitor = new SpinWait<ServiceReference<ManagedResourceConnector>, ExceptionPlaceholder>() {
             @Override
-            protected ServiceReference<ManagedResourceConnector<?>> get() {
+            protected ServiceReference<ManagedResourceConnector> get() {
                 return ManagedResourceConnectorClient.getResourceConnector(getTestBundleContext(), TEST_RESOURCE_NAME);
             }
         };
@@ -151,13 +151,13 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         awaitor.await(timeout);
     }
 
-    protected final ManagedResourceConnector<?> getManagementConnector(final BundleContext context){
-        final ServiceReference<ManagedResourceConnector<?>> connectorRef =
+    protected final ManagedResourceConnector getManagementConnector(final BundleContext context){
+        final ServiceReference<ManagedResourceConnector> connectorRef =
                 ManagedResourceConnectorClient.getConnectors(context).get(TEST_RESOURCE_NAME);
         return connectorRef != null ? getTestBundleContext().getService(connectorRef) : null;
     }
 
-    protected final ManagedResourceConnector<?> getManagementConnector(){
+    protected final ManagedResourceConnector getManagementConnector(){
         return getManagementConnector(getTestBundleContext());
     }
 
@@ -166,7 +166,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     }
 
     protected final boolean releaseManagementConnector(final BundleContext context){
-        final ServiceReference<ManagedResourceConnector<?>> connectorRef =
+        final ServiceReference<ManagedResourceConnector> connectorRef =
                 ManagedResourceConnectorClient.getConnectors(context).get(TEST_RESOURCE_NAME);
         return connectorRef != null && getTestBundleContext().ungetService(connectorRef);
     }

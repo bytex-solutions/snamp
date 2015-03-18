@@ -35,13 +35,11 @@ import java.util.logging.Logger;
  *         <li>{@link com.itworks.snamp.connectors.AbstractManagedResourceConnector.AbstractAttributeSupport} for resource management using attributes.</li>
  *         <li>{@link com.itworks.snamp.connectors.AbstractManagedResourceConnector.AbstractNotificationSupport} to receive management notifications from the managed resource.</li>
  *     </ul>
- * </p>
- * @param <TConnectionOptions> The management connection initialization options.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractManagedResourceConnector<TConnectionOptions> extends AbstractFrameworkService implements ManagedResourceConnector<TConnectionOptions>, Descriptive {
+public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Descriptive {
 
     /**
      * Provides a base support of management attributes.
@@ -806,33 +804,12 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
         }
     }
 
-    private final TConnectionOptions connectionOptions;
     private final IllegalStateFlag closed = new IllegalStateFlag() {
         @Override
         public final IllegalStateException create() {
             return new IllegalStateException("Management connector is closed.");
         }
     };
-
-    /**
-     * Initializes a new management connector.
-     * @param connectionOptions Management connector initialization options.
-     */
-    protected AbstractManagedResourceConnector(final TConnectionOptions connectionOptions){
-        if(connectionOptions == null) throw new IllegalArgumentException("connectionOptions is null.");
-        else this.connectionOptions = connectionOptions;
-    }
-
-    /**
-     * Returns connection options used by this management connector.
-     *
-     * @return The connection options used by this management connector.
-     */
-    @Override
-    public final TConnectionOptions getConnectionOptions() {
-        return connectionOptions;
-    }
-
 
     /**
      *  Throws an {@link IllegalStateException} if the connector is not initialized.
@@ -978,6 +955,20 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
     }
 
     /**
+     * Updates resource connector with a new connection options.
+     *
+     * @param connectionString     A new connection string.
+     * @param connectionParameters A new connection parameters.
+     * @throws Exception                                                                                 Unable to update managed resource connector.
+     * @throws UnsupportedUpdateOperationException This operation is not supported
+     *                                                                                                   by this resource connector.
+     */
+    @Override
+    public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
+        throw new UnsupportedUpdateOperationException("Update operation is not supported");
+    }
+
+    /**
      * Returns logger name based on the management connector name.
      * @param connectorName The name of the connector.
      * @return The logger name.
@@ -994,4 +985,5 @@ public abstract class AbstractManagedResourceConnector<TConnectionOptions> exten
     public static Logger getLogger(final String connectorName){
         return Logger.getLogger(getLoggerName(connectorName));
     }
+
 }

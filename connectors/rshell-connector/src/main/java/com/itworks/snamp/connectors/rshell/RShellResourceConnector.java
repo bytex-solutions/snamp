@@ -43,7 +43,7 @@ import static com.itworks.snamp.connectors.rshell.RShellConnectorConfigurationDe
  * @version 1.0
  * @since 1.0
  */
-final class RShellResourceConnector extends AbstractManagedResourceConnector<RShellConnectionOptions> implements AttributeSupport {
+final class RShellResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport {
     final static String NAME = RShellConnectorHelpers.CONNECTOR_NAME;
 
     private static abstract class RShellAttributeInfo extends OpenTypeAttributeInfo{
@@ -317,6 +317,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
 
     private final CommandExecutionChannel executionChannel;
     private final RShellAttributes attributes;
+    private final RShellConnectionOptions options;
 
     /**
      * Initializes a new management connector.
@@ -324,7 +325,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
      * @param connectionOptions Management connector initialization options.
      */
     RShellResourceConnector(final RShellConnectionOptions connectionOptions) throws Exception {
-        super(connectionOptions);
+        this.options = connectionOptions;
         executionChannel = connectionOptions.createExecutionChannel();
         attributes = new RShellAttributes(executionChannel, new OSGiScriptEngineManager(Utils.getBundleContextByObject(this)));
     }
@@ -332,6 +333,21 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector<RSh
     RShellResourceConnector(final String connectionString,
                                    final Map<String, String> connectionOptions) throws Exception{
         this(new RShellConnectionOptions(connectionString, connectionOptions));
+    }
+
+    /**
+     * Updates resource connector with a new connection options.
+     *
+     * @param connectionString     A new connection string.
+     * @param connectionParameters A new connection parameters.
+     * @throws Exception                                                                                 Unable to update managed resource connector.
+     * @throws UnsupportedUpdateOperationException This operation is not supported
+     *                                                                                                   by this resource connector.
+     */
+    @Override
+    public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
+        if(!options.equals(connectionString, connectionParameters))
+            throw new UnsupportedUpdateOperationException("RShell connector doesn't support updating");
     }
 
     /**
