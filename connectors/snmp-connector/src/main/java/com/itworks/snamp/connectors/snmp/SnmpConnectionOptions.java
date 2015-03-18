@@ -1,7 +1,6 @@
 package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.Address;
 import org.snmp4j.smi.GenericAddress;
@@ -9,7 +8,6 @@ import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -34,11 +32,9 @@ final class SnmpConnectionOptions {
     private final OctetString securityContext;
     private final int socketTimeout;
     private final Supplier<ExecutorService> threadPoolConfig;
-    private final BigInteger connectionParamsHash;
 
     SnmpConnectionOptions(final String connectionString,
                                  final Map<String, String> parameters) {
-        this.connectionParamsHash = ManagedResourceConnectorClient.computeConnectionParamsHashCode(connectionString, parameters);
         connectionAddress = GenericAddress.parse(connectionString);
         threadPoolConfig = new SnmpThreadPoolConfig(parameters, connectionString);
         engineID = parseEngineID(parameters);
@@ -93,11 +89,6 @@ final class SnmpConnectionOptions {
             case "3-des": return Priv3DES.ID;
             default: return new OID(encryptionProtocol);
         }
-    }
-
-    public boolean equals(final String connectionString,
-                          final Map<String, String> connectionParams){
-        return connectionParamsHash.equals(ManagedResourceConnectorClient.computeConnectionParamsHashCode(connectionString, connectionParams));
     }
 
     /**

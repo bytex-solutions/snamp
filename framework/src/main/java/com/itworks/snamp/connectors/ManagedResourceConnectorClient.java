@@ -426,11 +426,6 @@ public final class ManagedResourceConnectorClient {
      */
     public static BigInteger computeConnectionParamsHashCode(final String connectionString,
                                                              final Map<String, String> connectionParameters){
-        BigInteger result = new BigInteger(connectionString.getBytes());
-        for(final Map.Entry<String, String> entry: connectionParameters.entrySet()){
-            result = result.xor(new BigInteger(entry.getKey().getBytes()));
-            result = result.xor(new BigInteger(entry.getValue().getBytes()));
-        }
-        return result;
+        return ManagedResourceActivator.computeConnectionParamsHashCode(connectionString, connectionParameters);
     }
 }

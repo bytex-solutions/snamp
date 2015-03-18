@@ -601,10 +601,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     private final JmxNotificationSupport notifications;
     private final JmxAttributeSupport attributes;
     private final JmxConnectionManager connectionManager;
-    private final JmxConnectionOptions options;
 
     JmxConnector(final JmxConnectionOptions connectionOptions) {
-        this.options = connectionOptions;
         this.connectionManager = connectionOptions.createConnectionManager();
         //attempts to establish connection immediately
         connectionManager.connect();
@@ -653,21 +651,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     public boolean disconnectAttribute(final String id) {
         verifyInitialization();
         return attributes.disconnectAttribute(id);
-    }
-
-    /**
-     * Updates resource connector with a new connection options.
-     *
-     * @param connectionString     A new connection string.
-     * @param connectionParameters A new connection parameters.
-     * @throws Exception                                                                                 Unable to update managed resource connector.
-     * @throws com.itworks.snamp.connectors.ManagedResourceConnector.UnsupportedUpdateOperationException This operation is not supported
-     *                                                                                                   by this resource connector.
-     */
-    @Override
-    public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
-        if(!options.equals(connectionString, connectionParameters))
-            throw new UnsupportedUpdateOperationException("JMX Connector doesn't support updating");
     }
 
     /**

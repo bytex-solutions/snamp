@@ -71,7 +71,7 @@ public final class Activator extends AbstractServiceLibrary {
         }
 
         @Override
-        protected void cleanupService(final JaasRealmImpl service) {
+        protected void cleanupService(final JaasRealmImpl service, final Dictionary<String, ?> identity) {
 
         }
     }

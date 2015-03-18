@@ -6,7 +6,6 @@ import com.itworks.jcommands.channels.CommandExecutionChannels;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Represents connection options for the RShell connector.
@@ -21,12 +20,6 @@ final class RShellConnectionOptions {
     RShellConnectionOptions(final String connectionString, final Map<String, String> params){
         this.connectionParams = params;
         this.connectionString = connectionString;
-    }
-
-    public boolean equals(final String connectionString,
-                          final Map<String, String> connectionParams){
-        return Objects.equals(this.connectionString, connectionString) &&
-                Objects.equals(connectionParams, this.connectionParams);
     }
 
     /**

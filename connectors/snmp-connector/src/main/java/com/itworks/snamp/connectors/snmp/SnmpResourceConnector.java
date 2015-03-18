@@ -51,7 +51,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     static final String NAME = SnmpConnectorHelpers.CONNECTOR_NAME;
 
     private static final class SnmpNotificationInfo extends CustomNotificationInfo{
-
+        private static final long serialVersionUID = -4792879013459588079L;
 
         private SnmpNotificationInfo(final String listID,
                                      final NotificationDescriptor descriptor){
@@ -255,6 +255,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static abstract class SnmpAttributeInfo<V extends Variable> extends OpenTypeAttributeInfo implements SnmpObjectConverter<V> {
+        private static final long serialVersionUID = 4948510436343027716L;
+
         private SnmpAttributeInfo(final String attributeID,
                                   final OpenType<?> openType,
                                   final AttributeDescriptor descriptor) {
@@ -291,6 +293,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class ReadOnlyAttributeInfo extends SnmpAttributeInfo<Variable>{
+        private static final long serialVersionUID = 7929288330407108778L;
+
         private ReadOnlyAttributeInfo(final String attributeID,
                                       final AttributeDescriptor descriptor){
             super(attributeID, SimpleType.STRING, AttributeSpecifier.READ_ONLY, descriptor);
@@ -308,6 +312,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class Integer32AttributeInfo extends SnmpAttributeInfo<Integer32>{
+        private static final long serialVersionUID = -6050715922710622727L;
 
         private Integer32AttributeInfo(final String attributeID,
                                        final AttributeDescriptor descriptor) {
@@ -332,6 +337,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class UnsignedInteger32AttributeInfo extends SnmpAttributeInfo<UnsignedInteger32>{
+        private static final long serialVersionUID = 7000662819460705693L;
 
         private UnsignedInteger32AttributeInfo(final String attributeID,
                                        final AttributeDescriptor descriptor) {
@@ -358,6 +364,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class Counter32AttributeInfo extends SnmpAttributeInfo<Counter32>{
+        private static final long serialVersionUID = 7284093419509518876L;
 
         private Counter32AttributeInfo(final String attributeID,
                                                final AttributeDescriptor descriptor) {
@@ -384,6 +391,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class TimeTicksAttributeInfo extends CustomFormatterAttributeInfo<TimeTicks>{
+        private static final long serialVersionUID = 4620458170097932634L;
 
         private TimeTicksAttributeInfo(final String attributeID,
                                        final AttributeDescriptor descriptor) {
@@ -392,6 +400,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class Counter64AttributeInfo extends SnmpAttributeInfo<Counter64>{
+        private static final long serialVersionUID = -8824691251974743887L;
 
         private Counter64AttributeInfo(final String attributeID,
                                        final AttributeDescriptor descriptor) {
@@ -418,6 +427,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class Gauge32AttributeInfo extends SnmpAttributeInfo<Gauge32>{
+        private static final long serialVersionUID = 5787884395470856436L;
 
         private Gauge32AttributeInfo(final String attributeID,
                                        final AttributeDescriptor descriptor) {
@@ -444,6 +454,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static abstract class CustomFormatterAttributeInfo<V extends Variable> extends SnmpAttributeInfo<V> implements SnmpObjectConverter<V>{
+        private static final long serialVersionUID = 4378706124755779647L;
         private final SnmpObjectConverter<V> formatter;
 
         private CustomFormatterAttributeInfo(final String attributeID,
@@ -465,6 +476,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class IpAddressAttributeInfo extends CustomFormatterAttributeInfo<IpAddress>{
+        private static final long serialVersionUID = 7204017895936479653L;
+
         private IpAddressAttributeInfo(final String attributeID,
                                        final AttributeDescriptor descriptor) {
             super(attributeID, IpAddressConversionFormat.getFormat(descriptor), descriptor);
@@ -472,6 +485,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class NullAttributeInfo extends SnmpAttributeInfo<Null>{
+        private static final long serialVersionUID = -1290255198516661270L;
 
         private NullAttributeInfo(final String attributeID,
                                   final AttributeDescriptor descriptor) {
@@ -490,6 +504,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class OpaqueAttributeInfo extends SnmpAttributeInfo<Opaque>{
+        private static final long serialVersionUID = 6889554647863614713L;
 
         private OpaqueAttributeInfo(final String attributeID, final AttributeDescriptor descriptor) throws OpenDataException {
             super(attributeID, new ArrayType<byte[]>(SimpleType.BYTE, true), descriptor);
@@ -513,6 +528,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class OctetStringAttributeInfo extends CustomFormatterAttributeInfo<OctetString>{
+        private static final long serialVersionUID = -4202389744046621844L;
 
         private OctetStringAttributeInfo(final String attributeID,
                                          final OctetString value,
@@ -522,6 +538,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class OidAttributeInfo extends CustomFormatterAttributeInfo<OID>{
+        private static final long serialVersionUID = 2175664004641918099L;
 
         private OidAttributeInfo(final String attributeID,
                                          final AttributeDescriptor descriptor) {
@@ -741,7 +758,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     private final SnmpAttributeSupport attributes;
     private final SnmpNotificationSupport notifications;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
-    private final SnmpConnectionOptions options;
 
     /**
      * Initializes a new management connector.
@@ -749,7 +765,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
      * @throws java.io.IOException Unable to instantiate SNMP client.
      */
     SnmpResourceConnector(final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
-        this.options = snmpConnectionOptions;
         client = new ConcurrentResourceAccessor<>(snmpConnectionOptions.createSnmpClient());
         attributes = new SnmpAttributeSupport(client);
         notifications = new SnmpNotificationSupport(client);
@@ -768,21 +783,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 return null;
             }
         });
-    }
-
-    /**
-     * Updates resource connector with a new connection options.
-     *
-     * @param connectionString     A new connection string.
-     * @param connectionParameters A new connection parameters.
-     * @throws Exception                                                                                 Unable to update managed resource connector.
-     * @throws com.itworks.snamp.connectors.ManagedResourceConnector.UnsupportedUpdateOperationException This operation is not supported
-     *                                                                                                   by this resource connector.
-     */
-    @Override
-    public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
-        if(!options.equals(connectionString, connectionParameters))
-            throw new UnsupportedUpdateOperationException("SNMP Connector doesn't support updating");
     }
 
     /**

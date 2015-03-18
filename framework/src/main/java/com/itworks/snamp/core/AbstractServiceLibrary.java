@@ -635,9 +635,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         /**
          * Releases all resources associated with the service instance.
          * @param service A service to dispose.
+         * @param identity Service identity.
          * @throws Exception Unable to dispose service.
          */
-        protected abstract void cleanupService(final T service) throws Exception;
+        protected abstract void cleanupService(final T service,
+                                               final Dictionary<String, ?> identity) throws Exception;
 
         /**
          * Automatically invokes by SNAMP when service is disposing.
@@ -647,7 +649,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         @Override
         protected final void dispose(final ServiceRegistrationHolder<S, T> registration, final boolean bundleStop) throws Exception {
             registration.unregister();
-            cleanupService(registration.serviceInstance);
+            cleanupService(registration.serviceInstance, getProperties(registration.getReference()));
         }
     }
 

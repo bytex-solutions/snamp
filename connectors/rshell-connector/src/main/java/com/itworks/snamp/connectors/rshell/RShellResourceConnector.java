@@ -317,7 +317,6 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
 
     private final CommandExecutionChannel executionChannel;
     private final RShellAttributes attributes;
-    private final RShellConnectionOptions options;
 
     /**
      * Initializes a new management connector.
@@ -325,7 +324,6 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
      * @param connectionOptions Management connector initialization options.
      */
     RShellResourceConnector(final RShellConnectionOptions connectionOptions) throws Exception {
-        this.options = connectionOptions;
         executionChannel = connectionOptions.createExecutionChannel();
         attributes = new RShellAttributes(executionChannel, new OSGiScriptEngineManager(Utils.getBundleContextByObject(this)));
     }
@@ -333,21 +331,6 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     RShellResourceConnector(final String connectionString,
                                    final Map<String, String> connectionOptions) throws Exception{
         this(new RShellConnectionOptions(connectionString, connectionOptions));
-    }
-
-    /**
-     * Updates resource connector with a new connection options.
-     *
-     * @param connectionString     A new connection string.
-     * @param connectionParameters A new connection parameters.
-     * @throws Exception                                                                                 Unable to update managed resource connector.
-     * @throws UnsupportedUpdateOperationException This operation is not supported
-     *                                                                                                   by this resource connector.
-     */
-    @Override
-    public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
-        if(!options.equals(connectionString, connectionParameters))
-            throw new UnsupportedUpdateOperationException("RShell connector doesn't support updating");
     }
 
     /**
