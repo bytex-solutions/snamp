@@ -32,7 +32,7 @@ final class SuggestAdapterParameterValuesOperation extends AbstractSnampComponen
         final String parameterName = getArgument(PARAM_NAME_PARAM.getName(), String.class, arguments);
         final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
         final Map<String, String> tabularData =
-                transformTabularDataToMap(getArgument(CONNECTION_STRING_PARAM.getName(), TabularData.class, arguments));
+                MonitoringUtils.transformTabularDataToMap(getArgument(CONNECTION_STRING_PARAM.getName(), TabularData.class, arguments));
 
         final SnampComponentDescriptor adapter = snampManager.getResourceAdapter(adapterName);
         if (adapter == null) throw new IllegalArgumentException(String.format("Adapter %s doesn't exist", adapterName));
