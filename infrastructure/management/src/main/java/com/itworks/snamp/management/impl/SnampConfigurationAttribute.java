@@ -8,7 +8,9 @@ import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.configuration.SerializableAgentConfiguration;
 import com.itworks.snamp.configuration.diff.ConfigurationDiffEngine;
+import com.itworks.snamp.jmx.CompositeTypeBuilder;
 import com.itworks.snamp.jmx.OpenMBean;
+import com.itworks.snamp.jmx.TabularTypeBuilder;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
@@ -26,7 +28,7 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  *
  * @author Evgeniy Kirichenko
  */
-final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<CompositeData, CompositeType> {
+final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<CompositeData, CompositeType> implements CommonOpenTypesSupport {
 
     private static final String NAME = "configuration";
 
@@ -37,152 +39,64 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     private static final CompositeType ATTRIBUTE_METADATA;
     private static final TabularType CONNECTOR_EVENT_MAP_TYPE;
     private static final TabularType CONNECTOR_ATTRIBUTE_MAP_TYPE;
-    private static final TabularType SIMPLE_MAP_TYPE;
     private static final TabularType ADAPTER_MAP_TYPE;
     private static final TabularType CONNECTOR_MAP_TYPE;
 
-
+    private static final TabularTypeBuilder CONNECTOR_ATTRIBUTE_MAP_TYPE_BUILDER;
+    private static final TabularTypeBuilder ADAPTER_MAP_TYPE_BUILDER;
+    private static final TabularTypeBuilder CONNECTOR_MAP_TYPE_BUILDER;
+    private static final TabularTypeBuilder CONNECTOR_EVENT_MAP_TYPE_BUILDER;
+    private static final CompositeTypeBuilder CONNECTOR_METADATA_BUILDER;
+    private static final CompositeTypeBuilder ADAPTER_METADATA_BUILDER;
+    private static final CompositeTypeBuilder SNAMP_CONFIGURATION_DATA_BUILDER;
 
     static{
         try {
-            SIMPLE_MAP_TYPE = new TabularType("com.itworks.management.MapType",
-                    "Simple type for Map<String, String>",
-                    new CompositeType("com.itworks.management.SimpleStringMap",
-                            "Additional parameters for filtering suggested values",
-                            new String[]{"key", "value"},
-                            new String[]{"Parameter key", "Parameter value"},
-                            new OpenType<?>[]{SimpleType.STRING, SimpleType.STRING}),
-                    new String[]{"key"}
-            );
 
+            EVENT_METADATA = EVENT_METADATA_BUILDER.build();
+            ATTRIBUTE_METADATA = ATTRIBUTE_METADATA_BUILDER.build();
 
-            EVENT_METADATA = new CompositeType("com.itworks.management.EventMetadata",
-                    "SNAMP Connector Event Metadata",
-                    new String[]{
-                            "Category",
-                            "AdditionalProperties"
-                    },
-                    new String[]{
-                            "Connector event category",
-                            "User defined property for event"},
-                    new OpenType<?>[]{
-                            SimpleType.STRING,
-                            SIMPLE_MAP_TYPE
-                    }
-            );
+            CONNECTOR_ATTRIBUTE_MAP_TYPE_BUILDER = new TabularTypeBuilder("com.itworks.management.ConnectorAttributeMapType", "Simple type for Map<String, EventMetadata>")
+                    .addColumn("name", "User defined name for connector's attribute", SimpleType.STRING, true)
+                    .addColumn("attribute", "Attribute metadata instance", ATTRIBUTE_METADATA, false);
 
-            ATTRIBUTE_METADATA = new CompositeType("com.itworks.management.AttributeMetadata",
-                    "SNAMP connector attribute metadata scheme",
-                    new String[]{
-                            "Name",
-                            "ReadWriteTimeout",
-                            "AdditionalProperties"
-                    },
-                    new String[]{
-                            "Connector attribute name",
-                            "Read write timeout for connector attribute",
-                            "User defined properties for attribute"},
-                    new OpenType<?>[]{
-                            SimpleType.STRING,
-                            SimpleType.LONG,
-                            SIMPLE_MAP_TYPE
-                    }
-            );
+            CONNECTOR_EVENT_MAP_TYPE_BUILDER = new TabularTypeBuilder("com.itworks.management.ConnectorEventMapType", "Simple type for Map<String, AttributeMetadata>")
+                    .addColumn("name", "User defined name for connector's event", SimpleType.STRING, true)
+                    .addColumn("event", "Event metadata instance", EVENT_METADATA, false);
 
-            CONNECTOR_ATTRIBUTE_MAP_TYPE = new TabularType("com.itworks.management.ConnectorAttributeMapType",
-                    "Simple type for Map<String, EventMetadata>",
-                    new CompositeType("com.itworks.management.SimpleConnectorAttributeMap",
-                            "Type for holding snamp adapters configuration",
-                            new String[]{"name", "attribute"},
-                            new String[]{"User defined name for connector's attribute", "Attribute metadata instance"},
-                            new OpenType<?>[]{SimpleType.STRING, ATTRIBUTE_METADATA}),
-                    new String[]{"name"}
-            );
+            CONNECTOR_ATTRIBUTE_MAP_TYPE = CONNECTOR_ATTRIBUTE_MAP_TYPE_BUILDER.build();
+            CONNECTOR_EVENT_MAP_TYPE = CONNECTOR_EVENT_MAP_TYPE_BUILDER.build();
 
-            CONNECTOR_EVENT_MAP_TYPE = new TabularType("com.itworks.management.ConnectorEventMapType",
-                    "Simple type for Map<String, AttributeMetadata>",
-                    new CompositeType("com.itworks.management.SimpleConnectorEventMap",
-                            "Type for holding snamp adapters configuration",
-                            new String[]{"name", "event"},
-                            new String[]{"User defined name for connector's event", "Event metadata instance"},
-                            new OpenType<?>[]{SimpleType.STRING, EVENT_METADATA}),
-                    new String[]{"name"}
-            );
+            CONNECTOR_METADATA_BUILDER = new CompositeTypeBuilder("com.itworks.management.ConnectorMetadata", "SNAMP connector configuration metadata")
+                    .addItem("ConnectionString", "Management target connection string", SimpleType.STRING)
+                    .addItem("ConnectionType", "Type of the management connector that is used to organize monitoring data exchange between agent and the management provider", SimpleType.STRING)
+                    .addItem("Attributes", "Attributes", CONNECTOR_ATTRIBUTE_MAP_TYPE)
+                    .addItem("Events", "Events", CONNECTOR_EVENT_MAP_TYPE)
+                    .addItem("Parameters", "User defined properties for connector", SIMPLE_MAP_TYPE);
 
-            CONNECTOR_METADATA = new CompositeType("com.itworks.management.ConnectorMetadata",
-                    "SNAMP connector configuration metadata",
-                    new String[]{
-                            "ConnectionString",
-                            "ConnectionType",
-                            "Attributes",
-                            "Events",
-                            "Parameters"
-                    },
-                    new String[]{
-                            "Management target connection string",
-                            "Type of the management connector that is used to organize monitoring data exchange between" +
-                                    " agent and the management provider",
-                            "Attributes",
-                            "Events",
-                            "User defined properties for connector"},
-                    new OpenType<?>[]{
-                            SimpleType.STRING,
-                            SimpleType.STRING,
-                            CONNECTOR_ATTRIBUTE_MAP_TYPE,
-                            CONNECTOR_EVENT_MAP_TYPE,
-                            SIMPLE_MAP_TYPE
-                    }
-            );
+            ADAPTER_METADATA_BUILDER = new CompositeTypeBuilder("com.itworks.management.AdapterMetadata", "SNAMP adapter configuration metadata")
+                    .addItem("Name", "SNAMP adapter name", SimpleType.STRING)
+                    .addItem("Parameters", "Additional properties for SNAMP adapter", SIMPLE_MAP_TYPE);
 
-            ADAPTER_METADATA = new CompositeType("com.itworks.management.AdapterMetadata",
-                    "SNAMP adapter configuration metadata",
-                    new String[]{
-                            "Name",
-                            "Parameters"
-                    },
-                    new String[]{
-                            "SNAMP adapter name",
-                            "Additional properties for SNAMP adapter"},
-                    new OpenType<?>[]{
-                            SimpleType.STRING,
-                            SIMPLE_MAP_TYPE
-                    }
-            );
+            CONNECTOR_METADATA = CONNECTOR_METADATA_BUILDER.build();
+            ADAPTER_METADATA = ADAPTER_METADATA_BUILDER.build();
 
-            ADAPTER_MAP_TYPE = new TabularType("com.itworks.management.AdapterMapType",
-                    "Simple type for Map<String, Adapter>",
-                    new CompositeType("com.itworks.management.SimpleAdapterMap",
-                            "Type for holding snamp adapters configuration",
-                            new String[]{"name", "adapter"},
-                            new String[]{"User defined name for adapter", "Adapter instance"},
-                            new OpenType<?>[]{SimpleType.STRING, ADAPTER_METADATA}),
-                    new String[]{"name"}
-            );
+            ADAPTER_MAP_TYPE_BUILDER = new TabularTypeBuilder("com.itworks.management.AdapterMapType", "Simple type for Map<String, Adapter>")
+                    .addColumn("name", "User defined name for adapter", SimpleType.STRING, true)
+                    .addColumn("adapter", "Adapter instance", ADAPTER_METADATA, false);
 
-            CONNECTOR_MAP_TYPE = new TabularType("com.itworks.management.ConnectorMapType",
-                    "Simple type for Map<String, Connector>",
-                    new CompositeType("com.itworks.management.SimpleConnectorMap",
-                            "Type for holding snamp connectors configuration",
-                            new String[]{"name", "connector"},
-                            new String[]{"User defined name for connector", "Connector instance"},
-                            new OpenType<?>[]{SimpleType.STRING, CONNECTOR_METADATA}),
-                    new String[]{"name"}
-            );
+            CONNECTOR_MAP_TYPE_BUILDER = new TabularTypeBuilder("com.itworks.management.ConnectorMapType", "Simple type for Map<String, Connector>")
+                    .addColumn("name", "User defined name for connector", SimpleType.STRING, true)
+                    .addColumn("connector", "Connector instance", CONNECTOR_METADATA, false);
 
-            SNAMP_CONFIGURATION_DATA = new CompositeType("com.itworks.management.SnampConfiguration",
-                    "SNAMP main configuration metadata",
-                    new String[]{
-                            "ResourceAdapters",
-                            "ManagedResources"
-                    },
-                    new String[]{
-                            "SNAMP resource adapters configuration",
-                            "SNAMP managed resources configuration"},
-                    new OpenType<?>[]{
-                            ADAPTER_MAP_TYPE,
-                            CONNECTOR_MAP_TYPE
-                    }
-            );
+            ADAPTER_MAP_TYPE = ADAPTER_MAP_TYPE_BUILDER.build();
+            CONNECTOR_MAP_TYPE = CONNECTOR_MAP_TYPE_BUILDER.build();
+
+            SNAMP_CONFIGURATION_DATA_BUILDER = new CompositeTypeBuilder("com.itworks.management.SnampConfiguration", "SNAMP main configuration metadata")
+                    .addItem("ResourceAdapters", "SNAMP resource adapters configuration", ADAPTER_MAP_TYPE)
+                    .addItem("ManagedResources", "SNAMP managed resources configuration", CONNECTOR_MAP_TYPE);
+
+            SNAMP_CONFIGURATION_DATA = SNAMP_CONFIGURATION_DATA_BUILDER.build();
         } catch (final OpenDataException e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -205,13 +119,13 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             }
 
             // parse attribute user defined parameters
-            attributeMap.put("AdditionalProperties", transformAdditionalPropertiesToTabularData(map.get(attributeName).getParameters()));
+            attributeMap.put("AdditionalProperties", MonitoringUtils.transformAdditionalPropertiesToTabularData(map.get(attributeName).getParameters()));
 
             // append current attribute to the map
-            attributesMap.put(new CompositeDataSupport(attributesMap.getTabularType().getRowType(),
-                    ImmutableMap.<String, Object>of(
+            attributesMap.put( new CompositeDataSupport(attributesMap.getTabularType().getRowType(),
+                    ImmutableMap.of(
                             "name", attributeName,
-                            "attribute", new CompositeDataSupport(ATTRIBUTE_METADATA, attributeMap))));
+                            "attribute", ATTRIBUTE_METADATA_BUILDER.build(attributeMap))));
         }
         return attributesMap;
     }
@@ -226,7 +140,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             eventSimpleMap.put("Category", map.get(eventName).getCategory());
 
             // parse attribute user defined parameters
-            eventSimpleMap.put("AdditionalProperties", transformAdditionalPropertiesToTabularData(map.get(eventName).getParameters()));
+            eventSimpleMap.put("AdditionalProperties", MonitoringUtils.transformAdditionalPropertiesToTabularData(map.get(eventName).getParameters()));
 
             // append current attribute to the map
             eventMap.put(new CompositeDataSupport(eventMap.getTabularType().getRowType(),
@@ -235,19 +149,6 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                             "event", new CompositeDataSupport(EVENT_METADATA, eventSimpleMap))));
         }
         return eventMap;
-    }
-
-    private static TabularDataSupport transformAdditionalPropertiesToTabularData(final Map<String, String> map) throws OpenDataException {
-        final TabularDataSupport tabularDataSupport =  new TabularDataSupport(SIMPLE_MAP_TYPE);
-        if (map != null) {
-            for (final String key : map.keySet()) {
-                tabularDataSupport.put(new CompositeDataSupport(tabularDataSupport.getTabularType().getRowType(),
-                        ImmutableMap.<String, Object>of(
-                                "key", key,
-                                "value", map.get(key))));
-            }
-        }
-        return tabularDataSupport;
     }
 
     /**
@@ -271,7 +172,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             currentAdapter.put("Name", adapterMapConfig.get(adapterName).getAdapterName());
 
             // parse adapter's user defined parameters
-            currentAdapter.put("Parameters", transformAdditionalPropertiesToTabularData(adapterMapConfig.get(adapterName).getParameters()));
+            currentAdapter.put("Parameters", MonitoringUtils.transformAdditionalPropertiesToTabularData(adapterMapConfig.get(adapterName).getParameters()));
 
             // add current adapter to the main adapters map
             adapterMap.put(new CompositeDataSupport(adapterMap.getTabularType().getRowType(),
@@ -303,7 +204,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             currentConnector.put("Events", parseConnectorEvents(eventMap));
 
             // parse connector's user defined properties
-            currentConnector.put("Parameters", transformAdditionalPropertiesToTabularData(connectors.get(connectorName).getParameters()));
+            currentConnector.put("Parameters", MonitoringUtils.transformAdditionalPropertiesToTabularData(connectors.get(connectorName).getParameters()));
 
             // append current connector to the map
             connectorMap.put(new CompositeDataSupport(connectorMap.getTabularType().getRowType(),

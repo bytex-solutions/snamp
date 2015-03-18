@@ -42,20 +42,10 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
     private static final CompositeType EVENT_METADATA;
     private static final CompositeType ATTRIBUTE_METADATA;
 
-    private static final CompositeTypeBuilder EVENT_METADATA_BUILDER;
     private static final CompositeTypeBuilder CONNECTOR_METADATA_BUILDER;
-    private static final CompositeTypeBuilder ATTRIBUTE_METADATA_BUILDER;
 
     static{
         try {
-            EVENT_METADATA_BUILDER = new CompositeTypeBuilder("com.itworks.management.EventMetadata", "SNAMP Connector Event Metadata")
-                    .addItem("Category", "Connector event category", SimpleType.STRING)
-                    .addItem("AdditionalProperties", "User defined property for event", SIMPLE_MAP_TYPE);
-
-            ATTRIBUTE_METADATA_BUILDER = new CompositeTypeBuilder("com.itworks.management.AttributeMetadata", "SNAMP connector attribute metadata scheme")
-                    .addItem("Name", "Connector attribute name", SimpleType.STRING)
-                    .addItem("ReadWriteTimeout", "Read write timeout for connector attribute", SimpleType.LONG)
-                    .addItem("AdditionalProperties", "User defined property for attribute", SIMPLE_MAP_TYPE);
 
             EVENT_METADATA = EVENT_METADATA_BUILDER.build();
             ATTRIBUTE_METADATA = ATTRIBUTE_METADATA_BUILDER.build();
