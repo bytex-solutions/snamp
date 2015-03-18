@@ -1,10 +1,9 @@
 package com.itworks.snamp.management.impl;
 
-import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.jmx.OpenMBean;
 import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.FrameworkMBean;
-import com.itworks.snamp.jmx.OpenMBean;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogService;
@@ -101,19 +100,4 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
         else return null;
     }
 
-    /**
-     * Interface static initialize.
-     *
-     * @param <T>  the type parameter
-     * @param initializer the initializer
-     * @return the t
-     * @throws ExceptionInInitializerError the exception in initializer error
-     */
-    static <T> T interfaceStaticInitialize(final ExceptionalCallable<T, OpenDataException> initializer) throws ExceptionInInitializerError{
-        try {
-            return initializer.call();
-        } catch (OpenDataException e) {
-            throw new ExceptionInInitializerError(e);
-        }
-    }
 }

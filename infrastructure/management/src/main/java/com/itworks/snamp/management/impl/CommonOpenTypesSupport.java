@@ -14,7 +14,7 @@ import javax.management.openmbean.TabularType;
  *
  * @author Evgeniy Kirichenko
  */
-public interface CommonOpenTypesSupport {
+interface CommonOpenTypesSupport {
 
     /**
      * The LOCALE parameter.
@@ -44,16 +44,16 @@ public interface CommonOpenTypesSupport {
     /**
      * The constant CONNECTION_PARAMS_SCHEMA.
      */
-    static final TabularType SIMPLE_MAP_TYPE = SnampCoreMBean.interfaceStaticInitialize(
+    static final TabularType SIMPLE_MAP_TYPE = MonitoringUtils.interfaceStaticInitialize(
             new ExceptionalCallable<TabularType, OpenDataException>() {
-        @Override
-        public TabularType call() throws OpenDataException {
-            return new TabularTypeBuilder("com.itworks.management.map",
-                    "Simple key-value tabular type for the common goals")
-                    .addColumn("key", "Parameter key", SimpleType.STRING, true)
-                    .addColumn("value", "Parameter value", SimpleType.STRING, false)
-                    .build();
-        }
-    });
+                @Override
+                public TabularType call() throws OpenDataException {
+                    return new TabularTypeBuilder("com.itworks.management.map",
+                            "Simple key-value tabular type for the common goals")
+                            .addColumn("key", "Parameter key", SimpleType.STRING, true)
+                            .addColumn("value", "Parameter value", SimpleType.STRING, false)
+                            .build();
+                }
+            });
 
 }

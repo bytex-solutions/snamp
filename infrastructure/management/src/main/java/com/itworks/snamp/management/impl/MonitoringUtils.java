@@ -1,6 +1,7 @@
 package com.itworks.snamp.management.impl;
 
 import com.itworks.snamp.Consumer;
+import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.core.OSGiLoggingContext;
 
@@ -58,5 +59,21 @@ final class MonitoringUtils {
      */
     static Logger getLogger() {
         return Logger.getLogger(LOGGER_NAME);
+    }
+
+    /**
+     * Interface static initialize.
+     *
+     * @param <T>  the type parameter
+     * @param initializer the initializer
+     * @return the t
+     * @throws ExceptionInInitializerError the exception in initializer error
+     */
+    static <T> T interfaceStaticInitialize(final ExceptionalCallable<T, ?> initializer) throws ExceptionInInitializerError{
+        try {
+            return initializer.call();
+        } catch (final Exception e) {
+            throw new ExceptionInInitializerError(e);
+        }
     }
 }
