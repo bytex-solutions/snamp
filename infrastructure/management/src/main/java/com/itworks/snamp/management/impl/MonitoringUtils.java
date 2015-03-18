@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * The type Monitoring utils.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -19,6 +20,13 @@ final class MonitoringUtils {
 
     }
 
+    /**
+     * With logger.
+     *
+     * @param <E>  the type parameter
+     * @param loggerHandler the logger handler
+     * @throws E the e
+     */
     static <E extends Exception> void withLogger(final Consumer<Logger, E> loggerHandler) throws E{
         OSGiLoggingContext.within(LOGGER_NAME, loggerHandler);
     }
@@ -32,10 +40,22 @@ final class MonitoringUtils {
         });
     }
 
+    /**
+     * Log void.
+     *
+     * @param lvl the lvl
+     * @param message the message
+     * @param e the e
+     */
     static void log(final Level lvl, final String message, final Throwable e){
         log(lvl, message, new Object[0], e);
     }
 
+    /**
+     * Gets logger.
+     *
+     * @return the logger
+     */
     static Logger getLogger() {
         return Logger.getLogger(LOGGER_NAME);
     }

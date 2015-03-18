@@ -15,10 +15,11 @@ import java.util.Objects;
 import java.util.logging.Level;
 
 /**
-* @author Roman Sakno
-* @version 1.0
-* @since 1.0
-*/
+ * The type Installed components.
+ * @author Roman Sakno
+ * @version 1.0
+ * @since 1.0
+ */
 final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, TabularType> {
     private static final String NAME_COLUMN = "Name";
     private static final String DESCRIPTION_COLUMN = "Description";
@@ -67,6 +68,12 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
 
     private final SnampManager manager;
 
+    /**
+     * Instantiates a new Installed components.
+     *
+     * @param manager the manager
+     * @throws OpenDataException the open data exception
+     */
     InstalledComponents(final SnampManager manager) throws OpenDataException{
         super("InstalledComponents", createTabularType());
         this.manager = Objects.requireNonNull(manager);

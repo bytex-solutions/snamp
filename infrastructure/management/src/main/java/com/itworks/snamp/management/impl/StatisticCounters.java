@@ -7,6 +7,7 @@ import org.osgi.service.log.LogService;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * The type Statistic counters.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -34,6 +35,11 @@ final class StatisticCounters {
         timer = Stopwatch.createUnstarted();
     }
 
+    /**
+     * Set renewal time.
+     *
+     * @param value the value
+     */
     public synchronized void setRenewalTime(final TimeSpan value){
         timer.stop();
         this.frequency = value;
@@ -41,10 +47,21 @@ final class StatisticCounters {
         timer.start();
     }
 
+    /**
+     * Get renewal time.
+     *
+     * @return the time span
+     */
     public TimeSpan getRenewalTime(){
         return frequency;
     }
 
+    /**
+     * Get value.
+     *
+     * @param level the level
+     * @return the long
+     */
     public long getValue(final int level){
         if(resetTimerIfNecessary())
             resetCounters();
@@ -80,6 +97,11 @@ final class StatisticCounters {
         }
     }
 
+    /**
+     * Increment void.
+     *
+     * @param eventType the event type
+     */
     public void increment(final int eventType){
         if(resetTimerIfNecessary())
             resetCounters();
@@ -93,6 +115,9 @@ final class StatisticCounters {
         counter.incrementAndGet();
     }
 
+    /**
+     * Start void.
+     */
     void start() {
         timer.start();
     }

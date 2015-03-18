@@ -1,7 +1,6 @@
 package com.itworks.snamp.management.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Box;
 import com.itworks.snamp.Consumer;
@@ -10,6 +9,9 @@ import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
+import com.itworks.snamp.jmx.CompositeTypeBuilder;
+import com.itworks.snamp.jmx.TabularDataBuilderRowFill;
+import com.itworks.snamp.jmx.TabularTypeBuilder;
 import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.jmx.OpenMBean;
@@ -18,14 +20,16 @@ import javax.management.openmbean.*;
 import java.util.*;
 
 /**
+ * The type Configuration schema operation.
  * @author Roman Sakno
+ * @author Evgeniy Kirichenko
  * @version 1.0
  * @since 1.0
  */
-abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<CompositeData, CompositeType> {
+abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<CompositeData, CompositeType> implements CommonOpenTypesSupport {
     private static final CompositeType COMPONENT_CONFIG_SCHEMA;
-    private static String MANAGED_RESOURCE_PARAMS = "managedResourceParameters";
-    private static String RESOURCE_ADAPTER_PARAMS = "resourceAdapterParameters";
+    private static final String MANAGED_RESOURCE_PARAMS = "managedResourceParameters";
+    private static final String RESOURCE_ADAPTER_PARAMS = "resourceAdapterParameters";
     private static final String ATTRIBUTE_PARAMS = "attributeParameters";
     private static final String EVENT_PARAMS = "eventParameters";
 
@@ -41,78 +45,60 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
 
     private static final TabularType CONFIG_ENTITY_SCHEMA;
 
+    // Builders (helper fields).
+    private static final CompositeTypeBuilder CONFIG_PARAM_BUILDER;
+    private static final TabularTypeBuilder CONFIG_ENTITY_SCHEMA_BUILDER;
+    private static final CompositeTypeBuilder COMPONENT_CONFIG_SCHEMA_BUILDER;
+
     static{
         try {
             //CONFIG_PARAMETER_DESCRIPTOR
-            CONFIG_PARAMETER_DESCRIPTOR = new CompositeType("com.itworks.management.ConfigParameter",
-                    "Configuration parameter descriptor",
-                    new String[]{
-                            DEFAULT_VALUE,
-                            DESCRIPTION,
-                            INPUT_PATTERN,
-                            REQUIRED,
-                            SUGGESTIONS_SUPPORTED,
-                            ASSOCIATED,
-                            EXTENDS,
-                            EXCLUDES
-                    },
-                    new String[]{
-                            "The default value of the configuration parameter",
-                            "The description of the configuration parameter",
-                            "Regexp that can be used to validate configuration parameter value",
-                            "Determines whether this configuration parameter should be specified in the configuration",
-                            "Determines whether the SNAMP can suggest possible values of this configuration parameter",
-                            "A collection of related configuration parameters",
-                            "A collection of configuration parameters that may extends the effect f this configuration parameter",
-                            "A collection of configuration parameters that cannot be combined with this configuration parameter"
-                    },
-                    new OpenType<?>[]{
-                            SimpleType.STRING,
-                            SimpleType.STRING,
-                            SimpleType.STRING,
-                            SimpleType.BOOLEAN,
-                            SimpleType.BOOLEAN,
-                            ArrayType.getArrayType(SimpleType.STRING),
-                            ArrayType.getArrayType(SimpleType.STRING),
-                            ArrayType.getArrayType(SimpleType.STRING)
-                    });
+            CONFIG_PARAM_BUILDER = new CompositeTypeBuilder("com.itworks.management.ConfigParameter", "Configuration parameter descriptor")
+                    .addItem(DEFAULT_VALUE, "The default value of the configuration parameter", SimpleType.STRING)
+                    .addItem(DESCRIPTION, "The description of the configuration parameter", SimpleType.STRING)
+                    .addItem(INPUT_PATTERN, "Regexp that can be used to validate configuration parameter value", SimpleType.STRING)
+                    .addItem(REQUIRED, "Determines whether this configuration parameter should be specified in the configuration", SimpleType.BOOLEAN)
+                    .addItem(SUGGESTIONS_SUPPORTED, "Determines whether the SNAMP can suggest possible values of this configuration parameter", SimpleType.BOOLEAN)
+                    .addItem(ASSOCIATED, "A collection of related configuration parameters", ArrayType.getArrayType(SimpleType.STRING))
+                    .addItem(EXTENDS, "A collection of configuration parameters that may extends the effect for this configuration parameter", ArrayType.getArrayType(SimpleType.STRING))
+                    .addItem(EXCLUDES, "A collection of configuration parameters that cannot be combined with this configuration parameter", ArrayType.getArrayType(SimpleType.STRING));
+
+            CONFIG_PARAMETER_DESCRIPTOR = CONFIG_PARAM_BUILDER.build();
+
+
             //CONFIG_ENTITY_SCHEMA
-            CONFIG_ENTITY_SCHEMA = new TabularType("com.itworks.management.ConfigEntitySchema",
-                    "Configuration entity schema",
-                    new CompositeType("com.itworks.management.ConfigEntitySchemaEntry",
-                            "Configuration parameter description",
-                            new String[]{"parameter", "description"},
-                            new String[]{"Parameter name", "Parameter descriptor"},
-                            new OpenType<?>[]{SimpleType.STRING, CONFIG_PARAMETER_DESCRIPTOR}),
-                    new String[]{"parameter"}
-            );
+            CONFIG_ENTITY_SCHEMA_BUILDER = new TabularTypeBuilder("com.itworks.management.ConfigEntitySchema", "Configuration entity schema")
+                    .addColumn("parameter", "Parameter name", SimpleType.STRING, true)
+                    .addColumn("description", "Parameter descriptor", CONFIG_PARAMETER_DESCRIPTOR, false);
+
+            CONFIG_ENTITY_SCHEMA = CONFIG_ENTITY_SCHEMA_BUILDER.build();
+
+
             //COMPONENT_CONFIG_SCHEMA
-            COMPONENT_CONFIG_SCHEMA = new CompositeType("com.itworks.management.ConnectorConfigSchema",
-                    "SNAMP Connector Configuration Schema",
-                    new String[]{
-                            MANAGED_RESOURCE_PARAMS,
-                            RESOURCE_ADAPTER_PARAMS,
-                            ATTRIBUTE_PARAMS,
-                            EVENT_PARAMS},
-                    new String[]{
-                            "A set of managed resource related parameters",
-                            "A set of resource adapter related parameters",
-                            "Attribute configuration parameters",
-                            "Event configuration parameters"},
-                    new OpenType<?>[]{
-                            CONFIG_ENTITY_SCHEMA,
-                            CONFIG_ENTITY_SCHEMA,
-                            CONFIG_ENTITY_SCHEMA,
-                            CONFIG_ENTITY_SCHEMA
-                    }
-            );
+            COMPONENT_CONFIG_SCHEMA_BUILDER = new CompositeTypeBuilder("com.itworks.management.ConnectorConfigSchema", "SNAMP Connector Configuration Schema")
+                    .addItem(MANAGED_RESOURCE_PARAMS, "A set of managed resource related parameters", CONFIG_ENTITY_SCHEMA)
+                    .addItem(RESOURCE_ADAPTER_PARAMS, "A set of resource adapter related parameters", CONFIG_ENTITY_SCHEMA)
+                    .addItem(ATTRIBUTE_PARAMS, "Attribute configuration parameters", CONFIG_ENTITY_SCHEMA)
+                    .addItem(EVENT_PARAMS, "Event configuration parameters", CONFIG_ENTITY_SCHEMA);
+
+            COMPONENT_CONFIG_SCHEMA = COMPONENT_CONFIG_SCHEMA_BUILDER.build();
         } catch (final OpenDataException e) {
             throw new ExceptionInInitializerError(e);
         }
     }
 
+    /**
+     * The Snamp manager.
+     */
     protected final AbstractSnampManager snampManager;
 
+    /**
+     * Instantiates a new Configuration schema operation.
+     *
+     * @param snampManager the snamp manager
+     * @param operationName the operation name
+     * @param parameters the parameters
+     */
     protected ConfigurationSchemaOperation(final AbstractSnampManager snampManager,
                                            final String operationName,
                                            final OpenMBeanParameterInfo... parameters) {
@@ -129,7 +115,7 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
     }
 
     private static TabularData getConfigurationSchema(final ConfigurationEntityDescription<?> description, final Locale loc) throws OpenDataException{
-        final TabularDataSupport result = new TabularDataSupport(CONFIG_ENTITY_SCHEMA);
+        final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONFIG_ENTITY_SCHEMA);
         if(description != null)
             for(final String parameterName: description){
                 final Map<String, Object> parameter = new HashMap<>();
@@ -149,24 +135,34 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
                         relationship.add(relatedParameter);
                     parameter.put(getRelationshipKey(rel), ArrayUtils.toArray(relationship, String.class));
                 }
-                result.put(new CompositeDataSupport(result.getTabularType().getRowType(),
-                        ImmutableMap.<String, Object>of(
-                                "parameter", parameterName,
-                                "description", new CompositeDataSupport(CONFIG_PARAMETER_DESCRIPTOR, parameter))));
+                builder.newRow()
+                        .cell("parameter", parameterName)
+                        .cell("description", CONFIG_PARAM_BUILDER.build(parameter))
+                        .flush();
             }
-        return result;
+        return builder.get();
     }
 
     private static CompositeData getConfigurationSchema(final ConfigurationEntityDescriptionProvider schemaProvider,
                                                         final Locale loc) throws OpenDataException {
-        final Map<String, TabularData> schema = Maps.newHashMapWithExpectedSize(COMPONENT_CONFIG_SCHEMA.keySet().size());
-        schema.put(MANAGED_RESOURCE_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ManagedResourceConfiguration.class), loc));
-        schema.put(RESOURCE_ADAPTER_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ResourceAdapterConfiguration.class), loc));
-        schema.put(ATTRIBUTE_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class), loc));
-        schema.put(EVENT_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class), loc));
-        return new CompositeDataSupport(COMPONENT_CONFIG_SCHEMA, schema);
+        return COMPONENT_CONFIG_SCHEMA_BUILDER.build(
+                ImmutableMap.of(
+                    MANAGED_RESOURCE_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ManagedResourceConfiguration.class), loc),
+                    RESOURCE_ADAPTER_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ResourceAdapterConfiguration.class), loc),
+                    ATTRIBUTE_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class), loc),
+                    EVENT_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class), loc)
+                )
+        );
     }
 
+    /**
+     * Gets configuration schema.
+     *
+     * @param component the component
+     * @param locale the locale
+     * @return the configuration schema
+     * @throws OpenDataException the open data exception
+     */
     protected static CompositeData getConfigurationSchema(final SnampComponentDescriptor component,
                                                         final String locale) throws OpenDataException {
         final Box<CompositeData> result = new Box<>();

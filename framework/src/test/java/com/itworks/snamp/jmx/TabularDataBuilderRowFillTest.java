@@ -11,7 +11,7 @@ import javax.management.openmbean.*;
  * @version 1.0
  * @since 1.0
  */
-public final class TabularDataBuilder2Test extends Assert {
+public final class TabularDataBuilderRowFillTest extends Assert {
     @Test
     public void builderTest() throws OpenDataException {
         final TabularType type = new TabularTypeBuilder()
@@ -20,7 +20,7 @@ public final class TabularDataBuilder2Test extends Assert {
                 .addColumn("column1", "dummy desc", SimpleType.STRING, true)
                 .addColumn("column2", "dummy desc", SimpleType.BOOLEAN, false)
                 .build();
-        final TabularData data = new TabularDataBuilder2(type)
+        final TabularData data = new TabularDataBuilderRowFill(type)
                 .newRow()
                     .cell("column1", "Frank Underwood")
                     .cell("column2", false)

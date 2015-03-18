@@ -7,18 +7,20 @@ import com.itworks.snamp.management.SnampComponentDescriptor;
 import javax.management.openmbean.*;
 import java.util.Map;
 
+
 /**
- * Created by temni on 2/8/2015.
+ * The type Suggest connector parameter values operation.
+ * @author Evgeniy Kirichenko
  */
 final class SuggestConnectorParameterValuesOperation extends AbstractSnampComponentParamValueOperation {
     private static final String NAME = "suggestConnectorParameterValues";
 
-    private static final OpenMBeanParameterInfo CONNECTOR_NAME_PARAM = new OpenMBeanParameterInfoSupport(
-            "connectorName",
-            "The name of the connector",
-            SimpleType.STRING
-    );
-
+    /**
+     * Instantiates a new Suggest connector parameter values operation.
+     *
+     * @param snampManager the snamp manager
+     * @throws OpenDataException the open data exception
+     */
     SuggestConnectorParameterValuesOperation(final AbstractSnampManager snampManager) throws OpenDataException {
         super(snampManager, NAME, CONNECTOR_NAME_PARAM, PARAM_NAME_PARAM, CONNECTION_STRING_PARAM, LOCALE_PARAM);
     }

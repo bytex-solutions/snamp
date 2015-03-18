@@ -8,13 +8,18 @@ import org.osgi.framework.BundleException;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
+
 /**
- * Created by temni on 2/8/2015.
+ * The type Restart operation.
+ * @author Evgeniy Kirichenko
  */
 final class RestartOperation extends OpenMBean.OpenOneWayOperation {
 
     private static final String NAME = "restart";
 
+    /**
+     * Instantiates a new Restart operation.
+     */
     RestartOperation() {
         super(NAME);
     }
