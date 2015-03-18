@@ -18,6 +18,7 @@ import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularType;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.logging.Level;
 
 /**
  * Abstract class for SNAMP component info
@@ -101,7 +102,7 @@ abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeDa
                         .cell("description", input.getDescription(limitation, loc))
                         .flush();
                 } catch (final OpenDataException e) {
-                    // do nothing
+                    MonitoringUtils.getLogger().log(Level.WARNING, e.getLocalizedMessage(), e);
                 }
             }
             }

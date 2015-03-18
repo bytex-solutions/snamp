@@ -1,6 +1,5 @@
 package com.itworks.snamp.management.impl;
 
-import com.google.common.collect.Maps;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.adapters.SelectableAdapterParameterDescriptor;
