@@ -83,6 +83,7 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
      * This class cannot be inherited.
      */
     private static final class LicensePublicKey implements DSAPublicKey {
+        private static final long serialVersionUID = -1370683573922042348L;
         private final BigInteger y = new BigInteger("128845946868065518139105100346134088561451695532489534564502511284114388615352895117640704632157997300528432493194918376860877045101144240405823813650889167435931568780129892308016828375003253778562505916526570781073798310854595087678390054241923795575971323518799459014755412400842177938026989864621895589999");
         private final String format = "X.509";
         private final String algorithm = "DSA";
@@ -145,6 +146,7 @@ final class XmlLicenseReader extends AbstractFrameworkService implements License
 
     @Override
     public void updated(final Dictionary<String, ?> properties) throws ConfigurationException {
+        if(properties == null) return;
         final InputStream licenseContent = getLicenseStream(properties);
         if (licenseContent != null)
             try {
