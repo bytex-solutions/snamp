@@ -27,6 +27,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -317,6 +318,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
 
     private final CommandExecutionChannel executionChannel;
     private final RShellAttributes attributes;
+    private final BigInteger configurationHash;
 
     /**
      * Initializes a new management connector.
@@ -326,11 +328,18 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     RShellResourceConnector(final RShellConnectionOptions connectionOptions) throws Exception {
         executionChannel = connectionOptions.createExecutionChannel();
         attributes = new RShellAttributes(executionChannel, new OSGiScriptEngineManager(Utils.getBundleContextByObject(this)));
+        configurationHash = connectionOptions.getConfigurationHash();
     }
 
     RShellResourceConnector(final String connectionString,
                                    final Map<String, String> connectionOptions) throws Exception{
         this(new RShellConnectionOptions(connectionString, connectionOptions));
+    }
+
+    @Override
+    public void update(final String connectionString, final Map<String, String> connectionParameters) throws UnsupportedUpdateOperationException {
+        if(!configurationHash.equals(RShellConnectionOptions.computeConfigurationHash(connectionString, connectionParameters)))
+            throw new UnsupportedUpdateOperationException("RShell Connector cannot be updated on-the-fly.");
     }
 
     /**

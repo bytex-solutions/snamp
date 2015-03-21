@@ -417,15 +417,4 @@ public final class ManagedResourceConnectorClient {
             admin.release(context);
         }
     }
-
-    /**
-     * Computes unique hash code for the specified connection parameters.
-     * @param connectionString The managed resource connection string.
-     * @param connectionParameters The managed resource connection parameters.
-     * @return A unique hash code generated from connection string and connection parameters.
-     */
-    public static BigInteger computeConnectionParamsHashCode(final String connectionString,
-                                                             final Map<String, String> connectionParameters){
-        return ManagedResourceActivator.computeConnectionParamsHashCode(connectionString, connectionParameters);
-    }
 }

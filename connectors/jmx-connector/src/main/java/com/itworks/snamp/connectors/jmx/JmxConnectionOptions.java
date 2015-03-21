@@ -1,12 +1,14 @@
 package com.itworks.snamp.connectors.jmx;
 
 import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.internal.Utils;
 
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,6 +29,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
     private final String login;
     private final String password;
     private final long watchDogPeriod;
+    private final BigInteger configurationHash;
 
     /**
      * Initializes a new JMX connection parameters.
@@ -40,6 +43,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
 
     JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException{
         super(connectionString);
+        this.configurationHash = computeConfigurationHash(connectionString, options);
         if(options.containsKey(JMX_LOGIN) && options.containsKey(JMX_PASSWORD)){
             login = options.get(JMX_LOGIN);
             password = options.get(JMX_PASSWORD);
@@ -47,6 +51,11 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
         else login = password = "";
         this.watchDogPeriod = options.containsKey(CONNECTION_CHECK_PERIOD) ?
                 Integer.valueOf(options.get(CONNECTION_CHECK_PERIOD)) : 3000L;
+    }
+
+    static BigInteger computeConfigurationHash(final String connectionString,
+                                               final Map<String, String> options){
+        return AbstractManagedResourceConnector.computeConnectionParamsHashCode(connectionString, options);
     }
 
     private Map<String, Object> getJmxOptions(){
@@ -82,5 +91,9 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
                 return JMXConnectorFactory.connect(JmxConnectionOptions.this, getJmxOptions());
             }
         });
+    }
+
+    public BigInteger getConfigurationHash() {
+        return configurationHash;
     }
 }

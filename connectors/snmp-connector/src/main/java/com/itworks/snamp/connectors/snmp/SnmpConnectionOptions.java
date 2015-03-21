@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.Address;
 import org.snmp4j.smi.GenericAddress;
@@ -8,6 +9,7 @@ import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -32,9 +34,11 @@ final class SnmpConnectionOptions {
     private final OctetString securityContext;
     private final int socketTimeout;
     private final Supplier<ExecutorService> threadPoolConfig;
+    private final BigInteger configurationHash;
 
     SnmpConnectionOptions(final String connectionString,
                                  final Map<String, String> parameters) {
+        this.configurationHash = computeConfigurationHash(connectionString, parameters);
         connectionAddress = GenericAddress.parse(connectionString);
         threadPoolConfig = new SnmpThreadPoolConfig(parameters, connectionString);
         engineID = parseEngineID(parameters);
@@ -63,6 +67,15 @@ final class SnmpConnectionOptions {
         socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ?
                 Integer.parseInt(parameters.get(SOCKET_TIMEOUT_PARAM)) :
                 DEFAULT_SOCKET_TIMEOUT;
+    }
+
+    static BigInteger computeConfigurationHash(final String connectionString,
+                                               final Map<String, String> options){
+        return AbstractManagedResourceConnector.computeConnectionParamsHashCode(connectionString, options);
+    }
+
+    BigInteger getConfigurationHash(){
+        return configurationHash;
     }
 
     private static OID getAuthenticationProtocol(final String authProtocol){

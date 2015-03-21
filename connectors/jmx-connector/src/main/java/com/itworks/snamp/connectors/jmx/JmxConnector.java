@@ -14,6 +14,7 @@ import javax.management.*;
 import javax.management.openmbean.*;
 import java.io.IOException;
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Map;
@@ -601,6 +602,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     private final JmxNotificationSupport notifications;
     private final JmxAttributeSupport attributes;
     private final JmxConnectionManager connectionManager;
+    private final BigInteger configurationHash;
 
     JmxConnector(final JmxConnectionOptions connectionOptions) {
         this.connectionManager = connectionOptions.createConnectionManager();
@@ -608,10 +610,17 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         connectionManager.connect();
         this.notifications = new JmxNotificationSupport(connectionManager);
         this.attributes = new JmxAttributeSupport(connectionManager);
+        this.configurationHash = connectionOptions.getConfigurationHash();
     }
 
     JmxConnector(final String connectionString, final Map<String, String> connectionOptions) throws MalformedURLException {
         this(new JmxConnectionOptions(connectionString, connectionOptions));
+    }
+
+    @Override
+    public void update(final String connectionString, final Map<String, String> connectionParameters) throws UnsupportedUpdateOperationException {
+        if(!configurationHash.equals(JmxConnectionOptions.computeConfigurationHash(connectionString, connectionParameters)))
+            throw new UnsupportedUpdateOperationException("JMX Connector cannot be updated on-the-fly.");
     }
 
     /**

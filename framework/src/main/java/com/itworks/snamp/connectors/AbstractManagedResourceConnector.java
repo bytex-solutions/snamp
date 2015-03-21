@@ -18,6 +18,7 @@ import com.itworks.snamp.jmx.JMExceptionUtils;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -986,4 +987,19 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         return Logger.getLogger(getLoggerName(connectorName));
     }
 
+    /**
+     * Computes unique hash code for the specified connection parameters.
+     * @param connectionString The managed resource connection string.
+     * @param connectionParameters The managed resource connection parameters.
+     * @return A unique hash code generated from connection string and connection parameters.
+     */
+    public static BigInteger computeConnectionParamsHashCode(final String connectionString,
+                                                      final Map<String, String> connectionParameters) {
+        BigInteger result = new BigInteger(connectionString.getBytes());
+        for(final Map.Entry<String, String> entry: connectionParameters.entrySet()){
+            result = result.xor(new BigInteger(entry.getKey().getBytes()));
+            result = result.xor(new BigInteger(entry.getValue().getBytes()));
+        }
+        return result;
+    }
 }

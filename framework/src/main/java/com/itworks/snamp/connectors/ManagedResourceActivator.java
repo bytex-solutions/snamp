@@ -2,7 +2,6 @@ package com.itworks.snamp.connectors;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
@@ -28,9 +27,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.event.EventAdmin;
 
-import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -176,12 +173,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
     }
 
-    private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector>{
+    private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
         private final ManagedResourceConnectorLifecycleController<TConnector> controller;
-        //key - resource name, value - hash code of connector configuration
-        //this dictionary is used to avoid restarting of resource connector
-        //when connection options of resource connector has no changes
-        private final ConcurrentMap<String, BigInteger> configIdentities;
 
         /**
          * Represents name of the managed resource connector.
@@ -190,13 +183,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private ManagedResourceConnectorRegistry(final String connectorType,
                                                  final ManagedResourceConnectorLifecycleController<TConnector> controller,
-                                                 final RequiredService<?>... dependencies){
+                                                 final RequiredService<?>... dependencies) {
             super(ManagedResourceConnector.class,
                     PersistentConfigurationManager.getConnectorFactoryPersistentID(connectorType),
                     ArrayUtils.addToEnd(dependencies, new SimpleDependency<>(EventAdmin.class), RequiredService.class));
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             this.connectorType = connectorType;
-            configIdentities = Maps.newConcurrentMap();
         }
 
         private OSGiLoggingContext getLoggingContext() {
@@ -210,7 +202,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         /**
          * Updates the service with a new configuration.
          *
-         * @param oldConnector       The service to update.
+         * @param oldConnector  The service to update.
          * @param configuration A new configuration of the service.
          * @return The updated service.
          * @throws Exception                                  Unable to update service.
@@ -218,24 +210,13 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         @Override
         protected TConnector update(final TConnector oldConnector,
-                                        final Dictionary<String, ?> configuration,
-                                        final RequiredService<?>... dependencies) throws Exception {
-            final String resourceName = PersistentConfigurationManager.getResourceName(configuration);
-            //determines whether the configuration is not changed
-            final BigInteger oldHash = configIdentities.get(resourceName);
-            final String connectionString = PersistentConfigurationManager.getConnectionString(configuration);
-            final Map<String, String> connectionParams = PersistentConfigurationManager.getResourceConnectorParameters(configuration);
-            final BigInteger newHash = computeConnectionParamsHashCode(connectionString, connectionParams);
-            if(newHash.equals(oldHash))
-                return oldConnector;
-            else {
-                configIdentities.put(resourceName, newHash);
-                return controller.updateConnector(oldConnector,
-                        resourceName,
-                        connectionString,
-                        connectionParams,
-                        dependencies);
-            }
+                                    final Dictionary<String, ?> configuration,
+                                    final RequiredService<?>... dependencies) throws Exception {
+            return controller.updateConnector(oldConnector,
+                    PersistentConfigurationManager.getResourceName(configuration),
+                    PersistentConfigurationManager.getConnectionString(configuration),
+                    PersistentConfigurationManager.getResourceConnectorParameters(configuration),
+                    dependencies);
         }
 
         /**
@@ -247,10 +228,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         @Override
         protected void failedToUpdateService(final String servicePID, final Dictionary<String, ?> configuration, final Exception e) {
-            try(final OSGiLoggingContext logger = getLoggingContext()){
+            try (final OSGiLoggingContext logger = getLoggingContext()) {
                 logger.log(Level.SEVERE, String.format("Unable to update connector. Connection string: %s, connection parameters: %s. Context: %s",
-                        PersistentConfigurationManager.getConnectionString(configuration),
-                        PersistentConfigurationManager.getResourceConnectorParameters(configuration),
+                                PersistentConfigurationManager.getConnectionString(configuration),
+                                PersistentConfigurationManager.getResourceConnectorParameters(configuration),
                                 LogicalOperation.current()),
                         e);
             }
@@ -264,7 +245,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         @Override
         protected void failedToCleanupService(final String servicePID, final Exception e) {
-            try(final OSGiLoggingContext logger = getLoggingContext()){
+            try (final OSGiLoggingContext logger = getLoggingContext()) {
                 logger.log(Level.SEVERE, String.format("Unable to dispose connector. Context: %s",
                         LogicalOperation.current()), e);
             }
@@ -283,12 +264,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         @SuppressWarnings("unchecked")
         @Override
         protected TConnector createService(final Map<String, Object> identity,
-                                               final Dictionary<String, ?> configuration,
-                                               final RequiredService<?>... dependencies) throws Exception {
+                                           final Dictionary<String, ?> configuration,
+                                           final RequiredService<?>... dependencies) throws Exception {
             final String resourceName = PersistentConfigurationManager.getResourceName(configuration);
             final Map<String, String> options = PersistentConfigurationManager.getResourceConnectorParameters(configuration);
             final String connectionString = PersistentConfigurationManager.getConnectionString(configuration);
-            configIdentities.put(resourceName, computeConnectionParamsHashCode(connectionString, options));
             createIdentity(resourceName,
                     connectorType,
                     connectionString,
@@ -300,12 +280,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         @Override
         protected void cleanupService(final TConnector service,
                                       final Dictionary<String, ?> identity) throws Exception {
-            try {
-                controller.releaseConnector(service);
-            }
-            finally {
-                configIdentities.remove(getManagedResourceName(identity));
-            }
+            controller.releaseConnector(service);
         }
     }
 
@@ -884,10 +859,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 "";
     }
 
-    private static String getManagedResourceName(final Dictionary<String, ?> identity){
-        return Objects.toString(identity.get(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY), "");
-    }
-
     /**
      * Determines whether the specified bundle provides implementation of the SNAMP Management Connector.
      * @param bnd The bundle to check.
@@ -993,14 +964,5 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return Utils.isInstanceOf(ref, ManagedResourceConnector.class) &&
                 ArrayUtils.contains(ref.getPropertyKeys(), CONNECTOR_TYPE_IDENTITY_PROPERTY) &&
                 ArrayUtils.contains(ref.getPropertyKeys(), MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY);
-    }
-
-    static BigInteger computeConnectionParamsHashCode(final String connectionString, final Map<String, String> connectionParameters) {
-        BigInteger result = new BigInteger(connectionString.getBytes());
-        for(final Map.Entry<String, String> entry: connectionParameters.entrySet()){
-            result = result.xor(new BigInteger(entry.getKey().getBytes()));
-            result = result.xor(new BigInteger(entry.getValue().getBytes()));
-        }
-        return result;
     }
 }

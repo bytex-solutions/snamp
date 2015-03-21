@@ -26,6 +26,7 @@ import org.snmp4j.smi.*;
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.*;
@@ -758,6 +759,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     private final SnmpAttributeSupport attributes;
     private final SnmpNotificationSupport notifications;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
+    private final BigInteger configurationHash;
 
     /**
      * Initializes a new management connector.
@@ -768,11 +770,18 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         client = new ConcurrentResourceAccessor<>(snmpConnectionOptions.createSnmpClient());
         attributes = new SnmpAttributeSupport(client);
         notifications = new SnmpNotificationSupport(client);
+        configurationHash = snmpConnectionOptions.getConfigurationHash();
     }
 
     SnmpResourceConnector(final String connectionString,
                                  final Map<String, String> parameters) throws IOException {
         this(new SnmpConnectionOptions(connectionString, parameters));
+    }
+
+    @Override
+    public void update(final String connectionString, final Map<String, String> connectionParameters) throws UnsupportedUpdateOperationException {
+        if(!configurationHash.equals(SnmpConnectionOptions.computeConfigurationHash(connectionString, connectionParameters)))
+            throw new UnsupportedUpdateOperationException("SNMP Connector cannot be updated on-the-fly.");
     }
 
     void listen() throws IOException{

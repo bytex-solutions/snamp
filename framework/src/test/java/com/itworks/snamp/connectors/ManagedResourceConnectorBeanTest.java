@@ -137,7 +137,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         final ImmutableMap<String, String> params1 = ImmutableMap.of("1", "value", "2", "value2");
         final ImmutableMap<String, String> params2 = ImmutableMap.of("2", "value2", "1", "value");
         assertEquals(params1, params2);
-        assertEquals(ManagedResourceConnectorClient.computeConnectionParamsHashCode(connectionString, params1),
-                ManagedResourceConnectorClient.computeConnectionParamsHashCode(connectionString, params2));
+        assertEquals(TestManagementConnectorBean.computeConnectionParamsHashCode(connectionString, params1),
+                TestManagementConnectorBean.computeConnectionParamsHashCode(connectionString, params2));
     }
 }
