@@ -29,7 +29,7 @@
     <context-param>
         <description>Plugin's path on the server</description>
         <param-name>plugin-scripts</param-name>
-        <param-value>plugin/js/snampPlugin.js</param-value>
+        <param-value>plugin/js/json-tree.js,plugin/js/snampPlugin.js</param-value>
     </context-param>
 
     <listener>

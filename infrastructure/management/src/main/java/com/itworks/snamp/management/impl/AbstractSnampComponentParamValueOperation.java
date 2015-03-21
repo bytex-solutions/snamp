@@ -1,6 +1,5 @@
 package com.itworks.snamp.management.impl;
 
-import com.google.common.collect.Maps;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.adapters.SelectableAdapterParameterDescriptor;
@@ -38,28 +37,6 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
             "Additional parameters for filtering suggested values",
             SIMPLE_MAP_TYPE
     );
-
-    /**
-     * Transform tabular data to map.
-     *
-     * @param data the data
-     * @return the map
-     */
-    protected static Map<String, String> transformTabularDataToMap(final TabularData data) {
-        if (data == null || data.isEmpty()) {
-            return Collections.emptyMap();
-        } else {
-            final Map<String, String> result = Maps.newHashMapWithExpectedSize(data.size());
-            for (final Object value : data.values()) {
-                if (!(value instanceof CompositeData)) continue;
-                final CompositeData cd = (CompositeData) value;
-                result.put(Objects.toString(cd.get("key")),
-                        Objects.toString(cd.get("value")));
-            }
-            return result;
-        }
-    }
-
 
     /**
      * The Snamp manager.

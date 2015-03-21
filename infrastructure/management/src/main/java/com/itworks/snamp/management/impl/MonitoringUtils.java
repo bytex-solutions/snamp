@@ -1,10 +1,19 @@
 package com.itworks.snamp.management.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.core.OSGiLoggingContext;
 
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.TabularData;
+import javax.management.openmbean.TabularDataSupport;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -75,5 +84,45 @@ final class MonitoringUtils {
         } catch (final Exception e) {
             throw new ExceptionInInitializerError(e);
         }
+    }
+
+    /**
+     * Transform tabular data to map.
+     *
+     * @param data the data
+     * @return the map
+     */
+    public static Map<String, String> transformTabularDataToMap(final TabularData data) {
+        if (data == null || data.isEmpty()) {
+            return Collections.emptyMap();
+        } else {
+            Map<String, String> result = new HashMap<>();
+            for (Object value : data.values()) {
+                if (!(value instanceof CompositeData)) continue;
+                final CompositeData cd = (CompositeData) value;
+                result.put((String) cd.get("key"), (String) cd.get("value"));
+            }
+            return result;
+        }
+    }
+
+    /**
+     * Transform additional properties to tabular data.
+     *
+     * @param map the map
+     * @return the tabular data support
+     * @throws OpenDataException the open data exception
+     */
+    public static TabularDataSupport transformAdditionalPropertiesToTabularData(final Map<String, String> map) throws OpenDataException {
+        final TabularDataSupport tabularDataSupport = new TabularDataSupport(CommonOpenTypesSupport.SIMPLE_MAP_TYPE);
+        if (map != null) {
+            for (final String key : map.keySet()) {
+                tabularDataSupport.put(new CompositeDataSupport(tabularDataSupport.getTabularType().getRowType(),
+                        ImmutableMap.<String, Object>of(
+                                "key", key,
+                                "value", map.get(key))));
+            }
+        }
+        return tabularDataSupport;
     }
 }

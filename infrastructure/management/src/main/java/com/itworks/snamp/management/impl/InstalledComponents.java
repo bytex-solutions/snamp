@@ -3,6 +3,7 @@ package com.itworks.snamp.management.impl;
 import com.google.common.collect.Maps;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.itworks.snamp.jmx.CompositeTypeBuilder;
 import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import com.itworks.snamp.management.SnampComponentDescriptor;
@@ -17,7 +18,8 @@ import java.util.logging.Level;
 /**
  * The type Installed components.
  * @author Roman Sakno
- * @version 1.0
+ * @author Evgeniy Kirichenko
+ * @version 1.1
  * @since 1.0
  */
 final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, TabularType> {
@@ -28,42 +30,30 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
     private static final String IS_LICENSED_COLUMN = "IsCommerciallyLicensed";
     private static final String IS_MANAGEABLE_COLUMN = "IsManageable";
     private static final String IS_CONFIG_DESCR_AVAIL_COLUMN = "IsConfigurationDescriptionAvailable";
-    private static final String[] COLUMNS = new String[]{
-        NAME_COLUMN,
-        DESCRIPTION_COLUMN,
-        VERSION_COLUMN,
-        BUNDLE_STATE_COLUMN,
-        IS_LICENSED_COLUMN,
-        IS_MANAGEABLE_COLUMN,
-        IS_CONFIG_DESCR_AVAIL_COLUMN,
-    };
-    private static final String[] DESCRIPTIONS = new String[]{
-        "Display name of SNAMP component",
-        "Description of SNAMP component",
-        "SNAMP component version",
-        "State of the component inside of OSGI environment.",
-        "SNAMP component is commercially licensed",
-        "SNAMP component supports command-line interaction",
-        "SNAMP component provides description of its configuration schema"
-    };
-    private static final OpenType<?>[] COLUMN_TYPES = new OpenType<?>[]{
-        SimpleType.STRING,
-        SimpleType.STRING,
-        SimpleType.STRING,
-        SimpleType.INTEGER,
-        SimpleType.BOOLEAN,
-        SimpleType.BOOLEAN,
-        SimpleType.BOOLEAN
-    };
 
-    private static TabularType createTabularType() throws OpenDataException {
-        final CompositeType rowType = new CompositeType("com.itworks.snamp.management.SnampComponent",
-                "SNAMP component descriptor",
-                COLUMNS,
-                DESCRIPTIONS,
-                COLUMN_TYPES);
-        return new TabularType("com.itworks.snamp.management.SnampComponents",
-                "A set of SNAMP components", rowType, new String[]{NAME_COLUMN});
+    private static final TabularType INSTALLED_COMPONENTS_MAP;
+    private static final CompositeType INSTALLED_COMPONENT;
+    private static final CompositeTypeBuilder INSTALLED_COMPONENT_BUILDER;
+
+    static {
+        try {
+            INSTALLED_COMPONENT_BUILDER = new CompositeTypeBuilder("com.itworks.snamp.management.SnampComponent","SNAMP component descriptor")
+                    .addItem(NAME_COLUMN, "Display name of SNAMP component", SimpleType.STRING)
+                    .addItem(DESCRIPTION_COLUMN, "Description of SNAMP component", SimpleType.STRING)
+                    .addItem(VERSION_COLUMN, "SNAMP component version", SimpleType.STRING)
+                    .addItem(BUNDLE_STATE_COLUMN, "State of the component inside of OSGI environment", SimpleType.INTEGER)
+                    .addItem(IS_LICENSED_COLUMN, "SNAMP component is commercially licensed", SimpleType.BOOLEAN)
+                    .addItem(IS_MANAGEABLE_COLUMN, "SNAMP component supports command-line interaction", SimpleType.BOOLEAN)
+                    .addItem(IS_CONFIG_DESCR_AVAIL_COLUMN, "SNAMP component provides description of its configuration schema", SimpleType.BOOLEAN);
+
+            INSTALLED_COMPONENT = INSTALLED_COMPONENT_BUILDER.build();
+
+            INSTALLED_COMPONENTS_MAP = new TabularType("com.itworks.snamp.management.SnampComponents",
+                    "A set of SNAMP components", INSTALLED_COMPONENT, new String[]{NAME_COLUMN});
+
+        } catch (final OpenDataException e) {
+            throw new ExceptionInInitializerError(e);
+        }
     }
 
     private final SnampManager manager;
@@ -75,12 +65,12 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
      * @throws OpenDataException the open data exception
      */
     InstalledComponents(final SnampManager manager) throws OpenDataException{
-        super("InstalledComponents", createTabularType());
+        super("InstalledComponents", INSTALLED_COMPONENTS_MAP);
         this.manager = Objects.requireNonNull(manager);
     }
 
     private CompositeData createRow(final SnampComponentDescriptor component) throws OpenDataException{
-        final Map<String, Object> row = Maps.newHashMapWithExpectedSize(COLUMNS.length);
+        final Map<String, Object> row = Maps.newHashMapWithExpectedSize(INSTALLED_COMPONENT.keySet().size());
         row.put(NAME_COLUMN, component.getName(null));
         row.put(DESCRIPTION_COLUMN, component.getDescription(null));
         row.put(VERSION_COLUMN, Objects.toString(component.getVersion(), "0.0"));
@@ -111,7 +101,7 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
         catch (final Exception e){
             MonitoringUtils.getLogger().log(Level.WARNING, e.getLocalizedMessage(), e);
         }
-        return new CompositeDataSupport(openType.getRowType(), row);
+        return INSTALLED_COMPONENT_BUILDER.build(row);
     }
 
     @Override

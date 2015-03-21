@@ -4,9 +4,6 @@ import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 
 import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.OpenMBeanParameterInfo;
-import javax.management.openmbean.OpenMBeanParameterInfoSupport;
-import javax.management.openmbean.SimpleType;
 import java.util.Locale;
 import java.util.Map;
 

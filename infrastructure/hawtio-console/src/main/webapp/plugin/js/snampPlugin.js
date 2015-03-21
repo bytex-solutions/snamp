@@ -55,7 +55,7 @@ var SnampShell = (function(SnampShell) {
      * workspace, viewRegistry and layoutFull used by the
      * run function
      */
-    SnampShell.module = angular.module('snamp_shell_plugin', ['hawtioCore']).config(function($routeProvider) {
+    SnampShell.module = angular.module('snamp_shell_plugin', ['hawtioCore', 'json-tree']).config(function($routeProvider) {
             /**
              * Here we define the route for our plugin.  One note is
              * to avoid using 'otherwise', as hawtio has a handler
@@ -87,6 +87,7 @@ var SnampShell = (function(SnampShell) {
         SnampShell.log.info(SnampShell.pluginName, " loaded");
 
         Core.addCSS(SnampShell.contextPath + "plugin/css/snampPlugin.css");
+        Core.addCSS(SnampShell.contextPath + "plugin/css/json-tree.css");
 
         // tell the app to use the full layout, also could use layoutTree
         // to get the JMX tree or provide a URL to a custom layout
@@ -427,7 +428,7 @@ var SnampShell = (function(SnampShell) {
             Core.$apply($scope);
         };
 
-        $scope.modalContent = "This is the HUGE mistake, you should not see it";
+        $scope.modalContent = "This is a HUGE mistake, you should not see it";
         $scope.modalTitle = "Undefined title";
 
         // Initial connectors array
