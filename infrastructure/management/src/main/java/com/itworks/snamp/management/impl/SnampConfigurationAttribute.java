@@ -53,13 +53,11 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             EVENT_METADATA = EVENT_METADATA_BUILDER.build();
             ATTRIBUTE_METADATA = ATTRIBUTE_METADATA_BUILDER.build();
 
-            CONNECTOR_ATTRIBUTE_MAP_TYPE = new TabularTypeBuilder("com.itworks.management.ConnectorAttributeMapType", "Simple type for Map<String, EventMetadata>")
-                    .addColumn("name", "User defined name for connector's attribute", SimpleType.STRING, true)
-                    .addColumn("attribute", "Attribute metadata instance", ATTRIBUTE_METADATA, false)
-                    .build();
-            CONNECTOR_EVENT_MAP_TYPE = new TabularTypeBuilder("com.itworks.management.ConnectorEventMapType", "Simple type for Map<String, AttributeMetadata>")
-                    .addColumn("name", "User defined name for connector's event", SimpleType.STRING, true)
-                    .addColumn("event", "Event metadata instance", EVENT_METADATA, false).build();
+            CONNECTOR_ATTRIBUTE_MAP_TYPE = new TabularType("com.itworks.management.ConnectorAttributeMapType",
+                    "Simple type for Map<String, EventMetadata>", ATTRIBUTE_METADATA, new String[]{"Name"});
+
+            CONNECTOR_EVENT_MAP_TYPE = new TabularType("com.itworks.management.ConnectorEventMapType",
+                    "Simple type for Map<String, AttributeMetadata>", EVENT_METADATA, new String[]{"Category", "AdditionalProperties"});
 
             CONNECTOR_METADATA_BUILDER = new CompositeTypeBuilder("com.itworks.management.ConnectorMetadata", "SNAMP connector configuration metadata")
                     .addItem("ConnectionString", "Management target connection string", SimpleType.STRING)
@@ -75,13 +73,11 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             CONNECTOR_METADATA = CONNECTOR_METADATA_BUILDER.build();
             ADAPTER_METADATA = ADAPTER_METADATA_BUILDER.build();
 
-            ADAPTER_MAP_TYPE = new TabularTypeBuilder("com.itworks.management.AdapterMapType", "Simple type for Map<String, Adapter>")
-                    .addColumn("name", "User defined name for adapter", SimpleType.STRING, true)
-                    .addColumn("adapter", "Adapter instance", ADAPTER_METADATA, false).build();
-            CONNECTOR_MAP_TYPE = new TabularTypeBuilder("com.itworks.management.ConnectorMapType", "Simple type for Map<String, Connector>")
-                    .addColumn("name", "User defined name for connector", SimpleType.STRING, true)
-                    .addColumn("connector", "Connector instance", CONNECTOR_METADATA, false)
-                    .build();
+            ADAPTER_MAP_TYPE = new TabularType("com.itworks.management.AdapterMapType"
+                    , "Simple type for Map<String, Adapter>", ADAPTER_METADATA, new String[]{"Name"});
+
+            CONNECTOR_MAP_TYPE = new TabularType("com.itworks.management.ConnectorMapType",
+                    "Simple type for Map<String, Connector>", CONNECTOR_METADATA, new String[]{"ConnectionString"});
 
             SNAMP_CONFIGURATION_DATA_BUILDER = new CompositeTypeBuilder("com.itworks.management.SnampConfiguration", "SNAMP main configuration metadata")
                     .addItem("ResourceAdapters", "SNAMP resource adapters configuration", ADAPTER_MAP_TYPE)
@@ -104,8 +100,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONNECTOR_ATTRIBUTE_MAP_TYPE);
         for (final String attributeName : map.keySet()) {
             builder.newRow()
-                    .cell("name", attributeName)
-                    .cell("attribute", ATTRIBUTE_METADATA_BUILDER.build(
+                    .cell(attributeName, ATTRIBUTE_METADATA_BUILDER.build(
                             ImmutableMap.of(
                                     "Name", map.get(attributeName).getAttributeName(),
                                     "ReadWriteTimeout", (map.get(attributeName).getReadWriteTimeout() != TimeSpan.INFINITE
@@ -130,8 +125,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONNECTOR_EVENT_MAP_TYPE);
         for (final String eventName : map.keySet()) {
             builder.newRow()
-                    .cell("name", eventName)
-                    .cell("attribute", EVENT_METADATA_BUILDER.build(
+                    .cell(eventName, EVENT_METADATA_BUILDER.build(
                             ImmutableMap.of(
                                     "Category", map.get(eventName).getCategory(),
                                     "AdditionalProperties",  MonitoringUtils.transformAdditionalPropertiesToTabularData(
@@ -161,8 +155,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapterMapConfig = configuration.getResourceAdapters();
         for (final String adapterName : adapterMapConfig.keySet()) {
             builderAdapter.newRow()
-                    .cell("name", adapterName)
-                    .cell("adapter", ADAPTER_METADATA_BUILDER.build(
+                    .cell(adapterName, ADAPTER_METADATA_BUILDER.build(
                             ImmutableMap.of(
                                     "Name", adapterMapConfig.get(adapterName).getAdapterName(),
                                     "Parameters",  MonitoringUtils.transformAdditionalPropertiesToTabularData(
@@ -176,8 +169,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         final Map<String, AgentConfiguration.ManagedResourceConfiguration> connectors = configuration.getManagedResources();
         for (final String connectorName : connectors.keySet()) {
             builderConnector.newRow()
-                    .cell("name", connectorName)
-                    .cell("connector", CONNECTOR_METADATA_BUILDER.build(
+                    .cell(connectorName, CONNECTOR_METADATA_BUILDER.build(
                             ImmutableMap.of(
                                     "ConnectionString", connectors.get(connectorName).getConnectionString(),
                                     "ConnectionType", connectors.get(connectorName).getConnectionType(),

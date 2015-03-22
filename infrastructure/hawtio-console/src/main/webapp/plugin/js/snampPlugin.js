@@ -355,8 +355,6 @@ var SnampShell = (function(SnampShell) {
             $scope.license = $scope.getLicense();
 
             // Configuration
-            $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
-
             $scope.getConfiguration = function() {
                return jolokia.request({
                    type: 'read',
@@ -365,7 +363,23 @@ var SnampShell = (function(SnampShell) {
                }).value;
             };
 
+            $scope.configurationJSON2Tree = function(jsonObject) {
+                var array = [
+                    {title: "ResourceAdapters", isFolder: true},
+                    {title: "ManagedResources", isFolder: true}
+                ];
+                /*if (jsonObject.hasOwnProperty("ResourceAdapters")) {
+                    array[0].children = [];
+                        angular.forEach(jsonObject["ResourceAdapters"], function(value, key) {
+                        array[0].children.push({title: key, isFolder:true})
+                    });
+                }*/
+                return array;
+            };
+
             $scope.drawConfiguration = function() {
+                $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
+
                 $("#snampTreeConfig").dynatree({
                     onActivate: function(node) {
                         // A DynaTreeNode object is passed to the activation handler
@@ -373,20 +387,9 @@ var SnampShell = (function(SnampShell) {
                         alert("You activated " + node.data.title);
                     },
                     persist: false,
-                    children: [ // Pass an array of nodes.
-                        {title: "Item 1"},
-                        {title: "Folder 2", isFolder: true,
-                            children: [
-                                {title: "Sub-item 2.1"},
-                                {title: "Sub-item 2.2"}
-                            ]
-                        },
-                        {title: "Item 3"}
-                    ]
+                    children: $scope.configurationJSON2Tree($scope.configuration)
                 });
             };
-
-            $scope.configuration = $scope.getConfiguration();
 
             // Menu items
             $scope.menuSelected = function(section) {
