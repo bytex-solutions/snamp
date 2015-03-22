@@ -375,6 +375,19 @@ var SnampShell = (function(SnampShell) {
 
             $scope.license = $scope.getLicense();
 
+            // Configuration
+            $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
+
+            $scope.getConfiguration = function() {
+                return jolokia.request({
+                    type: 'read',
+                    mbean: SnampShell.mbean,
+                    attribute: 'configuration'
+                }).value;
+            };
+
+            $scope.configuration = $scope.getConfiguration();
+
         });
 
     /**

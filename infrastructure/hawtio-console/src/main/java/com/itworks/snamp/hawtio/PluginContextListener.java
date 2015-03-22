@@ -20,9 +20,6 @@ public class PluginContextListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         final ServletContext context = servletContextEvent.getServletContext();
-        System.err.println("Plugin context: " + context.getInitParameter("plugin-context"));
-        System.err.println("Plugin name: " + context.getInitParameter("plugin-name"));
-        System.err.println("Plugin scripts: " + context.getInitParameter("plugin-scripts"));
 
         plugin = new HawtioPlugin();
         plugin.setContext(context.getInitParameter("plugin-context"));

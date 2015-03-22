@@ -11,13 +11,13 @@
     <context-param>
         <description>Plugin's path on the server</description>
         <param-name>plugin-context</param-name>
-        <param-value>/snamp-shell-plugin</param-value>
+        <param-value>${plugin-context}</param-value>
     </context-param>
 
     <context-param>
         <description>Plugin's path on the server</description>
         <param-name>plugin-name</param-name>
-        <param-value>hawtio-console</param-value>
+        <param-value>${project.artifactId}</param-value>
     </context-param>
 
     <context-param>
@@ -29,7 +29,7 @@
     <context-param>
         <description>Plugin's path on the server</description>
         <param-name>plugin-scripts</param-name>
-        <param-value>plugin/js/snampPlugin.js</param-value>
+        <param-value>${plugin-scripts}</param-value>
     </context-param>
 
     <listener>
