@@ -55,14 +55,14 @@ var SnampShell = (function(SnampShell) {
      * workspace, viewRegistry and layoutFull used by the
      * run function
      */
-    SnampShell.module = angular.module('snamp_shell_plugin', ['hawtioCore'])
+    SnampShell.module = angular.module('snamp_shell_plugin', ['hawtioCore', 'tree'])
         .config(function($routeProvider) {
             $routeProvider.
                 when('/snamp_shell_plugin', {
                     templateUrl: SnampShell.templatePath + 'snamp.html'
                 });
         })
-        .controller('SnampShell.SnampController',  function($scope, $location, jolokia) {
+        .controller('SnampShell.SnampController',  function($scope, $location, jolokia, $timeout) {
 
             // ============================================================================================================= //
             // Menu sections
@@ -101,27 +101,6 @@ var SnampShell = (function(SnampShell) {
             };
 
             var timerId = null;
-
-            // Menu items
-            $scope.menuSelected = function(section) {
-                $scope.template = section;
-                if ($scope.template == $scope.sections[3]) {
-                    $scope.refreshValues();
-                    var StatisticRenewalTime = jolokia.request({
-                        type: 'read',
-                        mbean: SnampShell.mbean,
-                        attribute: 'StatisticRenewalTime'
-                    }).value;
-                    if (StatisticRenewalTime) {
-                        timerId = setInterval($scope.refreshValues, StatisticRenewalTime);
-                    }
-                } else {
-                    if (timerId != null) {
-                        clearInterval(timerId);
-                    }
-                    Core.$apply($scope);
-                }
-            };
 
             // ============================================================================================================= //
             // Grid data
@@ -379,15 +358,59 @@ var SnampShell = (function(SnampShell) {
             $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
 
             $scope.getConfiguration = function() {
-                return jolokia.request({
-                    type: 'read',
-                    mbean: SnampShell.mbean,
-                    attribute: 'configuration'
-                }).value;
+               return jolokia.request({
+                   type: 'read',
+                   mbean: SnampShell.mbean,
+                   attribute: 'configuration'
+               }).value;
+            };
+
+            $scope.drawConfiguration = function() {
+                $("#snampTreeConfig").dynatree({
+                    onActivate: function(node) {
+                        // A DynaTreeNode object is passed to the activation handler
+                        // Note: we also get this event, if persistence is on, and the page is reloaded.
+                        alert("You activated " + node.data.title);
+                    },
+                    persist: false,
+                    children: [ // Pass an array of nodes.
+                        {title: "Item 1"},
+                        {title: "Folder 2", isFolder: true,
+                            children: [
+                                {title: "Sub-item 2.1"},
+                                {title: "Sub-item 2.2"}
+                            ]
+                        },
+                        {title: "Item 3"}
+                    ]
+                });
             };
 
             $scope.configuration = $scope.getConfiguration();
 
+            // Menu items
+            $scope.menuSelected = function(section) {
+                $scope.template = section;
+                if ($scope.template == $scope.sections[3]) {
+                    $scope.refreshValues();
+                    var StatisticRenewalTime = jolokia.request({
+                        type: 'read',
+                        mbean: SnampShell.mbean,
+                        attribute: 'StatisticRenewalTime'
+                    }).value;
+                    if (StatisticRenewalTime) {
+                        timerId = setInterval($scope.refreshValues, StatisticRenewalTime);
+                    }
+                } else if ($scope.template ==  $scope.sections[1]) {
+                    $scope.configuration = $scope.getConfiguration();
+                    Core.$apply($scope);
+                } else {
+                    if (timerId != null) {
+                        clearInterval(timerId);
+                    }
+                    Core.$apply($scope);
+                }
+            };
         });
 
     /**
