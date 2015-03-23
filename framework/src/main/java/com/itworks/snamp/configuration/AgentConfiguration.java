@@ -36,7 +36,7 @@ public interface AgentConfiguration extends Cloneable {
      * @since 1.0
      * @version 1.0
      */
-    public static interface ConfigurationEntity{
+    public static interface EntityConfiguration {
         /**
          * The name of the parameter which contains description of the configuration entity.
          */
@@ -55,7 +55,7 @@ public interface AgentConfiguration extends Cloneable {
      * @since 1.0
      * @version 1.0
      */
-    public static interface ResourceAdapterConfiguration extends ConfigurationEntity {
+    public static interface ResourceAdapterConfiguration extends EntityConfiguration {
         /**
          * Gets the hosting adapter name.
          * @return The hosting adapter name.
@@ -82,16 +82,15 @@ public interface AgentConfiguration extends Cloneable {
      * @since 1.0
      * @version 1.0
      */
-    public static interface ManagedResourceConfiguration extends ConfigurationEntity {
+    public static interface ManagedResourceConfiguration extends EntityConfiguration {
 
         /**
-         * Represents a managed communication entity (such as attributes and events)
-         * as a part of the managed resource.
+         * Represents a feature of the managed resource.
          * @author Roman Sakno
          * @since 1.0
          * @version 1.0
          */
-        public static interface ManagedEntity extends ConfigurationEntity{
+        public static interface FeatureConfiguration extends EntityConfiguration {
         }
 
         /**
@@ -100,7 +99,7 @@ public interface AgentConfiguration extends Cloneable {
          * @since 1.0
          * @version 1.0
          */
-        public static interface EventConfiguration extends ManagedEntity {
+        public static interface EventConfiguration extends FeatureConfiguration {
             /**
              * Gets the event category.
              * @return The event category.
@@ -120,7 +119,7 @@ public interface AgentConfiguration extends Cloneable {
          * @since 1.0
          * @version 1.0
          */
-        public static interface AttributeConfiguration extends ManagedEntity {
+        public static interface AttributeConfiguration extends FeatureConfiguration {
             /**
              * Gets attribute value invoke/write operation timeout.
              * @return Gets attribute value invoke/write operation timeout.
@@ -179,7 +178,7 @@ public interface AgentConfiguration extends Cloneable {
          * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
          * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
          */
-        <T extends ManagedEntity> Map<String, T> getElements(final Class<T> elementType);
+        <T extends FeatureConfiguration> Map<String, T> getElements(final Class<T> elementType);
 
         /**
          * Creates a new instances of the specified manageable element.
@@ -188,7 +187,7 @@ public interface AgentConfiguration extends Cloneable {
          * @return A new empty manageable element; or {@literal null},
          *      if the specified element type is not supported.
          */
-        <T extends ManagedEntity> T newElement(final Class<T> elementType);
+        <T extends FeatureConfiguration> T newElement(final Class<T> elementType);
 
         /**
          * Returns the dictionary of additional configuration parameters.
@@ -224,7 +223,7 @@ public interface AgentConfiguration extends Cloneable {
      * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
      * @see com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
      */
-    <T extends ConfigurationEntity> T newConfigurationEntity(final Class<T> entityType);
+    <T extends EntityConfiguration> T newConfigurationEntity(final Class<T> entityType);
 
     /**
      * Imports the state of specified object into this object.

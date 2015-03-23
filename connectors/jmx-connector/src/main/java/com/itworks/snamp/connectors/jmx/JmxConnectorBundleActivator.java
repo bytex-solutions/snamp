@@ -1,8 +1,9 @@
 package com.itworks.snamp.connectors.jmx;
 
 import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.FutureThread;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -13,6 +14,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import javax.management.JMException;
+import javax.management.openmbean.CompositeData;
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -121,7 +123,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         }
     }
 
-    private static final class JmxConnectorFactory extends ManagedResourceConnectorFactory<JmxConnector>{
+    private static final class JmxConnectorFactory extends ManagedResourceConnectorSimpleModeler<JmxConnector>{
         private final AtomicLong instances = new AtomicLong(0L);
 
         @Override
@@ -132,29 +134,43 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
             final JmxConnectorLimitations limitations = JmxConnectorLimitations.current();
             limitations.verifyMaxInstanceCount(instances.get());
             limitations.verifyServiceVersion();
-            final JmxConnector result = new JmxConnector(connectionString, connectionOptions);
+            final JmxConnector result = new JmxConnector(resourceName, connectionString, connectionOptions);
             instances.incrementAndGet();
             JmxConnectorHelpers.log(Level.INFO, String.format("JMX connector for resource %s instantiated", resourceName), null);
             return result;
         }
 
-        /**
-         * Releases all resources associated with the resource connector.
-         * <p>
-         * This method just calls {@link AutoCloseable#close()} implemented in the connector.
-         * </p>
-         *
-         * @param connector The instance of the connector to dispose.
-         * @throws Exception Unable to dispose resource connector instance.
-         */
+        @Override
+        protected void removeAllAttributes(final JmxConnector connector) {
+            connector.removeAllAttributes();
+        }
+
+        @Override
+        protected void addAttribute(final JmxConnector connector,
+                                    final String attributeID,
+                                    final String attributeName,
+                                    final TimeSpan readWriteTimeout,
+                                    final CompositeData options) {
+            connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+        }
+
+        @Override
+        protected void removeAllNotifications(final JmxConnector connector) {
+            connector.removeAllNotifications();
+        }
+
+        @Override
+        protected void enableNotifications(final JmxConnector connector, final String listId, final String category, final CompositeData options) {
+            connector.enableNotifications(listId, category, options);
+        }
+
         @Override
         public void releaseConnector(final JmxConnector connector) throws Exception {
             try {
-                super.releaseConnector(connector);
+                connector.close();
             }
             finally {
                 instances.decrementAndGet();
-
             }
         }
     }
@@ -184,7 +200,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
                             }
 
                             @Override
-                            protected <T extends ManagedEntity> Collection<T> getManagementInformation(final Class<T> entityType,
+                            protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType,
                                                                                                        final JMXConnector connection,
                                                                                                        final RequiredService<?>... dependencies) throws JMException, IOException {
                                 return JmxDiscoveryService.discover(connection, entityType);

@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors;
 
 import javax.management.Descriptor;
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
  * Represents configuration entity descriptor.
@@ -9,7 +9,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * @version 1.0
  * @since 1.0
  */
-public interface ConfigurationEntityRuntimeMetadata<E extends ConfigurationEntity> extends Descriptor {
+public interface ConfigurationEntityRuntimeMetadata<E extends EntityConfiguration> extends Descriptor {
     /**
      * The type of the configuration entity.
      * @return The type of the configuration entity.

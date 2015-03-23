@@ -59,7 +59,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     }
 
     protected static ConfigParameters toConfigParameters(final Map<String, String> parameters) {
-        return new ConfigParameters(new AgentConfiguration.ConfigurationEntity() {
+        return new ConfigParameters(new AgentConfiguration.EntityConfiguration() {
             @Override
             public Map<String, String> getParameters() {
                 return parameters;

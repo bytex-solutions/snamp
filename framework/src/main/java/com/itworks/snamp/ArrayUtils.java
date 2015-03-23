@@ -4,8 +4,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 
-import javax.management.ObjectName;
-import javax.management.ReflectionException;
+import javax.management.*;
 import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -243,5 +242,12 @@ public final class ArrayUtils {
 
     public static <T> T[] emptyIfNull(final T[] items, final Class<T> elementType) {
         return items == null ? ObjectArrays.newArray(elementType, 0) : items;
+    }
+
+    @SafeVarargs
+    public static <T> T[] concat(final Class<T> elementType, T[] firstArray, final T[]... arrays) {
+        for(final T[] ar: arrays)
+            firstArray = ObjectArrays.concat(firstArray, ar, elementType);
+        return firstArray;
     }
 }

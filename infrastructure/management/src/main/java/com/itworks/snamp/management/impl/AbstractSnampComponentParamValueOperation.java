@@ -71,7 +71,7 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
      */
     protected final String[] getSnampComponentSuggestedValue(final SnampComponentDescriptor snampComponentDescriptor,
                                                              final String parameterName, final String locale,
-                                                             final Class<? extends AgentConfiguration.ConfigurationEntity> configurationEntity,
+                                                             final Class<? extends AgentConfiguration.EntityConfiguration> configurationEntity,
                                                              final Map<String, String> tabularData) throws Exception {
 
         final List<String> result = new LinkedList<>();

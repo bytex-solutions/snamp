@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.snmp;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
@@ -10,6 +11,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.itworks.snamp.concurrent.ConcurrentResourceAccessor;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
+import com.itworks.snamp.connectors.ResourceEventListener;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
@@ -26,7 +28,6 @@ import org.snmp4j.smi.*;
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.*;
@@ -74,8 +75,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final NotificationListenerInvoker listenerInvoker;
 
-        private SnmpNotificationSupport(final AbstractConcurrentResourceAccessor<SnmpClient> client){
-            super(SnmpNotificationInfo.class);
+        private SnmpNotificationSupport(final String resourceName,
+                                        final AbstractConcurrentResourceAccessor<SnmpClient> client){
+            super(resourceName, SnmpNotificationInfo.class);
             this.client = client;
             final Executor executor = client.read(new ConsistentAction<SnmpClient, Executor>() {
                 @Override
@@ -552,8 +554,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final ExecutorService executor;
 
-        private SnmpAttributeSupport(final AbstractConcurrentResourceAccessor<SnmpClient> client){
-            super(SnmpAttributeInfo.class);
+        private SnmpAttributeSupport(final String resourceName,
+                                     final AbstractConcurrentResourceAccessor<SnmpClient> client){
+            super(resourceName, SnmpAttributeInfo.class);
             this.client = client;
             this.executor = client.read(new ConsistentAction<SnmpClient, ExecutorService>() {
                 @Override
@@ -759,29 +762,19 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     private final SnmpAttributeSupport attributes;
     private final SnmpNotificationSupport notifications;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
-    private final BigInteger configurationHash;
 
-    /**
-     * Initializes a new management connector.
-     * @param snmpConnectionOptions Management connector initialization options.
-     * @throws java.io.IOException Unable to instantiate SNMP client.
-     */
-    SnmpResourceConnector(final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
+    SnmpResourceConnector(final String resourceName,
+                          final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
+        super(resourceName);
         client = new ConcurrentResourceAccessor<>(snmpConnectionOptions.createSnmpClient());
-        attributes = new SnmpAttributeSupport(client);
-        notifications = new SnmpNotificationSupport(client);
-        configurationHash = snmpConnectionOptions.getConfigurationHash();
+        attributes = new SnmpAttributeSupport(resourceName, client);
+        notifications = new SnmpNotificationSupport(resourceName, client);
     }
 
-    SnmpResourceConnector(final String connectionString,
-                                 final Map<String, String> parameters) throws IOException {
-        this(new SnmpConnectionOptions(connectionString, parameters));
-    }
-
-    @Override
-    public void update(final String connectionString, final Map<String, String> connectionParameters) throws UnsupportedUpdateOperationException {
-        if(!configurationHash.equals(SnmpConnectionOptions.computeConfigurationHash(connectionString, connectionParameters)))
-            throw new UnsupportedUpdateOperationException("SNMP Connector cannot be updated on-the-fly.");
+    SnmpResourceConnector(final String resourceName,
+                          final String connectionString,
+                          final Map<String, String> parameters) throws IOException {
+        this(resourceName, new SnmpConnectionOptions(connectionString, parameters));
     }
 
     void listen() throws IOException{
@@ -794,137 +787,54 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         });
     }
 
-    /**
-     * Obtain the value of a specific attribute of the managed resource.
-     *
-     * @param attribute The name of the attribute to be retrieved
-     * @return The value of the attribute retrieved.
-     * @throws javax.management.AttributeNotFoundException
-     * @throws javax.management.MBeanException             Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's getter.
-     * @throws javax.management.ReflectionException        Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the getter.
-     * @see #setAttribute(javax.management.Attribute)
-     */
-    @Override
-    public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
+    MBeanAttributeInfo addAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
         verifyInitialization();
-        return attributes.getAttribute(attribute);
+        return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
     }
 
-    /**
-     * Set the value of a specific attribute of the managed resource.
-     *
-     * @param attribute The identification of the attribute to
-     *                  be set and  the value it is to be set to.
-     * @throws javax.management.AttributeNotFoundException
-     * @throws javax.management.InvalidAttributeValueException
-     * @throws javax.management.MBeanException                 Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
-     * @throws javax.management.ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
-     * @see #getAttribute
-     */
-    @Override
-    public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        verifyInitialization();
-        attributes.setAttribute(attribute);
+    void removeAllAttributes(){
+        attributes.clear(false);
     }
 
-    /**
-     * Get the values of several attributes of the Dynamic MBean.
-     *
-     * @param attributes A list of the attributes to be retrieved.
-     * @return The list of attributes retrieved.
-     * @see #setAttributes
-     */
-    @Override
-    public AttributeList getAttributes(final String[] attributes) {
-        verifyInitialization();
-        return this.attributes.getAttributes(attributes);
-    }
-
-    /**
-     * Sets the values of several attributes of the Dynamic MBean.
-     *
-     * @param attributes A list of attributes: The identification of the
-     *                   attributes to be set and  the values they are to be set to.
-     * @return The list of attributes that were set, with their new values.
-     * @see #getAttributes
-     */
-    @Override
-    public AttributeList setAttributes(final AttributeList attributes) {
-        verifyInitialization();
-        return this.attributes.setAttributes(attributes);
-    }
-
-    /**
-     * Connects to the specified attribute.
-     *
-     * @param id               A key string that is used to invoke attribute from this connector.
-     * @param attributeName    The name of the attribute.
-     * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
-     * @param options          The attribute discovery options.
-     * @return The description of the attribute.
-     * @throws javax.management.AttributeNotFoundException The managed resource doesn't provide the attribute with the specified name.
-     * @throws javax.management.JMException                Internal connector error.
-     */
-    @Override
-    public MBeanAttributeInfo connectAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) throws JMException {
-        verifyInitialization();
-        return attributes.connectAttribute(id, attributeName, readWriteTimeout, options);
-    }
-
-    /**
-     * Gets an array of connected attributes.
-     *
-     * @return An array of connected attributes.
-     */
-    @Override
-    public MBeanAttributeInfo[] getAttributeInfo() {
-        return attributes.getAttributeInfo();
-    }
-
-    /**
-     * Removes the attribute from the connector.
-     *
-     * @param id The unique identifier of the attribute.
-     * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
-     */
-    @Override
-    public boolean disconnectAttribute(final String id) {
-        return attributes.disconnectAttribute(id);
-    }
-
-    /**
-     * Enables event listening for the specified category of events.
-     * <p/>
-     * category can be used for enabling notifications for the same category
-     * but with different options.
-     * <p/>
-     * listId parameter
-     * is used as a value of {@link javax.management.Notification#getType()}.
-     *
-     * @param listId   An identifier of the subscription list.
-     * @param category The name of the event category to listen.
-     * @param options  Event discovery options.
-     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-     * @throws javax.management.JMException Internal connector error.
-     */
-    @Override
-    public MBeanNotificationInfo enableNotifications(final String listId, final String category, final CompositeData options) throws JMException {
+    MBeanNotificationInfo enableNotifications(final String listId, final String category, final CompositeData options) {
         verifyInitialization();
         return notifications.enableNotifications(listId, category, options);
     }
 
+    void removeAllNotifications(){
+        notifications.clear(true, false);
+    }
+
     /**
-     * Disables event listening for the specified category of events.
-     * <p>
-     * This method removes all listeners associated with the specified subscription list.
-     * </p>
+     * Adds a new listener for the connector-related events.
+     * <p/>
+     * The managed resource connector should holds a weak reference to all added event listeners.
      *
-     * @param listId The identifier of the subscription list.
-     * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+     * @param listener An event listener to add.
      */
     @Override
-    public boolean disableNotifications(final String listId) {
-        return notifications.disableNotifications(listId);
+    public void addResourceEventListener(final ResourceEventListener listener) {
+        addResourceEventListener(listener, attributes, notifications);
+    }
+
+    /**
+     * Removes connector event listener.
+     *
+     * @param listener The listener to remove.
+     */
+    @Override
+    public void removeResourceEventListener(final ResourceEventListener listener) {
+        removeResourceEventListener(listener, attributes, notifications);
+    }
+
+    /**
+     * Gets subscription model.
+     *
+     * @return The subscription model.
+     */
+    @Override
+    public NotificationSubscriptionModel getSubscriptionModel() {
+        return notifications.getSubscriptionModel();
     }
 
     /**
@@ -965,24 +875,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         verifyInitialization();
         notifications.removeNotificationListener(listener);
     }
-
-    /**
-     * <p>Returns an array indicating, for each notification this
-     * MBean may send, the name of the Java class of the notification
-     * and the notification type.</p>
-     * <p/>
-     * <p>It is not illegal for the MBean to send notifications not
-     * described in this array.  However, some clients of the MBean
-     * server may depend on the array being complete for their correct
-     * functioning.</p>
-     *
-     * @return the array of possible notifications.
-     */
-    @Override
-    public MBeanNotificationInfo[] getNotificationInfo() {
-        return notifications.getNotificationInfo();
-    }
-
     /**
      * Gets a logger associated with this platform service.
      *
@@ -1003,19 +895,17 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
      * @throws IOException Unable to close SNMP client.
      */
     @Override
-    public void close() throws IOException {
-        try {
-            client.write(new Action<SnmpClient, Void, IOException>() {
-                @Override
-                public Void invoke(final SnmpClient client) throws IOException {
-                    client.close();
-                    return null;
-                }
-            });
-        } finally {
-            attributes.clear();
-            notifications.clear();
-        }
+    public void close() throws Exception {
+        super.close();
+        attributes.clear(true);
+        notifications.clear(true, true);
+        client.write(new Action<SnmpClient, Void, IOException>() {
+            @Override
+            public Void invoke(final SnmpClient client) throws IOException {
+                client.close();
+                return null;
+            }
+        });
     }
 
     /**
@@ -1026,8 +916,13 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
      */
     @Override
     public <T> T queryObject(final Class<T> objectType) {
-        if(Objects.equals(objectType, Address[].class))
-            return objectType.cast(attributes.getClientAddresses());
-        else return super.queryObject(objectType);
+        return findObject(objectType,
+                new Function<Class<T>, T>() {
+                    @Override
+                    public T apply(final Class<T> objectType) {
+                        return SnmpResourceConnector.super.queryObject(objectType);
+                    }
+                },
+                attributes, attributes.getClientAddresses(), notifications);
     }
 }

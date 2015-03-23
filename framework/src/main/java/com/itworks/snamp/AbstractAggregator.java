@@ -1,5 +1,7 @@
 package com.itworks.snamp;
 
+import com.google.common.base.Function;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -91,6 +93,14 @@ public abstract class AbstractAggregator implements Aggregator {
             else return serviceInstance;
         }
         return null;
+    }
+
+    protected static <T> T findObject(final Class<T> objectType,
+                                      final Function<? super Class<T>, ? extends T> fallback,
+                                      final Object... candidates){
+        for(final Object obj: candidates)
+            if(objectType.isInstance(obj)) return objectType.cast(obj);
+        return fallback.apply(objectType);
     }
 
     public static <T> SimpleAggregator create(final Class<T> objectClass,

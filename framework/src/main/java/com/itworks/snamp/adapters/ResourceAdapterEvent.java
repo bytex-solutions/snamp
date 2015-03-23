@@ -9,6 +9,8 @@ import java.util.EventObject;
  * @since 1.0
  */
 public class ResourceAdapterEvent extends EventObject {
+    private static final long serialVersionUID = -7833423864797063691L;
+
     /**
      * Initializes a new instance of the event data holder.
      *
@@ -23,7 +25,6 @@ public class ResourceAdapterEvent extends EventObject {
      *
      * @return The resource adapter associated with this event.
      */
-    @SuppressWarnings("unchecked")
     @Override
     public final ResourceAdapter getSource() {
         return (ResourceAdapter) source;

@@ -2,7 +2,7 @@ package com.itworks.snamp.configuration;
 
 import com.itworks.snamp.core.SupportService;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
  * Represents configuration description provider.
@@ -21,5 +21,5 @@ public interface ConfigurationEntityDescriptionProvider extends SupportService {
      * @param configurationEntity Type of the configuration element.
      * @return The description of the configuration element; or {@literal null}, if description is not available.
      */
-    <T extends ConfigurationEntity> ConfigurationEntityDescription<T> getDescription(final Class<T> configurationEntity);
+    <T extends EntityConfiguration> ConfigurationEntityDescription<T> getDescription(final Class<T> configurationEntity);
 }

@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.rshell;
 
+import com.google.common.base.Function;
 import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.jcommands.impl.TypeTokens;
 import com.itworks.jcommands.impl.XmlCommandLineToolProfile;
@@ -9,6 +10,7 @@ import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
+import com.itworks.snamp.connectors.ResourceEventListener;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
@@ -27,7 +29,6 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,9 +201,10 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         private final CommandExecutionChannel executionChannel;
         private final ScriptEngineManager scriptEngineManager;
 
-        private RShellAttributes(final CommandExecutionChannel channel,
+        private RShellAttributes(final String resourceName,
+                                 final CommandExecutionChannel channel,
                                  final ScriptEngineManager engineManager) {
-            super(RShellAttributeInfo.class);
+            super(resourceName, RShellAttributeInfo.class);
             this.executionChannel = channel;
             this.scriptEngineManager = engineManager;
         }
@@ -318,129 +320,51 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
 
     private final CommandExecutionChannel executionChannel;
     private final RShellAttributes attributes;
-    private final BigInteger configurationHash;
 
-    /**
-     * Initializes a new management connector.
-     *
-     * @param connectionOptions Management connector initialization options.
-     */
-    RShellResourceConnector(final RShellConnectionOptions connectionOptions) throws Exception {
+    RShellResourceConnector(final String resourceName,
+                            final RShellConnectionOptions connectionOptions) throws Exception {
+        super(resourceName);
         executionChannel = connectionOptions.createExecutionChannel();
-        attributes = new RShellAttributes(executionChannel, new OSGiScriptEngineManager(Utils.getBundleContextByObject(this)));
-        configurationHash = connectionOptions.getConfigurationHash();
+        attributes = new RShellAttributes(resourceName,
+                executionChannel,
+                new OSGiScriptEngineManager(Utils.getBundleContextByObject(this)));
     }
 
-    RShellResourceConnector(final String connectionString,
-                                   final Map<String, String> connectionOptions) throws Exception{
-        this(new RShellConnectionOptions(connectionString, connectionOptions));
+    RShellResourceConnector(final String resourceName,
+                            final String connectionString,
+                            final Map<String, String> connectionOptions) throws Exception{
+        this(resourceName, new RShellConnectionOptions(connectionString, connectionOptions));
     }
 
-    @Override
-    public void update(final String connectionString, final Map<String, String> connectionParameters) throws UnsupportedUpdateOperationException {
-        if(!configurationHash.equals(RShellConnectionOptions.computeConfigurationHash(connectionString, connectionParameters)))
-            throw new UnsupportedUpdateOperationException("RShell Connector cannot be updated on-the-fly.");
+    MBeanAttributeInfo addAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
     }
 
-    /**
-     * Obtain the value of a specific attribute of the managed resource.
-     *
-     * @param attributeID The name of the attribute to be retrieved
-     * @return The value of the attribute retrieved.
-     * @throws javax.management.AttributeNotFoundException
-     * @throws javax.management.MBeanException             Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's getter.
-     * @throws javax.management.ReflectionException        Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the getter.
-     * @see #setAttribute(javax.management.Attribute)
-     */
-    @Override
-    public Object getAttribute(final String attributeID) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        verifyInitialization();
-        return attributes.getAttribute(attributeID);
+    void removeAllAttributes(){
+        attributes.clear(false);
     }
 
     /**
-     * Set the value of a specific attribute of the managed resource.
+     * Adds a new listener for the connector-related events.
+     * <p/>
+     * The managed resource connector should holds a weak reference to all added event listeners.
      *
-     * @param attribute The identification of the attribute to
-     *                  be set and  the value it is to be set to.
-     * @throws javax.management.AttributeNotFoundException
-     * @throws javax.management.InvalidAttributeValueException
-     * @throws javax.management.MBeanException                 Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
-     * @throws javax.management.ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
-     * @see #getAttribute
+     * @param listener An event listener to add.
      */
     @Override
-    public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        verifyInitialization();
-        attributes.setAttribute(attribute);
+    public void addResourceEventListener(final ResourceEventListener listener) {
+        addResourceEventListener(listener, attributes);
     }
 
     /**
-     * Get the values of several attributes of the Dynamic MBean.
+     * Removes connector event listener.
      *
-     * @param attributes A list of the attributes to be retrieved.
-     * @return The list of attributes retrieved.
-     * @see #setAttributes
+     * @param listener The listener to remove.
      */
     @Override
-    public AttributeList getAttributes(final String[] attributes) {
-        verifyInitialization();
-        return this.attributes.getAttributes(attributes);
+    public void removeResourceEventListener(final ResourceEventListener listener) {
+        addResourceEventListener(listener, attributes);
     }
-
-    /**
-     * Sets the values of several attributes of the Dynamic MBean.
-     *
-     * @param attributes A list of attributes: The identification of the
-     *                   attributes to be set and  the values they are to be set to.
-     * @return The list of attributes that were set, with their new values.
-     * @see #getAttributes
-     */
-    @Override
-    public AttributeList setAttributes(final AttributeList attributes) {
-        verifyInitialization();
-        return this.attributes.setAttributes(attributes);
-    }
-
-    /**
-     * Connects to the specified attribute.
-     *
-     * @param id               A key string that is used to invoke attribute from this connector.
-     * @param attributeName    The name of the attribute.
-     * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
-     * @param options          The attribute discovery options.
-     * @return The description of the attribute.
-     * @throws javax.management.AttributeNotFoundException The managed resource doesn't provide the attribute with the specified name.
-     * @throws javax.management.JMException                Internal connector error.
-     */
-    @Override
-    public MBeanAttributeInfo connectAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) throws JMException {
-        verifyInitialization();
-        return attributes.connectAttribute(id, attributeName, readWriteTimeout, options);
-    }
-
-    /**
-     * Gets an array of connected attributes.
-     *
-     * @return An array of connected attributes.
-     */
-    @Override
-    public MBeanAttributeInfo[] getAttributeInfo() {
-        return attributes.getAttributeInfo();
-    }
-
-    /**
-     * Removes the attribute from the connector.
-     *
-     * @param id The unique identifier of the attribute.
-     * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
-     */
-    @Override
-    public boolean disconnectAttribute(final String id) {
-        return attributes.disconnectAttribute(id);
-    }
-
-
 
     /**
      * Gets a logger associated with this platform service.
@@ -453,16 +377,31 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     }
 
     /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the aggregated object.
+     * @return An instance of the requested object; or {@literal null} if object is not available.
+     */
+    @Override
+    public <T> T queryObject(final Class<T> objectType) {
+        return findObject(objectType,
+                new Function<Class<T>, T>() {
+                    @Override
+                    public T apply(final Class<T> objectType) {
+                        return RShellResourceConnector.super.queryObject(objectType);
+                    }
+                }, attributes);
+    }
+
+    /**
      * Releases all resources associated with this connector.
      *
      * @throws Exception Unable to release resources associated with this connector.
      */
     @Override
     public void close() throws Exception {
-        try {
-            executionChannel.close();
-        } finally {
-            super.close();
-        }
+        attributes.clear(true);
+        super.close();
+        executionChannel.close();
     }
 }

@@ -4,7 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.itworks.snamp.configuration.SerializableAgentConfiguration;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
@@ -54,7 +54,7 @@ final class SnmpDiscoveryService {
     }
 
     @SuppressWarnings("unchecked")
-    static  <T extends ManagedEntity> Collection<T> discover(final Class<T> entityType, final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
+    static  <T extends FeatureConfiguration> Collection<T> discover(final Class<T> entityType, final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
         if (Objects.equals(entityType, AttributeConfiguration.class))
             return (Collection<T>) discoverAttributes(client);
         else return Collections.emptyList();

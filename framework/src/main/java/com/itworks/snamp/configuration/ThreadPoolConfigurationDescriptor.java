@@ -1,6 +1,6 @@
 package com.itworks.snamp.configuration;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
  * Represents configuration descriptor for the configurable entity that has its own {@link java.util.concurrent.ExecutorService}.
@@ -8,7 +8,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * @version 1.0
  * @since 1.0
  */
-public interface ThreadPoolConfigurationDescriptor<T extends ConfigurationEntity> extends ConfigurationEntityDescription<T> {
+public interface ThreadPoolConfigurationDescriptor<T extends EntityConfiguration> extends ConfigurationEntityDescription<T> {
     /**
      * Configuration property for the min pool size.
      */

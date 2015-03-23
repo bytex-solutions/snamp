@@ -1,11 +1,10 @@
 package com.itworks.snamp.connectors.attributes;
 
-import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.connectors.FeatureSupport;
 
 import javax.management.*;
-import javax.management.openmbean.CompositeData;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
  * Represents support for management attributes.
@@ -26,7 +25,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * @version 1.0
  * @since 1.0
  */
-public interface AttributeSupport {
+public interface AttributeSupport extends FeatureSupport {
     /**
      * The name of field in {@link javax.management.Descriptor} which contains
      * the name of the attribute.
@@ -43,28 +42,13 @@ public interface AttributeSupport {
      * The name of the field in {@link javax.management.Descriptor}
      * which contains attribute description.
      */
-    String DESCRIPTION_FIELD = ConfigurationEntity.DESCRIPTION_KEY;
+    String DESCRIPTION_FIELD = EntityConfiguration.DESCRIPTION_KEY;
 
     /**
      * The name of the field of {@link javax.management.openmbean.OpenType} in {@link javax.management.Descriptor}
      * which describes the attribute type.
      */
     String OPEN_TYPE = "openType";
-
-    /**
-     * Connects to the specified attribute.
-     * @param id A key string that is used to invoke attribute from this connector.
-     * @param attributeName The name of the attribute.
-     * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
-     * @param options The attribute discovery options.
-     * @return The description of the attribute.
-     * @throws javax.management.AttributeNotFoundException The managed resource doesn't provide the attribute with the specified name.
-     * @throws javax.management.JMException Internal connector error.
-     */
-    MBeanAttributeInfo connectAttribute(final String id,
-                                       final String attributeName,
-                                       final TimeSpan readWriteTimeout,
-                                       final CompositeData options) throws JMException;
 
     /**
      * Obtain the value of a specific attribute of the managed resource.
@@ -126,11 +110,4 @@ public interface AttributeSupport {
      * @return An array of connected attributes.
      */
     MBeanAttributeInfo[] getAttributeInfo();
-
-    /**
-     * Removes the attribute from the connector.
-     * @param id The unique identifier of the attribute.
-     * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
-     */
-    boolean disconnectAttribute(final String id);
 }

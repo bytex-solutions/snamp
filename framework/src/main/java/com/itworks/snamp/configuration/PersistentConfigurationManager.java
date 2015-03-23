@@ -1,11 +1,13 @@
 package com.itworks.snamp.configuration;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.*;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.itworks.snamp.internal.RecordReader;
+import com.itworks.snamp.io.IOUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
@@ -32,8 +34,9 @@ import static com.itworks.snamp.configuration.SerializableAgentConfiguration.Ser
  */
 @ThreadSafe
 public final class PersistentConfigurationManager extends AbstractAggregator implements ConfigurationManager {
-    private static final TypeToken<Map<String, AttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<Map<String, AttributeConfiguration>>() {};
-    private static final TypeToken<Map<String, EventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<Map<String, EventConfiguration>>() {};
+    private static final TypeToken<SerializableMap<String, AttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<SerializableMap<String, AttributeConfiguration>>() {};
+    private static final TypeToken<SerializableMap<String, EventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<SerializableMap<String, EventConfiguration>>() {};
+    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     private static final String ADAPTER_PID_TEMPLATE = "com.itworks.snamp.adapters.%s";
     private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "$adapterInstanceName$";
@@ -62,6 +65,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      * @version 1.0
      */
     public static final class PersistentConfigurationException extends IOException{
+        private static final long serialVersionUID = -518115699501252969L;
         /**
          * Represents PID that references the invalid configuration.
          */
@@ -69,10 +73,10 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         /**
          * Represents type of the configuration entity that cannot be restored from storage.
          */
-        public final Class<? extends ConfigurationEntity> entityType;
+        public final Class<? extends EntityConfiguration> entityType;
 
         private PersistentConfigurationException(final String pid,
-                                                final Class<? extends ConfigurationEntity> entityType,
+                                                final Class<? extends EntityConfiguration> entityType,
                                                 final Throwable e){
             super(String.format("Unable to read SNAMP %s configuration", pid), e);
             this.persistenceID = pid;
@@ -80,7 +84,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         }
     }
 
-    private static final class ConfigurationEntry<V extends ConfigurationEntity> implements Map.Entry<String, V>{
+    private static final class ConfigurationEntry<V extends EntityConfiguration> implements Map.Entry<String, V>{
         private final String entryName;
         private final V entry;
 
@@ -276,6 +280,26 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         return result;
     }
 
+    public static Map<String, AttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException{
+        byte[] serializedForm = Utils.getProperty(resourceConfig,
+                ATTRIBUTES_PROPERTY,
+                byte[].class,
+                EMPTY_BYTE_ARRAY);
+        return serializedForm != null && serializedForm.length > 0 ?
+                IOUtils.deserialize(serializedForm, ATTRS_MAP_TYPE):
+                ImmutableMap.<String, AttributeConfiguration>of();
+    }
+
+    public static Map<String, EventConfiguration> getEvents(final Dictionary<String, ?> resourceConfig) throws IOException {
+        byte[] serializedForm = Utils.getProperty(resourceConfig,
+                EVENTS_PROPERTY,
+                byte[].class,
+                EMPTY_BYTE_ARRAY);
+        return serializedForm != null && serializedForm.length > 0 ?
+                IOUtils.deserialize(serializedForm, EVENTS_MAP_TYPE):
+                ImmutableMap.<String, EventConfiguration>of();
+    }
+
     private static ConfigurationEntry<ManagedResourceConfiguration> readResourceConfiguration(
             final String factoryPID,
             final Dictionary<String, ?> config) throws IOException {
@@ -283,27 +307,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         result.setConnectionString(getConnectionString(config));
         result.setConnectionType(getConnectorType(factoryPID));
         //deserialize attributes
-        byte[] content = Utils.getProperty(config, ATTRIBUTES_PROPERTY, byte[].class, (byte[]) null);
-        if (content != null && content.length > 0)
-            try (final ByteArrayInputStream stream = new ByteArrayInputStream(content);
-                 final ObjectInputStream deserializer = new ObjectInputStream(stream)) {
-                final Map<String, AttributeConfiguration> attributes = TypeTokens.safeCast(deserializer.readObject(), ATTRS_MAP_TYPE);
-                if (attributes != null)
-                    result.setAttributes(attributes);
-            } catch (final ClassNotFoundException e) {
-                throw new IOException(e);
-            }
+        result.setAttributes(getAttributes(config));
         //deserialize events
-        content = Utils.getProperty(config, EVENTS_PROPERTY, byte[].class, (byte[]) null);
-        if (content != null && content.length > 0)
-            try (final ByteArrayInputStream stream = new ByteArrayInputStream(content);
-                 final ObjectInputStream deserializer = new ObjectInputStream(stream)) {
-                final Map<String, EventConfiguration> events = TypeTokens.safeCast(deserializer.readObject(), EVENTS_MAP_TYPE);
-                if (events != null)
-                    result.setEvents(events);
-            } catch (final ClassNotFoundException e) {
-                throw new IOException(e);
-            }
+        result.setEvents(getEvents(config));
         //deserialize parameters
         fillConnectionOptions(config, result.getParameters());
         result.reset();
@@ -436,21 +442,11 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         final Map<String, AttributeConfiguration> attributes = resource.getElements(AttributeConfiguration.class);
         //serialize attributes
         if (attributes != null)
-            try (final ByteArrayOutputStream os = new ByteArrayOutputStream(1024);
-                 final ObjectOutputStream serializer = new ObjectOutputStream(os)) {
-                serializer.writeObject(attributes);
-                serializer.flush();
-                Utils.setProperty(result, ATTRIBUTES_PROPERTY, os.toByteArray());
-            }
+            Utils.setProperty(result, ATTRIBUTES_PROPERTY, IOUtils.serialize((Serializable)attributes));
         final Map<String, EventConfiguration> events = resource.getElements(EventConfiguration.class);
         //serialize events
         if (events != null)
-            try (final ByteArrayOutputStream os = new ByteArrayOutputStream(1024);
-                 final ObjectOutputStream serializer = new ObjectOutputStream(os)) {
-                serializer.writeObject(events);
-                serializer.flush();
-                Utils.setProperty(result, EVENTS_PROPERTY, os.toByteArray());
-            }
+            Utils.setProperty(result, EVENTS_PROPERTY, IOUtils.serialize((Serializable)events));
         //serialize properties
         for(final Map.Entry<String, String> entry: resource.getParameters().entrySet())
             result.put(entry.getKey(), entry.getValue());

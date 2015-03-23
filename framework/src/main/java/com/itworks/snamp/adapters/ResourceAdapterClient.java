@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
  * @author Roman Sakno
@@ -97,7 +97,7 @@ public final class ResourceAdapterClient {
      * @param <T> Type of the configuration entity.
      * @return Configuration entity descriptor; or {@literal null}, if configuration description is not supported.
      */
-    public static <T extends ConfigurationEntity> ConfigurationEntityDescription<T> getConfigurationEntityDescriptor(final BundleContext context,
+    public static <T extends EntityConfiguration> ConfigurationEntityDescription<T> getConfigurationEntityDescriptor(final BundleContext context,
                                                                                                                      final String adapterName,
                                                                                                                      final Class<T> configurationEntity) throws UnsupportedOperationException{
         if(context == null || configurationEntity == null) return null;

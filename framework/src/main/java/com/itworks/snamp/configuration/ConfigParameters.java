@@ -6,10 +6,10 @@ import com.itworks.snamp.jmx.AbstractCompositeData;
 import javax.management.openmbean.SimpleType;
 import java.util.Map;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
- * Represents a copy of configuration entity parameters (obtained from {@link com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity#getParameters()}
+ * Represents a copy of configuration entity parameters (obtained from {@link com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration#getParameters()}
  * wrapped into {@link javax.management.openmbean.CompositeData}.
  * This class cannot be inherited.
  * @author Roman Sakno
@@ -43,7 +43,7 @@ public final class ConfigParameters extends AbstractCompositeData<String> {
      * Initializes a new copy of configuration entity parameters
      * @param entity The configuration entity. Cannot be {@literal null}.
      */
-    public ConfigParameters(final ConfigurationEntity entity){
+    public ConfigParameters(final EntityConfiguration entity){
         this(entity.getParameters());
     }
 

@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.core.FrameworkService;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import javax.management.DynamicMBean;
 import java.util.Map;
@@ -21,7 +22,7 @@ import java.util.Map;
  * @since 1.0
  * @version 1.0
  */
-public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean {
+public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean, FeatureSupport {
     /**
      * Represents an exception indicating that the resource connector cannot be updated
      * without it recreation. This class cannot be inherited.
@@ -52,4 +53,20 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      */
     void update(final String connectionString,
                 final Map<String, String> connectionParameters) throws Exception;
+
+    /**
+     * Adds a new listener for the connector-related events.
+     * <p>
+     *     The managed resource connector should holds a weak reference to all added event listeners.
+     * @param listener An event listener to add.
+     */
+    @ThreadSafe
+    void addResourceEventListener(final ResourceEventListener listener);
+
+    /**
+     * Removes connector event listener.
+     * @param listener The listener to remove.
+     */
+    @ThreadSafe
+    void removeResourceEventListener(final ResourceEventListener listener);
 }

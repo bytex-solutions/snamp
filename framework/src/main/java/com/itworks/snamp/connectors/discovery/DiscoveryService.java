@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors.discovery;
 
 import com.google.common.collect.ImmutableSet;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.itworks.snamp.core.SupportService;
 
 import java.util.Collection;
@@ -31,7 +31,7 @@ public interface DiscoveryService extends SupportService {
          * @return A collection of discovered entities.
          * @throws java.lang.IllegalArgumentException The specified managed entity was not requested.
          */
-        <T extends ManagedEntity> Collection<T> getSubResult(final Class<T> entityType) throws IllegalArgumentException;
+        <T extends FeatureConfiguration> Collection<T> getSubResult(final Class<T> entityType) throws IllegalArgumentException;
     }
 
     /**
@@ -41,14 +41,14 @@ public interface DiscoveryService extends SupportService {
      * @version 1.0
      */
     public static final class EmptyDiscoveryResult implements DiscoveryResult{
-        private final Set<Class<? extends ManagedEntity>> entities;
+        private final Set<Class<? extends FeatureConfiguration>> entities;
 
         /**
          * Initializes a new empty discovery result.
          * @param requestedEntities An array of requested entities.
          */
         @SafeVarargs
-        public EmptyDiscoveryResult(final Class<? extends ManagedEntity>... requestedEntities){
+        public EmptyDiscoveryResult(final Class<? extends FeatureConfiguration>... requestedEntities){
             entities = ImmutableSet.copyOf(requestedEntities);
         }
 
@@ -60,7 +60,7 @@ public interface DiscoveryService extends SupportService {
          * @throws IllegalArgumentException The specified managed entity was not requested.
          */
         @Override
-        public <T extends ManagedEntity> Collection<T> getSubResult(final Class<T> entityType) throws IllegalArgumentException {
+        public <T extends FeatureConfiguration> Collection<T> getSubResult(final Class<T> entityType) throws IllegalArgumentException {
             if(entities.contains(entityType)) return Collections.emptyList();
             else throw new IllegalArgumentException(String.format("Entity type %s was not requested", entityType));
         }
@@ -87,7 +87,7 @@ public interface DiscoveryService extends SupportService {
      * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
      * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
      */
-    <T extends ManagedEntity> Collection<T> discover(final String connectionString,
+    <T extends FeatureConfiguration> Collection<T> discover(final String connectionString,
                   final Map<String, String> connectionOptions,
                   final Class<T> entityType);
 
@@ -101,5 +101,5 @@ public interface DiscoveryService extends SupportService {
     @SuppressWarnings("unchecked")
     DiscoveryResult discover(final String connectionString,
                              final Map<String, String> connectionOptions,
-                             final Class<? extends ManagedEntity>... entityTypes);
+                             final Class<? extends FeatureConfiguration>... entityTypes);
 }
