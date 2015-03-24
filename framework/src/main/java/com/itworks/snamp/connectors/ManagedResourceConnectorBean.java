@@ -660,7 +660,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     private ManagedResourceConnectorBean(final String resourceName,
                                          ManagedBeanDescriptor<?> descriptor,
                                          final Set<? extends ManagementNotificationType<?>> notifTypes) throws IntrospectionException {
-        super(resourceName);
         if(descriptor == null) descriptor = new SelfDescriptor(this);
         attributes = new JavaBeanAttributeSupport(resourceName, descriptor, getLogger());
         notifications = new JavaBeanNotificationSupport(resourceName, notifTypes, getLogger());

@@ -25,12 +25,12 @@ public abstract class ThreadSafeObject {
      * @version 1.0
      * @since 1.0
      */
-    protected static interface LockScope extends AutoCloseable, Lock {
+    public static interface LockScope extends AutoCloseable, Lock {
         /**
          * Releases the lock.
          */
         @Override
-        public void close();
+        void close();
     }
 
     private static final class ReadLockScope extends ReentrantReadWriteLock.ReadLock implements LockScope{

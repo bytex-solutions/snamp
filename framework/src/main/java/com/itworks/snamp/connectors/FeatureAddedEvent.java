@@ -15,8 +15,10 @@ public class FeatureAddedEvent<F extends MBeanFeatureInfo> extends ResourceEvent
     private static final long serialVersionUID = 3183942685265765987L;
     private final F feature;
 
-    public FeatureAddedEvent(final Object sender, final F addedFeature){
-        super(sender);
+    public FeatureAddedEvent(final Object sender,
+                             final String resourceName,
+                             final F addedFeature){
+        super(sender, resourceName);
         this.feature = Objects.requireNonNull(addedFeature);
     }
 

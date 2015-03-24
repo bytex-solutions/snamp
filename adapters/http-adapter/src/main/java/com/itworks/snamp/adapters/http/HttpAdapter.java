@@ -1,38 +1,39 @@
 package com.itworks.snamp.adapters.http;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.jmx.json.*;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.atmosphere.cpr.AtmosphereConfig;
 import org.atmosphere.jersey.JerseyBroadcaster;
 import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import javax.servlet.Servlet;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.*;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.atmosphere.cpr.FrameworkConfig.ATMOSPHERE_CONFIG;
@@ -46,25 +47,65 @@ final class HttpAdapter extends AbstractResourceAdapter {
     static final String NAME = HttpAdapterHelpers.ADAPTER_NAME;
     private static final int METHOD_NOT_ALLOWED = 405;
 
-    private static final class HttpAttributeMapping{
-        private final AttributeAccessor accessor;
-        private final WellKnownType attributeType;
+    private static final class HttpAttributeMapping extends AttributeAccessor {
         private Gson formatter;
 
-        private HttpAttributeMapping(final AttributeAccessor accessor,
-                                             final GsonBuilder builder){
-            this.accessor = accessor;
-            this.attributeType = accessor.getType();
-            this.formatter = builder.create();
+        private HttpAttributeMapping(final MBeanAttributeInfo attributeInfo){
+            super(attributeInfo);
+            final String dateFormat = HttpAdapterConfigurationDescriptor.getDateFormatParam(getMetadata().getDescriptor());
+            GsonBuilder builder = new GsonBuilder();
+            if(dateFormat != null && dateFormat.length() > 0)
+                builder = builder.setDateFormat(dateFormat);
+            if(getType() != null)
+                switch (getType()){
+                    case BYTE_BUFFER:
+                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new ByteBufferFormatter());
+                        break;
+                    case CHAR_BUFFER:
+                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new CharBufferFormatter());
+                        break;
+                    case SHORT_BUFFER:
+                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new ShortBufferFormatter());
+                        break;
+                    case INT_BUFFER:
+                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new IntBufferFormatter());
+                        break;
+                    case LONG_BUFFER:
+                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new LongBufferFormatter());
+                        break;
+                    case FLOAT_BUFFER:
+                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new FloatBufferFormatter());
+                        break;
+                    case DOUBLE_BUFFER:
+                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new DoubleBufferFormatter());
+                        break;
+                    case OBJECT_NAME_ARRAY:
+                    case OBJECT_NAME:
+                        builder = builder.registerTypeAdapter(ObjectName.class, new ObjectNameFormatter());
+                        break;
+                    case DICTIONARY:
+                        CompositeType compositeType = (CompositeType) getOpenType();
+                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new CompositeDataFormatter(compositeType));
+                        break;
+                    case TABLE:
+                        TabularType tabularType = (TabularType)getOpenType();
+                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new TabularDataFormatter(tabularType));
+                        break;
+                    case DICTIONARY_ARRAY:
+                        compositeType = (CompositeType)((ArrayType<?>)getOpenType()).getElementOpenType();
+                        builder = builder.registerTypeAdapter(getType().getJavaType(), new ArrayOfCompositeDataFormatter(compositeType));
+                        break;
+                    case TABLE_ARRAY:
+                        tabularType = (TabularType)((ArrayType<?>)getOpenType()).getElementOpenType();
+                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new ArrayOfTabularDataFormatter(tabularType));
+                        break;
+                }
+            formatter = builder.create();
         }
 
-        private String getName(){
-            return accessor.getName();
-        }
-
-        private JsonElement getValue() throws WebApplicationException {
+        private JsonElement getValueAsJson() throws WebApplicationException {
             try {
-                return formatter.toJsonTree(accessor.getValue());
+                return formatter.toJsonTree(getValue());
             } catch (final AttributeNotFoundException e) {
                 throw new WebApplicationException(e, Response.Status.NOT_FOUND);
             }
@@ -73,18 +114,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
             }
         }
 
-        private boolean canRead() {
-            return accessor.getMetadata().isReadable();
-        }
-
-        private boolean canWrite() {
-            return attributeType != null && accessor.getMetadata().isWritable();
-        }
-
         private void setValue(final JsonElement json) throws WebApplicationException {
-            if (attributeType != null)
+            if (getType() != null)
                 try {
-                    accessor.setValue(formatter.fromJson(json, attributeType.getType()));
+                    setValue(formatter.fromJson(json, getType()));
                 } catch (final AttributeNotFoundException e) {
                     throw new WebApplicationException(e, Response.Status.NOT_FOUND);
                 } catch (final InvalidAttributeValueException | JsonParseException e) {
@@ -104,289 +137,66 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class HttpAttributeManager extends AbstractKeyedObjects<String, HttpAttributeMapping>{
-        private static final long serialVersionUID = 2767603193006584834L;
-        private static char ATTR_NAME_SPLITTER = '/';
-        private final String resourceName;
+    private static final class HttpAttributesModel extends AbstractAttributesModel<HttpAttributeMapping> implements AttributeSupport{
 
-        private HttpAttributeManager(final String resourceName){
-            super(10);
-            this.resourceName = resourceName;
-        }
-
-        @Override
-        public String getKey(final HttpAttributeMapping item) {
-            return item.getName();
-        }
-
-        private String makeAttributeID(final String userDefinedName){
-            return resourceName + ATTR_NAME_SPLITTER + userDefinedName;
-        }
-
-        /**
-         * Removes all of the mappings from this map.
-         * The map will be empty after this call returns.
-         */
-        @Override
-        public void clear() {
-            try {
-                for (final HttpAttributeMapping attr : values())
-                    attr.accessor.disconnect();
-            }finally {
-                super.clear();
-            }
-        }
-
-        private String getAtttribute(final String userDefinedName) throws WebApplicationException{
-            final String attributeID;
-            if(containsKey(attributeID = makeAttributeID(userDefinedName))){
-                final HttpAttributeMapping mapping = get(attributeID);
-                if(mapping.canRead())
-                    return mapping.toString(mapping.getValue());
-                else throw new WebApplicationException(new IllegalStateException(String.format("Attribute %s is write-ony", userDefinedName)), METHOD_NOT_ALLOWED);
-            }
-            else throw new WebApplicationException(new IllegalArgumentException(String.format("Attribute %s doesn't exist", userDefinedName)), Response.Status.NOT_FOUND);
-        }
-
-        private void setAttribute(final String userDefinedName,
-                                  final String value) {
-            final String attributeID;
-            if(containsKey(attributeID = makeAttributeID(userDefinedName))){
-                final HttpAttributeMapping mapping = get(attributeID);
-                if(mapping.canWrite())
-                    mapping.setValue(mapping.fromString(value));
-                else throw new WebApplicationException(new IllegalStateException(String.format("Attribute %s is read-only", userDefinedName)), METHOD_NOT_ALLOWED);
-            }
-            else throw new WebApplicationException(new IllegalArgumentException(String.format("Attribute %s doesn't exist", userDefinedName)), Response.Status.NOT_FOUND);
-        }
-
-        private HttpAttributeMapping createAttribute(final AttributeAccessor accessor){
-            final WellKnownType type = accessor.getType();
-            final String dateFormat = HttpAdapterConfigurationDescriptor.getDateFormatParam(accessor.getMetadata().getDescriptor());
-            GsonBuilder builder = new GsonBuilder();
-            if(dateFormat != null && dateFormat.length() > 0)
-                builder = builder.setDateFormat(dateFormat);
-            if(type != null)
-                switch (type){
-                    case BYTE_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new ByteBufferFormatter());
-                    break;
-                    case CHAR_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new CharBufferFormatter());
-                    break;
-                    case SHORT_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new ShortBufferFormatter());
-                    break;
-                    case INT_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new IntBufferFormatter());
-                    break;
-                    case LONG_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new LongBufferFormatter());
-                    break;
-                    case FLOAT_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new FloatBufferFormatter());
-                    break;
-                    case DOUBLE_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new DoubleBufferFormatter());
-                    break;
-                    case OBJECT_NAME_ARRAY:
-                    case OBJECT_NAME:
-                        builder = builder.registerTypeAdapter(ObjectName.class, new ObjectNameFormatter());
-                    break;
-                    case DICTIONARY:
-                        CompositeType compositeType = (CompositeType)accessor.getOpenType();
-                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new CompositeDataFormatter(compositeType));
-                    break;
-                    case TABLE:
-                        TabularType tabularType = (TabularType)accessor.getOpenType();
-                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new TabularDataFormatter(tabularType));
-                    break;
-                    case DICTIONARY_ARRAY:
-                        compositeType = (CompositeType)((ArrayType<?>)accessor.getOpenType()).getElementOpenType();
-                        builder = builder.registerTypeAdapter(type.getType(), new ArrayOfCompositeDataFormatter(compositeType));
-                    break;
-                    case TABLE_ARRAY:
-                        tabularType = (TabularType)((ArrayType<?>)accessor.getOpenType()).getElementOpenType();
-                        builder = builder.registerTypeHierarchyAdapter(type.getType(), new ArrayOfTabularDataFormatter(tabularType));
-                    break;
-                }
-            return new HttpAttributeMapping(accessor, builder);
-        }
-
-        private void addAttribute(final String userDefinedName,
-                                  final AttributeConnector connector) throws JMException {
-            final String attributeID = makeAttributeID(userDefinedName);
-            put(createAttribute(connector.connect(attributeID)));
-        }
-
-        private AttributeAccessor removeAttribute(final String userDefinedName) {
-            final String attributeID = makeAttributeID(userDefinedName);
-            return containsKey(attributeID) ? remove(attributeID).accessor : null;
-        }
-
-
-    }
-
-    private static final class HttpAttributesModel extends ThreadSafeObject implements AttributesModel, AttributeSupport{
-        private final KeyedObjects<String, HttpAttributeManager> managers;
-
-        private HttpAttributesModel(){
-            this.managers = createManagers();
-        }
-
-        private static KeyedObjects<String, HttpAttributeManager> createManagers(){
-            return new AbstractKeyedObjects<String, HttpAttributeManager>(10) {
-                private static final long serialVersionUID = -1381957593340427015L;
-
-                @Override
-                public String getKey(final HttpAttributeManager item) {
-                    return item.resourceName;
-                }
-            };
-        }
-
-        @Override
-        public void addAttribute(final String resourceName,
-                                 final String userDefinedName,
-                                 final String attributeName,
-                                 final AttributeConnector connector) {
-            beginWrite();
-            try{
-                final HttpAttributeManager manager;
-                if(managers.containsKey(resourceName))
-                    manager = managers.get(resourceName);
-                else managers.put(manager = new HttpAttributeManager(resourceName));
-                manager.addAttribute(userDefinedName, connector);
-            }
-            catch (final JMException e){
-                HttpAdapterHelpers.log(Level.SEVERE, "Unable to register attribute %s:%s", resourceName, userDefinedName, e);
-            }
-            finally {
-                endWrite();
-            }
-        }
-
-        @Override
-        public AttributeAccessor removeAttribute(final String resourceName,
-                                                 final String userDefinedName,
-                                                 final String attributeName) {
-            beginWrite();
-            try{
-                final HttpAttributeManager manager;
-                if(managers.containsKey(resourceName))
-                    manager = managers.get(resourceName);
-                else return null;
-                final AttributeAccessor result = manager.removeAttribute(userDefinedName);
-                if(manager.isEmpty())
-                    managers.remove(resourceName);
-                return result;
-            }
-            finally {
-                endWrite();
-            }
-        }
-
-        /**
-         * Removes all attributes from this model.
-         */
-        @Override
-        public void clear() {
-            beginWrite();
-            try {
-                for (final HttpAttributeManager manager : managers.values())
-                    manager.clear();
-            }
-            finally {
-                managers.clear();
-                endWrite();
-            }
-        }
-
-        /**
-         * Determines whether this model is empty.
-         *
-         * @return {@literal true}, if this model is empty; otherwise, {@literal false}.
-         */
-        @Override
-        public boolean isEmpty() {
-            beginRead();
-            try {
-                return managers.isEmpty();
-            }
-            finally {
-                endRead();
-            }
-        }
-
-        private <T> T processAttribute(final String resourceName,
-                                       final String attributeName,
-                                       final Function<HttpAttributeManager, T> handler) throws WebApplicationException{
-            beginRead();
-            try{
-                if(managers.containsKey(resourceName))
-                    return handler.apply(managers.get(resourceName));
-                else throw new WebApplicationException(new IllegalArgumentException(String.format("Attribute %s:%s doesn't exist", resourceName, attributeName)), Response.Status.NOT_FOUND);
-            }
-            finally {
-                endRead();
-            }
+        private static WebApplicationException attributeNotFound(final String resourceName,
+                                                                 final String attributeName){
+            return new WebApplicationException(new AttributeNotFoundException(String.format("Attribute %s in resource %s no longer accessible", attributeName, resourceName)),
+                    Response.Status.NOT_FOUND);
         }
 
         @Override
         public String getAttribute(final String resourceName, final String attributeName) throws WebApplicationException {
-            return processAttribute(resourceName, attributeName, new Function<HttpAttributeManager, String>() {
-                @Override
-                public String apply(final HttpAttributeManager input) {
-                    return input.getAtttribute(attributeName);
-                }
-            });
+            try(final LockScope ignored = beginRead()){
+                final HttpAttributeMapping mapping = get(resourceName, attributeName);
+                if(mapping != null)
+                    return mapping.toString(mapping.getValueAsJson());
+                else throw attributeNotFound(resourceName, attributeName);
+            }
         }
 
         @Override
         public void setAttribute(final String resourceName, final String attributeName, final String value) throws WebApplicationException {
-            processAttribute(resourceName, attributeName, new Function<HttpAttributeManager, Void>() {
-                @Override
-                public Void apply(final HttpAttributeManager input) {
-                    input.setAttribute(attributeName, value);
-                    return null;
-                }
-            });
-        }
-
-        @Override
-        public Set<String> getResourceAttributes(final String resourceName) {
-            beginRead();
-            try{
-                if(managers.containsKey(resourceName)){
-                    final HttpAttributeManager manager = managers.get(resourceName);
-                    return manager.keySet();
-                }
-                else return ImmutableSet.of();
-            }
-            finally {
-                endRead();
+            try(final LockScope ignored = beginRead()){
+                final HttpAttributeMapping mapping = get(resourceName, attributeName);
+                if(mapping != null)
+                    mapping.setValue(mapping.fromString(value));
+                else throw attributeNotFound(resourceName, attributeName);
             }
         }
 
         @Override
-        public Set<String> getHostedResources() {
-            beginRead();
-            try{
-                return ImmutableSet.copyOf(managers.keySet());
-            }
-            finally {
-                endRead();
-            }
+        protected HttpAttributeMapping createAccessor(final MBeanAttributeInfo metadata) throws Exception {
+            return new HttpAttributeMapping(metadata);
         }
     }
 
-    private static final class NotificationBroadcaster extends JerseyBroadcaster implements InternalBroadcaster {
-        private final KeyedObjects<String, NotificationAccessor> notifications;
-        private final String resourceName;
+    private static final class NotificationEmitter extends NotificationAccessor {
+        private final WeakReference<NotificationListener> listener;
 
-        private NotificationBroadcaster(final String resourceName){
-            notifications = createNotifs();
+        private NotificationEmitter(final MBeanNotificationInfo metadata,
+                                    final NotificationListener listener) {
+            super(metadata);
+            this.listener = new WeakReference<>(listener);
+        }
+
+        @Override
+        public void handleNotification(final Notification notification, final Object handback) {
+            final NotificationListener listener = this.listener.get();
+            if(listener != null) listener.handleNotification(notification, handback);
+        }
+    }
+
+    private static final class NotificationBroadcaster extends JerseyBroadcaster implements InternalBroadcaster, NotificationListener {
+        private final ResourceNotificationList<NotificationEmitter> notifications;
+        private final String resourceName;
+        private final Gson formatter;
+
+        private NotificationBroadcaster(final String resourceName,
+                                        final Gson formatter){
+            notifications = new ResourceNotificationList<>();
             this.resourceName = resourceName;
+            this.formatter = Objects.requireNonNull(formatter);
         }
 
         private static URI getRequestURI(final HttpServletRequest request) throws URISyntaxException {
@@ -405,31 +215,14 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 }
         }
 
-        private static KeyedObjects<String, NotificationAccessor> createNotifs(){
-            return new AbstractKeyedObjects<String, NotificationAccessor>(10) {
-                private static final long serialVersionUID = 4500795792209189652L;
-
-                @Override
-                public String getKey(final NotificationAccessor item) {
-                    return item.getType();
-                }
-
-                @Override
-                public void clear() {
-                    for(final NotificationAccessor accessor: values())
-                        accessor.disconnect();
-                    super.clear();
-                }
-            };
-        }
-
         private boolean isInitialized(){
             return initialized.get();
         }
 
-        private void handleNotification(final Notification notif, final Gson formatter){
+        @Override
+        public void handleNotification(final Notification notif, final Object handback){
             notif.setSource(resourceName);
-            if(isInitialized() && !isDestroyed() && notifications.containsKey(notif.getType()))
+            if(isInitialized() && !isDestroyed())
                 broadcast(formatter.toJson(notif));
         }
 
@@ -438,19 +231,14 @@ final class HttpAdapter extends AbstractResourceAdapter {
             super.destroy();
         }
 
-        private String makeListID(final String userDefinedName){
-            return resourceName + "/" + userDefinedName;
+        private NotificationEmitter addNotification(final MBeanNotificationInfo metadata) {
+            final NotificationEmitter emitter = new NotificationEmitter(metadata, this);
+            notifications.put(emitter);
+            return emitter;
         }
 
-        private void addNotification(final String userDefinedName,
-                                    final NotificationConnector connector) throws JMException {
-            final String listID = makeListID(userDefinedName);
-            notifications.put(connector.enable(listID));
-        }
-
-        private NotificationAccessor removeNotification(final String userDefinedName) {
-            final String listID = makeListID(userDefinedName);
-            return notifications.remove(listID);
+        private NotificationEmitter removeNotification(final MBeanNotificationInfo metadata) {
+            return notifications.remove(metadata);
         }
 
         private boolean isEmpty(){
@@ -458,11 +246,13 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         private void clear() {
+            for(final NotificationAccessor accessor: notifications.values())
+                accessor.disconnect();
             notifications.clear();
         }
     }
 
-    private static final class HttpNotificationsModel extends ThreadSafeObject implements NotificationsModel, NotificationSupport{
+    private static final class HttpNotificationsModel extends ThreadSafeObject implements NotificationSupport{
         private final KeyedObjects<String, NotificationBroadcaster> notifications;
         private final Gson formatter;
 
@@ -494,115 +284,63 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
                 @Override
                 public void clear() {
-                    for(final NotificationBroadcaster broadcaster: values())
+                    for(final NotificationBroadcaster broadcaster: values()){
                         broadcaster.clear();
+                        broadcaster.destroy();
+                    }
                     super.clear();
                 }
             };
         }
 
-        @Override
-        public void addNotification(final String resourceName,
-                                    final String userDefinedName,
-                                    final String category,
-                                    final NotificationConnector connector) {
-            beginWrite();
-            try{
+        private NotificationEmitter addNotification(final String resourceName,
+                                    final MBeanNotificationInfo metadata) {
+            try (final LockScope ignored = beginWrite()) {
                 final NotificationBroadcaster broadcaster;
-                if(notifications.containsKey(resourceName))
+                if (notifications.containsKey(resourceName))
                     broadcaster = notifications.get(resourceName);
-                else notifications.put(broadcaster = new NotificationBroadcaster(resourceName));
-                broadcaster.addNotification(userDefinedName,
-                        connector);
-            }
-            catch (final JMException e){
-                HttpAdapterHelpers.log(Level.SEVERE, "Failed to enable notifications for %s resource", resourceName, e);
-            }
-            finally {
-                endWrite();
+                else notifications.put(broadcaster = new NotificationBroadcaster(resourceName, formatter));
+                return broadcaster.addNotification(metadata);
             }
         }
 
         @Override
         public NotificationBroadcaster getBroadcaster(final String resourceName) {
-            beginRead();
-            try{
+            try (final LockScope ignored = beginRead()) {
                 return notifications.get(resourceName);
-            }
-            finally {
-                endRead();
             }
         }
 
-        @Override
-        public NotificationAccessor removeNotification(final String resourceName,
-                                                        final String userDefinedName,
-                                                        final String category) {
-            beginWrite();
-            try{
-                final NotificationBroadcaster broadcaster;
+        private NotificationAccessor removeNotification(final String resourceName,
+                                                        final MBeanNotificationInfo metadata) {
+            try(final LockScope ignored = beginWrite()){
+                NotificationBroadcaster broadcaster;
                 if(notifications.containsKey(resourceName))
                     broadcaster = notifications.get(resourceName);
                 else return null;
-                final NotificationAccessor metadata = broadcaster.removeNotification(userDefinedName);
-                if(broadcaster.isEmpty())
-                    notifications.remove(resourceName);
-                return metadata;
-            }
-            finally {
-                endWrite();
+                final NotificationAccessor acessor = broadcaster.removeNotification(metadata);
+                if(broadcaster.isEmpty()) {
+                    broadcaster = notifications.remove(resourceName);
+                    broadcaster.destroy();
+                }
+                return acessor;
             }
         }
 
-        /**
-         * Removes all notifications from this model.
-         */
-        @Override
-        public void clear() {
-            beginWrite();
-            try{
+        private void clear() {
+            try(final LockScope ignored = beginWrite()){
                 notifications.clear();
             }
-            finally {
-                endWrite();
-            }
         }
 
-        /**
-         * Determines whether this model is empty.
-         *
-         * @return {@literal true}, if this model is empty; otherwise, {@literal false}.
-         */
-        @Override
-        public boolean isEmpty() {
-            beginRead();
-            try{
-                return notifications.isEmpty();
-            }
-            finally {
-                endRead();
-            }
-        }
-
-        /**
-         * Invoked when a JMX notification occurs.
-         * The implementation of this method should return as soon as possible, to avoid
-         * blocking its notification broadcaster.
-         *
-         * @param notification The notification.
-         * @param handback     An opaque object which helps the listener to associate
-         *                     information regarding the MBean emitter. This object is passed to the
-         *                     addNotificationListener call and resent, without modification, to the
-         */
-        @Override
-        public void handleNotification(final Notification notification, final Object handback) {
-            beginRead();
-            try{
-                for(final NotificationBroadcaster broadcaster: notifications.values())
-                    broadcaster.handleNotification(notification, formatter);
-            }
-            finally {
-                endRead();
+        private Collection<? extends NotificationAccessor> clear(final String resourceName) {
+            try(final LockScope ignored = beginWrite()){
+                if(notifications.containsKey(resourceName)){
+                    final NotificationBroadcaster broadcaster = notifications.remove(resourceName);
+                    broadcaster.destroy();
+                    return broadcaster.notifications.values();
+                }
+                else return ImmutableList.of();
             }
         }
     }
@@ -643,59 +381,49 @@ final class HttpAdapter extends AbstractResourceAdapter {
         return String.format(SERVLET_CONTEXT, getInstanceName());
     }
 
-    /**
-     * Starts the adapter.
-     * <p>
-     * This method will be called by SNAMP infrastructure automatically.
-     * </p>
-     *
-     * @param parameters Adapter startup parameters.
-     * @throws Exception Unable to start adapter.
-     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AttributesModel)
-     * @see #populateModel(com.itworks.snamp.adapters.AbstractResourceAdapter.NotificationsModel)
-     */
     @Override
-    protected void start(final Map<String, String> parameters) throws Exception {
-        populateModel(servletFactory.attributes);
-        populateModel(servletFactory.notifications);
+    protected void start(final Map<String, String> parameters) throws ServletException, NamespaceException {
         final AtmosphereObjectFactoryBuilder objectFactory = new AtmosphereObjectFactoryBuilder()
                 .add(Servlet.class, servletFactory);
         //register RestAdapterServlet as a OSGi service
         publisher.registerServlet(getServletContext(), new HttpAdapterServlet(objectFactory.build()), null, null);
     }
 
-    /**
-     * Stops the adapter.
-     * <p>
-     * This method will be called by SNAMP infrastructure automatically.
-     * </p>
-     *
-     * @throws Exception Unable to stop adapter.
-     * @see #clearModel(com.itworks.snamp.adapters.AbstractResourceAdapter.AttributesModel)
-     * @see #clearModel(com.itworks.snamp.adapters.AbstractResourceAdapter.NotificationsModel)
-     */
     @Override
-    protected void stop() throws Exception {
+    protected void stop() {
         //unregister RestAdapter Servlet as a OSGi service.
         publisher.unregister(getServletContext());
-        clearModel(servletFactory.attributes);
-        clearModel(servletFactory.notifications);
+        servletFactory.attributes.clear();
+        servletFactory.notifications.clear();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+        if(feature instanceof MBeanAttributeInfo)
+            return (FeatureAccessor<M, S>)servletFactory.attributes.addAttribute(resourceName, (MBeanAttributeInfo)feature);
+        else if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M, S>)servletFactory.notifications.addNotification(resourceName, (MBeanNotificationInfo)feature);
+        else return null;
     }
 
     @Override
-    protected synchronized void resourceAdded(final String resourceName) {
-        try {
-            enlargeModel(resourceName, servletFactory.attributes);
-            enlargeModel(resourceName, servletFactory.notifications);
-        } catch (final JMException e) {
-            HttpAdapterHelpers.log(Level.SEVERE, String.format("Unable to process a new resource %s", resourceName), e);
-        }
+    protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) {
+        final Collection<? extends AttributeAccessor> attributes =
+                servletFactory.attributes.clear(resourceName);
+        final Collection<? extends NotificationAccessor> notifications =
+                servletFactory.notifications.clear(resourceName);
+        return Iterables.concat(attributes, notifications);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected synchronized void resourceRemoved(final String resourceName) {
-        clearModel(resourceName, servletFactory.attributes);
-        clearModel(resourceName, servletFactory.notifications);
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) {
+        if(feature instanceof MBeanAttributeInfo)
+            return (FeatureAccessor<M, ?>)servletFactory.attributes.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+        else if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M, ?>)servletFactory.notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
+        else return null;
     }
 
     /**

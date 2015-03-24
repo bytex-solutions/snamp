@@ -20,7 +20,7 @@ public class WellKnownTypeTest extends Assert {
     public void memoryLeakTest(){
         //load all type tokens into cache
         for(final WellKnownType type: WellKnownType.values()) {
-            assertEquals(type, WellKnownType.getType(type.getType()));
+            assertEquals(type, WellKnownType.getType(type.getJavaType()));
         }
         final long cacheSize = WellKnownType.cacheSize();
         //load all type tokens again
@@ -33,10 +33,10 @@ public class WellKnownTypeTest extends Assert {
     @Test
     public void allTypesTest(){
         for(final WellKnownType type: WellKnownType.values()){
-            assertEquals(type, WellKnownType.getType(type.getType()));
+            assertEquals(type, WellKnownType.getType(type.getJavaType()));
             if(type.isOpenType())
                 assertEquals(type, WellKnownType.getType(type.getOpenType()));
-            assertEquals(type, WellKnownType.getType(type.getType().getName()));
+            assertEquals(type, WellKnownType.getType(type.getJavaType().getName()));
         }
     }
 }

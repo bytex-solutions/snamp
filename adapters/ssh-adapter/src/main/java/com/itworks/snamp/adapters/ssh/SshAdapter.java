@@ -9,6 +9,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.NotificationAccessor;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationBox;
@@ -310,7 +312,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         @Override
         public final void setValue(final Reader input) throws JMException, IOException {
             if(attributeType != null)
-                accessor.setValue(formatter.fromJson(input, attributeType.getType()));
+                accessor.setValue(formatter.fromJson(input, attributeType.getJavaType()));
             else throw new UnsupportedOperationException(String.format("Attribute %s is read-only", getName()));
         }
 

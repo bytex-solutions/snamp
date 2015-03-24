@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
+import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
 import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
 import com.itworks.snamp.core.LogicalOperation;

@@ -15,7 +15,7 @@ import java.lang.reflect.Type;
 import java.nio.Buffer;
 import java.util.Date;
 
-import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
+import com.itworks.snamp.adapters.AttributeAccessor;
 
 /**
  * Represents SNMP managed object factory.

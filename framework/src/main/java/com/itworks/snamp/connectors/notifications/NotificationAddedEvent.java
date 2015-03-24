@@ -16,8 +16,9 @@ public class NotificationAddedEvent extends FeatureAddedEvent<MBeanNotificationI
     private static final long serialVersionUID = 554956826663151805L;
 
     public NotificationAddedEvent(final NotificationSupport sender,
+                                  final String resourceName,
                                   final MBeanNotificationInfo addedNotification) {
-        super(sender, addedNotification);
+        super(sender, resourceName, addedNotification);
     }
 
     /**

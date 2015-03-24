@@ -16,8 +16,9 @@ public class AttributeAddedEvent extends FeatureAddedEvent<MBeanAttributeInfo> {
     private static final long serialVersionUID = -8216135971221782509L;
 
     public AttributeAddedEvent(final AttributeSupport sender,
+                               final String resourceName,
                                final MBeanAttributeInfo addedFeature) {
-        super(sender, addedFeature);
+        super(sender, resourceName, addedFeature);
     }
 
     /**

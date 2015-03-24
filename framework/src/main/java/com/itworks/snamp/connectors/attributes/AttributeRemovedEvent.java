@@ -13,8 +13,10 @@ import javax.management.MBeanAttributeInfo;
 public class AttributeRemovedEvent extends FeatureRemovedEvent<MBeanAttributeInfo> {
     private static final long serialVersionUID = -8111810353719221794L;
 
-    public AttributeRemovedEvent(final AttributeSupport sender, final MBeanAttributeInfo removedFeature) {
-        super(sender, removedFeature);
+    public AttributeRemovedEvent(final AttributeSupport sender,
+                                 final String resourceName,
+                                 final MBeanAttributeInfo removedFeature) {
+        super(sender, resourceName, removedFeature);
     }
 
     /**

@@ -1,41 +1,41 @@
 package com.itworks.snamp.adapters;
 
-import com.google.common.base.Function;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
-import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.AbstractAggregator;
-import com.itworks.snamp.Consumer;
-import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.concurrent.AsyncEventListener;
 import com.itworks.snamp.concurrent.GroupedThreadFactory;
 import com.itworks.snamp.concurrent.WriteOnceRef;
-import com.itworks.snamp.connectors.*;
-import com.itworks.snamp.connectors.attributes.*;
+import com.itworks.snamp.connectors.ManagedResourceConnector;
+import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
+import com.itworks.snamp.connectors.ResourceEvent;
+import com.itworks.snamp.connectors.ResourceEventListener;
+import com.itworks.snamp.connectors.attributes.AttributeAddedEvent;
+import com.itworks.snamp.connectors.attributes.AttributeRemovedEvent;
+import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.NotificationAddedEvent;
 import com.itworks.snamp.connectors.notifications.NotificationRemovedEvent;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
-import com.itworks.snamp.connectors.notifications.TypeBasedNotificationFilter;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.RichLogicalOperation;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.WeakMultimap;
-import com.itworks.snamp.jmx.JMExceptionUtils;
-import com.itworks.snamp.jmx.WellKnownType;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
 
-import javax.management.*;
-import javax.management.openmbean.OpenType;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanFeatureInfo;
+import javax.management.MBeanNotificationInfo;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
@@ -64,340 +64,6 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
         private static AdapterLogicalOperation connectorChangesDetected(final String adapterInstanceName){
             return new AdapterLogicalOperation("processResourceConnectorChanges", adapterInstanceName);
-        }
-    }
-
-    /**
-     * Represents an abstract class for all managed resource feature accessor.
-     * This class cannot be derived directly from your code.
-     * @param <M> The type of the managed resource feature.
-     * @param <S> The type of the feature supporter.
-     */
-    protected static abstract class FeatureAccessor<M extends MBeanFeatureInfo, S extends FeatureSupport> {
-        private final M metadata;
-
-        private FeatureAccessor(final M metadata){
-            this.metadata = Objects.requireNonNull(metadata);
-        }
-
-        /**
-         * Gets metadata of the feature associated with this accessor.
-         * @return The metadata of the feature associated with this accessor.
-         */
-        public final M getMetadata(){
-            return metadata;
-        }
-
-        abstract void connect(final S value);
-
-        abstract void disconnect();
-
-        @Override
-        public String toString() {
-            return getMetadata().toString();
-        }
-    }
-
-    /**
-     * Exposes access to the individual notification.
-     * @author Roman Sakno
-     * @since 1.0
-     */
-    public static abstract class NotificationAccessor extends FeatureAccessor<MBeanNotificationInfo, NotificationSupport> implements NotificationListener {
-        private NotificationSupport notificationSupport;
-
-        protected NotificationAccessor(final MBeanNotificationInfo metadata) {
-            super(metadata);
-            this.notificationSupport = null;
-        }
-
-        @Override
-        final void connect(final NotificationSupport value) {
-            this.notificationSupport = value;
-            if(value != null)
-                value.addNotificationListener(this, createFilter(), null);
-        }
-
-        @Override
-        final void disconnect() {
-            try {
-                final NotificationSupport ns = this.notificationSupport;
-                if(ns != null)
-                    ns.removeNotificationListener(this);
-            }
-            catch (ListenerNotFoundException ignored) {
-            }
-            finally {
-                this.notificationSupport = null;
-            }
-        }
-
-        /**
-         * Gets notification type.
-         * @return The notification type.
-         */
-        public final String getType(){
-            return getMetadata().getNotifTypes()[0];
-        }
-
-        /**
-         * Creates a new notification filter for this type of the metadata.
-         * @return A new notification filter.
-         * @see javax.management.MBeanNotificationInfo#getNotifTypes()
-         */
-        public final NotificationFilter createFilter(){
-            return new TypeBasedNotificationFilter(getMetadata());
-        }
-    }
-
-    /**
-     * Exposes access to individual management attribute.
-     * <p>
-     *     This accessor can be used for retrieving and changing value of the attribute.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    public static class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, AttributeSupport> implements AttributeValueReader, Consumer<Object, JMException> {
-        private AttributeSupport attributeSupport;
-
-        /**
-         * Initializes a new attribute accessor.
-         * @param metadata The metadata of the attribute. Cannot be {@literal null}.
-         */
-        public AttributeAccessor(final MBeanAttributeInfo metadata) {
-            super(metadata);
-            attributeSupport = null;
-        }
-
-        private AttributeSupport verifyOnDisconnected() throws AttributeNotFoundException {
-            final AttributeSupport as = attributeSupport;
-            if(as == null)
-                throw JMExceptionUtils.attributeNotFound(getMetadata().getName());
-            else return as;
-        }
-
-        @Override
-        final void connect(final AttributeSupport value) {
-            attributeSupport = value;
-        }
-
-        @Override
-        final void disconnect() {
-            attributeSupport = null;
-        }
-
-        /**
-         * Gets name of the attribute.
-         * @return The name of the attribute.
-         */
-        public final String getName(){
-            return getMetadata().getName();
-        }
-
-        /**
-         * Gets type of this attribute.
-         * @return The type of this attribute.
-         */
-        public final WellKnownType getType(){
-            return CustomAttributeInfo.getType(getMetadata());
-        }
-
-        /**
-         * Gets JMX Open Type of this attribute.
-         * @return The type of this attribute.
-         */
-        public final OpenType<?> getOpenType(){
-            return AttributeDescriptor.getOpenType(getMetadata());
-        }
-
-        /**
-         * Changes the value of the attribute.
-         * @param value A new attribute value.
-         * @throws AttributeNotFoundException This attribute is disconnected.
-         * @throws MBeanException Internal connector error.
-         * @throws ReflectionException Internal connector error.
-         * @throws InvalidAttributeValueException Value type mismatch.
-         */
-        public final void setValue(final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-            verifyOnDisconnected().setAttribute(new Attribute(getName(), value));
-        }
-
-        /**
-         * Changes the value of the attribute.
-         * @param value A new attribute value.
-         * @throws javax.management.JMException Internal connector error.
-         * @throws InvalidAttributeValueException Value type mismatch.
-         * @throws AttributeNotFoundException This attribute is disconnected.
-         */
-        @Override
-        public final void accept(final Object value) throws JMException {
-            setValue(value);
-        }
-
-        /**
-         * Gets attribute value.
-         * @return The attribute value.
-         * @throws MBeanException Internal connector error.
-         * @throws AttributeNotFoundException This attribute is disconnected.
-         * @throws ReflectionException Internal connector error.
-         */
-        public final Object getValue() throws MBeanException, AttributeNotFoundException, ReflectionException {
-            return verifyOnDisconnected().getAttribute(getName());
-        }
-
-        /**
-         * Gets attribute value in typed manner.
-         * @param valueType The expected type of the attribute.
-         * @param <T> The expected type of the attribute.
-         * @return The typed attribute value.
-         * @throws MBeanException Internal connector error.
-         * @throws AttributeNotFoundException This attribute is disconnected.
-         * @throws ReflectionException Internal connector error.
-         * @throws InvalidAttributeValueException Attribute type mismatch.
-         */
-        public final  <T> T getValue(final TypeToken<T> valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException{
-            final Object result = getValue();
-            try {
-                return TypeTokens.cast(result, valueType);
-            }
-            catch (final ClassCastException e){
-                throw new InvalidAttributeValueException(e.getMessage());
-            }
-        }
-
-        /**
-         * Gets attribute value in typed manner.
-         * @param valueType The expected type of the attribute.
-         * @param <T> The expected type of the attribute.
-         * @return The typed attribute value.
-         * @throws MBeanException Internal connector error.
-         * @throws AttributeNotFoundException This attribute is disconnected.
-         * @throws ReflectionException Internal connector error.
-         * @throws InvalidAttributeValueException Attribute type mismatch.
-         */
-        public final  <T> T getValue(final Class<T> valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException{
-            return getValue(TypeToken.of(valueType));
-        }
-
-        /**
-         * Gets attribute value in typed manner.
-         * @param valueType The expected type of the attribute.
-         * @return The typed attribute value.
-         * @throws MBeanException Internal connector error.
-         * @throws AttributeNotFoundException This attribute is disconnected.
-         * @throws ReflectionException Internal connector error.
-         * @throws InvalidAttributeValueException Attribute type mismatch.
-         */
-        public final Object getValue(final WellKnownType valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException{
-            return getValue(valueType.getType());
-        }
-
-        /**
-         * Gets attribute value in typed manner.
-         * @param valueType The expected type of the attribute.
-         * @param <T> The expected type of the attribute.
-         * @return The typed attribute value.
-         * @throws MBeanException Internal connector error.
-         * @throws AttributeNotFoundException This attribute is disconnected.
-         * @throws ReflectionException Internal connector error.
-         * @throws InvalidAttributeValueException Attribute type mismatch.
-         */
-        @SuppressWarnings("unchecked")
-        public final  <T> T getValue(final OpenType<T> valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException{
-            final Object result = getValue();
-            if(valueType.isValue(result)) return (T)result;
-            else throw new InvalidAttributeValueException(String.format("Value %s is not of type %s", result, valueType));
-        }
-
-        /**
-         * Gets attribute value and type.
-         * @return The attribute value and type.
-         * @throws MBeanException Internal connector error.
-         * @throws AttributeNotFoundException This attribute is disconnected.
-         * @throws ReflectionException Internal connector error.
-         */
-        public final AttributeValue getRawValue() throws MBeanException, AttributeNotFoundException, ReflectionException{
-            return new AttributeValue(getName(), getValue(), getType());
-        }
-
-        private <I, O> O getValue(final TypeToken<I> valueType,
-                                  final AttributeInputValueConverter<O> converter) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-            final Function<? super I, ? extends O> f = converter.getConverter(valueType);
-            if(f == null) throw new InvalidAttributeValueException(String.format("Converter for %s doesn't exist", valueType));
-            else {
-                final I attributeValue;
-                try{
-                    attributeValue = TypeTokens.cast(getValue(), valueType);
-                }
-                catch (final ClassCastException e){
-                    throw new InvalidAttributeValueException(e.getMessage());
-                }
-                return f.apply(attributeValue);
-            }
-        }
-
-        /**
-         * Gets attribute value converted into the adapter-specific type.
-         * @param converter The attribute value converter. Cannot be {@literal null}.
-         * @param <T> Type of the adapter-specific value.
-         * @return The adapter-specific value of the attribute.
-         * @throws InvalidAttributeValueException Attribute type mismatch.
-         * @throws MBeanException Internal connector error.
-         * @throws AttributeNotFoundException This attribute is disconnected.
-         * @throws ReflectionException Internal connector error.
-         */
-        public final <T> T getValue(final AttributeInputValueConverter<T> converter) throws InvalidAttributeValueException, MBeanException, AttributeNotFoundException, ReflectionException {
-            final WellKnownType type = getType();
-            if (type != null)
-                return getValue(type.getTypeToken(), converter);
-            else
-                return getValue(TypeToken.of(getRawType()), converter);
-        }
-
-        public final Class<?> getRawType() throws ReflectionException{
-            try {
-                return Class.forName(getMetadata().getType());
-            } catch (ClassNotFoundException e) {
-                throw new ReflectionException(e);
-            }
-        }
-
-        private <I, O> void setValue(final I input,
-                                     final TypeToken<O> outputType,
-                                     final AttributeOutputValueConverter<I> converter) throws InvalidAttributeValueException, MBeanException, AttributeNotFoundException, ReflectionException {
-            final Function<? super I, ? extends O> f = converter.getConverter(outputType);
-            if(f == null) throw new InvalidAttributeValueException(String.format("Converter for %s doesn't exist", outputType));
-            else setValue(f.apply(input));
-        }
-
-        /**
-         * Modifies attribute using adapter-specific value.
-         * @param value The adapter-specific value to be converted into the attribute value.
-         * @param converter The adapter-specific value converter. Cannot be {@literal null}.
-         * @param <I> Type of the adapter-specific value.
-         * @throws ReflectionException Internal connector error.
-         * @throws MBeanException Internal connector error.
-         * @throws InvalidAttributeValueException Attribute type mismatch.
-         * @throws AttributeNotFoundException This attribute is disconnected.
-         */
-        public final <I> void setValue(final I value, final AttributeOutputValueConverter<I> converter) throws ReflectionException, MBeanException, InvalidAttributeValueException, AttributeNotFoundException {
-            final WellKnownType type = getType();
-            if (type != null) setValue(value, type.getTypeToken(), converter);
-            else
-                setValue(value, TypeToken.of(getRawType()), converter);
-        }
-
-        /**
-         * Gets attribute value.
-         *
-         * @return The attribute value.
-         * @throws javax.management.JMException Internal connector error.
-         * @throws AttributeNotFoundException This attribute is disconnected.
-         */
-        @Override
-        public final Object call() throws JMException {
-            return getValue();
         }
     }
 
@@ -461,30 +127,28 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     private void attributeAdded(final AttributeAddedEvent event){
-        final AttributeSupport as = event.getSource();
         final FeatureAccessor<MBeanAttributeInfo, AttributeSupport> accessor =
-                addFeature(as.getResourceName(), event.getFeature());
+                addFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
-            accessor.connect(as);
+            accessor.connect(event.getSource());
     }
 
     private void attributeRemoved(final AttributeRemovedEvent event){
         final FeatureAccessor<MBeanAttributeInfo, ?> accessor =
-                removeFeature(event.getSource().getResourceName(), event.getFeature());
+                removeFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
             accessor.disconnect();
     }
 
     private void notificationAdded(final NotificationAddedEvent event){
-        final NotificationSupport ns = event.getSource();
         final FeatureAccessor<MBeanNotificationInfo, NotificationSupport> accessor =
-                addFeature(ns.getResourceName(), event.getFeature());
+                addFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
-            accessor.connect(ns);
+            accessor.connect(event.getSource());
     }
 
     private void notificationRemoved(final NotificationRemovedEvent event){
-        final FeatureAccessor<MBeanNotificationInfo, ?> accessor = removeFeature(event.getSource().getResourceName(), event.getFeature());
+        final FeatureAccessor<MBeanNotificationInfo, ?> accessor = removeFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
             accessor.disconnect();
     }
@@ -519,8 +183,30 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @see AttributeAccessor
      * @see NotificationAccessor
      */
-    protected abstract <M extends MBeanFeatureInfo, S extends FeatureSupport> FeatureAccessor<M, S> addFeature(final String resourceName,
-                                       final M feature);
+    protected abstract <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName,
+                                       final M feature) throws Exception;
+
+    private <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeatureImpl(final String resourceName,
+                                                                             final M feature){
+        try {
+            return addFeature(resourceName, feature);
+        } catch (final Exception e) {
+            failedToAddFeature(resourceName, feature, e);
+            return null;
+        }
+    }
+
+    /**
+     * Writes log that describes exception produced by {@link #addFeature(String, javax.management.MBeanFeatureInfo)}.
+     * @param resourceName The name of the resource.
+     * @param feature The resource feature.
+     * @param e The exception.
+     */
+    protected void failedToAddFeature(final String resourceName, final MBeanFeatureInfo feature, final Exception e){
+        try(final OSGiLoggingContext logger = getLoggingContext()){
+            logger.log(Level.WARNING, String.format("Failed to add %s resource feature %s", resourceName, feature), e);
+        }
+    }
 
     /**
      * Invokes automatically by SNAMP infrastructure when the specified resource
@@ -528,9 +214,25 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param resourceName The name of the resource.
      * @return Read-only collection of features tracked by this resource adapter. Cannot be {@literal null}.
      */
-    protected abstract Collection<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName);
+    protected abstract Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception;
+
+    private Iterable<? extends FeatureAccessor<?, ?>> removeAllFeaturesImpl(final String resourceName){
+        try {
+            return removeAllFeatures(resourceName);
+        } catch (final Exception e) {
+            failedToRemoveFeatures(resourceName, e);
+            return ImmutableList.of();
+        }
+    }
+
+    protected void failedToRemoveFeatures(final String resourceName, final Exception e){
+        try(final OSGiLoggingContext logger = getLoggingContext()){
+            logger.log(Level.SEVERE, String.format("Failed to remove %s resource features", resourceName), e);
+        }
+    }
 
     /**
+     *
      * Invokes automatically by SNAMP infrastructure when the feature was removed
      * from the specified resource.
      * @param resourceName The name of the managed resource.
@@ -539,7 +241,25 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @return An instance of the feature accessor used by this resource adapter. May be {@literal null}.
      */
     protected abstract <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName,
-                                                                                        final M feature);
+                                                                                        final M feature) throws Exception;
+
+    private <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeatureImpl(final String resourceName,
+                                                                             final M feature){
+        try {
+            return removeFeature(resourceName, feature);
+        } catch (final Exception e) {
+            failedToRemoveFeature(resourceName, feature, e);
+            return null;
+        }
+    }
+
+    protected void failedToRemoveFeature(final String resourceName,
+                                         final MBeanFeatureInfo feature,
+                                         final Exception e){
+        try(final OSGiLoggingContext logger = getLoggingContext()){
+            logger.log(Level.SEVERE, String.format("Failed to remove %s resource feature %s", resourceName, feature), e);
+        }
+    }
 
     /**
      * Starts the adapter.
@@ -625,6 +345,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     private synchronized void addResource(final ServiceReference<ManagedResourceConnector> resourceRef) {
+        final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(resourceRef);
         final BundleContext context = getBundleContext();
         final ManagedResourceConnector connector = context.getService(resourceRef);
         if (connector != null)
@@ -635,23 +356,24 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 final AttributeSupport attributeSupport = connector.queryObject(AttributeSupport.class);
                 if(attributeSupport != null)
                     for(final MBeanAttributeInfo metadata: attributeSupport.getAttributeInfo())
-                        attributeAdded(new AttributeAddedEvent(attributeSupport, metadata));
+                        attributeAdded(new AttributeAddedEvent(attributeSupport, resourceName, metadata));
                 final NotificationSupport notificationSupport = connector.queryObject(NotificationSupport.class);
                 if(notificationSupport != null)
                     for(final MBeanNotificationInfo metadata: notificationSupport.getNotificationInfo())
-                        notificationAdded(new NotificationAddedEvent(notificationSupport, metadata));
+                        notificationAdded(new NotificationAddedEvent(notificationSupport, resourceName, metadata));
             } finally {
                 context.ungetService(resourceRef);
             }
     }
 
     private synchronized void removeResource(final ServiceReference<ManagedResourceConnector> resourceRef){
+        final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(resourceRef);
         final BundleContext context = getBundleContext();
         final ManagedResourceConnector connector = context.getService(resourceRef);
         if(connector != null)
             try{
                 connector.removeResourceEventListener(this);
-                for(final FeatureAccessor<?, ?> accessor: removeAllFeatures(connector.getResourceName()))
+                for(final FeatureAccessor<?, ?> accessor: removeAllFeaturesImpl(resourceName))
                     accessor.disconnect();
             }
             finally {

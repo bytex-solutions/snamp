@@ -1,8 +1,5 @@
 package com.itworks.snamp.connectors.notifications;
 
-import com.itworks.snamp.connectors.FeatureSupport;
-
-import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcaster;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -17,7 +14,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @version 1.0
  * @since 1.0
  */
-public interface NotificationSupport extends NotificationBroadcaster, FeatureSupport {
+public interface NotificationSupport extends NotificationBroadcaster {
     /**
      * The name of the field in {@link javax.management.Descriptor}
      * which contains the name of the enabled category.

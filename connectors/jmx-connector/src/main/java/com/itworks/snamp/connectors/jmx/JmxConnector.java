@@ -607,7 +607,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
 
     JmxConnector(final String resourceName,
                  final JmxConnectionOptions connectionOptions) {
-        super(resourceName);
         this.connectionManager = connectionOptions.createConnectionManager();
         //attempts to establish connection immediately
         connectionManager.connect();

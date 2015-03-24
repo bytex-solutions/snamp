@@ -16,8 +16,9 @@ public class NotificationRemovedEvent extends FeatureRemovedEvent<MBeanNotificat
     private static final long serialVersionUID = 1424088584234471771L;
 
     public NotificationRemovedEvent(final NotificationSupport sender,
+                                    final String resourceName,
                                     final MBeanNotificationInfo removedFeature) {
-        super(sender, removedFeature);
+        super(sender, resourceName, removedFeature);
     }
 
     /**

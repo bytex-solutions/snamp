@@ -7,7 +7,7 @@ import com.google.common.collect.Sets;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
+import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.jmx.TabularDataUtils;
 import org.snmp4j.agent.MOAccess;

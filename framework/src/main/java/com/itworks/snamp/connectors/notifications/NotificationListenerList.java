@@ -40,7 +40,7 @@ public class NotificationListenerList extends LinkedList<NotificationListenerHol
      */
     public void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
-                                        final Object handback) throws java.lang.IllegalArgumentException{
+                                        final Object handback) throws java.lang.IllegalArgumentException {
         add(new NotificationListenerHolder(listener, filter, handback));
     }
 

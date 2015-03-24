@@ -765,7 +765,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
 
     SnmpResourceConnector(final String resourceName,
                           final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
-        super(resourceName);
         client = new ConcurrentResourceAccessor<>(snmpConnectionOptions.createSnmpClient());
         attributes = new SnmpAttributeSupport(resourceName, client);
         notifications = new SnmpNotificationSupport(resourceName, client);

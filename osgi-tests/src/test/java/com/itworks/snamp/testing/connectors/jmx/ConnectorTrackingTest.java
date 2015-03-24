@@ -3,6 +3,8 @@ package com.itworks.snamp.testing.connectors.jmx;
 import com.google.common.base.Supplier;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.NotificationAccessor;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import org.junit.Test;

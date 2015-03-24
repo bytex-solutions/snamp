@@ -15,8 +15,10 @@ public class FeatureRemovedEvent<F extends MBeanFeatureInfo> extends ResourceEve
     private static final long serialVersionUID = 1715564298586657421L;
     private final F feature;
 
-    public FeatureRemovedEvent(final Object sender, final F removedFeature) {
-        super(sender);
+    public FeatureRemovedEvent(final Object sender,
+                               final String resourceName,
+                               final F removedFeature) {
+        super(sender, resourceName);
         this.feature = Objects.requireNonNull(removedFeature);
     }
 

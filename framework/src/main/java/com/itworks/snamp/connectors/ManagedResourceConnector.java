@@ -22,7 +22,7 @@ import java.util.Map;
  * @since 1.0
  * @version 1.0
  */
-public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean, FeatureSupport {
+public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean {
     /**
      * Represents an exception indicating that the resource connector cannot be updated
      * without it recreation. This class cannot be inherited.

@@ -1,7 +1,5 @@
 package com.itworks.snamp.connectors.attributes;
 
-import com.itworks.snamp.connectors.FeatureSupport;
-
 import javax.management.*;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
@@ -25,7 +23,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfigura
  * @version 1.0
  * @since 1.0
  */
-public interface AttributeSupport extends FeatureSupport {
+public interface AttributeSupport {
     /**
      * The name of field in {@link javax.management.Descriptor} which contains
      * the name of the attribute.

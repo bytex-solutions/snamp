@@ -323,7 +323,6 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
 
     RShellResourceConnector(final String resourceName,
                             final RShellConnectionOptions connectionOptions) throws Exception {
-        super(resourceName);
         executionChannel = connectionOptions.createExecutionChannel();
         attributes = new RShellAttributes(resourceName,
                 executionChannel,

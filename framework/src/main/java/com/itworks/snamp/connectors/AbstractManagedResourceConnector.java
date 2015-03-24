@@ -110,7 +110,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends ThreadSafeObject implements FeatureSupport {
+    protected static abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends ThreadSafeObject {
         private final Class<F> metadataType;
         private final ResourceEventListenerList resourceEventListeners;
         private final Enum<?> resourceEventListenerSyncGroup;
@@ -132,18 +132,9 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          *
          * @return The name of the resource.
          */
-        @Override
         public final String getResourceName() {
             return resourceName;
         }
-
-        /**
-         * Returns an array of all supported resource features.
-         *
-         * @return An array of all supported resource features.
-         */
-        @Override
-        public abstract F[] getFeatureInfo();
 
         /**
          * Adds a new feature modeler event listener.
@@ -220,11 +211,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         }
 
         private void attributeAdded(final M metadata){
-            super.fireResourceEvent(new AttributeAddedEvent(this, metadata));
+            super.fireResourceEvent(new AttributeAddedEvent(this, getResourceName(), metadata));
         }
 
         private void attributeRemoved(final M metadata){
-            super.fireResourceEvent(new AttributeRemovedEvent(this, metadata));
+            super.fireResourceEvent(new AttributeRemovedEvent(this, getResourceName(), metadata));
         }
 
         /**
@@ -246,16 +237,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @Override
         public final M[] getAttributeInfo() {
-            return getFeatureInfo();
-        }
-
-        /**
-         * Returns an array of all supported resource features.
-         *
-         * @return An array of all supported resource features.
-         */
-        @Override
-        public final M[] getFeatureInfo() {
             try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
                 return ArrayUtils.toArray(attributes.values(), super.metadataType);
             }
@@ -745,11 +726,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         }
 
         private void notificationAdded(final M metadata){
-            super.fireResourceEvent(new NotificationAddedEvent(this, metadata));
+            super.fireResourceEvent(new NotificationAddedEvent(this, getResourceName(), metadata));
         }
 
         private void notificationRemoved(final M metadata){
-            super.fireResourceEvent(new NotificationRemovedEvent(this, metadata));
+            super.fireResourceEvent(new NotificationRemovedEvent(this, getResourceName(), metadata));
         }
 
         protected abstract M enableNotifications(final String notifType,
@@ -876,16 +857,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @Override
         public final M[] getNotificationInfo() {
-            return getFeatureInfo();
-        }
-
-        /**
-         * Returns an array of all supported resource features.
-         *
-         * @return An array of all supported resource features.
-         */
-        @Override
-        public M[] getFeatureInfo() {
             try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
                 return ArrayUtils.toArray(notifications.values(), super.metadataType);
             }
@@ -953,15 +924,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             return new IllegalStateException("Management connector is closed.");
         }
     };
-    private final String resourceName;
-
-    /**
-     * Initializes a new managed resource connector.
-     * @param resourceName The name of the managed resource served by this connector.
-     */
-    protected AbstractManagedResourceConnector(final String resourceName){
-        this.resourceName = resourceName;
-    }
 
     /**
      *  Throws an {@link IllegalStateException} if the connector is not initialized.
@@ -982,17 +944,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             throw new MBeanException(e);
         }
     }
-
-    /**
-     * Gets name of the resource.
-     *
-     * @return The name of the resource.
-     */
-    @Override
-    public final String getResourceName() {
-        return resourceName;
-    }
-
     /**
      * Releases all resources associated with this connector.
      * @throws Exception Unable to release resources associated with this connector.
@@ -1131,19 +1082,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     public MBeanOperationInfo[] getOperationInfo(){
         return new MBeanOperationInfo[0];
-    }
-
-    /**
-     * Returns an array of all supported resource features.
-     *
-     * @return An array of all supported resource features.
-     */
-    @Override
-    public final MBeanFeatureInfo[] getFeatureInfo() {
-        return ArrayUtils.concat(MBeanFeatureInfo.class,
-                getNotificationInfo(),
-                getAttributeInfo(),
-                getOperationInfo());
     }
 
     /**
