@@ -1,6 +1,8 @@
 package com.itworks.snamp.adapters;
 
-import javax.management.MBeanAttributeInfo;
+import com.itworks.snamp.jmx.JMExceptionUtils;
+
+import javax.management.*;
 
 /**
  * Represents a collection of managed resource attributes.
@@ -13,6 +15,22 @@ public class ResourceAttributeList<TAccessor extends AttributeAccessor> extends 
 
     public ResourceAttributeList(){
         super(10);
+    }
+
+    public final Object getAttribute(final String attributeName) throws MBeanException, AttributeNotFoundException, ReflectionException {
+        if(containsKey(attributeName)){
+            final TAccessor accessor = get(attributeName);
+            return accessor.getValue();
+        }
+        else throw JMExceptionUtils.attributeNotFound(attributeName);
+    }
+
+    public final void setAttribute(final String attributeName, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
+        if(containsKey(attributeName)){
+            final TAccessor accessor = get(attributeName);
+            accessor.setValue(value);
+        }
+        else throw JMExceptionUtils.attributeNotFound(attributeName);
     }
 
     @Override

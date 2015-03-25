@@ -2,6 +2,7 @@ package com.itworks.snamp.adapters;
 
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.connectors.notifications.TypeBasedNotificationFilter;
+import com.itworks.snamp.internal.annotations.MethodStub;
 
 import javax.management.ListenerNotFoundException;
 import javax.management.MBeanNotificationInfo;
@@ -17,6 +18,10 @@ import javax.management.NotificationListener;
 public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotificationInfo, NotificationSupport> implements NotificationListener {
     private NotificationSupport notificationSupport;
 
+    /**
+     * Initializes a new managed resource notification accessor.
+     * @param metadata The metadata of the managed resource notification. Cannot be {@literal null}.
+     */
     protected NotificationAccessor(final MBeanNotificationInfo metadata) {
         super(metadata);
         this.notificationSupport = null;
@@ -27,6 +32,11 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
         this.notificationSupport = value;
         if(value != null)
             value.addNotificationListener(this, createFilter(), null);
+    }
+
+    @MethodStub
+    void disconnected(){
+
     }
 
     /**
@@ -43,6 +53,7 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
         }
         finally {
             this.notificationSupport = null;
+            disconnected();
         }
     }
 

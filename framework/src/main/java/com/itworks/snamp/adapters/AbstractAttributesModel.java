@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
-import javax.management.MBeanAttributeInfo;
+import javax.management.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
@@ -76,11 +76,20 @@ public abstract class AbstractAttributesModel<TAccessor extends AttributeAccesso
     }
 
     @ThreadSafe(false)
-    protected final TAccessor get(final String resourceName,
-                            final String attributeName) {
-        return attributes.containsKey(resourceName) ?
-                attributes.get(resourceName).get(attributeName) :
-                null;
+    protected final Object getAttributeValue(final String resourceName,
+                                             final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
+        if(attributes.containsKey(resourceName))
+            return attributes.get(resourceName).getAttribute(attributeName);
+        else throw  new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
+    }
+
+    @ThreadSafe(false)
+    protected final void setAttributeValue(final String resourceName,
+                                           final String attributeName,
+                                           final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
+        if(attributes.containsKey(resourceName))
+             attributes.get(resourceName).setAttribute(attributeName, value);
+        else throw  new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
     }
 
     /**

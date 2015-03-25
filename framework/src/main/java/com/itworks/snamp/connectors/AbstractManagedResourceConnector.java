@@ -639,7 +639,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     protected static abstract class AbstractNotificationSupport<M extends MBeanNotificationInfo> extends AbstractFeatureModeler<M> implements NotificationSupport {
         private static enum ANSResource{
             NOTIFICATIONS,
-            NOTIF_LISTENERS,
             RESOURCE_EVENT_LISTENERS
         }
 
@@ -719,10 +718,8 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
                         }
             }
             //fire listeners
-            try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
-                for (final Notification n : notifs)
-                    getListenerInvoker().invoke(n, null, listeners);
-            }
+            for (final Notification n : notifs)
+                listeners.handleNotification(getListenerInvoker(), n, null);
         }
 
         private void notificationAdded(final M metadata){
@@ -818,9 +815,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @Override
         public final void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
-            try (final LockScope ignored = beginWrite(ANSResource.NOTIF_LISTENERS)) {
-                listeners.addNotificationListener(listener, filter, handback);
-            }
+            listeners.addNotificationListener(listener, filter, handback);
         }
 
         /**
@@ -838,9 +833,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @Override
         public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-            try (final LockScope ignored = beginWrite(ANSResource.NOTIF_LISTENERS)) {
-                listeners.removeNotificationListener(listener);
-            }
+            listeners.removeNotificationListener(listener);
         }
 
         /**
@@ -910,9 +903,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
                 notifications.clear();
             }
             if(removeNotificationListeners)
-                try(final LockScope ignored = beginWrite(ANSResource.NOTIF_LISTENERS)){
-                    listeners.clear();
-                }
+                listeners.clear();
             if(removeResourceEventListeners)
                 super.removeAllResourceEventListeners();
         }

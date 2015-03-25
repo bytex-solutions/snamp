@@ -4,8 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
@@ -27,7 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
-import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.*;
@@ -50,14 +47,14 @@ final class HttpAdapter extends AbstractResourceAdapter {
     private static final class HttpAttributeMapping extends AttributeAccessor {
         private Gson formatter;
 
-        private HttpAttributeMapping(final MBeanAttributeInfo attributeInfo){
+        private HttpAttributeMapping(final MBeanAttributeInfo attributeInfo) {
             super(attributeInfo);
             final String dateFormat = HttpAdapterConfigurationDescriptor.getDateFormatParam(getMetadata().getDescriptor());
             GsonBuilder builder = new GsonBuilder();
-            if(dateFormat != null && dateFormat.length() > 0)
+            if (dateFormat != null && dateFormat.length() > 0)
                 builder = builder.setDateFormat(dateFormat);
-            if(getType() != null)
-                switch (getType()){
+            if (getType() != null)
+                switch (getType()) {
                     case BYTE_BUFFER:
                         builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new ByteBufferFormatter());
                         break;
@@ -88,80 +85,67 @@ final class HttpAdapter extends AbstractResourceAdapter {
                         builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new CompositeDataFormatter(compositeType));
                         break;
                     case TABLE:
-                        TabularType tabularType = (TabularType)getOpenType();
+                        TabularType tabularType = (TabularType) getOpenType();
                         builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new TabularDataFormatter(tabularType));
                         break;
                     case DICTIONARY_ARRAY:
-                        compositeType = (CompositeType)((ArrayType<?>)getOpenType()).getElementOpenType();
+                        compositeType = (CompositeType) ((ArrayType<?>) getOpenType()).getElementOpenType();
                         builder = builder.registerTypeAdapter(getType().getJavaType(), new ArrayOfCompositeDataFormatter(compositeType));
                         break;
                     case TABLE_ARRAY:
-                        tabularType = (TabularType)((ArrayType<?>)getOpenType()).getElementOpenType();
+                        tabularType = (TabularType) ((ArrayType<?>) getOpenType()).getElementOpenType();
                         builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new ArrayOfTabularDataFormatter(tabularType));
                         break;
                 }
             formatter = builder.create();
         }
 
-        private JsonElement getValueAsJson() throws WebApplicationException {
-            try {
-                return formatter.toJsonTree(getValue());
-            } catch (final AttributeNotFoundException e) {
-                throw new WebApplicationException(e, Response.Status.NOT_FOUND);
-            }
-            catch (final Exception e){
-                throw new WebApplicationException(e);
-            }
-        }
-
-        private void setValue(final JsonElement json) throws WebApplicationException {
-            if (getType() != null)
-                try {
-                    setValue(formatter.fromJson(json, getType()));
-                } catch (final AttributeNotFoundException e) {
-                    throw new WebApplicationException(e, Response.Status.NOT_FOUND);
-                } catch (final InvalidAttributeValueException | JsonParseException e) {
-                    throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
-                } catch (final Exception e) {
-                    throw new WebApplicationException(e);
-                }
-            else throw new WebApplicationException(METHOD_NOT_ALLOWED);
-        }
-
-        private String toString(final JsonElement json) {
-            return formatter.toJson(json);
-        }
-
-        private JsonElement fromString(final String json) {
-            return formatter.fromJson(json, JsonElement.class);
-        }
-    }
-
-    private static final class HttpAttributesModel extends AbstractAttributesModel<HttpAttributeMapping> implements AttributeSupport{
-
-        private static WebApplicationException attributeNotFound(final String resourceName,
-                                                                 final String attributeName){
-            return new WebApplicationException(new AttributeNotFoundException(String.format("Attribute %s in resource %s no longer accessible", attributeName, resourceName)),
-                    Response.Status.NOT_FOUND);
+        @Override
+        protected String interceptGet(final Object value) {
+            return formatter.toJson(value);
         }
 
         @Override
+        protected Object interceptSet(final Object value) throws InterceptionException {
+            if (getType() != null && value instanceof String)
+                return formatter.fromJson((String) value, getType());
+            else throw new InterceptionException(new IllegalArgumentException("String expected"));
+        }
+
+    }
+
+    private static final class HttpAttributesModel extends AbstractAttributesModel<HttpAttributeMapping> implements AttributeSupport{
+        @Override
         public String getAttribute(final String resourceName, final String attributeName) throws WebApplicationException {
             try(final LockScope ignored = beginRead()){
-                final HttpAttributeMapping mapping = get(resourceName, attributeName);
-                if(mapping != null)
-                    return mapping.toString(mapping.getValueAsJson());
-                else throw attributeNotFound(resourceName, attributeName);
+                try {
+                    return Objects.toString(getAttributeValue(resourceName, attributeName));
+                }
+                catch (final AttributeNotFoundException e) {
+                    throw new WebApplicationException(e, Response.Status.NOT_FOUND);
+                }
+                catch (final ReflectionException | MBeanException e) {
+                    throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+                }
             }
         }
 
         @Override
         public void setAttribute(final String resourceName, final String attributeName, final String value) throws WebApplicationException {
             try(final LockScope ignored = beginRead()){
-                final HttpAttributeMapping mapping = get(resourceName, attributeName);
-                if(mapping != null)
-                    mapping.setValue(mapping.fromString(value));
-                else throw attributeNotFound(resourceName, attributeName);
+                setAttributeValue(resourceName, attributeName, value);
+            }
+            catch (final AttributeNotFoundException e) {
+                throw new WebApplicationException(e, Response.Status.NOT_FOUND);
+            }
+            catch (final AttributeAccessor.InterceptionException e){
+                throw new WebApplicationException(e, METHOD_NOT_ALLOWED);
+            }
+            catch (final InvalidAttributeValueException e){
+                throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+            }
+            catch (final MBeanException | ReflectionException e) {
+                throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -171,24 +155,25 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NotificationEmitter extends NotificationAccessor {
-        private final WeakReference<NotificationListener> listener;
+    private static final class HttpNotificationRouter extends NotificationRouter{
+        private final String resourceName;
 
-        private NotificationEmitter(final MBeanNotificationInfo metadata,
-                                    final NotificationListener listener) {
-            super(metadata);
-            this.listener = new WeakReference<>(listener);
+        private HttpNotificationRouter(final String resourceName,
+                                       final MBeanNotificationInfo metadata,
+                                       final NotificationListener destination) {
+            super(metadata, destination);
+            this.resourceName = resourceName;
         }
 
         @Override
-        public void handleNotification(final Notification notification, final Object handback) {
-            final NotificationListener listener = this.listener.get();
-            if(listener != null) listener.handleNotification(notification, handback);
+        protected Notification intercept(final Notification notification) {
+            notification.setSource(resourceName);
+            return notification;
         }
     }
 
     private static final class NotificationBroadcaster extends JerseyBroadcaster implements InternalBroadcaster, NotificationListener {
-        private final ResourceNotificationList<NotificationEmitter> notifications;
+        private final ResourceNotificationList<HttpNotificationRouter> notifications;
         private final String resourceName;
         private final Gson formatter;
 
@@ -221,7 +206,6 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
         @Override
         public void handleNotification(final Notification notif, final Object handback){
-            notif.setSource(resourceName);
             if(isInitialized() && !isDestroyed())
                 broadcast(formatter.toJson(notif));
         }
@@ -231,13 +215,15 @@ final class HttpAdapter extends AbstractResourceAdapter {
             super.destroy();
         }
 
-        private NotificationEmitter addNotification(final MBeanNotificationInfo metadata) {
-            final NotificationEmitter emitter = new NotificationEmitter(metadata, this);
+        private NotificationRouter addNotification(final MBeanNotificationInfo metadata) {
+            final HttpNotificationRouter emitter = new HttpNotificationRouter(resourceName,
+                    metadata,
+                    this);
             notifications.put(emitter);
             return emitter;
         }
 
-        private NotificationEmitter removeNotification(final MBeanNotificationInfo metadata) {
+        private NotificationRouter removeNotification(final MBeanNotificationInfo metadata) {
             return notifications.remove(metadata);
         }
 
@@ -293,7 +279,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
             };
         }
 
-        private NotificationEmitter addNotification(final String resourceName,
+        private NotificationRouter addNotification(final String resourceName,
                                     final MBeanNotificationInfo metadata) {
             try (final LockScope ignored = beginWrite()) {
                 final NotificationBroadcaster broadcaster;
@@ -395,6 +381,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         publisher.unregister(getServletContext());
         servletFactory.attributes.clear();
         servletFactory.notifications.clear();
+        System.gc();
     }
 
     @SuppressWarnings("unchecked")

@@ -1,14 +1,25 @@
 package com.itworks.snamp.adapters.jmx;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.adapters.*;
+import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
+import com.itworks.snamp.connectors.notifications.NotificationListenerList;
+import com.itworks.snamp.io.Buffers;
+import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.management.OpenMBeanProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import javax.management.*;
-import javax.management.openmbean.OpenMBeanAttributeInfo;
-import javax.management.openmbean.OpenMBeanConstructorInfo;
-import javax.management.openmbean.OpenMBeanInfoSupport;
-import javax.management.openmbean.OpenMBeanOperationInfo;
+import javax.management.openmbean.*;
+import java.io.Closeable;
+import java.nio.*;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.logging.Level;
 
 /**
@@ -18,29 +29,251 @@ import java.util.logging.Level;
  * @version 1.0
  * @since 1.0
  */
-final class ProxyMBean implements DynamicMBean, NotificationSupport, AttributeSupport {
-    private final AttributeSupport attributes;
-    private final NotificationSupport notifications;
+final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, NotificationBroadcaster, NotificationListener, Closeable {
+    private static enum MBeanResources{
+        NOTIFICATIONS,
+        ATTRIBUTES
+    }
+
+    private static final class JmxNotificationRouter extends NotificationRouter {
+        private final String resourceName;
+
+        private JmxNotificationRouter(final String resourceName,
+                                      final MBeanNotificationInfo metadata,
+                                      final NotificationListener destination) {
+            super(metadata, destination);
+            this.resourceName = resourceName;
+        }
+
+        private MBeanNotificationInfo cloneMetadata(){
+            return new MBeanNotificationInfo(getMetadata().getNotifTypes(),
+                    getMetadata().getName(),
+                    getMetadata().getDescription(),
+                    getMetadata().getDescriptor());
+        }
+
+        @Override
+        protected Notification intercept(final Notification notification) {
+            notification.setSource(resourceName);
+            return notification;
+        }
+    }
+
+    private static abstract class JmxAttributeAccessor extends AttributeAccessor{
+
+        private JmxAttributeAccessor(final MBeanAttributeInfo metadata) {
+            super(metadata);
+        }
+
+        protected abstract OpenMBeanAttributeInfo cloneMetadata();
+
+        @Override
+        protected abstract Object interceptSet(final Object value) throws InvalidAttributeValueException, InterceptionException;
+
+        @Override
+        protected abstract Object interceptGet(final Object value) throws InterceptionException;
+    }
+
+    private static final class ReadOnlyAttributeAccessor extends JmxAttributeAccessor{
+
+        private ReadOnlyAttributeAccessor(final MBeanAttributeInfo metadata) {
+            super(metadata);
+        }
+
+        @Override
+        protected OpenMBeanAttributeInfo cloneMetadata() {
+            return new OpenMBeanAttributeInfoSupport(getName(),
+                    getMetadata().getDescription(),
+                    SimpleType.STRING,
+                    true,
+                    false,
+                    false,
+                    getMetadata().getDescriptor());
+        }
+
+        @Override
+        protected Object interceptSet(final Object value) throws InvalidAttributeValueException  {
+            throw new InvalidAttributeValueException(String.format("Attribute is read-only"));
+        }
+
+        @Override
+        protected Object interceptGet(final Object value) {
+            return Objects.toString(value);
+        }
+    }
+
+    private static final class OpenTypeAttributeAccessor extends JmxAttributeAccessor{
+        private OpenTypeAttributeAccessor(final OpenMBeanAttributeInfo metadata){
+            super((MBeanAttributeInfo)metadata);
+        }
+
+        @Override
+        protected OpenMBeanAttributeInfoSupport cloneMetadata() {
+            final OpenMBeanAttributeInfo source = (OpenMBeanAttributeInfo)getMetadata();
+            return new OpenMBeanAttributeInfoSupport(source.getName(),
+                    source.getDescription(),
+                    source.getOpenType(),
+                    source.isReadable(),
+                    source.isWritable(),
+                    source.isIs(),
+                    getMetadata().getDescriptor());
+        }
+
+        @Override
+        protected Object interceptSet(final Object value) {
+            return value;
+        }
+
+        @Override
+        protected Object interceptGet(final Object value) {
+            return value;
+        }
+    }
+
+    private static final class BufferAttributeAccessor extends JmxAttributeAccessor{
+        private final ArrayType<?> arrayType;
+
+        private BufferAttributeAccessor(final MBeanAttributeInfo metadata,
+                                        final Class<? extends Buffer> bufferType) {
+            super(metadata);
+            this.arrayType = ArrayType.getPrimitiveArrayType(Buffers.getArrayType(bufferType));
+        }
+
+        protected final OpenMBeanAttributeInfoSupport cloneMetadata() {
+            return new OpenMBeanAttributeInfoSupport(getMetadata().getName(),
+                    getMetadata().getDescription(),
+                    arrayType,
+                    true,
+                    true,
+                    false,
+                    getMetadata().getDescriptor());
+        }
+
+        @Override
+        protected Buffer interceptSet(final Object value) throws InvalidAttributeValueException, InterceptionException {
+            if(value instanceof byte[])
+                return Buffers.wrap((byte[])value);
+            else if(value instanceof char[])
+                return Buffers.wrap((char[])value);
+            else if(value instanceof short[])
+                return Buffers.wrap((short[])value);
+            else if(value instanceof int[])
+                return Buffers.wrap((int[])value);
+            else if(value instanceof long[])
+                return Buffers.wrap((long[])value);
+            else if(value instanceof float[])
+                return Buffers.wrap((float[])value);
+            else if(value instanceof double[])
+                return Buffers.wrap((double[])value);
+            else throw new InvalidAttributeValueException(String.format("Unexpected array type %s", value));
+        }
+
+        @Override
+        protected Object interceptGet(final Object value) throws InterceptionException {
+            if(value instanceof Buffer)
+                return Buffers.readRemaining((Buffer)value);
+            else throw new InterceptionException(new IllegalArgumentException(String.format("Buffer expected but %s found", value)));
+        }
+    }
+
+    private final ResourceNotificationList<JmxNotificationRouter> notifications;
+    private final ResourceAttributeList<JmxAttributeAccessor> attributes;
+    private final NotificationListenerList listeners;
     private final String resourceName;
     private ServiceRegistration<DynamicMBean> registration;
 
-    ProxyMBean(final String resourceName,
-                      final AttributeSupport attributes,
-                      final NotificationSupport notifications){
-        this.attributes = attributes != null ? attributes : AttributeSupportStub.INSTANCE;
-        this.notifications = notifications != null ? notifications : NotificationSupportStub.INSTANCE;
-        registration = null;
+    ProxyMBean(final String resourceName){
+        super(MBeanResources.class);
         this.resourceName = resourceName;
+        registration = null;
+        this.notifications = new ResourceNotificationList<>();
+        this.attributes = new ResourceAttributeList<>();
+        this.listeners = new NotificationListenerList();
     }
 
     final void registerAsService(final BundleContext context, final ObjectName beanName){
         context.registerService(DynamicMBean.class, this, OpenMBeanProvider.createIdentity(beanName));
     }
 
-    final void unregister(){
-        if(registration != null) registration.unregister();
+    @Override
+    public void close() {
+        registration = null;
+        attributes.clear();
+        notifications.clear();
+        listeners.clear();
     }
 
+    Iterable<? extends FeatureAccessor<?, ?>> getAccessorsAndClose(){
+        final ImmutableList<? extends FeatureAccessor<?, ?>> result =
+                ImmutableList.copyOf(Iterables.concat(attributes.values(), notifications.values()));
+        close();
+        return result;
+    }
+
+    NotificationAccessor addNotification(final MBeanNotificationInfo metadata){
+        try(final LockScope ignored = beginWrite(MBeanResources.NOTIFICATIONS)){
+            final JmxNotificationRouter result;
+            if(notifications.containsKey(metadata))
+                result = notifications.get(metadata);
+            else notifications.put(result = new JmxNotificationRouter(resourceName, metadata, listeners));
+            return result;
+        }
+    }
+
+    NotificationAccessor removeNotification(final MBeanNotificationInfo metadata) {
+        try (final LockScope ignored = beginWrite(MBeanResources.NOTIFICATIONS)) {
+            return notifications.remove(metadata);
+        }
+    }
+
+    AttributeAccessor addAttribute(final MBeanAttributeInfo metadata){
+        try(final LockScope ignored = beginWrite(MBeanResources.ATTRIBUTES)){
+            final JmxAttributeAccessor accessor;
+            if(attributes.containsKey(metadata))
+                accessor = attributes.get(metadata);
+            else if(metadata instanceof OpenMBeanAttributeInfo)
+                accessor = new OpenTypeAttributeAccessor((OpenMBeanAttributeInfo)metadata);
+            else{
+                final WellKnownType attributeType = CustomAttributeInfo.getType(metadata);
+                if(attributeType != null)
+                    switch (attributeType){
+                        case BYTE_BUFFER:
+                            accessor = new BufferAttributeAccessor(metadata, ByteBuffer.class);
+                            break;
+                        case CHAR_BUFFER:
+                            accessor = new BufferAttributeAccessor(metadata, CharBuffer.class);
+                            break;
+                        case SHORT_BUFFER:
+                            accessor = new BufferAttributeAccessor(metadata, ShortBuffer.class);
+                            break;
+                        case INT_BUFFER:
+                            accessor = new BufferAttributeAccessor(metadata, IntBuffer.class);
+                            break;
+                        case LONG_BUFFER:
+                            accessor = new BufferAttributeAccessor(metadata, LongBuffer.class);
+                            break;
+                        case FLOAT_BUFFER:
+                            accessor = new BufferAttributeAccessor(metadata, FloatBuffer.class);
+                            break;
+                        case DOUBLE_BUFFER:
+                            accessor = new BufferAttributeAccessor(metadata, DoubleBuffer.class);
+                            break;
+                        default:
+                            accessor = new ReadOnlyAttributeAccessor(metadata);
+                            break;
+                    }
+                else accessor = new ReadOnlyAttributeAccessor(metadata);
+            }
+            attributes.put(accessor);
+            return accessor;
+        }
+    }
+
+    AttributeAccessor removeAttribute(final MBeanAttributeInfo metadata){
+        try(final LockScope ignored = beginWrite(MBeanResources.ATTRIBUTES)){
+            return attributes.remove(metadata);
+        }
+    }
 
     /**
      * Obtain the value of a specific attribute of the Dynamic MBean.
@@ -53,7 +286,9 @@ final class ProxyMBean implements DynamicMBean, NotificationSupport, AttributeSu
      */
     @Override
     public Object getAttribute(final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
-        return attributes.getAttribute(attributeName);
+        try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
+            return attributes.getAttribute(attributeName);
+        }
     }
 
     /**
@@ -67,7 +302,9 @@ final class ProxyMBean implements DynamicMBean, NotificationSupport, AttributeSu
      */
     @Override
     public void setAttribute(final Attribute attributeHolder) throws AttributeNotFoundException, ReflectionException, InvalidAttributeValueException, MBeanException {
-        setAttribute(attributeHolder.getName(), attributeHolder.getValue());
+        try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
+            attributes.setAttribute(attributeHolder.getName(), attributeHolder.getValue());
+        }
     }
 
     /**
@@ -133,14 +370,23 @@ final class ProxyMBean implements DynamicMBean, NotificationSupport, AttributeSu
         throw new MBeanException(new UnsupportedOperationException("Operation invocation is not supported."));
     }
 
-    @Override
-    public OpenMBeanAttributeInfo[] getAttributeInfo() {
-        return attributes.getAttributeInfo();
+    private OpenMBeanAttributeInfo[] getAttributeInfo() {
+        try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
+            final Collection<OpenMBeanAttributeInfo> result = Lists.newArrayListWithExpectedSize(attributes.size());
+            for(final JmxAttributeAccessor accessor: attributes.values())
+                result.add(accessor.cloneMetadata());
+            return ArrayUtils.toArray(result, OpenMBeanAttributeInfo.class);
+        }
     }
 
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
-        return notifications.getNotificationInfo();
+        try(final LockScope ignored = beginRead(MBeanResources.NOTIFICATIONS)){
+            final Collection<MBeanNotificationInfo> result = Lists.newArrayListWithExpectedSize(notifications.size());
+            for(final JmxNotificationRouter accessor: notifications.values())
+                result.add(accessor.cloneMetadata());
+            return ArrayUtils.toArray(result, MBeanNotificationInfo.class);
+        }
     }
 
     /**
@@ -176,7 +422,7 @@ final class ProxyMBean implements DynamicMBean, NotificationSupport, AttributeSu
     public void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
                                         final Object handback) {
-        notifications.addNotificationListener(listener, filter, handback);
+        listeners.addNotificationListener(listener, filter, handback);
     }
 
     /**
@@ -194,23 +440,21 @@ final class ProxyMBean implements DynamicMBean, NotificationSupport, AttributeSu
      */
     @Override
     public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-        notifications.removeNotificationListener(listener);
+        listeners.removeNotificationListener(listener);
     }
 
     /**
-     * Set the value of a specific attribute of the Dynamic MBean.
+     * Invoked when a JMX notification occurs.
+     * The implementation of this method should return as soon as possible, to avoid
+     * blocking its notification broadcaster.
      *
-     * @param attributeName The identification of the attribute to
-     *                      be set and  the value it is to be set to.
-     * @param value         The value of the attribute.
-     * @throws javax.management.AttributeNotFoundException
-     * @throws javax.management.InvalidAttributeValueException
-     * @throws javax.management.MBeanException                 Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
-     * @throws javax.management.ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
-     * @see #getAttribute
+     * @param notification The notification.
+     * @param handback     An opaque object which helps the listener to associate
+     *                     information regarding the MBean emitter. This object is passed to the
+     *                     addNotificationListener call and resent, without modification, to the
      */
     @Override
-    public void setAttribute(final String attributeName, final Object value) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        attributes.setAttribute(attributeName, value);
+    public void handleNotification(final Notification notification, final Object handback) {
+        listeners.handleNotification(notification, handback);
     }
 }

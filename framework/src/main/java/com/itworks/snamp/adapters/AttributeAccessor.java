@@ -1,6 +1,5 @@
 package com.itworks.snamp.adapters;
 
-import com.google.common.base.Function;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.ExceptionPlaceholder;
@@ -44,6 +43,24 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
 
         private void clear(){
             setToNullAndGet();
+        }
+    }
+
+    /**
+     * Represents an exception that can be produced by attribute interceptor.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static class InterceptionException extends ReflectionException{
+        private static final long serialVersionUID = 8373399508228810347L;
+
+        /**
+         * Initializes a new exception and wraps actual exception.
+         * @param e The wrapped exception.
+         */
+        public InterceptionException(final Exception e) {
+            super(e);
         }
     }
 
@@ -117,7 +134,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
      * @throws javax.management.InvalidAttributeValueException Value type mismatch.
      */
     public final void setValue(final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        verifyOnDisconnected().setAttribute(new Attribute(getName(), value));
+        verifyOnDisconnected().setAttribute(new Attribute(getName(), interceptSet(value)));
     }
 
     /**
@@ -140,7 +157,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
      * @throws javax.management.ReflectionException Internal connector error.
      */
     public final Object getValue() throws MBeanException, AttributeNotFoundException, ReflectionException {
-        return verifyOnDisconnected().getAttribute(getName());
+        return interceptGet(verifyOnDisconnected().getAttribute(getName()));
     }
 
     /**
@@ -234,38 +251,25 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
         return getMetadata().isWritable();
     }
 
-    private <I, O> O getValue(final TypeToken<I> valueType,
-                              final AttributeInputValueConverter<O> converter) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        final Function<? super I, ? extends O> f = converter.getConverter(valueType);
-        if(f == null) throw new InvalidAttributeValueException(String.format("Converter for %s doesn't exist", valueType));
-        else {
-            final I attributeValue;
-            try{
-                attributeValue = TypeTokens.cast(getValue(), valueType);
-            }
-            catch (final ClassCastException e){
-                throw new InvalidAttributeValueException(e.getMessage());
-            }
-            return f.apply(attributeValue);
-        }
+    /**
+     * Intercepts {@link #setValue(Object)} invocation.
+     * @param value The value of the attribute passed as an argument to {@link #setValue(Object)} method.
+     * @return The value of the attribute that will be passed to the managed resource connector.
+     * @throws javax.management.InvalidAttributeValueException Invalid attribute type.
+     * @throws InterceptionException Internal interceptor error.
+     */
+    protected Object interceptSet(final Object value) throws InvalidAttributeValueException, InterceptionException{
+        return value;
     }
 
     /**
-     * Gets attribute value converted into the adapter-specific type.
-     * @param converter The attribute value converter. Cannot be {@literal null}.
-     * @param <T> Type of the adapter-specific value.
-     * @return The adapter-specific value of the attribute.
-     * @throws javax.management.InvalidAttributeValueException Attribute type mismatch.
-     * @throws javax.management.MBeanException Internal connector error.
-     * @throws javax.management.AttributeNotFoundException This attribute is disconnected.
-     * @throws javax.management.ReflectionException Internal connector error.
+     * Intercepts {@link #getValue()} invocation.
+     * @param value The value of the attribute obtained from the managed resource.
+     * @return The modified attribute value.
+     * @throws InterceptionException Internal interceptor error.
      */
-    public final <T> T getValue(final AttributeInputValueConverter<T> converter) throws InvalidAttributeValueException, MBeanException, AttributeNotFoundException, ReflectionException {
-        final WellKnownType type = getType();
-        if (type != null)
-            return getValue(type.getTypeToken(), converter);
-        else
-            return getValue(TypeToken.of(getRawType()), converter);
+    protected Object interceptGet(final Object value) throws InterceptionException{
+        return value;
     }
 
     public final Class<?> getRawType() throws ReflectionException{
@@ -274,31 +278,6 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
         } catch (ClassNotFoundException e) {
             throw new ReflectionException(e);
         }
-    }
-
-    private <I, O> void setValue(final I input,
-                                 final TypeToken<O> outputType,
-                                 final AttributeOutputValueConverter<I> converter) throws InvalidAttributeValueException, MBeanException, AttributeNotFoundException, ReflectionException {
-        final Function<? super I, ? extends O> f = converter.getConverter(outputType);
-        if(f == null) throw new InvalidAttributeValueException(String.format("Converter for %s doesn't exist", outputType));
-        else setValue(f.apply(input));
-    }
-
-    /**
-     * Modifies attribute using adapter-specific value.
-     * @param value The adapter-specific value to be converted into the attribute value.
-     * @param converter The adapter-specific value converter. Cannot be {@literal null}.
-     * @param <I> Type of the adapter-specific value.
-     * @throws javax.management.ReflectionException Internal connector error.
-     * @throws javax.management.MBeanException Internal connector error.
-     * @throws javax.management.InvalidAttributeValueException Attribute type mismatch.
-     * @throws javax.management.AttributeNotFoundException This attribute is disconnected.
-     */
-    public final <I> void setValue(final I value, final AttributeOutputValueConverter<I> converter) throws ReflectionException, MBeanException, InvalidAttributeValueException, AttributeNotFoundException {
-        final WellKnownType type = getType();
-        if (type != null) setValue(value, type.getTypeToken(), converter);
-        else
-            setValue(value, TypeToken.of(getRawType()), converter);
     }
 
     /**
