@@ -182,11 +182,14 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         while (names.hasMoreElements()){
             final String name = names.nextElement();
             switch (name){
-                case ADAPTER_INSTANCE_NAME_PROPERTY: continue;
                 default:
                     final Object value = adapterConfig.get(name);
                     if(value != null)
                         output.put(name, value.toString());
+                case Constants.SERVICE_PID:
+                case ConfigurationAdmin.SERVICE_FACTORYPID:
+                case ConfigurationAdmin.SERVICE_BUNDLELOCATION:
+                case ADAPTER_INSTANCE_NAME_PROPERTY:
             }
         }
     }
@@ -261,15 +264,17 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         while (propertyNames.hasMoreElements()) {
             final String name = propertyNames.nextElement();
             switch (name) {
-                case CONNECTION_STRING_PROPERTY:
-                case ATTRIBUTES_PROPERTY:
-                case EVENTS_PROPERTY:
-                case RESOURCE_NAME_PROPERTY:
-                    continue;
                 default:
                     final Object value = resourceConfig.get(name);
                     if (value != null)
                         parameters.put(name, value.toString());
+                case CONNECTION_STRING_PROPERTY:
+                case ATTRIBUTES_PROPERTY:
+                case EVENTS_PROPERTY:
+                case RESOURCE_NAME_PROPERTY:
+                case Constants.SERVICE_PID:
+                case ConfigurationAdmin.SERVICE_FACTORYPID:
+                case ConfigurationAdmin.SERVICE_BUNDLELOCATION:
             }
         }
     }
@@ -405,7 +410,12 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         final Dictionary<String, String> result = new Hashtable<>(2);
         Utils.setProperty(result, ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName);
         for(final Map.Entry<String, String> entry: adapter.getParameters().entrySet())
-            result.put(entry.getKey(), entry.getValue());
+            switch (entry.getKey()) {
+                default: result.put(entry.getKey(), entry.getValue());
+                case Constants.SERVICE_PID:
+                case ConfigurationAdmin.SERVICE_FACTORYPID:
+                case ConfigurationAdmin.SERVICE_BUNDLELOCATION:
+            }
         output.update(result);
     }
 
@@ -449,7 +459,12 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             Utils.setProperty(result, EVENTS_PROPERTY, IOUtils.serialize((Serializable)events));
         //serialize properties
         for(final Map.Entry<String, String> entry: resource.getParameters().entrySet())
-            result.put(entry.getKey(), entry.getValue());
+            switch (entry.getKey()) {
+                default: result.put(entry.getKey(), entry.getValue());
+                case Constants.SERVICE_PID:
+                case ConfigurationAdmin.SERVICE_BUNDLELOCATION:
+                case ConfigurationAdmin.SERVICE_FACTORYPID:
+            }
         output.update(result);
     }
 
