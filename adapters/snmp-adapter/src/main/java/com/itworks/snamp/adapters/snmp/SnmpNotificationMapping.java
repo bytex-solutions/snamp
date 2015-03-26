@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
+import org.snmp4j.agent.NotificationOriginator;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 
@@ -30,4 +31,6 @@ interface SnmpNotificationMapping extends SnmpEntity {
     MBeanNotificationInfo getMetadata();
 
     String getSource();
+
+    void setNotificationOriginator(final NotificationOriginator originator);
 }

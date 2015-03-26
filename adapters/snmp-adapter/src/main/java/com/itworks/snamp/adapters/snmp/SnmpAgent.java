@@ -1,10 +1,7 @@
 package com.itworks.snamp.adapters.snmp;
 
 import org.snmp4j.TransportMapping;
-import org.snmp4j.agent.BaseAgent;
-import org.snmp4j.agent.CommandProcessor;
-import org.snmp4j.agent.DuplicateRegistrationException;
-import org.snmp4j.agent.NotificationOriginator;
+import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
 import org.snmp4j.mp.MPv1;
@@ -42,8 +39,10 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
     private final Collection<SnmpNotificationMapping> notifications;
     private final ExecutorService threadPool;
     private final SecurityConfiguration security;
+    private final OID prefix;
 
-    SnmpAgent(final OctetString engineID,
+    SnmpAgent(final OID prefix,
+            final OctetString engineID,
             final int port,
             final String hostName,
             final SecurityConfiguration securityOptions,
@@ -62,33 +61,43 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
         this.port = port;
         this.socketTimeout = socketTimeout;
         this.security = securityOptions;
+        this.prefix = prefix;
 	}
+
+    void registerManagedObject(final ManagedObject mo) throws DuplicateRegistrationException {
+        server.register(mo, null);
+    }
+
+    void unregisterManagedObject(final ManagedObject mo){
+        server.unregister(mo, null);
+    }
+
+    void registerNotificationTarget(final SnmpNotificationMapping mapping){
+        getSnmpTargetMIB().addTargetAddress(mapping.getReceiverName(),
+                mapping.getTransportDomain(),
+                mapping.getReceiverAddress(),
+                mapping.getTimeout(),
+                mapping.getRetryCount(),
+                new OctetString("notify"),
+                NOTIFICATION_SETTINGS_TAG,
+                StorageType.nonVolatile);
+        mapping.setNotificationOriginator(getNotificationOriginator());
+    }
+
+    void unregisterNotificationTarget(final OctetString receiverName){
+        getSnmpTargetMIB().removeTargetAddress(receiverName);
+    }
+
+    void unregisterNotificationTarget(final SnmpNotificationMapping mapping){
+        unregisterNotificationTarget(mapping.getReceiverName());
+        mapping.setNotificationOriginator(null);
+    }
 
 	@Override
 	protected void registerManagedObjects() {
-        for(final OID prefix: SnmpHelpers.getPrefixes(attributes)){
-            boolean wasReadViewAdded = false;
-            boolean wasWriteViewAdded = false;
-            for(final SnmpAttributeMapping mo: SnmpHelpers.getObjectsByPrefix(prefix, attributes))
-                try {
-                    if (mo.getMetadata().isReadable() && !wasReadViewAdded){
-                        vacmMIB.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
-                                new OctetString(), VacmMIB.vacmViewIncluded,
-                                StorageType.nonVolatile);
-                        wasReadViewAdded = true;
-                    }
-                    if (mo.getMetadata().isWritable() && !wasWriteViewAdded){
-                        vacmMIB.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
-                                new OctetString(), VacmMIB.vacmViewIncluded,
-                                StorageType.nonVolatile);
-                        wasWriteViewAdded = true;
-                    }
-                    server.register(mo, null);
-                }
-                catch (final DuplicateRegistrationException e) {
-                    SnmpHelpers.log(Level.WARNING, "SNMP Internal Error. Call for SNMP developers.", e);
-                }
-        }
+        vacmMIB.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
+                new OctetString(), VacmMIB.vacmViewIncluded,
+                StorageType.volatile_);
 	}
 
     /**
@@ -96,13 +105,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
      */
     @Override
     protected final void unregisterManagedObjects() {
-        for(final SnmpAttributeMapping mo: attributes)
-            server.unregister(mo, null);
-        for(final OID prefix: SnmpHelpers.getPrefixes(attributes)){
-            vacmMIB.removeViewTreeFamily(new OctetString("fullReadView"), new OID(prefix));
-            vacmMIB.removeViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix));
-        }
-        attributes.clear();
+        vacmMIB.removeViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix));
     }
 
     /**
@@ -139,16 +142,14 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
      * Initializes concurrent message dispatcher
      */
     protected void initMessageDispatcher() {
-        if (threadPool != null) {
-            dispatcher = new ConcurrentMessageDispatcher(threadPool);
-            mpv3 = new MPv3(usm = new USM(DefaultSecurityProtocols.getInstance(),
-                    agent.getContextEngineID(),
-                    updateEngineBoots()));
-            dispatcher.addMessageProcessingModel(new MPv1());
-            dispatcher.addMessageProcessingModel(new MPv2c());
-            dispatcher.addMessageProcessingModel(mpv3);
-            initSnmpSession();
-        } else super.initMessageDispatcher();
+        dispatcher = new ConcurrentMessageDispatcher(threadPool);
+        mpv3 = new MPv3(usm = new USM(DefaultSecurityProtocols.getInstance(),
+                agent.getContextEngineID(),
+                updateEngineBoots()));
+        dispatcher.addMessageProcessingModel(new MPv1());
+        dispatcher.addMessageProcessingModel(new MPv2c());
+        dispatcher.addMessageProcessingModel(mpv3);
+        initSnmpSession();
     }
 
     /**
@@ -160,24 +161,10 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
      */
     @Override
     protected final void addNotificationTargets(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB) {
-        if(notifications.isEmpty()) return;
         targetMIB.addDefaultTDomains();
-        //register notifications
-        for(final OID prefix: SnmpHelpers.getPrefixes(notifications)){
-            vacmMIB.addViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix),
-                    new OctetString(), VacmMIB.vacmViewIncluded,
-                    StorageType.nonVolatile);
-            for(final SnmpNotificationMapping mapping: SnmpHelpers.getObjectsByPrefix(prefix, notifications)){
-                targetMIB.addTargetAddress(mapping.getReceiverName(),
-                        mapping.getTransportDomain(),
-                        mapping.getReceiverAddress(),
-                        mapping.getTimeout(),
-                        mapping.getRetryCount(),
-                        new OctetString("notify"),
-                        NOTIFICATION_SETTINGS_TAG,
-                        StorageType.nonVolatile);
-            }
-        }
+        vacmMIB.addViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix),
+                new OctetString(), VacmMIB.vacmViewIncluded,
+                StorageType.nonVolatile);
         //setup internal SNMP settings
         if(security != null){
             //find the user with enabled notification
@@ -210,17 +197,22 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
 	 * Initializes SNMP transport.
 	 */
 	protected void initTransportMappings() throws IOException {
-        final TransportMappings mappings = TransportMappings.getInstance();
         try{
-            TransportMapping<?> tm = mappings.createTransportMapping(GenericAddress.parse(String.format("%s/%s", hostName, port)));
+            final TransportMapping<?> tm = TransportMappings
+                    .getInstance()
+                    .createTransportMapping(GenericAddress.parse(String.format("%s/%s", hostName, port)));
             if(tm instanceof DefaultUdpTransportMapping)
                 ((DefaultUdpTransportMapping)tm).setSocketTimeout(socketTimeout);
             transportMappings = new TransportMapping[]{tm};
         }
-        catch (final RuntimeException e){
+        catch (final Exception e){
             throw new IOException(String.format("Unable to create SNMP transport for %s/%s address.", hostName, port), e);
         }
 	}
+
+    void suspend(){
+        super.stop();
+    }
 
     boolean start(final Collection<? extends SnmpAttributeMapping> attrs,
                          final Collection<? extends SnmpNotificationMapping> notifs) throws IOException {

@@ -97,6 +97,8 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
 
     static final String OID_PARAM_NAME = "oid";
 
+
+
     /**
      * Represents name of the metadata property that specifies unix time display format.
      */
@@ -107,12 +109,11 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     public static final String TARGET_NAME_PARAM = "receiverName";
     public static final String TARGET_ADDRESS_PARAM = "receiverAddress";
 
-    private static final String RESOURCE_NAME = "SnmpAdapterConfig";
-
-
     private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> implements ThreadPoolConfigurationDescriptor<ResourceAdapterConfiguration> {
+        private static final String RESOURCE_NAME = "SnmpAdapterConfig";
         private ResourceAdapterConfigurationInfo(){
             super(ResourceAdapterConfiguration.class,
+                    OID_PARAM_NAME,
                     ENGINE_ID_PARAM,
                     SNMPv3_GROUPS_PARAM,
                     SOCKET_TIMEOUT_PARAM,
@@ -140,8 +141,12 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
+        private static final String RESOURCE_NAME = "SnmpAttributeConfig";
+
         private AttributeConfigurationInfo(){
-            super(AttributeConfiguration.class, DATE_TIME_DISPLAY_FORMAT_PARAM);
+            super(AttributeConfiguration.class,
+                    OID_PARAM_NAME,
+                    DATE_TIME_DISPLAY_FORMAT_PARAM);
         }
 
         @Override
@@ -152,8 +157,11 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     private static final class EventConfigurationInfo extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
+        private static final String RESOURCE_NAME = "SnmpEventConfig";
+
         private EventConfigurationInfo(){
             super(EventConfiguration.class,
+                    OID_PARAM_NAME,
                     DATE_TIME_DISPLAY_FORMAT_PARAM,
                     TARGET_ADDRESS_PARAM,
                     TARGET_NAME_PARAM,

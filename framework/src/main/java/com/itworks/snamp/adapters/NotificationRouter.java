@@ -29,7 +29,7 @@ public class NotificationRouter extends NotificationAccessor {
     }
 
     @Override
-    final void disconnected() {
+    public final void disconnected() {
         weakListener.clear();
     }
 
