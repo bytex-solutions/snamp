@@ -53,3 +53,8 @@ li.snampMenu a {
     white-space: normal;
     overflow:visible;
 }
+
+.dynatree-title > input {
+    margin-left: 10px;
+    height: 15px ;
+}

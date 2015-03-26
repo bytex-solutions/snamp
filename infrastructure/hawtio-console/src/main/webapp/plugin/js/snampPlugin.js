@@ -367,15 +367,68 @@ var SnampShell = (function(SnampShell) {
                 }).value;
             };
 
+            function editNode(node){
+                var prevTitle = node.data.title,
+                    tree = node.tree;
+                // Disable dynatree mouse- and key handling
+                tree.$widget.unbind();
+                // Replace node with <input>
+                $(".dynatree-title", node.span).html("<input id='editNode' value='" + prevTitle + "'>");
+                // Focus <input> and bind keyboard handler
+                $("input#editNode")
+                    .focus()
+                    .keydown(function(event){
+                        switch( event.which ) {
+                            case 27: // [esc]
+                                // discard changes on [esc]
+                                $("input#editNode").val(prevTitle);
+                                $(this).blur();
+                                break;
+                            case 13: // [enter]
+                                // simulate blur to accept new value
+                                $(this).blur();
+                                break;
+                        }
+                    }).blur(function(event){
+                        // Accept new value, when user leaves <input>
+                        var title = $("input#editNode").val();
+                        node.setTitle(title);
+                        // Re-enable mouse and keyboard handlling
+                        tree.$widget.bind();
+                        node.focus();
+                    });
+            }
+
             $scope.configurationJSON2Tree = function (jsonObject) {
                 var array = [
-                    {title: "ResourceAdapters", isFolder: true},
-                    {title: "ManagedResources", isFolder: true}
+                    {title: "Resource Adapters", isFolder: true},
+                    {title: "Managed Resources", isFolder: true}
                 ];
                 if (jsonObject.hasOwnProperty("ResourceAdapters")) {
                     array[0].children = [];
                     angular.forEach(jsonObject["ResourceAdapters"], function (value, key) {
-                        array[0].children.push({title: key, isFolder: true})
+                        var currentChild = {title: key, isFolder: true, editable: true}; // adapter userDefined name
+                        currentChild.children = [];
+                        currentChild.children.push({title: value["adapter"]["Name"], isFolder: false}); // adapter system name
+                        var params = {title: "Parameters", isFolder: true};
+                        params.children = [];
+                        if (value["adapter"]["Parameters"]) {
+                            angular.forEach(value["adapter"]["Parameters"], function (parameterValue, parameterKey) {
+                                var editableValue = parameterKey + ":" + "" +
+                                    "<input name=\"value\" type=\"text\" value=\"" + parameterValue + "\"/>";
+                                params.children.push({title: editableValue, isFolder: false});
+                            });
+                        }
+                        params.children.push({title: "<span class=\"glyphicon glyphicon-plus\"/> new parameter", service: "add"})
+                        currentChild.children.push(params);
+                        array[0].children.push(currentChild);
+                    });
+                }
+
+                if (jsonObject.hasOwnProperty("ManagedResources")) {
+                    array[1].children = [];
+                    angular.forEach(jsonObject["ManagedResources"], function (value, key) {
+                        array[1].children.push({title: key, isFolder: true})
                     });
                 }
                 return array;
@@ -383,13 +436,46 @@ var SnampShell = (function(SnampShell) {
 
             $scope.drawConfiguration = function () {
                 $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
-
+                var isMac = /Mac/.test(navigator.platform);
                 $("#snampTreeConfig").dynatree({
-                    onActivate: function (node) {
+                    onClick: function(node, event) {
+                        if (node.data.editable == true) {
+                            if (event.shiftKey) {
+                                editNode(node);
+                                return false;
+                            }
+                        }
+                        if (node.data.service) {
+                            if (node.data.service == "add") {
+                                node.getParent().addChild({title: "New Node", key: "3333"})
+                            }
+                        }
+                    },
+                    onDblClick: function(node, event) {
+                        if (node.data.editable == true) {
+                            editNode(node);
+                            return false;
+                        }
+                    },
+                    onKeydown: function(node, event) {
+                        if (node.data.editable == true) {
+                            switch (event.which) {
+                                case 113: // [F2]
+                                    editNode(node);
+                                    return false;
+                                case 13: // [enter]
+                                    if (isMac) {
+                                        editNode(node);
+                                        return false;
+                                    }
+                            }
+                        }
+                    },
+                   /* onActivate: function (node) {
                         // A DynaTreeNode object is passed to the activation handler
                         // Note: we also get this event, if persistence is on, and the page is reloaded.
                         alert("You activated " + node.data.title);
-                    },
+                    },*/
                     persist: false,
                     children: $scope.configurationJSON2Tree($scope.configuration)
                 });
