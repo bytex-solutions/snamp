@@ -56,18 +56,22 @@ var SnampShell = (function(SnampShell) {
      * run function
      */
     SnampShell.module = angular.module('snamp_shell_plugin', ['hawtioCore', 'tree'])
-        .config(function($routeProvider) {
+        .config(function ($routeProvider) {
             $routeProvider.
                 when('/snamp_shell_plugin', {
                     templateUrl: SnampShell.templatePath + 'snamp.html'
                 });
         })
-        .controller('SnampShell.SnampController',  function($scope, $location, jolokia, $timeout) {
+        .controller('SnampShell.SnampController', function ($scope, $location, jolokia, $timeout) {
 
             // ============================================================================================================= //
             // Menu sections
             $scope.sections = [
-                {name: "/snamp_shell_plugin", label: "General Information", url: SnampShell.templatePath + "general.html"},
+                {
+                    name: "/snamp_shell_plugin",
+                    label: "General Information",
+                    url: SnampShell.templatePath + "general.html"
+                },
                 {name: "/configuration", label: "Configuration", url: SnampShell.templatePath + "config.html"},
                 {name: "/licensing", label: "License management", url: SnampShell.templatePath + "license.html"},
                 {name: "/commands", label: "Components management", url: SnampShell.templatePath + "commands.html"}
@@ -75,7 +79,7 @@ var SnampShell = (function(SnampShell) {
             $scope.template = $scope.sections[0];
 
             // management
-            $scope.refreshValues = function() {
+            $scope.refreshValues = function () {
                 $scope.dmc = jolokia.request({
                     type: 'read',
                     mbean: SnampShell.mbean,
@@ -104,7 +108,7 @@ var SnampShell = (function(SnampShell) {
 
             // ============================================================================================================= //
             // Grid data
-            $scope.getGeneralGridData = function() {
+            $scope.getGeneralGridData = function () {
                 var array = [];
                 // get all the components
                 var result = jolokia.request({
@@ -112,10 +116,10 @@ var SnampShell = (function(SnampShell) {
                     mbean: SnampShell.mbean,
                     attribute: 'InstalledComponents'
                 }).value;
-                angular.forEach(result, function(value, key) {
+                angular.forEach(result, function (value, key) {
                     if (key != 'null')
                         this.push({
-                            UserName : key,
+                            UserName: key,
                             ComponentName: value.Name,
                             State: value.State,
                             Version: value.Version,
@@ -135,7 +139,7 @@ var SnampShell = (function(SnampShell) {
                     displayName: 'User defined name',
                     maxWidth: 250,
                     minWidth: 150,
-                    width:200,
+                    width: 200,
                     resizable: true
                 },
                 {
@@ -143,7 +147,7 @@ var SnampShell = (function(SnampShell) {
                     displayName: 'Component name',
                     maxWidth: 250,
                     minWidth: 150,
-                    width:200,
+                    width: 200,
                     resizable: true
                 },
                 {
@@ -152,7 +156,7 @@ var SnampShell = (function(SnampShell) {
                     cellFilter: null,
                     maxWidth: 65,
                     minWidth: 65,
-                    width:65,
+                    width: 65,
                     resizable: false
                 },
                 {
@@ -161,7 +165,7 @@ var SnampShell = (function(SnampShell) {
                     cellFilter: null,
                     maxWidth: 70,
                     minWidth: 70,
-                    width:70,
+                    width: 70,
                     resizable: true
                 },
                 {
@@ -170,7 +174,7 @@ var SnampShell = (function(SnampShell) {
                     cellFilter: null,
                     maxWidth: 85,
                     minWidth: 85,
-                    width:85,
+                    width: 85,
                     resizable: true
                 },
                 {
@@ -179,7 +183,7 @@ var SnampShell = (function(SnampShell) {
                     cellFilter: null,
                     maxWidth: 85,
                     minWidth: 85,
-                    width:85,
+                    width: 85,
                     resizable: true
                 },
                 {
@@ -188,7 +192,7 @@ var SnampShell = (function(SnampShell) {
                     cellFilter: null,
                     maxWidth: 85,
                     minWidth: 85,
-                    width:85,
+                    width: 85,
                     resizable: true
                 },
                 {
@@ -204,7 +208,7 @@ var SnampShell = (function(SnampShell) {
             $scope.genData = $scope.getGeneralGridData();
 
             $scope.generalGrid = {
-                data:  'genData',
+                data: 'genData',
                 displayFooter: true,
                 columnDefs: columnDefs,
                 canSelectRows: false,
@@ -212,7 +216,7 @@ var SnampShell = (function(SnampShell) {
             };
             // ============================================================================================================= //
             // Connectors section
-            $scope.getConnectors = function() {
+            $scope.getConnectors = function () {
                 var result = [];
                 var connectors = jolokia.request({
                     type: 'read',
@@ -221,7 +225,7 @@ var SnampShell = (function(SnampShell) {
                 }).value;
 
                 if (connectors) {
-                    angular.forEach(connectors, function(item) {
+                    angular.forEach(connectors, function (item) {
                         var connectorInfo = jolokia.request({
                             type: 'exec',
                             mbean: SnampShell.mbean,
@@ -243,7 +247,7 @@ var SnampShell = (function(SnampShell) {
             };
 
             // Adapters section
-            $scope.getAdapters = function() {
+            $scope.getAdapters = function () {
                 var result = [];
                 var adapters = jolokia.request({
                     type: 'read',
@@ -252,7 +256,7 @@ var SnampShell = (function(SnampShell) {
                 }).value;
 
                 if (adapters) {
-                    angular.forEach(adapters, function(item) {
+                    angular.forEach(adapters, function (item) {
                         var adapterInfo = jolokia.request({
                             type: 'exec',
                             mbean: SnampShell.mbean,
@@ -273,7 +277,7 @@ var SnampShell = (function(SnampShell) {
                 return result;
             };
 
-            $scope.refreshComponents = function() {
+            $scope.refreshComponents = function () {
                 $scope.genData = $scope.getGeneralGridData();
                 $scope.connectors = $scope.getConnectors();
                 $scope.adapters = $scope.getAdapters();
@@ -281,7 +285,7 @@ var SnampShell = (function(SnampShell) {
             };
 
             // Start connector
-            $scope.startConnector = function(name) {
+            $scope.startConnector = function (name) {
                 SnampShell.log.info("Starting " + name + " connector...");
                 SnampShell.log.info(JSON.stringify(jolokia.request({
                     type: 'exec',
@@ -293,7 +297,7 @@ var SnampShell = (function(SnampShell) {
             };
 
             // Stop connector
-            $scope.stopConnector = function(name) {
+            $scope.stopConnector = function (name) {
                 SnampShell.log.info("Stopping " + name + " connector...");
                 SnampShell.log.info(JSON.stringify(jolokia.request({
                     type: 'exec',
@@ -305,7 +309,7 @@ var SnampShell = (function(SnampShell) {
             };
 
             // Start adapter
-            $scope.startAdapter = function(name) {
+            $scope.startAdapter = function (name) {
                 SnampShell.log.info("Starting " + name + " adapter...");
                 SnampShell.log.info(JSON.stringify(jolokia.request({
                     type: 'exec',
@@ -317,7 +321,7 @@ var SnampShell = (function(SnampShell) {
             };
 
             // Stop adapter
-            $scope.stopAdapter = function(name) {
+            $scope.stopAdapter = function (name) {
                 SnampShell.log.info("Stopping " + name + " adapter...");
                 SnampShell.log.info(JSON.stringify(jolokia.request({
                     type: 'exec',
@@ -328,7 +332,7 @@ var SnampShell = (function(SnampShell) {
                 $scope.refreshComponents();
             };
 
-            $scope.fillModal = function(content, title) {
+            $scope.fillModal = function (content, title) {
                 $scope.modalContent = content;
                 $scope.modalTitle = title;
                 Core.$apply($scope);
@@ -344,8 +348,8 @@ var SnampShell = (function(SnampShell) {
             $scope.adapters = $scope.getAdapters();
 
             // Licensing
-            $scope.getLicense = function() {
-              return jolokia.request({
+            $scope.getLicense = function () {
+                return jolokia.request({
                     type: 'read',
                     mbean: SnampShell.mbean,
                     attribute: 'license'
@@ -355,33 +359,33 @@ var SnampShell = (function(SnampShell) {
             $scope.license = $scope.getLicense();
 
             // Configuration
-            $scope.getConfiguration = function() {
-               return jolokia.request({
-                   type: 'read',
-                   mbean: SnampShell.mbean,
-                   attribute: 'configuration'
-               }).value;
+            $scope.getConfiguration = function () {
+                return jolokia.request({
+                    type: 'read',
+                    mbean: SnampShell.mbean,
+                    attribute: 'configuration'
+                }).value;
             };
 
-            $scope.configurationJSON2Tree = function(jsonObject) {
+            $scope.configurationJSON2Tree = function (jsonObject) {
                 var array = [
                     {title: "ResourceAdapters", isFolder: true},
                     {title: "ManagedResources", isFolder: true}
                 ];
-                /*if (jsonObject.hasOwnProperty("ResourceAdapters")) {
+                if (jsonObject.hasOwnProperty("ResourceAdapters")) {
                     array[0].children = [];
-                        angular.forEach(jsonObject["ResourceAdapters"], function(value, key) {
-                        array[0].children.push({title: key, isFolder:true})
+                    angular.forEach(jsonObject["ResourceAdapters"], function (value, key) {
+                        array[0].children.push({title: key, isFolder: true})
                     });
-                }*/
+                }
                 return array;
             };
 
-            $scope.drawConfiguration = function() {
+            $scope.drawConfiguration = function () {
                 $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
 
                 $("#snampTreeConfig").dynatree({
-                    onActivate: function(node) {
+                    onActivate: function (node) {
                         // A DynaTreeNode object is passed to the activation handler
                         // Note: we also get this event, if persistence is on, and the page is reloaded.
                         alert("You activated " + node.data.title);
@@ -392,7 +396,7 @@ var SnampShell = (function(SnampShell) {
             };
 
             // Menu items
-            $scope.menuSelected = function(section) {
+            $scope.menuSelected = function (section) {
                 $scope.template = section;
                 if ($scope.template == $scope.sections[3]) {
                     $scope.refreshValues();
@@ -404,7 +408,7 @@ var SnampShell = (function(SnampShell) {
                     if (StatisticRenewalTime) {
                         timerId = setInterval($scope.refreshValues, StatisticRenewalTime);
                     }
-                } else if ($scope.template ==  $scope.sections[1]) {
+                } else if ($scope.template == $scope.sections[1]) {
                     $scope.configuration = $scope.getConfiguration();
                     Core.$apply($scope);
                 } else {
@@ -430,7 +434,7 @@ var SnampShell = (function(SnampShell) {
      *     plugin.  This is just a matter of adding to the workspace's
      *     topLevelTabs array.
      */
-    SnampShell.module.run(function(workspace, viewRegistry, helpRegistry, layoutFull) {
+    SnampShell.module.run(function (workspace, viewRegistry, helpRegistry, layoutFull) {
 
         SnampShell.log.info(SnampShell.pluginName, " loaded");
 
@@ -466,28 +470,22 @@ var SnampShell = (function(SnampShell) {
             id: "snamp-shell",
             content: "Snamp Shell",
             title: "SnampShell plugin loaded dynamically",
-            isValid: function(workspace) { return true; },
-            href: function() { return "#/snamp_shell_plugin"; },
-            isActive: function(workspace) { return workspace.isLinkActive("snamp_shell_plugin"); }
+            isValid: function (workspace) {
+                return true;
+            },
+            href: function () {
+                return "#/snamp_shell_plugin";
+            },
+            isActive: function (workspace) {
+                return workspace.isLinkActive("snamp_shell_plugin");
+            }
         });
-
     });
 
-    /**
-     * @function SnampController
-     * @param $scope
-     * @param $location
-     * @param jolokia
-     *
-     * The controller for shell.html, only requires the jolokia and location
-     * services from hawtioCore
-     */
 
+        return SnampShell;
 
-    return SnampShell;
-
-})(SnampShell || {});
-
+    })(SnampShell || {});
 // tell the hawtio plugin loader about our plugin so it can be
 // bootstrapped with the rest of angular
 hawtioPluginLoader.addModule(SnampShell.pluginName);
