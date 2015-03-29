@@ -119,8 +119,8 @@ final class MonitoringUtils {
             for (final String key : map.keySet()) {
                 tabularDataSupport.put(new CompositeDataSupport(tabularDataSupport.getTabularType().getRowType(),
                         ImmutableMap.<String, Object>of(
-                                "key", key,
-                                "value", map.get(key))));
+                                "Key", key,
+                                "Value", map.get(key))));
             }
         }
         return tabularDataSupport;

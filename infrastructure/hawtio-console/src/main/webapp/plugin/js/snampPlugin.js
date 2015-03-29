@@ -409,17 +409,17 @@ var SnampShell = (function(SnampShell) {
                     angular.forEach(jsonObject["ResourceAdapters"], function (value, key) {
                         var currentChild = {title: key, isFolder: true, editable: true}; // adapter userDefined name
                         currentChild.children = [];
-                        currentChild.children.push({title: value["adapter"]["Name"], isFolder: false}); // adapter system name
+                        currentChild.children.push({title: value["Adapter"]["Name"], isFolder: false}); // adapter system name
                         var params = {title: "Parameters", isFolder: true};
                         params.children = [];
-                        if (value["adapter"]["Parameters"]) {
-                            angular.forEach(value["adapter"]["Parameters"], function (parameterValue, parameterKey) {
+                        if (value["Adapter"]["Parameters"]) {
+                            angular.forEach(value["Adapter"]["Parameters"], function (parameterValue, parameterKey) {
                                 var editableValue = parameterKey + ":" + "" +
-                                    "<input name=\"value\" type=\"text\" value=\"" + parameterValue + "\"/>";
+                                    "<input name=\"value\" type=\"text\" value=\"" + parameterValue["Value"] + "\"/>";
                                 params.children.push({title: editableValue, isFolder: false});
                             });
                         }
-                        params.children.push({title: "<span class=\"glyphicon glyphicon-plus\"/> new parameter", service: "add"})
+                        params.children.push({title: "<span class=\"glyphicon glyphicon-plus\"/> new parameter", service: "add"});
                         currentChild.children.push(params);
                         array[0].children.push(currentChild);
                     });

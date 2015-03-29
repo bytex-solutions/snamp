@@ -28,20 +28,20 @@ import java.util.*;
  */
 abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<CompositeData, CompositeType> implements CommonOpenTypesSupport {
     private static final CompositeType COMPONENT_CONFIG_SCHEMA;
-    private static final String MANAGED_RESOURCE_PARAMS = "managedResourceParameters";
-    private static final String RESOURCE_ADAPTER_PARAMS = "resourceAdapterParameters";
-    private static final String ATTRIBUTE_PARAMS = "attributeParameters";
-    private static final String EVENT_PARAMS = "eventParameters";
+    private static final String MANAGED_RESOURCE_PARAMS = "ManagedResourceParameters";
+    private static final String RESOURCE_ADAPTER_PARAMS = "ResourceAdapterParameters";
+    private static final String ATTRIBUTE_PARAMS = "AttributeParameters";
+    private static final String EVENT_PARAMS = "EventParameters";
 
     private static final CompositeType CONFIG_PARAMETER_DESCRIPTOR;
-    private static final String DEFAULT_VALUE = "defaultValue";
-    private static final String DESCRIPTION = "description";
-    private static final String INPUT_PATTERN = "inputPattern";
-    private static final String REQUIRED = "required";
-    private static final String SUGGESTIONS_SUPPORTED = "suggestionSupported";
-    private static final String ASSOCIATED = "associated";
-    private static final String EXTENDS = "extends";
-    private static final String EXCLUDES = "notCompatibleWith";
+    private static final String DEFAULT_VALUE = "DefaultValue";
+    private static final String DESCRIPTION = "Description";
+    private static final String INPUT_PATTERN = "InputPattern";
+    private static final String REQUIRED = "Required";
+    private static final String SUGGESTIONS_SUPPORTED = "SuggestionSupported";
+    private static final String ASSOCIATED = "Associated";
+    private static final String EXTENDS = "Extends";
+    private static final String EXCLUDES = "NotCompatibleWith";
 
     private static final TabularType CONFIG_ENTITY_SCHEMA;
 
@@ -68,8 +68,8 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
 
             //CONFIG_ENTITY_SCHEMA
             CONFIG_ENTITY_SCHEMA_BUILDER = new TabularTypeBuilder("com.itworks.management.ConfigEntitySchema", "Configuration entity schema")
-                    .addColumn("parameter", "Parameter name", SimpleType.STRING, true)
-                    .addColumn("description", "Parameter descriptor", CONFIG_PARAMETER_DESCRIPTOR, false);
+                    .addColumn("Parameter", "Parameter name", SimpleType.STRING, true)
+                    .addColumn("Description", "Parameter descriptor", CONFIG_PARAMETER_DESCRIPTOR, false);
 
             CONFIG_ENTITY_SCHEMA = CONFIG_ENTITY_SCHEMA_BUILDER.build();
 
@@ -136,8 +136,8 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
                     parameter.put(getRelationshipKey(rel), ArrayUtils.toArray(relationship, String.class));
                 }
                 builder.newRow()
-                        .cell("parameter", parameterName)
-                        .cell("description", CONFIG_PARAM_BUILDER.build(parameter))
+                        .cell("Parameter", parameterName)
+                        .cell("Description", CONFIG_PARAM_BUILDER.build(parameter))
                         .flush();
             }
         return builder.get();
