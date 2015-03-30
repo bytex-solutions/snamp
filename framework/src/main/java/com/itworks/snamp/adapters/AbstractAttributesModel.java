@@ -2,6 +2,7 @@ package com.itworks.snamp.adapters;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.itworks.snamp.Consumer;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
@@ -17,6 +18,7 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
+@ThreadSafe
 public abstract class AbstractAttributesModel<TAccessor extends AttributeAccessor> extends ThreadSafeObject {
     private final HashMap<String, ResourceAttributeList<TAccessor>> attributes;
 
@@ -75,21 +77,40 @@ public abstract class AbstractAttributesModel<TAccessor extends AttributeAccesso
         }
     }
 
-    @ThreadSafe(false)
     protected final Object getAttributeValue(final String resourceName,
                                              final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
-        if(attributes.containsKey(resourceName))
-            return attributes.get(resourceName).getAttribute(attributeName);
-        else throw  new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
+        try (final LockScope ignored = beginRead()) {
+            if (attributes.containsKey(resourceName))
+                return attributes.get(resourceName).getAttribute(attributeName);
+            else
+                throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
+        }
     }
 
-    @ThreadSafe(false)
     protected final void setAttributeValue(final String resourceName,
                                            final String attributeName,
                                            final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        if(attributes.containsKey(resourceName))
-             attributes.get(resourceName).setAttribute(attributeName, value);
-        else throw  new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
+        try (final LockScope ignored = beginRead()) {
+            if (attributes.containsKey(resourceName))
+                attributes.get(resourceName).setAttribute(attributeName, value);
+            else
+                throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
+        }
+    }
+
+    public final <E extends Throwable> boolean processAttribute(final String resourceName,
+                                          final String attributeName,
+                                          final Consumer<? super TAccessor, E> processor) throws E{
+        try(final LockScope ignored = beginRead()){
+            final TAccessor accessor =  attributes.containsKey(resourceName)?
+                    attributes.get(resourceName).get(attributeName):
+                    null;
+            if(accessor != null){
+                processor.accept(accessor);
+                return true;
+            }
+            else return false;
+        }
     }
 
     /**

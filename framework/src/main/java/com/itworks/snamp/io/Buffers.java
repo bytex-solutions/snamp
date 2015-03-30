@@ -2,6 +2,7 @@ package com.itworks.snamp.io;
 
 import com.google.common.primitives.*;
 
+import java.io.Serializable;
 import java.nio.*;
 import java.util.Objects;
 

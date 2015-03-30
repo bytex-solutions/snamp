@@ -239,7 +239,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
      * Determines whether this accessor supports attribute value reading.
      * @return {@literal true}, if this attribute is readable; otherwise, {@literal false}.
      */
-    public final boolean canRead(){
+    public boolean canRead(){
         return getMetadata().isReadable();
     }
 
@@ -247,7 +247,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
      * Determines whether this accessor supports attribute value writing.
      * @return {@literal true}, if this attribute is writable; otherwise, {@literal false}.
      */
-    public final boolean canWrite(){
+    public boolean canWrite(){
         return getMetadata().isWritable();
     }
 

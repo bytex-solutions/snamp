@@ -4,6 +4,7 @@ import com.itworks.snamp.Consumer;
 import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
 import com.itworks.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import javax.management.JMException;
@@ -16,12 +17,16 @@ import java.io.StringReader;
  * @version 1.0
  * @since 1.0
  */
-final class SetAttributeCommand extends AbstractManagementShellCommand {
-    static final String COMMAND_USAGE = "set <attribute-id> <value-as-json>";
+final class SetAttributeCommand extends AbstractAttributeCommand {
+    static final String COMMAND_USAGE = "set -n <name> -r <resource> -v <value-as-json>";
     static final String COMMAND_NAME = "set";
-    static final String COMMAND_DESC = "Override value of the attribute";
+    static final String COMMAND_DESC = "Set attribute value";
+    private static final Option VALUE_OPTION = new Option("v", "value", true, "Attribute value in JSON format");
 
-    static final Options COMMAND_OPTIONS = EMPTY_OPTIONS;
+    static final Options COMMAND_OPTIONS = new Options()
+            .addOption(RESOURCE_OPTION)
+            .addOption(NAME_OPTION)
+            .addOption(VALUE_OPTION);
 
     SetAttributeCommand(final CommandExecutionContext context){
         super(context);
@@ -35,25 +40,23 @@ final class SetAttributeCommand extends AbstractManagementShellCommand {
 
     @Override
     protected void doCommand(final CommandLine input, final PrintWriter output) throws CommandException {
-        final String[] arguments = input.getArgs();
-        switch (arguments.length){
-            case 2:
-                final String attributeID = arguments[0], value = arguments[1];
-                if(getAdapterController().processAttribute(attributeID, new Consumer<SshAttributeView, CommandException>() {
-                    @Override
-                    public void accept(final SshAttributeView attribute) throws CommandException {
-                        try (final LogicalOperation ignored = new WriteAttributeLogicalOperation(attribute.getOriginalName(), attributeID);
-                            final StringReader reader = new StringReader(value)) {
-                            attribute.setValue(reader);
-                            output.println("OK");
-                        } catch (final JMException | IOException e) {
-                            throw new CommandException(e);
-                        }
+        if(input.hasOption(RESOURCE_OPTION.getOpt()) && input.hasOption(NAME_OPTION.getOpt()) && input.hasOption(VALUE_OPTION.getOpt())){
+            final String resourceName = input.getOptionValue(RESOURCE_OPTION.getOpt());
+            final String attributeName = input.getOptionValue(NAME_OPTION.getOpt());
+            final String attributeValue = input.getOptionValue(VALUE_OPTION.getOpt());
+            if(!getAdapterController().processAttribute(resourceName, attributeName, new Consumer<SshAttributeMapping, CommandException>() {
+                @Override
+                public void accept(final SshAttributeMapping attribute) throws CommandException {
+                    try (final LogicalOperation ignored = new WriteAttributeLogicalOperation(attribute.getOriginalName(), attributeName);
+                         final StringReader reader = new StringReader(attributeValue)) {
+                        attribute.setValue(reader);
+                        output.println("OK");
+                    } catch (final JMException | IOException e) {
+                        throw new CommandException(e);
                     }
-                })) return;
-                else throw new CommandException("Attribute %s doesn't exist.", attributeID);
-            default:
-                throw invalidCommandFormat();
+                }
+            })) throw new CommandException("Attribute %s doesn't exist.", attributeName);
         }
+        else throw invalidCommandFormat();
     }
 }

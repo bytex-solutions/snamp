@@ -11,7 +11,7 @@ import java.io.Writer;
  * @version 1.0
  * @since 1.0
  */
-public interface SshAttributeView {
+public interface SshAttributeMapping {
     /**
      * Prints attribute value.
      * @param output An output stream that accepts the attribute value.

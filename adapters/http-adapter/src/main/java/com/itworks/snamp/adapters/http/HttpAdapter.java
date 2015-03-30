@@ -111,40 +111,32 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 return formatter.fromJson((String) value, getType());
             else throw new InterceptionException(new IllegalArgumentException("String expected"));
         }
-
     }
 
     private static final class HttpAttributesModel extends AbstractAttributesModel<HttpAttributeMapping> implements AttributeSupport{
+
         @Override
         public String getAttribute(final String resourceName, final String attributeName) throws WebApplicationException {
-            try(final LockScope ignored = beginRead()){
-                try {
-                    return Objects.toString(getAttributeValue(resourceName, attributeName));
-                }
-                catch (final AttributeNotFoundException e) {
-                    throw new WebApplicationException(e, Response.Status.NOT_FOUND);
-                }
-                catch (final ReflectionException | MBeanException e) {
-                    throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-                }
+            try {
+                return Objects.toString(getAttributeValue(resourceName, attributeName));
+            } catch (final AttributeNotFoundException e) {
+                throw new WebApplicationException(e, Response.Status.NOT_FOUND);
+            } catch (final ReflectionException | MBeanException e) {
+                throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
             }
         }
 
         @Override
         public void setAttribute(final String resourceName, final String attributeName, final String value) throws WebApplicationException {
-            try(final LockScope ignored = beginRead()){
+            try {
                 setAttributeValue(resourceName, attributeName, value);
-            }
-            catch (final AttributeNotFoundException e) {
+            } catch (final AttributeNotFoundException e) {
                 throw new WebApplicationException(e, Response.Status.NOT_FOUND);
-            }
-            catch (final AttributeAccessor.InterceptionException e){
+            } catch (final AttributeAccessor.InterceptionException e) {
                 throw new WebApplicationException(e, METHOD_NOT_ALLOWED);
-            }
-            catch (final InvalidAttributeValueException e){
+            } catch (final InvalidAttributeValueException e) {
                 throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
-            }
-            catch (final MBeanException | ReflectionException e) {
+            } catch (final MBeanException | ReflectionException e) {
                 throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
             }
         }

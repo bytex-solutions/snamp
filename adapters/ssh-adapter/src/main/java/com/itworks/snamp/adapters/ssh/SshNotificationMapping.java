@@ -9,8 +9,7 @@ import java.io.Writer;
  * @version 1.0
  * @since 1.0
  */
-public interface SshNotificationView {
-    String getEventName();
-
+public interface SshNotificationMapping {
+    String getType();
     void print(final Notification notif, final Writer output);
 }

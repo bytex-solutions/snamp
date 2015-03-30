@@ -26,7 +26,7 @@ final class ExitCommand extends AbstractManagementShellCommand {
 
     @Override
     @MethodStub
-    protected void doCommand(final CommandLine input, final PrintWriter output) throws CommandException {
+    protected void doCommand(final CommandLine input, final PrintWriter output) {
 
     }
 }

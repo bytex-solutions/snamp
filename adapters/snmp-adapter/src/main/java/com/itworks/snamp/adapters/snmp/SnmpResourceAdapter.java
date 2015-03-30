@@ -232,7 +232,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+    protected synchronized <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
         switch (getState()){
             case STARTED:
                 updateManager.beginUpdate();
@@ -247,7 +247,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception {
+    protected synchronized Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception {
         final Iterable<SnmpNotificationMappingImpl> notifs = notifications.removeAll(resourceName);
         final Collection<SnmpAttributeMapping> attrs = attributes.removeAll(resourceName);
         final Collection<AttributeAccessor> accessors = Lists.newArrayListWithExpectedSize(attrs.size());
@@ -295,7 +295,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
+    protected synchronized <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
         switch (getState()){
             case STARTED:
                 updateManager.beginUpdate();

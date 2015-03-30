@@ -11,6 +11,7 @@ import javax.management.Notification;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.Objects;
 
 /**
  * @author Roman Sakno
@@ -21,14 +22,10 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
     static final String COMMAND_NAME = "notifications";
     static final String COMMAND_USAGE = "notifications [listen [-r <resources> | -n <notifs>]]";
     static final String COMMAND_DESC = "Notifications management";
-    static final Options COMMAND_OPTIONS = new Options();
-    private static String RES_OPT = "r";  //enable notifs for the specified resource only
-    private static String EV_OPT = "n";   //enable notifs for the specified event name
-
-    static {
-        COMMAND_OPTIONS.addOption(new Option(RES_OPT, "resource", true, "The name of the connected resource"));
-        COMMAND_OPTIONS.addOption(new Option(EV_OPT, "notification", true, "The ID of the notification"));
-    }
+    private static final Option NAME_OPTION = new Option("n", "notification", true, "The ID of the notification");
+    static final Options COMMAND_OPTIONS = new Options()
+            .addOption(RESOURCE_OPTION)
+            .addOption(NAME_OPTION);
 
     NotificationsCommand(final CommandExecutionContext context) {
         super(context);
@@ -50,9 +47,9 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
     }
 
     private void print(final Notification notif, final PrintWriter output){
-        getAdapterController().processNotification(notif.getType(), new SafeConsumer<SshNotificationView>() {
+        getAdapterController().processNotification(Objects.toString(notif.getSource()), notif.getType(), new SafeConsumer<SshNotificationMapping>() {
             @Override
-            public void accept(final SshNotificationView metadata) {
+            public void accept(final SshNotificationMapping metadata) {
                 metadata.print(notif, output);
             }
         });
@@ -152,8 +149,8 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
                 }
                 return;
             default:
-                final String[] resources = input.getOptionValues(RES_OPT);
-                final String[] eventNames = input.getOptionValues(EV_OPT);
+                final String[] resources = input.getOptionValues(RESOURCE_OPTION.getOpt());
+                final String[] eventNames = input.getOptionValues(NAME_OPTION.getOpt());
                 switch (arguments[0]) {
                     case "listen":
                         pendingNotifications(
