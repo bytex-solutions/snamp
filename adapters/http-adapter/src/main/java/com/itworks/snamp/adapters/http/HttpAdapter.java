@@ -49,7 +49,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
         private HttpAttributeMapping(final MBeanAttributeInfo attributeInfo) {
             super(attributeInfo);
-            final String dateFormat = HttpAdapterConfigurationDescriptor.getDateFormatParam(getMetadata().getDescriptor());
+            final String dateFormat = HttpAdapterConfigurationDescriptor.parseDateFormatParam(getMetadata().getDescriptor());
             GsonBuilder builder = new GsonBuilder();
             if (dateFormat != null && dateFormat.length() > 0)
                 builder = builder.setDateFormat(dateFormat);

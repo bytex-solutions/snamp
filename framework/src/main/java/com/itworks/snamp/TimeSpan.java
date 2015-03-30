@@ -1,5 +1,6 @@
 package com.itworks.snamp;
 
+import com.google.common.primitives.Longs;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import java.io.Serializable;
@@ -222,8 +223,7 @@ public final class TimeSpan implements Serializable {
      */
     @Override
     public int hashCode() {
-        final long value = unit.convert(duration, TimeUnit.MILLISECONDS);
-        return (int)(value ^ (value >>> 32));
+        return Longs.hashCode(unit.convert(duration, TimeUnit.NANOSECONDS));
     }
 
     /**

@@ -123,7 +123,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         }
     }
 
-    private static final class JmxConnectorFactory extends ManagedResourceConnectorSimpleModeler<JmxConnector>{
+    private static final class JmxConnectorFactory extends ManagedResourceConnectorModeler<JmxConnector> {
         private final AtomicLong instances = new AtomicLong(0L);
 
         @Override

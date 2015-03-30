@@ -6,8 +6,8 @@ import com.itworks.snamp.internal.Utils;
 import javax.management.MBeanNotificationInfo;
 
 /**
- * Represents an event raised by managed resource connector was extende
- * with a new notification.
+ * Represents an event raised by managed resource connector was extended
+ * with a new set of notifications.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -17,8 +17,8 @@ public class NotificationAddedEvent extends FeatureAddedEvent<MBeanNotificationI
 
     public NotificationAddedEvent(final NotificationSupport sender,
                                   final String resourceName,
-                                  final MBeanNotificationInfo addedNotification) {
-        super(sender, resourceName, addedNotification);
+                                  final MBeanNotificationInfo feature) {
+        super(sender, resourceName, feature);
     }
 
     /**

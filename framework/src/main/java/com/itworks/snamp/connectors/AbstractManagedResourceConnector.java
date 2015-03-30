@@ -2,13 +2,13 @@ package com.itworks.snamp.connectors;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
-import com.itworks.snamp.ArrayUtils;
+import com.google.common.collect.ObjectArrays;
 import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeAddedEvent;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.attributes.AttributeRemovedEvent;
+import com.itworks.snamp.connectors.attributes.AttributeRemovingEvent;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.AbstractFrameworkService;
@@ -22,6 +22,7 @@ import com.itworks.snamp.jmx.JMExceptionUtils;
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.lang.ref.WeakReference;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -111,6 +112,42 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @version 1.0
      */
     protected static abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends ThreadSafeObject {
+        private static abstract class FeatureHolder<F extends MBeanFeatureInfo>{
+            private final F metadata;
+            private final BigInteger identity;
+
+            private FeatureHolder(final F metadata,
+                                  final BigInteger identity){
+                this.metadata = Objects.requireNonNull(metadata);
+                this.identity = Objects.requireNonNull(identity);
+            }
+
+            final boolean equals(final FeatureHolder<?> other){
+                return other != null &&
+                        Objects.equals(getClass(), other.getClass()) &&
+                        Objects.equals(identity, other.identity);
+            }
+
+            final F getMetadata(){
+                return metadata;
+            }
+
+            @Override
+            public final boolean equals(final Object other) {
+                return other instanceof FeatureHolder<?> && equals((FeatureHolder<?>)other);
+            }
+
+            @Override
+            public final int hashCode() {
+                return identity.hashCode();
+            }
+
+            @Override
+            public final String toString() {
+                return metadata.toString();
+            }
+        }
+
         private final Class<F> metadataType;
         private final ResourceEventListenerList resourceEventListeners;
         private final Enum<?> resourceEventListenerSyncGroup;
@@ -183,7 +220,35 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             ATTRIBUTES,
             RESOURCE_EVENT_LISTENERS
         }
-        private final KeyedObjects<String, M> attributes;
+        private static final class AttributeHolder<M extends MBeanAttributeInfo> extends AbstractFeatureModeler.FeatureHolder<M>{
+            private AttributeHolder(final M metadata,
+                                    final String attributeName,
+                                    final TimeSpan readWriteTimeout,
+                                    final CompositeData options){
+                super(metadata, computeIdentity(attributeName, readWriteTimeout, options));
+            }
+
+            private boolean equals(final String attributeName,
+                                   final TimeSpan readWriteTimeout,
+                                   final CompositeData options){
+                return super.identity.equals(computeIdentity(attributeName, readWriteTimeout, options));
+            }
+
+            private static BigInteger computeIdentity(final String attributeName,
+                                                      final TimeSpan readWriteTimeout,
+                                                      final CompositeData options){
+                BigInteger result = new BigInteger(attributeName.getBytes());
+                if(readWriteTimeout != null)
+                    result = result.xor(BigInteger.valueOf(readWriteTimeout.toNanos()));
+                for(final String propertyName: options.getCompositeType().keySet())
+                    result = result
+                            .xor(new BigInteger(propertyName.getBytes()))
+                            .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
+                return result;
+            }
+        }
+
+        private final KeyedObjects<String, AttributeHolder<M>> attributes;
 
         /**
          * Initializes a new support of management attributes.
@@ -199,23 +264,25 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             attributes = createAttributes();
         }
 
-        private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, M> createAttributes(){
-            return new AbstractKeyedObjects<String, M>(10) {
+        private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, AttributeHolder<M>> createAttributes(){
+            return new AbstractKeyedObjects<String, AttributeHolder<M>>(10) {
                 private static final long serialVersionUID = 6284468803876344036L;
 
                 @Override
-                public String getKey(final MBeanAttributeInfo metadata) {
-                    return metadata.getName();
+                public String getKey(final AttributeHolder<M> holder) {
+                    return holder.getMetadata().getName();
                 }
             };
         }
 
-        private void attributeAdded(final M metadata){
+        //this method should be called AFTER registering attribute in this manager
+        private void attributeAdded(final M metadata) {
             super.fireResourceEvent(new AttributeAddedEvent(this, getResourceName(), metadata));
         }
 
+        //this method should be called before removing attribute from this manager
         private void attributeRemoved(final M metadata){
-            super.fireResourceEvent(new AttributeRemovedEvent(this, getResourceName(), metadata));
+            super.fireResourceEvent(new AttributeRemovingEvent(this, getResourceName(), metadata));
         }
 
         /**
@@ -238,7 +305,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         @Override
         public final M[] getAttributeInfo() {
             try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
-                return ArrayUtils.toArray(attributes.values(), super.metadataType);
+                final M[] result = ObjectArrays.newArray(super.metadataType, attributes.size());
+                int index = 0;
+                for(final AttributeHolder<M> holder: attributes.values())
+                    result[index++] = holder.getMetadata();
+                return result;
             }
         }
 
@@ -398,7 +469,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
                                                                final AttributeDescriptor descriptor) throws Exception;
 
         /**
-         * Connects to the specified attribute.
+         * Registers a new attribute in this manager.
          *
          * @param attributeID               A key string that is used to invoke attribute from this connector.
          * @param attributeName    The name of the attribute.
@@ -412,17 +483,35 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
                                     final CompositeData options) {
             M result;
             try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
-                //return existed attribute without exception to increase flexibility of the API
-                if (attributes.containsKey(attributeID)) return attributes.get(attributeID);
-                else if ((result = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options))) != null)
-                    attributes.put(result);
+                AttributeHolder<M> holder = attributes.get(attributeID);
+                //if attribute exists then we should check whether the input arguments
+                //are equal to the existing attribute options
+                if (holder != null)
+                    if (holder.equals(attributeName, readWriteTimeout, options))
+                        result = holder.getMetadata();
+                    else {
+                        //remove attribute
+                        attributeRemoved(holder.getMetadata());
+                        holder = attributes.remove(attributeID);
+                        //...and register again
+                        if (disconnectAttribute(holder.getMetadata())) {
+                            result = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
+                            if (result != null) {
+                                attributes.put(holder = new AttributeHolder<>(result, attributeName, readWriteTimeout, options));
+                                attributeAdded(result = holder.getMetadata());
+                            }
+                        } else result = null;
+                    }
+                //this is a new attribute, just connect it
+                else if ((result = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options))) != null) {
+                    attributes.put(new AttributeHolder<>(result, attributeName, readWriteTimeout, options));
+                    attributeAdded(result);
+                }
                 else throw JMExceptionUtils.attributeNotFound(attributeName);
             } catch (final Exception e) {
                 failedToConnectAttribute(attributeID, attributeName, e);
                 result = null;
             }
-            if (result != null)
-                attributeAdded(result);
             return result;
         }
 
@@ -461,6 +550,10 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          * @throws Exception Internal connector error.
          */
         protected abstract Object getAttribute(final M metadata) throws Exception;
+
+        private Object getAttribute(final AttributeHolder<M> holder) throws Exception{
+            return getAttribute(holder.getMetadata());
+        }
 
         /**
          * Obtains the value of a specific attribute of the managed resource.
@@ -522,6 +615,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         protected abstract void setAttribute(final M attribute,
                                              final Object value) throws Exception;
+
+        private void setAttribute(final AttributeHolder<M> holder,
+                                  final Object value) throws Exception{
+            setAttribute(holder.getMetadata(), value);
+        }
 
         /**
          * Set the value of a specific attribute of the managed resource.
@@ -585,12 +683,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         /**
          * Removes the attribute from the connector.
          *
-         * @param id            The unique identifier of the attribute.
          * @param attributeInfo An attribute metadata.
          * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
          */
         @SuppressWarnings("UnusedParameters")
-        protected boolean disconnectAttribute(final String id, final M attributeInfo) {
+        protected boolean disconnectAttribute(final M attributeInfo) {
             return true;
         }
 
@@ -604,13 +701,14 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         public final boolean removeAttribute(final String attributeID) {
             M result;
             try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
-                result = attributes.containsKey(attributeID) ?
-                        attributes.remove(attributeID) : null;
+                final AttributeHolder<M> holder = attributes.get(attributeID);
+                if(holder != null) {
+                    attributeRemoved(result = holder.getMetadata());
+                    attributes.remove(attributeID);
+                }
+                else result = null;
             }
-            if (result != null) {
-                attributeRemoved(result);
-                return disconnectAttribute(attributeID, result);
-            } else return false;
+            return result != null && disconnectAttribute(result);
         }
 
         /**
@@ -619,9 +717,9 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         public final void clear(final boolean removeAttributeEventListeners) {
             try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
-                for (final Map.Entry<String, M> attr : attributes.entrySet())
-                    if (disconnectAttribute(attr.getKey(), attr.getValue()))
-                        attributeRemoved(attr.getValue());
+                for (final AttributeHolder<M> holder : attributes.values())
+                    if (disconnectAttribute(holder.getMetadata()))
+                        attributeRemoved(holder.getMetadata());
                 attributes.clear();
             }
             if (removeAttributeEventListeners)
@@ -641,8 +739,28 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             NOTIFICATIONS,
             RESOURCE_EVENT_LISTENERS
         }
+        private static final class NotificationHolder<M extends MBeanNotificationInfo> extends AbstractFeatureModeler.FeatureHolder<M>{
+            private NotificationHolder(final M metadata,
+                                       final String category,
+                                       final CompositeData options) {
+                super(metadata, computeIdentity(category, options));
+            }
 
-        private final KeyedObjects<String, M> notifications;
+            private boolean equals(final String category, final CompositeData options){
+                return super.identity.equals(computeIdentity(category, options));
+            }
+
+            private static BigInteger computeIdentity(final String category,
+                                                      final CompositeData options) {
+                BigInteger result = new BigInteger(category.getBytes());
+                for (final String propertyName : options.getCompositeType().keySet())
+                    result = result.xor(new BigInteger(propertyName.getBytes()))
+                            .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
+                return result;
+            }
+        }
+
+        private final KeyedObjects<String, NotificationHolder<M>> notifications;
         private final NotificationListenerList listeners;
         private final AtomicLong sequenceCounter;
 
@@ -662,13 +780,13 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             sequenceCounter = new AtomicLong(0L);
         }
 
-        private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, M> createNotifications(){
-            return new AbstractKeyedObjects<String, M>(10) {
+        private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, NotificationHolder<M>> createNotifications(){
+            return new AbstractKeyedObjects<String, NotificationHolder<M>>(10) {
                 private static final long serialVersionUID = 6753355822109787406L;
 
                 @Override
-                public String getKey(final MBeanNotificationInfo item) {
-                    return item.getNotifTypes()[0];
+                public String getKey(final NotificationHolder<M> holder) {
+                    return holder.getMetadata().getNotifTypes()[0];
                 }
             };
         }
@@ -705,9 +823,9 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             final Collection<Notification> notifs;
             try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
                 notifs = Lists.newArrayListWithExpectedSize(notifications.size());
-                for (final M metadata : notifications.values())
-                    if (Objects.equals(NotificationDescriptor.getNotificationCategory(metadata), category))
-                        for (final String listId : metadata.getNotifTypes()) {
+                for (final NotificationHolder<M> holder : notifications.values())
+                    if (Objects.equals(NotificationDescriptor.getNotificationCategory(holder.getMetadata()), category))
+                        for (final String listId : holder.getMetadata().getNotifTypes()) {
                             final Notification n = new Notification(listId,
                                     this,
                                     sequenceCounter.getAndIncrement(),
@@ -727,7 +845,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         }
 
         private void notificationRemoved(final M metadata){
-            super.fireResourceEvent(new NotificationRemovedEvent(this, getResourceName(), metadata));
+            super.fireResourceEvent(new NotificationRemovingEvent(this, getResourceName(), metadata));
         }
 
         protected abstract M enableNotifications(final String notifType,
@@ -750,18 +868,30 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         public final M enableNotifications(final String listId, final String category, final CompositeData options) {
             M result;
             try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
-                if (notifications.containsKey(listId))
-                    return notifications.get(listId);
-                else if ((result = enableNotifications(listId,
-                        new NotificationDescriptor(category, getSubscriptionModel(), options))) != null)
-                    notifications.put(result);
+                NotificationHolder<M> holder = notifications.get(listId);
+                if(holder != null)
+                    if(holder.equals(category, options))
+                        result = holder.getMetadata();
+                    else {
+                        //remove notification
+                        notificationRemoved(holder.getMetadata());
+                        holder = notifications.remove(listId);
+                        //and register again
+                        if(disableNotifications(holder.getMetadata())){
+                            result = enableNotifications(listId, new NotificationDescriptor(category, getSubscriptionModel(), options));
+                            if(result != null){
+                                notifications.put(holder = new NotificationHolder<>(result, category, options));
+                                notificationAdded(result = holder.getMetadata());
+                            }
+                        }
+                        else result = null;
+                    }
+                else result = null;
             }
             catch (final Exception e) {
                 failedToEnableNotifications(listId, category, e);
                 result = null;
             }
-            if (result != null)
-                notificationAdded(result);
             return result;
         }
 
@@ -789,14 +919,14 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         public final boolean disableNotifications(final String listId) {
             M result;
             try (final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
-                result = notifications.containsKey(listId) ?
-                        notifications.remove(listId) :
-                        null;
+                final NotificationHolder<M> holder = notifications.get(listId);
+                if(holder != null){
+                    notificationRemoved(result = holder.getMetadata());
+                    notifications.remove(listId);
+                }
+                else result = null;
             }
-            if (result != null) {
-                notificationRemoved(result);
-                return disableNotifications(result);
-            } else return false;
+            return result != null && disableNotifications(result);
         }
 
         /**
@@ -851,13 +981,18 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         @Override
         public final M[] getNotificationInfo() {
             try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
-                return ArrayUtils.toArray(notifications.values(), super.metadataType);
+                final M[] result = ObjectArrays.newArray(super.metadataType, notifications.size());
+                int index = 0;
+                for(final NotificationHolder<M> holder: notifications.values())
+                    result[index++] = holder.getMetadata();
+                return result;
             }
         }
 
-        protected final M getNotificationInfo(final String category) {
+        protected final M getNotificationInfo(final String listID) {
             try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
-                return notifications.get(category);
+                final NotificationHolder<M> holder = notifications.get(listID);
+                return holder != null ? holder.getMetadata() : null;
             }
         }
 
@@ -897,9 +1032,9 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         public final void clear(final boolean removeNotificationListeners,
                                 final boolean removeResourceEventListeners){
             try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)){
-                for(final M metadata: notifications.values())
-                    if(disableNotifications(metadata))
-                        notificationRemoved(metadata);
+                for(final NotificationHolder<M> holder: notifications.values())
+                    if(disableNotifications(holder.getMetadata()))
+                        notificationRemoved(holder.getMetadata());
                 notifications.clear();
             }
             if(removeNotificationListeners)

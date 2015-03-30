@@ -20,7 +20,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapter
  */
 final class HttpAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
 
-    static final String DATE_FORMAT_PARAM = "dateFormat";
+    private static final String DATE_FORMAT_PARAM = "dateFormat";
 
     private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> implements ThreadPoolConfigurationDescriptor<ResourceAdapterConfiguration> {
         private static final String RESOURCE_NAME = "RestAdapterConfig";
@@ -41,7 +41,7 @@ final class HttpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         super(new AdapterConfigurationInfo());
     }
 
-    static String getDateFormatParam(final Descriptor descr){
+    static String parseDateFormatParam(final Descriptor descr){
         if(hasField(descr, DATE_FORMAT_PARAM))
             return getField(descr, DATE_FORMAT_PARAM, String.class);
         else return null;

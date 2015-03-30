@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.attributes;
 
-import com.itworks.snamp.connectors.FeatureRemovedEvent;
+import com.itworks.snamp.connectors.FeatureRemovingEvent;
 import com.itworks.snamp.internal.Utils;
 
 import javax.management.MBeanAttributeInfo;
@@ -10,13 +10,11 @@ import javax.management.MBeanAttributeInfo;
  * @version 1.0
  * @since 1.0
  */
-public class AttributeRemovedEvent extends FeatureRemovedEvent<MBeanAttributeInfo> {
-    private static final long serialVersionUID = -8111810353719221794L;
+public class AttributeRemovingEvent extends FeatureRemovingEvent<MBeanAttributeInfo> {
+    private static final long serialVersionUID = -1489881728507021721L;
 
-    public AttributeRemovedEvent(final AttributeSupport sender,
-                                 final String resourceName,
-                                 final MBeanAttributeInfo removedFeature) {
-        super(sender, resourceName, removedFeature);
+    public AttributeRemovingEvent(final AttributeSupport sender, final String resourceName, final MBeanAttributeInfo feature) {
+        super(sender, resourceName, feature);
     }
 
     /**

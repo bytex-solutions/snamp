@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.notifications;
 
-import com.itworks.snamp.connectors.FeatureRemovedEvent;
+import com.itworks.snamp.connectors.FeatureRemovingEvent;
 import com.itworks.snamp.internal.Utils;
 
 import javax.management.MBeanNotificationInfo;
@@ -12,12 +12,12 @@ import javax.management.MBeanNotificationInfo;
  * @version 1.0
  * @since 1.0
  */
-public class NotificationRemovedEvent extends FeatureRemovedEvent<MBeanNotificationInfo> {
+public class NotificationRemovingEvent extends FeatureRemovingEvent<MBeanNotificationInfo> {
     private static final long serialVersionUID = 1424088584234471771L;
 
-    public NotificationRemovedEvent(final NotificationSupport sender,
-                                    final String resourceName,
-                                    final MBeanNotificationInfo removedFeature) {
+    public NotificationRemovingEvent(final NotificationSupport sender,
+                                     final String resourceName,
+                                     final MBeanNotificationInfo removedFeature) {
         super(sender, resourceName, removedFeature);
     }
 

@@ -12,9 +12,6 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.adapters.jmx.JmxAdapterConfigurationProvider.OBJECT_NAME_PARAM;
-import static com.itworks.snamp.adapters.jmx.JmxAdapterConfigurationProvider.USE_PLATFORM_MBEAN_PARAM;
-
 /**
  * Represents JMX adapter. This class cannot be inherited.
  * @author Roman Sakno
@@ -108,12 +105,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
     @Override
     protected synchronized void start(final Map<String, String> parameters) throws MalformedObjectNameException{
-        if (parameters.containsKey(OBJECT_NAME_PARAM)) {
-            this.rootObjectName = new ObjectName(parameters.get(OBJECT_NAME_PARAM));
-            usePlatformMBean = parameters.containsKey(USE_PLATFORM_MBEAN_PARAM) &&
-                    Boolean.valueOf(parameters.get(USE_PLATFORM_MBEAN_PARAM));
-        }
-        else throw new MalformedObjectNameException(String.format("Adapter configuration has no %s entry", OBJECT_NAME_PARAM));
+        this.rootObjectName = JmxAdapterConfigurationProvider.parseRootObjectName(parameters);
+        this.usePlatformMBean = JmxAdapterConfigurationProvider.usePlatformMBean(parameters);
     }
 
     /**

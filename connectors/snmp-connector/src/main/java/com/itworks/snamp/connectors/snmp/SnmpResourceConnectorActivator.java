@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class SnmpResourceConnectorActivator extends ManagedResourceActivator<SnmpResourceConnector> {
 
-    private static final class SnmpConnectorFactory extends ManagedResourceConnectorSimpleModeler<SnmpResourceConnector> {
+    private static final class SnmpConnectorFactory extends ManagedResourceConnectorModeler<SnmpResourceConnector> {
         private final AtomicLong instances = new AtomicLong(0L);
 
         @Override

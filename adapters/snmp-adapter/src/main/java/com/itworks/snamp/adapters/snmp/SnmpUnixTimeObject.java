@@ -11,7 +11,7 @@ import javax.management.InvalidAttributeValueException;
 import java.text.ParseException;
 import java.util.Date;
 
-import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.getDateTimeDisplayFormat;
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseDateTimeDisplayFormat;
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
 
 final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
@@ -63,6 +63,6 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
     }
 
     private static DateTimeFormatter createFormatter(final DescriptorRead options){
-        return SnmpHelpers.createDateTimeFormatter(getDateTimeDisplayFormat(options));
+        return SnmpHelpers.createDateTimeFormatter(parseDateTimeDisplayFormat(options));
     }
 }

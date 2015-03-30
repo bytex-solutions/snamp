@@ -13,7 +13,7 @@ public interface ResourceEventListener extends EventListener {
      * Handles resource event.
      * @param event An event to handle.
      * @see com.itworks.snamp.connectors.FeatureAddedEvent
-     * @see com.itworks.snamp.connectors.FeatureRemovedEvent
+     * @see FeatureRemovingEvent
      */
     void handle(final ResourceEvent event);
 }

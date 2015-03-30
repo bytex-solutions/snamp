@@ -206,16 +206,14 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class ManagedResourceConnectorSimpleModeler<TConnector extends ManagedResourceConnector> extends ManagedResourceConnectorFactory<TConnector>{
-
-        /**
-         * Removes all attributes from the connector.
-         * @param connector The connector to modify.
-         */
-        protected abstract void removeAllAttributes(final TConnector connector);
-
+    protected static abstract class ManagedResourceConnectorModeler<TConnector extends ManagedResourceConnector> extends ManagedResourceConnectorFactory<TConnector>{
         /**
          * Registers a new attribute in the managed resource connector.
+         * <p>
+         *     When implementing this method you must take into
+         *     account already existed attributes in the managed resource connector.
+         *     If attribute exists in the managed resource connector then
+         *     it should re-register an attribute.
          * @param connector The connector to modify.
          * @param attributeID The attribute identifier.
          * @param attributeName The name of the attribute in the managed resource.
@@ -230,7 +228,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private void updateAttributes(final TConnector connector,
                                       final Map<String, AttributeConfiguration> attributes){
-            removeAllAttributes(connector);
             for(final Map.Entry<String, AttributeConfiguration> attr: attributes.entrySet()){
                 final String attributeID = attr.getKey();
                 final AttributeConfiguration config = attr.getValue();
@@ -242,13 +239,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         /**
-         * Remove all notifications from the specified managed resource connector.
-         * @param connector The managed resource connector.
-         */
-        protected abstract void removeAllNotifications(final TConnector connector);
-
-        /**
          * Enables managed resource notification.
+         * <p>
+         *     When implementing this method you must take into
+         *     account already existed notifications in the managed resource connector.
+         *     If notification is enabled in the managed resource connector then
+         *     it should re-enable the notification (disable and then enable again).
          * @param connector The managed resource connector.
          * @param listId The notification subscription identifier.
          * @param category The notification category.
@@ -261,7 +257,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private void updateEvents(final TConnector connector,
                                   final Map<String, EventConfiguration> events){
-            removeAllNotifications(connector);
             for(final Map.Entry<String, EventConfiguration> event: events.entrySet()){
                 final String listID = event.getKey();
                 final EventConfiguration config = event.getValue();

@@ -6,15 +6,12 @@ import org.snmp4j.smi.OctetString;
 
 import javax.management.MBeanNotificationInfo;
 
-import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
-
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-interface SnmpNotificationMapping extends SnmpEntity {
-    DateTimeFormatter getTimestampFormatter();
+interface SnmpNotificationMapping extends SnmpEntity<MBeanNotificationInfo> {
 
     OID getTransportDomain();
 
@@ -25,12 +22,6 @@ interface SnmpNotificationMapping extends SnmpEntity {
     int getTimeout();
 
     int getRetryCount();
-
-    OID getID();
-
-    MBeanNotificationInfo getMetadata();
-
-    String getSource();
 
     void setNotificationOriginator(final NotificationOriginator originator);
 }

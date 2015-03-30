@@ -1,14 +1,21 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.itworks.snamp.adapters.AttributeAccessor;
 import org.snmp4j.TransportMapping;
-import org.snmp4j.agent.*;
+import org.snmp4j.agent.BaseAgent;
+import org.snmp4j.agent.CommandProcessor;
+import org.snmp4j.agent.DuplicateRegistrationException;
+import org.snmp4j.agent.NotificationOriginator;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
 import org.snmp4j.mp.MPv1;
 import org.snmp4j.mp.MPv2c;
 import org.snmp4j.mp.MPv3;
 import org.snmp4j.mp.MessageProcessingModel;
-import org.snmp4j.security.*;
+import org.snmp4j.security.DefaultSecurityProtocols;
+import org.snmp4j.security.SecurityLevel;
+import org.snmp4j.security.SecurityModel;
+import org.snmp4j.security.USM;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.transport.TransportMappings;
@@ -16,8 +23,6 @@ import org.snmp4j.util.ConcurrentMessageDispatcher;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -35,8 +40,6 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
     private final int port;
     private final int socketTimeout;
     private boolean coldStart;
-    private final Collection<SnmpAttributeMapping> attributes;
-    private final Collection<SnmpNotificationMapping> notifications;
     private final ExecutorService threadPool;
     private final SecurityConfiguration security;
     private final OID prefix;
@@ -55,8 +58,6 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
                         new OctetString(engineID)));
         this.threadPool = Objects.requireNonNull(threadPool);
         coldStart = true;
-        this.attributes = new ArrayList<>(10);
-        this.notifications = new ArrayList<>(10);
         this.hostName = hostName;
         this.port = port;
         this.socketTimeout = socketTimeout;
@@ -64,12 +65,12 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
         this.prefix = prefix;
 	}
 
-    void registerManagedObject(final ManagedObject mo) throws DuplicateRegistrationException {
-        server.register(mo, null);
+    void registerManagedObject(final SnmpAttributeMapping mo) throws DuplicateRegistrationException {
+        mo.connect(server);
     }
 
-    void unregisterManagedObject(final ManagedObject mo){
-        server.unregister(mo, null);
+    AttributeAccessor unregisterManagedObject(final SnmpAttributeMapping mo){
+        return mo.disconnect(server);
     }
 
     void registerNotificationTarget(final SnmpNotificationMapping mapping){
@@ -214,13 +215,14 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
         super.stop();
     }
 
-    boolean start(final Collection<? extends SnmpAttributeMapping> attrs,
-                         final Collection<? extends SnmpNotificationMapping> notifs) throws IOException {
+    void resume(){
+        run();
+    }
+
+    boolean start() throws IOException {
 		switch (agentState){
             case STATE_STOPPED:
             case STATE_CREATED:
-                attributes.addAll(attrs);
-                notifications.addAll(notifs);
                 init();
                 if(coldStart) getServer().addContext(new OctetString("public"));
                 finishInit();
@@ -269,19 +271,16 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
      * @since 1.1
      */
     @Override
-    public void stop(){
-        switch (agentState){
+    public void stop() {
+        switch (agentState) {
             case STATE_RUNNING:
                 threadPool.shutdownNow();
-                super.stop();
+                suspend();
             case STATE_STOPPED:
             case STATE_CREATED:
                 snmpTargetMIB.getSnmpTargetAddrEntry().removeAll();
                 snmpTargetMIB.getSnmpTargetParamsEntry().removeAll();
                 unregisterSnmpMIBs();
-            default:
-                attributes.clear();
-                notifications.clear();
         }
     }
 }

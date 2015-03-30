@@ -13,10 +13,10 @@ import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.ResourceEvent;
 import com.itworks.snamp.connectors.ResourceEventListener;
 import com.itworks.snamp.connectors.attributes.AttributeAddedEvent;
-import com.itworks.snamp.connectors.attributes.AttributeRemovedEvent;
+import com.itworks.snamp.connectors.attributes.AttributeRemovingEvent;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.NotificationAddedEvent;
-import com.itworks.snamp.connectors.notifications.NotificationRemovedEvent;
+import com.itworks.snamp.connectors.notifications.NotificationRemovingEvent;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.core.OSGiLoggingContext;
@@ -30,6 +30,7 @@ import org.osgi.framework.ServiceReference;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Map;
@@ -133,7 +134,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             accessor.connect(event.getSource());
     }
 
-    private void attributeRemoved(final AttributeRemovedEvent event){
+    private void attributeRemoved(final AttributeRemovingEvent event){
         final FeatureAccessor<MBeanAttributeInfo, ?> accessor =
                 removeFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
@@ -147,7 +148,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             accessor.connect(event.getSource());
     }
 
-    private void notificationRemoved(final NotificationRemovedEvent event){
+    private void notificationRemoved(final NotificationRemovingEvent event){
         final FeatureAccessor<MBeanNotificationInfo, ?> accessor = removeFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
             accessor.disconnect();
@@ -158,18 +159,18 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      *
      * @param event An event to handle.
      * @see com.itworks.snamp.connectors.FeatureAddedEvent
-     * @see com.itworks.snamp.connectors.FeatureRemovedEvent
+     * @see com.itworks.snamp.connectors.FeatureRemovingEvent
      */
     @Override
     public final void handle(final ResourceEvent event) {
         if(event instanceof AttributeAddedEvent)
             attributeAdded((AttributeAddedEvent) event);
-        else if(event instanceof AttributeRemovedEvent)
-            attributeRemoved((AttributeRemovedEvent)event);
+        else if(event instanceof AttributeRemovingEvent)
+            attributeRemoved((AttributeRemovingEvent)event);
         else if(event instanceof NotificationAddedEvent)
             notificationAdded((NotificationAddedEvent)event);
-        else if(event instanceof NotificationRemovedEvent)
-            notificationRemoved((NotificationRemovedEvent)event);
+        else if(event instanceof NotificationRemovingEvent)
+            notificationRemoved((NotificationRemovingEvent)event);
     }
 
     /**
@@ -484,13 +485,20 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     /**
      * Releases all resources associated with this adapter.
-     * @throws Exception An exception occurred during adapter releasing.
+     * @throws java.io.IOException An exception occurred during adapter releasing.
      */
     @Override
-    public final void close() throws Exception {
+    public final void close() throws IOException {
         try {
             tryStop();
-        } finally {
+        }
+        catch (final IOException e){
+            throw e;
+        }
+        catch (final Exception e){
+            throw new IOException(String.format("Unable to release resources associated with %s adapter instance", adapterInstanceName), e);
+        }
+        finally {
             mutableState = InternalState.finalState();
         }
     }

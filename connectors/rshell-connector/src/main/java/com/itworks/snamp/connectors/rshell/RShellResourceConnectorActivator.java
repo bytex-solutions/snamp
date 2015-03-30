@@ -16,7 +16,7 @@ import java.util.Map;
  * @since 1.0
  */
 public final class RShellResourceConnectorActivator extends ManagedResourceActivator<RShellResourceConnector> {
-    private static final class RShellConnectorFactory extends ManagedResourceConnectorSimpleModeler<RShellResourceConnector> {
+    private static final class RShellConnectorFactory extends ManagedResourceConnectorModeler<RShellResourceConnector> {
 
         @Override
         public RShellResourceConnector createConnector(final String resourceName,

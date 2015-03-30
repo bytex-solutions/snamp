@@ -12,10 +12,12 @@ import javax.management.DescriptorRead;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.jmx.DescriptorUtils.getField;
+import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
 
 /**
  * Represents descriptor of SnmpAgent-specific configuration elements.
@@ -25,89 +27,50 @@ import static com.itworks.snamp.jmx.DescriptorUtils.getField;
  * @since 1.0
  */
 final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+    private static final AtomicInteger oidCounter = new AtomicInteger(5);
+
     /**
      * Represents authoritative engine ID
      */
-    static final String ENGINE_ID_PARAM = "engineID";
+    private static final String ENGINE_ID_PARAM = "engineID";
 
     /**
      * Represents configuration property that provides a set of user groups.
      */
-    static final String SNMPv3_GROUPS_PARAM = "snmpv3-groups";
+    private static final String SNMPv3_GROUPS_PARAM = SecurityConfiguration.LDAP_URI_PARAM;
 
     /**
      * Represents LDAP server URI.
      */
-    static final String LDAP_URI_PARAM = "ldap-uri";
-
-    /**
-     * Represents LDAP DN of the admin user that is used to read security configuration structure.
-     */
-    static final String LDAP_ADMINDN_PARAM = "ldap-user";
-
-    /**
-     * Represents LDAP admin user password.
-     */
-    static final String LDAP_ADMIN_PASSWORD_PARAM = "ldap-password";
-
-    /**
-     * Represents type of the LDAP authentication.
-     */
-    static final String LDAP_ADMIN_AUTH_TYPE_PARAM = "ldap-auth-protocol";
-
-    /**
-     * Represents user search filter template that is used to find users in the group.
-     * <p>
-     *     $GROUPNAME$ string inside of the filter will be replaced with group name.
-     * </p>
-     */
-    static final String LDAP_USER_SEARCH_FILTER_PARAM = "ldap-user-search-filter";
+    private static final String LDAP_URI_PARAM = SecurityConfiguration.LDAP_URI_PARAM;
 
     /**
      * Represents semicolon delimiter string of group DNs.
      */
-    static final String LDAP_GROUPS_PARAM = "ldap-groups";
-
-    /**
-     * Represents search base DN.
-     */
-    static final String LDAP_BASE_DN_PARAM = "ldap-base-dn";
-
-    /**
-     * Represents JNDI/LDAP factory name.
-     * <p>
-     *     By default, this property equals to com.sun.jndi.ldap.LdapCtxFactory.
-     * </p>
-     */
-    static final String JNDI_LDAP_FACTORY_PARAM = "jndi-ldap-factory";
-
-    /**
-     * Represents name of the attribute in directory that holds the user attribute as release text.
-     */
-    static final String LDAP_PASSWORD_HOLDER_PARAM = "ldap-user-password-attribute-name";
+    private static final String LDAP_GROUPS_PARAM = SecurityConfiguration.LDAP_GROUPS_PARAM;
 
     /**
      * Represents configuration property that contains UDP socket timeout, in milliseconds.
      */
-    static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
+    private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
 
-    static final String PORT_PARAM_NAME = "port";
+    private static final String PORT_PARAM_NAME = "port";
 
-    static final String HOST_PARAM_NAME = "host";
+    private static final String HOST_PARAM_NAME = "host";
 
-    static final String OID_PARAM_NAME = "oid";
+    private static final String OID_PARAM_NAME = "oid";
 
-
+    private static String RESTART_TIMEOUT_PARAM = "restartTimeout";
 
     /**
      * Represents name of the metadata property that specifies unix time display format.
      */
-    public static final String DATE_TIME_DISPLAY_FORMAT_PARAM = "displayFormat";
+    private static final String DATE_TIME_DISPLAY_FORMAT_PARAM = "displayFormat";
 
-    public static final String TARGET_NOTIF_TIMEOUT_PARAM = "sendingTimeout";
-    public static final String TARGET_RETRY_COUNT_PARAM = "retryCount";
-    public static final String TARGET_NAME_PARAM = "receiverName";
-    public static final String TARGET_ADDRESS_PARAM = "receiverAddress";
+    private static final String TARGET_NOTIF_TIMEOUT_PARAM = "sendingTimeout";
+    private static final String TARGET_RETRY_COUNT_PARAM = "retryCount";
+    private static final String TARGET_NAME_PARAM = "receiverName";
+    private static final String TARGET_ADDRESS_PARAM = "receiverAddress";
 
     private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> implements ThreadPoolConfigurationDescriptor<ResourceAdapterConfiguration> {
         private static final String RESOURCE_NAME = "SnmpAdapterConfig";
@@ -124,7 +87,8 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
                     MAX_POOL_SIZE_PROPERTY,
                     QUEUE_SIZE_PROPERTY,
                     KEEP_ALIVE_TIME_PROPERTY,
-                    PRIORITY_PROPERTY);
+                    PRIORITY_PROPERTY,
+                    RESTART_TIMEOUT_PARAM);
         }
 
         /**
@@ -180,11 +144,17 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         super(new ResourceAdapterConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());
     }
 
-    static String getOID(final DescriptorRead info){
+    static String parseOID(final Map<String, String> parameters){
+        return parameters.containsKey(OID_PARAM_NAME) ?
+                parameters.get(OID_PARAM_NAME) :
+                Integer.toString(oidCounter.getAndIncrement());
+    }
+
+    static String parseOID(final DescriptorRead info){
         return getField(info.getDescriptor(), OID_PARAM_NAME, String.class);
     }
 
-    static String getDateTimeDisplayFormat(final DescriptorRead info){
+    static String parseDateTimeDisplayFormat(final DescriptorRead info){
         return getField(info.getDescriptor(), DATE_TIME_DISPLAY_FORMAT_PARAM, String.class);
     }
 
@@ -192,5 +162,66 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         if(parameters.containsKey(ENGINE_ID_PARAM))
             return OctetString.fromHexString(parameters.get(ENGINE_ID_PARAM));
         else return new OctetString(MPv3.createLocalEngineID());
+    }
+
+    static int parsePort(final Map<String, String> parameters) {
+        return parameters.containsKey(PORT_PARAM_NAME) ?
+                Integer.parseInt(parameters.get(PORT_PARAM_NAME)) :
+                161;
+    }
+
+    static String parseAddress(final Map<String, String> parameters){
+        return parameters.containsKey(HOST_PARAM_NAME) ?
+                parameters.get(HOST_PARAM_NAME) :
+                "127.0.0.1";
+    }
+
+    static int parseSocketTimeout(final Map<String, String> parameters) {
+        return parameters.containsKey(SOCKET_TIMEOUT_PARAM) ?
+                Integer.parseInt(parameters.get(SOCKET_TIMEOUT_PARAM)) :
+                5000;
+    }
+
+    static SecurityConfiguration parseSecurityConfiguration(final Map<String, String> parameters,
+                                                            final DirContextFactory contextFactory){
+        if(parameters.containsKey(SNMPv3_GROUPS_PARAM) || parameters.containsKey(LDAP_GROUPS_PARAM)){
+            final OctetString engineID = parseEngineID(parameters);
+            final SecurityConfiguration result = new SecurityConfiguration(engineID.getValue(), contextFactory);
+            result.read(parameters);
+            return result;
+        }
+        else return null;
+    }
+
+    static boolean isValidNotification(final DescriptorRead metadata){
+        return hasField(metadata.getDescriptor(), TARGET_ADDRESS_PARAM) &&
+                hasField(metadata.getDescriptor(), TARGET_NAME_PARAM) &&
+                hasField(metadata.getDescriptor(), OID_PARAM_NAME);
+    }
+
+    static String parseTargetAddress(final DescriptorRead metadata){
+        return getField(metadata.getDescriptor(), TARGET_ADDRESS_PARAM, String.class);
+    }
+
+    static String parseTargetName(final DescriptorRead metadata){
+        return getField(metadata.getDescriptor(), TARGET_NAME_PARAM, String.class);
+    }
+
+    static int parseNotificationTimeout(final DescriptorRead metadata){
+        return hasField(metadata.getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM) ?
+                Integer.parseInt(getField(metadata.getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM, String.class)) :
+                0;
+    }
+
+    static int parseRetryCount(final DescriptorRead metadata){
+        return hasField(metadata.getDescriptor(), TARGET_RETRY_COUNT_PARAM) ?
+                Integer.parseInt(getField(metadata.getDescriptor(), TARGET_RETRY_COUNT_PARAM, String.class)) :
+                3;
+    }
+
+    static long parseRestartTimeout(final Map<String, String> parameters){
+        return parameters.containsKey(RESTART_TIMEOUT_PARAM) ?
+                Long.parseLong(parameters.get(RESTART_TIMEOUT_PARAM)) :
+                10000L;
     }
 }

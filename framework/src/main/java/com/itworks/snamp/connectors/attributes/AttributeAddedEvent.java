@@ -17,8 +17,8 @@ public class AttributeAddedEvent extends FeatureAddedEvent<MBeanAttributeInfo> {
 
     public AttributeAddedEvent(final AttributeSupport sender,
                                final String resourceName,
-                               final MBeanAttributeInfo addedFeature) {
-        super(sender, resourceName, addedFeature);
+                               final MBeanAttributeInfo addedAttribute) {
+        super(sender, resourceName, addedAttribute);
     }
 
     /**

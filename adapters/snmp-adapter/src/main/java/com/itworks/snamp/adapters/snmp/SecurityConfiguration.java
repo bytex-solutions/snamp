@@ -14,8 +14,6 @@ import javax.naming.directory.*;
 import java.util.*;
 import java.util.logging.Level;
 
-import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
-
 /**
  * Represents security configuration of the SNMP adapter that is used
  * to setup SNMPv3 settings. This class cannot be inherited.
@@ -24,6 +22,62 @@ import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor
  * @since 1.0
  */
 final class SecurityConfiguration {
+    /**
+     * Represents configuration property that provides a set of user groups.
+     */
+    static final String SNMPv3_GROUPS_PARAM = "snmpv3-groups";
+
+    /**
+     * Represents LDAP server URI.
+     */
+    static final String LDAP_URI_PARAM = "ldap-uri";
+
+    /**
+     * Represents LDAP DN of the admin user that is used to read security configuration structure.
+     */
+    private static final String LDAP_ADMINDN_PARAM = "ldap-user";
+
+    /**
+     * Represents LDAP admin user password.
+     */
+    private static final String LDAP_ADMIN_PASSWORD_PARAM = "ldap-password";
+
+    /**
+     * Represents type of the LDAP authentication.
+     */
+    private static final String LDAP_ADMIN_AUTH_TYPE_PARAM = "ldap-auth-protocol";
+
+    /**
+     * Represents user search filter template that is used to find users in the group.
+     * <p>
+     *     $GROUPNAME$ string inside of the filter will be replaced with group name.
+     * </p>
+     */
+    private static final String LDAP_USER_SEARCH_FILTER_PARAM = "ldap-user-search-filter";
+
+    /**
+     * Represents semicolon delimiter string of group DNs.
+     */
+    static final String LDAP_GROUPS_PARAM = "ldap-groups";
+
+    /**
+     * Represents search base DN.
+     */
+    private static final String LDAP_BASE_DN_PARAM = "ldap-base-dn";
+
+    /**
+     * Represents JNDI/LDAP factory name.
+     * <p>
+     *     By default, this property equals to com.sun.jndi.ldap.LdapCtxFactory.
+     * </p>
+     */
+    private static final String JNDI_LDAP_FACTORY_PARAM = "jndi-ldap-factory";
+
+    /**
+     * Represents name of the attribute in directory that holds the user attribute as release text.
+     */
+    private static final String LDAP_PASSWORD_HOLDER_PARAM = "ldap-user-password-attribute-name";
+
 
     public static enum LdapAuthenticationType{
         NONE("none"),
