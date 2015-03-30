@@ -100,7 +100,7 @@ final class MonitoringUtils {
             for (Object value : data.values()) {
                 if (!(value instanceof CompositeData)) continue;
                 final CompositeData cd = (CompositeData) value;
-                result.put((String) cd.get("key"), (String) cd.get("value"));
+                result.put((String) cd.get("Key"), (String) cd.get("Value"));
             }
             return result;
         }

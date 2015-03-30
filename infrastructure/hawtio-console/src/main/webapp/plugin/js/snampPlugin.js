@@ -364,8 +364,18 @@ var SnampShell = (function(SnampShell) {
                     type: 'read',
                     mbean: SnampShell.mbean,
                     attribute: 'configuration'
-                }).value;
+                }, onSuccess(null, {maxDepth: 20})).value;
             };
+
+            function generateDropDown(array, id, active) {
+                var s = $("<select id=\"" + id + "\"/>");
+                for(var val in array) {
+                    SnampShell.log.info(val);
+                    $("<option />", {value: val.name, text: val.DisplayName}).appendTo(s);
+                }
+                s.val(active);
+                return s.prop('outerHTML');
+            }
 
             function editNode(node){
                 var prevTitle = node.data.title,
@@ -409,7 +419,7 @@ var SnampShell = (function(SnampShell) {
                     angular.forEach(jsonObject["ResourceAdapters"], function (value, key) {
                         var currentChild = {title: key, isFolder: true, editable: true}; // adapter userDefined name
                         currentChild.children = [];
-                        currentChild.children.push({title: value["Adapter"]["Name"], isFolder: false}); // adapter system name
+                        currentChild.children.push({title: "Adapter type: " + generateDropDown($scope.getAdapters(), "adapterName", value["Adapter"]["Name"]), isFolder: false}); // adapter system name
                         var params = {title: "Parameters", isFolder: true};
                         params.children = [];
                         if (value["Adapter"]["Parameters"]) {
@@ -449,12 +459,6 @@ var SnampShell = (function(SnampShell) {
                             if (node.data.service == "add") {
                                 node.getParent().addChild({title: "New Node", key: "3333"})
                             }
-                        }
-                    },
-                    onDblClick: function(node, event) {
-                        if (node.data.editable == true) {
-                            editNode(node);
-                            return false;
                         }
                     },
                     onKeydown: function(node, event) {
