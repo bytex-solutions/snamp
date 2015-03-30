@@ -61,6 +61,9 @@ li.snampMenu a {
 
 .dynatree-title > select {
     margin-left: 10px;
-    height: 15px ;
     display: inline;
+}
+
+ul.dynatree-container span {
+    cursor: pointer;
 }

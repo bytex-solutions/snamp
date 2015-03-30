@@ -369,10 +369,9 @@ var SnampShell = (function(SnampShell) {
 
             function generateDropDown(array, id, active) {
                 var s = $("<select id=\"" + id + "\"/>");
-                for(var val in array) {
-                    SnampShell.log.info(val);
-                    $("<option />", {value: val.name, text: val.DisplayName}).appendTo(s);
-                }
+                angular.forEach(array, function (value) {
+                    $("<option />", {value: value.name, text: value.DisplayName}).appendTo(s);
+                });
                 s.val(active);
                 return s.prop('outerHTML');
             }
@@ -448,6 +447,7 @@ var SnampShell = (function(SnampShell) {
                 $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
                 var isMac = /Mac/.test(navigator.platform);
                 $("#snampTreeConfig").dynatree({
+                    noLink: true,
                     onClick: function(node, event) {
                         if (node.data.editable == true) {
                             if (event.shiftKey) {
@@ -457,9 +457,11 @@ var SnampShell = (function(SnampShell) {
                         }
                         if (node.data.service) {
                             if (node.data.service == "add") {
-                                node.getParent().addChild({title: "New Node", key: "3333"})
+                                node.getParent().addChild({title: "New Node", key: "3333"});
+                                return false;
                             }
                         }
+
                     },
                     onKeydown: function(node, event) {
                         if (node.data.editable == true) {
@@ -475,12 +477,6 @@ var SnampShell = (function(SnampShell) {
                             }
                         }
                     },
-                   /* onActivate: function (node) {
-                        // A DynaTreeNode object is passed to the activation handler
-                        // Note: we also get this event, if persistence is on, and the page is reloaded.
-                        alert("You activated " + node.data.title);
-                    },*/
-                    persist: false,
                     children: $scope.configurationJSON2Tree($scope.configuration)
                 });
             };
