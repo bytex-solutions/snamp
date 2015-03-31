@@ -410,25 +410,49 @@ var SnampShell = (function(SnampShell) {
 
             $scope.configurationJSON2Tree = function (jsonObject) {
                 var array = [
-                    {title: "Resource Adapters", isFolder: true},
-                    {title: "Managed Resources", isFolder: true}
+                    {
+                        title: "Resource Adapters",
+                        isFolder: true,
+                        name: "Resource Adapters",
+                        children: []
+                    },
+                    {
+                        title: "Managed Resources",
+                        isFolder: true,
+                        name: "Managed Resources",
+                        children: []
+                    }
                 ];
                 if (jsonObject.hasOwnProperty("ResourceAdapters")) {
-                    array[0].children = [];
                     angular.forEach(jsonObject["ResourceAdapters"], function (value, key) {
-                        var currentChild = {title: key, isFolder: true, editable: true}; // adapter userDefined name
-                        currentChild.children = [];
-                        currentChild.children.push({title: "Adapter type: " + generateDropDown($scope.getAdapters(), "adapterName", value["Adapter"]["Name"]), isFolder: false}); // adapter system name
-                        var params = {title: "Parameters", isFolder: true};
-                        params.children = [];
+                        var currentChild = {
+                            title: key,
+                            isFolder: true,
+                            editable: true,
+                            name: key,
+                            children: []
+                        }; // adapter userDefined name
+                        currentChild.children.push({
+                            title: "Adapter type: " + generateDropDown($scope.getAdapters(), "adapterName", value["Adapter"]["Name"]),
+                            isFolder: false,
+                            name: value["Adapter"]["Name"]
+                        }); // adapter system name
+                        var params = {
+                            title: "Parameters",
+                            isFolder: true,
+                            children: [],
+                            name: value["Adapter"]["Name"] + " params"
+                        };
                         if (value["Adapter"]["Parameters"]) {
                             angular.forEach(value["Adapter"]["Parameters"], function (parameterValue, parameterKey) {
-                                var editableValue = parameterKey + ":" + "" +
-                                    "<input name=\"value\" type=\"text\" value=\"" + parameterValue["Value"] + "\"/>";
-                                params.children.push({title: editableValue, isFolder: false});
+                                params.children.push({
+                                    title: parameterKey +": <input name=\"value\" type=\"text\" value=\"" + parameterValue["Value"] + "\"/>",
+                                    isFolder: false,
+                                    name: parameterKey
+                                });
                             });
                         }
-                        params.children.push({title: "<span class=\"glyphicon glyphicon-plus\"/> new parameter", service: "add"});
+                        // params.children.push({title: "<span class=\"glyphicon glyphicon-plus\"/> new parameter", service: "add"});
                         currentChild.children.push(params);
                         array[0].children.push(currentChild);
                     });
@@ -443,12 +467,17 @@ var SnampShell = (function(SnampShell) {
                 return array;
             };
 
+            $scope.activeNode = "nothing";
+
             $scope.drawConfiguration = function () {
                 $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
                 var isMac = /Mac/.test(navigator.platform);
                 $("#snampTreeConfig").dynatree({
                     noLink: true,
+                    selectMode: 1,
                     onClick: function(node, event) {
+                        $scope.activeNode = node.data.name;
+                        Core.$apply($scope);
                         if (node.data.editable == true) {
                             if (event.shiftKey) {
                                 editNode(node);

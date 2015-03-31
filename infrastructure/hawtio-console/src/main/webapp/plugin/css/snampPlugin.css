@@ -67,3 +67,7 @@ li.snampMenu a {
 ul.dynatree-container span {
     cursor: pointer;
 }
+
+#dynatree-drop-marker, span.dynatree-checkbox, span.dynatree-connector, span.dynatree-drag-helper-img, span.dynatree-empty, span.dynatree-expander, span.dynatree-icon, span.dynatree-radio, span.dynatree-vline {
+    margin-right: 3px;
+}
