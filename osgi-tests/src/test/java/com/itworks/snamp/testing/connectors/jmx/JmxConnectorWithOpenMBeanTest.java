@@ -123,18 +123,6 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
         assertNotNull(notificationSupport);
         assertNotNull(attributeSupport);
-
-        assertNotNull(attributeSupport.connectAttribute("1.0", "string", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
-                "objectName", TestOpenMBean.BEAN_NAME
-        ))));
-        assertNotNull(notificationSupport.enableNotifications("19.1", AttributeChangeNotification.ATTRIBUTE_CHANGE, toConfigParameters(ImmutableMap.of(
-            "severity", "notice",
-            "objectName", TestOpenMBean.BEAN_NAME
-        ))));
-        assertNotNull(notificationSupport.enableNotifications("20.1", "com.itworks.snamp.connectors.tests.impl.testnotif", toConfigParameters(ImmutableMap.of(
-                "severity", "panic",
-                "objectName", TestOpenMBean.BEAN_NAME
-        ))));
         assertEquals(2, notificationSupport.getNotificationInfo().length);
         final SynchronizationListener listener1 = new SynchronizationListener("19.1");
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
@@ -170,17 +158,6 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
         assertNotNull(notificationSupport);
         assertNotNull(attributeSupport);
-        assertNotNull(attributeSupport.connectAttribute("1.0", "string", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
-                "objectName", TestOpenMBean.BEAN_NAME
-        ))));
-        assertNotNull(notificationSupport.enableNotifications("19.1", AttributeChangeNotification.ATTRIBUTE_CHANGE, toConfigParameters(ImmutableMap.of(
-                "severity", "notice",
-                "objectName", TestOpenMBean.BEAN_NAME
-        ))));
-        assertNotNull(notificationSupport.enableNotifications("20.1", "com.itworks.snamp.connectors.tests.impl.testnotif", toConfigParameters(ImmutableMap.of(
-                "severity", "panic",
-                "objectName", TestOpenMBean.BEAN_NAME
-        ))));
         assertEquals(2, notificationSupport.getNotificationInfo().length);
         final SynchronizationListener listener1 = new SynchronizationListener("19.1");
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
@@ -217,7 +194,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
                 .add(true, 42, "Frank Underwood")
                 .add(true, 43, "Peter Russo")
                 .build();
-        testAttribute("7.1", "table", TypeToken.of(TabularData.class), table, new Equator<TabularData>() {
+        testAttribute("7.1", TypeToken.of(TabularData.class), table, new Equator<TabularData>() {
             @Override
             public boolean equate(final TabularData o1, final TabularData o2) {
                 return o1.size() == o2.size() &&
@@ -235,43 +212,43 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
                 .put("col2", "descr", 42)
                 .put("col3", "descr", "Frank Underwood")
                 .build();
-        testAttribute("6.1", "dictionary", TypeToken.of(CompositeData.class), dict, AbstractResourceConnectorTest.<CompositeData>valueEquator());
+        testAttribute("6.1", TypeToken.of(CompositeData.class), dict, AbstractResourceConnectorTest.<CompositeData>valueEquator());
     }
 
     @Test
     public final void testForArrayProperty() throws Exception {
         final short[] array = new short[]{10, 20, 30, 40, 50};
-        testAttribute("5.1", "array", TypeToken.of(short[].class), array, AbstractResourceConnectorTest.<short[]>arrayEquator());
+        testAttribute("5.1", TypeToken.of(short[].class), array, AbstractResourceConnectorTest.<short[]>arrayEquator());
     }
 
     @Test
     public final void testForDateProperty() throws Exception {
-        testAttribute("9.0", "date", TypeTokens.DATE, new Date());
+        testAttribute("9.0", TypeTokens.DATE, new Date());
     }
 
     @Test
     public final void testForFloatProperty() throws Exception {
-        testAttribute("8.0", "float", TypeTokens.FLOAT, 3.14F);
+        testAttribute("8.0", TypeTokens.FLOAT, 3.14F);
     }
 
     @Test
     public final void testForBigIntProperty() throws Exception {
-        testAttribute("4.0", "bigint", TypeTokens.BIG_INTEGER, BigInteger.valueOf(100500));
+        testAttribute("4.0", TypeTokens.BIG_INTEGER, BigInteger.valueOf(100500));
     }
 
     @Test
     public final void testForInt32Property() throws Exception {
-        testAttribute("3.0", "int32", TypeTokens.INTEGER, 42);
+        testAttribute("3.0", TypeTokens.INTEGER, 42);
     }
 
     @Test
     public final void testForBooleanProperty() throws Exception {
-        testAttribute("2.0", "boolean", TypeTokens.BOOLEAN, Boolean.TRUE);
+        testAttribute("2.0", TypeTokens.BOOLEAN, Boolean.TRUE);
     }
 
     @Test
     public final void testForStringProperty() throws Exception {
-        testAttribute("1.0", "string", TypeTokens.STRING, "Frank Underwood");
+        testAttribute("1.0", TypeTokens.STRING, "Frank Underwood");
     }
 
     @Test

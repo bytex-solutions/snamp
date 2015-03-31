@@ -314,6 +314,20 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         }
 
         /**
+         * Gets attribute metadata.
+         *
+         * @param attributeName The name of the attribute.
+         * @return The attribute metadata; or {@literal null}, if attribute doesn't exist.
+         */
+        @Override
+        public final M getAttributeInfo(final String attributeName) {
+            try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)){
+                final AttributeHolder<M> holder = attributes.get(attributeName);
+                return holder != null ? holder.getMetadata() : null;
+            }
+        }
+
+        /**
          * Gets a set of attributes in sequential manner.
          * @param attributes A set of attributes to read. Cannot be {@literal null}.
          * @return output A list of obtained attributes.
@@ -989,7 +1003,8 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             }
         }
 
-        protected final M getNotificationInfo(final String listID) {
+        @Override
+        public final M getNotificationInfo(final String listID) {
             try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
                 final NotificationHolder<M> holder = notifications.get(listID);
                 return holder != null ? holder.getMetadata() : null;
@@ -1193,6 +1208,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         return attributes != null ? attributes.getAttributeInfo() : new MBeanAttributeInfo[0];
     }
 
+    public MBeanAttributeInfo getAttributeInfo(final String attributeName){
+        final AttributeSupport attributes = queryObject(AttributeSupport.class);
+        return attributes != null ? attributes.getAttributeInfo(attributeName) : null;
+    }
+
     /**
      * Gets an array of supported notifications.
      * @return An array of supported notifications.
@@ -1200,6 +1220,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     public MBeanNotificationInfo[] getNotificationInfo(){
         final NotificationSupport notifs = queryObject(NotificationSupport.class);
         return notifs != null ? notifs.getNotificationInfo() : new MBeanNotificationInfo[0];
+    }
+
+    public MBeanNotificationInfo getNotificationInfo(final String notificationType){
+        final NotificationSupport notifs = queryObject(NotificationSupport.class);
+        return notifs != null ? notifs.getNotificationInfo(notificationType) : null;
     }
 
     /**

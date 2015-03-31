@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.notifications;
 
+import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcaster;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -47,4 +48,11 @@ public interface NotificationSupport extends NotificationBroadcaster {
      * @return The subscription model.
      */
     NotificationSubscriptionModel getSubscriptionModel();
+
+    /**
+     * Gets notification metadata.
+     * @param notificationType The type of the notification.
+     * @return The notification metadata; or {@literal null}, if notification doesn't exist.
+     */
+    MBeanNotificationInfo getNotificationInfo(final String notificationType);
 }

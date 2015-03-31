@@ -141,22 +141,12 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         }
 
         @Override
-        protected void removeAllAttributes(final JmxConnector connector) {
-            connector.removeAllAttributes();
-        }
-
-        @Override
         protected void addAttribute(final JmxConnector connector,
                                     final String attributeID,
                                     final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
             connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
-        }
-
-        @Override
-        protected void removeAllNotifications(final JmxConnector connector) {
-            connector.removeAllNotifications();
         }
 
         @Override

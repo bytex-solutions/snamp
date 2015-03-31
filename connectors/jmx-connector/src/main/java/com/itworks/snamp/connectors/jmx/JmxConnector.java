@@ -628,16 +628,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
     }
 
-    void removeAllAttributes(){
-        verifyInitialization();
-        attributes.clear(false);
-    }
-
-    void removeAllNotifications(){
-        verifyInitialization();
-        notifications.clear(true, false);
-    }
-
     MBeanNotificationInfo enableNotifications(final String listId,
                                               final String category,
                                               final CompositeData options) {

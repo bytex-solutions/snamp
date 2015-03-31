@@ -29,19 +29,8 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected void removeAllAttributes(final RShellResourceConnector connector) {
-            connector.removeAllAttributes();
-        }
-
-        @Override
         protected void addAttribute(final RShellResourceConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
             connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
-        }
-
-        @Override
-        @MethodStub
-        protected void removeAllNotifications(final RShellResourceConnector connector) {
-            //not supported
         }
 
         @MethodStub

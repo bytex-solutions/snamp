@@ -37,20 +37,9 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
             result.listen();
             return result;
         }
-
-        @Override
-        protected void removeAllAttributes(final SnmpResourceConnector connector) {
-            connector.removeAllAttributes();
-        }
-
         @Override
         protected void addAttribute(final SnmpResourceConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
             connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
-        }
-
-        @Override
-        protected void removeAllNotifications(final SnmpResourceConnector connector) {
-            connector.removeAllNotifications();
         }
 
         @Override

@@ -61,7 +61,7 @@ public interface AttributeSupport {
      *
      * @see #setAttribute
      */
-    Object getAttribute(String attribute) throws AttributeNotFoundException,
+    Object getAttribute(final String attribute) throws AttributeNotFoundException,
             MBeanException, ReflectionException;
 
     /**
@@ -77,7 +77,7 @@ public interface AttributeSupport {
      *
      * @see #getAttribute
      */
-    void setAttribute(Attribute attribute) throws AttributeNotFoundException,
+    void setAttribute(final Attribute attribute) throws AttributeNotFoundException,
             InvalidAttributeValueException, MBeanException, ReflectionException ;
 
     /**
@@ -89,7 +89,7 @@ public interface AttributeSupport {
      *
      * @see #setAttributes
      */
-    AttributeList getAttributes(String[] attributes);
+    AttributeList getAttributes(final String[] attributes);
 
     /**
      * Sets the values of several attributes of the managed resource.
@@ -101,11 +101,18 @@ public interface AttributeSupport {
      *
      * @see #getAttributes
      */
-    AttributeList setAttributes(AttributeList attributes);
+    AttributeList setAttributes(final AttributeList attributes);
 
     /**
      * Gets an array of connected attributes.
      * @return An array of connected attributes.
      */
     MBeanAttributeInfo[] getAttributeInfo();
+
+    /**
+     * Gets attribute metadata.
+     * @param attributeName The name of the attribute.
+     * @return The attribute metadata; or {@literal null}, if attribute doesn't exist.
+     */
+    MBeanAttributeInfo getAttributeInfo(final String attributeName);
 }

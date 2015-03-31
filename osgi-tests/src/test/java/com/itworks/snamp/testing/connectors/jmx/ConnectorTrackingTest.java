@@ -1,9 +1,11 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.Iterables;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.FeatureAccessor;
 import com.itworks.snamp.adapters.NotificationAccessor;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -28,83 +30,15 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
 
 
     private static final class TestAdapter extends AbstractResourceAdapter{
-        private static final class TestAttributesModel extends ArrayList<AttributeAccessor> implements AttributesModel{
-            private static final long serialVersionUID = -4679265669843153720L;
 
-            @Override
-            public void addAttribute(final String resourceName,
-                                     final String userDefinedName,
-                                     final String attributeName,
-                                     final AttributeConnector connector) {
-                try {
-                    add(connector.connect(resourceName + "/" + attributeName));
-                } catch (final JMException e) {
-                    fail(e.getMessage());
-                }
-            }
-
-            @Override
-            public AttributeAccessor removeAttribute(final String resourceName,
-                                                     final String userDefinedName,
-                                                     final String attributeName) {
-                final Iterator<AttributeAccessor> attrs = iterator();
-                while (attrs.hasNext()){
-                    final AttributeAccessor accessor = attrs.next();
-                    if(Objects.equals(resourceName + "/" + attributeName, accessor.getName())) {
-                        attrs.remove();
-                        return accessor;
-                    }
-                }
-                return null;
-            }
-        }
-        private static final class TestNotificationsModel extends ArrayList<NotificationAccessor> implements NotificationsModel{
-            private static final long serialVersionUID = 943992701825986769L;
-
-            @Override
-            public void addNotification(final String resourceName,
-                                        final String userDefinedName,
-                                        final String category,
-                                        final NotificationConnector connector) {
-                try {
-                    add(connector.enable(resourceName + '.' + category));
-                } catch (final JMException e) {
-                    fail(e.getMessage());
-                }
-            }
-
-            @Override
-            public NotificationAccessor removeNotification(final String resourceName,
-                                                            final String userDefinedName,
-                                                            final String category) {
-                final Iterator<NotificationAccessor> notifs = iterator();
-                while (notifs.hasNext()){
-                    final NotificationAccessor notif = notifs.next();
-                    if(Objects.equals(resourceName + '.' + category, notif.getType())) {
-                        notifs.remove();
-                        return notif;
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            public void handleNotification(final Notification notification, final Object handback) {
-
-            }
-        }
         private final SynchronizationEvent<Void> restartEvent = new SynchronizationEvent<>(true);
 
+        private final ArrayList<AttributeAccessor> attributes = new ArrayList<>();
 
-        private final TestAttributesModel attributes = new TestAttributesModel();
+        private final ArrayList<NotificationAccessor> notifications = new ArrayList<>();
 
-        private final TestNotificationsModel notifications = new TestNotificationsModel();
-
-        private final boolean enableTracking;
-
-        private TestAdapter(final boolean tracking) {
+        private TestAdapter() {
             super("TestAdapter");
-            enableTracking = tracking;
         }
 
         private List<AttributeAccessor> getAttributes(){
@@ -116,38 +50,43 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         }
 
         @Override
-        protected void start(final Map<String, String> parameters) throws Exception {
-            populateModel(attributes);
-            populateModel(notifications);
+        protected void start(final Map<String, String> parameters) {
             restartEvent.fire(null);
         }
 
         @Override
-        protected void stop() throws Exception {
-            clearModel(attributes);
-            clearModel(notifications);
+        protected void stop() {
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+            if(feature instanceof MBeanAttributeInfo){
+                final AttributeAccessor accessor = new AttributeAccessor((MBeanAttributeInfo)feature);
+                attributes.add(accessor);
+                return (FeatureAccessor<M, S>)accessor;
+            }
+            else if(feature instanceof MBeanNotificationInfo){
+                final NotificationAccessor accessor = new NotificationAccessor((MBeanNotificationInfo)feature) {
+                    @Override
+                    public void handleNotification(final Notification notification, final Object handback) {
+
+                    }
+                };
+                notifications.add(accessor);
+                return (FeatureAccessor<M, S>)accessor;
+            }
+            else return null;
         }
 
         @Override
-        protected void resourceRemoved(final String resourceName) {
-            if(enableTracking) {
-                clearModel(resourceName, attributes);
-                clearModel(resourceName, notifications);
-            }
-            else super.resourceRemoved(resourceName);
+        protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception {
+            return Iterables.concat(attributes, notifications);
         }
 
         @Override
-        protected void resourceAdded(final String resourceName) {
-            if(enableTracking)try{
-                enlargeModel(resourceName, notifications);
-                enlargeModel(resourceName, attributes);
-                restartEvent.fire(null);
-            }
-            catch (final JMException e){
-                fail(e.getMessage());
-            }
-            else super.resourceAdded(resourceName);
+        protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
+            return null;
         }
 
         private SynchronizationEvent.EventAwaitor<Void> getAwaitor(){
@@ -177,32 +116,8 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
     }
 
     @Test
-    public void trackingTest() throws Exception {
-        final TestAdapter adapter = new TestAdapter(true);
-        ManagedResourceConnectorClient.addResourceListener(getTestBundleContext(), adapter);
-        try{
-            tryStart(adapter, Collections.<String, String>emptyMap());
-            assertEquals(9, adapter.getAttributes().size());
-            assertEquals(2, adapter.getNotifications().size());
-            //now deactivate the resource connector. This action causes restarting the adapter
-            stopResourceConnector(getTestBundleContext());
-            assertTrue(adapter.getAttributes().isEmpty());
-            assertTrue(adapter.getNotifications().isEmpty());
-            //activate resource connector. This action causes restarting the adapter and populating models
-            startResourceConnector(getTestBundleContext());
-            adapter.getAwaitor().await(TimeSpan.fromSeconds(2));
-            assertEquals(9, adapter.getAttributes().size());
-            assertEquals(2, adapter.getNotifications().size());
-        }
-        finally {
-            getTestBundleContext().removeServiceListener(adapter);
-            adapter.close();
-        }
-    }
-
-    @Test
     public void simpleTrackingTest() throws Exception {
-        final TestAdapter adapter = new TestAdapter(false);
+        final TestAdapter adapter = new TestAdapter();
         ManagedResourceConnectorClient.addResourceListener(getTestBundleContext(), adapter);
         try{
             tryStart(adapter, Collections.<String, String>emptyMap());
