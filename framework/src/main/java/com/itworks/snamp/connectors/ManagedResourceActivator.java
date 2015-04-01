@@ -267,6 +267,20 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             }
         }
 
+        protected abstract void addOperation(final TConnector connector,
+                                             final String operationID,
+                                             final String operationName,
+                                             final CompositeData options);
+
+        private void updateOperations(final TConnector connector,
+                                      final Map<String, OperationConfiguration> operations){
+            for(final Map.Entry<String, OperationConfiguration> op: operations.entrySet()){
+                final String operationID = op.getKey();
+                final OperationConfiguration config = op.getValue();
+                addOperation(connector, operationID, config.getOperationName(), new ConfigParameters(config));
+            }
+        }
+
         /**
          * Updates features of the managed resource connector.
          *
@@ -282,6 +296,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 updateAttributes(connector, (Map<String, AttributeConfiguration>)features);
             else if(Objects.equals(featureType, EventConfiguration.class))
                 updateEvents(connector, (Map<String, EventConfiguration>)features);
+            else if(Objects.equals(featureType, OperationConfiguration.class))
+                updateOperations(connector, (Map<String, OperationConfiguration>)features);
         }
     }
 
@@ -347,6 +363,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             controller.updateConnector(connector,
                     EventConfiguration.class,
                     PersistentConfigurationManager.getEvents(configuration));
+            controller.updateConnector(connector,
+                    OperationConfiguration.class,
+                    PersistentConfigurationManager.getOperations(configuration));
             return connector;
         }
 

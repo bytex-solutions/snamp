@@ -112,7 +112,11 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     public final void fill(final EventConfiguration entity) {
         entity.setCategory(getNotificationCategory());
         for (final String fieldName : getFieldNames())
-            entity.getParameters().put(fieldName, Objects.toString(getFieldValue(fieldName)));
+            switch (fieldName) {
+                default:
+                    entity.getParameters().put(fieldName, Objects.toString(getFieldValue(fieldName)));
+                case NOTIFICATION_CATEGORY_FIELD:
+            }
     }
 
     public final String getDescription(){

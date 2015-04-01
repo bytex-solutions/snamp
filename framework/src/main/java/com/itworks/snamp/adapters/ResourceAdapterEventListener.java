@@ -8,8 +8,8 @@ import java.util.EventListener;
  * @version 1.0
  * @since 1.0
  * @see com.itworks.snamp.concurrent.AsyncEventListener
- * @see com.itworks.snamp.adapters.ResourceAdapterClient#addEventListener(String, ResourceAdapterEventListener)
- * @see com.itworks.snamp.adapters.ResourceAdapterClient#removeEventListener(String, ResourceAdapterEventListener)
+ * @see ResourceAdapterClient#addEventListener(String, ResourceAdapterEventListener)
+ * @see ResourceAdapterClient#removeEventListener(String, ResourceAdapterEventListener)
  */
 public interface ResourceAdapterEventListener extends EventListener {
     /**

@@ -36,7 +36,7 @@ public interface AgentConfiguration extends Cloneable {
      * @since 1.0
      * @version 1.0
      */
-    public static interface EntityConfiguration {
+    interface EntityConfiguration {
         /**
          * The name of the parameter which contains description of the configuration entity.
          */
@@ -55,7 +55,7 @@ public interface AgentConfiguration extends Cloneable {
      * @since 1.0
      * @version 1.0
      */
-    public static interface ResourceAdapterConfiguration extends EntityConfiguration {
+    interface ResourceAdapterConfiguration extends EntityConfiguration {
         /**
          * Gets the hosting adapter name.
          * @return The hosting adapter name.
@@ -82,7 +82,7 @@ public interface AgentConfiguration extends Cloneable {
      * @since 1.0
      * @version 1.0
      */
-    public static interface ManagedResourceConfiguration extends EntityConfiguration {
+    interface ManagedResourceConfiguration extends EntityConfiguration {
 
         /**
          * Represents a feature of the managed resource.
@@ -90,7 +90,7 @@ public interface AgentConfiguration extends Cloneable {
          * @since 1.0
          * @version 1.0
          */
-        public static interface FeatureConfiguration extends EntityConfiguration {
+        interface FeatureConfiguration extends EntityConfiguration {
         }
 
         /**
@@ -99,7 +99,7 @@ public interface AgentConfiguration extends Cloneable {
          * @since 1.0
          * @version 1.0
          */
-        public static interface EventConfiguration extends FeatureConfiguration {
+        interface EventConfiguration extends FeatureConfiguration {
             /**
              * Gets the event category.
              * @return The event category.
@@ -119,7 +119,7 @@ public interface AgentConfiguration extends Cloneable {
          * @since 1.0
          * @version 1.0
          */
-        public static interface AttributeConfiguration extends FeatureConfiguration {
+        interface AttributeConfiguration extends FeatureConfiguration {
             /**
              * Gets attribute value invoke/write operation timeout.
              * @return Gets attribute value invoke/write operation timeout.
@@ -129,7 +129,7 @@ public interface AgentConfiguration extends Cloneable {
             /**
              * Sets attribute value invoke/write operation timeout.
              */
-            void setReadWriteTimeout(TimeSpan time);
+            void setReadWriteTimeout(final TimeSpan time);
 
             /**
              * Returns the attribute name.
@@ -142,6 +142,26 @@ public interface AgentConfiguration extends Cloneable {
              * @param attributeName The attribute name.
              */
             void setAttributeName(final String attributeName);
+        }
+
+        /**
+         * Represents configuration of the managed resource operation.
+         * @author Roman Sakno
+         * @since 1.0
+         * @version 1.0
+         */
+        interface OperationConfiguration extends FeatureConfiguration{
+            /**
+             * Gets name of the managed resource operation.
+             * @return The name of the managed resource operation.
+             */
+            String getOperationName();
+
+            /**
+             * Sets name of the managed resource operation.
+             * @param operationName Name of the managed resource operation.
+             */
+            void setOperationName(final String operationName);
         }
 
         /**

@@ -19,8 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.*;
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import static com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration;
 import static com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableResourceAdapterConfiguration;
 
@@ -36,6 +35,7 @@ import static com.itworks.snamp.configuration.SerializableAgentConfiguration.Ser
 public final class PersistentConfigurationManager extends AbstractAggregator implements ConfigurationManager {
     private static final TypeToken<SerializableMap<String, AttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<SerializableMap<String, AttributeConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, EventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<SerializableMap<String, EventConfiguration>>() {};
+    private static final TypeToken<SerializableMap<String, OperationConfiguration>> OPS_MAP_TYPE = new TypeToken<SerializableMap<String, OperationConfiguration>>() {};
     private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     private static final String ADAPTER_PID_TEMPLATE = "com.itworks.snamp.adapters.%s";
@@ -48,6 +48,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private static final String CONNECTION_STRING_PROPERTY = "$connectionString$";
     private static final String ATTRIBUTES_PROPERTY = "$attributes$";
     private static final String EVENTS_PROPERTY = "$events$";
+    private static final String OPERATIONS_PROPERTY = "$operations";
 
     private static final Consumer<Configuration, IOException> clearAllConsumer = new Consumer<Configuration, IOException>() {
         @Override
@@ -271,6 +272,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                 case CONNECTION_STRING_PROPERTY:
                 case ATTRIBUTES_PROPERTY:
                 case EVENTS_PROPERTY:
+                case OPERATIONS_PROPERTY:
                 case RESOURCE_NAME_PROPERTY:
                 case Constants.SERVICE_PID:
                 case ConfigurationAdmin.SERVICE_FACTORYPID:
@@ -285,24 +287,28 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         return result;
     }
 
-    public static Map<String, AttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException{
+    private static <F extends FeatureConfiguration> Map<String, F> getFeatures(final Dictionary<String, ?> resourceConfig,
+                                                                final String featureHolder,
+                                                                final TypeToken<SerializableMap<String, F>> featureType) throws IOException{
         byte[] serializedForm = Utils.getProperty(resourceConfig,
-                ATTRIBUTES_PROPERTY,
+                featureHolder,
                 byte[].class,
                 EMPTY_BYTE_ARRAY);
         return serializedForm != null && serializedForm.length > 0 ?
-                IOUtils.deserialize(serializedForm, ATTRS_MAP_TYPE):
-                ImmutableMap.<String, AttributeConfiguration>of();
+                IOUtils.deserialize(serializedForm, featureType):
+                ImmutableMap.<String, F>of();
+    }
+
+    public static Map<String, AttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException{
+        return getFeatures(resourceConfig, ATTRIBUTES_PROPERTY, ATTRS_MAP_TYPE);
+    }
+
+    public static Map<String, OperationConfiguration> getOperations(final Dictionary<String, ?> resourceConfig) throws IOException{
+        return getFeatures(resourceConfig, OPERATIONS_PROPERTY, OPS_MAP_TYPE);
     }
 
     public static Map<String, EventConfiguration> getEvents(final Dictionary<String, ?> resourceConfig) throws IOException {
-        byte[] serializedForm = Utils.getProperty(resourceConfig,
-                EVENTS_PROPERTY,
-                byte[].class,
-                EMPTY_BYTE_ARRAY);
-        return serializedForm != null && serializedForm.length > 0 ?
-                IOUtils.deserialize(serializedForm, EVENTS_MAP_TYPE):
-                ImmutableMap.<String, EventConfiguration>of();
+        return getFeatures(resourceConfig, EVENTS_PROPERTY, EVENTS_MAP_TYPE);
     }
 
     private static ConfigurationEntry<ManagedResourceConfiguration> readResourceConfiguration(
@@ -315,6 +321,8 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         result.setAttributes(getAttributes(config));
         //deserialize events
         result.setEvents(getEvents(config));
+        //deserialize operations
+        result.setOperations(getOperations(config));
         //deserialize parameters
         fillConnectionOptions(config, result.getParameters());
         result.reset();
@@ -457,6 +465,10 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         //serialize events
         if (events != null)
             Utils.setProperty(result, EVENTS_PROPERTY, IOUtils.serialize((Serializable)events));
+        //serialize operations
+        final Map<String, OperationConfiguration> operations = resource.getElements(OperationConfiguration.class);
+        if(operations != null)
+            Utils.setProperty(result, OPERATIONS_PROPERTY, IOUtils.serialize((Serializable)operations));
         //serialize properties
         for(final Map.Entry<String, String> entry: resource.getParameters().entrySet())
             switch (entry.getKey()) {

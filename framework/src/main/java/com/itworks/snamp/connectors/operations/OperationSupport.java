@@ -19,6 +19,12 @@ public interface OperationSupport {
     String ASYNC_FIELD = "async";
 
     /**
+     * The name of the field in operation descriptor that holds
+     * name of the managed resource operation as it is declared in the configuration.
+     */
+    String OPERATION_NAME_FIELD = "operationName";
+
+    /**
      * Allows an operation to be invoked on the managed resource.
      *
      * @param operationName The name of the operation to be invoked.

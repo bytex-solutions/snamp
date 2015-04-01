@@ -102,7 +102,11 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         entity.setAttributeName(getAttributeName());
         entity.setReadWriteTimeout(getReadWriteTimeout());
         for (final String fieldName : getFieldNames())
-            entity.getParameters().put(fieldName, Objects.toString(getFieldValue(fieldName)));
+            switch (fieldName) {
+                default: entity.getParameters().put(fieldName, Objects.toString(getFieldValue(fieldName)));
+                case ATTRIBUTE_NAME_FIELD:
+                case READ_WRITE_TIMEOUT_FIELD:
+            }
     }
 
     @Override
