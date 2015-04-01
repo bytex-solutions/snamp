@@ -60,7 +60,8 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         return fields;
     }
 
-    public NotificationDescriptor setFields(final Map<String, ?> values){
+    @Override
+    public final NotificationDescriptor setFields(final Map<String, ?> values){
         if(values == null || values.isEmpty()) return this;
         final String[] fields = getFieldNames();
         final Map<String, Object> newFields = Maps.newHashMapWithExpectedSize(fields.length + values.size());
@@ -70,6 +71,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         return new NotificationDescriptor(newFields);
     }
 
+    @Override
     public final NotificationDescriptor setFields(final Descriptor values){
         return setFields(DescriptorUtils.toMap(values));
     }

@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -91,6 +92,16 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
         private static InternalState finalState(){
             return new InternalState(AdapterState.CLOSED, ImmutableMap.<String, String>of());
+        }
+
+        private boolean parametersAreEqual(final Map<String, String> newParameters) {
+            if(parameters.size() == newParameters.size()) {
+                for (final String name : newParameters.keySet())
+                    if(!Objects.equals(parameters.get(name), newParameters.get(name)))
+                        return false;
+                return true;
+            }
+            else return false;
         }
     }
 
@@ -296,10 +307,14 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         final InternalState currentState = mutableState;
         switch (currentState.state){
             case STARTED:
-                final InternalState newState = currentState.setParameters(newParameters);
-                update(currentState.parameters, newState.parameters);
-                mutableState = newState;
-                return true;
+                //compare parameters
+                if(!currentState.parametersAreEqual(newParameters)) {
+                    final InternalState newState = currentState.setParameters(newParameters);
+                    update(currentState.parameters, newState.parameters);
+                    mutableState = newState;
+                    return true;
+                }
+                else return false;
             default:
                 return false;
         }

@@ -11,6 +11,7 @@ import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeRemovingEvent;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.connectors.operations.OperationSupport;
 import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
@@ -1232,7 +1233,8 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @return An array of supported operations.
      */
     public MBeanOperationInfo[] getOperationInfo(){
-        return new MBeanOperationInfo[0];
+        final OperationSupport ops = queryObject(OperationSupport.class);
+        return ops != null ? ops.getOperationInfo() : new MBeanOperationInfo[0];
     }
 
     /**
