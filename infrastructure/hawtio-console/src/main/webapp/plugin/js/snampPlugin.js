@@ -376,7 +376,7 @@ var SnampShell = (function(SnampShell) {
                 return s.prop('outerHTML');
             }
 
-            function editNode(node){
+            $scope.editNode = function(node){
                 var prevTitle = node.data.title,
                     tree = node.tree;
                 // Disable dynatree mouse- and key handling
@@ -406,7 +406,7 @@ var SnampShell = (function(SnampShell) {
                         tree.$widget.bind();
                         node.focus();
                     });
-            }
+            };
 
             $scope.configurationJSON2Tree = function (jsonObject) {
                 var array = [
@@ -414,13 +414,15 @@ var SnampShell = (function(SnampShell) {
                         title: "Resource Adapters",
                         isFolder: true,
                         name: "Resource Adapters",
-                        children: []
+                        children: [],
+                        type: "adapters"
                     },
                     {
                         title: "Managed Resources",
                         isFolder: true,
                         name: "Managed Resources",
-                        children: []
+                        children: [],
+                        type: "connectors"
                     }
                 ];
                 if (jsonObject.hasOwnProperty("ResourceAdapters")) {
@@ -428,27 +430,32 @@ var SnampShell = (function(SnampShell) {
                         var currentChild = {
                             title: key,
                             isFolder: true,
-                            editable: true,
                             name: key,
+                            type: "name",
                             children: []
                         }; // adapter userDefined name
                         currentChild.children.push({
                             title: "Adapter type: " + generateDropDown($scope.getAdapters(), "adapterName", value["Adapter"]["Name"]),
                             isFolder: false,
-                            name: value["Adapter"]["Name"]
+                            name: value["Adapter"]["Name"],
+                            type: "type",
+                            value: value["Adapter"]["Name"]
                         }); // adapter system name
                         var params = {
                             title: "Parameters",
                             isFolder: true,
                             children: [],
-                            name: value["Adapter"]["Name"] + " params"
+                            name: value["Adapter"]["Name"] + " params",
+                            type: "params"
                         };
                         if (value["Adapter"]["Parameters"]) {
                             angular.forEach(value["Adapter"]["Parameters"], function (parameterValue, parameterKey) {
                                 params.children.push({
                                     title: parameterKey +": <input name=\"value\" type=\"text\" value=\"" + parameterValue["Value"] + "\"/>",
                                     isFolder: false,
-                                    name: parameterKey
+                                    name: parameterKey,
+                                    type: "param",
+                                    value: parameterValue["Value"]
                                 });
                             });
                         }
@@ -469,6 +476,18 @@ var SnampShell = (function(SnampShell) {
 
             $scope.activeNode = "nothing";
 
+            $scope.appendNewElement = function(node) {
+                if (node.data.type == "params") {
+                    // append new child to the current node
+                }
+                if (node.data.type == "param") {
+                    // append new child to the parent of the current node
+                }
+                if (node.data.type == "adapters") {
+                    // append new adapter from the list of available adapters
+                }
+            };
+
             $scope.drawConfiguration = function () {
                 $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
                 var isMac = /Mac/.test(navigator.platform);
@@ -476,31 +495,24 @@ var SnampShell = (function(SnampShell) {
                     noLink: true,
                     selectMode: 1,
                     onClick: function(node, event) {
-                        $scope.activeNode = node.data.name;
+                        $scope.activeNode = node;
                         Core.$apply($scope);
                         if (node.data.editable == true) {
                             if (event.shiftKey) {
-                                editNode(node);
+                                $scope.editNode(node);
                                 return false;
                             }
                         }
-                        if (node.data.service) {
-                            if (node.data.service == "add") {
-                                node.getParent().addChild({title: "New Node", key: "3333"});
-                                return false;
-                            }
-                        }
-
                     },
                     onKeydown: function(node, event) {
                         if (node.data.editable == true) {
                             switch (event.which) {
                                 case 113: // [F2]
-                                    editNode(node);
+                                    $scope.editNode(node);
                                     return false;
                                 case 13: // [enter]
                                     if (isMac) {
-                                        editNode(node);
+                                        $scope.editNode(node);
                                         return false;
                                     }
                             }
