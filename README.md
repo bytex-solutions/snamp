@@ -80,6 +80,7 @@ Recommendations for Java Collections:
 1. Use `ImmutableMap`, `ImmutableList`, `ImmutableSet` for collections with predefined set of elements
 
 Recommendations for concurrency:
+
 1. Use daemon threads only
 1. Avoid exclusive lock (`synchronized` method, monitors) if it can be replaced with read/write lock
 1. Avoid exclusive lock (`synchronized` method, monitors) on a whole object if the declared method changes or reads from a single fields in this object. Use more granular locks (see resource separation in `ThreadSafeObject`)
@@ -87,5 +88,6 @@ Recommendations for concurrency:
 1. Avoid instantiation and execution of the standalone thread, use thread pool instead.
 
 OSGi-specific recommendations:
+
 1. Avoid direct manipulation with Java `ClassLoader`
 1. Release `ServiceReference` to the foreign service as soon as possible
