@@ -408,6 +408,11 @@ var SnampShell = (function(SnampShell) {
                     });
             };
 
+            /**
+             * Forward transforming the json object to the dynatree data model.
+             * @param jsonObject
+             * @returns {{title: string, isFolder: boolean, name: string, children: Array, type: string}[]}
+             */
             $scope.configurationJSON2Tree = function (jsonObject) {
                 var array = [
                     {
@@ -430,7 +435,7 @@ var SnampShell = (function(SnampShell) {
                         var currentChild = {
                             title: key,
                             isFolder: true,
-                            name: key,
+                            name: value["Adapter"]["Name"],
                             type: "name",
                             children: []
                         }; // adapter userDefined name
@@ -476,18 +481,55 @@ var SnampShell = (function(SnampShell) {
 
             $scope.activeNode = "nothing";
 
+            /**
+             * Return root element.
+             * @param node
+             * @returns {*}
+             */
+            function getRootNode(node) {
+                var rootNode = node;
+                while (rootNode.getLevel() > 1) {
+                    rootNode = rootNode.getParent();
+                }
+                return rootNode;
+            }
+
+            /**
+             * Append new element to the treeView model.
+             * @param node
+             */
             $scope.appendNewElement = function(node) {
+                // append new child to the current node
                 if (node.data.type == "params") {
-                    // append new child to the current node
+                    var parent = getRootNode(node);
+                    if (parent.data.type == "adapters") {
+                        var adapterName = parent.data.name;
+                        SnampShell.log.info(adapterName);
+                        var adapterConfig = jolokia.request({
+                            type: 'exec',
+                            mbean: SnampShell.mbean,
+                            operation: 'getAdapterConfigurationSchema',
+                            arguments: [adapterName, ""] // default console
+                        }).value;
+                        SnampShell.log.info(JSON.stringify(adapterConfig));
+                        $scope.modalTitle = "Appending new attribute to " + node.getParent().data.title + " adapter";
+                        $scope.modalContent = JSON.stringify(adapterConfig);
+                        Core.$apply($scope);
+                        $('#myModal').modal('toggle')
+                    }
                 }
                 if (node.data.type == "param") {
                     // append new child to the parent of the current node
+                    //SnampShell.log.info(JSON.stringify(node.data), node.getLevel(), node.getParent().getLevel(), JSON.stringify(node.getParent().data));
                 }
                 if (node.data.type == "adapters") {
                     // append new adapter from the list of available adapters
                 }
             };
 
+            /**
+             * Draw configuraton to the html.
+             */
             $scope.drawConfiguration = function () {
                 $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
                 var isMac = /Mac/.test(navigator.platform);
