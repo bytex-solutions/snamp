@@ -155,6 +155,11 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         }
 
         @Override
+        protected void addOperation(final JmxConnector connector, final String operationID, final String operationName, final CompositeData options) {
+            //not supported
+        }
+
+        @Override
         public void releaseConnector(final JmxConnector connector) throws Exception {
             try {
                 connector.close();

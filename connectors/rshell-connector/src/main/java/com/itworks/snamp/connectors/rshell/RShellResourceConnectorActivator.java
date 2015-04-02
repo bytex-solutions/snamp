@@ -38,6 +38,11 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
         protected void enableNotifications(final RShellResourceConnector connector, final String listId, final String category, final CompositeData options) {
             //not supported
         }
+
+        @Override
+        protected void addOperation(final RShellResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
+            //not supported
+        }
     }
 
     /**

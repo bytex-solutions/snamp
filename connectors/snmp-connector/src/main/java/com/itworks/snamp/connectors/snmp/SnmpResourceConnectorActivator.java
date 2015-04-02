@@ -46,6 +46,11 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         protected void enableNotifications(final SnmpResourceConnector connector, final String listId, final String category, final CompositeData options) {
             connector.enableNotifications(listId, category, options);
         }
+
+        @Override
+        protected void addOperation(final SnmpResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
+            //not supported
+        }
     }
 
     @SpecialUse
