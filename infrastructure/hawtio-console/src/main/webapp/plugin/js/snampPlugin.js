@@ -503,7 +503,7 @@ var SnampShell = (function(SnampShell) {
                 if (node.data.type == "params") {
                     var parent = getRootNode(node);
                     if (parent.data.type == "adapters") {
-                        var adapterName = parent.data.name;
+                        var adapterName = node.getParent().data.name;
                         SnampShell.log.info(adapterName);
                         var adapterConfig = jolokia.request({
                             type: 'exec',
@@ -513,7 +513,7 @@ var SnampShell = (function(SnampShell) {
                         }).value;
                         SnampShell.log.info(JSON.stringify(adapterConfig));
                         $scope.modalTitle = "Appending new attribute to " + node.getParent().data.title + " adapter";
-                        $scope.modalContent = JSON.stringify(adapterConfig);
+                        $scope.modalContent = adapterConfig;
                         Core.$apply($scope);
                         $('#myModal').modal('toggle')
                     }
