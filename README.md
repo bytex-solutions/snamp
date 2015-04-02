@@ -51,6 +51,7 @@ mvn clean package
 ## Code Conventions and Optimization Techniques
 Optimization techniques used in SNAMP are based on [HotSpot Perofmance Techniques](https://wikis.oracle.com/display/HotSpotInternals/PerformanceTechniques).
 > premature optimization is the root of all evil - Donald Knuth
+
 Code Convention is based on official [Code Conventions for the Java Programming Language](http://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html) 
 with some modifications.
 
