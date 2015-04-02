@@ -1,9 +1,9 @@
 SNAMP
 =====
 
-SNAMP acting as a protocol bridge between manageable IT resources with different monitoring&management
-protocols and your monitoring&management software. This ability allows to reduce the management cost
-of your IT infrastructure.
+SNAMP represents a protocol bridge between manageable IT resources with different monitoring&management
+protocols and your monitoring&management software. SNAMP can help you to reduce the management costs
+for the complex IT infrastructure.
 
 ## Prerequisites
 * CPU Arch: x86/x64
@@ -16,7 +16,7 @@ of your IT infrastructure.
 * JDK 7 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
 
 ## How to build
-Not all dependencies located in the Maven Central, therefore, you should download artifacts from the
+Not all dependencies located at the Maven Central, therefore, you should download artifacts from the
 following repositories:
 
 * [OOSNMP Maven Repository](https://server.oosnmp.net/dist/release). Artifacts: snmp4j-agent, snmp4j
@@ -28,7 +28,7 @@ Generally, you need to pass
 ```
 to the `maven` process when first importing the project.
 
-If your IDE is IntelliJ IDEA 12/13/14 then use the following instruction:
+If you use IntelliJ IDEA 12/13/14 as IDE - follow the instructions:
 
 1. Open _File_ -> _Settings_ menu
 1. Find _Build, Execution, Deployment_ -> _Build Tools_ -> _Maven_ -> _Runner_
