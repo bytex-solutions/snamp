@@ -4,11 +4,15 @@ import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.concurrent.Monitor;
 import com.itworks.snamp.internal.annotations.MethodStub;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -498,16 +502,23 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
     }
 
-    private static final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>{
+    @SuppressWarnings("serial")
+    private static final class ServiceRegistrationHolder<S, T extends S> extends Hashtable<String, Object> implements ServiceRegistration<S>{
         private final ServiceRegistration<S> registration;
         private final T serviceInstance;
 
         private ServiceRegistrationHolder(final Class<S> serviceContract,
                                           final T service,
-                                          final Dictionary<String, ?> identity,
+                                          final Hashtable<String, ?> identity,
                                           final BundleContext context){
+            super(identity);
             registration = context.registerService(serviceContract, service, identity);
             serviceInstance = service;
+        }
+
+        @SpecialUse
+        private void writeObject(final ObjectOutputStream oos) throws IOException {
+            throw new NotSerializableException();
         }
 
         @Override
@@ -638,7 +649,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected final ServiceRegistrationHolder<S, T> activateService(final String servicePID,
                                                                final Dictionary<String, ?> configuration,
                                                                final RequiredService<?>... dependencies) throws Exception {
-            final Hashtable<String, Object> identity = new Hashtable<>(10);
+            final Hashtable<String, Object> identity = new Hashtable<>(4);
             identity.put(Constants.SERVICE_PID, servicePID);
             return new ServiceRegistrationHolder<>(serviceContract,
                     createService(identity, configuration, dependencies),
@@ -664,7 +675,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         @Override
         protected final void dispose(final ServiceRegistrationHolder<S, T> registration, final boolean bundleStop) throws Exception {
             registration.unregister();
-            cleanupService(registration.serviceInstance, getProperties(registration.getReference()));
+            cleanupService(registration.serviceInstance, registration);
         }
     }
 
@@ -674,7 +685,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ProvidedServices{
+    protected interface ProvidedServices{
         /**
          * Exposes all provided services via the input collection.
          * @param services A collection of provided services to fill.

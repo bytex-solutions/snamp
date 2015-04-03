@@ -2,18 +2,14 @@ package com.itworks.snamp.management.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.Consumer;
-import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.core.OSGiLoggingContext;
 
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.CompositeDataSupport;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.TabularData;
-import javax.management.openmbean.TabularDataSupport;
+import javax.management.openmbean.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -78,7 +74,7 @@ final class MonitoringUtils {
      * @return the t
      * @throws ExceptionInInitializerError the exception in initializer error
      */
-    static <T> T interfaceStaticInitialize(final ExceptionalCallable<T, ?> initializer) throws ExceptionInInitializerError{
+    static <T> T interfaceStaticInitialize(final Callable<T> initializer){
         try {
             return initializer.call();
         } catch (final Exception e) {
@@ -116,11 +112,11 @@ final class MonitoringUtils {
     public static TabularDataSupport transformAdditionalPropertiesToTabularData(final Map<String, String> map) throws OpenDataException {
         final TabularDataSupport tabularDataSupport = new TabularDataSupport(CommonOpenTypesSupport.SIMPLE_MAP_TYPE);
         if (map != null) {
-            for (final String key : map.keySet()) {
+            for (final Map.Entry<String, String> entry : map.entrySet()) {
                 tabularDataSupport.put(new CompositeDataSupport(tabularDataSupport.getTabularType().getRowType(),
-                        ImmutableMap.<String, Object>of(
-                                "key", key,
-                                "value", map.get(key))));
+                        ImmutableMap.of(
+                                "key", entry.getKey(),
+                                "value", entry.getValue())));
             }
         }
         return tabularDataSupport;

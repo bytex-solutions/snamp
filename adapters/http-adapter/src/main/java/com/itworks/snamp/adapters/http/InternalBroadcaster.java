@@ -16,5 +16,5 @@ public interface InternalBroadcaster extends Broadcaster {
      * Initializes broadcaster using the request.
      * @param request The subscription request.
      */
-    void init(final HttpServletRequest request) throws Exception;
+    void initialize(final HttpServletRequest request) throws Exception;
 }

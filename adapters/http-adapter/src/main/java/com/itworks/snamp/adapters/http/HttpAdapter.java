@@ -108,7 +108,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         @Override
         protected Object interceptSet(final Object value) throws InterceptionException {
             if (getType() != null && value instanceof String)
-                return formatter.fromJson((String) value, getType());
+                return formatter.fromJson((String) value, getType().getJavaType());
             else throw new InterceptionException(new IllegalArgumentException("String expected"));
         }
     }
@@ -181,7 +181,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public void init(final HttpServletRequest request) throws URISyntaxException {
+        public void initialize(final HttpServletRequest request) throws URISyntaxException {
             if (request != null && !isInitialized() && !isDestroyed())
                 synchronized (this) {
                     if (isInitialized() || isDestroyed()) return;
@@ -203,8 +203,8 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public synchronized void destroy() {
-            super.destroy();
+        public void destroy() {
+            if (isInitialized()) super.destroy();
         }
 
         private NotificationRouter addNotification(final MBeanNotificationInfo metadata) {

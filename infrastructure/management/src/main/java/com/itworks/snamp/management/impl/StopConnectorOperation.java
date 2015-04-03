@@ -3,6 +3,7 @@ package com.itworks.snamp.management.impl;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.jmx.OpenMBean;
 
+import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.util.Map;
@@ -14,7 +15,7 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  * The type Stop connector operation.
  * @author Evgeniy Kirichenko
  */
-final class StopConnectorOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> implements CommonOpenTypesSupport {
+final class StopConnectorOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> implements CommonOpenTypesSupport<MBeanOperationInfo> {
 
     private static final String NAME = "stopConnector";
 

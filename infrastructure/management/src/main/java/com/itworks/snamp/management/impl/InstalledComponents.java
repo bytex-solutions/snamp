@@ -17,7 +17,6 @@ import java.util.logging.Level;
 
 /**
  * The type Installed components.
- * @author Roman Sakno
  * @author Evgeniy Kirichenko
  * @version 1.1
  * @since 1.0

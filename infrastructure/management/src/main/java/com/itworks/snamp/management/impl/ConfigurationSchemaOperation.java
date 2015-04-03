@@ -16,6 +16,7 @@ import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.jmx.OpenMBean;
 
+import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.*;
 import java.util.*;
 
@@ -26,7 +27,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<CompositeData, CompositeType> implements CommonOpenTypesSupport {
+abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<CompositeData, CompositeType> implements CommonOpenTypesSupport<MBeanOperationInfo> {
     private static final CompositeType COMPONENT_CONFIG_SCHEMA;
     private static final String MANAGED_RESOURCE_PARAMS = "managedResourceParameters";
     private static final String RESOURCE_ADAPTER_PARAMS = "resourceAdapterParameters";

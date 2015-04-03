@@ -217,7 +217,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @version 1.0
      */
     protected static abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> extends AbstractFeatureModeler<M> implements AttributeSupport {
-        private static enum AASResource{
+        private enum AASResource{
             ATTRIBUTES,
             RESOURCE_EVENT_LISTENERS
         }
@@ -496,38 +496,42 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
                                     final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
-            M result;
+            AttributeHolder<M> holder;
             try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
-                AttributeHolder<M> holder = attributes.get(attributeID);
+                holder = attributes.get(attributeID);
                 //if attribute exists then we should check whether the input arguments
                 //are equal to the existing attribute options
-                if (holder != null)
+                if (holder != null) {
                     if (holder.equals(attributeName, readWriteTimeout, options))
-                        result = holder.getMetadata();
+                        return holder.getMetadata();
                     else {
                         //remove attribute
                         attributeRemoved(holder.getMetadata());
                         holder = attributes.remove(attributeID);
                         //...and register again
                         if (disconnectAttribute(holder.getMetadata())) {
-                            result = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
-                            if (result != null) {
-                                attributes.put(holder = new AttributeHolder<>(result, attributeName, readWriteTimeout, options));
-                                attributeAdded(result = holder.getMetadata());
+                            final M metadata = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
+                            if (metadata != null) {
+                                attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
+                                attributeAdded(holder.getMetadata());
                             }
-                        } else result = null;
+                        } else holder = null;
                     }
-                //this is a new attribute, just connect it
-                else if ((result = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options))) != null) {
-                    attributes.put(new AttributeHolder<>(result, attributeName, readWriteTimeout, options));
-                    attributeAdded(result);
                 }
-                else throw JMExceptionUtils.attributeNotFound(attributeName);
+                //this is a new attribute, just connect it
+                else {
+                    final M metadata = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
+                    if(metadata != null) {
+                        attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
+                        attributeAdded(holder.getMetadata());
+                    }
+                    else throw JMExceptionUtils.attributeNotFound(attributeName);
+                }
             } catch (final Exception e) {
                 failedToConnectAttribute(attributeID, attributeName, e);
-                result = null;
+                holder = null;
             }
-            return result;
+            return holder != null ? holder.getMetadata() : null;
         }
 
         /**
@@ -701,7 +705,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          * @param attributeInfo An attribute metadata.
          * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
          */
-        @SuppressWarnings("UnusedParameters")
         protected boolean disconnectAttribute(final M attributeInfo) {
             return true;
         }
@@ -714,16 +717,15 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @ThreadSafe
         public final boolean removeAttribute(final String attributeID) {
-            M result;
+            AttributeHolder<M> holder;
             try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
-                final AttributeHolder<M> holder = attributes.get(attributeID);
+                holder = attributes.get(attributeID);
                 if(holder != null) {
-                    attributeRemoved(result = holder.getMetadata());
+                    attributeRemoved(holder.getMetadata());
                     attributes.remove(attributeID);
                 }
-                else result = null;
             }
-            return result != null && disconnectAttribute(result);
+            return holder != null && disconnectAttribute(holder.getMetadata());
         }
 
         /**
@@ -750,7 +752,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @version 1.0
      */
     protected static abstract class AbstractNotificationSupport<M extends MBeanNotificationInfo> extends AbstractFeatureModeler<M> implements NotificationSupport {
-        private static enum ANSResource{
+        private enum ANSResource{
             NOTIFICATIONS,
             RESOURCE_EVENT_LISTENERS
         }
@@ -881,33 +883,40 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
          */
         public final M enableNotifications(final String listId, final String category, final CompositeData options) {
-            M result;
+            NotificationHolder<M> holder;
             try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
-                NotificationHolder<M> holder = notifications.get(listId);
-                if(holder != null)
-                    if(holder.equals(category, options))
-                        result = holder.getMetadata();
+                holder = notifications.get(listId);
+                if(holder != null) {
+                    if (holder.equals(category, options))
+                        return holder.getMetadata();
                     else {
                         //remove notification
                         notificationRemoved(holder.getMetadata());
                         holder = notifications.remove(listId);
                         //and register again
-                        if(disableNotifications(holder.getMetadata())){
-                            result = enableNotifications(listId, new NotificationDescriptor(category, getSubscriptionModel(), options));
-                            if(result != null){
-                                notifications.put(holder = new NotificationHolder<>(result, category, options));
-                                notificationAdded(result = holder.getMetadata());
+                        if (disableNotifications(holder.getMetadata())) {
+                            final M metadata = enableNotifications(listId, new NotificationDescriptor(category, getSubscriptionModel(), options));
+                            if (metadata != null) {
+                                notifications.put(holder = new NotificationHolder<>(metadata, category, options));
+                                notificationAdded(holder.getMetadata());
                             }
-                        }
-                        else result = null;
+                        } else holder = null;
                     }
-                else result = null;
+                }
+                else {
+                    final M metadata = enableNotifications(listId, new NotificationDescriptor(category, getSubscriptionModel(), options));
+                    if(metadata != null) {
+                        notifications.put(holder = new NotificationHolder<>(metadata, category, options));
+                        notificationAdded(holder.getMetadata());
+                    }
+                    else holder = null;
+                }
             }
             catch (final Exception e) {
                 failedToEnableNotifications(listId, category, e);
-                result = null;
+                holder = null;
             }
-            return result;
+            return holder != null ? holder.getMetadata() : null;
         }
 
         /**
@@ -920,7 +929,9 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             }
         }
 
-        protected abstract boolean disableNotifications(final M metadata);
+        protected boolean disableNotifications(final M metadata){
+            return true;
+        }
 
         /**
          * Disables event listening for the specified category of events.
@@ -932,16 +943,15 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
          */
         public final boolean disableNotifications(final String listId) {
-            M result;
+            NotificationHolder<M> holder;
             try (final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
-                final NotificationHolder<M> holder = notifications.get(listId);
+                holder = notifications.get(listId);
                 if(holder != null){
-                    notificationRemoved(result = holder.getMetadata());
+                    notificationRemoved(holder.getMetadata());
                     notifications.remove(listId);
                 }
-                else result = null;
             }
-            return result != null && disableNotifications(result);
+            return holder != null && disableNotifications(holder.getMetadata());
         }
 
         /**

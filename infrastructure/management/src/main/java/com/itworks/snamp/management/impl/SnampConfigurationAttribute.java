@@ -16,6 +16,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
 
+import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
 import java.io.IOException;
 import java.util.Collection;
@@ -29,7 +30,7 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  *
  * @author Evgeniy Kirichenko
  */
-final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<CompositeData, CompositeType> implements CommonOpenTypesSupport {
+final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<CompositeData, CompositeType> implements CommonOpenTypesSupport<MBeanAttributeInfo> {
 
     private static final String NAME = "configuration";
 

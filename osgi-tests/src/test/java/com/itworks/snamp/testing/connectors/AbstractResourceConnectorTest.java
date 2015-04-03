@@ -9,8 +9,7 @@ import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.concurrent.SpinWait;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.itworks.snamp.configuration.ConfigParameters;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -57,16 +56,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         }
     }
 
-    protected static ConfigParameters toConfigParameters(final Map<String, String> parameters) {
-        return new ConfigParameters(new AgentConfiguration.EntityConfiguration() {
-            @Override
-            public Map<String, String> getParameters() {
-                return parameters;
-            }
-        });
-    }
-
-    protected static interface Equator<V>{
+    protected interface Equator<V>{
         boolean equate(final V value1, final V value2);
     }
 
@@ -96,17 +86,6 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                 return true;
             }
         };
-    }
-
-    private static <K, V> boolean areEqual(final Map<K, V> value1, final Map<K, V> value2) {
-        if(value1.size() == value2.size())
-            for(final K key: value1.keySet()) {
-                if (!value2.containsKey(key)) return false;
-                if(!Objects.equals(value1.get(key), value2.get(key)))
-                    return false;
-            }
-        else return false;
-        return true;
     }
 
     private final String connectorType;
@@ -170,11 +149,17 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         return connectorRef != null && getTestBundleContext().ungetService(connectorRef);
     }
 
-    protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory){
+
+
+    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory){
 
     }
 
-    protected void fillEvents(final Map<String, AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events, final Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> eventFactory){
+    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory){
+
+    }
+
+    protected void fillOperations(final Map<String, OperationConfiguration> operations, final Supplier<OperationConfiguration> operationFactory){
 
     }
 
@@ -221,16 +206,22 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         });
         targetConfig.setConnectionString(connectionString);
         targetConfig.setConnectionType(connectorType);
-        fillAttributes(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration>() {
+        fillAttributes(targetConfig.getElements(AttributeConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration>() {
             @Override
             public AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration get() {
-                return targetConfig.newElement(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class);
+                return targetConfig.newElement(AttributeConfiguration.class);
             }
         });
-        fillEvents(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration>() {
+        fillEvents(targetConfig.getElements(EventConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration>() {
             @Override
             public AgentConfiguration.ManagedResourceConfiguration.EventConfiguration get() {
-                return targetConfig.newElement(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
+                return targetConfig.newElement(EventConfiguration.class);
+            }
+        });
+        fillOperations(targetConfig.getElements(OperationConfiguration.class), new Supplier<OperationConfiguration>() {
+            @Override
+            public OperationConfiguration get() {
+                return targetConfig.newElement(OperationConfiguration.class);
             }
         });
         config.getManagedResources().put(TEST_RESOURCE_NAME, targetConfig);

@@ -71,7 +71,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ManagedResourceConnectorLifecycleController<TConnector extends ManagedResourceConnector>{
+    protected interface ManagedResourceConnectorLifecycleController<TConnector extends ManagedResourceConnector>{
 
         /**
          * Creates a new instance of the managed resource connector.
@@ -165,7 +165,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 connector.update(connectionString, connectionParameters);
             }
             catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored){
-                //Update operation is not supported -> forces recreation
+                //Update operation is not supported -> force recreation
                 releaseConnector(connector);
                 connector = createConnector(resourceName,
                         connectionString,
@@ -329,6 +329,19 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                     Utils.getBundleContextByObject(controller));
         }
 
+        private void updateFeatures(final TConnector connector,
+                            final Dictionary<String, ?> configuration) throws Exception {
+            controller.updateConnector(connector,
+                    AttributeConfiguration.class,
+                    PersistentConfigurationManager.getAttributes(configuration));
+            controller.updateConnector(connector,
+                    EventConfiguration.class,
+                    PersistentConfigurationManager.getEvents(configuration));
+            controller.updateConnector(connector,
+                    OperationConfiguration.class,
+                    PersistentConfigurationManager.getOperations(configuration));
+        }
+
         /**
          * Updates the service with a new configuration.
          *
@@ -357,15 +370,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                         dependencies);
             }
             //but we should update resource features
-            controller.updateConnector(connector,
-                    AttributeConfiguration.class,
-                    PersistentConfigurationManager.getAttributes(configuration));
-            controller.updateConnector(connector,
-                    EventConfiguration.class,
-                    PersistentConfigurationManager.getEvents(configuration));
-            controller.updateConnector(connector,
-                    OperationConfiguration.class,
-                    PersistentConfigurationManager.getOperations(configuration));
+            updateFeatures(connector, configuration);
             return connector;
         }
 
@@ -425,7 +430,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                     connectionString,
                     options,
                     identity);
-            return controller.createConnector(resourceName, connectionString, options, dependencies);
+            final TConnector result = controller.createConnector(resourceName, connectionString, options, dependencies);
+            updateFeatures(result, configuration);
+            return result;
         }
 
         @Override
@@ -832,7 +839,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                        final SupportConnectorServiceManager<?, ?>... optionalServices){
         this(connectorType,
                 controller,
-                EMTPY_REQUIRED_SERVICES,
+                EMPTY_REQUIRED_SERVICES,
                 optionalServices);
     }
 
