@@ -17,6 +17,7 @@ import org.osgi.framework.ServiceRegistration;
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.io.Closeable;
+import java.lang.management.ManagementFactory;
 import java.nio.*;
 import java.util.Collection;
 import java.util.Objects;
@@ -30,7 +31,7 @@ import java.util.logging.Level;
  * @since 1.0
  */
 final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, NotificationBroadcaster, NotificationListener, Closeable {
-    private static enum MBeanResources{
+    private enum MBeanResources{
         NOTIFICATIONS,
         ATTRIBUTES
     }
@@ -93,7 +94,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
 
         @Override
         protected Object interceptSet(final Object value) throws InvalidAttributeValueException  {
-            throw new InvalidAttributeValueException(String.format("Attribute is read-only"));
+            throw new InvalidAttributeValueException(String.format("Attribute %s is read-only", getName()));
         }
 
         @Override
@@ -180,24 +181,43 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     private final ResourceAttributeList<JmxAttributeAccessor> attributes;
     private final NotificationListenerList listeners;
     private final String resourceName;
-    private ServiceRegistration<DynamicMBean> registration;
+    private ServiceRegistration<?> registration;
 
     ProxyMBean(final String resourceName){
         super(MBeanResources.class);
         this.resourceName = resourceName;
-        registration = null;
         this.notifications = new ResourceNotificationList<>();
         this.attributes = new ResourceAttributeList<>();
         this.listeners = new NotificationListenerList();
+        this.registration = null;
     }
 
-    final void registerAsService(final BundleContext context, final ObjectName beanName){
-        context.registerService(DynamicMBean.class, this, OpenMBeanProvider.createIdentity(beanName));
+    String getResourceName(){
+        return resourceName;
+    }
+
+    void register(final BundleContext context, final ObjectName beanName){
+        registration = context.registerService(DynamicMBean.class, this, OpenMBeanProvider.createIdentity(beanName));
+    }
+
+    void register(final ObjectName beanName) throws NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanRegistrationException {
+        ManagementFactory.getPlatformMBeanServer().registerMBean(this, beanName);
+    }
+
+    void unregister(final ObjectName beanName) throws MBeanRegistrationException, InstanceNotFoundException {
+        ManagementFactory.getPlatformMBeanServer().unregisterMBean(beanName);
+    }
+
+    private void unregister(){
+        if(registration != null) {
+            registration.unregister();
+        }
+        registration = null;
     }
 
     @Override
     public void close() {
-        registration = null;
+        unregister();
         attributes.clear();
         notifications.clear();
         listeners.clear();

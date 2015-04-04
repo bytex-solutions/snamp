@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -59,13 +60,22 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
         return new ObjectName(root.getDomain(), params);
     }
 
+    private static void verifyAttributeExists(final String name, final MBeanAttributeInfo[] attrs){
+        for(final MBeanAttributeInfo attribute: attrs)
+            if(Objects.equals(name, attribute.getName()))
+                return;
+        fail("Attribute " + name + " doesn't exist");
+    }
+
     private void testJmxAttribute(final Attribute attr) throws BundleException, JMException, IOException{
             final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
             try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
                 final MBeanServerConnection connection = connector.getMBeanServerConnection();
                 final ObjectName resourceObjectName = createObjectName();
                 assertNotNull(connection.getMBeanInfo(resourceObjectName));
-                assertNotNull(connection.getMBeanInfo(resourceObjectName).getAttributes().length > 0);
+                final MBeanAttributeInfo[] attributes = connection.getMBeanInfo(resourceObjectName).getAttributes();
+                assertNotNull(attributes.length > 0);
+                verifyAttributeExists(attr.getName(), attributes);
                 connection.setAttribute(resourceObjectName, attr);
                 if(attr.getValue().getClass().isArray())
                     assertArrayEquals(attr.getValue(), connection.getAttribute(resourceObjectName, attr.getName()));
@@ -73,13 +83,9 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
             }
     }
 
-    private static Attribute attrval(final String name, final Object value){
-        return new Attribute(TEST_RESOURCE_NAME + '/' + name, value);
-    }
-
     @Test
     public void testStringProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(attrval("1.0", "Frank Underwood"));
+        testJmxAttribute(new Attribute("1.0", "Frank Underwood"));
     }
 
     @Override
@@ -89,22 +95,22 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void testBooleanProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(attrval("2.0", Boolean.TRUE));
+        testJmxAttribute(new Attribute("2.0", Boolean.TRUE));
     }
 
     @Test
     public void testInt32Property() throws BundleException, JMException, IOException {
-        testJmxAttribute(attrval("3.0", 19081));
+        testJmxAttribute(new Attribute("3.0", 19081));
     }
 
     @Test
     public void testBigintProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(attrval("4.0", new BigInteger("100500")));
+        testJmxAttribute(new Attribute("4.0", new BigInteger("100500")));
     }
 
     @Test
     public void testArrayProperty() throws BundleException, JMException, IOException {
-        testJmxAttribute(attrval("5.1", new short[]{8, 4, 2, 1}));
+        testJmxAttribute(new Attribute("5.1", new short[]{8, 4, 2, 1}));
     }
 
     @Test
@@ -116,7 +122,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                 .put("col2", "dummy item", SimpleType.INTEGER, 42)
                 .put("col3", "dummy item", SimpleType.STRING, "Frank Underwood")
                 .build();
-        testJmxAttribute(attrval("6.1", dict));
+        testJmxAttribute(new Attribute("6.1", dict));
     }
 
     @Test
@@ -132,12 +138,12 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                 .add(true, 67, "Dostoevsky")
                 .add(false, 98, "Pushkin")
                 .build();
-        testJmxAttribute(attrval("7.1", table));
+        testJmxAttribute(new Attribute("7.1", table));
     }
 
     @Test
     public void notificationTest() throws BundleException, JMException, IOException, TimeoutException, InterruptedException {
-        final Attribute attr = attrval("1.0", "Garry Oldman");
+        final Attribute attr = new Attribute("1.0", "Garry Oldman");
         final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
         try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
@@ -151,11 +157,11 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                 @Override
                 public void handleNotification(final Notification notification, final Object handback) {
                     switch (notification.getType()){
-                        case TEST_RESOURCE_NAME + ".19.1":
+                        case "19.1":
                             attributeChangedEvent.fire(notification); return;
-                        case TEST_RESOURCE_NAME + ".21.1":
+                        case "21.1":
                             eventWithAttachmentHolder.fire(notification); return;
-                        case TEST_RESOURCE_NAME + ".20.1":
+                        case "20.1":
                             testEvent.fire(notification);
                     }
                 }
@@ -207,7 +213,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromSeconds(4));
+        }, TimeSpan.fromMinutes(4));
     }
 
     @Override

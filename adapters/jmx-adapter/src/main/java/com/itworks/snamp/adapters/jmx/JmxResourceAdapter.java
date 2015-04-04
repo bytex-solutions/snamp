@@ -3,11 +3,12 @@ package com.itworks.snamp.adapters.jmx;
 import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.adapters.FeatureAccessor;
+import com.itworks.snamp.internal.AbstractKeyedObjects;
+import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.Utils;
+import org.osgi.framework.BundleContext;
 
 import javax.management.*;
-import java.lang.management.ManagementFactory;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -21,7 +22,7 @@ import java.util.logging.Logger;
 final class JmxResourceAdapter extends AbstractResourceAdapter {
     static final String NAME = JmxAdapterHelpers.ADAPTER_NAME;
 
-    private final Map<ObjectName, ProxyMBean> exposedBeans;
+    private final KeyedObjects<String, ProxyMBean> exposedBeans;
     private boolean usePlatformMBean;
     private ObjectName rootObjectName;
 
@@ -32,15 +33,13 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         rootObjectName = null;
     }
 
-    private static Map<ObjectName, ProxyMBean> createMBeanMap(){
-        return new HashMap<ObjectName, ProxyMBean>(10){
+    private static KeyedObjects<String, ProxyMBean> createMBeanMap(){
+        return new AbstractKeyedObjects<String, ProxyMBean>(10){
             private static final long serialVersionUID = 7388558732363175763L;
 
             @Override
-            public void clear() {
-                for(final ProxyMBean bean: values())
-                    bean.close();
-                super.clear();
+            public String getKey(final ProxyMBean bean) {
+                return bean.getResourceName();
             }
         };
     }
@@ -56,17 +55,18 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     @SuppressWarnings("unchecked")
     @Override
     protected synchronized <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws MalformedObjectNameException, NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanRegistrationException {
-        final ObjectName beanName = createObjectName(rootObjectName, resourceName);
         final ProxyMBean bean;
-        if(exposedBeans.containsKey(beanName))
-            bean = exposedBeans.get(beanName);
+        if(exposedBeans.containsKey(resourceName))
+            bean = exposedBeans.get(resourceName);
         else {
-            exposedBeans.put(beanName, bean = new ProxyMBean(resourceName));
-            //register bean
-            if(usePlatformMBean)
-                ManagementFactory.getPlatformMBeanServer().registerMBean(bean, beanName);
-            else
-                bean.registerAsService(Utils.getBundleContextByObject(this), beanName);
+            exposedBeans.put(bean = new ProxyMBean(resourceName));
+            if(rootObjectName != null) {
+                //register bean
+                if (usePlatformMBean)
+                    bean.register(createObjectName(rootObjectName, resourceName));
+                else
+                    bean.register(getBundleContext(), createObjectName(rootObjectName, resourceName));
+            }
         }
         if(feature instanceof MBeanAttributeInfo)
             return (FeatureAccessor<M, S>)bean.addAttribute((MBeanAttributeInfo)feature);
@@ -77,12 +77,13 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
     @Override
     protected synchronized Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws MalformedObjectNameException, MBeanRegistrationException, InstanceNotFoundException {
-        final ObjectName beanName = createObjectName(rootObjectName, resourceName);
-        if(exposedBeans.containsKey(beanName)){
-            final ProxyMBean bean = exposedBeans.remove(beanName);
+        if(exposedBeans.containsKey(resourceName)){
+            final ProxyMBean bean = exposedBeans.remove(resourceName);
             //unregister bean
-            if (usePlatformMBean)
-                ManagementFactory.getPlatformMBeanServer().unregisterMBean(beanName);
+            if(rootObjectName != null) {
+                if (usePlatformMBean)
+                    bean.unregister(createObjectName(rootObjectName, resourceName));
+            }
             return bean.getAccessorsAndClose();
         }
         else return ImmutableList.of();
@@ -91,9 +92,8 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     @SuppressWarnings("unchecked")
     @Override
     protected synchronized  <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
-        final ObjectName beanName = createObjectName(rootObjectName, resourceName);
-        if(exposedBeans.containsKey(beanName)){
-            final ProxyMBean bean = exposedBeans.get(rootObjectName);
+        if(exposedBeans.containsKey(resourceName)){
+            final ProxyMBean bean = exposedBeans.get(resourceName);
             if(feature instanceof MBeanAttributeInfo)
                 return (FeatureAccessor<M, ?>)bean.removeAttribute((MBeanAttributeInfo)feature);
             else if(feature instanceof MBeanNotificationInfo)
@@ -104,20 +104,31 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected synchronized void start(final Map<String, String> parameters) throws MalformedObjectNameException{
-        this.rootObjectName = JmxAdapterConfigurationProvider.parseRootObjectName(parameters);
-        this.usePlatformMBean = JmxAdapterConfigurationProvider.usePlatformMBean(parameters);
+    protected synchronized void start(final Map<String, String> parameters) throws MalformedObjectNameException, NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanRegistrationException {
+        rootObjectName = JmxAdapterConfigurationProvider.parseRootObjectName(parameters);
+        usePlatformMBean = JmxAdapterConfigurationProvider.usePlatformMBean(parameters);
+        for (final Map.Entry<String, ProxyMBean> entry : exposedBeans.entrySet())
+            if (usePlatformMBean)
+                entry.getValue().register(createObjectName(rootObjectName, entry.getKey()));
+            else entry.getValue().register(getBundleContext(), createObjectName(rootObjectName, entry.getKey()));
     }
 
-    /**
-     * Stops the adapter.
-     * <p>
-     * This method will be called by SNAMP infrastructure automatically.
-     * </p>
-     */
+    private BundleContext getBundleContext(){
+        return Utils.getBundleContextByObject(this);
+    }
+
     @Override
-    protected synchronized void stop(){
-        exposedBeans.clear();
+    protected synchronized void stop() throws MalformedObjectNameException, InstanceNotFoundException, MBeanRegistrationException {
+        try {
+            for (final Map.Entry<String, ProxyMBean> entry : exposedBeans.entrySet()) {
+                if (usePlatformMBean)
+                    entry.getValue().unregister(createObjectName(rootObjectName, entry.getKey()));
+                entry.getValue().close();
+            }
+        }
+        finally {
+            exposedBeans.clear();
+        }
         System.gc();
     }
 
