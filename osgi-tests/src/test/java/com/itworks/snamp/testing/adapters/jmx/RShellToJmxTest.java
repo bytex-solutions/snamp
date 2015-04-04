@@ -109,8 +109,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
         attributes.put("ms", attr);
     }
 
-    private Object readAttribute(String attributeName) throws IOException, JMException {
-        attributeName = TEST_RESOURCE_NAME + "/" + attributeName;
+    private Object readAttribute(final String attributeName) throws IOException, JMException {
         final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
