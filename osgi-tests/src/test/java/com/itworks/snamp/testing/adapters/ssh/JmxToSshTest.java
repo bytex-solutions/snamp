@@ -47,19 +47,18 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         super(new TestOpenMBean(/*true*/), new ObjectName(BEAN_NAME));
     }
 
-    private void testScalarAttribute(String attributeId,
+    private void testScalarAttribute(final String attributeName,
                                final String value,
                                final Equator<String> equator) throws IOException{
         try(final SSHClient client = new SSHClient()){
             client.addHostKeyVerifier(FINGERPRINT);
             client.connect("localhost", PORT);
             client.authPassword(USER_NAME, PASSWORD);
-            attributeId = String.format("%s/%s", TEST_RESOURCE_NAME, attributeId);
             try(final Session s = client.startSession()) {
-                s.exec(String.format("set %s %s", attributeId, value));
+                s.exec(String.format("set -n %s -r %s -v %s", attributeName, TEST_RESOURCE_NAME, value));
             }
             try(final Session s = client.startSession()){
-                final Session.Command result = s.exec(String.format("get %s json", attributeId));
+                final Session.Command result = s.exec(String.format("get -n %s -r %s --json", attributeName, TEST_RESOURCE_NAME));
                 final String output = IOUtils.readFully(result.getInputStream()).toString();
                 final String error = IOUtils.readFully(result.getErrorStream()).toString();
                 if(error != null && error.length() > 0)
