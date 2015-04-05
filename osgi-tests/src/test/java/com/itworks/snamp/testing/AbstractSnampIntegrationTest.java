@@ -1,14 +1,11 @@
 package com.itworks.snamp.testing;
 
-import com.google.common.base.Supplier;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
-import com.itworks.snamp.licensing.AbstractLicenseLimitations;
-import com.itworks.snamp.licensing.LicenseReader;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
@@ -64,8 +61,6 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     }
 
     private PersistentConfigurationManager configManager = null;
-    @Inject
-    private LicenseReader licenseReader = null;
     @Inject
     private ConfigurationAdmin configAdmin = null;
 
@@ -150,8 +145,6 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         //read SNAMP configuration
         setupTestConfiguration(getTestConfigurationManager().getCurrentConfiguration());
         getTestConfigurationManager().save();
-        //verify licensing engine
-        assertNotNull(licenseReader);
         afterStartTest(getTestBundleContext());
     }
 
@@ -169,11 +162,6 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         getTestConfigurationManager().getCurrentConfiguration().clear();
         getTestConfigurationManager().save();
         afterCleanupTest(getTestBundleContext());
-    }
-
-    protected final <L extends AbstractLicenseLimitations> L getLicenseLimitation(final Class<L> limitationType, final Supplier<L> fallback){
-        assertNotNull("Licensing service is not available.", licenseReader);
-        return licenseReader.getLimitations(limitationType, fallback);
     }
 
     protected static <V, E extends Exception> V syncWithAdapterStartedEvent(final String adapterName,

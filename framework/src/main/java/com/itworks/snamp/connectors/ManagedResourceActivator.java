@@ -1,9 +1,6 @@
 package com.itworks.snamp.connectors;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.*;
@@ -15,9 +12,6 @@ import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
-import com.itworks.snamp.licensing.LicenseLimitations;
-import com.itworks.snamp.licensing.LicenseReader;
-import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -518,89 +512,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
             identity.put(CONNECTOR_TYPE_IDENTITY_PROPERTY, getConnectorName());
             return createMaintenanceService(dependencies);
-        }
-    }
-
-    private static final class ConnectorLicensingDescriptorService<L extends LicenseLimitations> extends AbstractAggregator implements LicensingDescriptionService {
-        private final LicenseReader licenseReader;
-        private final Class<L> descriptor;
-        private final Supplier<L> fallbackFactory;
-        private final Logger logger;
-
-        private ConnectorLicensingDescriptorService(final LicenseReader reader,
-                                                   final Class<L> descriptor,
-                                                   final Supplier<L> fallbackFactory,
-                                                   final Logger logger){
-            this.licenseReader = reader;
-            this.descriptor = descriptor;
-            this.fallbackFactory = fallbackFactory;
-            this.logger = logger;
-        }
-
-        /**
-         * Gets logger associated with this service.
-         *
-         * @return The logger associated with this service.
-         */
-        @Override
-        public Logger getLogger() {
-            return logger;
-        }
-
-        /**
-         * Gets a read-only collection of license limitations.
-         *
-         * @return A read-only collection of license limitations.
-         */
-        @Override
-        public final Collection<String> getLimitations() {
-            return Lists.newArrayList((licenseReader.getLimitations(descriptor, fallbackFactory)));
-        }
-
-        /**
-         * Gets human-readable description of the specified limitation.
-         *
-         * @param limitationName The system name of the limitation.
-         * @param loc            The locale of the description. May be {@literal null}.
-         * @return The description of the limitation.
-         */
-        @Override
-        public final String getDescription(final String limitationName, final Locale loc) {
-            final LicenseLimitations.Limitation<?> lim =  licenseReader.getLimitations(descriptor, fallbackFactory).getLimitation(limitationName);
-            return lim != null ? lim.getDescription(loc) : "";
-        }
-    }
-
-    protected static class LicensingDescriptionServiceManager<L extends LicenseLimitations> extends SupportConnectorServiceManager<LicensingDescriptionService, ConnectorLicensingDescriptorService> {
-        private final Supplier<L> fallbackFactory;
-        private final Class<L> descriptor;
-
-        public LicensingDescriptionServiceManager(final Class<L> limitationsDescriptor,
-                                                  final Supplier<L> fallbackFactory) {
-            super(LicensingDescriptionService.class, new SimpleDependency<>(LicenseReader.class));
-            if(fallbackFactory == null) throw new IllegalArgumentException("fallbackFactory is null.");
-            else if(limitationsDescriptor == null) throw new IllegalArgumentException("limitationsDescriptor is null.");
-            else{
-                this.fallbackFactory = fallbackFactory;
-                this.descriptor = limitationsDescriptor;
-            }
-        }
-
-        /**
-         * Creates a new instance of the service.
-         *
-         * @param identity     A dictionary of properties that uniquely identifies service instance.
-         * @param dependencies A collection of dependencies.
-         * @return A new instance of the service.
-         */
-        @SuppressWarnings("unchecked")
-        @Override
-        protected final ConnectorLicensingDescriptorService activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
-            identity.put(CONNECTOR_TYPE_IDENTITY_PROPERTY, getConnectorName());
-            return new ConnectorLicensingDescriptorService(getDependency(SimpleDependency.class, LicenseReader.class, dependencies),
-                    descriptor,
-                    fallbackFactory,
-                    getActivationPropertyValue(LOGGER_HOLDER));
         }
     }
 

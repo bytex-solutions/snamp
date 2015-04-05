@@ -7,7 +7,6 @@ import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.SupportService;
-import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.*;
 
@@ -113,40 +112,6 @@ public final class ResourceAdapterClient {
             ref = null;
             try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
                 logger.log(Level.SEVERE, String.format("Unable to discover configuration schema of %s adapter", adapterName), e);
-            }
-            return null;
-        }
-        finally {
-            if(ref != null) context.ungetService(ref);
-        }
-    }
-
-    /**
-     * Gets collection of license limitations associated with the specified adapter.
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param adapterName The name of the adapter.
-     * @param loc The locale of the description. May be {@literal null}.
-     * @return A map of license limitations with its human-readable description.
-     */
-    public static Map<String, String> getLicenseLimitations(final BundleContext context,
-                                                            final String adapterName,
-                                                            final Locale loc) throws UnsupportedOperationException{
-        if(context == null) return null;
-        ServiceReference<LicensingDescriptionService> ref = null;
-        try {
-            ref = getServiceReference(context, adapterName, null, LicensingDescriptionService.class);
-            if(ref == null)
-                throw unsupportedServiceRequest(adapterName, LicensingDescriptionService.class);
-            final LicensingDescriptionService lims = context.getService(ref);
-            final Map<String, String> result = Maps.newHashMapWithExpectedSize(lims.getLimitations().size());
-            for(final String limName: lims.getLimitations())
-                result.put(limName, lims.getDescription(limName, loc));
-            return result;
-        }
-        catch (final InvalidSyntaxException e) {
-            ref = null;
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
-                logger.log(Level.SEVERE, String.format("Unable to discover license limitations of %s adapter", adapterName), e);
             }
             return null;
         }

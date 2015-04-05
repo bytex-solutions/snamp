@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.jmx.CompositeTypeBuilder;
-import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.management.SnampManager;
@@ -26,7 +25,6 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
     private static final String DESCRIPTION_COLUMN = "Description";
     private static final String VERSION_COLUMN = "Version";
     private static final String BUNDLE_STATE_COLUMN = "State";
-    private static final String IS_LICENSED_COLUMN = "IsCommerciallyLicensed";
     private static final String IS_MANAGEABLE_COLUMN = "IsManageable";
     private static final String IS_CONFIG_DESCR_AVAIL_COLUMN = "IsConfigurationDescriptionAvailable";
 
@@ -41,7 +39,6 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
                     .addItem(DESCRIPTION_COLUMN, "Description of SNAMP component", SimpleType.STRING)
                     .addItem(VERSION_COLUMN, "SNAMP component version", SimpleType.STRING)
                     .addItem(BUNDLE_STATE_COLUMN, "State of the component inside of OSGI environment", SimpleType.INTEGER)
-                    .addItem(IS_LICENSED_COLUMN, "SNAMP component is commercially licensed", SimpleType.BOOLEAN)
                     .addItem(IS_MANAGEABLE_COLUMN, "SNAMP component supports command-line interaction", SimpleType.BOOLEAN)
                     .addItem(IS_CONFIG_DESCR_AVAIL_COLUMN, "SNAMP component provides description of its configuration schema", SimpleType.BOOLEAN);
 
@@ -75,7 +72,6 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
         row.put(VERSION_COLUMN, Objects.toString(component.getVersion(), "0.0"));
         row.put(BUNDLE_STATE_COLUMN, component.getState());
         row.put(IS_MANAGEABLE_COLUMN, false);
-        row.put(IS_LICENSED_COLUMN, false);
         row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, false);
         try {
             component.invokeSupportService(Maintainable.class, new SafeConsumer<Maintainable>() {
@@ -88,12 +84,6 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
                 @Override
                 public void accept(final ConfigurationEntityDescriptionProvider input) {
                     row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, input != null);
-                }
-            });
-            component.invokeSupportService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
-                @Override
-                public void accept(final LicensingDescriptionService input) {
-                    row.put(IS_LICENSED_COLUMN, input != null);
                 }
             });
         }

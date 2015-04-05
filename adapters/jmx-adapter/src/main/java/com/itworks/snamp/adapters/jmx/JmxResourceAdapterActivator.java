@@ -34,10 +34,6 @@ public final class JmxResourceAdapterActivator extends ResourceAdapterActivator<
     public JmxResourceAdapterActivator() {
         super(JmxResourceAdapter.NAME,
                 new JmxAdapterFactory(),
-                new RequiredService<?>[]{JmxAdapterLicenseLimitations.licenseReader},
-                new SupportAdapterServiceManager<?, ?>[]{
-                        new JmxConfigurationDescriptor(),
-                        new LicensingDescriptionServiceManager<>(JmxAdapterLicenseLimitations.class, JmxAdapterLicenseLimitations.fallbackFactory)
-                });
+                new JmxConfigurationDescriptor());
     }
 }

@@ -38,7 +38,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
      */
     static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
 
-    private static interface JmxFeatureMetadata extends Serializable, DescriptorRead {
+    private interface JmxFeatureMetadata extends Serializable, DescriptorRead {
         @SpecialUse
         ObjectName getOwner();
         @SpecialUse
@@ -50,12 +50,12 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     /**
      * Represents JMX attribute metadata.
      */
-    private static interface JmxAttributeMetadata extends OpenMBeanAttributeInfo, JmxFeatureMetadata {
+    private interface JmxAttributeMetadata extends OpenMBeanAttributeInfo, JmxFeatureMetadata {
         @SpecialUse
         String getType();
     }
 
-    private static interface JmxNotificationMetadata extends JmxFeatureMetadata{
+    private interface JmxNotificationMetadata extends JmxFeatureMetadata{
         @SpecialUse
         String[] getNotifTypes();
     }
@@ -226,7 +226,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         protected JmxAttributeInfo connectAttribute(final String attributeID,
                                                     final AttributeDescriptor descriptor) throws Exception {
             final String namespace = descriptor.getField(OBJECT_NAME_PROPERTY, String.class);
-            JmxConnectorLimitations.current().verifyMaxAttributeCount(attributesCount());
             return connectAttribute(new ObjectName(namespace), attributeID, descriptor);
         }
 

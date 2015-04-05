@@ -10,7 +10,7 @@
         <feature>hawtio-offline</feature>
         <bundle start="true">mvn:io.hawt/hawtio-plugin-mbean/1.4.47</bundle>
         <!-- Third-party bundles -->
-        <bundle >mvn:com.google.code.gson/gson/2.3.1</bundle>
+        <bundle>mvn:com.google.code.gson/gson/2.3.1</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
         <!--SNAMP dependencies-->
         <bundle>mvn:com.itworks.snamp/framework/1.0.0</bundle>

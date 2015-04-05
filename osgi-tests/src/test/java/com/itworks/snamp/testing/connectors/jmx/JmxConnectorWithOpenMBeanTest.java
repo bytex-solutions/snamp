@@ -316,13 +316,6 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void licenseLimitationsDiscoveryTest(){
-        final Map<String, String> lims = ManagedResourceConnectorClient.getLicenseLimitations(getTestBundleContext(), CONNECTOR_NAME, null);
-        assertFalse(lims.isEmpty());
-        assertEquals(3, lims.size());
-    }
-
-    @Test
     public final void maintenanceActionTest() throws InterruptedException, ExecutionException, TimeoutException {
         final Map<String, String> actions = ManagedResourceConnectorClient.getMaintenanceActions(getTestBundleContext(), CONNECTOR_NAME, null);
         assertFalse(actions.isEmpty());

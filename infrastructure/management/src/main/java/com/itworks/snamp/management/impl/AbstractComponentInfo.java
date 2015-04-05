@@ -1,25 +1,15 @@
 package com.itworks.snamp.management.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.jmx.CompositeTypeBuilder;
 import com.itworks.snamp.jmx.OpenMBean;
-import com.itworks.snamp.jmx.TabularDataBuilderRowFill;
-import com.itworks.snamp.jmx.TabularTypeBuilder;
-import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 
 import javax.management.MBeanOperationInfo;
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.CompositeType;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenMBeanParameterInfo;
-import javax.management.openmbean.SimpleType;
-import javax.management.openmbean.TabularType;
+import javax.management.openmbean.*;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.logging.Level;
 
 /**
  * Abstract class for SNAMP component info
@@ -29,7 +19,6 @@ import java.util.logging.Level;
 abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeData, CompositeType> implements CommonOpenTypesSupport<MBeanOperationInfo> {
 
     private static final CompositeType COMPONENT_CONFIG_SCHEMA;
-    private static final TabularType LIMITATION_SCHEMA;
 
     private static final CompositeTypeBuilder MAIN_TYPE;
 
@@ -44,18 +33,11 @@ abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeDa
 
     static {
         try {
-            LIMITATION_SCHEMA = new TabularTypeBuilder("com.itworks.management.LimitationSchemeType",
-                    "Snamp component limitation schema")
-                    .addColumn("Limitation", "Limitation name", SimpleType.STRING, true)
-                    .addColumn("Description", "Limitation descriptor", SimpleType.STRING, false)
-                    .build();
-
             MAIN_TYPE = new CompositeTypeBuilder("com.itworks.management.ComponentConfig", "SNAMP Component Configuration Schema")
                     .addItem("Version", "Version of the SNAMP component", SimpleType.STRING)
                     .addItem("State", STATE_DESCRIPTION, SimpleType.INTEGER)
                     .addItem("DisplayName", "Snamp component name to be displayed", SimpleType.STRING)
-                    .addItem("Description", "The short description of the SNAMP component", SimpleType.STRING)
-                    .addItem("Licensing", "Licensing limitation of the SNAMP component", LIMITATION_SCHEMA);
+                    .addItem("Description", "The short description of the SNAMP component", SimpleType.STRING);
 
             COMPONENT_CONFIG_SCHEMA = MAIN_TYPE.build();
 
@@ -92,30 +74,12 @@ abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeDa
      * @throws OpenDataException the open data exception
      */
     protected static CompositeData getSnampComponentInfo(final SnampComponentDescriptor component, final Locale loc) throws OpenDataException {
-        final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(LIMITATION_SCHEMA);
-        component.invokeSupportService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
-            @Override
-            public void accept(final LicensingDescriptionService input) {
-            for (final String limitation : input.getLimitations()) {
-                try {
-                    builder.newRow()
-                        .cell("Limitation", limitation)
-                        .cell("Description", input.getDescription(limitation, loc))
-                        .flush();
-                } catch (final OpenDataException e) {
-                    MonitoringUtils.getLogger().log(Level.WARNING, e.getLocalizedMessage(), e);
-                }
-            }
-            }
-        });
-
         return MAIN_TYPE.build(
             ImmutableMap.of(
                 "Version", Objects.toString(component.getVersion(), "0.0"),
                 "State", component.getState(),
                 "DisplayName", component.getName(loc),
-                "Description", component.getDescription(loc),
-                "Licensing", builder.get()
+                "Description", component.getDescription(loc)
             )
         );
     }

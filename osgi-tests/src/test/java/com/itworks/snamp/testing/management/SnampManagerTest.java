@@ -122,25 +122,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     /**
-     * License test.
-     *
-     * @throws IOException the iO exception
-     * @throws JMException the jM exception
-     * @throws InterruptedException the interrupted exception
-     * @throws TimeoutException the timeout exception
-     */
-    @Test
-    public void licenseTest() throws IOException, JMException, InterruptedException, TimeoutException {
-        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
-            final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
-            Object licenseContent = connection.getAttribute(commonsObj, "license");
-            assertTrue(licenseContent instanceof String);
-            assertEquals(getLicenseContent(), licenseContent);
-        }
-    }
-
-    /**
      * Configuration get test.
      *
      * @throws IOException the iO exception

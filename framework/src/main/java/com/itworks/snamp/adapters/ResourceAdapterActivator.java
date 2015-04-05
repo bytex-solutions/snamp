@@ -1,8 +1,5 @@
 package com.itworks.snamp.adapters;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.Lists;
-import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
@@ -13,9 +10,6 @@ import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
-import com.itworks.snamp.licensing.LicenseLimitations;
-import com.itworks.snamp.licensing.LicenseReader;
-import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -56,7 +50,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ResourceAdapterFactory<TAdapter extends ResourceAdapter>{
+    protected interface ResourceAdapterFactory<TAdapter extends ResourceAdapter>{
         TAdapter createAdapter(final String adapterInstance,
                                final RequiredService<?>... dependencies) throws Exception;
     }
@@ -189,7 +183,6 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      * @since 1.0
      * @version 1.0
      * @see ResourceAdapterActivator.ConfigurationEntityDescriptionManager
-     * @see ResourceAdapterActivator.LicensingDescriptionServiceManager
      */
     protected abstract static class SupportAdapterServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T>{
 
@@ -232,80 +225,6 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
             identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getAdapterName());
             return createMaintenanceService(dependencies);
-        }
-    }
-
-    private static final class AdapterLicensingDescriptorService<L extends LicenseLimitations> extends AbstractAggregator implements LicensingDescriptionService {
-        private final LicenseReader licenseReader;
-        private final Class<L> descriptor;
-        private final Supplier<L> fallbackFactory;
-
-        public AdapterLicensingDescriptorService(final LicenseReader reader,
-                                                 final Class<L> descriptor,
-                                                 final Supplier<L> fallbackFactory){
-            this.licenseReader = reader;
-            this.descriptor = descriptor;
-            this.fallbackFactory = fallbackFactory;
-        }
-
-        @Override
-        public Logger getLogger() {
-            return licenseReader.getLogger();
-        }
-
-        /**
-         * Gets a read-only collection of license limitations.
-         *
-         * @return A read-only collection of license limitations.
-         */
-        @Override
-        public Collection<String> getLimitations() {
-            return Lists.newArrayList(licenseReader.getLimitations(descriptor, fallbackFactory));
-        }
-
-        /**
-         * Gets human-readable description of the specified limitation.
-         *
-         * @param limitationName The system name of the limitation.
-         * @param loc            The locale of the description. May be {@literal null}.
-         * @return The description of the limitation.
-         */
-        @Override
-        public String getDescription(final String limitationName, final Locale loc) {
-            final LicenseLimitations.Limitation<?> lim =  licenseReader.getLimitations(descriptor, fallbackFactory).getLimitation(limitationName);
-            return lim != null ? lim.getDescription(loc) : "";
-        }
-    }
-
-    protected final static class LicensingDescriptionServiceManager<L extends LicenseLimitations> extends SupportAdapterServiceManager<LicensingDescriptionService, AdapterLicensingDescriptorService> {
-        private final Supplier<L> fallbackFactory;
-        private final Class<L> descriptor;
-
-        public LicensingDescriptionServiceManager(final Class<L> limitationsDescriptor,
-                                                  final Supplier<L> fallbackFactory) {
-            super(LicensingDescriptionService.class, new SimpleDependency<>(LicenseReader.class));
-            if(fallbackFactory == null) throw new IllegalArgumentException("fallbackFactory is null.");
-            else if(limitationsDescriptor == null) throw new IllegalArgumentException("limitationsDescriptor is null.");
-            else{
-                this.fallbackFactory = fallbackFactory;
-                this.descriptor = limitationsDescriptor;
-            }
-        }
-
-        /**
-         * Creates a new instance of the service.
-         *
-         * @param identity     A dictionary of properties that uniquely identifies service instance.
-         * @param dependencies A collection of dependencies.
-         * @return A new instance of the service.
-         */
-        @SuppressWarnings("unchecked")
-        @Override
-        protected final AdapterLicensingDescriptorService activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
-            identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getAdapterName());
-            return new AdapterLicensingDescriptorService(getDependency(SimpleDependency.class, LicenseReader.class, dependencies),
-                    descriptor,
-                    fallbackFactory);
         }
     }
 

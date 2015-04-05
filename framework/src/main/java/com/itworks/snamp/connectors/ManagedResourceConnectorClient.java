@@ -12,7 +12,6 @@ import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.SupportService;
-import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -111,45 +110,6 @@ public final class ManagedResourceConnectorClient {
      */
     public static String getDisplayName(final BundleContext context, final String connectorType, final Locale loc) {
         return getConnectorBundleHeader(context, connectorType, Constants.BUNDLE_NAME, loc);
-    }
-
-    /**
-     * Gets collection of license limitations associated with the specified connector.
-     * <p>
-     *     The connector bundle should expose {@link com.itworks.snamp.licensing.LicensingDescriptionService} service.
-     * </p>
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param connectorType The system name of the connector.
-     * @param loc The locale of the description. May be {@literal null}.
-     * @return A map of license limitations with its human-readable description.
-     * @throws java.lang.UnsupportedOperationException The specified connector doesn't provide
-     *          information about licensing limitations.
-     */
-    public static Map<String, String> getLicenseLimitations(final BundleContext context,
-                                                                                      final String connectorType,
-                                                                                      final Locale loc) throws UnsupportedOperationException{
-        if(context == null) return null;
-        ServiceReference<LicensingDescriptionService> ref = null;
-        try {
-            ref = getServiceReference(context, connectorType, null, LicensingDescriptionService.class);
-            if(ref == null)
-                throw unsupportedServiceRequest(connectorType, LicensingDescriptionService.class);
-            final Map<String, String> result = new HashMap<>(5);
-            final LicensingDescriptionService lims = context.getService(ref);
-            for(final String limName: lims.getLimitations())
-                result.put(limName, lims.getDescription(limName, loc));
-            return result;
-        }
-        catch (final InvalidSyntaxException e) {
-            ref = null;
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
-                logger.log(Level.SEVERE, String.format("Unable to discover license limitations of %s connector", connectorType), e);
-            }
-            return Collections.emptyMap();
-        }
-        finally {
-            if(ref != null) context.ungetService(ref);
-        }
     }
 
     /**

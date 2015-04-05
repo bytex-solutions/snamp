@@ -21,8 +21,6 @@ import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.connectors.ManagedResourceConnectorClient.getConnectorType;
@@ -124,20 +122,13 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
     }
 
     private static final class JmxConnectorFactory extends ManagedResourceConnectorModeler<JmxConnector> {
-        private final AtomicLong instances = new AtomicLong(0L);
 
         @Override
         public JmxConnector createConnector(final String resourceName,
                                             final String connectionString,
                                             final Map<String, String> connectionOptions,
                                             final RequiredService<?>... dependencies) throws MalformedURLException {
-            final JmxConnectorLimitations limitations = JmxConnectorLimitations.current();
-            limitations.verifyMaxInstanceCount(instances.get());
-            limitations.verifyServiceVersion();
-            final JmxConnector result = new JmxConnector(resourceName, connectionString, connectionOptions);
-            instances.incrementAndGet();
-            JmxConnectorHelpers.log(Level.INFO, String.format("JMX connector for resource %s instantiated", resourceName), null);
-            return result;
+            return new JmxConnector(resourceName, connectionString, connectionOptions);
         }
 
         @Override
@@ -161,12 +152,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
 
         @Override
         public void releaseConnector(final JmxConnector connector) throws Exception {
-            try {
-                connector.close();
-            }
-            finally {
-                instances.decrementAndGet();
-            }
+            connector.close();
         }
     }
 
@@ -177,30 +163,26 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
     public JmxConnectorBundleActivator() {
         super(JmxConnector.NAME,
                 new JmxConnectorFactory(),
-                new RequiredService<?>[]{JmxConnectorLimitations.licenseReader},
-                new SupportConnectorServiceManager<?, ?>[]{
-                        new ConfigurationEntityDescriptionManager<JmxConnectorConfigurationDescriptor>() {
-                            @Override
-                            protected JmxConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-                                return new JmxConnectorConfigurationDescriptor();
-                            }
-                        },
-                        new JmxMaintenanceServiceManager(),
-                        new LicensingDescriptionServiceManager<>(JmxConnectorLimitations.class, JmxConnectorLimitations.fallbackFactory),
-                        new SimpleDiscoveryServiceManager<JMXConnector>() {
+                new ConfigurationEntityDescriptionManager<JmxConnectorConfigurationDescriptor>() {
+                    @Override
+                    protected JmxConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+                        return new JmxConnectorConfigurationDescriptor();
+                    }
+                },
+                new JmxMaintenanceServiceManager(),
+                new SimpleDiscoveryServiceManager<JMXConnector>() {
 
-                            @Override
-                            protected JMXConnector createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws IOException {
-                                return new JmxConnectionOptions(connectionString, connectionOptions).createConnection();
-                            }
+                    @Override
+                    protected JMXConnector createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws IOException {
+                        return new JmxConnectionOptions(connectionString, connectionOptions).createConnection();
+                    }
 
-                            @Override
-                            protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType,
-                                                                                                       final JMXConnector connection,
-                                                                                                       final RequiredService<?>... dependencies) throws JMException, IOException {
-                                return JmxDiscoveryService.discover(connection, entityType);
-                            }
-                        }
+                    @Override
+                    protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType,
+                                                                                               final JMXConnector connection,
+                                                                                               final RequiredService<?>... dependencies) throws JMException, IOException {
+                        return JmxDiscoveryService.discover(connection, entityType);
+                    }
                 });
     }
 }

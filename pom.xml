@@ -10,7 +10,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
-    <com.itworks.snamp.licensing.version>1.0.0</com.itworks.snamp.licensing.version>
   </properties>
     <version>1.0.0</version>
     <organization>
@@ -41,7 +40,6 @@
     <module>connectors</module>
     <module>adapters</module>
     <module>license-generator</module>
-    <module>infrastructure/licensing</module>
     <module>infrastructure/hawtio-console</module>
     <module>infrastructure/jmx2json</module>
     <module>third-party-libs/bundlized/snmp4j</module>

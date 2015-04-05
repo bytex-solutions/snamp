@@ -355,13 +355,6 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Test
-    public void licenseDescriptionTest() {
-        final Map<String, String> lims = ResourceAdapterClient.getLicenseLimitations(getTestBundleContext(), ADAPTER_NAME, null);
-        assertFalse(lims.isEmpty());
-        assertEquals(2, lims.size());
-    }
-
-    @Test
     public void configurationDescriptorTest() throws BundleException {
         final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
         assertNotNull(desc);

@@ -638,7 +638,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
          */
         @Override
         protected SnmpAttributeInfo connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws Exception {
-            SnmpConnectorLicenseLimitations.current().verifyMaxAttributeCount(attributesCount());
             final Variable value = client.read(new Action<SnmpClient, Variable, Exception>() {
                 private final TimeSpan responseTimeout = SnmpConnectorConfigurationProvider.getResponseTimeout(descriptor);
 
@@ -791,17 +790,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
     }
 
-    void removeAllAttributes(){
-        attributes.clear(false);
-    }
-
     MBeanNotificationInfo enableNotifications(final String listId, final String category, final CompositeData options) {
         verifyInitialization();
         return notifications.enableNotifications(listId, category, options);
-    }
-
-    void removeAllNotifications(){
-        notifications.clear(true, false);
     }
 
     /**

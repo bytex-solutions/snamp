@@ -470,13 +470,6 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void licensingServiceTest() {
-        final Map<String, String> limitations = ManagedResourceConnectorClient.getLicenseLimitations(getTestBundleContext(), CONNECTOR_NAME, null);
-        assertNotNull(limitations);
-        assertFalse(limitations.isEmpty());
-    }
-
-    @Test
     public void configurationDescriptionServiceTest() {
         final ConfigurationEntityDescription<AttributeConfiguration> attributesConfig = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), CONNECTOR_NAME, AttributeConfiguration.class);
         assertNotNull(attributesConfig);
