@@ -16,7 +16,7 @@ public class ResourceAdapterEvent extends EventObject {
      *
      * @param adapterInstance An instance of the resource adapter associated with this event.
      */
-    public ResourceAdapterEvent(final ResourceAdapter adapterInstance) {
+    ResourceAdapterEvent(final ResourceAdapter adapterInstance) {
         super(adapterInstance);
     }
 

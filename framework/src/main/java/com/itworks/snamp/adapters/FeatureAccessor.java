@@ -35,6 +35,13 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> {
      */
     public abstract void disconnect();
 
+    /**
+     * Determines whether the feature of the managed resource is accessible
+     * through this object.
+     * @return {@literal true}, if this feature is accessible; otherwise, {@literal false}.
+     */
+    public abstract boolean isConnected();
+
     @Override
     public String toString() {
         return getMetadata().toString();

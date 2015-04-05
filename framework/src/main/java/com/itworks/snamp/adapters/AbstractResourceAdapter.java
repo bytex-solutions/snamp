@@ -56,6 +56,19 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     private static final Multimap<String, WeakReference<ResourceAdapterEventListener>> listeners = HashMultimap.create(10, 3);
     private static final ExecutorService eventExecutor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("ADAPTER_EVENTS"));
 
+    private static final class ResourceAdapterUpdateNotifier extends WeakReference<AbstractResourceAdapter> implements ResourceAdapterUpdatedCallback{
+
+        private ResourceAdapterUpdateNotifier(final AbstractResourceAdapter adapter) {
+            super(adapter);
+        }
+
+        @Override
+        public void updated() {
+            final AbstractResourceAdapter adapter = get();
+            if(adapter != null) adapter.notifyAdapterUpdated();
+        }
+    }
+
     private static final class AdapterLogicalOperation extends RichLogicalOperation {
         private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "adapterInstanceName";
 
@@ -108,6 +121,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     private InternalState mutableState;
     private final String adapterInstanceName;
     private final WriteOnceRef<ResourceAdapterEventListener> listener;
+    private final ResourceAdapterUpdateNotifier endUpdateNotifier;
 
     /**
      * Initializes a new resource adapter.
@@ -117,6 +131,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         this.adapterInstanceName = instanceName;
         mutableState = InternalState.initialState();
         listener = new WriteOnceRef<>();
+        endUpdateNotifier = new ResourceAdapterUpdateNotifier(this);
     }
 
     /**
@@ -320,38 +335,60 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
     }
 
-    private void adapterStarted(){
+    private void notifyAdapterUpdating(){
+        notifyAdapterListeners(new ResourceAdapterUpdatingEvent(this), "Adapter %s is updating. Context: %s");
+    }
+
+    private void notifyAdapterUpdated(){
+        notifyAdapterListeners(new ResourceAdapterUpdatedEvent(this), "Adapter %s is updated. Context: %s");
+    }
+
+    /**
+     * Begin or prolong updating the internal structure of this adapter.
+     * @param manager The update manager.
+     * @param callback The callback used to notify about ending of the updating process.
+     */
+    protected final void beginUpdate(final ResourceAdapterUpdateManager manager, ResourceAdapterUpdatedCallback callback){
+        callback = callback != null ?
+                ResourceAdapterUpdateManager.combineCallbacks(callback, endUpdateNotifier):
+                endUpdateNotifier;
+        if(manager.beginUpdate(callback))
+            notifyAdapterUpdating();
+    }
+
+    /**
+     * Begin or prolong updating the internal structure of this adapter.
+     * @param manager The updating manager.
+     */
+    protected final void beginUpdate(final ResourceAdapterUpdateManager manager){
+        beginUpdate(manager, null);
+    }
+
+    private void notifyAdapterListeners(final ResourceAdapterEvent event,
+                                        final String logMessage){
         final ResourceAdapterEventListener listener = this.listener.get();
         if(listener != null)
-            listener.adapterStarted(new ResourceAdapterEvent(this));
+            listener.handle(event);
         try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Adapter %s is started. Context: %s",
+            logger.info(String.format(logMessage,
                     adapterInstanceName,
                     LogicalOperation.current()));
         }
     }
 
-    private void adapterStopped(){
-        final ResourceAdapterEventListener listener = this.listener.get();
-        if(listener != null)
-            listener.adapterStopped(new ResourceAdapterEvent(this));
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Adapter %s is stopped. Context: %s",
-                    adapterInstanceName,
-                    LogicalOperation.current()));
-        }
+    private void notifyAdapterStarted(){
+        notifyAdapterListeners(new ResourceAdapterStartedEvent(this), "Adapter %s is started. Context: %s");
+    }
+
+    private void notifyAdapterStopped() {
+        notifyAdapterListeners(new ResourceAdapterStoppedEvent(this), "Adapter %s is stopped. Context: %s");
     }
 
     private static ResourceAdapterEventListener createListener(final String adapterName){
         return new ResourceAdapterEventListener() {
             @Override
-            public void adapterStarted(final ResourceAdapterEvent e) {
-                AbstractResourceAdapter.adapterStarted(adapterName, e);
-            }
-
-            @Override
-            public void adapterStopped(final ResourceAdapterEvent e) {
-                AbstractResourceAdapter.adapterStopped(adapterName, e);
+            public void handle(final ResourceAdapterEvent e) {
+                fireAdapterListeners(adapterName, e);
             }
         };
     }
@@ -410,7 +447,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 InternalState newState = currentState.setParameters(params);
                 start(newState.parameters);
                 mutableState = newState.setAdapterState(AdapterState.STARTED);
-                adapterStarted();
+                notifyAdapterStarted();
                 return true;
             default:
                 return false;
@@ -432,7 +469,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 finally {
                     mutableState = currentState.setAdapterState(AdapterState.STOPPED);
                 }
-                adapterStopped();
+                notifyAdapterStopped();
                 return true;
             default:
                 return false;
@@ -464,10 +501,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     case ServiceEvent.MODIFIED_ENDMATCH:
                     case ServiceEvent.UNREGISTERING:
                         removeResource(connectorRef);
-                        return;
+                        break;
                     case ServiceEvent.REGISTERED:
                         addResource(connectorRef);
-                        return;
+                        break;
                     default:
                         try (final OSGiLoggingContext logger = getLoggingContext()) {
                             logger.info(String.format("Unexpected event %s captured by adapter %s for resource %s. Context: %s",
@@ -515,6 +552,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
         finally {
             mutableState = InternalState.finalState();
+            endUpdateNotifier.clear();
         }
     }
 
@@ -544,26 +582,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         return adapterInstanceName;
     }
 
-    private static void adapterStarted(final String adapterName,
-                               final ResourceAdapterEvent event){
-        synchronized (listeners){
-            WeakMultimap.removeUnused(listeners);
-            for(final WeakReference<ResourceAdapterEventListener> listenerRef: listeners.get(adapterName)) {
-                final ResourceAdapterEventListener listener = listenerRef.get();
-                if (listener instanceof AsyncEventListener)
-                    eventExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            listener.adapterStarted(event);
-                        }
-                    });
-                else if(listener != null)
-                    listener.adapterStarted(event);
-            }
-        }
-    }
-
-    private static void adapterStopped(final String adapterName,
+    private static void fireAdapterListeners(final String adapterName,
                                        final ResourceAdapterEvent event){
         synchronized (listeners){
             WeakMultimap.removeUnused(listeners);
@@ -573,10 +592,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     eventExecutor.execute(new Runnable() {
                         @Override
                         public void run() {
-                            listener.adapterStopped(event);
+                            listener.handle(event);
                         }
                     });
-                else if(listener != null) listener.adapterStopped(event);
+                else if(listener != null) listener.handle(event);
             }
         }
     }

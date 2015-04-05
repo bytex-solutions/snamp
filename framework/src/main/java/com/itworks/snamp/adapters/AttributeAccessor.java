@@ -79,6 +79,17 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
         openType = new OpenTypeCache();
     }
 
+    /**
+     * Determines whether the feature of the managed resource is accessible
+     * through this object.
+     *
+     * @return {@literal true}, if this feature is accessible; otherwise, {@literal false}.
+     */
+    @Override
+    public final boolean isConnected() {
+        return attributeSupport != null;
+    }
+
     private AttributeSupport verifyOnDisconnected() throws AttributeNotFoundException {
         final AttributeSupport as = attributeSupport;
         if(as == null)

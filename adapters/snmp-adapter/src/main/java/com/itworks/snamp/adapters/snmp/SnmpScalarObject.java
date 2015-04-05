@@ -165,4 +165,9 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     public final boolean equals(final MBeanAttributeInfo metadata) {
         return Objects.equals(getID(), new OID(parseOID(metadata)));
     }
+
+    @Override
+    public final String toString() {
+        return String.format("Scalar. Metadata: %s; OID: %s; Access: %s", accessor.toString(), getID(), getAccess());
+    }
 }

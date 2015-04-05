@@ -9,37 +9,20 @@ import org.junit.Test;
  * @since 1.0
  */
 public class ResourceAdapterUpdateManagerTest extends Assert {
-    private static final class DummyUpdateManager extends ResourceAdapterUpdateManager {
-
-        private DummyUpdateManager() {
-            super("dummAdapterInstance", 2000);
-        }
-
-        @Override
-        public void endUpdateCore() {
-
-        }
-
-        @Override
-        protected void beginUpdateCore() {
-
-        }
-    }
-
     @Test
     public void stateTest() throws Exception {
-        try(final ResourceAdapterUpdateManager manager = new DummyUpdateManager()){
+        try(final ResourceAdapterUpdateManager manager = new ResourceAdapterUpdateManager("dummAdapterInstance", 2000)){
             //changes the state of the manager
-            manager.beginUpdate();
+            manager.beginUpdate(null);
             Thread.sleep(1500);
             assertTrue(manager.isUpdating());
             Thread.sleep(1500);
             assertFalse(manager.isUpdating());
-            manager.beginUpdate();
+            manager.beginUpdate(null);
             assertTrue(manager.isUpdating());
             Thread.sleep(1500);
             assertTrue(manager.isUpdating());
-            manager.beginUpdate();
+            manager.beginUpdate(null);
             Thread.sleep(1500);
             assertTrue(manager.isUpdating());
         }

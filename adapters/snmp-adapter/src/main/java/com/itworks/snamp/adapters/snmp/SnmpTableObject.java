@@ -45,7 +45,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     /**
      * Represents transaction state.
      */
-    private static enum TransactionState{
+    private enum TransactionState{
         PREPARE((byte)0),
         COMMIT((byte)1),
         ROLLBACK((byte)2),
@@ -53,7 +53,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
 
         private final byte stateId;
 
-        private TransactionState(final byte sid){
+        TransactionState(final byte sid){
             this.stateId = sid;
         }
 
@@ -72,7 +72,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         }
     }
 
-    private static enum TransactionCompletionState{
+    private enum TransactionCompletionState{
         IN_PROGRESS,
         SUCCESS,
         ROLLED_BACK
@@ -111,8 +111,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
          * @throws IllegalArgumentException Invalid new state for this transaction.
          */
         private synchronized void setState(final TransactionState newState) throws IllegalArgumentException{
-            if(newState == null) throw new IllegalArgumentException("newState is null.");
-            else if(state == null)
+            if(state == null)
                 switch (newState){
                     case PREPARE:
                     case COMMIT:
@@ -641,5 +640,13 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     @Override
     public final boolean equals(final MBeanAttributeInfo metadata) {
         return Objects.equals(getID(), new OID(parseOID(metadata)));
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Table. Metadata: %s; OID: %s; Index: %s",
+                _connector.toString(),
+                getID(),
+                getIndexDef());
     }
 }

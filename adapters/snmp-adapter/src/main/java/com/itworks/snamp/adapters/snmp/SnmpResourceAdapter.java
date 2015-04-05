@@ -144,9 +144,8 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             agent.suspend();
         }
 
-        @Override
-        public void endUpdateCore() {
-            agent.resume();
+        private ResourceAdapterUpdatedCallback getCallback(){
+            return agent;
         }
     }
 
@@ -230,11 +229,11 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     protected synchronized <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
         if(updateManager != null)
-            updateManager.beginUpdate();
+            beginUpdate(updateManager, updateManager.getCallback());
         if(feature instanceof MBeanNotificationInfo)
             return (FeatureAccessor<M, S>)addNotification(resourceName, (MBeanNotificationInfo)feature);
         else if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, S>)addAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M, S>)addAttribute(resourceName, (MBeanAttributeInfo) feature);
         else return null;
     }
 
@@ -245,7 +244,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
         final Collection<AttributeAccessor> accessors = Lists.newArrayListWithExpectedSize(attrs.size());
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
         if(updateManager != null){
-            updateManager.beginUpdate();
+            beginUpdate(updateManager, updateManager.getCallback());
             for (final SnmpNotificationMapping mapping : notifs)
                 updateManager.agent.unregisterNotificationTarget(mapping);
             for (final SnmpAttributeMapping mapping : attrs)
@@ -289,11 +288,11 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     protected synchronized <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
         if(updateManager != null)
-            updateManager.beginUpdate();
+            beginUpdate(updateManager, updateManager.agent);
         if(feature instanceof MBeanAttributeInfo)
             return (FeatureAccessor<M, ?>)removeAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, ?>)removeNotification(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M, ?>)removeNotification(resourceName, (MBeanNotificationInfo) feature);
         else return null;
     }
 
@@ -324,7 +323,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             notifications.clear();
             attributes.clear();
         }
-        //it is a good time for GC because attributes and notifications mapping
+        //it is a good time for GC because attributes and notifications
         //detached from it models
         System.gc();
     }

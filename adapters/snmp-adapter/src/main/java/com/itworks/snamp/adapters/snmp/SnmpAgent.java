@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.ResourceAdapterUpdatedCallback;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
@@ -33,7 +34,7 @@ import java.util.logging.Level;
  * @author Roman Sakno, Evgeniy Kirichenko
  * 
  */
-final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
+final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, ResourceAdapterUpdatedCallback {
     private static final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
 
 	private final String hostName;
@@ -217,11 +218,11 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
         }
 	}
 
-    void suspend(){
-        super.stop();
-    }
-
-    void resume(){
+    /**
+     * Updating of the resource adapter is completed.
+     */
+    @Override
+    public void updated() {
         run();
     }
 
@@ -242,7 +243,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
                 init();
                 if(coldStart) getServer().addContext(new OctetString("public"));
                 finishInit(attributes, notifications);
-                resume();
+                run();
                 if(coldStart) sendColdStartNotification();
                 coldStart = false;
             return true;
@@ -278,6 +279,10 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
             originator.notify(new OctetString(), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv3 sending
             originator.notify(new OctetString("public"), wrappedNotification.notificationID, wrappedNotification.getBindings()); //for SNMPv2 sending
         }
+    }
+
+    void suspend(){
+        super.stop();
     }
 
     /**

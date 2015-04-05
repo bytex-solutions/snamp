@@ -34,6 +34,17 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
             value.addNotificationListener(this, createFilter(), null);
     }
 
+    /**
+     * Determines whether the feature of the managed resource is accessible
+     * through this object.
+     *
+     * @return {@literal true}, if this feature is accessible; otherwise, {@literal false}.
+     */
+    @Override
+    public final boolean isConnected() {
+        return notificationSupport != null;
+    }
+
     @MethodStub
     public void disconnected(){
 
