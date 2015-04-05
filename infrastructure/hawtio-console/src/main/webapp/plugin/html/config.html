@@ -26,17 +26,69 @@
                 <h4 class="modal-title" id="myModalLabel">{{modalTitle}}</h4>
             </div>
             <div class="modal-body">
-                <h5>If some parameter already exists - the corresponding option is disabled</h5>
+                <h5>You can add attribute from the following list (click for information).</h5>
                 <div class="row-fluid">
                     <div class="span3">
-                        <div class="radio" ng-repeat="(key, val) in modalContent" ng-class="{disabled : checkParamExists(key)}" ng-click="fillCurrentParamValue(val)">
-                            <label><input type="radio" name="optionsRadios" id="key" value="key">{{ key }}</label>
+                        <div ng-repeat="(key, val) in modalContent">
+                            <div class="radio" ng-click="fillCurrentParamValue(key, val)" ng-if="checkParamExists(key) == false">
+                                <label><input type="radio" name="optionsRadios" id="key" value="key">{{ key }}</label>
+                            </div>
                         </div>
                     </div>
                     <div class="span9" ng-if="currentValue">
-                        <code>
+                        <dl>
+                            <dt><i class="icon-exclamation-sign"></i> Required</dt>
+                            <dd>{{currentValue["Description"]["Required"]}}</dd>
+                        </dl>
+                        <dl>
+                            <dt><i class="icon-eye-open"></i> Supports suggestion</dt>
+                            <dd>{{currentValue["Description"]["SuggestionSupported"]}}</dd>
+                        </dl>
+                        <dl ng-if="currentValue['Description']['Description']">
+                            <dt><i class="icon-info-sign"></i> Description</dt>
+                            <dd><textarea rows="5" style="width: 400px;">{{currentValue["Description"]["Description"]}}</textarea></dd>
+                        </dl>
+                        <dl ng-if="currentValue['Description']['DefaultValue']">
+                            <dt><i class="icon-text-width"></i> Default value</dt>
+                            <dd>{{currentValue["Description"]["DefaultValue"]}}</dd>
+                        </dl>
+                        <dl ng-if="currentValue['Description']['InputPattern']">
+                            <dt><i class="icon-barcode"></i> Input pattern</dt>
+                            <dd>{{currentValue["Description"]["InputPattern"]}}</dd>
+                        </dl>
+                        <dl ng-if="currentValue['Description']['Associated']">
+                            <dt><i class="icon-barcode"></i> Associated params</dt>
+                            <dd>
+                                <ul>
+                                    <li ng-repeat="associatedParam in {{currentValue['Description']['Associated']}}">
+                                        {{associatedParam}}
+                                    </li>
+                                </ul>
+                            </dd>
+                        </dl>
+                        <dl ng-if="currentValue['Description']['NotCompatibleWith']">
+                            <dt><i class="icon-barcode"></i> Not compatible with</dt>
+                            <dd>
+                                <ul>
+                                    <li ng-repeat="associatedParam in {{currentValue['Description']['NotCompatibleWith']}}">
+                                        {{associatedParam}}
+                                    </li>
+                                </ul>
+                            </dd>
+                        </dl>
+                        <dl ng-if="currentValue['Description']['Extends']">
+                            <dt><i class="icon-barcode"></i> Extends params</dt>
+                            <dd>
+                                <ul>
+                                    <li ng-repeat="associatedParam in {{currentValue['Description']['Extends']}}">
+                                        {{associatedParam}}
+                                    </li>
+                                </ul>
+                            </dd>
+                        </dl>
+                        <!--<code>
                             {{currentValue | json}}
-                        </code>
+                        </code>-->
                     </div>
                 </div>
                 <!--<br/>
@@ -48,6 +100,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" ng-click="appendParam()">Add attribute</button>
             </div>
         </div>
     </div>

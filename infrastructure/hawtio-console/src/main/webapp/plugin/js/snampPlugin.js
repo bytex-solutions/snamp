@@ -510,16 +510,19 @@ var SnampShell = (function(SnampShell) {
             // Check if activeNode already contains param with a given name
             $scope.checkParamExists = function(paramName) {
                 var node = getActiveNodeParams();
+                var contains = false;
                 angular.forEach(node.getChildren(), function (value) {
+                    SnampShell.log.info("Processing ", value.data.name, paramName);
                    if  (value.data.name == paramName) {
-                       return true;
+                       contains = true;
                    }
                 });
-                return false;
+                return contains;
             };
 
-            $scope.fillCurrentParamValue = function (content) {
+            $scope.fillCurrentParamValue = function (key, content) {
                 $scope.currentValue = content;
+                $scope.currentParamKey = key;
                 Core.$apply($scope);
             };
 
