@@ -558,13 +558,16 @@ var SnampShell = (function(SnampShell) {
                     return $scope.activeNode;
                 }
                 if ($scope.activeNode.data.type == "param") {
-                    return $scope.activeNode.getParent();
+                    return $scope.activeNode;
                 }
                 if ($scope.activeNode.data.type == "type") {
                     return getChildrenByType($scope.activeNode.getParent().getChildren(),"params");
                 }
                 if ($scope.activeNode.data.type == "adapter") {
                     return getChildrenByType($scope.activeNode.getChildren(),"params");
+                }
+                if ($scope.activeNode.data.type == "subParam") {
+                    return $scope.activeNode.getParent();
                 }
                 return $scope.activeNode;
             }
@@ -593,6 +596,13 @@ var SnampShell = (function(SnampShell) {
             };
 
             /**
+             * Checks of all available params are already defined
+             */
+            function checkAllParamsSet() {
+                return getActiveNodeParams().getChildren().length < $scope.modalContent.length;
+            }
+
+            /**
              * Append new element to the treeView model.
              */
             $scope.appendNewElement = function() {
@@ -600,7 +610,7 @@ var SnampShell = (function(SnampShell) {
                 // append new child to the current node
                 var parent = getRootNode(node);
                 if (parent.data.type == "adapters") {
-                    var adapterName = node.getParent().data.name;
+                    var adapterName = getChildrenByType(parent.getChildren(), "adapter").data.name;
                     SnampShell.log.info(adapterName);
                     var adapterConfig = jolokia.request({
                         type: 'exec',
@@ -609,28 +619,50 @@ var SnampShell = (function(SnampShell) {
                         arguments: [adapterName, ""] // default console
                     }).value;
                     SnampShell.log.info(JSON.stringify(adapterConfig));
-                    $scope.modalTitle = "Appending new attribute to " + node.getParent().data.title + " adapter";
-                    $scope.modalContent = adapterConfig["ResourceAdapterParameters"];
-                    Core.$apply($scope);
-                    $('#myModal').modal('show');
+
+                    // Appending "AttributeParameters"
+                    if ($scope.activeNode.data.type == "param") {
+                        $scope.modalTitle = "Appending new attribute param";
+                        $scope.modalContent = adapterConfig["AttributeParameters"];
+                    } else {
+                        $scope.modalTitle = "Appending new attribute to " + node.getParent().data.title + " adapter";
+                        $scope.modalContent = adapterConfig["ResourceAdapterParameters"];
+                    }
+                    if (checkAllParamsSet) {
+                        Core.$apply($scope);
+                        $('#myModal').modal('show');
+                    } else {
+                        Core.notification('info', "All available params are already set");
+                    }
                 }
             };
 
             // Append chosen param to the active node on scope
             $scope.appendParam = function() {
-                var node = getActiveNodeParams();
                 var value = "";
                 if ($scope.currentValue["Description"]["DefaultValue"]) {
                     value = $scope.currentValue["Description"]["DefaultValue"];
                 }
-                node.addChild({
-                    title: $scope.currentParamKey +": <input name=\"value\" type=\"text\" value=\"" + value + "\"/>",
-                    isFolder: false,
-                    name: $scope.currentParamKey,
-                    type: "param",
-                    value: value,
-                    removable: true
-                });
+                var node = getActiveNodeParams();
+                if ($scope.activeNode.data.type == "param") {
+                    node = $scope.activeNode;
+                    node.addChild({
+                        title: $scope.currentParamKey + ": <input name=\"value\" type=\"text\" value=\"" + value + "\"/>",
+                        name: $scope.currentParamKey,
+                        type: "subParam",
+                        value: value,
+                        removable: true
+                    });
+                } else {
+                    node.addChild({
+                        title: $scope.currentParamKey + ": <input name=\"value\" type=\"text\" value=\"" + value + "\"/>",
+                        isFolder: false,
+                        name: $scope.currentParamKey,
+                        type: "param",
+                        value: value,
+                        removable: true
+                    });
+                }
                 $('#myModal').modal('hide');
                 node.expand(true);
             };
