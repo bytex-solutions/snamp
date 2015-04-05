@@ -33,7 +33,7 @@
     </context-param>
 
     <listener>
-        <listener-class>com.itworks.snamp.hawtio.PluginContextListener</listener-class>
+        <listener-class>com.itworks.snamp.management.webconsole.SnampHawtioPlugin</listener-class>
     </listener>
 
 

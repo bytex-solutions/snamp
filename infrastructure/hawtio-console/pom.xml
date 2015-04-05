@@ -140,7 +140,7 @@
                         <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
 
-                        <Export-Package>com.itworks.snamp.hawtio.*</Export-Package>
+                        <Export-Package>com.itworks.snamp.management.webconsole</Export-Package>
                         <Import-Package>${fuse.osgi.import}</Import-Package>
                         <DynamicImport-Package>${fuse.osgi.dynamic}</DynamicImport-Package>
                         <Private-Package>${fuse.osgi.private.pkg}</Private-Package>
@@ -148,7 +148,8 @@
                         <Bundle-ClassPath>.,WEB-INF/classes</Bundle-ClassPath>
 
                         <Bundle-Name>Snamp Management Console</Bundle-Name>
-                        <Bundle-SymbolicName>com.itworks.snamp.hawtio-console</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.management.webconsole.impl.WebConsoleActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>com.itworks.snamp.management.webconsole</Bundle-SymbolicName>
                         <Implementation-Title>SNAMP Hawtio Additional Module</Implementation-Title>
                         <Implementation-Version>${project.version}</Implementation-Version>
                     </instructions>
