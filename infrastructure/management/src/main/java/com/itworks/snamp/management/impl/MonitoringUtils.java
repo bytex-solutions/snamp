@@ -96,7 +96,7 @@ final class MonitoringUtils {
             for (Object value : data.values()) {
                 if (!(value instanceof CompositeData)) continue;
                 final CompositeData cd = (CompositeData) value;
-                result.put((String) cd.get("key"), (String) cd.get("value"));
+                result.put((String) cd.get("Key"), (String) cd.get("Value"));
             }
             return result;
         }
@@ -114,9 +114,9 @@ final class MonitoringUtils {
         if (map != null) {
             for (final Map.Entry<String, String> entry : map.entrySet()) {
                 tabularDataSupport.put(new CompositeDataSupport(tabularDataSupport.getTabularType().getRowType(),
-                        ImmutableMap.of(
-                                "key", entry.getKey(),
-                                "value", entry.getValue())));
+                        ImmutableMap.<String, Object>of(
+                                "Key", entry.getKey(),
+                                "Value", entry.getValue())));
             }
         }
         return tabularDataSupport;

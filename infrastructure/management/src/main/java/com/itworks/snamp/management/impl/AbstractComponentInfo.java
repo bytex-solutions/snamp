@@ -46,8 +46,8 @@ abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeDa
         try {
             LIMITATION_SCHEMA = new TabularTypeBuilder("com.itworks.management.LimitationSchemeType",
                     "Snamp component limitation schema")
-                    .addColumn("limitation", "Limitation name", SimpleType.STRING, true)
-                    .addColumn("description", "Limitation descriptor", SimpleType.STRING, false)
+                    .addColumn("Limitation", "Limitation name", SimpleType.STRING, true)
+                    .addColumn("Description", "Limitation descriptor", SimpleType.STRING, false)
                     .build();
 
             MAIN_TYPE = new CompositeTypeBuilder("com.itworks.management.ComponentConfig", "SNAMP Component Configuration Schema")
@@ -99,8 +99,8 @@ abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeDa
             for (final String limitation : input.getLimitations()) {
                 try {
                     builder.newRow()
-                        .cell("limitation", limitation)
-                        .cell("description", input.getDescription(limitation, loc))
+                        .cell("Limitation", limitation)
+                        .cell("Description", input.getDescription(limitation, loc))
                         .flush();
                 } catch (final OpenDataException e) {
                     MonitoringUtils.getLogger().log(Level.WARNING, e.getLocalizedMessage(), e);

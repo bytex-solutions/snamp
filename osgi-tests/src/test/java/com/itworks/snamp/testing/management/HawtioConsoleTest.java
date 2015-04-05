@@ -23,7 +23,6 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  * Description here
  *
  * @author Evgeniy Kirichenko
- * @date 26.02.2015
  */
 @SnampDependencies({SnampFeature.SNMP_ADAPTER})
 public class HawtioConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
@@ -31,6 +30,14 @@ public class HawtioConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
+
+
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
+    }
+
 
     /**
      * Instantiates a new Snamp manager test.

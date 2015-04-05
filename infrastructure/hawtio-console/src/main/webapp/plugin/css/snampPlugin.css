@@ -58,3 +58,16 @@ li.snampMenu a {
     margin-left: 10px;
     height: 15px ;
 }
+
+.dynatree-title > select {
+    margin-left: 10px;
+    display: inline;
+}
+
+ul.dynatree-container span {
+    cursor: pointer;
+}
+
+#dynatree-drop-marker, span.dynatree-checkbox, span.dynatree-connector, span.dynatree-drag-helper-img, span.dynatree-empty, span.dynatree-expander, span.dynatree-icon, span.dynatree-radio, span.dynatree-vline {
+    margin-right: 3px;
+}

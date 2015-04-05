@@ -55,12 +55,12 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             ATTRIBUTE_METADATA = ATTRIBUTE_METADATA_BUILDER.build();
 
             CONNECTOR_ATTRIBUTE_MAP_TYPE = new TabularTypeBuilder("com.itworks.management.ConnectorAttributeMapType", "Simple type for Map<String, EventMetadata>")
-                    .addColumn("name", "User defined name for connector's attribute", SimpleType.STRING, true)
-                    .addColumn("attribute", "Attribute metadata instance", ATTRIBUTE_METADATA, false)
+                    .addColumn("UserDefinedName", "User defined name for connector's attribute", SimpleType.STRING, true)
+                    .addColumn("Attribute", "Attribute metadata instance", ATTRIBUTE_METADATA, false)
                     .build();
             CONNECTOR_EVENT_MAP_TYPE = new TabularTypeBuilder("com.itworks.management.ConnectorEventMapType", "Simple type for Map<String, AttributeMetadata>")
-                    .addColumn("name", "User defined name for connector's event", SimpleType.STRING, true)
-                    .addColumn("event", "Event metadata instance", EVENT_METADATA, false)
+                    .addColumn("UserDefinedName", "User defined name for connector's event", SimpleType.STRING, true)
+                    .addColumn("Event", "Event metadata instance", EVENT_METADATA, false)
                     .build();
 
             CONNECTOR_METADATA_BUILDER = new CompositeTypeBuilder("com.itworks.management.ConnectorMetadata", "SNAMP connector configuration metadata")
@@ -78,12 +78,12 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             ADAPTER_METADATA = ADAPTER_METADATA_BUILDER.build();
 
             ADAPTER_MAP_TYPE = new TabularTypeBuilder("com.itworks.management.AdapterMapType", "Simple type for Map<String, Adapter>")
-                    .addColumn("name", "User defined name for adapter", SimpleType.STRING, true)
-                    .addColumn("adapter", "Adapter instance", ADAPTER_METADATA, false)
+                    .addColumn("UserDefinedName", "User defined name for adapter", SimpleType.STRING, true)
+                    .addColumn("Adapter", "Adapter instance", ADAPTER_METADATA, false)
                     .build();
             CONNECTOR_MAP_TYPE = new TabularTypeBuilder("com.itworks.management.ConnectorMapType", "Simple type for Map<String, Connector>")
-                    .addColumn("name", "User defined name for connector", SimpleType.STRING, true)
-                    .addColumn("connector", "Connector instance", CONNECTOR_METADATA, false)
+                    .addColumn("UserDefinedName", "User defined name for connector", SimpleType.STRING, true)
+                    .addColumn("Connector", "Connector instance", CONNECTOR_METADATA, false)
                     .build();
 
             SNAMP_CONFIGURATION_DATA_BUILDER = new CompositeTypeBuilder("com.itworks.management.SnampConfiguration", "SNAMP main configuration metadata")
@@ -107,8 +107,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONNECTOR_ATTRIBUTE_MAP_TYPE);
         for (final String attributeName : map.keySet()) {
             builder.newRow()
-                    .cell("name", attributeName)
-                    .cell("attribute", ATTRIBUTE_METADATA_BUILDER.build(
+                    .cell("UserDefinedName", attributeName)
+                    .cell("Attribute", ATTRIBUTE_METADATA_BUILDER.build(
                             ImmutableMap.of(
                                     "Name", map.get(attributeName).getAttributeName(),
                                     "ReadWriteTimeout", (map.get(attributeName).getReadWriteTimeout() != TimeSpan.INFINITE
@@ -133,8 +133,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONNECTOR_EVENT_MAP_TYPE);
         for (final String eventName : map.keySet()) {
             builder.newRow()
-                    .cell("name", eventName)
-                    .cell("attribute", EVENT_METADATA_BUILDER.build(
+                    .cell("UserDefinedName", eventName)
+                    .cell("Event", EVENT_METADATA_BUILDER.build(
                             ImmutableMap.of(
                                     "Category", map.get(eventName).getCategory(),
                                     "AdditionalProperties",  MonitoringUtils.transformAdditionalPropertiesToTabularData(
@@ -164,8 +164,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapterMapConfig = configuration.getResourceAdapters();
         for (final String adapterName : adapterMapConfig.keySet()) {
             builderAdapter.newRow()
-                    .cell("name", adapterName)
-                    .cell("adapter", ADAPTER_METADATA_BUILDER.build(
+                    .cell("UserDefinedName", adapterName)
+                    .cell("Adapter", ADAPTER_METADATA_BUILDER.build(
                             ImmutableMap.of(
                                     "Name", adapterMapConfig.get(adapterName).getAdapterName(),
                                     "Parameters",  MonitoringUtils.transformAdditionalPropertiesToTabularData(
@@ -179,8 +179,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         final Map<String, AgentConfiguration.ManagedResourceConfiguration> connectors = configuration.getManagedResources();
         for (final String connectorName : connectors.keySet()) {
             builderConnector.newRow()
-                    .cell("name", connectorName)
-                    .cell("connector", CONNECTOR_METADATA_BUILDER.build(
+                    .cell("UserDefinedName", connectorName)
+                    .cell("Connector", CONNECTOR_METADATA_BUILDER.build(
                             ImmutableMap.of(
                                     "ConnectionString", connectors.get(connectorName).getConnectionString(),
                                     "ConnectionType", connectors.get(connectorName).getConnectionType(),
@@ -212,19 +212,19 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             for (final CompositeData adapterDataCurrent : (Collection<CompositeData>) adaptersData.values()) {
                 final SerializableAgentConfiguration.SerializableResourceAdapterConfiguration agentConfiguration =
                         new SerializableAgentConfiguration.SerializableResourceAdapterConfiguration();
-                if (adapterDataCurrent.containsKey("adapter")) {
-                    final CompositeData adapterInstance = ((CompositeData) adapterDataCurrent.get("adapter"));
-                    if (adapterInstance.containsKey("name")) {
-                        agentConfiguration.setAdapterName((String) adapterInstance.get("name"));
+                if (adapterDataCurrent.containsKey("Adapter")) {
+                    final CompositeData adapterInstance = ((CompositeData) adapterDataCurrent.get("Adapter"));
+                    if (adapterInstance.containsKey("UserDefinedName")) {
+                        agentConfiguration.setAdapterName((String) adapterInstance.get("UserDefinedName"));
                     }
                     if (adapterInstance.containsKey("Parameters") && adapterInstance.get("Parameters") instanceof TabularData) {
                         final TabularData params = (TabularData) adapterInstance.get("Parameters");
                         for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
-                            agentConfiguration.setParameter((String) keyParam.get("key"), (String) keyParam.get("value"));
+                            agentConfiguration.setParameter((String) keyParam.get("Key"), (String) keyParam.get("Value"));
                         }
                     }
                 }
-                configuration.getResourceAdapters().put((String) adapterDataCurrent.get("name"), agentConfiguration);
+                configuration.getResourceAdapters().put((String) adapterDataCurrent.get("UserDefinedName"), agentConfiguration);
             }
         }
         // parse connectors
@@ -234,8 +234,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                 final SerializableAgentConfiguration.SerializableManagedResourceConfiguration connectorConfiguration =
                         new SerializableAgentConfiguration.SerializableManagedResourceConfiguration();
 
-                if (connectorDataCurrent.containsKey("connector")) {
-                    final CompositeData connectorInstance = (CompositeData) connectorDataCurrent.get("connector");
+                if (connectorDataCurrent.containsKey("Connector")) {
+                    final CompositeData connectorInstance = (CompositeData) connectorDataCurrent.get("Connector");
                     if (connectorInstance.containsKey("ConnectionString")) {
                         connectorConfiguration.setConnectionString((String) connectorInstance.get("ConnectionString"));
                     }
@@ -251,9 +251,9 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                                 attributesConfigMap = Maps.newHashMap();
                         for (final CompositeData attributeInstance : (Collection<CompositeData>) attributes.values()) {
                             AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration config = connectorConfiguration.newAttributeConfiguration();
-                            if (attributeInstance.containsKey("attribute") && attributeInstance.get("attribute") instanceof CompositeData) {
+                            if (attributeInstance.containsKey("Attribute") && attributeInstance.get("Attribute") instanceof CompositeData) {
 
-                                final CompositeData attributeData = (CompositeData) attributeInstance.get("attribute");
+                                final CompositeData attributeData = (CompositeData) attributeInstance.get("Attribute");
                                 if (attributeData.containsKey("Name")) {
                                     config.setAttributeName((String) attributeData.get("Name"));
                                 }
@@ -266,11 +266,11 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                                 if (attributeData.containsKey("AdditionalProperties") && attributeData.get("AdditionalProperties") instanceof TabularData) {
                                     final TabularData params = (TabularData) attributeData.get("AdditionalProperties");
                                     for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
-                                        config.getParameters().put((String) keyParam.get("key"), (String) keyParam.get("value"));
+                                        config.getParameters().put((String) keyParam.get("Key"), (String) keyParam.get("Value"));
                                     }
                                 }
                             }
-                            attributesConfigMap.put((String) attributeInstance.get("name"), config);
+                            attributesConfigMap.put((String) attributeInstance.get("UserDefinedName"), config);
                         }
                         connectorConfiguration.setAttributes(attributesConfigMap);
                     }
@@ -282,8 +282,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                                 eventsConfigMap = Maps.newHashMap();
                         for (final CompositeData eventInstance : (Collection<CompositeData>) events.values()) {
                             AgentConfiguration.ManagedResourceConfiguration.EventConfiguration config = connectorConfiguration.newEventConfiguration();
-                            if (eventInstance.containsKey("event") && eventInstance.get("event") instanceof CompositeData) {
-                                final CompositeData attributeData = (CompositeData) eventInstance.get("event");
+                            if (eventInstance.containsKey("Event") && eventInstance.get("Event") instanceof CompositeData) {
+                                final CompositeData attributeData = (CompositeData) eventInstance.get("Event");
                                 if (attributeData.containsKey("Category")) {
                                     config.setCategory((String) attributeData.get("Category"));
                                 }
@@ -291,11 +291,11 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                                 if (attributeData.containsKey("AdditionalProperties") && attributeData.get("AdditionalProperties") instanceof TabularData) {
                                     final TabularData params = (TabularData) attributeData.get("AdditionalProperties");
                                     for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
-                                        config.getParameters().put((String) keyParam.get("key"), (String) keyParam.get("value"));
+                                        config.getParameters().put((String) keyParam.get("Key"), (String) keyParam.get("Value"));
                                     }
                                 }
                             }
-                            eventsConfigMap.put((String) eventInstance.get("name"), config);
+                            eventsConfigMap.put((String) eventInstance.get("UserDefinedName"), config);
                         }
                         connectorConfiguration.setEvents(eventsConfigMap);
                     }
@@ -303,12 +303,12 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                     if (connectorInstance.containsKey("Parameters") && connectorInstance.get("Parameters") instanceof TabularData) {
                         final TabularData params = (TabularData) connectorInstance.get("Parameters");
                         for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
-                            connectorConfiguration.setParameter((String) keyParam.get("key"), (String) keyParam.get("value"));
+                            connectorConfiguration.setParameter((String) keyParam.get("Key"), (String) keyParam.get("Value"));
                         }
                     }
                 }
 
-                configuration.getManagedResources().put((String) connectorDataCurrent.get("name"), connectorConfiguration);
+                configuration.getManagedResources().put((String) connectorDataCurrent.get("UserDefinedName"), connectorConfiguration);
             }
         }
         return configuration;

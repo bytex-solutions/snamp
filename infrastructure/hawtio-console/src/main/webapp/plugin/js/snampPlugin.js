@@ -338,7 +338,7 @@ var SnampShell = (function(SnampShell) {
                 Core.$apply($scope);
             };
 
-            $scope.modalContent = "This is a HUGE mistake, you should not see it";
+            $scope.modalContent = [];
             $scope.modalTitle = "Undefined title";
 
             // Initial connectors array
@@ -364,10 +364,43 @@ var SnampShell = (function(SnampShell) {
                     type: 'read',
                     mbean: SnampShell.mbean,
                     attribute: 'configuration'
-                }).value;
+                }, onSuccess(null, {maxDepth: 20})).value;
             };
 
-            function editNode(node){
+            /**
+             * Generate dropdown dom element from the adapters/connectors list with currently active option
+             * @param array
+             * @param id
+             * @param active
+             * @returns {*}
+             */
+            function generateDropDown(array, id, active) {
+                var s = $("<select id=\"" + id + "\"/>");
+                angular.forEach(array, function (value) {
+                    $("<option />", {value: value.name, text: value.DisplayName}).appendTo(s);
+                });
+                s.val(active);
+                return s.prop('outerHTML');
+            }
+
+            /**
+             * Remove node with check.
+             * @param node
+             */
+            $scope.removeNode = function(node) {
+                if (node.data.removable == true) {
+                    node.remove();
+                }
+            };
+
+            /**
+             * Edit node title;
+             * @param node
+             */
+            $scope.editNode = function(node){
+                if (!(node.data.editable == true)) {
+                    return;
+                }
                 var prevTitle = node.data.title,
                     tree = node.tree;
                 // Disable dynatree mouse- and key handling
@@ -393,33 +426,71 @@ var SnampShell = (function(SnampShell) {
                         // Accept new value, when user leaves <input>
                         var title = $("input#editNode").val();
                         node.setTitle(title);
+                        node.data.value = title;
                         // Re-enable mouse and keyboard handlling
                         tree.$widget.bind();
                         node.focus();
                     });
-            }
+            };
 
+            /**
+             * Forward transforming the json object to the dynatree data model.
+             * @param jsonObject
+             * @returns {{title: string, isFolder: boolean, name: string, children: Array, type: string}[]}
+             */
             $scope.configurationJSON2Tree = function (jsonObject) {
                 var array = [
-                    {title: "Resource Adapters", isFolder: true},
-                    {title: "Managed Resources", isFolder: true}
+                    {
+                        title: "Resource Adapters",
+                        isFolder: true,
+                        name: "Resource Adapters",
+                        children: [],
+                        type: "adapters"
+                    },
+                    {
+                        title: "Managed Resources",
+                        isFolder: true,
+                        name: "Managed Resources",
+                        children: [],
+                        type: "connectors"
+                    }
                 ];
                 if (jsonObject.hasOwnProperty("ResourceAdapters")) {
-                    array[0].children = [];
                     angular.forEach(jsonObject["ResourceAdapters"], function (value, key) {
-                        var currentChild = {title: key, isFolder: true, editable: true}; // adapter userDefined name
-                        currentChild.children = [];
-                        currentChild.children.push({title: value["adapter"]["Name"], isFolder: false}); // adapter system name
-                        var params = {title: "Parameters", isFolder: true};
-                        params.children = [];
-                        if (value["adapter"]["Parameters"]) {
-                            angular.forEach(value["adapter"]["Parameters"], function (parameterValue, parameterKey) {
-                                var editableValue = parameterKey + ":" + "" +
-                                    "<input name=\"value\" type=\"text\" value=\"" + parameterValue + "\"/>";
-                                params.children.push({title: editableValue, isFolder: false});
+                        var currentChild = {
+                            title: key,
+                            isFolder: true,
+                            name: value["Adapter"]["Name"],
+                            type: "adapter",
+                            children: [],
+                            removable: true
+                        }; // adapter userDefined name
+                        currentChild.children.push({
+                            title: "Adapter type: " + generateDropDown($scope.getAdapters(), "adapterName", value["Adapter"]["Name"]),
+                            isFolder: false,
+                            name: value["Adapter"]["Name"],
+                            type: "type",
+                            value: value["Adapter"]["Name"]
+                        }); // adapter system name
+                        var params = {
+                            title: "Parameters",
+                            isFolder: true,
+                            children: [],
+                            name: value["Adapter"]["Name"] + " params",
+                            type: "params"
+                        };
+                        if (value["Adapter"]["Parameters"]) {
+                            angular.forEach(value["Adapter"]["Parameters"], function (parameterValue, parameterKey) {
+                                params.children.push({
+                                    title: parameterKey +": <input name=\"value\" type=\"text\" value=\"" + parameterValue["Value"] + "\"/>",
+                                    isFolder: false,
+                                    name: parameterKey,
+                                    type: "param",
+                                    value: parameterValue["Value"],
+                                    removable: true
+                                });
                             });
                         }
-                        params.children.push({title: "<span class=\"glyphicon glyphicon-plus\"/> new parameter", service: "add"})
                         currentChild.children.push(params);
                         array[0].children.push(currentChild);
                     });
@@ -434,49 +505,201 @@ var SnampShell = (function(SnampShell) {
                 return array;
             };
 
+            $scope.activeNode = "nothing";
+
+            /**
+             * Return root element.
+             * @param node
+             * @returns {*}
+             */
+            function getRootNode(node) {
+                var rootNode = node;
+                while (rootNode.getLevel() > 1) {
+                    rootNode = rootNode.getParent();
+                }
+                return rootNode;
+            }
+
+            /**
+             * Returns child with appropriate name
+             * @param children
+             * @param name
+             * @returns {*}
+             */
+            function getChildrenByName(children, name) {
+                var child = null;
+                angular.forEach(children, function (value) {
+                    if (value.data.name == name) {
+                        child = value;
+                    }
+                });
+                return child;
+            }
+
+            /**
+             * Returns child with appropriate type
+             * @param children
+             * @param type
+             * @returns {*}
+             */
+            function getChildrenByType(children, type) {
+                var child = null;
+                angular.forEach(children, function (value) {
+                    if (value.data.type == type) {
+                        child = value;
+                    }
+                });
+                return child;
+            }
+
+            // Get adapter's param array
+            function getActiveNodeParams() {
+                if ($scope.activeNode.data.type == "params") {
+                    return $scope.activeNode;
+                }
+                if ($scope.activeNode.data.type == "param") {
+                    return $scope.activeNode;
+                }
+                if ($scope.activeNode.data.type == "type") {
+                    return getChildrenByType($scope.activeNode.getParent().getChildren(),"params");
+                }
+                if ($scope.activeNode.data.type == "adapter") {
+                    return getChildrenByType($scope.activeNode.getChildren(),"params");
+                }
+                if ($scope.activeNode.data.type == "subParam") {
+                    return $scope.activeNode.getParent();
+                }
+                return $scope.activeNode;
+            }
+
+            // Check if activeNode already contains param with a given name
+            $scope.checkParamExists = function(paramName) {
+                var node = getActiveNodeParams();
+                var contains = false;
+                angular.forEach(node.getChildren(), function (value) {
+                   if  (value.data.name == paramName) {
+                       contains = true;
+                   }
+                });
+                return contains;
+            };
+
+            /**
+             * Onclick action for filling the necessary scope params
+             * @param key
+             * @param content
+             */
+            $scope.fillCurrentParamValue = function (key, content) {
+                $scope.currentValue = content;
+                $scope.currentParamKey = key;
+                Core.$apply($scope);
+            };
+
+            /**
+             * Checks of all available params are already defined
+             */
+            function checkAllParamsSet() {
+                return getActiveNodeParams().getChildren().length < $scope.modalContent.length;
+            }
+
+            /**
+             * Append new element to the treeView model.
+             */
+            $scope.appendNewElement = function() {
+                var node = getActiveNodeParams();
+                // append new child to the current node
+                var parent = getRootNode(node);
+                if (parent.data.type == "adapters") {
+                    var adapterName = getChildrenByType(parent.getChildren(), "adapter").data.name;
+                    SnampShell.log.info(adapterName);
+                    var adapterConfig = jolokia.request({
+                        type: 'exec',
+                        mbean: SnampShell.mbean,
+                        operation: 'getAdapterConfigurationSchema',
+                        arguments: [adapterName, ""] // default console
+                    }).value;
+                    SnampShell.log.info(JSON.stringify(adapterConfig));
+
+                    // Appending "AttributeParameters"
+                    if ($scope.activeNode.data.type == "param") {
+                        $scope.modalTitle = "Appending new attribute param";
+                        $scope.modalContent = adapterConfig["AttributeParameters"];
+                    } else {
+                        $scope.modalTitle = "Appending new attribute to " + node.getParent().data.title + " adapter";
+                        $scope.modalContent = adapterConfig["ResourceAdapterParameters"];
+                    }
+                    if (checkAllParamsSet) {
+                        Core.$apply($scope);
+                        $('#myModal').modal('show');
+                    } else {
+                        Core.notification('info', "All available params are already set");
+                    }
+                }
+            };
+
+            // Append chosen param to the active node on scope
+            $scope.appendParam = function() {
+                var value = "";
+                if ($scope.currentValue["Description"]["DefaultValue"]) {
+                    value = $scope.currentValue["Description"]["DefaultValue"];
+                }
+                var node = getActiveNodeParams();
+                if ($scope.activeNode.data.type == "param") {
+                    node = $scope.activeNode;
+                    node.addChild({
+                        title: $scope.currentParamKey + ": <input name=\"value\" type=\"text\" value=\"" + value + "\"/>",
+                        name: $scope.currentParamKey,
+                        type: "subParam",
+                        value: value,
+                        removable: true
+                    });
+                } else {
+                    node.addChild({
+                        title: $scope.currentParamKey + ": <input name=\"value\" type=\"text\" value=\"" + value + "\"/>",
+                        isFolder: false,
+                        name: $scope.currentParamKey,
+                        type: "param",
+                        value: value,
+                        removable: true
+                    });
+                }
+                $('#myModal').modal('hide');
+                node.expand(true);
+            };
+
+            /**
+             * Draw configuration to the html.
+             */
             $scope.drawConfiguration = function () {
                 $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
                 var isMac = /Mac/.test(navigator.platform);
                 $("#snampTreeConfig").dynatree({
+                    noLink: true,
+                    selectMode: 1,
                     onClick: function(node, event) {
+                        $scope.activeNode = node;
+                        Core.$apply($scope);
                         if (node.data.editable == true) {
                             if (event.shiftKey) {
-                                editNode(node);
+                                $scope.editNode(node);
                                 return false;
                             }
-                        }
-                        if (node.data.service) {
-                            if (node.data.service == "add") {
-                                node.getParent().addChild({title: "New Node", key: "3333"})
-                            }
-                        }
-                    },
-                    onDblClick: function(node, event) {
-                        if (node.data.editable == true) {
-                            editNode(node);
-                            return false;
                         }
                     },
                     onKeydown: function(node, event) {
                         if (node.data.editable == true) {
                             switch (event.which) {
                                 case 113: // [F2]
-                                    editNode(node);
+                                    $scope.editNode(node);
                                     return false;
                                 case 13: // [enter]
                                     if (isMac) {
-                                        editNode(node);
+                                        $scope.editNode(node);
                                         return false;
                                     }
                             }
                         }
                     },
-                   /* onActivate: function (node) {
-                        // A DynaTreeNode object is passed to the activation handler
-                        // Note: we also get this event, if persistence is on, and the page is reloaded.
-                        alert("You activated " + node.data.title);
-                    },*/
-                    persist: false,
                     children: $scope.configurationJSON2Tree($scope.configuration)
                 });
             };

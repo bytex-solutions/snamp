@@ -50,8 +50,8 @@ interface CommonOpenTypesSupport<T extends MBeanFeatureInfo> extends Supplier<T>
         public TabularType call() throws OpenDataException {
             return new TabularTypeBuilder("com.itworks.management.map",
                     "Simple key-value tabular type for the common goals")
-                    .addColumn("key", "Parameter key", SimpleType.STRING, true)
-                    .addColumn("value", "Parameter value", SimpleType.STRING, false)
+                    .addColumn("Key", "Parameter key", SimpleType.STRING, true)
+                    .addColumn("Value", "Parameter value", SimpleType.STRING, false)
                     .build();
         }
     });
