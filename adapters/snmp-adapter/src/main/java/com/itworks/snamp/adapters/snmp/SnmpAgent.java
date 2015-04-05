@@ -66,7 +66,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
 	}
 
     void registerManagedObject(final SnmpAttributeMapping mo) throws DuplicateRegistrationException {
-        mo.connect(server);
+        mo.connect(prefix, server);
     }
 
     AttributeAccessor unregisterManagedObject(final SnmpAttributeMapping mo){
@@ -99,6 +99,9 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
         vacmMIB.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
                 new OctetString(), VacmMIB.vacmViewIncluded,
                 StorageType.volatile_);
+        vacmMIB.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
+                new OctetString(), VacmMIB.vacmViewIncluded,
+                StorageType.volatile_);
 	}
 
     /**
@@ -107,6 +110,9 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
     @Override
     protected final void unregisterManagedObjects() {
         vacmMIB.removeViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix));
+        vacmMIB.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
+                new OctetString(), VacmMIB.vacmViewIncluded,
+                StorageType.volatile_);
     }
 
     /**
@@ -219,14 +225,24 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
         run();
     }
 
-    boolean start() throws IOException {
+    private void finishInit(final Iterable<? extends SnmpAttributeMapping> attributes,
+                            final Iterable<? extends SnmpNotificationMapping> notifications) throws DuplicateRegistrationException {
+        for(final SnmpAttributeMapping mapping: attributes)
+            registerManagedObject(mapping);
+        for(final SnmpNotificationMapping mapping: notifications)
+            registerNotificationTarget(mapping);
+        finishInit();
+    }
+
+    boolean start(final Iterable<? extends SnmpAttributeMapping> attributes,
+                  final Iterable<? extends SnmpNotificationMapping> notifications) throws IOException, DuplicateRegistrationException {
 		switch (agentState){
             case STATE_STOPPED:
             case STATE_CREATED:
                 init();
                 if(coldStart) getServer().addContext(new OctetString("public"));
-                finishInit();
-                run();
+                finishInit(attributes, notifications);
+                resume();
                 if(coldStart) sendColdStartNotification();
                 coldStart = false;
             return true;

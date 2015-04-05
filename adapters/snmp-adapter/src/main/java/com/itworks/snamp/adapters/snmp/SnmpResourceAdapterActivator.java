@@ -3,6 +3,7 @@ package com.itworks.snamp.adapters.snmp;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.osgi.service.jndi.JNDIContextManager;
+import org.snmp4j.log.OSGiLogFactory;
 
 /**
  * @author Roman Sakno
@@ -10,6 +11,10 @@ import org.osgi.service.jndi.JNDIContextManager;
  * @since 1.0
  */
 public final class SnmpResourceAdapterActivator extends ResourceAdapterActivator<SnmpResourceAdapter> {
+    static {
+        OSGiLogFactory.setup();
+    }
+
     private static final class SnmpAdapterConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<SnmpAdapterConfigurationDescriptor> {
 
         /**

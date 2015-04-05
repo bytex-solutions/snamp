@@ -105,11 +105,9 @@ abstract class AbstractSnmpClient implements SnmpClient {
         method.prepareOIDs(oids);
         final PDU pdu = DefaultPDUFactory.createPDU(getTarget(), method.getPduType());
         pdu.setMaxRepetitions(50);
-        pdu.setNonRepeaters(1);
         for (OID oid : oids) {
             pdu.add(new VariableBinding(oid));
         }
-
         final ResponseEvent event = snmp.send(pdu, getTarget(), null);
         if(event != null) {
             return event;

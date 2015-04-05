@@ -143,8 +143,13 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     }
 
     @Override
-    public final void connect(final MOServer server) throws DuplicateRegistrationException {
-        server.register(this, null);
+    public final boolean connect(final OID context, final MOServer server) throws DuplicateRegistrationException {
+        //do not add the attribute
+        if (getID().startsWith(context)) {
+            server.register(this, null);
+            return true;
+        }
+        else return false;
     }
 
     @Override

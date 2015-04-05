@@ -60,6 +60,8 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
 
     private static final String OID_PARAM_NAME = "oid";
 
+    private static final String CONTEXT_PARAM_NAME = "context";
+
     private static String RESTART_TIMEOUT_PARAM = "restartTimeout";
 
     /**
@@ -76,7 +78,7 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         private static final String RESOURCE_NAME = "SnmpAdapterConfig";
         private ResourceAdapterConfigurationInfo(){
             super(ResourceAdapterConfiguration.class,
-                    OID_PARAM_NAME,
+                    CONTEXT_PARAM_NAME,
                     ENGINE_ID_PARAM,
                     SNMPv3_GROUPS_PARAM,
                     SOCKET_TIMEOUT_PARAM,
@@ -144,9 +146,9 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         super(new ResourceAdapterConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());
     }
 
-    static String parseOID(final Map<String, String> parameters){
-        return parameters.containsKey(OID_PARAM_NAME) ?
-                parameters.get(OID_PARAM_NAME) :
+    static String parseContext(final Map<String, String> parameters){
+        return parameters.containsKey(CONTEXT_PARAM_NAME) ?
+                parameters.get(CONTEXT_PARAM_NAME) :
                 Integer.toString(oidCounter.getAndIncrement());
     }
 

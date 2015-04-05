@@ -630,8 +630,12 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final void connect(final MOServer server) throws DuplicateRegistrationException {
-        server.register(this, null);
+    public final boolean connect(final OID context, final MOServer server) throws DuplicateRegistrationException {
+        if(getID().startsWith(context)) {
+            server.register(this, null);
+            return true;
+        }
+        else return false;
     }
 
     @Override

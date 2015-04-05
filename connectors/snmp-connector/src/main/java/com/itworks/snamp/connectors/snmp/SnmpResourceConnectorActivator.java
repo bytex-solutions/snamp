@@ -4,6 +4,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.internal.annotations.SpecialUse;
+import org.snmp4j.log.OSGiLogFactory;
 
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
@@ -18,6 +19,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 1.0
  */
 public final class SnmpResourceConnectorActivator extends ManagedResourceActivator<SnmpResourceConnector> {
+    static {
+        OSGiLogFactory.setup();
+    }
 
     private static final class SnmpConnectorFactory extends ManagedResourceConnectorModeler<SnmpResourceConnector> {
         private final AtomicLong instances = new AtomicLong(0L);

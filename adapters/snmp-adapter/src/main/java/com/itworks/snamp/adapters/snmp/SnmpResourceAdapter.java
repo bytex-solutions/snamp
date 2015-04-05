@@ -187,20 +187,15 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
                 security,
                 socketTimeout,
                 threadPoolFactory.get());
-        agent.start();
-        //register attributes
-        for(final SnmpAttributeMapping mapping: attributes.values())
-            agent.registerManagedObject(mapping);
-        //register notifications
-        for(final SnmpNotificationMappingImpl mapping: notifications.values())
-            agent.registerNotificationTarget(mapping);
+        //start SNMP agent
+        agent.start(attributes.values(), notifications.values());
         //initialize restart manager
         updateManager = new SnmpAdapterUpdateManager(getInstanceName(), restartTimeout, agent);
     }
 
     @Override
     protected void start(final Map<String, String> parameters) throws IOException, DuplicateRegistrationException {
-        start(new OID(parseOID(parameters)),
+        start(new OID(parseContext(parameters)),
                 parseEngineID(parameters),
                 parsePort(parameters),
                 parseAddress(parameters),
@@ -233,17 +228,14 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     @SuppressWarnings("unchecked")
     @Override
     protected synchronized <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
-        switch (getState()){
-            case STARTED:
-                updateManager.beginUpdate();
-            case CREATED:
-            case STOPPED:
-                if(feature instanceof MBeanNotificationInfo)
-                    return (FeatureAccessor<M, S>)addNotification(resourceName, (MBeanNotificationInfo)feature);
-                else if(feature instanceof MBeanAttributeInfo)
-                    return (FeatureAccessor<M, S>)addAttribute(resourceName, (MBeanAttributeInfo)feature);
-            default: return null;
-        }
+        final SnmpAdapterUpdateManager updateManager = this.updateManager;
+        if(updateManager != null)
+            updateManager.beginUpdate();
+        if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M, S>)addNotification(resourceName, (MBeanNotificationInfo)feature);
+        else if(feature instanceof MBeanAttributeInfo)
+            return (FeatureAccessor<M, S>)addAttribute(resourceName, (MBeanAttributeInfo)feature);
+        else return null;
     }
 
     @Override
@@ -251,16 +243,15 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
         final Iterable<SnmpNotificationMappingImpl> notifs = notifications.removeAll(resourceName);
         final Collection<SnmpAttributeMapping> attrs = attributes.removeAll(resourceName);
         final Collection<AttributeAccessor> accessors = Lists.newArrayListWithExpectedSize(attrs.size());
-        switch (getState()) {
-            case STARTED:
-                updateManager.beginUpdate();
-                for (final SnmpNotificationMapping mapping : notifs)
-                    updateManager.agent.unregisterNotificationTarget(mapping);
-                for (final SnmpAttributeMapping mapping : attrs)
-                    accessors.add(updateManager.agent.unregisterManagedObject(mapping));
-            default:
-                return Iterables.concat(accessors, notifs);
+        final SnmpAdapterUpdateManager updateManager = this.updateManager;
+        if(updateManager != null){
+            updateManager.beginUpdate();
+            for (final SnmpNotificationMapping mapping : notifs)
+                updateManager.agent.unregisterNotificationTarget(mapping);
+            for (final SnmpAttributeMapping mapping : attrs)
+                accessors.add(updateManager.agent.unregisterManagedObject(mapping));
         }
+        return Iterables.concat(accessors, notifs);
     }
 
     private AttributeAccessor removeAttribute(final String resourceName,
@@ -296,16 +287,14 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     @SuppressWarnings("unchecked")
     @Override
     protected synchronized <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
-        switch (getState()){
-            case STARTED:
-                updateManager.beginUpdate();
-            default:
-                if(feature instanceof MBeanAttributeInfo)
-                    return (FeatureAccessor<M, ?>)removeAttribute(resourceName, (MBeanAttributeInfo)feature);
-                else if(feature instanceof MBeanNotificationInfo)
-                    return (FeatureAccessor<M, ?>)removeNotification(resourceName, (MBeanNotificationInfo)feature);
-                else return null;
-        }
+        final SnmpAdapterUpdateManager updateManager = this.updateManager;
+        if(updateManager != null)
+            updateManager.beginUpdate();
+        if(feature instanceof MBeanAttributeInfo)
+            return (FeatureAccessor<M, ?>)removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+        else if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M, ?>)removeNotification(resourceName, (MBeanNotificationInfo)feature);
+        else return null;
     }
 
     /**
@@ -317,8 +306,10 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     @Override
     protected void stop() throws InterruptedException{
         try {
-            if(updateManager != null)
+            if(updateManager != null) {
+                updateManager.agent.stop();
                 updateManager.close();
+            }
             //remove all notifications
             for(final String resourceName: notifications.keySet())
                 for(final FeatureAccessor<?, ?> mapping: notifications.get(resourceName))

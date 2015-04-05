@@ -549,7 +549,7 @@ final class SecurityConfiguration {
         for(final UserGroup group: groups.values())
             for(final String lookup: group.keySet())
                 if(Objects.equals(userName, lookup)) return group.getSecurityLevel();
-        return null;
+        return SecurityLevel.noAuthNoPriv;
     }
 
     public final void setupUserBasedSecurity(final USM security){

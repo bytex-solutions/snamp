@@ -379,6 +379,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
         snmpAdapter.getParameters().put("engineID", ENGINE_ID);
+        snmpAdapter.getParameters().put("context", "1.1");
         adapters.put("test-snmp", snmpAdapter);
         snmpAdapter.getParameters().put("ldap-uri", "ldap://127.0.0.1:" + EmbeddedADSVerTrunk.SERVER_PORT);
         snmpAdapter.getParameters().put("ldap-user", LDAP_ADMIN_USER);
