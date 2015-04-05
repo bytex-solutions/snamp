@@ -23,8 +23,9 @@ import java.util.*;
  */
 public abstract class AbstractSnampManager extends AbstractAggregator implements SnampManager {
     private final class InternalSnampComponentDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
+        private static final long serialVersionUID = 5684854305916946882L;
 
-        public InternalSnampComponentDescriptor(final long bid){
+        private InternalSnampComponentDescriptor(final long bid){
             super(1);
             put(BUNDLE_ID_PROPERTY, Long.toString(bid));
         }
@@ -86,7 +87,6 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @param serviceInvoker User-defined action that is used to perform some management actions.
          * @return {@literal true}, if the specified service is invoked successfully.
          * @see com.itworks.snamp.management.Maintainable
-         * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
         public <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
@@ -136,6 +136,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @version 1.0
      */
     protected static abstract class ResourceAdapterDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
+        private static final long serialVersionUID = 5641114150847940779L;
 
         protected ResourceAdapterDescriptor(final String systemName){
             super(1);
@@ -199,7 +200,6 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @param serviceType    Requested service contract.
          * @param serviceInvoker User-defined action that is used to perform some management actions.
          * @see com.itworks.snamp.management.Maintainable
-         * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
@@ -245,6 +245,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @version 1.0
      */
     protected static abstract class ResourceConnectorDescriptor extends HashMap<String, String> implements SnampComponentDescriptor {
+        private static final long serialVersionUID = -5406342058157943559L;
 
         protected ResourceConnectorDescriptor(final String connectorName){
             super(1);
@@ -320,7 +321,6 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @param serviceType    Requested service contract.
          * @param serviceInvoker User-defined action that is used to perform some management actions.
          * @see com.itworks.snamp.management.Maintainable
-         * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
