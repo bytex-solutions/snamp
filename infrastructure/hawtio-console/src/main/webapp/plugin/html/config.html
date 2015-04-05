@@ -3,8 +3,8 @@
     <h4>Active node: <small>{{activeNode.data.name}}</small></h4>
     <p>
         <button type="button" class="btn btn-default" ng-click="appendNewElement()">New</button>
-        <button type="button" class="btn btn-default">Modify</button>
-        <button type="button" class="btn btn-default">Remove</button>
+        <button type="button" class="btn btn-default" ng-click="editNode(activeNode)">Modify</button>
+        <button type="button" class="btn btn-default" ng-click="removeNode(activeNode)">Remove</button>
     </p>
     <div class="span8">
         <div id="snampTreeConfig"></div>
