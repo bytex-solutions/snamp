@@ -4,10 +4,15 @@ import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.concurrent.Monitor;
 import com.itworks.snamp.internal.annotations.MethodStub;
+import com.itworks.snamp.internal.annotations.SpecialUse;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -343,6 +348,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         /**
          * Automatically invokes by SNAMP when the dynamic service should be updated with
          * a new configuration.
+         * <p>
+         *     Don't worry about synchronization of this method because
+         *     SNAMP infrastructure will call this method in synchronized context.
          * @param service The service to be updated.
          * @param configuration A new configuration of the service.
          * @param dependencies A collection of dependencies required for the service.
@@ -356,6 +364,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         /**
          * Automatically invokes by SNAMP when the new dynamic service should be created.
+         * <p>
+         *     Don't worry about synchronization of this method because
+         *     SNAMP infrastructure will call this method in synchronized context.
          * @param servicePID The persistent identifier associated with a newly created service.
          * @param configuration A new configuration of the service.
          * @param dependencies A collection of dependencies required for the newly created service.
@@ -369,6 +380,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         /**
          * Automatically invokes by SNAMP when service is disposing.
+         * <p>
+         *     Don't worry about synchronization of this method because
+         *     SNAMP infrastructure will call this method in synchronized context.
          * @param service A service to dispose.
          * @throws Exception Unable to dispose the service.
          */
@@ -488,16 +502,23 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
     }
 
-    private static final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>{
+    @SuppressWarnings("serial")
+    private static final class ServiceRegistrationHolder<S, T extends S> extends Hashtable<String, Object> implements ServiceRegistration<S>{
         private final ServiceRegistration<S> registration;
         private final T serviceInstance;
 
         private ServiceRegistrationHolder(final Class<S> serviceContract,
                                           final T service,
-                                          final Dictionary<String, ?> identity,
+                                          final Hashtable<String, ?> identity,
                                           final BundleContext context){
+            super(identity);
             registration = context.registerService(serviceContract, service, identity);
             serviceInstance = service;
+        }
+
+        @SpecialUse
+        private void writeObject(final ObjectOutputStream oos) throws IOException {
+            throw new NotSerializableException();
         }
 
         @Override
@@ -563,6 +584,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws Exception Unable to update service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
+        @ThreadSafe
         protected abstract T update(final T service,
                                     final Dictionary<String, ?> configuration,
                                     final RequiredService<?>... dependencies) throws Exception;
@@ -579,6 +601,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         @Override
+        @ThreadSafe
         protected final ServiceRegistrationHolder<S, T> updateService(ServiceRegistrationHolder<S, T> registration,
                                                                       final Dictionary<String, ?> configuration,
                                                                       final RequiredService<?>... dependencies) throws Exception {
@@ -606,6 +629,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws Exception Unable to instantiate a new service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid configuration exception.
          */
+        @ThreadSafe
         protected abstract T createService(final Map<String, Object> identity,
                                            final Dictionary<String, ?> configuration,
                                            final RequiredService<?>... dependencies) throws Exception;
@@ -621,10 +645,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         @Override
+        @ThreadSafe
         protected final ServiceRegistrationHolder<S, T> activateService(final String servicePID,
                                                                final Dictionary<String, ?> configuration,
                                                                final RequiredService<?>... dependencies) throws Exception {
-            final Hashtable<String, Object> identity = new Hashtable<>(10);
+            final Hashtable<String, Object> identity = new Hashtable<>(4);
             identity.put(Constants.SERVICE_PID, servicePID);
             return new ServiceRegistrationHolder<>(serviceContract,
                     createService(identity, configuration, dependencies),
@@ -638,6 +663,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @param identity Service identity.
          * @throws Exception Unable to dispose service.
          */
+        @ThreadSafe
         protected abstract void cleanupService(final T service,
                                                final Dictionary<String, ?> identity) throws Exception;
 
@@ -649,7 +675,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         @Override
         protected final void dispose(final ServiceRegistrationHolder<S, T> registration, final boolean bundleStop) throws Exception {
             registration.unregister();
-            cleanupService(registration.serviceInstance, getProperties(registration.getReference()));
+            cleanupService(registration.serviceInstance, registration);
         }
     }
 
@@ -659,7 +685,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ProvidedServices{
+    protected interface ProvidedServices{
         /**
          * Exposes all provided services via the input collection.
          * @param services A collection of provided services to fill.

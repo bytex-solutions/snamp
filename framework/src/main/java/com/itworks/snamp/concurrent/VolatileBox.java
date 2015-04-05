@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 1.0
  */
 public class VolatileBox<T> extends AtomicReference<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T> {
+    private static final long serialVersionUID = 7192489973282984448L;
+
     /**
      * Initializes a new container.
      * @param initial The value to be placed into the container.

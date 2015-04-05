@@ -2,12 +2,11 @@ package com.itworks.snamp.connectors;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.configuration.ConfigurationEntityDescription;
-import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.itworks.snamp.configuration.PersistentConfigurationManager;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.configuration.*;
 import com.itworks.snamp.connectors.discovery.AbstractDiscoveryService;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.core.AbstractServiceLibrary;
@@ -27,11 +26,13 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.event.EventAdmin;
 
+import javax.management.openmbean.CompositeData;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 
 /**
  * Represents a base class for management connector bundle.
@@ -70,7 +71,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ManagedResourceConnectorLifecycleController<TConnector extends ManagedResourceConnector>{
+    protected interface ManagedResourceConnectorLifecycleController<TConnector extends ManagedResourceConnector>{
 
         /**
          * Creates a new instance of the managed resource connector.
@@ -81,7 +82,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @return A new instance of the resource connector.
          * @throws Exception Unable to instantiate managed resource connector.
          */
-        TConnector createConnector(final String resourceName, final String connectionString,
+        TConnector createConnector(final String resourceName,
+                                   final String connectionString,
                                    final Map<String, String> connectionParameters,
                                    final RequiredService<?>... dependencies) throws Exception;
 
@@ -100,6 +102,17 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                    final String connectionString,
                                    final Map<String, String> connectionParameters,
                                    final RequiredService<?>... dependencies) throws Exception;
+
+        /**
+         * Updates features of the managed resource connector.
+         * @param connector The instance of the connector.
+         * @param featureType Type of the features in the collection.
+         * @param features A collection of features configuration.
+         * @throws Exception Unable to update managed resource features.
+         */
+        <F extends FeatureConfiguration> void updateConnector(final TConnector connector,
+                                                              final Class<F> featureType,
+                                                              final Map<String, F> features) throws Exception;
 
         /**
          * Releases all resources associated with the resource connector.
@@ -152,9 +165,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 connector.update(connectionString, connectionParameters);
             }
             catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored){
-                //Update operation is not supported -> forces recreation
+                //Update operation is not supported -> force recreation
                 releaseConnector(connector);
-                connector = createConnector(resourceName, connectionString, connectionParameters, dependencies);
+                connector = createConnector(resourceName,
+                        connectionString,
+                        connectionParameters,
+                        dependencies);
             }
             return connector;
         }
@@ -173,8 +189,121 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
     }
 
+    /**
+     * Represents simple managed resource modeler.
+     * <p>
+     *     Simple modeler supports modeling of attributes and notifications.
+     *     When model of the managed resource was changed then modeler performs
+     *     the following actions:
+     *     <li>
+     *         <ul>Removes all attributes from the connector and add each
+     *         new attribute into the connector.</ul>
+     *         <ul>Removes all notifications from the connector and add
+     *         each new notification into the connector</ul>
+     *     </li>
+     * @param <TConnector> Type of the managed resource connector.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static abstract class ManagedResourceConnectorModeler<TConnector extends ManagedResourceConnector> extends ManagedResourceConnectorFactory<TConnector>{
+        /**
+         * Registers a new attribute in the managed resource connector.
+         * <p>
+         *     When implementing this method you must take into
+         *     account already existed attributes in the managed resource connector.
+         *     If attribute exists in the managed resource connector then
+         *     it should re-register an attribute.
+         * @param connector The connector to modify.
+         * @param attributeID The attribute identifier.
+         * @param attributeName The name of the attribute in the managed resource.
+         * @param readWriteTimeout The attribute read/write timeout.
+         * @param options The attribute configuration options.
+         */
+        protected abstract void addAttribute(final TConnector connector,
+                                             final String attributeID,
+                                             final String attributeName,
+                                             final TimeSpan readWriteTimeout,
+                                             final CompositeData options);
+
+        private void updateAttributes(final TConnector connector,
+                                      final Map<String, AttributeConfiguration> attributes){
+            for(final Map.Entry<String, AttributeConfiguration> attr: attributes.entrySet()){
+                final String attributeID = attr.getKey();
+                final AttributeConfiguration config = attr.getValue();
+                addAttribute(connector, attributeID,
+                        config.getAttributeName(),
+                        config.getReadWriteTimeout(),
+                        new ConfigParameters(config));
+            }
+        }
+
+        /**
+         * Enables managed resource notification.
+         * <p>
+         *     When implementing this method you must take into
+         *     account already existed notifications in the managed resource connector.
+         *     If notification is enabled in the managed resource connector then
+         *     it should re-enable the notification (disable and then enable again).
+         * @param connector The managed resource connector.
+         * @param listId The notification subscription identifier.
+         * @param category The notification category.
+         * @param options The notification configuration options.
+         */
+        protected abstract void enableNotifications(final TConnector connector,
+                                                    final String listId,
+                                                    final String category,
+                                                    final CompositeData options);
+
+        private void updateEvents(final TConnector connector,
+                                  final Map<String, EventConfiguration> events){
+            for(final Map.Entry<String, EventConfiguration> event: events.entrySet()){
+                final String listID = event.getKey();
+                final EventConfiguration config = event.getValue();
+                enableNotifications(connector,
+                        listID,
+                        config.getCategory(),
+                        new ConfigParameters(config));
+            }
+        }
+
+        protected abstract void addOperation(final TConnector connector,
+                                             final String operationID,
+                                             final String operationName,
+                                             final CompositeData options);
+
+        private void updateOperations(final TConnector connector,
+                                      final Map<String, OperationConfiguration> operations){
+            for(final Map.Entry<String, OperationConfiguration> op: operations.entrySet()){
+                final String operationID = op.getKey();
+                final OperationConfiguration config = op.getValue();
+                addOperation(connector, operationID, config.getOperationName(), new ConfigParameters(config));
+            }
+        }
+
+        /**
+         * Updates features of the managed resource connector.
+         *
+         * @param connector   The instance of the connector.
+         * @param featureType Type of the features in the collection.
+         * @param features    A collection of features configuration.
+         * @throws Exception Unable to update managed resource features.
+         */
+        @SuppressWarnings("unchecked")
+        @Override
+        public final <F extends FeatureConfiguration> void updateConnector(final TConnector connector, final Class<F> featureType, final Map<String, F> features) throws Exception {
+            if(Objects.equals(featureType, AttributeConfiguration.class))
+                updateAttributes(connector, (Map<String, AttributeConfiguration>)features);
+            else if(Objects.equals(featureType, EventConfiguration.class))
+                updateEvents(connector, (Map<String, EventConfiguration>)features);
+            else if(Objects.equals(featureType, OperationConfiguration.class))
+                updateOperations(connector, (Map<String, OperationConfiguration>)features);
+        }
+    }
+
     private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
         private final ManagedResourceConnectorLifecycleController<TConnector> controller;
+        private final Map<String, BigInteger> configurationHashes;
 
         /**
          * Represents name of the managed resource connector.
@@ -189,6 +318,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                     ArrayUtils.addToEnd(dependencies, new SimpleDependency<>(EventAdmin.class), RequiredService.class));
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             this.connectorType = connectorType;
+            this.configurationHashes = Maps.newHashMapWithExpectedSize(10);
         }
 
         private OSGiLoggingContext getLoggingContext() {
@@ -199,24 +329,49 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                     Utils.getBundleContextByObject(controller));
         }
 
+        private void updateFeatures(final TConnector connector,
+                            final Dictionary<String, ?> configuration) throws Exception {
+            controller.updateConnector(connector,
+                    AttributeConfiguration.class,
+                    PersistentConfigurationManager.getAttributes(configuration));
+            controller.updateConnector(connector,
+                    EventConfiguration.class,
+                    PersistentConfigurationManager.getEvents(configuration));
+            controller.updateConnector(connector,
+                    OperationConfiguration.class,
+                    PersistentConfigurationManager.getOperations(configuration));
+        }
+
         /**
          * Updates the service with a new configuration.
          *
-         * @param oldConnector  The service to update.
+         * @param connector  The service to update.
          * @param configuration A new configuration of the service.
          * @return The updated service.
          * @throws Exception                                  Unable to update service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         @Override
-        protected TConnector update(final TConnector oldConnector,
+        protected TConnector update(TConnector connector,
                                     final Dictionary<String, ?> configuration,
                                     final RequiredService<?>... dependencies) throws Exception {
-            return controller.updateConnector(oldConnector,
-                    PersistentConfigurationManager.getResourceName(configuration),
-                    PersistentConfigurationManager.getConnectionString(configuration),
-                    PersistentConfigurationManager.getResourceConnectorParameters(configuration),
-                    dependencies);
+            final String resourceName = PersistentConfigurationManager.getResourceName(configuration);
+            final BigInteger oldHash = configurationHashes.get(resourceName);
+            final String connectionString = PersistentConfigurationManager.getConnectionString(configuration);
+            final Map<String, String> connectorParameters = PersistentConfigurationManager.getResourceConnectorParameters(configuration);
+            //we should not update resource connector if connection parameters was not changed
+            final BigInteger newHash = computeConnectionParamsHashCode(connectionString, connectorParameters);
+            if(!newHash.equals(oldHash)){
+                configurationHashes.put(resourceName, newHash);
+                connector = controller.updateConnector(connector,
+                        resourceName,
+                        connectionString,
+                        connectorParameters,
+                        dependencies);
+            }
+            //but we should update resource features
+            updateFeatures(connector, configuration);
+            return connector;
         }
 
         /**
@@ -269,18 +424,26 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             final String resourceName = PersistentConfigurationManager.getResourceName(configuration);
             final Map<String, String> options = PersistentConfigurationManager.getResourceConnectorParameters(configuration);
             final String connectionString = PersistentConfigurationManager.getConnectionString(configuration);
+            configurationHashes.put(resourceName, computeConnectionParamsHashCode(connectionString, options));
             createIdentity(resourceName,
                     connectorType,
                     connectionString,
                     options,
                     identity);
-            return controller.createConnector(resourceName, connectionString, options, dependencies);
+            final TConnector result = controller.createConnector(resourceName, connectionString, options, dependencies);
+            updateFeatures(result, configuration);
+            return result;
         }
 
         @Override
         protected void cleanupService(final TConnector service,
                                       final Dictionary<String, ?> identity) throws Exception {
-            controller.releaseConnector(service);
+            try {
+                controller.releaseConnector(service);
+            }
+            finally {
+                configurationHashes.remove(getManagedResourceName(identity));
+            }
         }
     }
 
@@ -484,9 +647,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @return A new instance of the management information provider.
          * @throws Exception Unable to extract management information.
          */
-        protected abstract <T extends ManagedResourceConfiguration.ManagedEntity> Collection<T> getManagementInformation(final Class<T> entityType,
-                                                                                                                         final TProvider provider,
-                                                                                                                         final RequiredService<?>... dependencies) throws Exception;
+        protected abstract <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType,
+                                                                                            final TProvider provider,
+                                                                                            final RequiredService<?>... dependencies) throws Exception;
 
         /**
          * Creates a new instance of the discovery service.
@@ -506,7 +669,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 }
 
                 @Override
-                protected <T extends ManagedResourceConfiguration.ManagedEntity> Collection<T> getEntities(final Class<T> entityType, final TProvider provider) throws Exception {
+                protected <T extends FeatureConfiguration> Collection<T> getEntities(final Class<T> entityType, final TProvider provider) throws Exception {
                     return getManagementInformation(entityType, provider, dependencies);
                 }
 
@@ -576,7 +739,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     /**
      * Represents a simple implementation of configuration description service manager based
-     * on provided array of descriptions for each {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity}.
+     * on provided array of descriptions for each {@link com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration}.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
@@ -676,7 +839,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                        final SupportConnectorServiceManager<?, ?>... optionalServices){
         this(connectorType,
                 controller,
-                EMTPY_REQUIRED_SERVICES,
+                EMPTY_REQUIRED_SERVICES,
                 optionalServices);
     }
 
@@ -843,20 +1006,32 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     static String getConnectorType(final ServiceReference<ManagedResourceConnector> connectorRef){
         return connectorRef != null ?
-                Objects.toString(connectorRef.getProperty(CONNECTOR_TYPE_IDENTITY_PROPERTY), ""):
+                getConnectorType(getProperties(connectorRef)):
                 "";
     }
 
     static String getConnectionString(final ServiceReference<ManagedResourceConnector> connectorRef){
         return connectorRef != null ?
-                Objects.toString(connectorRef.getProperty(CONNECTOR_STRING_IDENTITY_PROPERTY), ""):
+                getConnectionString(getProperties(connectorRef)):
                 "";
     }
 
-    static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef){
+    static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef) {
         return connectorRef != null ?
-                Objects.toString(connectorRef.getProperty(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY), ""):
+                getManagedResourceName(getProperties(connectorRef)) :
                 "";
+    }
+
+    private static String getConnectorType(final Dictionary<String, ?> identity){
+        return Utils.getProperty(identity, CONNECTOR_TYPE_IDENTITY_PROPERTY, String.class, "");
+    }
+
+    private static String getConnectionString(final Dictionary<String, ?> identity){
+        return Utils.getProperty(identity, CONNECTOR_STRING_IDENTITY_PROPERTY, String.class, "");
+    }
+
+    private static String getManagedResourceName(final Dictionary<String, ?> identity){
+        return Utils.getProperty(identity, MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, String.class, "");
     }
 
     /**
@@ -964,5 +1139,21 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return Utils.isInstanceOf(ref, ManagedResourceConnector.class) &&
                 ArrayUtils.contains(ref.getPropertyKeys(), CONNECTOR_TYPE_IDENTITY_PROPERTY) &&
                 ArrayUtils.contains(ref.getPropertyKeys(), MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY);
+    }
+
+    /**
+     * Computes unique hash code for the specified connection parameters.
+     * @param connectionString The managed resource connection string.
+     * @param connectionParameters The managed resource connection parameters.
+     * @return A unique hash code generated from connection string and connection parameters.
+     */
+    public static BigInteger computeConnectionParamsHashCode(final String connectionString,
+                                                             final Map<String, String> connectionParameters) {
+        BigInteger result = new BigInteger(connectionString.getBytes());
+        for(final Map.Entry<String, String> entry: connectionParameters.entrySet()){
+            result = result.xor(new BigInteger(entry.getKey().getBytes()));
+            result = result.xor(new BigInteger(entry.getValue().getBytes()));
+        }
+        return result;
     }
 }

@@ -3,6 +3,7 @@ package com.itworks.snamp.management.impl;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.jmx.OpenMBean;
 
+import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.util.Map;
@@ -14,7 +15,7 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  * The type Start adapter operation.
  * @author Evgeniy Kirichenko
  */
-final class StartAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> implements CommonOpenTypesSupport {
+final class StartAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> implements CommonOpenTypesSupport<MBeanOperationInfo> {
 
     private static final String NAME = "startAdapter";
 

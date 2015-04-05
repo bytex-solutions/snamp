@@ -52,7 +52,7 @@ final class JmxDiscoveryService{
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends ManagedEntity> Collection<T> discover(final MBeanServerConnection connection, final Class<T> entityType) throws IOException, JMException {
+    private static <T extends FeatureConfiguration> Collection<T> discover(final MBeanServerConnection connection, final Class<T> entityType) throws IOException, JMException {
         if (entityType == null) return Collections.emptyList();
         else if (AttributeConfiguration.class.equals(entityType))
             return (Collection<T>) discoverAttributes(connection);
@@ -61,7 +61,7 @@ final class JmxDiscoveryService{
         else return Collections.emptyList();
     }
 
-    static <T extends ManagedEntity> Collection<T> discover(final JMXConnector options, final Class<T> entityType) throws IOException, JMException {
+    static <T extends FeatureConfiguration> Collection<T> discover(final JMXConnector options, final Class<T> entityType) throws IOException, JMException {
         return discover(options.getMBeanServerConnection(), entityType);
     }
 }

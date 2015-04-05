@@ -1,8 +1,8 @@
 package com.itworks.snamp.testing.connectors.rshell;
 
-import com.google.common.collect.ImmutableMap;
-import com.itworks.snamp.TimeSpan;
+import com.google.common.base.Supplier;
 import com.itworks.snamp.concurrent.FutureThread;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.internal.Utils;
@@ -13,6 +13,7 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import javax.management.openmbean.CompositeData;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
@@ -36,6 +37,15 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
                 FINGERPRINT);
     }
 
+    @Override
+    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
+        AttributeConfiguration attribute = attributeFactory.get();
+        attribute.setAttributeName("memStatus");
+        attribute.getParameters().put("commandProfileLocation", getPathToFileInProjectRoot("freemem-tool-profile.xml"));
+        attribute.getParameters().put("format", "-m");
+        attributes.put("ms", attribute);
+    }
+
     @Test()
     public void loadTest() throws InterruptedException, ExecutionException, JMException {
         Assume.assumeTrue(Utils.IS_OS_LINUX);
@@ -44,10 +54,6 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         try {
             final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
             assertNotNull(attributes);
-            assertNotNull(attributes.connectAttribute("ms", "memStatus", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
-                    "commandProfileLocation", getPathToFileInProjectRoot("freemem-tool-profile.xml"),
-                    "format", "-m"
-            ))));
             @SuppressWarnings("unchecked")
             final FutureThread<Object>[] tables = new FutureThread[10];
             for (int i = 0; i < tables.length; i++)
@@ -79,10 +85,6 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         try {
             final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
             assertNotNull(attributes);
-            assertNotNull(attributes.connectAttribute("ms", "memStatus", TimeSpan.INFINITE, toConfigParameters(ImmutableMap.of(
-                    "commandProfileLocation", getPathToFileInProjectRoot("freemem-tool-profile.xml"),
-                    "format", "-m"
-            ))));
             final Object dict = attributes.getAttribute("ms");
             assertNotNull(dict);
             assertTrue(dict instanceof CompositeData);

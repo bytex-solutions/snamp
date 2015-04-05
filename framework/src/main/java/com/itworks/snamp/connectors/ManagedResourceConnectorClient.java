@@ -4,7 +4,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
@@ -18,12 +18,11 @@ import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
  * Represents a set of static method that can be used by
@@ -166,7 +165,7 @@ public final class ManagedResourceConnectorClient {
      * @throws java.lang.UnsupportedOperationException The specified connector doesn't provide
      *          configuration descriptor.
      */
-    public static <T extends ConfigurationEntity> ConfigurationEntityDescription<T> getConfigurationEntityDescriptor(final BundleContext context,
+    public static <T extends EntityConfiguration> ConfigurationEntityDescription<T> getConfigurationEntityDescriptor(final BundleContext context,
                                                           final String connectorType,
                                                           final Class<T> configurationEntity) throws UnsupportedOperationException{
         if(context == null || configurationEntity == null) return null;
@@ -204,7 +203,7 @@ public final class ManagedResourceConnectorClient {
      * @return A collection of discovered managed resource elements
      * @throws java.lang.UnsupportedOperationException Managed resource doesn't support metadata discovery.
      */
-    public static <T extends ManagedEntity> Collection<T> discoverEntities(final BundleContext context,
+    public static <T extends FeatureConfiguration> Collection<T> discoverEntities(final BundleContext context,
                                                                                           final String connectorType,
                                                                                           final String connectionString,
                                                                                           final Map<String, String> connectionOptions,

@@ -25,14 +25,9 @@ public interface AdapterController {
      */
     Set<String> getAttributes(final String resourceName);
 
-    /**
-     * Processes the attribute.
-     * @param attributeID ID of the attribute.
-     * @param handler The attribute processor.
-     * @return {@literal true}, if attribute exists; otherwise, {@literal false}.
-     * @throws E Unable to process attribute.
-     */
-    <E extends Exception> boolean processAttribute(final String attributeID, final Consumer<SshAttributeView, E> handler) throws E;
+    <E extends Exception> boolean processAttribute(final String resourceName,
+                                                   final String attributeID,
+                                                   final Consumer<? super SshAttributeMapping, E> handler) throws E;
 
     /**
      * Gets a collection of available notifications.
@@ -41,8 +36,9 @@ public interface AdapterController {
      */
     Set<String> getNotifications(final String resourceName);
 
-    <E extends Exception> boolean processNotification(final String notificationID,
-                                                      final Consumer<SshNotificationView, E> handler) throws E;
+    <E extends Exception> boolean processNotification(final String resourceName,
+                                                      final String notificationID,
+                                                      final Consumer<? super SshNotificationMapping, E> handler) throws E;
 
     Notification poll(final String resourceName);
 

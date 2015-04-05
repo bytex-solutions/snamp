@@ -2,6 +2,7 @@ package com.itworks.snamp.io;
 
 import com.google.common.primitives.*;
 
+import java.io.Serializable;
 import java.nio.*;
 import java.util.Objects;
 
@@ -321,5 +322,24 @@ public final class Buffers {
             result.putDouble(buffer.get());
         result.rewind();
         return result;
+    }
+
+    public static Class<?> getArrayType(final Class<? extends Buffer> bufferType) {
+        if(bufferType == null) return null;
+        else if(ByteBuffer.class.isAssignableFrom(bufferType))
+            return byte[].class;
+        else if(CharBuffer.class.isAssignableFrom(bufferType))
+            return char[].class;
+        else if(ShortBuffer.class.isAssignableFrom(bufferType))
+            return short[].class;
+        else if(IntBuffer.class.isAssignableFrom(bufferType))
+            return int[].class;
+        else if(LongBuffer.class.isAssignableFrom(bufferType))
+            return long[].class;
+        else if(FloatBuffer.class.isAssignableFrom(bufferType))
+            return float[].class;
+        else if(DoubleBuffer.class.isAssignableFrom(bufferType))
+            return double[].class;
+        else return null;
     }
 }

@@ -9,6 +9,8 @@ import java.util.HashMap;
  * @since 1.0
  */
 public abstract class AbstractKeyedObjects<K, V> extends HashMap<K, V> implements KeyedObjects<K, V> {
+    private static final long serialVersionUID = 330704774449284851L;
+
     /**
      * Initializes a new instance of the keyed collection.
      * @param capacity The initial capacity of this object.

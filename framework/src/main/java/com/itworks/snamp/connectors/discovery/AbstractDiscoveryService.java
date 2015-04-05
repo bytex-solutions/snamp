@@ -1,7 +1,7 @@
 package com.itworks.snamp.connectors.discovery;
 
 import com.itworks.snamp.AbstractAggregator;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.ManagedEntity;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -15,7 +15,7 @@ import java.util.logging.Level;
  * @since 1.0
  */
 public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> extends AbstractAggregator implements DiscoveryService {
-    private static final class DiscoverResultImpl extends HashMap<Class<? extends ManagedEntity>, Collection<? extends ManagedEntity>> implements DiscoveryResult {
+    private static final class DiscoverResultImpl extends HashMap<Class<? extends FeatureConfiguration>, Collection<? extends FeatureConfiguration>> implements DiscoveryResult {
         private DiscoverResultImpl(final int capacity) {
             super(capacity);
         }
@@ -29,7 +29,7 @@ public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> 
          */
         @SuppressWarnings("unchecked")
         @Override
-        public <T extends ManagedEntity> Collection<T> getSubResult(final Class<T> entityType) throws IllegalArgumentException {
+        public <T extends FeatureConfiguration> Collection<T> getSubResult(final Class<T> entityType) throws IllegalArgumentException {
             if (containsKey(entityType))
                 return (Collection<T>) get(entityType);
             else throw new IllegalArgumentException(String.format("Entity type %s was not requested", entityType));
@@ -66,7 +66,7 @@ public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> 
      * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
      */
     @Override
-    public final <T extends ManagedEntity> Collection<T> discover(final String connectionString, final Map<String, String> connectionOptions, final Class<T> entityType) {
+    public final <T extends FeatureConfiguration> Collection<T> discover(final String connectionString, final Map<String, String> connectionOptions, final Class<T> entityType) {
         try(final TProvider provider = createProvider(connectionString, connectionOptions)){
             return getEntities(entityType, provider);
         }
@@ -94,7 +94,7 @@ public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> 
      * @return An extracted management information; or empty collection if no information provided.
      * @throws java.lang.Exception Unable to extract information.
      */
-    protected abstract <T extends ManagedEntity> Collection<T> getEntities(final Class<T> entityType, final TProvider provider) throws Exception;
+    protected abstract <T extends FeatureConfiguration> Collection<T> getEntities(final Class<T> entityType, final TProvider provider) throws Exception;
 
     /**
      * Attempts to discover collection of managed entities in batch manner.
@@ -106,10 +106,10 @@ public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> 
      */
     @SafeVarargs
     @Override
-    public final DiscoveryResult discover(final String connectionString, final Map<String, String> connectionOptions, final Class<? extends ManagedEntity>... entityTypes) {
+    public final DiscoveryResult discover(final String connectionString, final Map<String, String> connectionOptions, final Class<? extends FeatureConfiguration>... entityTypes) {
         try (final TProvider provider = createProvider(connectionString, connectionOptions)) {
             final DiscoverResultImpl result = new DiscoverResultImpl(entityTypes.length);
-            for (final Class<? extends ManagedEntity> t : entityTypes)
+            for (final Class<? extends FeatureConfiguration> t : entityTypes)
                 result.put(t, getEntities(t, provider));
             return result;
 

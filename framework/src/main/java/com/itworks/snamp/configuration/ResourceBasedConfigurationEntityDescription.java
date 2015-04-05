@@ -4,7 +4,7 @@ import com.itworks.snamp.ResourceReader;
 
 import java.util.*;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
  * Represents resource-based configuration entity descriptor.
@@ -12,7 +12,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * @version 1.0
  * @since 1.0
  */
-public abstract class ResourceBasedConfigurationEntityDescription<T extends ConfigurationEntity> extends ResourceReader implements ConfigurationEntityDescription<T> {
+public abstract class ResourceBasedConfigurationEntityDescription<T extends EntityConfiguration> extends ResourceReader implements ConfigurationEntityDescription<T> {
     private static final String DESCRIPTION_POSTFIX = ".description";
     private static final String REQUIRED_POSTFIX = ".required";
     private static final String PATTERN_POSTFIX = ".pattern";

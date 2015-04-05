@@ -1,35 +1,33 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.concurrent.ThreadSafeObject;
-import com.itworks.snamp.internal.AbstractKeyedObjects;
-import com.itworks.snamp.internal.KeyedObjects;
+import com.itworks.snamp.adapters.*;
 import org.osgi.service.jndi.JNDIContextManager;
+import org.snmp4j.agent.DuplicateRegistrationException;
+import org.snmp4j.agent.NotificationOriginator;
 import org.snmp4j.agent.mo.snmp.TransportDomains;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.TransportIpAddress;
 import org.snmp4j.smi.UdpAddress;
 
-import javax.management.JMException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.Map;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
-import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
-import static com.itworks.snamp.jmx.DescriptorUtils.getField;
-import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
 
 /**
  * @author Roman Sakno
@@ -39,382 +37,129 @@ import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
 final class SnmpResourceAdapter extends AbstractResourceAdapter {
     static final String NAME = SnmpHelpers.ADAPTER_NAME;
 
-    private static final class SnmpNotificationMappingImpl implements SnmpNotificationMapping{
-        private final NotificationAccessor accessor;
-        private final DateTimeFormatter formatter;
+    private static final class SnmpNotificationMappingImpl extends NotificationAccessor implements SnmpNotificationMapping{
+        private static final Pattern IPv4_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+\\.\\d+/\\d+");
+        private WeakReference<NotificationOriginator> notificationOriginator;
         private final String resourceName;
 
-        private SnmpNotificationMappingImpl(final String resourceName,
-                                            final NotificationAccessor accessor) throws IllegalArgumentException{
-            if(hasField(accessor.getMetadata().getDescriptor(), TARGET_ADDRESS_PARAM) &&
-                    hasField(accessor.getMetadata().getDescriptor(), TARGET_NAME_PARAM) &&
-                    hasField(accessor.getMetadata().getDescriptor(), OID_PARAM_NAME)) {
-                this.accessor = accessor;
-                this.formatter = SnmpHelpers.createDateTimeFormatter(getDateTimeDisplayFormat(accessor.getMetadata()));
-            } else throw new IllegalArgumentException("Target address, target name and event OID parameters are not specified for SNMP trap");
-            this.resourceName = resourceName;
-        }
-
-        @Override
-        public String getSource() {
-            return resourceName;
-        }
-
-        @Override
-        public DateTimeFormatter getTimestampFormatter() {
-            return formatter;
+        private SnmpNotificationMappingImpl(final MBeanNotificationInfo metadata,
+                                            final String resourceName) throws IllegalArgumentException{
+            super(metadata);
+            if(isValidNotification(metadata)) {
+                this.notificationOriginator = null;
+                this.resourceName = resourceName;
+            }
+            else throw new IllegalArgumentException("Target address, target name and event OID parameters are not specified for SNMP trap");
         }
 
         @Override
         public OID getTransportDomain() {
-            return kindOfIP(getField(accessor.getMetadata().getDescriptor(), TARGET_ADDRESS_PARAM, String.class));
+            return kindOfIP(parseTargetAddress(getMetadata()));
         }
 
         private static OID kindOfIP(final String addr){
             if (addr.contains(":"))
                 return TransportDomains.transportDomainUdpIpv6;
-            else if (addr.matches("^\\d+\\.\\d+\\.\\d+\\.\\d+/\\d+"))
+            else if (IPv4_PATTERN.matcher(addr).matches())
                 return TransportDomains.transportDomainUdpIpv4;
             return TransportDomains.transportDomainUdpDns;
         }
 
         @Override
         public OctetString getReceiverAddress() {
-            final TransportIpAddress addr = new UdpAddress(getField(accessor.getMetadata().getDescriptor(), TARGET_ADDRESS_PARAM, String.class));
+            final TransportIpAddress addr = new UdpAddress(parseTargetAddress(getMetadata()));
             return new OctetString(addr.getValue());
         }
 
         @Override
         public OctetString getReceiverName() {
-            return new OctetString(getField(accessor.getMetadata().getDescriptor(), TARGET_NAME_PARAM, String.class));
+            return new OctetString(parseTargetName(getMetadata()));
         }
 
         @Override
         public int getTimeout() {
-            return hasField(accessor.getMetadata().getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM) ?
-                    Integer.valueOf(getField(accessor.getMetadata().getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM, String.class)) : 0;
+            return parseNotificationTimeout(getMetadata());
         }
 
         @Override
         public int getRetryCount() {
-            return hasField(accessor.getMetadata().getDescriptor(), TARGET_RETRY_COUNT_PARAM) ?
-                 Integer.valueOf(getField(accessor.getMetadata().getDescriptor(), TARGET_RETRY_COUNT_PARAM, String.class)) : 3;
+            return parseRetryCount(getMetadata());
         }
 
         @Override
         public OID getID() {
-            return new OID(getOID(accessor.getMetadata()));
+            return new OID(parseOID(getMetadata()));
         }
 
         @Override
-        public MBeanNotificationInfo getMetadata() {
-            return accessor.getMetadata();
+        public boolean equals(final MBeanNotificationInfo metadata) {
+            return Objects.equals(parseTargetName(getMetadata()), parseTargetName(metadata));
+        }
+
+        @Override
+        public void setNotificationOriginator(final NotificationOriginator originator) {
+            notificationOriginator = new WeakReference<>(originator);
+        }
+
+        private static void handleNotification(final NotificationOriginator originator,
+                                               final Notification notification,
+                                               final String resourceName,
+                                               final MBeanNotificationInfo metadata){
+            notification.setSource(resourceName);
+            @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+            final SnmpNotification snmpTrap = new SnmpNotification(notification, metadata);
+            originator.notify(new OctetString(), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv3 sending
+            originator.notify(new OctetString("public"), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv2 sending
+        }
+
+        @Override
+        public void handleNotification(final Notification notification, final Object handback) {
+            final WeakReference<NotificationOriginator> originatorRef = this.notificationOriginator;
+            if(originatorRef != null){
+                final NotificationOriginator originator = originatorRef.get();
+                handleNotification(originator, notification, resourceName, getMetadata());
+            }
+        }
+
+        @Override
+        public void disconnected() {
+            final WeakReference<NotificationOriginator> originatorRef = this.notificationOriginator;
+            this.notificationOriginator = null;
+            if(originatorRef != null) originatorRef.clear();
         }
     }
 
-    private static final class SnmpNotificationsModel extends ThreadSafeObject implements NotificationsModel{
-        private static enum SNMResource{
-            LISTENERS,
-            NOTIFICATIONS
-        }
-        private final Collection<SnmpNotificationListener> listeners;
-        private final KeyedObjects<String, SnmpNotificationMappingImpl> notifications;
-        private final String adapterInstanceName;
+    private static final class SnmpAdapterUpdateManager extends ResourceAdapterUpdateManager {
+        private final SnmpAgent agent;
 
-        private SnmpNotificationsModel(final String instanceName){
-            super(SNMResource.class);
-            listeners = Lists.newArrayListWithExpectedSize(3);
-            notifications = createNotifs();
-            adapterInstanceName = instanceName;
-        }
-
-        private void removeAllListeners() {
-            beginWrite(SNMResource.LISTENERS);
-            try{
-                listeners.clear();
-            }
-            finally {
-                endWrite(SNMResource.LISTENERS);
-            }
-        }
-
-        private ImmutableList<? extends SnmpNotificationMapping> getNotifications(){
-            beginRead(SNMResource.NOTIFICATIONS);
-            try{
-                return ImmutableList.copyOf(notifications.values());
-            }
-            finally {
-                endRead(SNMResource.NOTIFICATIONS);
-            }
-        }
-
-        private static KeyedObjects<String, SnmpNotificationMappingImpl> createNotifs(){
-            return new AbstractKeyedObjects<String, SnmpNotificationMappingImpl>(10) {
-                private static final long serialVersionUID = 8947442745955339289L;
-
-                @Override
-                public String getKey(final SnmpNotificationMappingImpl item) {
-                    return item.accessor.getType();
-                }
-
-                @Override
-                public void clear() {
-                    for(final SnmpNotificationMappingImpl mapping: values())
-                        mapping.accessor.disconnect();
-                    super.clear();
-                }
-            };
-        }
-
-        private void subscribe(final SnmpNotificationListener listener){
-            beginWrite(SNMResource.LISTENERS);
-            try {
-                listeners.add(listener);
-            }
-            finally {
-                endWrite(SNMResource.LISTENERS);
-            }
-        }
-
-        private void unsubscribe(final SnmpNotificationListener listener){
-            beginWrite(SNMResource.LISTENERS);
-            try {
-                listeners.remove(listener);
-            }
-            finally {
-                endWrite(SNMResource.LISTENERS);
-            }
-        }
-
-        private String makeListID(final String resourceName, final String userDefinedName){
-            return adapterInstanceName + '.' + resourceName + '.' + userDefinedName;
+        private SnmpAdapterUpdateManager(final String adapterInstanceName,
+                                         final long restartTimeout,
+                                         final SnmpAgent agent){
+            super(adapterInstanceName, restartTimeout);
+            this.agent = Objects.requireNonNull(agent);
         }
 
         @Override
-        public void addNotification(final String resourceName,
-                                    final String userDefinedName,
-                                    final String category,
-                                    final NotificationConnector connector) {
-            final String listID = makeListID(resourceName, userDefinedName);
-            beginWrite(SNMResource.NOTIFICATIONS);
-            try{
-                if(notifications.containsKey(listID))
-                    return;
-                notifications.put(new SnmpNotificationMappingImpl(resourceName, connector.enable(listID)));
-            } catch (final JMException e) {
-                SnmpHelpers.log(Level.SEVERE, "Failed to enable notification %s", listID, e);
-            } finally {
-                endWrite(SNMResource.NOTIFICATIONS);
-            }
+        protected void beginUpdateCore() {
+            agent.suspend();
         }
 
-        @Override
-        public NotificationAccessor removeNotification(final String resourceName,
-                                                        final String userDefinedName,
-                                                        final String category) {
-            final String listID = makeListID(resourceName, userDefinedName);
-            beginWrite(SNMResource.NOTIFICATIONS);
-            try{
-                return notifications.containsKey(listID) ?
-                        notifications.remove(listID).accessor:
-                        null;
-            }
-            finally {
-                endWrite(SNMResource.NOTIFICATIONS);
-            }
-        }
-
-        /**
-         * Determines whether this model is empty.
-         *
-         * @return {@literal true}, if this model is empty; otherwise, {@literal false}.
-         */
-        @Override
-        public boolean isEmpty() {
-            beginRead(SNMResource.NOTIFICATIONS);
-            try{
-                return notifications.isEmpty();
-            }
-            finally {
-                endRead(SNMResource.NOTIFICATIONS);
-            }
-        }
-
-        /**
-         * Removes all notifications from this model.
-         */
-        @Override
-        public void clear() {
-            beginWrite(SNMResource.LISTENERS);
-            beginWrite(SNMResource.NOTIFICATIONS);
-            try{
-                notifications.clear();
-                listeners.clear();
-            }
-            finally {
-                endWrite(SNMResource.NOTIFICATIONS);
-                endWrite(SNMResource.LISTENERS);
-            }
-        }
-
-        /**
-         * Invoked when a JMX notification occurs.
-         * The implementation of this method should return as soon as possible, to avoid
-         * blocking its notification broadcaster.
-         *
-         * @param notification The notification.
-         * @param handback     An opaque object which helps the listener to associate
-         *                     information regarding the MBean emitter. This object is passed to the
-         *                     addNotificationListener call and resent, without modification, to the
-         */
-        @Override
-        public void handleNotification(final Notification notification, final Object handback) {
-            final SnmpNotificationMapping metadata;
-            beginRead(SNMResource.NOTIFICATIONS);
-            try{
-                if(notifications.containsKey(notification.getType()))
-                    metadata = notifications.get(notification.getType());
-                else return;
-            }
-            finally {
-                endRead(SNMResource.NOTIFICATIONS);
-            }
-            notification.setSource(metadata.getSource());
-            final SnmpNotification snmpTrap = new SnmpNotification(notification, metadata.getMetadata());
-            beginRead(SNMResource.LISTENERS);
-            try{
-                for(final SnmpNotificationListener listener: listeners)
-                    listener.processNotification(snmpTrap);
-            }
-            finally {
-                endRead(SNMResource.LISTENERS);
-            }
+        private ResourceAdapterUpdatedCallback getCallback(){
+            return agent;
         }
     }
 
-    private static final class SnmpAttributesModel extends ThreadSafeObject implements AttributesModel{
-        private final String adapterInstanceName;
-        private final KeyedObjects<String, SnmpAttributeMapping> attributes;
-
-        private SnmpAttributesModel(final String instanceName){
-            this.adapterInstanceName = instanceName;
-            this.attributes = createAttrs();
-        }
-
-        private static KeyedObjects<String, SnmpAttributeMapping> createAttrs(){
-            return new AbstractKeyedObjects<String, SnmpAttributeMapping>(10) {
-                private static final long serialVersionUID = 8303706968265686050L;
-
-                @Override
-                public String getKey(final SnmpAttributeMapping item) {
-                    return item.getMetadata().getName();
-                }
-            };
-        }
-
-        private String makeAttributeID(final String resourceName,
-                                              final String userDefinedName){
-            return adapterInstanceName + '/' + resourceName + '/' + userDefinedName;
-        }
-
-        @Override
-        public void addAttribute(final String resourceName,
-                                 final String userDefinedName,
-                                 final String attributeName,
-                                 final AttributeConnector connector) {
-            final String attributeID = makeAttributeID(resourceName, userDefinedName);
-            beginWrite();
-            try{
-                final AttributeAccessor accessor = connector.connect(attributeID);
-                if(hasField(accessor.getMetadata().getDescriptor(), OID_PARAM_NAME)){
-                    final SnmpType type = SnmpType.map(accessor.getType());
-                    if(type != null){
-                        final SnmpAttributeMapping mapping = type.createManagedObject(accessor);
-                        attributes.put(mapping);
-                    }
-                    else
-                        SnmpHelpers.log(Level.WARNING, "Attribute %s has no SNMP-compliant type projection.", userDefinedName, null);
-                }
-                else
-                    SnmpHelpers.log(Level.WARNING, "Attribute %s has no OID parameter.", userDefinedName, null);
-            } catch (final JMException e) {
-                SnmpHelpers.log(Level.SEVERE, "Unable to connect %s attribute", attributeID, e);
-            } finally {
-                endWrite();
-            }
-        }
-
-        @Override
-        public AttributeAccessor removeAttribute(final String resourceName,
-                                                 final String userDefinedName,
-                                                 final String attributeName) {
-            final String attributeID = makeAttributeID(resourceName, userDefinedName);
-            beginWrite();
-            try{
-                return attributes.containsKey(attributeID) ?
-                    attributes.remove(attributeID).queryObject(AttributeAccessor.class):
-                    null;
-            }
-            finally {
-                endWrite();
-            }
-        }
-
-        /**
-         * Removes all attributes from this model.
-         */
-        @Override
-        public void clear() {
-            beginWrite();
-            try{
-                for(final SnmpAttributeMapping mapping: attributes.values()){
-                    final AttributeAccessor accessor = mapping.queryObject(AttributeAccessor.class);
-                    if(accessor != null) accessor.disconnect();
-                }
-            }
-            finally {
-                attributes.clear();
-                endWrite();
-            }
-        }
-
-        /**
-         * Determines whether this model is empty.
-         *
-         * @return {@literal true}, if this model is empty; otherwise, {@literal false}.
-         */
-        @Override
-        public boolean isEmpty() {
-            beginRead();
-            try{
-                return attributes.isEmpty();
-            }
-            finally {
-                endRead();
-            }
-        }
-
-        private ImmutableList<SnmpAttributeMapping> getAttributes(){
-            beginRead();
-            try{
-                return ImmutableList.copyOf(attributes.values());
-            }
-            finally {
-                endRead();
-            }
-        }
-    }
-
-    private SnmpAgent agent;
-    private final SnmpAttributesModel attributes;
-    private final SnmpNotificationsModel notifications;
+    private SnmpAdapterUpdateManager updateManager;
     private final DirContextFactory contextFactory;
+    private final HashMultimap<String, SnmpNotificationMappingImpl> notifications;
+    private final HashMultimap<String, SnmpAttributeMapping> attributes;
 
     SnmpResourceAdapter(final String adapterInstanceName, final JNDIContextManager contextManager) {
         super(adapterInstanceName);
-        attributes = new SnmpAttributesModel(adapterInstanceName);
-        notifications = new SnmpNotificationsModel(adapterInstanceName);
         contextFactory = createFactory(contextManager);
+        updateManager = null;
+        notifications = HashMultimap.create();
+        attributes = HashMultimap.create();
     }
 
     private static DirContextFactory createFactory(final JNDIContextManager contextManager){
@@ -426,39 +171,129 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
         };
     }
 
-    private void start(final OctetString engineID,
+    private void start(final OID prefix,
+                       final OctetString engineID,
                        final int port,
                        final String address,
                        final SecurityConfiguration security,
                        final int socketTimeout,
-                       final Supplier<ExecutorService> threadPoolFactory) throws Exception {
-        populateModel(attributes);
-        populateModel(notifications);
-        final SnmpAgent agent = new SnmpAgent(engineID,
+                       final long restartTimeout,
+                       final Supplier<ExecutorService> threadPoolFactory) throws IOException, DuplicateRegistrationException {
+        final SnmpAgent agent = new SnmpAgent(prefix,
+                engineID,
                 port,
                 address,
                 security,
                 socketTimeout,
                 threadPoolFactory.get());
-        notifications.subscribe(agent);
-        agent.start(attributes.getAttributes(), notifications.getNotifications());
-        this.agent = agent;
+        //start SNMP agent
+        agent.start(attributes.values(), notifications.values());
+        //initialize restart manager
+        updateManager = new SnmpAdapterUpdateManager(getInstanceName(), restartTimeout, agent);
     }
 
     @Override
-    protected void start(final Map<String, String> parameters) throws Exception {
-        SnmpAdapterLimitations.current().verifyServiceVersion(SnmpResourceAdapter.class);
-        final String port = parameters.containsKey(PORT_PARAM_NAME) ? parameters.get(PORT_PARAM_NAME) : "161";
-        final String address = parameters.containsKey(HOST_PARAM_NAME) ? parameters.get(HOST_PARAM_NAME) : "127.0.0.1";
-        final String socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ? parameters.get(SOCKET_TIMEOUT_PARAM) : "0";
-        final OctetString engineID = parseEngineID(parameters);
-        if (parameters.containsKey(SNMPv3_GROUPS_PARAM) || parameters.containsKey(LDAP_GROUPS_PARAM)) {
-            SnmpAdapterLimitations.current().verifyAuthenticationFeature();
-            final SecurityConfiguration security = new SecurityConfiguration(engineID.getValue(), contextFactory);
-            security.read(parameters);
-            start(engineID, Integer.valueOf(port), address, security, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, getInstanceName()));
-        } else
-            start(engineID, Integer.valueOf(port), address, null, Integer.valueOf(socketTimeout), new SnmpThreadPoolConfig(parameters, getInstanceName()));
+    protected void start(final Map<String, String> parameters) throws IOException, DuplicateRegistrationException {
+        start(new OID(parseContext(parameters)),
+                parseEngineID(parameters),
+                parsePort(parameters),
+                parseAddress(parameters),
+                parseSecurityConfiguration(parameters, contextFactory),
+                parseSocketTimeout(parameters),
+                parseRestartTimeout(parameters),
+                new SnmpThreadPoolConfig(parameters, getInstanceName()));
+    }
+
+    private SnmpNotificationMappingImpl addNotification(final String resourceName,
+                                                        final MBeanNotificationInfo metadata) {
+        final SnmpNotificationMappingImpl mapping = new SnmpNotificationMappingImpl(metadata, resourceName);
+        notifications.put(resourceName, mapping);
+        if(updateManager != null)
+            updateManager.agent.registerNotificationTarget(mapping);
+        return mapping;
+    }
+
+    private AttributeAccessor addAttribute(final String resourceName,
+                                           final MBeanAttributeInfo metadata) throws DuplicateRegistrationException {
+        final AttributeAccessor accessor = new AttributeAccessor(metadata);
+        final SnmpType type = SnmpType.map(accessor.getType());
+        final SnmpAttributeMapping mapping;
+        attributes.put(resourceName, mapping = type.createManagedObject(accessor));
+        if(updateManager != null)
+            updateManager.agent.registerManagedObject(mapping);
+        return accessor;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected synchronized <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+        final SnmpAdapterUpdateManager updateManager = this.updateManager;
+        if(updateManager != null)
+            beginUpdate(updateManager, updateManager.getCallback());
+        if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M, S>)addNotification(resourceName, (MBeanNotificationInfo)feature);
+        else if(feature instanceof MBeanAttributeInfo)
+            return (FeatureAccessor<M, S>)addAttribute(resourceName, (MBeanAttributeInfo) feature);
+        else return null;
+    }
+
+    @Override
+    protected synchronized Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception {
+        final Iterable<SnmpNotificationMappingImpl> notifs = notifications.removeAll(resourceName);
+        final Collection<SnmpAttributeMapping> attrs = attributes.removeAll(resourceName);
+        final Collection<AttributeAccessor> accessors = Lists.newArrayListWithExpectedSize(attrs.size());
+        final SnmpAdapterUpdateManager updateManager = this.updateManager;
+        if(updateManager != null){
+            beginUpdate(updateManager, updateManager.getCallback());
+            for (final SnmpNotificationMapping mapping : notifs)
+                updateManager.agent.unregisterNotificationTarget(mapping);
+            for (final SnmpAttributeMapping mapping : attrs)
+                accessors.add(updateManager.agent.unregisterManagedObject(mapping));
+        }
+        return Iterables.concat(accessors, notifs);
+    }
+
+    private AttributeAccessor removeAttribute(final String resourceName,
+                                              final MBeanAttributeInfo metadata){
+        final Iterator<SnmpAttributeMapping> attributes = this.attributes.get(resourceName).iterator();
+        while (attributes.hasNext()){
+            final SnmpAttributeMapping mapping = attributes.next();
+            if(mapping.equals(metadata)){
+                attributes.remove();
+                return updateManager != null ?
+                        updateManager.agent.unregisterManagedObject(mapping) :
+                        mapping.disconnect(null);
+            }
+        }
+        return null;
+    }
+
+    private NotificationAccessor removeNotification(final String resourceName,
+                                                    final MBeanNotificationInfo metadata){
+        final Iterator<SnmpNotificationMappingImpl> notifications = this.notifications.get(resourceName).iterator();
+        while (notifications.hasNext()){
+            final SnmpNotificationMappingImpl mapping = notifications.next();
+            if(mapping.equals(metadata)){
+                notifications.remove();
+                if(updateManager != null)
+                    updateManager.agent.unregisterNotificationTarget(mapping);
+                return mapping;
+            }
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected synchronized <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
+        final SnmpAdapterUpdateManager updateManager = this.updateManager;
+        if(updateManager != null)
+            beginUpdate(updateManager, updateManager.agent);
+        if(feature instanceof MBeanAttributeInfo)
+            return (FeatureAccessor<M, ?>)removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+        else if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M, ?>)removeNotification(resourceName, (MBeanNotificationInfo) feature);
+        else return null;
     }
 
     /**
@@ -468,17 +303,27 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
      * </p>
      */
     @Override
-    protected void stop() throws Exception {
+    protected void stop() throws InterruptedException{
         try {
-            agent.stop();
-            notifications.unsubscribe(agent);
-        } finally {
-            clearModel(attributes);
-            clearModel(notifications);
-            notifications.removeAllListeners();
-            agent = null;
+            if(updateManager != null) {
+                updateManager.agent.stop();
+                updateManager.close();
+            }
+            //remove all notifications
+            for(final String resourceName: notifications.keySet())
+                for(final FeatureAccessor<?, ?> mapping: notifications.get(resourceName))
+                    mapping.disconnect();
+            //remove all attributes
+            for(final String resourceName: attributes.keySet())
+                for(final SnmpAttributeMapping mapping: attributes.get(resourceName))
+                    mapping.disconnect(null);
         }
-        //it is a good time for GC because attributes and notifications mapping
+        finally {
+            updateManager = null;
+            notifications.clear();
+            attributes.clear();
+        }
+        //it is a good time for GC because attributes and notifications
         //detached from it models
         System.gc();
     }

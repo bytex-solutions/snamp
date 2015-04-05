@@ -53,7 +53,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         private boolean field3;
 
         public TestManagementConnectorBean() throws IntrospectionException {
-            super(EnumSet.allOf(TestNotificationType.class));
+            super("TestResource", EnumSet.allOf(TestNotificationType.class));
         }
 
         /**
@@ -112,7 +112,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         connector.field1 = "123";
         final MBeanAttributeInfo md;
-        assertNotNull(md = connector.connectAttribute("0", "property1", TimeSpan.fromSeconds(1), ConfigParameters.empty()));
+        assertNotNull(md = connector.addAttribute("0", "property1", TimeSpan.fromSeconds(1), ConfigParameters.empty()));
         //enables notifications
         assertNotNull(connector.enableNotifications("list1", "propertyChanged", ConfigParameters.empty()));
         final SynchronizationListener listener = new SynchronizationListener();
@@ -137,7 +137,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         final ImmutableMap<String, String> params1 = ImmutableMap.of("1", "value", "2", "value2");
         final ImmutableMap<String, String> params2 = ImmutableMap.of("2", "value2", "1", "value");
         assertEquals(params1, params2);
-        assertEquals(TestManagementConnectorBean.computeConnectionParamsHashCode(connectionString, params1),
-                TestManagementConnectorBean.computeConnectionParamsHashCode(connectionString, params2));
+        assertEquals(ManagedResourceActivator.computeConnectionParamsHashCode(connectionString, params1),
+                ManagedResourceActivator.computeConnectionParamsHashCode(connectionString, params2));
     }
 }

@@ -1,26 +1,25 @@
 package com.itworks.snamp.management.impl;
 
-import com.itworks.snamp.ExceptionalCallable;
+import com.google.common.base.Supplier;
 import com.itworks.snamp.jmx.CompositeTypeBuilder;
 import com.itworks.snamp.jmx.TabularTypeBuilder;
 
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenMBeanParameterInfo;
-import javax.management.openmbean.OpenMBeanParameterInfoSupport;
-import javax.management.openmbean.SimpleType;
-import javax.management.openmbean.TabularType;
+import javax.management.MBeanFeatureInfo;
+import javax.management.openmbean.*;
+import java.util.concurrent.Callable;
+import static com.itworks.snamp.management.impl.MonitoringUtils.interfaceStaticInitialize;
 
 /**
  * Description here
  *
  * @author Evgeniy Kirichenko
  */
-interface CommonOpenTypesSupport {
+interface CommonOpenTypesSupport<T extends MBeanFeatureInfo> extends Supplier<T> {
 
     /**
      * The LOCALE parameter.
      */
-    static final OpenMBeanParameterInfo LOCALE_PARAM = new OpenMBeanParameterInfoSupport(
+    OpenMBeanParameterInfo LOCALE_PARAM = new OpenMBeanParameterInfoSupport(
             "locale",
             "The expected localization of the configuration schema",
             SimpleType.STRING);
@@ -28,7 +27,7 @@ interface CommonOpenTypesSupport {
     /**
      * The CONNECTOR name param.
      */
-    static final OpenMBeanParameterInfo CONNECTOR_NAME_PARAM = new OpenMBeanParameterInfoSupport(
+    OpenMBeanParameterInfo CONNECTOR_NAME_PARAM = new OpenMBeanParameterInfoSupport(
             "connectorName",
             "Snamp connector name",
             SimpleType.STRING);
@@ -36,7 +35,7 @@ interface CommonOpenTypesSupport {
     /**
      * The ADAPTER name param.
      */
-    static final OpenMBeanParameterInfo ADAPTER_NAME_PARAM = new OpenMBeanParameterInfoSupport(
+    OpenMBeanParameterInfo ADAPTER_NAME_PARAM = new OpenMBeanParameterInfoSupport(
             "adapterName",
             "The name of the managed resource adapter",
             SimpleType.STRING
@@ -45,8 +44,8 @@ interface CommonOpenTypesSupport {
     /**
      * The constant CONNECTION_PARAMS_SCHEMA.
      */
-    static final TabularType SIMPLE_MAP_TYPE = MonitoringUtils.interfaceStaticInitialize(
-            new ExceptionalCallable<TabularType, OpenDataException>() {
+    TabularType SIMPLE_MAP_TYPE = interfaceStaticInitialize(
+            new Callable<TabularType>() {
         @Override
         public TabularType call() throws OpenDataException {
             return new TabularTypeBuilder("com.itworks.management.map",
@@ -60,10 +59,10 @@ interface CommonOpenTypesSupport {
     /**
      * The EVENT_METADATA_BUILDER.
      */
-    static final CompositeTypeBuilder EVENT_METADATA_BUILDER = MonitoringUtils.interfaceStaticInitialize(
-            new ExceptionalCallable<CompositeTypeBuilder, Exception>() {
+    CompositeTypeBuilder EVENT_METADATA_BUILDER = interfaceStaticInitialize(
+            new Callable<CompositeTypeBuilder>() {
         @Override
-        public CompositeTypeBuilder call() throws Exception {
+        public CompositeTypeBuilder call() throws OpenDataException {
             return new CompositeTypeBuilder("com.itworks.management.EventMetadata", "SNAMP Connector Event Metadata")
                     .addItem("Category", "Connector event category", SimpleType.STRING)
                     .addItem("AdditionalProperties", "User defined property for event", SIMPLE_MAP_TYPE);
@@ -73,10 +72,10 @@ interface CommonOpenTypesSupport {
     /**
      * The ATTRIBUTE_METADATA_BUILDER.
      */
-    static final CompositeTypeBuilder ATTRIBUTE_METADATA_BUILDER = MonitoringUtils.interfaceStaticInitialize(
-            new ExceptionalCallable<CompositeTypeBuilder, Exception>() {
+    CompositeTypeBuilder ATTRIBUTE_METADATA_BUILDER = interfaceStaticInitialize(
+            new Callable<CompositeTypeBuilder>() {
                 @Override
-                public CompositeTypeBuilder call() throws Exception {
+                public CompositeTypeBuilder call() throws OpenDataException {
                     return new CompositeTypeBuilder("com.itworks.management.AttributeMetadata", "SNAMP connector attribute metadata scheme")
                             .addItem("Name", "Connector attribute name", SimpleType.STRING)
                             .addItem("ReadWriteTimeout", "Read write timeout for connector attribute", SimpleType.LONG)

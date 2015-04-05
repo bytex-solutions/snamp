@@ -5,7 +5,7 @@ import com.itworks.snamp.Descriptive;
 import java.util.Collection;
 import java.util.Locale;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
  * Represents description of the SNAMP plugin configuration model.
@@ -21,7 +21,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * @version 1.0
  * @since 1.0
  */
-public interface ConfigurationEntityDescription<T extends ConfigurationEntity> extends Collection<String> {
+public interface ConfigurationEntityDescription<T extends EntityConfiguration> extends Collection<String> {
 
     /**
      * Represents relationship between configuration parameters.

@@ -52,7 +52,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         private static final long serialVersionUID = 2056675059549300951L;
         private final Gson formatter;
 
-        public NotificationReceiver(final int capacity,
+        private NotificationReceiver(final int capacity,
                                     final Gson formatter) {
             super(capacity);
             this.formatter = formatter;

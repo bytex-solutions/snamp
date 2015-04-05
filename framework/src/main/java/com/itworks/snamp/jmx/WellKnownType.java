@@ -263,7 +263,7 @@ public enum  WellKnownType implements Serializable, Type {
 
         private static WellKnownType load(@SuppressWarnings("NullableProblems") final String className) throws InvalidKeyException {
             for (final WellKnownType type : values())
-                if (Objects.equals(className, type.getType().getName()))
+                if (Objects.equals(className, type.getJavaType().getName()))
                     return type;
             throw cacheMissing(className);
         }
@@ -272,7 +272,7 @@ public enum  WellKnownType implements Serializable, Type {
             if(javaType.isPrimitive())
                 return load(javaType.wrap());
             else for(final WellKnownType type: values())
-                if(javaType.isAssignableFrom(type.getType()))
+                if(javaType.isAssignableFrom(type.getJavaType()))
                     return type;
             throw cacheMissing(javaType);
         }
@@ -440,7 +440,7 @@ public enum  WellKnownType implements Serializable, Type {
      * Gets underlying Java type that represents this SNAMP well-known type.
      * @return The underlying Java type.
      */
-    public final Class<?> getType(){
+    public final Class<?> getJavaType(){
         return javaType;
     }
 
@@ -449,7 +449,7 @@ public enum  WellKnownType implements Serializable, Type {
      * @return The underlying Java type.
      */
     public final TypeToken<?> getTypeToken(){
-        return TypeToken.of(getType());
+        return TypeToken.of(getJavaType());
     }
 
     /**

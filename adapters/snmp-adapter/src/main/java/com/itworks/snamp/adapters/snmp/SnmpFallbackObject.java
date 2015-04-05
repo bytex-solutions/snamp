@@ -7,7 +7,7 @@ import org.snmp4j.smi.SMIConstants;
 import javax.management.InvalidAttributeValueException;
 import java.util.Objects;
 
-import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
+import com.itworks.snamp.adapters.AttributeAccessor;
 
 /**
  * Represents SNMP wrapper for attribute with unknown type.

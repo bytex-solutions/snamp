@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.notifications;
 
+import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 
@@ -9,18 +10,19 @@ import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Represents list of notification listeners.
  * <p>
- *     This class is not thread-safe.
+ *     This class is thread-safe.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-@ThreadSafe(false)
-public class NotificationListenerList extends LinkedList<NotificationListenerHolder> implements NotificationListener {
-    private static final long serialVersionUID = 3905356215172606650L;
+@ThreadSafe
+public class NotificationListenerList extends ThreadSafeObject implements NotificationListener {
+    private final List<NotificationListenerHolder> listeners = new LinkedList<>();
 
     /**
      * Adds a listener to this MBean.
@@ -38,10 +40,12 @@ public class NotificationListenerList extends LinkedList<NotificationListenerHol
      *
      * @see #removeNotificationListener
      */
-    public void addNotificationListener(final NotificationListener listener,
+    public final void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
-                                        final Object handback) throws java.lang.IllegalArgumentException{
-        add(new NotificationListenerHolder(listener, filter, handback));
+                                        final Object handback) throws IllegalArgumentException {
+        try(final LockScope ignored = beginWrite()){
+            listeners.add(new NotificationListenerHolder(listener, filter, handback));
+        }
     }
 
     /**
@@ -59,15 +63,42 @@ public class NotificationListenerList extends LinkedList<NotificationListenerHol
      * @see #addNotificationListener
      * @see javax.management.NotificationEmitter#removeNotificationListener
      */
-    public void removeNotificationListener(final NotificationListener listener)
+    public final void removeNotificationListener(final NotificationListener listener)
             throws ListenerNotFoundException{
-        final Iterator<NotificationListenerHolder> listeners = iterator();
-        boolean removed = false;
-        while (listeners.hasNext())
-            if(removed |= listeners.next().equals(listener))
-                listeners.remove();
-        if(!removed)
-            throw JMExceptionUtils.listenerNotFound(listener);
+        try(final LockScope ignored = beginWrite()){
+            final Iterator<NotificationListenerHolder> listeners = this.listeners.iterator();
+            boolean removed = false;
+            while (listeners.hasNext())
+                if(removed |= listeners.next().equals(listener))
+                    listeners.remove();
+            if(!removed)
+                throw JMExceptionUtils.listenerNotFound(listener);
+        }
+    }
+
+    /**
+     * Intercepts notification.
+     * @param notification The original notification.
+     * @return The modified notification.
+     */
+    protected Notification intercept(final Notification notification){
+        return notification;
+    }
+
+    /**
+     * Submits listener invocation.
+     * <p>
+     *     You can override this method and submit
+     *     listener invocation into the separated thread.
+     *     By default, the listener is invoked in the caller thread.
+     * @param listener The listener to invoke.
+     * @param notification The notification to be passed into the listener.
+     * @param handback An object associated with the listener at subscription time.
+     */
+    protected void handleNotification(final NotificationListener listener,
+                                      final Notification notification,
+                                      final Object handback){
+        listener.handleNotification(notification, handback);
     }
 
     /**
@@ -81,8 +112,27 @@ public class NotificationListenerList extends LinkedList<NotificationListenerHol
      *                     addNotificationListener call and resent, without modification, to the
      */
     @Override
-    public void handleNotification(final Notification notification, final Object handback) {
-        for(final NotificationListenerHolder holder: this)
-            holder.handleNotification(notification, handback);
+    public final void handleNotification(final Notification notification, final Object handback) {
+        try(final LockScope ignored = beginRead()){
+            for(final NotificationListenerHolder holder: listeners)
+                handleNotification(holder, intercept(notification), handback);
+        }
+    }
+
+    public final void handleNotification(final NotificationListenerInvoker invoker,
+                                      final Notification notification,
+                                      final Object handback){
+        try(final LockScope ignored = beginRead()) {
+            invoker.invoke(notification, handback, listeners);
+        }
+    }
+
+    /**
+     * Removes all listeners from this list.
+     */
+    public final void clear() {
+        try(final LockScope ignored = beginWrite()){
+            listeners.clear();
+        }
     }
 }

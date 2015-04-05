@@ -1,9 +1,7 @@
 package com.itworks.snamp.connectors.notifications;
 
-import javax.management.JMException;
 import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcaster;
-import javax.management.openmbean.CompositeData;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
@@ -46,30 +44,15 @@ public interface NotificationSupport extends NotificationBroadcaster {
     String USER_DATA_TYPE = "openType";
 
     /**
-     * Enables event listening for the specified category of events.
-     * <p>
-     *     category can be used for enabling notifications for the same category
-     *     but with different options.
-     * <p>
-     *     listId parameter
-     *     is used as a value of {@link javax.management.Notification#getType()}.
-     * @param listId An identifier of the subscription list.
-     * @param category The name of the event category to listen.
-     * @param options Event discovery options.
-     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-     * @throws javax.management.JMException Internal connector error.
+     * Gets subscription model.
+     * @return The subscription model.
      */
-    MBeanNotificationInfo enableNotifications(final String listId,
-                                   final String category,
-                                   final CompositeData options) throws JMException;
+    NotificationSubscriptionModel getSubscriptionModel();
 
     /**
-     * Disables event listening for the specified category of events.
-     * <p>
-     *     This method removes all listeners associated with the specified subscription list.
-     * </p>
-     * @param listId The identifier of the subscription list.
-     * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+     * Gets notification metadata.
+     * @param notificationType The type of the notification.
+     * @return The notification metadata; or {@literal null}, if notification doesn't exist.
      */
-    boolean disableNotifications(final String listId);
+    MBeanNotificationInfo getNotificationInfo(final String notificationType);
 }

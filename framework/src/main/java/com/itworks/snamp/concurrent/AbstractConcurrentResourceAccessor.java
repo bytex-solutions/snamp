@@ -19,6 +19,8 @@ import java.util.concurrent.locks.*;
  * @version 1.0
  */
 public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantReadWriteLock implements Wrapper<R> {
+    private static final long serialVersionUID = -7263363564614921684L;
+
     /**
      * Represents resource action that can throws an exception during execution.
      * @param <R> Type of the resource to handle.

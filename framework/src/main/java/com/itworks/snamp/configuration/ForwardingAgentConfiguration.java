@@ -246,7 +246,7 @@ public abstract class ForwardingAgentConfiguration extends ForwardingObject impl
          * @see com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
          */
         @Override
-        public <T extends ManagedEntity> Map<String, T> getElements(final Class<T> elementType) {
+        public <T extends FeatureConfiguration> Map<String, T> getElements(final Class<T> elementType) {
             return delegate().getElements(elementType);
         }
 
@@ -258,7 +258,7 @@ public abstract class ForwardingAgentConfiguration extends ForwardingObject impl
          * if the specified element type is not supported.
          */
         @Override
-        public <T extends ManagedEntity> T newElement(final Class<T> elementType) {
+        public <T extends FeatureConfiguration> T newElement(final Class<T> elementType) {
             return delegate().newElement(elementType);
         }
 
@@ -328,7 +328,7 @@ public abstract class ForwardingAgentConfiguration extends ForwardingObject impl
      * @see com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
      */
     @Override
-    public <T extends ConfigurationEntity> T newConfigurationEntity(final Class<T> entityType) {
+    public <T extends EntityConfiguration> T newConfigurationEntity(final Class<T> entityType) {
         return delegate().newConfigurationEntity(entityType);
     }
 

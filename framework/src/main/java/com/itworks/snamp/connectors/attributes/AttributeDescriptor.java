@@ -28,8 +28,6 @@ import static com.itworks.snamp.jmx.CompositeDataUtils.fillMap;
  * @since 1.0
  */
 public class AttributeDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<AttributeConfiguration> {
-
-
     private static final long serialVersionUID = -516459089021572254L;
 
     /**
@@ -104,10 +102,15 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         entity.setAttributeName(getAttributeName());
         entity.setReadWriteTimeout(getReadWriteTimeout());
         for (final String fieldName : getFieldNames())
-            entity.getParameters().put(fieldName, Objects.toString(getFieldValue(fieldName)));
+            switch (fieldName) {
+                default: entity.getParameters().put(fieldName, Objects.toString(getFieldValue(fieldName)));
+                case ATTRIBUTE_NAME_FIELD:
+                case READ_WRITE_TIMEOUT_FIELD:
+            }
     }
 
-    public AttributeDescriptor setFields(final Map<String, ?> values){
+    @Override
+    public final AttributeDescriptor setFields(final Map<String, ?> values){
         if(values == null || values.isEmpty()) return this;
         final String[] fields = getFieldNames();
         final Map<String, Object> newFields = Maps.newHashMapWithExpectedSize(fields.length + values.size());
@@ -117,6 +120,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         return new AttributeDescriptor(newFields);
     }
 
+    @Override
     public final AttributeDescriptor setFields(final Descriptor values){
         return setFields(DescriptorUtils.toMap(values));
     }

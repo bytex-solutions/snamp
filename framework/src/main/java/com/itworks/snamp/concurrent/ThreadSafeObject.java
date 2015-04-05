@@ -4,8 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.TimeSpan;
 
 import java.util.EnumSet;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -22,23 +20,71 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public abstract class ThreadSafeObject {
     /**
-     * Represents lock scope. This class cannot be inherited or instantiated
-     * directly from your code.
-     *
+     * Represents lock scope.
      * @author Roman Sakno
      * @version 1.0
      * @since 1.0
      */
-    public static final class LockScope implements AutoCloseable {
-        private final Lock locker;
+    public static interface LockScope extends AutoCloseable, Lock {
+        /**
+         * Releases the lock.
+         */
+        @Override
+        void close();
+    }
 
-        private LockScope(final Lock locker) {
-            this.locker = locker;
+    private static final class ReadLockScope extends ReentrantReadWriteLock.ReadLock implements LockScope{
+        private static final long serialVersionUID = -4674488641147301623L;
+
+        private ReadLockScope(final ReentrantReadWriteLock lock) {
+            super(lock);
         }
 
         @Override
         public void close() {
-            locker.unlock();
+            unlock();
+        }
+    }
+
+    private static final class WriteLockScope extends ReentrantReadWriteLock.WriteLock implements LockScope{
+        private static final long serialVersionUID = 8930001265056640152L;
+
+        private WriteLockScope(final ReentrantReadWriteLock lock) {
+            super(lock);
+        }
+
+        @Override
+        public void close() {
+            unlock();
+        }
+    }
+
+    private static interface ReadWriteLockSlim extends ReadWriteLock{
+        @Override
+        LockScope readLock();
+
+        @Override
+        LockScope writeLock();
+    }
+
+    private static final class ReentrantReadWriteLockSlim extends ReentrantReadWriteLock implements ReadWriteLockSlim{
+        private static final long serialVersionUID = -4854391672080527468L;
+        private final ReadLockScope readLock;
+        private final WriteLockScope writeLock;
+
+        private ReentrantReadWriteLockSlim(){
+            readLock = new ReadLockScope(this);
+            writeLock = new WriteLockScope(this);
+        }
+
+        @Override
+        public ReadLockScope readLock() {
+            return readLock;
+        }
+
+        @Override
+        public WriteLockScope writeLock() {
+            return writeLock;
         }
     }
 
@@ -53,22 +99,22 @@ public abstract class ThreadSafeObject {
         /**
          * Represents a single resource group.
          */
-        INSTANCE;
+        INSTANCE
     }
 
-    private final ImmutableMap<Enum<?>, ReadWriteLock> resourceGroups;
+    private final ImmutableMap<Enum<?>, ReadWriteLockSlim> resourceGroups;
 
     private ThreadSafeObject(final EnumSet<?> groups) {
         switch (groups.size()) {
             case 0:
                 throw new IllegalArgumentException("Set is empty.");
             case 1:
-                resourceGroups = ImmutableMap.<Enum<?>, ReadWriteLock>of(groups.iterator().next(), new ReentrantReadWriteLock());
+                resourceGroups = ImmutableMap.<Enum<?>, ReadWriteLockSlim>of(groups.iterator().next(), new ReentrantReadWriteLockSlim());
                 break;
             default:
-                final ImmutableMap.Builder<Enum<?>, ReadWriteLock> builder = ImmutableMap.builder();
+                final ImmutableMap.Builder<Enum<?>, ReadWriteLockSlim> builder = ImmutableMap.builder();
                 for (final Enum<?> g : groups)
-                    builder.put(g, new ReentrantReadWriteLock());
+                    builder.put(g, new ReentrantReadWriteLockSlim());
                 resourceGroups = builder.build();
         }
     }
@@ -94,15 +140,15 @@ public abstract class ThreadSafeObject {
         return new IllegalArgumentException(String.format("Resource group %s is not defined.", unknownSection));
     }
 
-    private Lock getWriteLock(final Enum<?> group) {
-        final ReadWriteLock lock = resourceGroups.get(group);
+    private LockScope getWriteLock(final Enum<?> group) {
+        final ReadWriteLockSlim lock = resourceGroups.get(group);
         if (lock == null)
             throw createInvalidSectionException(group);
         else return lock.writeLock();
     }
 
-    private Lock getReadLock(final Enum<?> group) {
-        final ReadWriteLock lock = resourceGroups.get(group);
+    private LockScope getReadLock(final Enum<?> group) {
+        final ReadWriteLockSlim lock = resourceGroups.get(group);
         if (lock == null)
             throw createInvalidSectionException(group);
         else return lock.readLock();
@@ -112,15 +158,16 @@ public abstract class ThreadSafeObject {
      * Acquires write lock for the specified resource group.
      *
      * @param resourceGroup The identifier of the resource group to lock.
+     * @return An object that can be used to control lock scope.
      * @throws java.lang.IllegalArgumentException The specified resource group is not defined in this object.
      */
-    protected final void beginWrite(final Enum<?> resourceGroup) {
-        getWriteLock(resourceGroup).lock();
+    protected final LockScope beginWrite(final Enum<?> resourceGroup) {
+        final LockScope scope = getWriteLock(resourceGroup);
+        scope.lock();
+        return scope;
     }
 
-    protected final boolean tryBeginWrite(final Enum<?> resourceGroup, TimeSpan timeout) throws InterruptedException {
-        timeout = Objects.requireNonNull(timeout, "timeout is null")
-                .convert(TimeUnit.MILLISECONDS);
+    protected final boolean tryBeginWrite(final Enum<?> resourceGroup, final TimeSpan timeout) throws InterruptedException {
         return getWriteLock(resourceGroup).tryLock(timeout.duration, timeout.unit);
     }
 
@@ -130,68 +177,36 @@ public abstract class ThreadSafeObject {
 
     /**
      * Acquires write lock for the singleton resource group.
-     *
+     * @return An object that can be used to control lock scope.
      * @throws java.lang.IllegalArgumentException This class is not instantiated with {@link #ThreadSafeObject()} constructor.
      * @see ThreadSafeObject.SingleResourceGroup
      */
-    protected final void beginWrite() {
-        beginWrite(SingleResourceGroup.INSTANCE);
+    protected final LockScope beginWrite() {
+        return beginWrite(SingleResourceGroup.INSTANCE);
     }
 
     /**
      * Acquires write lock for the specified resource group.
      *
      * @param resourceGroup The identifier of the resource group to lock.
+     * @return An object that can be used to control lock scope.
      * @throws java.lang.InterruptedException     The waiting thread will be interrupted by another thread.
      * @throws java.lang.IllegalArgumentException The specified resource group is not defined in this object.
      */
-    protected final void beginWriteInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
-        getWriteLock(resourceGroup).lockInterruptibly();
+    protected final LockScope beginWriteInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
+        final LockScope scope = getWriteLock(resourceGroup);
+        scope.lockInterruptibly();
+        return scope;
     }
 
     /**
      * Acquires write lock for the singleton resource group.
-     *
+     * @return An object that can be used to control lock scope.
      * @throws java.lang.InterruptedException     The waiting thread will be interrupted by another thread.
      * @throws java.lang.IllegalArgumentException This class is not instantiated with {@link #ThreadSafeObject()} constructor.
      */
-    protected final void beginWriteInterruptibly() throws InterruptedException {
-        beginWriteInterruptibly(SingleResourceGroup.INSTANCE);
-    }
-
-    /**
-     * Acquires write lock for the specified resource group.
-     *
-     * @param resourceGroup The identifier of the resource group to lock.
-     * @return A new object that helps control the lexical scope of the lock.
-     * @throws java.lang.IllegalArgumentException The specified resource group is not defined in this object.
-     */
-    protected final LockScope scopeWrite(final Enum<?> resourceGroup) {
-        final Lock wl = getWriteLock(resourceGroup);
-        wl.lock();
-        return new LockScope(wl);
-    }
-
-    protected final LockScope scopeWrite() {
-        return scopeWrite(SingleResourceGroup.INSTANCE);
-    }
-
-    /**
-     * Acquires write lock for the specified resource group.
-     *
-     * @param resourceGroup The identifier of the resource group to lock.
-     * @return A new object that helps control the lexical scope of the lock.
-     * @throws java.lang.InterruptedException     The waiting thread will be interrupted by another thread.
-     * @throws java.lang.IllegalArgumentException The specified resource group is not defined in this object.
-     */
-    protected final LockScope scopeWriteInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
-        final Lock wl = getWriteLock(resourceGroup);
-        wl.lockInterruptibly();
-        return new LockScope(wl);
-    }
-
-    protected final LockScope scopeWriteInterruptibly() throws InterruptedException {
-        return scopeWriteInterruptibly(SingleResourceGroup.INSTANCE);
+    protected final LockScope beginWriteInterruptibly() throws InterruptedException {
+        return beginWriteInterruptibly(SingleResourceGroup.INSTANCE);
     }
 
     /**
@@ -208,13 +223,13 @@ public abstract class ThreadSafeObject {
         endWrite(SingleResourceGroup.INSTANCE);
     }
 
-    protected final void beginRead(final Enum<?> resourceGroup) {
-        getReadLock(resourceGroup).lock();
+    protected final LockScope beginRead(final Enum<?> resourceGroup) {
+        final LockScope scope = getReadLock(resourceGroup);
+        scope.lock();
+        return scope;
     }
 
-    protected final boolean tryBeginRead(final Enum<?> resourceGroup, TimeSpan timeout) throws InterruptedException {
-        timeout = Objects.requireNonNull(timeout, "timeout is null")
-                .convert(TimeUnit.MILLISECONDS);
+    protected final boolean tryBeginRead(final Enum<?> resourceGroup, final TimeSpan timeout) throws InterruptedException {
         return getReadLock(resourceGroup).tryLock(timeout.duration, timeout.unit);
     }
 
@@ -222,36 +237,18 @@ public abstract class ThreadSafeObject {
         return tryBeginRead(SingleResourceGroup.INSTANCE, timeout);
     }
 
-    protected final void beginRead() {
-        beginRead(SingleResourceGroup.INSTANCE);
+    protected final LockScope beginRead() {
+        return beginRead(SingleResourceGroup.INSTANCE);
     }
 
-    protected final void beginReadInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
-        getReadLock(resourceGroup).lockInterruptibly();
+    protected final LockScope beginReadInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
+        final LockScope scope = getReadLock(resourceGroup);
+        scope.lockInterruptibly();
+        return scope;
     }
 
-    protected final void beginReadInterruptibly() throws InterruptedException {
-        beginReadInterruptibly(SingleResourceGroup.INSTANCE);
-    }
-
-    protected final LockScope scopeRead(final Enum<?> resourceGroup) {
-        final Lock rl = getReadLock(resourceGroup);
-        rl.lock();
-        return new LockScope(rl);
-    }
-
-    protected final LockScope scopeRead() {
-        return scopeRead(SingleResourceGroup.INSTANCE);
-    }
-
-    protected final LockScope scopeReadInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
-        final Lock wl = getReadLock(resourceGroup);
-        wl.lockInterruptibly();
-        return new LockScope(wl);
-    }
-
-    protected final LockScope scopeReadInterruptibly() throws InterruptedException {
-        return scopeReadInterruptibly(SingleResourceGroup.INSTANCE);
+    protected final LockScope beginReadInterruptibly() throws InterruptedException {
+        return beginReadInterruptibly(SingleResourceGroup.INSTANCE);
     }
 
     protected final void endRead(final Enum<?> resourceGroup) {

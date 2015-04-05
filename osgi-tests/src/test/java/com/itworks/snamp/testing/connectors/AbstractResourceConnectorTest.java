@@ -9,8 +9,7 @@ import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.concurrent.SpinWait;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.itworks.snamp.configuration.ConfigParameters;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -25,7 +24,6 @@ import org.osgi.framework.ServiceReference;
 import javax.management.Attribute;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -58,16 +56,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         }
     }
 
-    protected static ConfigParameters toConfigParameters(final Map<String, String> parameters) {
-        return new ConfigParameters(new AgentConfiguration.ConfigurationEntity() {
-            @Override
-            public Map<String, String> getParameters() {
-                return parameters;
-            }
-        });
-    }
-
-    protected static interface Equator<V>{
+    protected interface Equator<V>{
         boolean equate(final V value1, final V value2);
     }
 
@@ -97,17 +86,6 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                 return true;
             }
         };
-    }
-
-    private static <K, V> boolean areEqual(final Map<K, V> value1, final Map<K, V> value2) {
-        if(value1.size() == value2.size())
-            for(final K key: value1.keySet()) {
-                if (!value2.containsKey(key)) return false;
-                if(!Objects.equals(value1.get(key), value2.get(key)))
-                    return false;
-            }
-        else return false;
-        return true;
     }
 
     private final String connectorType;
@@ -171,13 +149,17 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         return connectorRef != null && getTestBundleContext().ungetService(connectorRef);
     }
 
-    @SuppressWarnings("UnusedParameters")
-    protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory){
+
+
+    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory){
 
     }
 
-    @SuppressWarnings("UnusedParameters")
-    protected void fillEvents(final Map<String, AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events, final Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> eventFactory){
+    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory){
+
+    }
+
+    protected void fillOperations(final Map<String, OperationConfiguration> operations, final Supplier<OperationConfiguration> operationFactory){
 
     }
 
@@ -224,39 +206,42 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         });
         targetConfig.setConnectionString(connectionString);
         targetConfig.setConnectionType(connectorType);
-        fillAttributes(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration>() {
+        fillAttributes(targetConfig.getElements(AttributeConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration>() {
             @Override
             public AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration get() {
-                return targetConfig.newElement(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class);
+                return targetConfig.newElement(AttributeConfiguration.class);
             }
         });
-        fillEvents(targetConfig.getElements(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration>() {
+        fillEvents(targetConfig.getElements(EventConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration>() {
             @Override
             public AgentConfiguration.ManagedResourceConfiguration.EventConfiguration get() {
-                return targetConfig.newElement(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
+                return targetConfig.newElement(EventConfiguration.class);
+            }
+        });
+        fillOperations(targetConfig.getElements(OperationConfiguration.class), new Supplier<OperationConfiguration>() {
+            @Override
+            public OperationConfiguration get() {
+                return targetConfig.newElement(OperationConfiguration.class);
             }
         });
         config.getManagedResources().put(TEST_RESOURCE_NAME, targetConfig);
     }
 
-    protected final <T> void testAttribute(final String attributeID,
-                                           final String attributeName,
+    protected final <T> void testAttribute(final String attributeName,
                                            final TypeToken<T> attributeType,
                                            final T attributeValue,
                                            final Equator<T> comparator,
-                                           final Map<String, String> attributeOptions,
-                                           final boolean readOnlyTest) throws JMException, IOException {
+                                           final boolean readOnlyTest) throws JMException {
         try{
             final AttributeSupport connector = getManagementConnector().queryObject(AttributeSupport.class);
             assertNotNull(connector);
-            final MBeanAttributeInfo metadata = connector.connectAttribute(attributeID, attributeName, TimeSpan.INFINITE, toConfigParameters(attributeOptions));
-            assertEquals(attributeID, metadata.getName());
+            final MBeanAttributeInfo metadata = connector.getAttributeInfo(attributeName);
+            assertEquals(attributeName, metadata.getName());
             if(!readOnlyTest)
-                connector.setAttribute(new Attribute(attributeID, attributeValue));
-            final T newValue = TypeTokens.cast(connector.getAttribute(attributeID), attributeType);
+                connector.setAttribute(new Attribute(attributeName, attributeValue));
+            final T newValue = TypeTokens.cast(connector.getAttribute(attributeName), attributeType);
             assertNotNull(newValue);
             assertTrue(comparator.equate(attributeValue, newValue));
-            assertTrue(connector.disconnectAttribute(attributeID));
         }
         finally {
             releaseManagementConnector();
@@ -266,45 +251,22 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     protected final <T> void testAttribute(final String attributeName,
                                            final TypeToken<T> attributeType,
                                            final T attributeValue,
-                                           final Equator<T> comparator,
-                                           final Map<String, String> attributeOptions,
-                                           final boolean readOnlyTest) throws JMException, IOException {
-       testAttribute("ID", attributeName, attributeType, attributeValue, comparator, attributeOptions, readOnlyTest);
+                                           final Equator<T> comparator) throws JMException {
+        testAttribute(attributeName, attributeType, attributeValue, comparator, false);
     }
 
-    protected final <T> void testAttribute(final String attributeID,
-                                           final String attributeName,
-                                           final TypeToken<T> attributeType,
-                                           final T attributeValue,
-                                           final Equator<T> comparator,
-                                           final boolean readOnlyTest) throws Exception {
-        final Map<String, String> attributeOptions = readSnampConfiguration().
-                getManagedResources().
-                get(TEST_RESOURCE_NAME).getElements(AttributeConfiguration.class).get(attributeID).getParameters();
-        assertNotNull(String.format("Attribute %s with postfix %s doesn't exist in configuration.", attributeName, attributeID), attributeOptions);
-        testAttribute(attributeID, attributeName, attributeType, attributeValue, comparator, attributeOptions, readOnlyTest);
-    }
-
-    protected final <T> void testAttribute(final String attributeID,
-                                           final String attributeName,
-                                           final TypeToken<T> attributeType,
-                                           final T attributeValue,
-                                           final Equator<T> comparator) throws Exception {
-        testAttribute(attributeID, attributeName, attributeType, attributeValue, comparator, false);
-    }
-
-    protected final <T> void testAttribute(final String attributeID,
-                                       final String attributeName,
+    protected final <T> void testAttribute(final String attributeName,
                                        final TypeToken<T> attributeType,
-                                       final T attributeValue) throws Exception {
-        testAttribute(attributeID, attributeName, attributeType, attributeValue, false);
+                                       final T attributeValue) throws JMException {
+        testAttribute(attributeName, attributeType, attributeValue,
+                AbstractResourceConnectorTest.<T>valueEquator(),
+                false);
     }
 
-    protected final <T> void testAttribute(final String attributeID,
-                                           final String attributeName,
+    protected final <T> void testAttribute(final String attributeName,
                                            final TypeToken<T> attributeType,
                                            final T attributeValue,
-                                           final boolean readOnlyTest) throws Exception {
-        testAttribute(attributeID, attributeName, attributeType, attributeValue, AbstractResourceConnectorTest.<T>valueEquator(), readOnlyTest);
+                                           final boolean readOnlyTest) throws JMException {
+        testAttribute(attributeName, attributeType, attributeValue, AbstractResourceConnectorTest.<T>valueEquator(), readOnlyTest);
     }
 }

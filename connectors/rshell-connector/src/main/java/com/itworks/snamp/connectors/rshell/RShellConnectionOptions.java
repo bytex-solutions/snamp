@@ -3,9 +3,7 @@ package com.itworks.snamp.connectors.rshell;
 import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.jcommands.channels.CommandExecutionChannels;
-import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 
-import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -23,15 +21,6 @@ final class RShellConnectionOptions {
     RShellConnectionOptions(final String connectionString, final Map<String, String> params){
         this.connectionParams = ImmutableMap.copyOf(params);
         this.connectionString = connectionString;
-    }
-
-    static BigInteger computeConfigurationHash(final String connectionString,
-                                               final Map<String, String> options){
-        return AbstractManagedResourceConnector.computeConnectionParamsHashCode(connectionString, options);
-    }
-
-    BigInteger getConfigurationHash(){
-        return computeConfigurationHash(connectionString, connectionParams);
     }
 
     /**

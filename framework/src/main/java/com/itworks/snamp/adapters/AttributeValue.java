@@ -110,7 +110,7 @@ public class AttributeValue extends Attribute implements AttributeValueReader {
      */
     @Override
     public final Object getValue(final WellKnownType valueType) throws InvalidAttributeValueException {
-        return getValue(valueType.getType());
+        return getValue(valueType.getJavaType());
     }
 
     /**

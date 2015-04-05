@@ -12,7 +12,7 @@ import javax.management.ReflectionException;
 import java.lang.reflect.Type;
 import java.nio.*;
 
-import static com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
+import com.itworks.snamp.adapters.AttributeAccessor;
 
 /**
  * Represents SNMP wrapper for all buffer types.

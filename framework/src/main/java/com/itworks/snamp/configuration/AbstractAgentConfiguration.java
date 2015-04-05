@@ -11,7 +11,7 @@ import java.util.*;
  * @version 1.0
  */
 public abstract class AbstractAgentConfiguration implements AgentConfiguration {
-    private static interface ConfigurationEntityCopier<T extends ConfigurationEntity>{
+    private static interface ConfigurationEntityCopier<T extends EntityConfiguration>{
         void copy(final T input, final T output);
     }
 
@@ -128,7 +128,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         additionalElements.putAll(input.getParameters());
     }
 
-    private static <T extends ConfigurationEntity> void copy(final Map<String, T> input,
+    private static <T extends EntityConfiguration> void copy(final Map<String, T> input,
                              final Map<String, T> output,
                              final Supplier<T> entityFactory,
                              final ConfigurationEntityCopier<T> copier){

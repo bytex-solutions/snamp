@@ -41,7 +41,7 @@ public final class AdapterRestService {
         final InternalBroadcaster broadcaster = notifications.getBroadcaster(resourceName);
         if (broadcaster != null) {
             try {
-                broadcaster.init(request);
+                broadcaster.initialize(request);
                 return new SuspendResponse.SuspendResponseBuilder<String>()
                         .broadcaster(broadcaster)
                         .build();

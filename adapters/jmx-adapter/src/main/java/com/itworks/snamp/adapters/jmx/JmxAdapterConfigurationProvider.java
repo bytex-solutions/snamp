@@ -5,7 +5,10 @@ import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfigu
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -15,11 +18,11 @@ import java.util.ResourceBundle;
  */
 final class JmxAdapterConfigurationProvider extends ConfigurationEntityDescriptionProviderImpl {
 
-    static final String OBJECT_NAME_PARAM = "objectName";
+    private static final String OBJECT_NAME_PARAM = "objectName";
 
-    static final String USE_PLATFORM_MBEAN_PARAM = "usePlatformMBean";
+    private static final String USE_PLATFORM_MBEAN_PARAM = "usePlatformMBean";
 
-    static final String SEVERITY_PARAM = "severity";
+    private static final String SEVERITY_PARAM = "severity";
 
     private static final class EventConfigSchema extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
         private static final String RESOURCE_NAME = "JmxEventSettings";
@@ -49,7 +52,23 @@ final class JmxAdapterConfigurationProvider extends ConfigurationEntityDescripti
         }
     }
 
-    public JmxAdapterConfigurationProvider(){
+    JmxAdapterConfigurationProvider(){
         super(new AdapterConfigSchema(), new EventConfigSchema());
+    }
+
+    static boolean usePlatformMBean(final Map<String, String> parameters){
+        if(parameters.containsKey(USE_PLATFORM_MBEAN_PARAM))
+            switch (parameters.get(USE_PLATFORM_MBEAN_PARAM)){
+                case "true":
+                case "yes": return true;
+                default: return false;
+            }
+        else return false;
+    }
+
+    static ObjectName parseRootObjectName(final Map<String, String> parameters) throws MalformedObjectNameException {
+        if(parameters.containsKey(OBJECT_NAME_PARAM))
+                return new ObjectName(parameters.get(OBJECT_NAME_PARAM));
+        throw new MalformedObjectNameException("Root object name of MBean is not specified in the resource adapter configuration");
     }
 }

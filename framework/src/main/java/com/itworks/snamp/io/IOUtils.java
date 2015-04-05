@@ -1,9 +1,9 @@
 package com.itworks.snamp.io;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import com.google.common.reflect.TypeToken;
+import com.itworks.snamp.TypeTokens;
+
+import java.io.*;
 import java.nio.charset.Charset;
 
 /**
@@ -32,5 +32,29 @@ public final class IOUtils {
         if (value == null || value.isEmpty()) return;
         else if (encoding == null) writeString(value, output, Charset.defaultCharset());
         else output.write(value.getBytes(encoding));
+    }
+
+    public static byte[] serialize(final Serializable obj) throws IOException {
+        try (final ByteArrayOutputStream os = new ByteArrayOutputStream(1024);
+             final ObjectOutputStream serializer = new ObjectOutputStream(os)) {
+            serializer.writeObject(obj);
+            return os.toByteArray();
+        }
+    }
+
+    public static <T extends Serializable> T deserialize(final byte[] serializedForm,
+                                                         final TypeToken<T> expectedType) throws IOException{
+        try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
+             final ObjectInputStream deserializer = new ObjectInputStream(stream)) {
+            return TypeTokens.cast(deserializer.readObject(), expectedType);
+        }
+        catch (final ClassNotFoundException | ClassCastException e){
+            throw new IOException(e);
+        }
+    }
+
+    public static <T extends Serializable> T deserialize(final byte[] serializedForm,
+                                                         final Class<T> expectedType) throws IOException{
+        return deserialize(serializedForm, TypeToken.of(expectedType));
     }
 }

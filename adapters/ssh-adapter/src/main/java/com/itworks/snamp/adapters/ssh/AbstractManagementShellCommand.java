@@ -6,6 +6,7 @@ import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.Environment;
@@ -24,7 +25,13 @@ import java.util.logging.Level;
  * @since 1.0
  */
 abstract class AbstractManagementShellCommand extends BasicParser implements ManagementShellCommand {
-    static Options EMPTY_OPTIONS = new Options();
+    protected static final Option RESOURCE_OPTION = new Option("r",
+            "resource",
+            true,
+            "Name of the managed resource");
+    final static Options EMPTY_OPTIONS = new Options();
+
+
 
     static class CommandException extends Exception {
         private static final long serialVersionUID = -1305857667263784898L;

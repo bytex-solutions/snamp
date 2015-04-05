@@ -7,13 +7,10 @@ import com.google.common.collect.Sets;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
+import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.jmx.TabularDataUtils;
-import org.snmp4j.agent.MOAccess;
-import org.snmp4j.agent.MOQuery;
-import org.snmp4j.agent.MOScope;
-import org.snmp4j.agent.UpdatableManagedObject;
+import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.agent.request.Request;
 import org.snmp4j.agent.request.SubRequest;
@@ -33,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.itworks.snamp.jmx.DescriptorUtils.getField;
 import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
@@ -47,7 +45,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     /**
      * Represents transaction state.
      */
-    private static enum TransactionState{
+    private enum TransactionState{
         PREPARE((byte)0),
         COMMIT((byte)1),
         ROLLBACK((byte)2),
@@ -55,7 +53,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
 
         private final byte stateId;
 
-        private TransactionState(final byte sid){
+        TransactionState(final byte sid){
             this.stateId = sid;
         }
 
@@ -74,7 +72,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         }
     }
 
-    private static enum TransactionCompletionState{
+    private enum TransactionCompletionState{
         IN_PROGRESS,
         SUCCESS,
         ROLLED_BACK
@@ -113,8 +111,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
          * @throws IllegalArgumentException Invalid new state for this transaction.
          */
         private synchronized void setState(final TransactionState newState) throws IllegalArgumentException{
-            if(newState == null) throw new IllegalArgumentException("newState is null.");
-            else if(state == null)
+            if(state == null)
                 switch (newState){
                     case PREPARE:
                     case COMMIT:
@@ -312,7 +309,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
 
     @SpecialUse
     SnmpTableObject(final AttributeAccessor connector){
-        this(new OID(SnmpAdapterConfigurationDescriptor.getOID(connector.getMetadata())), connector);
+        this(new OID(SnmpAdapterConfigurationDescriptor.parseOID(connector.getMetadata())), connector);
     }
 
     /**
@@ -358,11 +355,11 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         final MutableInteger rowIndex = new MutableInteger(0);
         TabularDataUtils.forEachRow(data, new SafeConsumer<CompositeData>() {
             @Override
-            public void accept(final CompositeData row){
+            public void accept(final CompositeData row) {
                 final List<Variable> cells = Lists.newArrayListWithExpectedSize(table.getColumnCount());
-                for(int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++){
+                for (int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++) {
                     final MONamedColumn columnDef = table.getColumn(columnIndex);
-                    if(MORowStatusColumn.isInstance(columnDef))
+                    if (MORowStatusColumn.isInstance(columnDef))
                         cells.add(columnIndex, TableRowStatus.ACTIVE.toManagedScalarValue());
                     else {
                         final Variable cell = columnDef.createCellValue(row.get(columnDef.name), conversionOptions);
@@ -622,14 +619,34 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         }
     }
 
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the requested object.
-     * @return An instance of the aggregated object; or {@literal null} if object is not available.
-     */
     @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return objectType.isAssignableFrom(AttributeAccessor.class) ? objectType.cast(_connector) : null;
+    public final AttributeAccessor disconnect(final MOServer server) {
+        if(server != null) {
+            server.unregister(this, null);
+        }
+        else _connector.disconnect();
+        return _connector;
+    }
+
+    @Override
+    public final boolean connect(final OID context, final MOServer server) throws DuplicateRegistrationException {
+        if(getID().startsWith(context)) {
+            server.register(this, null);
+            return true;
+        }
+        else return false;
+    }
+
+    @Override
+    public final boolean equals(final MBeanAttributeInfo metadata) {
+        return Objects.equals(getID(), new OID(parseOID(metadata)));
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Table. Metadata: %s; OID: %s; Index: %s",
+                _connector.toString(),
+                getID(),
+                getIndexDef());
     }
 }

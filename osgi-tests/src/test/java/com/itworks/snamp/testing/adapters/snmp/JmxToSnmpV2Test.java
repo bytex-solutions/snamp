@@ -92,6 +92,36 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Test
+    public void startStopTest() throws Exception {
+        final TimeSpan TIMEOUT = TimeSpan.fromSeconds(14);
+        //stop adapter and connector
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        stopResourceConnector(getTestBundleContext());
+        //start empty adapter
+        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
+            @Override
+            public Void call() throws BundleException {
+                ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+                return null;
+            }
+        }, TIMEOUT);
+        //start connector, this causes attribute registration and SNMP adapter updating
+        syncWithAdapterUpdatedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, Exception>() {
+            @Override
+            public Void call() throws Exception {
+                startResourceConnector(getTestBundleContext());
+                return null;
+            }
+        }, TIMEOUT);
+        //check whether the attribute is accessible
+        testForStringProperty();
+        //now stops the connector again
+        stopResourceConnector(getTestBundleContext());
+        //stop the adapter
+        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    }
+
+    @Test
     public final void testForStringProperty() throws IOException {
             final String valueToCheck = "SETTED VALUE";
             final OID attributeId = new OID("1.1.1.0");
@@ -162,6 +192,8 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
+        snmpAdapter.getParameters().put("context", "1.1");
+        snmpAdapter.getParameters().put("restartTimeout", "4000");
         adapters.put("test-snmp", snmpAdapter);
     }
 

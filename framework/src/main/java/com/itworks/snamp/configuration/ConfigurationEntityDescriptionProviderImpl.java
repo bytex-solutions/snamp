@@ -1,7 +1,7 @@
 package com.itworks.snamp.configuration;
 
 import com.itworks.snamp.AbstractAggregator;
-import com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -12,14 +12,14 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public class ConfigurationEntityDescriptionProviderImpl extends AbstractAggregator implements ConfigurationEntityDescriptionProvider {
-    private final Iterable<ConfigurationEntityDescription<? extends ConfigurationEntity>> descriptions;
+    private final Iterable<ConfigurationEntityDescription<? extends EntityConfiguration>> descriptions;
 
     /**
      * Initializes a new instance of the configuration description provider.
      * @param descriptions A set of available descriptors.
      */
     @SafeVarargs
-    public ConfigurationEntityDescriptionProviderImpl(final ConfigurationEntityDescription<? extends ConfigurationEntity>... descriptions){
+    public ConfigurationEntityDescriptionProviderImpl(final ConfigurationEntityDescription<? extends EntityConfiguration>... descriptions){
         this.descriptions = Arrays.asList(descriptions);
     }
 
@@ -32,7 +32,7 @@ public class ConfigurationEntityDescriptionProviderImpl extends AbstractAggregat
      */
     @SuppressWarnings("unchecked")
     @Override
-    public final <T extends ConfigurationEntity> ConfigurationEntityDescription<T> getDescription(final Class<T> configurationEntity) {
+    public final <T extends EntityConfiguration> ConfigurationEntityDescription<T> getDescription(final Class<T> configurationEntity) {
         for(final ConfigurationEntityDescription description: descriptions)
             if(configurationEntity.equals(description.getEntityType()))
                 return description;

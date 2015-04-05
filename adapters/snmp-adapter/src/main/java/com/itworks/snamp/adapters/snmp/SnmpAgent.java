@@ -1,5 +1,7 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.ResourceAdapterUpdatedCallback;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
@@ -11,7 +13,10 @@ import org.snmp4j.mp.MPv1;
 import org.snmp4j.mp.MPv2c;
 import org.snmp4j.mp.MPv3;
 import org.snmp4j.mp.MessageProcessingModel;
-import org.snmp4j.security.*;
+import org.snmp4j.security.DefaultSecurityProtocols;
+import org.snmp4j.security.SecurityLevel;
+import org.snmp4j.security.SecurityModel;
+import org.snmp4j.security.USM;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.transport.TransportMappings;
@@ -19,8 +24,6 @@ import org.snmp4j.util.ConcurrentMessageDispatcher;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -31,19 +34,19 @@ import java.util.logging.Level;
  * @author Roman Sakno, Evgeniy Kirichenko
  * 
  */
-final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
+final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, ResourceAdapterUpdatedCallback {
     private static final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
 
 	private final String hostName;
     private final int port;
     private final int socketTimeout;
     private boolean coldStart;
-    private final Collection<SnmpAttributeMapping> attributes;
-    private final Collection<SnmpNotificationMapping> notifications;
     private final ExecutorService threadPool;
     private final SecurityConfiguration security;
+    private final OID prefix;
 
-    SnmpAgent(final OctetString engineID,
+    SnmpAgent(final OID prefix,
+            final OctetString engineID,
             final int port,
             final String hostName,
             final SecurityConfiguration securityOptions,
@@ -56,39 +59,50 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
                         new OctetString(engineID)));
         this.threadPool = Objects.requireNonNull(threadPool);
         coldStart = true;
-        this.attributes = new ArrayList<>(10);
-        this.notifications = new ArrayList<>(10);
         this.hostName = hostName;
         this.port = port;
         this.socketTimeout = socketTimeout;
         this.security = securityOptions;
+        this.prefix = prefix;
 	}
+
+    void registerManagedObject(final SnmpAttributeMapping mo) throws DuplicateRegistrationException {
+        mo.connect(prefix, server);
+    }
+
+    AttributeAccessor unregisterManagedObject(final SnmpAttributeMapping mo){
+        return mo.disconnect(server);
+    }
+
+    void registerNotificationTarget(final SnmpNotificationMapping mapping){
+        getSnmpTargetMIB().addTargetAddress(mapping.getReceiverName(),
+                mapping.getTransportDomain(),
+                mapping.getReceiverAddress(),
+                mapping.getTimeout(),
+                mapping.getRetryCount(),
+                new OctetString("notify"),
+                NOTIFICATION_SETTINGS_TAG,
+                StorageType.nonVolatile);
+        mapping.setNotificationOriginator(getNotificationOriginator());
+    }
+
+    void unregisterNotificationTarget(final OctetString receiverName){
+        getSnmpTargetMIB().removeTargetAddress(receiverName);
+    }
+
+    void unregisterNotificationTarget(final SnmpNotificationMapping mapping){
+        unregisterNotificationTarget(mapping.getReceiverName());
+        mapping.setNotificationOriginator(null);
+    }
 
 	@Override
 	protected void registerManagedObjects() {
-        for(final OID prefix: SnmpHelpers.getPrefixes(attributes)){
-            boolean wasReadViewAdded = false;
-            boolean wasWriteViewAdded = false;
-            for(final SnmpAttributeMapping mo: SnmpHelpers.getObjectsByPrefix(prefix, attributes))
-                try {
-                    if (mo.getMetadata().isReadable() && !wasReadViewAdded){
-                        vacmMIB.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
-                                new OctetString(), VacmMIB.vacmViewIncluded,
-                                StorageType.nonVolatile);
-                        wasReadViewAdded = true;
-                    }
-                    if (mo.getMetadata().isWritable() && !wasWriteViewAdded){
-                        vacmMIB.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
-                                new OctetString(), VacmMIB.vacmViewIncluded,
-                                StorageType.nonVolatile);
-                        wasWriteViewAdded = true;
-                    }
-                    server.register(mo, null);
-                }
-                catch (final DuplicateRegistrationException e) {
-                    SnmpHelpers.log(Level.WARNING, "SNMP Internal Error. Call for SNMP developers.", e);
-                }
-        }
+        vacmMIB.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
+                new OctetString(), VacmMIB.vacmViewIncluded,
+                StorageType.volatile_);
+        vacmMIB.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
+                new OctetString(), VacmMIB.vacmViewIncluded,
+                StorageType.volatile_);
 	}
 
     /**
@@ -96,13 +110,10 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
      */
     @Override
     protected final void unregisterManagedObjects() {
-        for(final SnmpAttributeMapping mo: attributes)
-            server.unregister(mo, null);
-        for(final OID prefix: SnmpHelpers.getPrefixes(attributes)){
-            vacmMIB.removeViewTreeFamily(new OctetString("fullReadView"), new OID(prefix));
-            vacmMIB.removeViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix));
-        }
-        attributes.clear();
+        vacmMIB.removeViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix));
+        vacmMIB.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
+                new OctetString(), VacmMIB.vacmViewIncluded,
+                StorageType.volatile_);
     }
 
     /**
@@ -139,16 +150,14 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
      * Initializes concurrent message dispatcher
      */
     protected void initMessageDispatcher() {
-        if (threadPool != null) {
-            dispatcher = new ConcurrentMessageDispatcher(threadPool);
-            mpv3 = new MPv3(usm = new USM(DefaultSecurityProtocols.getInstance(),
-                    agent.getContextEngineID(),
-                    updateEngineBoots()));
-            dispatcher.addMessageProcessingModel(new MPv1());
-            dispatcher.addMessageProcessingModel(new MPv2c());
-            dispatcher.addMessageProcessingModel(mpv3);
-            initSnmpSession();
-        } else super.initMessageDispatcher();
+        dispatcher = new ConcurrentMessageDispatcher(threadPool);
+        mpv3 = new MPv3(usm = new USM(DefaultSecurityProtocols.getInstance(),
+                agent.getContextEngineID(),
+                updateEngineBoots()));
+        dispatcher.addMessageProcessingModel(new MPv1());
+        dispatcher.addMessageProcessingModel(new MPv2c());
+        dispatcher.addMessageProcessingModel(mpv3);
+        initSnmpSession();
     }
 
     /**
@@ -160,24 +169,10 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
      */
     @Override
     protected final void addNotificationTargets(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB) {
-        if(notifications.isEmpty()) return;
         targetMIB.addDefaultTDomains();
-        //register notifications
-        for(final OID prefix: SnmpHelpers.getPrefixes(notifications)){
-            vacmMIB.addViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix),
-                    new OctetString(), VacmMIB.vacmViewIncluded,
-                    StorageType.nonVolatile);
-            for(final SnmpNotificationMapping mapping: SnmpHelpers.getObjectsByPrefix(prefix, notifications)){
-                targetMIB.addTargetAddress(mapping.getReceiverName(),
-                        mapping.getTransportDomain(),
-                        mapping.getReceiverAddress(),
-                        mapping.getTimeout(),
-                        mapping.getRetryCount(),
-                        new OctetString("notify"),
-                        NOTIFICATION_SETTINGS_TAG,
-                        StorageType.nonVolatile);
-            }
-        }
+        vacmMIB.addViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix),
+                new OctetString(), VacmMIB.vacmViewIncluded,
+                StorageType.nonVolatile);
         //setup internal SNMP settings
         if(security != null){
             //find the user with enabled notification
@@ -210,28 +205,44 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
 	 * Initializes SNMP transport.
 	 */
 	protected void initTransportMappings() throws IOException {
-        final TransportMappings mappings = TransportMappings.getInstance();
         try{
-            TransportMapping<?> tm = mappings.createTransportMapping(GenericAddress.parse(String.format("%s/%s", hostName, port)));
+            final TransportMapping<?> tm = TransportMappings
+                    .getInstance()
+                    .createTransportMapping(GenericAddress.parse(String.format("%s/%s", hostName, port)));
             if(tm instanceof DefaultUdpTransportMapping)
                 ((DefaultUdpTransportMapping)tm).setSocketTimeout(socketTimeout);
             transportMappings = new TransportMapping[]{tm};
         }
-        catch (final RuntimeException e){
+        catch (final Exception e){
             throw new IOException(String.format("Unable to create SNMP transport for %s/%s address.", hostName, port), e);
         }
 	}
 
-    boolean start(final Collection<? extends SnmpAttributeMapping> attrs,
-                         final Collection<? extends SnmpNotificationMapping> notifs) throws IOException {
+    /**
+     * Updating of the resource adapter is completed.
+     */
+    @Override
+    public void updated() {
+        run();
+    }
+
+    private void finishInit(final Iterable<? extends SnmpAttributeMapping> attributes,
+                            final Iterable<? extends SnmpNotificationMapping> notifications) throws DuplicateRegistrationException {
+        for(final SnmpAttributeMapping mapping: attributes)
+            registerManagedObject(mapping);
+        for(final SnmpNotificationMapping mapping: notifications)
+            registerNotificationTarget(mapping);
+        finishInit();
+    }
+
+    boolean start(final Iterable<? extends SnmpAttributeMapping> attributes,
+                  final Iterable<? extends SnmpNotificationMapping> notifications) throws IOException, DuplicateRegistrationException {
 		switch (agentState){
             case STATE_STOPPED:
             case STATE_CREATED:
-                attributes.addAll(attrs);
-                notifications.addAll(notifs);
                 init();
                 if(coldStart) getServer().addContext(new OctetString("public"));
-                finishInit();
+                finishInit(attributes, notifications);
                 run();
                 if(coldStart) sendColdStartNotification();
                 coldStart = false;
@@ -270,6 +281,10 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
         }
     }
 
+    void suspend(){
+        super.stop();
+    }
+
     /**
      * Stops the agent by closing the SNMP session and associated transport
      * mappings.
@@ -277,19 +292,16 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener {
      * @since 1.1
      */
     @Override
-    public void stop(){
-        switch (agentState){
+    public void stop() {
+        switch (agentState) {
             case STATE_RUNNING:
                 threadPool.shutdownNow();
-                super.stop();
+                suspend();
             case STATE_STOPPED:
             case STATE_CREATED:
                 snmpTargetMIB.getSnmpTargetAddrEntry().removeAll();
                 snmpTargetMIB.getSnmpTargetParamsEntry().removeAll();
                 unregisterSnmpMIBs();
-            default:
-                attributes.clear();
-                notifications.clear();
         }
     }
 }

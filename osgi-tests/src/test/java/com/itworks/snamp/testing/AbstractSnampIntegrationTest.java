@@ -3,14 +3,10 @@ package com.itworks.snamp.testing;
 import com.google.common.base.Supplier;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.ResourceAdapter;
-import com.itworks.snamp.adapters.ResourceAdapterClient;
-import com.itworks.snamp.adapters.ResourceAdapterEvent;
-import com.itworks.snamp.adapters.ResourceAdapterEventListener;
+import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
-import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.licensing.AbstractLicenseLimitations;
 import com.itworks.snamp.licensing.LicenseReader;
 import org.junit.After;
@@ -52,27 +48,18 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     private static final class AdapterStartedSynchronizationEvent extends SynchronizationEvent<ResourceAdapter> implements ResourceAdapterEventListener {
 
         @Override
-        public void adapterStarted(final ResourceAdapterEvent e) {
-            fire(e.getSource());
-        }
-
-        @Override
-        @MethodStub
-        public void adapterStopped(final ResourceAdapterEvent e) {
-
+        public void handle(final ResourceAdapterEvent e) {
+            if(e instanceof ResourceAdapterStartedEvent)
+                fire(e.getSource());
         }
     }
 
-    private static final class AdapterStoppedSynchronizationEvent extends SynchronizationEvent<ResourceAdapter> implements ResourceAdapterEventListener{
-        @Override
-        @MethodStub
-        public void adapterStarted(final ResourceAdapterEvent e) {
-
-        }
+    private static final class AdapterUpdatedSynchronizationEvent extends SynchronizationEvent<ResourceAdapter> implements ResourceAdapterEventListener{
 
         @Override
-        public void adapterStopped(final ResourceAdapterEvent e) {
-            fire(e.getSource());
+        public void handle(final ResourceAdapterEvent e) {
+            if(e instanceof ResourceAdapterUpdatedEvent)
+                fire(e.getSource());
         }
     }
 
@@ -193,6 +180,21 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                                                                           final ExceptionalCallable<V, E> handler,
                                                                           final TimeSpan timeout) throws E, TimeoutException, InterruptedException {
         final AdapterStartedSynchronizationEvent synchronizer = new AdapterStartedSynchronizationEvent();
+        ResourceAdapterClient.addEventListener(adapterName, synchronizer);
+        try {
+            final V result = handler.call();
+            synchronizer.getAwaitor().await(timeout);
+            return result;
+        }
+        finally {
+            ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
+        }
+    }
+
+    protected static <V, E extends Exception> V syncWithAdapterUpdatedEvent(final String adapterName,
+                                                                            final ExceptionalCallable<V, E> handler,
+                                                                            final TimeSpan timeout) throws E, TimeoutException, InterruptedException {
+        final AdapterUpdatedSynchronizationEvent synchronizer = new AdapterUpdatedSynchronizationEvent();
         ResourceAdapterClient.addEventListener(adapterName, synchronizer);
         try {
             final V result = handler.call();

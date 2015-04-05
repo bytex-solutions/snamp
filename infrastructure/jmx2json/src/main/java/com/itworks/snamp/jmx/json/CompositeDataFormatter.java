@@ -39,7 +39,7 @@ public final class CompositeDataFormatter extends CompositeDataSerializer implem
                     entries.put(itemName, deserialize((CompositeType) itemType, itemValue.getAsJsonObject(), context));
                 else if (itemType instanceof TabularType && itemValue.isJsonArray())
                     entries.put(itemName, deserialize((TabularType) itemType, itemValue.getAsJsonArray(), context));
-                else entries.put(itemName, context.deserialize(itemValue, WellKnownType.getType(itemType).getType()));
+                else entries.put(itemName, context.deserialize(itemValue, WellKnownType.getType(itemType).getJavaType()));
             }
         try {
             return new CompositeDataSupport(type, entries);

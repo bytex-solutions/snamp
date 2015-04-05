@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.itworks.snamp.Descriptive;
@@ -544,9 +545,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private final Logger logger;
         private final ManagedBeanDescriptor<?> bean;
 
-        private JavaBeanAttributeSupport(final ManagedBeanDescriptor<?> beanDesc,
+        private JavaBeanAttributeSupport(final String resourceName,
+                                         final ManagedBeanDescriptor<?> beanDesc,
                                          final Logger logger){
-            super(JavaBeanAttributeInfo.class);
+            super(resourceName, JavaBeanAttributeInfo.class);
             this.logger = Objects.requireNonNull(logger);
             this.bean = Objects.requireNonNull(beanDesc);
         }
@@ -599,9 +601,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
         private final NotificationListenerInvoker listenerInvoker;
 
-        private JavaBeanNotificationSupport(final Set<? extends ManagementNotificationType<?>> notifTypes,
+        private JavaBeanNotificationSupport(final String resourceName,
+                                            final Set<? extends ManagementNotificationType<?>> notifTypes,
                                             final Logger logger){
-            super(CustomNotificationInfo.class);
+            super(resourceName, CustomNotificationInfo.class);
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
@@ -653,58 +656,66 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     private final JavaBeanAttributeSupport attributes;
     private final JavaBeanNotificationSupport notifications;
-    private final ManagedBeanDescriptor<?> beanDescriptor;
 
-    private ManagedResourceConnectorBean(ManagedBeanDescriptor<?> descriptor,
+    private ManagedResourceConnectorBean(final String resourceName,
+                                         ManagedBeanDescriptor<?> descriptor,
                                          final Set<? extends ManagementNotificationType<?>> notifTypes) throws IntrospectionException {
         if(descriptor == null) descriptor = new SelfDescriptor(this);
-        beanDescriptor = descriptor;
-        attributes = new JavaBeanAttributeSupport(descriptor, getLogger());
-        notifications = new JavaBeanNotificationSupport(notifTypes, getLogger());
+        attributes = new JavaBeanAttributeSupport(resourceName, descriptor, getLogger());
+        notifications = new JavaBeanNotificationSupport(resourceName, notifTypes, getLogger());
     }
 
     /**
      * Initializes a new managed resource connector that reflects properties of the specified instance
      * as connector managementAttributes.
+     * @param resourceName The name of the managed resource served by this connector.
      * @param beanInstance An instance of JavaBean to reflect. Cannot be {@literal null}.
      * @param introspector An introspector that reflects the specified JavaBean. Cannot be {@literal null}.
      * @throws IntrospectionException Cannot reflect the specified instance.
      * @throws IllegalArgumentException At least one of the specified arguments is {@literal null}.
      */
-    protected ManagedResourceConnectorBean(final Object beanInstance,
+    protected ManagedResourceConnectorBean( final String resourceName,
+                                            final Object beanInstance,
                                                final BeanIntrospector introspector) throws IntrospectionException {
-        this(new BeanDescriptor<>(beanInstance, introspector), Collections.<ManagementNotificationType<?>>emptySet());
+        this(resourceName,
+                new BeanDescriptor<>(beanInstance, introspector),
+                Collections.<ManagementNotificationType<?>>emptySet());
     }
 
     /**
      * Initializes a new managed resource connector that reflects itself.
+     * @param resourceName The name of the managed resource served by this connector.
      * @throws IntrospectionException Unable to reflect managed resource connector.
      */
-    protected ManagedResourceConnectorBean() throws IntrospectionException {
-        this(EnumSet.noneOf(EmptyManagementNotificationType.class));
+    protected ManagedResourceConnectorBean(final String resourceName) throws IntrospectionException {
+        this(resourceName, EnumSet.noneOf(EmptyManagementNotificationType.class));
     }
 
     /**
      * Initializes a new managed resource connector that reflects itself.
+     * @param resourceName The name of the managed resource served by this connector.
      * @param notifTypes A set of notifications supported by this connector.
      * @param <N> Type of the notification category provider.
      * @throws IntrospectionException Unable to reflect managed resource connector.
      */
-    protected <N extends Enum<N> & ManagementNotificationType<?>> ManagedResourceConnectorBean(final EnumSet<N> notifTypes) throws IntrospectionException {
-        this(null, notifTypes);
+    protected <N extends Enum<N> & ManagementNotificationType<?>> ManagedResourceConnectorBean(final String resourceName,
+                                                                                               final EnumSet<N> notifTypes) throws IntrospectionException {
+        this(resourceName, null, notifTypes);
     }
 
     /**
      * Creates SNAMP management connector from the specified Java Bean.
+     * @param resourceName The name of the managed resource served by this connector.
      * @param connectorName The name of the managed resource connector.
      * @param beanInstance An instance of the Java Bean to wrap.
      * @param <T> Type of the Java Bean to wrap.
      * @return A new instance of the management connector that wraps the Java Bean.
      * @throws IntrospectionException Cannot reflect the specified instance.
      */
-    public static <T> ManagedResourceConnectorBean wrap(final String connectorName,
+    public static <T> ManagedResourceConnectorBean wrap(final String resourceName,
+                                                        final String connectorName,
                                                         final T beanInstance) throws IntrospectionException {
-        return new ManagedResourceConnectorBean(beanInstance, new StandardBeanIntrospector()){
+        return new ManagedResourceConnectorBean(resourceName, beanInstance, new StandardBeanIntrospector()){
 
             @Override
             public Logger getLogger() {
@@ -714,20 +725,35 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     /**
-     * <p>Returns an array indicating, for each notification this
-     * MBean may send, the name of the Java class of the notification
-     * and the notification type.</p>
+     * Adds a new listener for the connector-related events.
      * <p/>
-     * <p>It is not illegal for the MBean to send notifications not
-     * described in this array.  However, some clients of the MBean
-     * server may depend on the array being complete for their correct
-     * functioning.</p>
+     * The managed resource connector should holds a weak reference to all added event listeners.
      *
-     * @return the array of possible notifications.
+     * @param listener An event listener to add.
      */
     @Override
-    public final MBeanNotificationInfo[] getNotificationInfo() {
-        return new MBeanNotificationInfo[0];
+    public final void addResourceEventListener(final ResourceEventListener listener) {
+        addResourceEventListener(listener, attributes, notifications);
+    }
+
+    /**
+     * Removes connector event listener.
+     *
+     * @param listener The listener to remove.
+     */
+    @Override
+    public final void removeResourceEventListener(final ResourceEventListener listener) {
+        removeResourceEventListener(listener, attributes, notifications);
+    }
+
+    /**
+     * Gets subscription model.
+     *
+     * @return The subscription model.
+     */
+    @Override
+    public final NotificationSubscriptionModel getSubscriptionModel() {
+        return notifications.getSubscriptionModel();
     }
 
     /**
@@ -778,7 +804,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @param listId The identifier of the subscription list.
      * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
      */
-    @Override
     public final boolean disableNotifications(final String listId) {
         verifyInitialization();
         return notifications.disableNotifications(listId);
@@ -786,10 +811,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     /**
      * Enables event listening for the specified category of events.
-     * <p/>
+     * <p>
      * category can be used for enabling notifications for the same category
      * but with different options.
-     * <p/>
+     * <p>
      * listId parameter
      * is used as a value of {@link javax.management.Notification#getType()}.
      *
@@ -797,10 +822,11 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @param category The name of the event category to listen.
      * @param options  Event discovery options.
      * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-     * @throws javax.management.JMException Internal connector error.
      */
-    @Override
-    public final MBeanNotificationInfo enableNotifications(final String listId, final String category, final CompositeData options) throws JMException {
+    public final MBeanNotificationInfo enableNotifications(final String listId,
+                                                           final String category,
+                                                           final CompositeData options) {
+        verifyInitialization();
         return notifications.enableNotifications(listId, category, options);
     }
 
@@ -810,20 +836,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @param id The unique identifier of the attribute.
      * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
      */
-    @Override
-    public final boolean disconnectAttribute(final String id) {
-        return attributes.disconnectAttribute(id);
-    }
-
-    /**
-     * Gets an array of connected attributes.
-     *
-     * @return An array of connected attributes.
-     */
-    @Override
-    public final MBeanAttributeInfo[] getAttributeInfo() {
-        verifyInitialization();
-        return attributes.getAttributeInfo();
+    public final boolean removeAttribute(final String id) {
+        return attributes.removeAttribute(id);
     }
 
     /**
@@ -834,76 +848,29 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
      * @param options          The attribute discovery options.
      * @return The description of the attribute.
-     * @throws javax.management.AttributeNotFoundException The managed resource doesn't provide the attribute with the specified name.
-     * @throws javax.management.JMException                Internal connector error.
      */
-    @Override
-    public final MBeanAttributeInfo connectAttribute(final String id,
-                                               final String attributeName,
-                                               final TimeSpan readWriteTimeout,
-                                               final CompositeData options) throws JMException {
+    public final MBeanAttributeInfo addAttribute(final String id,
+                                                 final String attributeName,
+                                                 final TimeSpan readWriteTimeout,
+                                                 final CompositeData options) {
         verifyInitialization();
-        return attributes.connectAttribute(id, attributeName, readWriteTimeout, options);
+        return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
     }
 
     /**
-     * Obtain the value of a specific attribute of the managed resource.
-     *
-     * @param attribute The name of the attribute to be retrieved
-     * @return The value of the attribute retrieved.
-     * @throws javax.management.AttributeNotFoundException
-     * @throws javax.management.MBeanException             Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's getter.
-     * @throws javax.management.ReflectionException        Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the getter.
-     * @see #setAttribute(javax.management.Attribute)
+     * Removes all attributes from this connector.
      */
-    @Override
-    public final Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
+    public final void removeAllAttributes(){
         verifyInitialization();
-        return attributes.getAttribute(attribute);
+        attributes.clear(false);
     }
 
     /**
-     * Set the value of a specific attribute of the managed resource.
-     *
-     * @param attribute The identification of the attribute to
-     *                  be set and  the value it is to be set to.
-     * @throws javax.management.AttributeNotFoundException
-     * @throws javax.management.InvalidAttributeValueException
-     * @throws javax.management.MBeanException                 Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
-     * @throws javax.management.ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
-     * @see #getAttribute
+     * Removes all notifications and listeners from this connector.
      */
-    @Override
-    public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+    public final void removeAllNotifications(){
         verifyInitialization();
-        attributes.setAttribute(attribute);
-    }
-
-    /**
-     * Get the values of several attributes of the Dynamic MBean.
-     *
-     * @param attributes A list of the attributes to be retrieved.
-     * @return The list of attributes retrieved.
-     * @see #setAttributes
-     */
-    @Override
-    public final AttributeList getAttributes(final String[] attributes) {
-        verifyInitialization();
-        return this.attributes.getAttributes(attributes);
-    }
-
-    /**
-     * Sets the values of several attributes of the Dynamic MBean.
-     *
-     * @param attributes A list of attributes: The identification of the
-     *                   attributes to be set and  the values they are to be set to.
-     * @return The list of attributes that were set, with their new values.
-     * @see #getAttributes
-     */
-    @Override
-    public final AttributeList setAttributes(final AttributeList attributes) {
-        verifyInitialization();
-        return this.attributes.setAttributes(attributes);
+        notifications.clear(true, false);
     }
 
     private void emitNotificationImpl(final ManagementNotificationType<?> category,
@@ -921,5 +888,21 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                               final String message,
                                               final T userData){
         emitNotificationImpl(category, message, userData);
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the aggregated object.
+     * @return An instance of the requested object; or {@literal null} if object is not available.
+     */
+    @Override
+    public <T> T queryObject(final Class<T> objectType) {
+        return findObject(objectType, new Function<Class<T>, T>() {
+            @Override
+            public T apply(final Class<T> objectType) {
+                return ManagedResourceConnectorBean.super.queryObject(objectType);
+            }
+        }, attributes, notifications);
     }
 }

@@ -21,8 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.getDateTimeDisplayFormat;
-import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.getOID;
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseDateTimeDisplayFormat;
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
 
 /**
@@ -67,12 +67,12 @@ final class SnmpNotification extends HashMap<OID, Variable> {
 
     SnmpNotification(final Notification n,
                      final MBeanNotificationInfo metadata) {
-        this(new OID(getOID(metadata)));
+        this(new OID(parseOID(metadata)));
         put(messageId, new OctetString(n.getMessage()));
         put(severityId, new Integer32(NotificationDescriptor.getSeverity(metadata).getLevel()));
         put(sequenceNumberId, new Counter64(n.getSequenceNumber()));
         put(categoryId, new OctetString(NotificationDescriptor.getNotificationCategory(metadata)));
-        final DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter(getDateTimeDisplayFormat(metadata));
+        final DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter(parseDateTimeDisplayFormat(metadata));
         put(timeStampId, new OctetString(formatter.convert(new Date(n.getTimeStamp()))));
         putAttachment(notificationID, n.getUserData(), metadata, this);
         put(eventNameId, new OctetString(n.getType()));

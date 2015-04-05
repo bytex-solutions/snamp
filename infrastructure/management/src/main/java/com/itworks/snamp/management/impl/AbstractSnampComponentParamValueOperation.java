@@ -10,6 +10,7 @@ import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 import com.itworks.snamp.jmx.OpenMBean;
 
+import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.*;
 import java.util.*;
 
@@ -18,7 +19,7 @@ import java.util.*;
  * @author Evgeniy Kirichenko
  */
 abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenOperation<String [], ArrayType<String []>>
-    implements CommonOpenTypesSupport{
+    implements CommonOpenTypesSupport<MBeanOperationInfo>{
 
     /**
      * The constant PARAM_NAME_PARAM.
@@ -71,7 +72,7 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
      */
     protected final String[] getSnampComponentSuggestedValue(final SnampComponentDescriptor snampComponentDescriptor,
                                                              final String parameterName, final String locale,
-                                                             final Class<? extends AgentConfiguration.ConfigurationEntity> configurationEntity,
+                                                             final Class<? extends AgentConfiguration.EntityConfiguration> configurationEntity,
                                                              final Map<String, String> tabularData) throws Exception {
 
         final List<String> result = new LinkedList<>();

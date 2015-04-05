@@ -363,7 +363,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     protected ResourceAdapterActivator(final String adapterName,
                                        final ResourceAdapterFactory<TAdapter> factory,
                                        final SupportAdapterServiceManager<?, ?>... optionalServices){
-        this(adapterName, factory, EMTPY_REQUIRED_SERVICES, optionalServices);
+        this(adapterName, factory, EMPTY_REQUIRED_SERVICES, optionalServices);
     }
 
     /**

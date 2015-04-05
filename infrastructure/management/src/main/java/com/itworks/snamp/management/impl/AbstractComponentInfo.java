@@ -10,6 +10,7 @@ import com.itworks.snamp.licensing.LicensingDescriptionService;
 import com.itworks.snamp.management.AbstractSnampManager;
 import com.itworks.snamp.management.SnampComponentDescriptor;
 
+import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
@@ -25,7 +26,7 @@ import java.util.logging.Level;
  *
  * @author Evgeniy Kirichenko
  */
-abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeData, CompositeType> implements CommonOpenTypesSupport {
+abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeData, CompositeType> implements CommonOpenTypesSupport<MBeanOperationInfo> {
 
     private static final CompositeType COMPONENT_CONFIG_SCHEMA;
     private static final TabularType LIMITATION_SCHEMA;

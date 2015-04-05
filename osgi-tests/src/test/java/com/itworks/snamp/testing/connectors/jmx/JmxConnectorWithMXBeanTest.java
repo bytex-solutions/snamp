@@ -46,10 +46,10 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
 
     @Test
     public void testForAttributes() throws Exception {
-        testAttribute("1", "ObjectPendingFinalizationCount", TypeTokens.INTEGER, 0,
+        testAttribute("1", TypeTokens.INTEGER, 0,
                 AbstractResourceConnectorTest.<Integer>valueEquator(),
                 true);
-        testAttribute("2", "HeapMemoryUsage", TypeToken.of(CompositeData.class),
+        testAttribute("2", TypeToken.of(CompositeData.class),
                 null,
                 AbstractResourceConnectorTest.<CompositeData>successEquator(),
                 true);

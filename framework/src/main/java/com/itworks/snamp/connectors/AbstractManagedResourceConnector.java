@@ -1,13 +1,17 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
-import com.itworks.snamp.ArrayUtils;
+import com.google.common.collect.ObjectArrays;
 import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.connectors.attributes.AttributeAddedEvent;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.connectors.attributes.AttributeRemovingEvent;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.connectors.operations.OperationSupport;
 import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
@@ -18,6 +22,7 @@ import com.itworks.snamp.jmx.JMExceptionUtils;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
+import java.lang.ref.WeakReference;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -41,6 +46,168 @@ import java.util.logging.Logger;
  * @version 1.0
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Descriptive {
+    private static final class WeakResourceEventListener extends WeakReference<ResourceEventListener> implements Supplier<ResourceEventListener> {
+
+        private WeakResourceEventListener(final ResourceEventListener listener) {
+            super(Objects.requireNonNull(listener));
+        }
+    }
+
+    private static final class ResourceEventListenerList extends LinkedList<WeakResourceEventListener>{
+        private static final long serialVersionUID = -9139754747382955308L;
+
+        private ResourceEventListenerList(){
+
+        }
+
+        public boolean add(final ResourceEventListener listener) {
+            //remove dead references
+            final Iterator<WeakResourceEventListener> listeners = iterator();
+            while (listeners.hasNext()){
+                final WeakResourceEventListener l = listeners.next();
+                if(l.get() == null) listeners.remove();
+            }
+            //add a new weak reference to the listener
+            return add(new WeakResourceEventListener(listener));
+        }
+
+        public boolean remove(final ResourceEventListener listener){
+            final Iterator<WeakResourceEventListener> listeners = iterator();
+            while (listeners.hasNext()){
+                final WeakResourceEventListener ref = listeners.next();
+                final ResourceEventListener l = ref.get();
+                if(l == null) listeners.remove(); //remove dead reference
+                else if(Objects.equals(listener, l)){
+                    ref.clear();    //help GC
+                    listeners.remove();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void fire(final ResourceEvent event){
+            final Iterator<WeakResourceEventListener> listeners = iterator();
+            while (listeners.hasNext()){
+                final WeakResourceEventListener ref = listeners.next();
+                final ResourceEventListener l = ref.get();
+                if(l == null) listeners.remove(); //remove dead reference
+                else l.handle(event);
+            }
+        }
+
+        @Override
+        public void clear() {
+            for(final WeakResourceEventListener listener: this)
+                listener.clear(); //help GC
+            super.clear();
+        }
+    }
+
+    /**
+     * Represents an abstract class for all modelers of managed resource features.
+     * You cannot derive from this class directly.
+     * @param <F> Type of the modeling feature.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends ThreadSafeObject {
+        private static abstract class FeatureHolder<F extends MBeanFeatureInfo>{
+            private final F metadata;
+            private final BigInteger identity;
+
+            private FeatureHolder(final F metadata,
+                                  final BigInteger identity){
+                this.metadata = Objects.requireNonNull(metadata);
+                this.identity = Objects.requireNonNull(identity);
+            }
+
+            final boolean equals(final FeatureHolder<?> other){
+                return other != null &&
+                        Objects.equals(getClass(), other.getClass()) &&
+                        Objects.equals(identity, other.identity);
+            }
+
+            final F getMetadata(){
+                return metadata;
+            }
+
+            @Override
+            public final boolean equals(final Object other) {
+                return other instanceof FeatureHolder<?> && equals((FeatureHolder<?>)other);
+            }
+
+            @Override
+            public final int hashCode() {
+                return identity.hashCode();
+            }
+
+            @Override
+            public final String toString() {
+                return metadata.toString();
+            }
+        }
+
+        private final Class<F> metadataType;
+        private final ResourceEventListenerList resourceEventListeners;
+        private final Enum<?> resourceEventListenerSyncGroup;
+        private final String resourceName;
+
+        private <G extends Enum<G>> AbstractFeatureModeler(final String resourceName,
+                                                           final Class<F> metadataType,
+                                                           final Class<G> resourceGroupDef,
+                                                           final G resourceEventListenerSyncGroup) {
+            super(resourceGroupDef);
+            this.metadataType = Objects.requireNonNull(metadataType);
+            this.resourceEventListeners = new ResourceEventListenerList();
+            this.resourceEventListenerSyncGroup = Objects.requireNonNull(resourceEventListenerSyncGroup);
+            this.resourceName = resourceName;
+        }
+
+        /**
+         * Gets name of the resource.
+         *
+         * @return The name of the resource.
+         */
+        public final String getResourceName() {
+            return resourceName;
+        }
+
+        /**
+         * Adds a new feature modeler event listener.
+         *
+         * @param listener Feature modeler event listener to add.
+         */
+        public final void addModelEventListener(final ResourceEventListener listener) {
+            try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
+                resourceEventListeners.add(listener);
+            }
+        }
+
+        /**
+         * Removes the specified modeler event listener.
+         *
+         * @param listener The listener to remove.
+         */
+        public final void removeModelEventListener(final ResourceEventListener listener) {
+            try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
+                resourceEventListeners.remove(listener);
+            }
+        }
+
+        private void fireResourceEvent(final ResourceEvent event) {
+            try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
+                resourceEventListeners.fire(event);
+            }
+        }
+
+        private void removeAllResourceEventListeners() {
+            try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
+                resourceEventListeners.clear();
+            }
+        }
+    }
 
     /**
      * Provides a base support of management attributes.
@@ -49,28 +216,74 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> extends ThreadSafeObject implements AttributeSupport {
-        private final KeyedObjects<String, M> attributes;
-        private final Class<M> metadataType;
+    protected static abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> extends AbstractFeatureModeler<M> implements AttributeSupport {
+        private enum AASResource{
+            ATTRIBUTES,
+            RESOURCE_EVENT_LISTENERS
+        }
+        private static final class AttributeHolder<M extends MBeanAttributeInfo> extends AbstractFeatureModeler.FeatureHolder<M>{
+            private AttributeHolder(final M metadata,
+                                    final String attributeName,
+                                    final TimeSpan readWriteTimeout,
+                                    final CompositeData options){
+                super(metadata, computeIdentity(attributeName, readWriteTimeout, options));
+            }
+
+            private boolean equals(final String attributeName,
+                                   final TimeSpan readWriteTimeout,
+                                   final CompositeData options){
+                return super.identity.equals(computeIdentity(attributeName, readWriteTimeout, options));
+            }
+
+            private static BigInteger computeIdentity(final String attributeName,
+                                                      final TimeSpan readWriteTimeout,
+                                                      final CompositeData options){
+                BigInteger result = new BigInteger(attributeName.getBytes());
+                if(readWriteTimeout != null)
+                    result = result.xor(BigInteger.valueOf(readWriteTimeout.toNanos()));
+                for(final String propertyName: options.getCompositeType().keySet())
+                    result = result
+                            .xor(new BigInteger(propertyName.getBytes()))
+                            .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
+                return result;
+            }
+        }
+
+        private final KeyedObjects<String, AttributeHolder<M>> attributes;
 
         /**
          * Initializes a new support of management attributes.
+         * @param resourceName The name of the managed resource.
          * @param attributeMetadataType The type of the attribute metadata.
          */
-        protected AbstractAttributeSupport(final Class<M> attributeMetadataType) {
+        protected AbstractAttributeSupport(final String resourceName,
+                                           final Class<M> attributeMetadataType) {
+            super(resourceName,
+                    attributeMetadataType,
+                    AASResource.class,
+                    AASResource.RESOURCE_EVENT_LISTENERS);
             attributes = createAttributes();
-            metadataType = Objects.requireNonNull(attributeMetadataType);
         }
 
-        private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, M> createAttributes(){
-            return new AbstractKeyedObjects<String, M>(10) {
+        private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, AttributeHolder<M>> createAttributes(){
+            return new AbstractKeyedObjects<String, AttributeHolder<M>>(10) {
                 private static final long serialVersionUID = 6284468803876344036L;
 
                 @Override
-                public String getKey(final MBeanAttributeInfo metadata) {
-                    return metadata.getName();
+                public String getKey(final AttributeHolder<M> holder) {
+                    return holder.getMetadata().getName();
                 }
             };
+        }
+
+        //this method should be called AFTER registering attribute in this manager
+        private void attributeAdded(final M metadata) {
+            super.fireResourceEvent(new AttributeAddedEvent(this, getResourceName(), metadata));
+        }
+
+        //this method should be called before removing attribute from this manager
+        private void attributeRemoved(final M metadata){
+            super.fireResourceEvent(new AttributeRemovingEvent(this, getResourceName(), metadata));
         }
 
         /**
@@ -80,11 +293,8 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @ThreadSafe
         protected final int attributesCount() {
-            beginRead();
-            try {
+            try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
                 return attributes.size();
-            } finally {
-                endRead();
             }
         }
 
@@ -95,11 +305,26 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @Override
         public final M[] getAttributeInfo() {
-            beginRead();
-            try {
-                return ArrayUtils.toArray(attributes.values(), metadataType);
-            } finally {
-                endRead();
+            try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+                final M[] result = ObjectArrays.newArray(super.metadataType, attributes.size());
+                int index = 0;
+                for(final AttributeHolder<M> holder: attributes.values())
+                    result[index++] = holder.getMetadata();
+                return result;
+            }
+        }
+
+        /**
+         * Gets attribute metadata.
+         *
+         * @param attributeName The name of the attribute.
+         * @return The attribute metadata; or {@literal null}, if attribute doesn't exist.
+         */
+        @Override
+        public final M getAttributeInfo(final String attributeName) {
+            try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)){
+                final AttributeHolder<M> holder = attributes.get(attributeName);
+                return holder != null ? holder.getMetadata() : null;
             }
         }
 
@@ -252,44 +477,61 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          *
          * @param attributeID The id of the attribute.
          * @param descriptor Attribute descriptor.
-         * @return The description of the attribute.
+         * @return The description of the attribute; or {@literal null},
          * @throws java.lang.Exception Internal connector error.
          */
         protected abstract M connectAttribute(final String attributeID,
                                                                final AttributeDescriptor descriptor) throws Exception;
 
         /**
-         * Connects to the specified attribute.
+         * Registers a new attribute in this manager.
          *
-         * @param id               A key string that is used to invoke attribute from this connector.
+         * @param attributeID               A key string that is used to invoke attribute from this connector.
          * @param attributeName    The name of the attribute.
          * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
          * @param options          The attribute discovery options.
          * @return The description of the attribute.
-         * @throws javax.management.AttributeNotFoundException The managed resource doesn't provide the attribute with the specified name.
-         * @throws javax.management.JMException                Internal connector error.
          */
-        @Override
-        public final M connectAttribute(final String id,
-                                                         final String attributeName,
-                                                         final TimeSpan readWriteTimeout,
-                                                         final CompositeData options) throws JMException {
-            beginWrite();
-            try {
-                //return existed attribute without exception to increase flexibility of the API
-                if (attributes.containsKey(id)) return attributes.get(id);
-                final M attr;
-                if ((attr = connectAttribute(id, new AttributeDescriptor(attributeName, readWriteTimeout, options))) != null)
-                    attributes.put(attr);
-                return attr;
+        public final M addAttribute(final String attributeID,
+                                    final String attributeName,
+                                    final TimeSpan readWriteTimeout,
+                                    final CompositeData options) {
+            AttributeHolder<M> holder;
+            try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
+                holder = attributes.get(attributeID);
+                //if attribute exists then we should check whether the input arguments
+                //are equal to the existing attribute options
+                if (holder != null) {
+                    if (holder.equals(attributeName, readWriteTimeout, options))
+                        return holder.getMetadata();
+                    else {
+                        //remove attribute
+                        attributeRemoved(holder.getMetadata());
+                        holder = attributes.remove(attributeID);
+                        //...and register again
+                        if (disconnectAttribute(holder.getMetadata())) {
+                            final M metadata = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
+                            if (metadata != null) {
+                                attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
+                                attributeAdded(holder.getMetadata());
+                            }
+                        } else holder = null;
+                    }
+                }
+                //this is a new attribute, just connect it
+                else {
+                    final M metadata = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
+                    if(metadata != null) {
+                        attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
+                        attributeAdded(holder.getMetadata());
+                    }
+                    else throw JMExceptionUtils.attributeNotFound(attributeName);
+                }
+            } catch (final Exception e) {
+                failedToConnectAttribute(attributeID, attributeName, e);
+                holder = null;
             }
-            catch (final Exception e){
-                failedToConnectAttribute(id, attributeName, e);
-                throw new MBeanException(e);
-            }
-            finally {
-                endWrite();
-            }
+            return holder != null ? holder.getMetadata() : null;
         }
 
         /**
@@ -328,6 +570,10 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         protected abstract Object getAttribute(final M metadata) throws Exception;
 
+        private Object getAttribute(final AttributeHolder<M> holder) throws Exception{
+            return getAttribute(holder.getMetadata());
+        }
+
         /**
          * Obtains the value of a specific attribute of the managed resource.
          *
@@ -340,30 +586,23 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @Override
         public final Object getAttribute(final String attributeID) throws AttributeNotFoundException, MBeanException, ReflectionException {
-            beginRead();
-            try{
-                if(attributes.containsKey(attributeID))
+            try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+                if (attributes.containsKey(attributeID))
                     return getAttribute(attributes.get(attributeID));
                 else throw JMExceptionUtils.attributeNotFound(attributeID);
-            }
-            catch (final AttributeNotFoundException e){
+            } catch (final AttributeNotFoundException e) {
                 throw e;
-            }
-            catch (final MBeanException | ReflectionException e){
+            } catch (final MBeanException | ReflectionException e) {
                 failedToGetAttribute(attributeID, e);
                 throw e;
-            }
-            catch (final Exception e){
+            } catch (final Exception e) {
                 failedToGetAttribute(attributeID, e);
                 throw new MBeanException(e);
-            }
-            finally {
-                endRead();
             }
         }
 
         /**
-         * Reports an error when getting attribure.
+         * Reports an error when getting attribute.
          * @param logger The logger instance. Cannot be {@literal null}.
          * @param logLevel Logging level.
          * @param attributeID The attribute identifier.
@@ -396,6 +635,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         protected abstract void setAttribute(final M attribute,
                                              final Object value) throws Exception;
 
+        private void setAttribute(final AttributeHolder<M> holder,
+                                  final Object value) throws Exception{
+            setAttribute(holder.getMetadata(), value);
+        }
+
         /**
          * Set the value of a specific attribute of the managed resource.
          *
@@ -409,8 +653,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @Override
         public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-            beginRead();
-            try{
+            try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)){
                 if(attributes.containsKey(attribute.getName()))
                     setAttribute(attributes.get(attribute.getName()), attribute.getValue());
                 else throw JMExceptionUtils.attributeNotFound(attribute.getName());
@@ -425,9 +668,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             catch (final Exception e){
                 failedToSetAttribute(attribute.getName(), attribute.getValue(), e);
                 throw new MBeanException(e);
-            }
-            finally {
-                endRead();
             }
         }
 
@@ -462,42 +702,45 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         /**
          * Removes the attribute from the connector.
          *
-         * @param id            The unique identifier of the attribute.
          * @param attributeInfo An attribute metadata.
          * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
          */
-        @SuppressWarnings("UnusedParameters")
-        protected boolean disconnectAttribute(final String id, final M attributeInfo) {
+        protected boolean disconnectAttribute(final M attributeInfo) {
             return true;
         }
 
         /**
          * Removes the attribute from the connector.
          *
-         * @param id The unique identifier of the attribute.
+         * @param attributeID The unique identifier of the attribute.
          * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
          */
-        @Override
         @ThreadSafe
-        public final boolean disconnectAttribute(final String id) {
-            beginWrite();
-            try {
-                return attributes.containsKey(id) && disconnectAttribute(id, attributes.remove(id));
-            } finally {
-                endWrite();
+        public final boolean removeAttribute(final String attributeID) {
+            AttributeHolder<M> holder;
+            try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
+                holder = attributes.get(attributeID);
+                if(holder != null) {
+                    attributeRemoved(holder.getMetadata());
+                    attributes.remove(attributeID);
+                }
             }
+            return holder != null && disconnectAttribute(holder.getMetadata());
         }
 
         /**
          * Removes all attributes.
+         * @param removeAttributeEventListeners {@literal true} to remove all attribute listeners; otherwise, {@literal false}.
          */
-        public void clear() {
-            beginWrite();
-            try {
+        public final void clear(final boolean removeAttributeEventListeners) {
+            try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
+                for (final AttributeHolder<M> holder : attributes.values())
+                    if (disconnectAttribute(holder.getMetadata()))
+                        attributeRemoved(holder.getMetadata());
                 attributes.clear();
-            } finally {
-                endWrite();
             }
+            if (removeAttributeEventListeners)
+                super.removeAllResourceEventListeners();
         }
     }
 
@@ -508,36 +751,59 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @since 1.0
      * @version 1.0
      */
-    protected static abstract class AbstractNotificationSupport<M extends MBeanNotificationInfo> extends ThreadSafeObject implements NotificationSupport{
-        private static enum ANSResource{
+    protected static abstract class AbstractNotificationSupport<M extends MBeanNotificationInfo> extends AbstractFeatureModeler<M> implements NotificationSupport {
+        private enum ANSResource{
             NOTIFICATIONS,
-            LISTENERS
+            RESOURCE_EVENT_LISTENERS
+        }
+        private static final class NotificationHolder<M extends MBeanNotificationInfo> extends AbstractFeatureModeler.FeatureHolder<M>{
+            private NotificationHolder(final M metadata,
+                                       final String category,
+                                       final CompositeData options) {
+                super(metadata, computeIdentity(category, options));
+            }
+
+            private boolean equals(final String category, final CompositeData options){
+                return super.identity.equals(computeIdentity(category, options));
+            }
+
+            private static BigInteger computeIdentity(final String category,
+                                                      final CompositeData options) {
+                BigInteger result = new BigInteger(category.getBytes());
+                for (final String propertyName : options.getCompositeType().keySet())
+                    result = result.xor(new BigInteger(propertyName.getBytes()))
+                            .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
+                return result;
+            }
         }
 
-        private final KeyedObjects<String, M> notifications;
+        private final KeyedObjects<String, NotificationHolder<M>> notifications;
         private final NotificationListenerList listeners;
         private final AtomicLong sequenceCounter;
-        private final Class<M> metadataType;
 
         /**
          * Initializes a new notification manager.
+         * @param resourceName The name of the managed resource.
          * @param notifMetadataType Type of the notification metadata;
          */
-        protected AbstractNotificationSupport(final Class<M> notifMetadataType) {
-            super(ANSResource.class);
+        protected AbstractNotificationSupport(final String resourceName,
+                                              final Class<M> notifMetadataType) {
+            super(resourceName,
+                    notifMetadataType,
+                    ANSResource.class,
+                    ANSResource.RESOURCE_EVENT_LISTENERS);
             notifications = createNotifications();
             listeners = new NotificationListenerList();
             sequenceCounter = new AtomicLong(0L);
-            metadataType = Objects.requireNonNull(notifMetadataType);
         }
 
-        private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, M> createNotifications(){
-            return new AbstractKeyedObjects<String, M>(10) {
+        private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, NotificationHolder<M>> createNotifications(){
+            return new AbstractKeyedObjects<String, NotificationHolder<M>>(10) {
                 private static final long serialVersionUID = 6753355822109787406L;
 
                 @Override
-                public String getKey(final MBeanNotificationInfo item) {
-                    return item.getNotifTypes()[0];
+                public String getKey(final NotificationHolder<M> holder) {
+                    return holder.getMetadata().getNotifTypes()[0];
                 }
             };
         }
@@ -546,6 +812,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          * Gets subscription model.
          * @return The subscription model.
          */
+        @Override
         public final NotificationSubscriptionModel getSubscriptionModel(){
             final NotificationListenerInvoker invoker = getListenerInvoker();
             if(invoker instanceof NotificationListenerSequentialInvoker)
@@ -569,14 +836,13 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         protected final void fire(final String category,
                                   final String message,
-                                  final Object userData){
+                                  final Object userData) {
             final Collection<Notification> notifs;
-            beginRead(ANSResource.NOTIFICATIONS);
-            try{
+            try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
                 notifs = Lists.newArrayListWithExpectedSize(notifications.size());
-                for(final M metadata: notifications.values())
-                    if(Objects.equals(NotificationDescriptor.getNotificationCategory(metadata), category))
-                        for(final String listId: metadata.getNotifTypes()){
+                for (final NotificationHolder<M> holder : notifications.values())
+                    if (Objects.equals(NotificationDescriptor.getNotificationCategory(holder.getMetadata()), category))
+                        for (final String listId : holder.getMetadata().getNotifTypes()) {
                             final Notification n = new Notification(listId,
                                     this,
                                     sequenceCounter.getAndIncrement(),
@@ -586,18 +852,17 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
                             notifs.add(n);
                         }
             }
-            finally {
-                endRead(ANSResource.NOTIFICATIONS);
-            }
             //fire listeners
-            beginRead(ANSResource.LISTENERS);
-            try{
-                for(final Notification n: notifs)
-                    getListenerInvoker().invoke(n, null, listeners);
-            }
-            finally {
-                endRead(ANSResource.LISTENERS);
-            }
+            for (final Notification n : notifs)
+                listeners.handleNotification(getListenerInvoker(), n, null);
+        }
+
+        private void notificationAdded(final M metadata){
+            super.fireResourceEvent(new NotificationAddedEvent(this, getResourceName(), metadata));
+        }
+
+        private void notificationRemoved(final M metadata){
+            super.fireResourceEvent(new NotificationRemovingEvent(this, getResourceName(), metadata));
         }
 
         protected abstract M enableNotifications(final String notifType,
@@ -616,43 +881,57 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          * @param category The name of the event category to listen.
          * @param options  Event discovery options.
          * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-         * @throws javax.management.JMException Internal connector error.
          */
-        @Override
-        public final M enableNotifications(final String listId, final String category, final CompositeData options) throws JMException {
-            beginWrite(ANSResource.NOTIFICATIONS);
-            try{
-                if(notifications.containsKey(listId))
-                    return notifications.get(listId);
-                final M result;
-                notifications.put(result = enableNotifications(listId,
-                        new NotificationDescriptor(category, getSubscriptionModel(), options)));
-                return result;
+        public final M enableNotifications(final String listId, final String category, final CompositeData options) {
+            NotificationHolder<M> holder;
+            try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
+                holder = notifications.get(listId);
+                if(holder != null) {
+                    if (holder.equals(category, options))
+                        return holder.getMetadata();
+                    else {
+                        //remove notification
+                        notificationRemoved(holder.getMetadata());
+                        holder = notifications.remove(listId);
+                        //and register again
+                        if (disableNotifications(holder.getMetadata())) {
+                            final M metadata = enableNotifications(listId, new NotificationDescriptor(category, getSubscriptionModel(), options));
+                            if (metadata != null) {
+                                notifications.put(holder = new NotificationHolder<>(metadata, category, options));
+                                notificationAdded(holder.getMetadata());
+                            }
+                        } else holder = null;
+                    }
+                }
+                else {
+                    final M metadata = enableNotifications(listId, new NotificationDescriptor(category, getSubscriptionModel(), options));
+                    if(metadata != null) {
+                        notifications.put(holder = new NotificationHolder<>(metadata, category, options));
+                        notificationAdded(holder.getMetadata());
+                    }
+                    else holder = null;
+                }
             }
-            catch (final Exception e){
+            catch (final Exception e) {
                 failedToEnableNotifications(listId, category, e);
-                throw new MBeanException(e);
+                holder = null;
             }
-            finally {
-                endWrite(ANSResource.NOTIFICATIONS);
-            }
+            return holder != null ? holder.getMetadata() : null;
         }
 
         /**
          * Determines whether all notifications disabled.
          * @return {@literal true}, if all notifications disabled; otherwise, {@literal false}.
          */
-        protected final boolean hasNoNotifications(){
-            beginRead(ANSResource.NOTIFICATIONS);
-            try{
+        protected final boolean hasNoNotifications() {
+            try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
                 return notifications.isEmpty();
-            }
-            finally {
-                endRead(ANSResource.NOTIFICATIONS);
             }
         }
 
-        protected abstract boolean disableNotifications(final M metadata);
+        protected boolean disableNotifications(final M metadata){
+            return true;
+        }
 
         /**
          * Disables event listening for the specified category of events.
@@ -663,16 +942,16 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          * @param listId The identifier of the subscription list.
          * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
          */
-        @Override
         public final boolean disableNotifications(final String listId) {
-            beginWrite(ANSResource.NOTIFICATIONS);
-            try{
-                return notifications.containsKey(listId) &&
-                        disableNotifications(notifications.remove(listId));
+            NotificationHolder<M> holder;
+            try (final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
+                holder = notifications.get(listId);
+                if(holder != null){
+                    notificationRemoved(holder.getMetadata());
+                    notifications.remove(listId);
+                }
             }
-            finally {
-                endWrite(ANSResource.NOTIFICATIONS);
-            }
+            return holder != null && disableNotifications(holder.getMetadata());
         }
 
         /**
@@ -691,13 +970,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @Override
         public final void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
-            beginWrite(ANSResource.LISTENERS);
-            try{
-                listeners.addNotificationListener(listener, filter, handback);
-            }
-            finally {
-                endWrite(ANSResource.LISTENERS);
-            }
+            listeners.addNotificationListener(listener, filter, handback);
         }
 
         /**
@@ -715,13 +988,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @Override
         public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-            beginWrite(ANSResource.LISTENERS);
-            try {
-                listeners.removeNotificationListener(listener);
-            }
-            finally {
-                endWrite(ANSResource.LISTENERS);
-            }
+            listeners.removeNotificationListener(listener);
         }
 
         /**
@@ -738,22 +1005,20 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
          */
         @Override
         public final M[] getNotificationInfo() {
-            beginRead(ANSResource.NOTIFICATIONS);
-            try{
-                return ArrayUtils.toArray(notifications.values(), metadataType);
-            }
-            finally {
-                endRead(ANSResource.NOTIFICATIONS);
+            try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
+                final M[] result = ObjectArrays.newArray(super.metadataType, notifications.size());
+                int index = 0;
+                for(final NotificationHolder<M> holder: notifications.values())
+                    result[index++] = holder.getMetadata();
+                return result;
             }
         }
 
-        protected final M getNotificationInfo(final String category){
-            beginRead(ANSResource.NOTIFICATIONS);
-            try{
-                return notifications.get(category);
-            }
-            finally {
-                endRead(ANSResource.NOTIFICATIONS);
+        @Override
+        public final M getNotificationInfo(final String listID) {
+            try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
+                final NotificationHolder<M> holder = notifications.get(listID);
+                return holder != null ? holder.getMetadata() : null;
             }
         }
 
@@ -786,22 +1051,22 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
                                                             final Exception e);
 
         /**
-         * Removes all listeners from this notification manager.
-         * <p>
-         *     It is recommended to call this method in the implementation of {@link AutoCloseable#close()}
-         *     method in your management connector.
-         * </p>
+         * Disables all notifications registered in this manager.
+         * @param removeNotificationListeners {@literal true} to remove all notification listeners.
+         * @param removeResourceEventListeners {@literal true} to remove all notification model listeners.
          */
-        public final void clear() {
-            beginWrite(ANSResource.NOTIFICATIONS);
-            beginWrite(ANSResource.LISTENERS);
-            try {
+        public final void clear(final boolean removeNotificationListeners,
+                                final boolean removeResourceEventListeners){
+            try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)){
+                for(final NotificationHolder<M> holder: notifications.values())
+                    if(disableNotifications(holder.getMetadata()))
+                        notificationRemoved(holder.getMetadata());
                 notifications.clear();
-                listeners.clear();
-            } finally {
-                endWrite(ANSResource.LISTENERS);
-                endWrite(ANSResource.NOTIFICATIONS);
             }
+            if(removeNotificationListeners)
+                listeners.clear();
+            if(removeResourceEventListeners)
+                super.removeAllResourceEventListeners();
         }
     }
 
@@ -823,6 +1088,14 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         closed.verify();
     }
 
+    private void verifyInitializationChecked() throws MBeanException{
+        try{
+            verifyInitialization();
+        }
+        catch (final IllegalStateException e){
+            throw new MBeanException(e);
+        }
+    }
     /**
      * Releases all resources associated with this connector.
      * @throws Exception Unable to release resources associated with this connector.
@@ -846,7 +1119,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        throw JMExceptionUtils.attributeNotFound(attribute);
+        verifyInitializationChecked();
+        final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
+        if(attributeSupport != null)
+            return attributeSupport.getAttribute(attribute);
+        else throw JMExceptionUtils.attributeNotFound(attribute);
     }
 
     /**
@@ -862,7 +1139,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        throw JMExceptionUtils.attributeNotFound(attribute.getName());
+        verifyInitializationChecked();
+        final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
+        if(attributeSupport != null)
+            attributeSupport.setAttribute(attribute);
+        else throw JMExceptionUtils.attributeNotFound(attribute.getName());
     }
 
     /**
@@ -874,7 +1155,9 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public AttributeList getAttributes(final String[] attributes) {
-        return new AttributeList();
+        verifyInitialization();
+        final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
+        return attributeSupport != null ? attributeSupport.getAttributes(attributes) : new AttributeList();
     }
 
     /**
@@ -887,7 +1170,9 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public AttributeList setAttributes(final AttributeList attributes) {
-        return new AttributeList();
+        verifyInitialization();
+        final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
+        return attributeSupport != null ? attributeSupport.setAttributes(attributes) : new AttributeList();
     }
 
     /**
@@ -925,18 +1210,41 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         return getClassName();
     }
 
-    private MBeanAttributeInfo[] getAttributes(){
+    /**
+     * Gets an array of supported attributes.
+     * @return An array of supported attributes.
+     */
+    public MBeanAttributeInfo[] getAttributeInfo() {
         final AttributeSupport attributes = queryObject(AttributeSupport.class);
         return attributes != null ? attributes.getAttributeInfo() : new MBeanAttributeInfo[0];
     }
 
-    private MBeanNotificationInfo[] getNotifications(){
+    public MBeanAttributeInfo getAttributeInfo(final String attributeName){
+        final AttributeSupport attributes = queryObject(AttributeSupport.class);
+        return attributes != null ? attributes.getAttributeInfo(attributeName) : null;
+    }
+
+    /**
+     * Gets an array of supported notifications.
+     * @return An array of supported notifications.
+     */
+    public MBeanNotificationInfo[] getNotificationInfo(){
         final NotificationSupport notifs = queryObject(NotificationSupport.class);
         return notifs != null ? notifs.getNotificationInfo() : new MBeanNotificationInfo[0];
     }
 
-    private MBeanOperationInfo[] getOperations(){
-        return new MBeanOperationInfo[0];
+    public MBeanNotificationInfo getNotificationInfo(final String notificationType){
+        final NotificationSupport notifs = queryObject(NotificationSupport.class);
+        return notifs != null ? notifs.getNotificationInfo(notificationType) : null;
+    }
+
+    /**
+     * Gets an array of supported operations.
+     * @return An array of supported operations.
+     */
+    public MBeanOperationInfo[] getOperationInfo(){
+        final OperationSupport ops = queryObject(OperationSupport.class);
+        return ops != null ? ops.getOperationInfo() : new MBeanOperationInfo[0];
     }
 
     /**
@@ -949,18 +1257,48 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     public final MBeanInfo getMBeanInfo() {
         return new MBeanInfo(getClassName(),
                 getDescription(Locale.getDefault()),
-                getAttributes(),
+                getAttributeInfo(),
                 new MBeanConstructorInfo[0],
-                getOperations(),
-                getNotifications());
+                getOperationInfo(),
+                getNotificationInfo());
+    }
+
+    /**
+     * This method may be used for implementing {@link #addResourceEventListener(ResourceEventListener)}
+     * method.
+     * <p>
+     *     You can use instances of {@link AbstractAttributeSupport} and {@link AbstractNotificationSupport}
+     *     as arguments for this method.
+     *
+     * @param listener The listener to be added to the specified modelers.
+     * @param modelers A set of modelers.
+     */
+    protected static void addResourceEventListener(final ResourceEventListener listener,
+                                                   final AbstractFeatureModeler<?>... modelers){
+        for(final AbstractFeatureModeler<?> modeler: modelers)
+            modeler.addModelEventListener(listener);
+    }
+
+    /**
+     * This method may be used for implementing {@link #removeResourceEventListener(ResourceEventListener)}
+     * method.
+     * @param listener The listener to be removed from the specified modelers.
+     * @param modelers A set of modelers.
+     */
+    protected static void removeResourceEventListener(final ResourceEventListener listener,
+                                                      final AbstractFeatureModeler<?>... modelers){
+        for(final AbstractFeatureModeler<?> modeler: modelers)
+            modeler.removeModelEventListener(listener);
     }
 
     /**
      * Updates resource connector with a new connection options.
-     *
+     * <p>
+     *     In the default implementation this method always throws
+     *     {@link UnsupportedUpdateOperationException}.
      * @param connectionString     A new connection string.
      * @param connectionParameters A new connection parameters.
-     * @throws Exception                                                                                 Unable to update managed resource connector.
+     * @throws Exception Internal connector non-recoverable error.                                                                                 Unable to update managed resource connector.
      * @throws UnsupportedUpdateOperationException This operation is not supported
      *                                                                                                   by this resource connector.
      */
@@ -985,21 +1323,5 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     public static Logger getLogger(final String connectorName){
         return Logger.getLogger(getLoggerName(connectorName));
-    }
-
-    /**
-     * Computes unique hash code for the specified connection parameters.
-     * @param connectionString The managed resource connection string.
-     * @param connectionParameters The managed resource connection parameters.
-     * @return A unique hash code generated from connection string and connection parameters.
-     */
-    public static BigInteger computeConnectionParamsHashCode(final String connectionString,
-                                                      final Map<String, String> connectionParameters) {
-        BigInteger result = new BigInteger(connectionString.getBytes());
-        for(final Map.Entry<String, String> entry: connectionParameters.entrySet()){
-            result = result.xor(new BigInteger(entry.getKey().getBytes()));
-            result = result.xor(new BigInteger(entry.getValue().getBytes()));
-        }
-        return result;
     }
 }

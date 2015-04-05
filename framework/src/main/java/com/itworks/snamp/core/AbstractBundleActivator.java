@@ -54,7 +54,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ActivationProperty<T> extends Attribute<T>{
+    protected interface ActivationProperty<T> extends Attribute<T>{
         /**
          * Gets type of the activation property.
          * @return The type of the attribute value.
@@ -78,7 +78,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @version 1.0
      */
     @SuppressWarnings("UnusedDeclaration")
-    protected static interface NamedActivationProperty<T> extends ActivationProperty<T>{
+    protected interface NamedActivationProperty<T> extends ActivationProperty<T>{
         /**
          * Gets name of this property.
          * @return The name of this property.
@@ -95,7 +95,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ActivationPropertyPublisher{
+    protected interface ActivationPropertyPublisher{
         /**
          * Publishes the activation property.
          * @param propertyDef The definition of the property. Cannot be {@literal null}.
@@ -116,7 +116,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ActivationPropertyReader extends AttributeReader{
+    protected interface ActivationPropertyReader extends AttributeReader{
         /**
          * Finds the property definition.
          * @param propertyType The type of the property definition.
@@ -143,6 +143,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     };
 
     private static final class ActivationProperties extends HashMap<ActivationProperty<?>, Object> implements ActivationPropertyPublisher, ActivationPropertyReader{
+        private static final long serialVersionUID = -1855442064833049167L;
+
         private ActivationProperties(){
             super(10);
         }
@@ -342,6 +344,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     }
 
     static final class DependencyListeningFilter extends StringAppender {
+        private static final long serialVersionUID = -7803401262064949694L;
         private int appendCalledTimes = 0;
 
         void append(final RequiredService<?> dependency){
@@ -463,7 +466,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 1.0
      * @version 1.0
      */
-     protected static enum ActivationState {
+     protected enum ActivationState {
         /**
          * Bundle is not activated.
          */
@@ -533,6 +536,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType, final T defaultValue){
         return new ActivationProperty<T>() {
+            private static final long serialVersionUID = -2754311111835732097L;
+
             @Override
             public TypeToken<T> getType() {
                 return propertyType;
@@ -575,6 +580,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType, final T defaultValue){
         return new NamedActivationProperty<T>() {
+            private static final long serialVersionUID = -5801941853707054641L;
             private final TypeToken<T> pType = TypeToken.of(propertyType);
 
             @Override
@@ -671,7 +677,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     /**
      * Represents an empty array of required services.
      */
-    protected static final RequiredService<?>[] EMTPY_REQUIRED_SERVICES = new RequiredService<?>[0];
+    protected static final RequiredService<?>[] EMPTY_REQUIRED_SERVICES = new RequiredService<?>[0];
 
     private final List<RequiredService<?>> bundleLevelDependencies;
     private final ActivationProperties properties;
@@ -882,6 +888,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
 
     /**
      * Gets properties of the service that is represented by the specified reference.
+     * <p>
+     *     Note that the service reference should be valid.
      * @param reference The reference to the service.
      * @return A dictionary that provides access to the service properties.
      */

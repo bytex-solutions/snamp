@@ -2,6 +2,8 @@ package com.itworks.snamp;
 
 import com.google.common.reflect.TypeToken;
 
+import java.io.Serializable;
+
 /**
  * Represents typed attribute that can be used to store and retrieve typed data
  * from the registry.
@@ -9,7 +11,7 @@ import com.google.common.reflect.TypeToken;
  * @version 1.0
  * @since 1.0
  */
-public interface Attribute<T> {
+public interface Attribute<T> extends Serializable {
     /**
      * Gets type of the attribute value.
      * @return The type of the attribute value.
