@@ -1,13 +1,12 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.adapters.FeatureAccessor;
 import com.itworks.snamp.adapters.NotificationAccessor;
-import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -15,7 +14,10 @@ import org.osgi.framework.BundleContext;
 import javax.management.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -30,8 +32,6 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
 
 
     private static final class TestAdapter extends AbstractResourceAdapter{
-
-        private final SynchronizationEvent<Void> restartEvent = new SynchronizationEvent<>(true);
 
         private final ArrayList<AttributeAccessor> attributes = new ArrayList<>();
 
@@ -51,11 +51,12 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
 
         @Override
         protected void start(final Map<String, String> parameters) {
-            restartEvent.fire(null);
         }
 
         @Override
         protected void stop() {
+            attributes.clear();
+            notifications.clear();
         }
 
         @SuppressWarnings("unchecked")
@@ -81,16 +82,19 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
 
         @Override
         protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception {
-            return Iterables.concat(attributes, notifications);
+            try {
+                return Iterables.concat(ImmutableList.copyOf(attributes),
+                        ImmutableList.copyOf(notifications));
+            }
+            finally {
+                attributes.clear();
+                notifications.clear();
+            }
         }
 
         @Override
         protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
             return null;
-        }
-
-        private SynchronizationEvent.EventAwaitor<Void> getAwaitor(){
-            return restartEvent.getAwaitor();
         }
 
         @Override
@@ -127,9 +131,10 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             stopResourceConnector(getTestBundleContext());
             assertTrue(adapter.getAttributes().isEmpty());
             assertTrue(adapter.getNotifications().isEmpty());
-            //activate resource connector. This action causes restarting the adapter and populating models
+            //activate resource connector. This action causes registration of features
             startResourceConnector(getTestBundleContext());
-            adapter.getAwaitor().await(TimeSpan.fromSeconds(2));
+            //...but this process is asynchronous
+            Thread.sleep(2000);
             assertEquals(9, adapter.getAttributes().size());
             assertEquals(2, adapter.getNotifications().size());
         }

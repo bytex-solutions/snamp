@@ -37,7 +37,7 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     /**
      * Represents configuration property that provides a set of user groups.
      */
-    private static final String SNMPv3_GROUPS_PARAM = SecurityConfiguration.LDAP_URI_PARAM;
+    private static final String SNMPv3_GROUPS_PARAM = SecurityConfiguration.SNMPv3_GROUPS_PARAM;
 
     /**
      * Represents LDAP server URI.
