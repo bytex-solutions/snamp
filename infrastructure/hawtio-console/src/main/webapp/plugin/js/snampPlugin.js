@@ -338,7 +338,7 @@ var SnampShell = (function(SnampShell) {
                 Core.$apply($scope);
             };
 
-            $scope.modalContent = "This is a HUGE mistake, you should not see it";
+            $scope.modalContent = [];
             $scope.modalTitle = "Undefined title";
 
             // Initial connectors array
@@ -436,7 +436,7 @@ var SnampShell = (function(SnampShell) {
                             title: key,
                             isFolder: true,
                             name: value["Adapter"]["Name"],
-                            type: "name",
+                            type: "adapter",
                             children: []
                         }; // adapter userDefined name
                         currentChild.children.push({
@@ -494,36 +494,56 @@ var SnampShell = (function(SnampShell) {
                 return rootNode;
             }
 
+            // Get adapter's param array
+            function getActiveNodeParams() {
+                if ($scope.activeNode.data.type == "params") {
+                    return $scope.activeNode;
+                }
+                if ($scope.activeNode.data.type == "param") {
+                    return $scope.activeNode.getParent();
+                }
+                if ($scope.activeNode.data.type == "adapter") {
+                    return $scope.activeNode.getChildren()[1];
+                }
+            }
+
+            // Check if activeNode already contains param with a given name
+            $scope.checkParamExists = function(paramName) {
+                var node = getActiveNodeParams();
+                angular.forEach(node.getChildren(), function (value) {
+                   if  (value.data.name == paramName) {
+                       return true;
+                   }
+                });
+                return false;
+            };
+
+            $scope.fillCurrentParamValue = function (content) {
+                $scope.currentValue = content;
+                Core.$apply($scope);
+            };
+
             /**
              * Append new element to the treeView model.
-             * @param node
              */
-            $scope.appendNewElement = function(node) {
+            $scope.appendNewElement = function() {
+                var node = getActiveNodeParams();
                 // append new child to the current node
-                if (node.data.type == "params") {
-                    var parent = getRootNode(node);
-                    if (parent.data.type == "adapters") {
-                        var adapterName = node.getParent().data.name;
-                        SnampShell.log.info(adapterName);
-                        var adapterConfig = jolokia.request({
-                            type: 'exec',
-                            mbean: SnampShell.mbean,
-                            operation: 'getAdapterConfigurationSchema',
-                            arguments: [adapterName, ""] // default console
-                        }).value;
-                        SnampShell.log.info(JSON.stringify(adapterConfig));
-                        $scope.modalTitle = "Appending new attribute to " + node.getParent().data.title + " adapter";
-                        $scope.modalContent = adapterConfig;
-                        Core.$apply($scope);
-                        $('#myModal').modal('toggle')
-                    }
-                }
-                if (node.data.type == "param") {
-                    // append new child to the parent of the current node
-                    //SnampShell.log.info(JSON.stringify(node.data), node.getLevel(), node.getParent().getLevel(), JSON.stringify(node.getParent().data));
-                }
-                if (node.data.type == "adapters") {
-                    // append new adapter from the list of available adapters
+                var parent = getRootNode(node);
+                if (parent.data.type == "adapters") {
+                    var adapterName = node.getParent().data.name;
+                    SnampShell.log.info(adapterName);
+                    var adapterConfig = jolokia.request({
+                        type: 'exec',
+                        mbean: SnampShell.mbean,
+                        operation: 'getAdapterConfigurationSchema',
+                        arguments: [adapterName, ""] // default console
+                    }).value;
+                    SnampShell.log.info(JSON.stringify(adapterConfig));
+                    $scope.modalTitle = "Appending new attribute to " + node.getParent().data.title + " adapter";
+                    $scope.modalContent = adapterConfig["ResourceAdapterParameters"];
+                    Core.$apply($scope);
+                    $('#myModal').modal('toggle')
                 }
             };
 

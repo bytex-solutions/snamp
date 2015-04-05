@@ -2,7 +2,7 @@
 <div class="row-fluid">
     <h4>Active node: <small>{{activeNode.data.name}}</small></h4>
     <p>
-        <button type="button" class="btn btn-default" ng-click="appendNewElement(activeNode)">New</button>
+        <button type="button" class="btn btn-default" ng-click="appendNewElement()">New</button>
         <button type="button" class="btn btn-default">Modify</button>
         <button type="button" class="btn btn-default">Remove</button>
     </p>
@@ -26,7 +26,25 @@
                 <h4 class="modal-title" id="myModalLabel">{{modalTitle}}</h4>
             </div>
             <div class="modal-body">
-                <pre><code>{{modalContent | json}}</code></pre>
+                <h5>If some parameter already exists - the corresponding option is disabled</h5>
+                <div class="row-fluid">
+                    <div class="span3">
+                        <div class="radio" ng-repeat="(key, val) in modalContent" ng-class="{disabled : checkParamExists(key)}" ng-click="fillCurrentParamValue(val)">
+                            <label><input type="radio" name="optionsRadios" id="key" value="key">{{ key }}</label>
+                        </div>
+                    </div>
+                    <div class="span9" ng-if="currentValue">
+                        <code>
+                            {{currentValue | json}}
+                        </code>
+                    </div>
+                </div>
+                <!--<br/>
+                <pre>
+                    <code>
+                         {{modalContent | json}}
+                    </code>
+                </pre>-->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
