@@ -1,7 +1,9 @@
 package com.itworks.snamp.jmx;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 
@@ -361,18 +363,18 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         }
     }
 
-    private final List<OpenAttribute<?, ?>> attributes;
-    private final List<OpenNotification<?>> notifications;
-    private final List<OpenOperation<?, ?>> operations;
+    private final ImmutableList<OpenAttribute<?, ?>> attributes;
+    private final ImmutableList<OpenNotification<?>> notifications;
+    private final ImmutableList<OpenOperation<?, ?>> operations;
 
     /**
      * Initializes a new OpenMBean.
      * @param elements A collection of OpenMBean elements.
      */
     protected OpenMBean(final OpenMBeanElement... elements){
-        this.attributes = new ArrayList<>(5);
-        this.notifications = new ArrayList<>(3);
-        this.operations = new ArrayList<>(4);
+        final ImmutableList.Builder<OpenAttribute<?, ?>> attributes = ImmutableList.builder();
+        final ImmutableList.Builder<OpenNotification<?>> notifications = ImmutableList.builder();
+        final ImmutableList.Builder<OpenOperation<?, ?>> operations = ImmutableList.builder();
         //parse bean elements
         for(final OpenMBeanElement element: elements)
             if(element instanceof OpenAttribute<?, ?>)
@@ -381,6 +383,25 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
                 notifications.add((OpenNotification<?>)element);
             else if(element instanceof OpenOperation<?, ?>)
                 operations.add((OpenOperation<?, ?>)element);
+        this.attributes = attributes.build();
+        this.notifications = notifications.build();
+        this.operations = operations.build();
+    }
+
+    protected final <V> V getAttribute(final Class<? extends OpenAttribute<V, ?>> attributeType) throws Exception {
+        for(final OpenAttribute<?, ?> attribute: attributes)
+            if(attributeType.isInstance(attribute))
+                return attributeType.cast(attribute).getValue();
+        throw new AttributeNotFoundException(String.format("Attrribute %s doesn't exist", attributeType));
+    }
+
+    protected final <V> void setAttribute(final Class<? extends OpenAttribute<V, ?>> attributeType, final V value) throws Exception {
+        for (final OpenAttribute<?, ?> attribute : attributes)
+            if (attributeType.isInstance(attribute)) {
+                attributeType.cast(attribute).setValue(value);
+                return;
+            }
+        throw new AttributeNotFoundException(String.format("Attrribute %s doesn't exist", attributeType));
     }
 
     /**

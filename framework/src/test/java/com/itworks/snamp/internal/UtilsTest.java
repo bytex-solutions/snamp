@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.internal;
 
 import com.itworks.snamp.internal.Utils;
 import org.junit.Assert;

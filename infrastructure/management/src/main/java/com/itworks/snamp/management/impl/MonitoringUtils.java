@@ -67,22 +67,6 @@ final class MonitoringUtils {
     }
 
     /**
-     * Interface static initialize.
-     *
-     * @param <T>  the type parameter
-     * @param initializer the initializer
-     * @return the t
-     * @throws ExceptionInInitializerError the exception in initializer error
-     */
-    static <T> T interfaceStaticInitialize(final Callable<T> initializer){
-        try {
-            return initializer.call();
-        } catch (final Exception e) {
-            throw new ExceptionInInitializerError(e);
-        }
-    }
-
-    /**
      * Transform tabular data to map.
      *
      * @param data the data

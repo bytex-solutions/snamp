@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.internal;
 
 import com.google.common.collect.HashMultimap;
 import com.itworks.snamp.internal.WeakMultimap;

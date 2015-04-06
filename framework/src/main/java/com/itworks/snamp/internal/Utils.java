@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -392,5 +393,21 @@ public final class Utils {
         if(stackTrace.length > 0)
             stackTrace = ArrayUtils.remove(stackTrace, 0);
         return Joiner.on(System.lineSeparator()).join(stackTrace);
+    }
+
+    /**
+     * Interface static initialize.
+     *
+     * @param <T>  the type parameter
+     * @param initializer the initializer
+     * @return the t
+     * @throws ExceptionInInitializerError the exception in initializer error
+     */
+    public static <T> T interfaceStaticInitialize(final Callable<T> initializer){
+        try {
+            return initializer.call();
+        } catch (final Exception e) {
+            throw new ExceptionInInitializerError(e);
+        }
     }
 }

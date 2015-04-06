@@ -30,7 +30,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
         }
 
         private void clear(){
-            setToNullAndGet();
+            invalidate();
         }
     }
 
@@ -42,7 +42,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
         }
 
         private void clear(){
-            setToNullAndGet();
+            invalidate();
         }
     }
 

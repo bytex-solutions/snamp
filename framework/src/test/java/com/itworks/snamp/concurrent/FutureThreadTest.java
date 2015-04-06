@@ -1,4 +1,4 @@
-package com.itworks.snamp;
+package com.itworks.snamp.concurrent;
 
 import com.itworks.snamp.concurrent.FutureThread;
 import org.junit.Assert;

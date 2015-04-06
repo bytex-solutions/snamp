@@ -7,7 +7,7 @@ import com.itworks.snamp.jmx.TabularTypeBuilder;
 import javax.management.MBeanFeatureInfo;
 import javax.management.openmbean.*;
 import java.util.concurrent.Callable;
-import static com.itworks.snamp.management.impl.MonitoringUtils.interfaceStaticInitialize;
+import static com.itworks.snamp.internal.Utils.interfaceStaticInitialize;
 
 /**
  * Description here

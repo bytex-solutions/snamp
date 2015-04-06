@@ -1,5 +1,6 @@
 package com.itworks.snamp.concurrent;
 
+import com.google.common.cache.CacheBuilder;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 /**
@@ -24,8 +25,9 @@ public abstract class SimpleCache<I, O, E extends Throwable> {
     protected abstract O init(final I input) throws E;
 
     private synchronized O getSynchronized(final I input) throws E {
-        final O result = value;
-        return result != null ? result : (value = init(input));
+        if(value == null)
+            value = init(input);
+        return value;
     }
 
     /**
@@ -35,15 +37,14 @@ public abstract class SimpleCache<I, O, E extends Throwable> {
      * @throws E Unable to initialize cache.
      */
     public final O get(final I input) throws E{
-        final O result = value;
-        return result != null ? result : getSynchronized(input);
+        return value == null ? getSynchronized(input) : value;
     }
 
     /**
      * Sets the cached object to null and return the cached object.
      * @return The cached object.
      */
-    protected final synchronized O setToNullAndGet(){
+    protected final synchronized O invalidate(){
         final O result = value;
         value = null;
         return result;
