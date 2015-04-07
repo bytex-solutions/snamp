@@ -5,6 +5,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Roman Sakno
  * @version 1.0
@@ -58,15 +61,19 @@ public final class JsonUtils {
     }
 
     public static JsonArray toJsonArray(final String... values){
-        final JsonArray result = new JsonArray();
-        for(final String value: values)
-            result.add(new JsonPrimitive(value));
-        return result;
+        return toJsonArray(Arrays.asList(values));
     }
 
     public static JsonArray toJsonArray(final boolean... values){
         final JsonArray result = new JsonArray();
         for(final boolean value: values)
+            result.add(new JsonPrimitive(value));
+        return result;
+    }
+
+    public static JsonArray toJsonArray(final List<String> values){
+        final JsonArray result = new JsonArray();
+        for(final String value: values)
             result.add(new JsonPrimitive(value));
         return result;
     }
@@ -101,6 +108,13 @@ public final class JsonUtils {
                 name2, value2,
                 name3, value3);
         result.add(name4, value4);
+        return result;
+    }
+
+    public static String[] parseStringArray(final JsonArray jsonArray) {
+        final String[] result = new String[jsonArray.size()];
+        for(int i = 0; i < jsonArray.size(); i++)
+            result[i] = jsonArray.get(i).getAsString();
         return result;
     }
 }
