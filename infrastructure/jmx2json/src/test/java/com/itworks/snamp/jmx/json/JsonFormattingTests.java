@@ -71,11 +71,11 @@ public final class JsonFormattingTests extends Assert {
                 .put("item1", "Dummy item", 2)
                 .build();
         final Gson formatter = new GsonBuilder()
-                .registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataFormatter(data.getCompositeType()))
+                .registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataFormatter())
                 .create();
         final JsonElement elem = formatter.toJsonTree(data);
         assertTrue(elem.isJsonObject());
-        assertEquals(2, elem.getAsJsonObject().getAsJsonPrimitive("item1").getAsInt());
+        assertEquals(2, elem.getAsJsonObject().getAsJsonObject("value").getAsJsonPrimitive("item1").getAsInt());
         data = formatter.fromJson(elem, CompositeData.class);
         assertNotNull(data);
     }
