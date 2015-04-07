@@ -3,14 +3,16 @@ package com.itworks.snamp.jmx;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -232,6 +234,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          */
         protected final T openType;
         private volatile Class<V> javaType;
+        private final ThreadLocal<OpenMBean> owner;
 
         /**
          * Initializes a new attribute.
@@ -242,6 +245,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             super(attributeName);
             this.openType = openType;
             javaType = null;
+            owner = new ThreadLocal<>();
         }
 
         /**
@@ -275,7 +279,8 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             throw new UnsupportedOperationException(String.format("Attribute %s is not readable.", name));
         }
 
-        private V getValueInternal() throws MBeanException, ReflectionException{
+        private V getValueInternal(final OpenMBean owner) throws MBeanException, ReflectionException{
+            this.owner.set(owner);
             try{
                 return getValue();
             }
@@ -284,6 +289,9 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             }
             catch (final Exception e){
                 throw new ReflectionException(e);
+            }
+            finally {
+                this.owner.remove();
             }
         }
 
@@ -299,7 +307,8 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             throw new UnsupportedOperationException(String.format("Attribute %s is not writable.", name));
         }
 
-        private void setValueInternal(final Object value) throws MBeanException, ReflectionException{
+        private void setValueInternal(final Object value, final OpenMBean owner) throws MBeanException, ReflectionException{
+            this.owner.set(owner);
             try{
                 setValue(getJavaType().cast(value));
             }
@@ -309,13 +318,32 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             catch (final Exception e){
                 throw new ReflectionException(e);
             }
+            finally {
+                this.owner.remove();
+            }
+        }
+
+        /**
+         * Gets owner of this attribute.
+         * <p>
+         *      This contextual property is accessible inside of
+         *      {@link #getValue()} or {@link #setValue(Object)} method only.
+         * @return The owner of this attribute.
+         */
+        protected final OpenMBean getOwner(){
+            return owner.get();
         }
 
         @SuppressWarnings("unchecked")
-        private synchronized Class<V> getJavaType() throws ClassNotFoundException {
-            if(javaType == null)
-                javaType = (Class<V>)Class.forName(openType.getClassName());
-            return javaType;
+        private Class<V> getJavaType() throws ClassNotFoundException {
+            Class<V> result = javaType;
+                if(result == null)
+                    synchronized (this){
+                        result = javaType;
+                        if(result == null)
+                            result = javaType = (Class<V>)Class.forName(openType.getClassName());
+                    }
+            return result;
         }
 
         /**
@@ -388,20 +416,41 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         this.operations = operations.build();
     }
 
+    /**
+     * Reads attribute value.
+     * @param attributeType The type of the attribute definition. Cannot be {@literal null}.
+     * @param <V> The type of the attribute value.
+     * @return The attribute value.
+     * @throws Exception Failed to read attribute value.
+     * @throws AttributeNotFoundException The attribute of the specified type doesn't exist.
+     */
     protected final <V> V getAttribute(final Class<? extends OpenAttribute<V, ?>> attributeType) throws Exception {
-        for(final OpenAttribute<?, ?> attribute: attributes)
-            if(attributeType.isInstance(attribute))
-                return attributeType.cast(attribute).getValue();
-        throw new AttributeNotFoundException(String.format("Attrribute %s doesn't exist", attributeType));
+        final OpenAttribute<V, ?> attributeDef = getAttributeInfo(attributeType);
+        if(attributeDef != null)
+            return attributeDef.getValue();
+        else throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist", attributeType));
     }
 
+    protected final <A extends OpenAttribute<?, ?>> A getAttributeInfo(final Class<A> attributeType){
+        for(final OpenAttribute<?, ?> attribute: attributes)
+            if(attributeType.isInstance(attribute))
+                return attributeType.cast(attribute);
+        return null;
+    }
+
+    /**
+     * Writes attribute value.
+     * @param attributeType The type of the attribute definition.
+     * @param value The attribute value.
+     * @param <V> Type of the attribute value.
+     * @throws Exception Failed to write attribute value.
+     * @throws AttributeNotFoundException The attribute of the specified type doesn't exist.
+     */
     protected final <V> void setAttribute(final Class<? extends OpenAttribute<V, ?>> attributeType, final V value) throws Exception {
-        for (final OpenAttribute<?, ?> attribute : attributes)
-            if (attributeType.isInstance(attribute)) {
-                attributeType.cast(attribute).setValue(value);
-                return;
-            }
-        throw new AttributeNotFoundException(String.format("Attrribute %s doesn't exist", attributeType));
+        final OpenAttribute<V, ?> attributeDef = getAttributeInfo(attributeType);
+        if(attributeDef != null)
+            attributeDef.setValue(value);
+        else throw new AttributeNotFoundException(String.format("Attrribute %s doesn't exist", attributeType));
     }
 
     /**
@@ -418,7 +467,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     public final Object getAttribute(final String name) throws AttributeNotFoundException, MBeanException, ReflectionException {
         for(final OpenAttribute<?, ?> attribute: attributes)
             if(Objects.equals(name, attribute.name))
-                return attribute.getValueInternal();
+                return attribute.getValueInternal(this);
         throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist.", name));
     }
 
@@ -437,7 +486,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
         for(final OpenAttribute<?, ?> setter: attributes)
             if(Objects.equals(attribute.getName(), setter.name)) {
-                setter.setValueInternal(attribute.getValue());
+                setter.setValueInternal(attribute.getValue(), this);
                 return;
             }
         throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist.", attribute.getName()));

@@ -2,10 +2,22 @@ package com.itworks.snamp.licensing;
 
 import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.ArrayUtils;
-import org.osgi.service.cm.ConfigurationAdmin;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.annotation.*;
+import javax.xml.crypto.MarshalException;
+import javax.xml.crypto.dsig.XMLSignature;
+import javax.xml.crypto.dsig.XMLSignatureException;
+import javax.xml.crypto.dsig.XMLSignatureFactory;
+import javax.xml.crypto.dsig.dom.DOMValidateContext;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.Key;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,22 +34,6 @@ import java.util.Set;
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public final class XmlLicense {
     static final String NAMESPACE = "http://www.itworks.com/snamp/schemas/license";
-
-    /**
-     * Represents encoding of the license file.
-     */
-    public static final String LICENSE_CONTENT_ENCODING = "UTF-8";
-
-    /**
-     * Represents persistence identifier used to read and write license content.
-     */
-    private static final String LICENSE_PID = "com.itworks.snamp.license";
-
-    /**
-     * Represents name of the entry in the configuration dictionary which
-     * contains raw license content in the form of byte array.
-     */
-    private static final String LICENSE_CONTENT_ENTRY = "license";
 
     private static final String ALL_ADAPTERS = "all";
 
@@ -120,26 +116,27 @@ public final class XmlLicense {
         return isAdaptersAllowed(ImmutableSet.copyOf(adapterNames));
     }
 
-    /**
-     * Reads license content from OSGi persistent storage.
-     * @param configAdmin OSGi configuration admin that provides access to the persistent storage. Cannot be {@literal null}.
-     * @return Deserialized
-     * @throws IOException
-     */
-    public static XmlLicense readLicense(final ConfigurationAdmin configAdmin) throws IOException{
-        return null;
-    }
-
-    public static String toString(final XmlLicense license) throws IOException{
-        return license.toString();
-    }
-
     public static XmlLicense fromString(final String content) throws IOException{
+        if(content == null || content.isEmpty()) return new XmlLicense();
         return null;
     }
 
-    public static void writeLicense(final ConfigurationAdmin configAdmin,
-                                    final XmlLicense license) {
-
+    public static XmlLicense fromStream(final InputStream licenseContent) throws ParserConfigurationException, IOException, SAXException, MarshalException, XMLSignatureException {
+        final Key publicLicenseKey = new LicensePublicKey();
+        final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        final DocumentBuilder builder = factory.newDocumentBuilder();
+        final Document xmlLicense = builder.parse(licenseContent);
+        final NodeList nl = xmlLicense.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
+        if (nl.getLength() == 0) throw new XMLSignatureException("License file has no digital signature.");
+        //normal XML signature validation
+        final DOMValidateContext valContext = new DOMValidateContext(publicLicenseKey, nl.item(0));
+        final XMLSignatureFactory xmlsigfact = XMLSignatureFactory.getInstance("DOM");
+        final XMLSignature signature = xmlsigfact.unmarshalXMLSignature(valContext);
+        if (!signature.validate(valContext))
+            throw new XMLSignatureException("Invalid license file signature.");
+        return null;
     }
+
+
 }

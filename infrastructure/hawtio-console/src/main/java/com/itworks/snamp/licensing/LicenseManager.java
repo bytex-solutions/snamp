@@ -1,11 +1,9 @@
 package com.itworks.snamp.licensing;
 
 import com.itworks.snamp.jmx.OpenMBean;
-import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.cm.ManagedService;
 
 import javax.management.openmbean.OpenDataException;
-import java.util.Dictionary;
+import javax.xml.bind.JAXBException;
 
 /**
  * Exposes licensing information through JMX.
@@ -14,27 +12,39 @@ import java.util.Dictionary;
  * @since 1.0
  * @version 1.0
  */
-public final class LicenseManager extends OpenMBean {
+public final class LicenseManager extends OpenMBean implements LicenseProvider {
     /**
      * The name of the SNAMP licensing management bean.
      */
     public static final String OBJECT_NAME = "com.itworks.snamp.management:type=SnampLicenseManager";
     private static volatile LicenseManager INSTANCE;
 
-    private LicenseManager() throws OpenDataException {
-        super(new InstalledResourceAdaptersAttribute(),
-                new NumberOfManagedResourcesAttribute(),
+    private LicenseManager() throws OpenDataException, JAXBException {
+        super(new IsOkAttribute(),
                 new LicenseAttribute());
     }
 
-    private static synchronized LicenseManager getInstanceSynchronized() throws OpenDataException {
+    private static synchronized LicenseManager getInstanceSynchronized() throws OpenDataException, JAXBException {
         if(INSTANCE == null)
             INSTANCE = new LicenseManager();
         return INSTANCE;
     }
 
-    public static LicenseManager getInstance() throws OpenDataException {
+    public static LicenseManager getInstance() throws OpenDataException, JAXBException {
         return INSTANCE == null ? getInstanceSynchronized() : INSTANCE;
     }
 
+    @Override
+    public XmlLicense getLicense() throws JAXBException {
+        final LicenseAttribute attributeDef = getAttributeInfo(LicenseAttribute.class);
+        return attributeDef != null ? attributeDef.getLicense() : new XmlLicense();
+    }
+
+    /**
+     * Gets license content tracker.
+     * @return The license content tracker.
+     */
+    public LicenseLoader getLicenseLoader(){
+        return getAttributeInfo(LicenseAttribute.class);
+    }
 }
