@@ -40,4 +40,25 @@
       </plugin>
     </plugins>
   </build>
+  <dependencies>
+    <dependency>
+      <groupId>com.itworks.snamp</groupId>
+      <artifactId>hawtio-console</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+      <classifier>classes</classifier>
+    </dependency>
+    <dependency>
+      <groupId>com.itworks.snamp</groupId>
+      <artifactId>framework</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>18.0</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
 </project>

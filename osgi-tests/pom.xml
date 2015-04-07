@@ -40,7 +40,7 @@
                     </executableDependency>
                     <includePluginDependencies>true</includePluginDependencies>
                     <arguments>
-                        <argument>-s</argument>
+                        <argument>-u</argument>
                         <argument>${user.home}/snamp.key</argument>
                         <argument>${project.parent.basedir}/unlimited.lic</argument>
                     </arguments>

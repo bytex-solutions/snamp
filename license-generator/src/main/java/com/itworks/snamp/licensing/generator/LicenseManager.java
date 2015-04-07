@@ -1,8 +1,10 @@
 package com.itworks.snamp.licensing.generator;
 
+import com.itworks.snamp.licensing.XmlLicense;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dsig.*;
 import javax.xml.crypto.dsig.dom.DOMSignContext;
@@ -29,6 +31,7 @@ public final class LicenseManager {
         System.out.println("-p, --public-key    Displays public key information");
         System.out.println("-s, --sign          Signs the specified license file");
         System.out.println("-v, --verify        Verifies the license file");
+        System.out.println("-u, --unlimited     Generates unlimited license");
     }
 
     private static void doCommand(final String commandName){
@@ -113,23 +116,22 @@ public final class LicenseManager {
         }
     }
 
-    private static void signLicense(final String keyFile, final String licenseFile){
-        Document license = null;
-        try(final InputStream licenseFileStream = new FileInputStream(licenseFile); final InputStream keyFileStream = new FileInputStream(keyFile)){
+    private static void signLicense(final String keyFile, final String licenseFile) {
+        final Document license;
+        try (final InputStream licenseFileStream = new FileInputStream(licenseFile); final InputStream keyFileStream = new FileInputStream(keyFile)) {
             license = signLicense(keyFileStream, licenseFileStream);
+        } catch (final IOException | ParserConfigurationException | SAXException | ClassNotFoundException | GeneralSecurityException | MarshalException | XMLSignatureException e) {
+            System.err.println(e);
+            return;
         }
-        catch (final IOException | ParserConfigurationException | SAXException | ClassNotFoundException | GeneralSecurityException | MarshalException | XMLSignatureException e) {
+        try (final OutputStream os = new FileOutputStream(licenseFile)) {
+            final TransformerFactory tf = TransformerFactory.newInstance();
+            final Transformer trans = tf.newTransformer();
+            trans.transform(new DOMSource(license), new StreamResult(os));
+
+        } catch (final IOException | TransformerException e) {
             System.err.println(e);
         }
-        if(license != null)
-            try(final OutputStream os = new FileOutputStream(licenseFile)){
-                final TransformerFactory tf = TransformerFactory.newInstance();
-                final Transformer trans = tf.newTransformer();
-                trans.transform(new DOMSource(license), new StreamResult(os));
-
-            } catch (final IOException | TransformerException e) {
-                System.err.println(e);
-            }
     }
 
     private static void verifyLicense(final String keyFile, final String licenseFile){
@@ -150,6 +152,22 @@ public final class LicenseManager {
         }
     }
 
+    private static void generateUnlimited(final String keyFile, final String licenseFile){
+        //1. generate license
+        final XmlLicense license = new XmlLicense();
+        license.setNumberOfManagedResources(Long.MAX_VALUE);
+        license.allowAllAdapters();
+        try {
+            license.save(new File(licenseFile));
+        }
+        catch (final JAXBException e){
+            System.err.println("Unable to generate unlimited license. Reason: " + e);
+            return;
+        }
+        //2. sign license
+        signLicense(keyFile, licenseFile);
+    }
+
     private static void doCommand(final String commandName, final String arg0, final String arg1){
         switch (commandName){
             case "-s":
@@ -160,13 +178,17 @@ public final class LicenseManager {
             case "--verify":
                 verifyLicense(arg0, arg1);
                 return;
+            case "-u":
+            case "--unlimited":
+                generateUnlimited(arg0, arg1);
+                return;
             default: System.out.println("Unknown command");
         }
     }
 
     public static void main(final String[] args){
         switch (args.length){
-            default: System.out.println("snmplicgen [command] [args]");return;
+            default: System.out.println("snamplicgen [command] [args]");return;
             case 1: doCommand(args[0]); return;
             case 2: doCommand(args[0], args[1]); return;
             case 3: doCommand(args[0], args[1], args[2]);

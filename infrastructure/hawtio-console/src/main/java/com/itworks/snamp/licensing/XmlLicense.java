@@ -9,11 +9,18 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.io.File;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents SNAMP license.
@@ -151,6 +158,10 @@ public final class XmlLicense {
     }
 
     public void save(final OutputStream output) throws JAXBException {
+        marshaller.marshal(this, output);
+    }
+
+    public void save(final File output) throws JAXBException {
         marshaller.marshal(this, output);
     }
 

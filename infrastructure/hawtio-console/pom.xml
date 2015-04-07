@@ -166,6 +166,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>${war-plugin-version}</version>
                 <configuration>
+                    <attachClasses>true</attachClasses>
                     <outputFileNameMapping>@{artifactId}@-@{baseVersion}@@{dashClassifier?}@.@{extension}@</outputFileNameMapping>
                     <packagingExcludes>**/classes/OSGI-INF/**</packagingExcludes>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
