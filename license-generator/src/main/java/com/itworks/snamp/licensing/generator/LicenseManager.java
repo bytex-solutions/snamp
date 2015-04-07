@@ -157,6 +157,7 @@ public final class LicenseManager {
         final XmlLicense license = new XmlLicense();
         license.setNumberOfManagedResources(Long.MAX_VALUE);
         license.allowAllAdapters();
+        license.setCustomer("Integration Tests");
         try {
             license.save(new File(licenseFile));
         }

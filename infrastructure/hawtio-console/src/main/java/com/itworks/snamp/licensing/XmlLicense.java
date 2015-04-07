@@ -9,10 +9,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.*;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.Reader;
@@ -50,6 +47,8 @@ public final class XmlLicense {
 
     private final Set<String> adapters;
     private long numberOfManagedResources;
+    private String issuer = "IT Works Inc.";
+    private String customer = "Anonymous";
 
     public XmlLicense(final Set<String> allowedAdapters,
                       final long maxNumberOfManagedResources){
@@ -70,6 +69,24 @@ public final class XmlLicense {
     @XmlElement(name = "maximumNumberOfManagedResources", namespace = NAMESPACE)
     public long getNumberOfManagedResources(){
         return numberOfManagedResources;
+    }
+
+    @XmlAttribute(name = "issuer", namespace = NAMESPACE)
+    public String getIssuer(){
+        return issuer;
+    }
+
+    public void setIssuer(final String value){
+        this.issuer = value;
+    }
+
+    @XmlAttribute(name = "customer", namespace = NAMESPACE)
+    public String getCustomer(){
+        return customer;
+    }
+
+    public void setCustomer(final String value){
+        this.customer = value;
     }
 
     /**
