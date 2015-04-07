@@ -54,9 +54,15 @@ import static com.itworks.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*
  */
 final class SshAdapter extends AbstractResourceAdapter implements AdapterController {
     static final String NAME = SshHelpers.ADAPTER_NAME;
+    private static Gson FORMATTER = Formatters.enableAll(new GsonBuilder()).create();
 
     private static final class SshNotificationMappingImpl extends NotificationRouter implements SshNotificationMapping {
-        private final Gson formatter;
+        private static final Gson formatter = new GsonBuilder()
+                .registerTypeHierarchyAdapter(Notification.class, new NotificationSerializer())
+                .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter())
+                .registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataFormatter())
+                .registerTypeHierarchyAdapter(TabularData.class, new TabularDataFormatter()).create();
+
         private final String resourceName;
 
         private SshNotificationMappingImpl(final MBeanNotificationInfo metadata,
@@ -64,19 +70,6 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                                            final String resourceName){
             super(metadata, mailbox);
             this.resourceName = resourceName;
-            GsonBuilder builder = new GsonBuilder()
-                    .registerTypeHierarchyAdapter(Notification.class, new NotificationSerializer())
-                    .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter());
-            final OpenType<?> userDataType = NotificationDescriptor.getUserDataType(getMetadata());
-            if(userDataType instanceof CompositeType)
-                builder = builder.registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataSerializer());
-            else if(userDataType instanceof TabularType)
-                builder = builder.registerTypeHierarchyAdapter(TabularData.class, new TabularDataSerializer());
-            else if(userDataType instanceof ArrayType<?> && ((ArrayType<?>)userDataType).getElementOpenType() instanceof CompositeType)
-                builder = builder.registerTypeHierarchyAdapter(CompositeData[].class, new ArrayOfCompositeDataSerializer());
-            else if(userDataType instanceof ArrayType<?> && ((ArrayType<?>)userDataType).getElementOpenType() instanceof TabularType)
-                builder = builder.registerTypeHierarchyAdapter(TabularData[].class, new ArrayOfTabularDataSerializer());
-            this.formatter = builder.create();
         }
 
         @Override
@@ -188,12 +181,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     }
 
     private abstract static class AbstractSshAttributeMapping extends AttributeAccessor implements SshAttributeMapping {
-        protected final Gson formatter;
-
-        private AbstractSshAttributeMapping(final MBeanAttributeInfo metadata,
-                                            final GsonBuilder builder){
+        private AbstractSshAttributeMapping(final MBeanAttributeInfo metadata){
             super(metadata);
-            this.formatter = builder.create();
         }
 
         @Override
@@ -202,7 +191,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
 
         private void printValueAsJson(final Writer output) throws IOException, JMException{
-            formatter.toJson(getValue(), output);
+            FORMATTER.toJson(getValue(), output);
             output.flush();
         }
 
@@ -225,7 +214,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         @Override
         public final void setValue(final Reader input) throws JMException, IOException {
             if(getType() != null)
-                setValue(formatter.fromJson(input, getType().getJavaType()));
+                setValue(FORMATTER.fromJson(input, getType().getJavaType()));
             else throw new UnsupportedOperationException(String.format("Attribute %s is read-only", getName()));
         }
 
@@ -240,7 +229,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class ReadOnlyAttributeMapping extends AbstractSshAttributeMapping {
         private ReadOnlyAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, new GsonBuilder());
+            super(metadata);
         }
 
         @Override
@@ -256,8 +245,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class DefaultAttributeMapping extends AbstractSshAttributeMapping {
 
-        private DefaultAttributeMapping(final MBeanAttributeInfo metadata, final GsonBuilder builder) {
-            super(metadata, builder);
+        private DefaultAttributeMapping(final MBeanAttributeInfo metadata) {
+            super(metadata);
         }
 
         @Override
@@ -271,9 +260,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         private final Class<B> bufferType;
 
         private AbstractBufferAttributeMapping(final MBeanAttributeInfo metadata,
-                                               final AbstractBufferFormatter<B> formatter,
                                                final Class<B> bufferType){
-            super(metadata, new GsonBuilder().registerTypeHierarchyAdapter(bufferType, formatter));
+            super(metadata);
             this.bufferType = bufferType;
         }
 
@@ -287,7 +275,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class ByteBufferAttributeMapping extends AbstractBufferAttributeMapping<ByteBuffer> {
         private ByteBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, new ByteBufferFormatter(), ByteBuffer.class);
+            super(metadata, ByteBuffer.class);
         }
 
         @Override
@@ -301,7 +289,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class CharBufferAttributeMapping extends AbstractBufferAttributeMapping<CharBuffer> {
         private CharBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, new CharBufferFormatter(), CharBuffer.class);
+            super(metadata, CharBuffer.class);
         }
 
         @Override
@@ -315,7 +303,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class ShortBufferAttributeMapping extends AbstractBufferAttributeMapping<ShortBuffer> {
         private ShortBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, new ShortBufferFormatter(), ShortBuffer.class);
+            super(metadata, ShortBuffer.class);
         }
 
         @Override
@@ -329,7 +317,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class IntBufferAttributeMapping extends AbstractBufferAttributeMapping<IntBuffer> {
         private IntBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, new IntBufferFormatter(), IntBuffer.class);
+            super(metadata, IntBuffer.class);
         }
 
         @Override
@@ -343,7 +331,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class LongBufferAttributeMapping extends AbstractBufferAttributeMapping<LongBuffer> {
         private LongBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, new LongBufferFormatter(), LongBuffer.class);
+            super(metadata, LongBuffer.class);
         }
 
         @Override
@@ -357,7 +345,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class FloatBufferAttributeMapping extends AbstractBufferAttributeMapping<FloatBuffer> {
         private FloatBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, new FloatBufferFormatter(), FloatBuffer.class);
+            super(metadata, FloatBuffer.class);
         }
 
         @Override
@@ -371,7 +359,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class DoubleBufferAttributeMapping extends AbstractBufferAttributeMapping<DoubleBuffer> {
         private DoubleBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, new DoubleBufferFormatter(), DoubleBuffer.class);
+            super(metadata, DoubleBuffer.class);
         }
 
         @Override
@@ -385,21 +373,14 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class CompositeDataAttributeMapping extends AbstractSshAttributeMapping {
         private CompositeDataAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, new GsonBuilder()
-                .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter())
-                .registerTypeHierarchyAdapter(CompositeData.class,
-                        new CompositeDataFormatter(getCompositeType(metadata))));
-        }
-
-        private static CompositeType getCompositeType(final MBeanAttributeInfo metadata){
-            return (CompositeType)AttributeDescriptor.getOpenType(metadata);
+            super(metadata);
         }
 
         @Override
         protected void printValueAsText(final Writer output) throws JMException, IOException {
             final CompositeData value = getValue(CompositeData.class);
             for(final String key: value.getCompositeType().keySet()){
-                output.append(String.format("%s = %s", key, formatter.toJson(value.get(key))));
+                output.append(String.format("%s = %s", key, FORMATTER.toJson(value.get(key))));
                 output.append(System.lineSeparator());
             }
         }
@@ -407,13 +388,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static final class TabularDataAttributeMapping extends AbstractSshAttributeMapping {
         private TabularDataAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, new GsonBuilder()
-                            .registerTypeHierarchyAdapter(TabularData.class, new TabularDataFormatter(getTabularType(metadata)))
-                            .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter()));
-        }
-
-        private static TabularType getTabularType(final MBeanAttributeInfo metadata){
-            return (TabularType)AttributeDescriptor.getOpenType(metadata);
+            super(metadata);
         }
 
         private static String joinString(final Collection<?> values,
@@ -438,12 +413,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             TabularDataUtils.forEachRow(data, new Consumer<CompositeData, IOException>() {
                 @Override
                 public void accept(final CompositeData row) throws IOException{
-                    final Collection<String> values = Collections2.transform(row.values(), new Function<Object, String>() {
-                        @Override
-                        public String apply(final Object cell) {
-                            return formatter.toJson(cell);
-                        }
-                    });
+                    final Collection<String> values = Collections2.transform(row.values(), new JsonSerializerFunction(FORMATTER));
                     output.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
                 }
             });
@@ -473,30 +443,10 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                         return new DoubleBufferAttributeMapping(metadata);
                     case DICTIONARY:
                         return new CompositeDataAttributeMapping(metadata);
-                    case DICTIONARY_ARRAY:
-                        final CompositeType compositeType = (CompositeType)((ArrayType<?>)AttributeDescriptor.getOpenType(metadata)).getElementOpenType();
-                        return new DefaultAttributeMapping(
-                                metadata,
-                                new GsonBuilder()
-                                        .registerTypeHierarchyAdapter(CompositeData[].class, new ArrayOfCompositeDataFormatter(compositeType))
-                        );
                     case TABLE:
                         return new TabularDataAttributeMapping(metadata);
-                    case TABLE_ARRAY:
-                        final TabularType tabularType = (TabularType)((ArrayType<?>)AttributeDescriptor.getOpenType(metadata)).getElementOpenType();
-                        return new DefaultAttributeMapping(
-                                metadata,
-                                new GsonBuilder()
-                                        .registerTypeHierarchyAdapter(TabularData[].class, new ArrayOfTabularDataFormatter(tabularType))
-                        );
-                    case OBJECT_NAME:
-                    case OBJECT_NAME_ARRAY:
-                        return new DefaultAttributeMapping(metadata,
-                                new GsonBuilder()
-                                        .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter())
-                        );
                     default:
-                        return new DefaultAttributeMapping(metadata, new GsonBuilder());
+                        return new DefaultAttributeMapping(metadata);
                 }
             return new ReadOnlyAttributeMapping(metadata);
         }

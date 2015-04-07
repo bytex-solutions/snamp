@@ -80,7 +80,7 @@
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
-            <artifactId>web-console</artifactId>
+            <artifactId>hawtio-console</artifactId>
             <version>1.0.0</version>
             <scope>provided</scope>
         </dependency>

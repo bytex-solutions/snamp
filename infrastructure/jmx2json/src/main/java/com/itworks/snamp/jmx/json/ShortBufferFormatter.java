@@ -3,7 +3,6 @@ package com.itworks.snamp.jmx.json;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
-import com.itworks.snamp.io.Buffers;
 
 import java.nio.ShortBuffer;
 
@@ -15,7 +14,7 @@ import java.nio.ShortBuffer;
 public final class ShortBufferFormatter extends AbstractBufferFormatter<ShortBuffer> {
     @Override
     public ShortBuffer deserialize(final JsonArray json) throws JsonParseException {
-        final ShortBuffer result = Buffers.allocShortBuffer(json.size(), false);
+        final ShortBuffer result = ShortBuffer.allocate(json.size());
         for(int i = 0; i < json.size(); i++)
             result.put(json.get(i).getAsShort());
         result.rewind();

@@ -2,7 +2,6 @@ package com.itworks.snamp.jmx.json;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import com.itworks.snamp.io.Buffers;
 
 import java.nio.DoubleBuffer;
 
@@ -21,7 +20,7 @@ public final class DoubleBufferFormatter extends AbstractBufferFormatter<DoubleB
      */
     @Override
     public DoubleBuffer deserialize(final JsonArray json) {
-        final DoubleBuffer result = Buffers.allocDoubleBuffer(json.size(), false);
+        final DoubleBuffer result = DoubleBuffer.allocate(json.size());
         for(int i = 0; i < json.size(); i++)
             result.put(json.get(i).getAsDouble());
         result.rewind();

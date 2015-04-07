@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
-    <feature name="licensing-feature" description="licensing-feature" version="1.0.0">
-        <details>This future contains snamp licensing bundle and the reference to the main feature</details>
-        <feature version="1.0.0">platform-feature</feature>
-        <bundle>mvn:com.itworks.snamp/licensing/1.0.0</bundle>
-    </feature>
-</features>

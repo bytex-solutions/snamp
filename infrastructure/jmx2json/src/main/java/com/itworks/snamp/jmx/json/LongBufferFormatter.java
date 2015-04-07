@@ -3,7 +3,6 @@ package com.itworks.snamp.jmx.json;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
-import com.itworks.snamp.io.Buffers;
 
 import java.nio.LongBuffer;
 
@@ -15,7 +14,7 @@ import java.nio.LongBuffer;
 public final class LongBufferFormatter extends AbstractBufferFormatter<LongBuffer> {
     @Override
     public LongBuffer deserialize(final JsonArray json) throws JsonParseException {
-        final LongBuffer result = Buffers.allocLongBuffer(json.size(), false);
+        final LongBuffer result = LongBuffer.allocate(json.size());
         for(int i = 0; i < json.size(); i++)
             result.put(json.get(i).getAsLong());
         result.rewind();

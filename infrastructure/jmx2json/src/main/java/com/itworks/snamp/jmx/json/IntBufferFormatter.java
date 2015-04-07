@@ -3,7 +3,6 @@ package com.itworks.snamp.jmx.json;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
-import com.itworks.snamp.io.Buffers;
 
 import java.nio.IntBuffer;
 
@@ -15,7 +14,7 @@ import java.nio.IntBuffer;
 public final class IntBufferFormatter extends AbstractBufferFormatter<IntBuffer> {
     @Override
     protected IntBuffer deserialize(final JsonArray json) throws JsonParseException {
-        final IntBuffer result = Buffers.allocIntBuffer(json.size(), false);
+        final IntBuffer result = IntBuffer.allocate(json.size());
         for(int i = 0; i < json.size(); i++)
             result.put(json.get(i).getAsInt());
         result.rewind();

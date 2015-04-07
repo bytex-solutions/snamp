@@ -13,7 +13,6 @@
     <description>A base classes for building karaf features for existing SNAMP OSGi-ready bundles</description>
     <modules>
         <module>platform-feature</module>
-        <module>licensing-feature</module>
         <module>connectors-features</module>
         <module>adapters-features</module>
         <module>wrapped-libs-for-tests</module>

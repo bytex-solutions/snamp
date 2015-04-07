@@ -2,7 +2,6 @@ package com.itworks.snamp.jmx.json;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import com.itworks.snamp.io.Buffers;
 
 import java.nio.ByteBuffer;
 
@@ -22,7 +21,7 @@ public final class ByteBufferFormatter extends AbstractBufferFormatter<ByteBuffe
      */
     @Override
     public ByteBuffer deserialize(final JsonArray json) {
-        final ByteBuffer result = Buffers.allocByteBuffer(json.size(), false);
+        final ByteBuffer result = ByteBuffer.allocate(json.size());
         for(int i = 0; i < json.size(); i++)
             result.put(json.get(i).getAsByte());
         result.rewind();

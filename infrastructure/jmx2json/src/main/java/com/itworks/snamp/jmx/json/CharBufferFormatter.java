@@ -2,7 +2,6 @@ package com.itworks.snamp.jmx.json;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import com.itworks.snamp.io.Buffers;
 
 import java.nio.CharBuffer;
 
@@ -21,7 +20,7 @@ public final class CharBufferFormatter extends AbstractBufferFormatter<CharBuffe
      */
     @Override
     public CharBuffer deserialize(final JsonArray json) {
-        final CharBuffer result = Buffers.allocCharBuffer(json.size(), false);
+        final CharBuffer result = CharBuffer.allocate(json.size());
         for(int i = 0; i < json.size(); i++)
             result.put(json.get(i).getAsCharacter());
         result.rewind();

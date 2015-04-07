@@ -18,7 +18,6 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
 import javax.management.*;
-import javax.management.openmbean.*;
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -27,7 +26,6 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.*;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -45,7 +43,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
     private static final int METHOD_NOT_ALLOWED = 405;
 
     private static final class HttpAttributeMapping extends AttributeAccessor {
-        private Gson formatter;
+        private final Gson formatter;
 
         private HttpAttributeMapping(final MBeanAttributeInfo attributeInfo) {
             super(attributeInfo);
@@ -53,50 +51,8 @@ final class HttpAdapter extends AbstractResourceAdapter {
             GsonBuilder builder = new GsonBuilder();
             if (dateFormat != null && dateFormat.length() > 0)
                 builder = builder.setDateFormat(dateFormat);
-            if (getType() != null)
-                switch (getType()) {
-                    case BYTE_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new ByteBufferFormatter());
-                        break;
-                    case CHAR_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new CharBufferFormatter());
-                        break;
-                    case SHORT_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new ShortBufferFormatter());
-                        break;
-                    case INT_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new IntBufferFormatter());
-                        break;
-                    case LONG_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new LongBufferFormatter());
-                        break;
-                    case FLOAT_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new FloatBufferFormatter());
-                        break;
-                    case DOUBLE_BUFFER:
-                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new DoubleBufferFormatter());
-                        break;
-                    case OBJECT_NAME_ARRAY:
-                    case OBJECT_NAME:
-                        builder = builder.registerTypeAdapter(ObjectName.class, new ObjectNameFormatter());
-                        break;
-                    case DICTIONARY:
-                        CompositeType compositeType = (CompositeType) getOpenType();
-                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new CompositeDataFormatter(compositeType));
-                        break;
-                    case TABLE:
-                        TabularType tabularType = (TabularType) getOpenType();
-                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new TabularDataFormatter(tabularType));
-                        break;
-                    case DICTIONARY_ARRAY:
-                        compositeType = (CompositeType) ((ArrayType<?>) getOpenType()).getElementOpenType();
-                        builder = builder.registerTypeAdapter(getType().getJavaType(), new ArrayOfCompositeDataFormatter(compositeType));
-                        break;
-                    case TABLE_ARRAY:
-                        tabularType = (TabularType) ((ArrayType<?>) getOpenType()).getElementOpenType();
-                        builder = builder.registerTypeHierarchyAdapter(getType().getJavaType(), new ArrayOfTabularDataFormatter(tabularType));
-                        break;
-                }
+            builder = Formatters.enableBufferSupport(builder);
+            builder = Formatters.enableOpenTypeSystemSupport(builder);
             formatter = builder.create();
         }
 
@@ -232,22 +188,9 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
     private static final class HttpNotificationsModel extends ThreadSafeObject implements NotificationSupport{
         private final KeyedObjects<String, NotificationBroadcaster> notifications;
-        private final Gson formatter;
+        private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder()).create();
 
         private HttpNotificationsModel(){
-            this.formatter = new GsonBuilder()
-                    .registerTypeHierarchyAdapter(Notification.class, new NotificationSerializer())
-                    .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter())
-                    .registerTypeAdapter(ByteBuffer.class, new ByteBufferFormatter())
-                    .registerTypeAdapter(CharBuffer.class, new CharBufferFormatter())
-                    .registerTypeAdapter(ShortBuffer.class, new ShortBufferFormatter())
-                    .registerTypeAdapter(IntBuffer.class, new IntBufferFormatter())
-                    .registerTypeAdapter(LongBuffer.class, new LongBufferFormatter())
-                    .registerTypeAdapter(FloatBuffer.class, new FloatBufferFormatter())
-                    .registerTypeAdapter(DoubleBuffer.class, new DoubleBufferFormatter())
-                    .registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataSerializer())
-                    .registerTypeHierarchyAdapter(TabularData.class, new TabularDataSerializer())
-                    .create();
             this.notifications = createBroadcasters();
         }
 
@@ -277,7 +220,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 final NotificationBroadcaster broadcaster;
                 if (notifications.containsKey(resourceName))
                     broadcaster = notifications.get(resourceName);
-                else notifications.put(broadcaster = new NotificationBroadcaster(resourceName, formatter));
+                else notifications.put(broadcaster = new NotificationBroadcaster(resourceName, FORMATTER));
                 return broadcaster.addNotification(metadata);
             }
         }

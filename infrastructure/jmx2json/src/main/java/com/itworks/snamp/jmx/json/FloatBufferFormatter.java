@@ -2,7 +2,6 @@ package com.itworks.snamp.jmx.json;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import com.itworks.snamp.io.Buffers;
 
 import java.nio.FloatBuffer;
 
@@ -21,7 +20,7 @@ public final class FloatBufferFormatter extends AbstractBufferFormatter<FloatBuf
      */
     @Override
     public FloatBuffer deserialize(final JsonArray json) {
-        final FloatBuffer result = Buffers.allocFloatBuffer(json.size(), false);
+        final FloatBuffer result = FloatBuffer.allocate(json.size());
         for(int i = 0; i < json.size(); i++)
             result.put(json.get(i).getAsFloat());
         result.rewind();
