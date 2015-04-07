@@ -1,7 +1,5 @@
 package com.itworks.snamp.licensing;
 
-import javax.xml.bind.JAXBException;
-
 /**
  * Represents license provider.
  * @author Roman Sakno
@@ -9,5 +7,5 @@ import javax.xml.bind.JAXBException;
  * @since 1.0
  */
 interface LicenseProvider {
-    XmlLicense getLicense() throws JAXBException;
+    XmlLicense getLicense();
 }

@@ -16,6 +16,7 @@
         <module>connectors-features</module>
         <module>adapters-features</module>
         <module>wrapped-libs-for-tests</module>
+        <module>console-feature</module>
     </modules>
 
     <build>

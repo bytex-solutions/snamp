@@ -284,6 +284,9 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             try{
                 return getValue();
             }
+            catch (final MBeanException | ReflectionException e){
+                throw e;
+            }
             catch (final UnsupportedOperationException e){
                 throw new MBeanException(e);
             }
@@ -307,10 +310,13 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             throw new UnsupportedOperationException(String.format("Attribute %s is not writable.", name));
         }
 
-        private void setValueInternal(final Object value, final OpenMBean owner) throws MBeanException, ReflectionException{
+        private void setValueInternal(final Object value, final OpenMBean owner) throws MBeanException, ReflectionException, InvalidAttributeValueException{
             this.owner.set(owner);
             try{
                 setValue(getJavaType().cast(value));
+            }
+            catch (final MBeanException | ReflectionException | InvalidAttributeValueException e){
+                throw e;
             }
             catch (final UnsupportedOperationException e){
                 throw new MBeanException(e);
@@ -421,13 +427,14 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @param attributeType The type of the attribute definition. Cannot be {@literal null}.
      * @param <V> The type of the attribute value.
      * @return The attribute value.
-     * @throws Exception Failed to read attribute value.
+     * @throws ReflectionException Wrapped exception occurred in {@link OpenAttribute#getValue()}
+     * @throws MBeanException Failed to read attribute.
      * @throws AttributeNotFoundException The attribute of the specified type doesn't exist.
      */
-    protected final <V> V getAttribute(final Class<? extends OpenAttribute<V, ?>> attributeType) throws Exception {
+    protected final <V> V getAttribute(final Class<? extends OpenAttribute<V, ?>> attributeType) throws ReflectionException, MBeanException, AttributeNotFoundException {
         final OpenAttribute<V, ?> attributeDef = getAttributeInfo(attributeType);
         if(attributeDef != null)
-            return attributeDef.getValue();
+            return attributeDef.getValueInternal(this);
         else throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist", attributeType));
     }
 
@@ -443,14 +450,16 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @param attributeType The type of the attribute definition.
      * @param value The attribute value.
      * @param <V> Type of the attribute value.
-     * @throws Exception Failed to write attribute value.
+     * @throws ReflectionException Wrapped exception occurred in {@link com.itworks.snamp.jmx.OpenMBean.OpenAttribute#setValue(Object)}.
+     * @throws InvalidAttributeValueException Invalid attribute value.
+     * @throws MBeanException Failed to write attribute value.
      * @throws AttributeNotFoundException The attribute of the specified type doesn't exist.
      */
-    protected final <V> void setAttribute(final Class<? extends OpenAttribute<V, ?>> attributeType, final V value) throws Exception {
+    protected final <V> void setAttribute(final Class<? extends OpenAttribute<V, ?>> attributeType, final V value) throws MBeanException, InvalidAttributeValueException, ReflectionException, AttributeNotFoundException {
         final OpenAttribute<V, ?> attributeDef = getAttributeInfo(attributeType);
         if(attributeDef != null)
-            attributeDef.setValue(value);
-        else throw new AttributeNotFoundException(String.format("Attrribute %s doesn't exist", attributeType));
+            attributeDef.setValueInternal(value, this);
+        else throw new AttributeNotFoundException(String.format("Attribute %s doesn't exist", attributeType));
     }
 
     /**

@@ -11,7 +11,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hawtio-console</artifactId>
     <packaging>war</packaging>
-    <name>SNAMP Hawtio Additional Module</name>
+    <name>SNAMP Management Console</name>
     <version>1.0.0</version>
     <description>Provides hawtio extension for managing SNAMP software</description>
     <properties>
@@ -38,10 +38,14 @@
 
         <!-- this lets this plugin deploy nicely into karaf, these get used
           for the ImportPackage directive for maven-bundle-plugin -->
-        <fuse.osgi.import>
-            javax.servlet,io.hawt.web.plugin,
-            *;resolution:=optional
-        </fuse.osgi.import>
+        <!--<fuse.osgi.import>
+            javax.servlet,
+            io.hawt.web.plugin,
+            com.google.*,
+            com.itworks.snamp.internal.*,
+            com.itworks.snamp.core.*,
+            com.itworks.snamp.concurrent.*
+        </fuse.osgi.import>-->
 
         <webapp-dir>${project.artifactId}-${project.version}</webapp-dir>
         <webapp-outdir>${basedir}/target/${webapp-dir}</webapp-outdir>
@@ -141,13 +145,10 @@
                         <Embed-Transitive>true</Embed-Transitive>
 
                         <Export-Package>com.itworks.snamp.management.webconsole</Export-Package>
-                        <Import-Package>${fuse.osgi.import}</Import-Package>
-                        <DynamicImport-Package>${fuse.osgi.dynamic}</DynamicImport-Package>
-                        <Private-Package>${fuse.osgi.private.pkg}</Private-Package>
+                        <!--<Import-Package>${fuse.osgi.import}</Import-Package>-->
 
                         <Bundle-ClassPath>.,WEB-INF/classes</Bundle-ClassPath>
 
-                        <Bundle-Name>Snamp Management Console</Bundle-Name>
                         <Bundle-Activator>com.itworks.snamp.management.webconsole.impl.WebConsoleActivator</Bundle-Activator>
                         <Bundle-SymbolicName>com.itworks.snamp.management.webconsole</Bundle-SymbolicName>
                         <Implementation-Title>SNAMP Hawtio Additional Module</Implementation-Title>
@@ -240,6 +241,12 @@
             <artifactId>management</artifactId>
             <version>1.0.0</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -19,7 +19,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @version 1.0
      * @since 1.0
      */
-    public static enum State{
+    public enum State{
         /**
          * The timer is started.
          */
@@ -68,7 +68,6 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * Returns time between successive task executions.
      * @return Time between successive task executions.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public final TimeSpan getPeriod(){
         return period;
     }
@@ -133,11 +132,11 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      */
     protected abstract void doAction();
 
-    private static interface RepeaterWorker extends Runnable, Thread.UncaughtExceptionHandler{
+    private interface RepeaterWorker extends Runnable, Thread.UncaughtExceptionHandler{
 
     }
 
-    private static interface RepeaterThread extends Runnable{
+    private interface RepeaterThread extends Runnable{
         void start();
         void interrupt();
         long getId();

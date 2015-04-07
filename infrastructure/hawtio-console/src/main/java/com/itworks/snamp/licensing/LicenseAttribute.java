@@ -14,9 +14,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.management.openmbean.SimpleType;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dsig.XMLSignature;
 import javax.xml.crypto.dsig.XMLSignatureException;
@@ -34,6 +32,7 @@ import java.io.*;
 import java.security.Key;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Objects;
 
 import static com.itworks.snamp.jmx.OpenMBean.OpenAttribute;
 
@@ -55,28 +54,45 @@ final class LicenseAttribute extends OpenAttribute<String, SimpleType<String>> i
 
     private static final String NAME = "license";
 
-    private static final XmlLicense EMPTY_LICENSE = new XmlLicense();
+    private static final class XmlLicenseHolder{
+        private final XmlLicense license;
+        private final Document source;
 
-    private volatile Document license;
-    private final Unmarshaller unmarshaller;
+        private XmlLicenseHolder(final Document licenseContent) throws JAXBException {
+            this.source = Objects.requireNonNull(licenseContent);
+            this.license = XmlLicense.load(licenseContent);
+        }
+
+        private XmlLicenseHolder(final String licenseContent) throws MarshalException, ParserConfigurationException, SAXException, XMLSignatureException, IOException, JAXBException {
+            this(fromString(licenseContent));
+        }
+
+        private XmlLicenseHolder(final InputStream licenseContent) throws IOException, MarshalException, ParserConfigurationException, SAXException, XMLSignatureException, JAXBException {
+            this(fromStream(licenseContent));
+        }
+
+        public String toString() throws IllegalStateException{
+            try {
+                try(final StringWriter writer = new StringWriter()){
+                    final DOMSource domSource = new DOMSource(source);
+                    final StreamResult result = new StreamResult(writer);
+                    final TransformerFactory tf = TransformerFactory.newInstance();
+                    final Transformer transformer = tf.newTransformer();
+                    transformer.transform(domSource, result);
+                    return writer.toString();
+                }
+            } catch (final IOException | TransformerException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+    }
+
+    private volatile XmlLicenseHolder license;
 
     LicenseAttribute() throws JAXBException {
         super(NAME, SimpleType.STRING);
         license = null;
-        final JAXBContext context = JAXBContext.newInstance(XmlLicense.class);
-        unmarshaller = context.createUnmarshaller();
-    }
 
-    private static String toString(final Document doc) throws IOException, TransformerException {
-        if(doc == null) return "";
-        try(final StringWriter writer = new StringWriter()){
-            final DOMSource domSource = new DOMSource(doc);
-            final StreamResult result = new StreamResult(writer);
-            final TransformerFactory tf = TransformerFactory.newInstance();
-            final Transformer transformer = tf.newTransformer();
-            transformer.transform(domSource, result);
-            return writer.toString();
-        }
     }
 
     private static Document toXmlDocument(final InputSource licenseSource) throws ParserConfigurationException, IOException, SAXException, XMLSignatureException, MarshalException{
@@ -105,16 +121,24 @@ final class LicenseAttribute extends OpenAttribute<String, SimpleType<String>> i
         }
     }
 
+    static Document fromStream(final InputStream licenseContent) throws IOException, MarshalException, ParserConfigurationException, SAXException, XMLSignatureException {
+        try(final InputStreamReader reader = new InputStreamReader(licenseContent, LICENSE_CONTENT_CHARSET)){
+            final InputSource source = new InputSource();
+            source.setCharacterStream(reader);
+            return toXmlDocument(source);
+        }
+    }
+
     private BundleContext getBundleContext(){
         return Utils.getBundleContextByObject(this);
     }
 
     @Override
     public String getValue() throws IOException, TransformerException {
-        return toString(license);
+        return Objects.toString(license, "");
     }
 
-    private static void saveLicense(String licenseContent,
+    private static void saveLicense(final String licenseContent,
                                     final ConfigurationAdmin configAdmin) throws IOException {
         final Configuration storage = configAdmin.getConfiguration(LICENSE_PID);
         final Dictionary<String, String> props = new Hashtable<>(3);
@@ -135,12 +159,12 @@ final class LicenseAttribute extends OpenAttribute<String, SimpleType<String>> i
 
     @Override
     public void updated(final Dictionary<String, ?> properties) throws ConfigurationException {
-        if(properties == null) license = null;
+        if (properties == null) license = null;
         else {
             final String licenseContent = Utils.getProperty(properties, LICENSE_CONTENT_ENTRY, String.class, "");
             try {
-                this.license = fromString(licenseContent);
-            } catch (final ParserConfigurationException | SAXException | IOException | XMLSignatureException | MarshalException e) {
+                this.license = new XmlLicenseHolder(licenseContent);
+            } catch (final JAXBException | ParserConfigurationException | SAXException | IOException | XMLSignatureException | MarshalException e) {
                 LicenseLogger.error("Unable to update SNAMP license", e);
                 throw new ConfigurationException(LICENSE_CONTENT_ENTRY, "Invalid XML content of the license", e);
             }
@@ -158,8 +182,8 @@ final class LicenseAttribute extends OpenAttribute<String, SimpleType<String>> i
         }
     }
 
-    XmlLicense getLicense() throws JAXBException {
-        final Document licenseContent = license;
-        return licenseContent == null ? EMPTY_LICENSE : (XmlLicense)unmarshaller.unmarshal(licenseContent);
+    XmlLicense getLicense() {
+        final XmlLicenseHolder holder = license;
+        return holder != null ? holder.license : new XmlLicense();
     }
 }

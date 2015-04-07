@@ -2,26 +2,18 @@ package com.itworks.snamp.licensing;
 
 import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.ArrayUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import com.itworks.snamp.internal.Utils;
+import org.w3c.dom.Node;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
-import javax.xml.crypto.MarshalException;
-import javax.xml.crypto.dsig.XMLSignature;
-import javax.xml.crypto.dsig.XMLSignatureException;
-import javax.xml.crypto.dsig.XMLSignatureFactory;
-import javax.xml.crypto.dsig.dom.DOMValidateContext;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.Key;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.*;
 
 /**
  * Represents SNAMP license.
@@ -36,9 +28,33 @@ public final class XmlLicense {
     static final String NAMESPACE = "http://www.itworks.com/snamp/schemas/license";
 
     private static final String ALL_ADAPTERS = "all";
+    private static final Unmarshaller unmarshaller;
+    private static final Marshaller marshaller;
 
-    private final Set<String> adapters = new HashSet<>(10);
-    private long numberOfManagedResources = 0L;
+    static {
+        try {
+            final JAXBContext context = JAXBContext.newInstance(XmlLicense.class);
+            unmarshaller = context.createUnmarshaller();
+            marshaller = context.createMarshaller();
+        } catch (final JAXBException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
+    private final Set<String> adapters;
+    private long numberOfManagedResources;
+
+    public XmlLicense(final Set<String> allowedAdapters,
+                      final long maxNumberOfManagedResources){
+        this.adapters = allowedAdapters.isEmpty() ?
+                new HashSet<String>(10):
+                new HashSet<>(allowedAdapters);
+        this.numberOfManagedResources = maxNumberOfManagedResources;
+    }
+
+    public XmlLicense(){
+        this(Collections.<String>emptySet(), 0L);
+    }
 
     /**
      * Gets maximum number of managed resources.
@@ -72,7 +88,7 @@ public final class XmlLicense {
      * Gets an array of allowed adapters.
      * @return An array of allowed adapters.
      */
-    @XmlElement(name = "allowedAdapters", namespace = NAMESPACE)
+    @XmlElement(name = "allowedAdapter", namespace = NAMESPACE)
     public String[] getAllowedAdapters(){
         return ArrayUtils.toArray(adapters, String.class);
     }
@@ -84,12 +100,16 @@ public final class XmlLicense {
         setAllowedAdapters(ALL_ADAPTERS);
     }
 
+    public void disallowAllAdapters(){
+        adapters.clear();
+    }
+
     /**
      * Overwrites a set of allowed adapters.
      * @param values An array of allowed adapters.
      */
     public void setAllowedAdapters(final String... values){
-        adapters.clear();
+        disallowAllAdapters();
         addAllowedAdapters(values);
     }
 
@@ -101,9 +121,12 @@ public final class XmlLicense {
         Collections.addAll(adapters, values);
     }
 
-    @XmlTransient
     public boolean isAdaptersAllowed(final Collection<String> adapterNames){
-        return adapters.contains(ALL_ADAPTERS) || adapters.containsAll(adapterNames);
+        return anyAdapterAllowed() || adapters.containsAll(adapterNames);
+    }
+
+    private boolean anyAdapterAllowed(){
+        return adapters.contains(ALL_ADAPTERS);
     }
 
     /**
@@ -111,32 +134,31 @@ public final class XmlLicense {
      * @param adapterNames The system name of the resource adapter.
      * @return {@literal true}, if the specified resource adapter is allowed by this license; otherwise, {@literal false}.
      */
-    @XmlTransient
     public boolean isAdaptersAllowed(final String... adapterNames){
         return isAdaptersAllowed(ImmutableSet.copyOf(adapterNames));
     }
 
-    public static XmlLicense fromString(final String content) throws IOException{
-        if(content == null || content.isEmpty()) return new XmlLicense();
-        return null;
+    @Override
+    public String toString() {
+        final String FORMAT = "Allowed adapters: %s; maxNumberOfManagedResources: %s";
+        return String.format(FORMAT,
+                anyAdapterAllowed() ? ALL_ADAPTERS : adapters.toString(),
+                numberOfManagedResources);
     }
 
-    public static XmlLicense fromStream(final InputStream licenseContent) throws ParserConfigurationException, IOException, SAXException, MarshalException, XMLSignatureException {
-        final Key publicLicenseKey = new LicensePublicKey();
-        final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        final DocumentBuilder builder = factory.newDocumentBuilder();
-        final Document xmlLicense = builder.parse(licenseContent);
-        final NodeList nl = xmlLicense.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
-        if (nl.getLength() == 0) throw new XMLSignatureException("License file has no digital signature.");
-        //normal XML signature validation
-        final DOMValidateContext valContext = new DOMValidateContext(publicLicenseKey, nl.item(0));
-        final XMLSignatureFactory xmlsigfact = XMLSignatureFactory.getInstance("DOM");
-        final XMLSignature signature = xmlsigfact.unmarshalXMLSignature(valContext);
-        if (!signature.validate(valContext))
-            throw new XMLSignatureException("Invalid license file signature.");
-        return null;
+    public void save(final Writer output) throws JAXBException {
+        marshaller.marshal(this, output);
     }
 
+    public void save(final OutputStream output) throws JAXBException {
+        marshaller.marshal(this, output);
+    }
 
+    public static XmlLicense load(final Node input) throws JAXBException {
+        return Utils.safeCast(unmarshaller.unmarshal(input), XmlLicense.class);
+    }
+
+    public static XmlLicense load(final Reader input) throws JAXBException {
+        return Utils.safeCast(unmarshaller.unmarshal(input), XmlLicense.class);
+    }
 }

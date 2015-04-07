@@ -35,9 +35,13 @@ public final class LicenseManager extends OpenMBean implements LicenseProvider {
     }
 
     @Override
-    public XmlLicense getLicense() throws JAXBException {
+    public XmlLicense getLicense() {
         final LicenseAttribute attributeDef = getAttributeInfo(LicenseAttribute.class);
         return attributeDef != null ? attributeDef.getLicense() : new XmlLicense();
+    }
+
+    public boolean isOK() throws Exception {
+        return getAttribute(IsOkAttribute.class);
     }
 
     /**

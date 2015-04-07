@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException;
  * @version 1.0
  * @since 1.0
  */
-@SnampDependencies({SnampFeature.PLATFORM, SnampFeature.LICENSING})
+@SnampDependencies({SnampFeature.PLATFORM})
 @PropagateSystemProperties({
         SnampSystemProperties.JAAS_CONFIG_FILE,
         "java.security.egd",

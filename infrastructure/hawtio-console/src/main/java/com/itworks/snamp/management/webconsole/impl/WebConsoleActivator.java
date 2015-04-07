@@ -1,6 +1,8 @@
 package com.itworks.snamp.management.webconsole.impl;
 
+import com.itworks.snamp.concurrent.Repeater;
 import com.itworks.snamp.core.AbstractServiceLibrary;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.licensing.LicenseLoader;
 import com.itworks.snamp.licensing.LicenseManager;
 import org.osgi.framework.Constants;
@@ -8,6 +10,7 @@ import org.osgi.service.cm.ManagedService;
 
 import javax.management.*;
 import javax.management.openmbean.OpenDataException;
+import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,11 +48,14 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     private static final ActivationProperty<LicenseManager> LICENSE_MANAGER_ACTIVATION_PROPERTY = defineActivationProperty(LicenseManager.class);
     private final LicenseManager licensingManager;
     private final ObjectName licensingManagerName;
+    private final Repeater licenseChecker;
 
-    private WebConsoleActivator() throws OpenDataException, MalformedObjectNameException {
+    @SpecialUse
+    public WebConsoleActivator() throws OpenDataException, MalformedObjectNameException, JAXBException {
         super(new LicenseTracker());
         licensingManagerName = new ObjectName(LicenseManager.OBJECT_NAME);
         licensingManager = LicenseManager.getInstance();
+        licenseChecker = new LicenseChecker(licensingManager);
     }
 
     @Override
@@ -60,6 +66,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
                 licensingManager.getLicenseLoader().loadLicense(licenseStream);
             }
         ManagementFactory.getPlatformMBeanServer().registerMBean(licensingManager, licensingManagerName);
+        licenseChecker.run();
     }
 
     @Override
@@ -75,5 +82,6 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     @Override
     protected void shutdown() throws MBeanRegistrationException, InstanceNotFoundException {
         ManagementFactory.getPlatformMBeanServer().unregisterMBean(licensingManagerName);
+        licenseChecker.close();
     }
 }

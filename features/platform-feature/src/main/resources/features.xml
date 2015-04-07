@@ -1,20 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
     <repository>mvn:io.hawt/hawtio-karaf/1.4.47/xml/features</repository>
-    <!--<repository>mvn:org.ops4j.pax.web/pax-web-features/3.0.1/xml/features</repository>-->
     <feature name="platform-feature" description="SNAMP Platform" version="1.0.0">
         <details>Basic set of features required to support SNAMP platform</details>
         <!-- Third-party features -->
         <feature>eventadmin</feature>
-        <feature>war</feature>
-        <feature>hawtio-offline</feature>
-        <bundle start="true">mvn:io.hawt/hawtio-plugin-mbean/1.4.47</bundle>
         <!-- Third-party bundles -->
         <bundle>mvn:com.google.code.gson/gson/2.3.1</bundle>
         <bundle>mvn:com.google.guava/guava/18.0</bundle>
         <!--SNAMP dependencies-->
         <bundle>mvn:com.itworks.snamp/framework/1.0.0</bundle>
-        <bundle start="true">mvn:com.itworks.snamp/hawtio-console/1.0.0/war</bundle>
         <bundle start="true">mvn:com.itworks.snamp/management/1.0.0</bundle>
         <bundle start="true">mvn:com.itworks.snamp/jaas-config/1.0.0</bundle>
         <bundle>mvn:com.itworks.snamp/jmx2json/1.0.0</bundle>

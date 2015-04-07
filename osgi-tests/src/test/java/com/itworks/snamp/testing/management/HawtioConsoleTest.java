@@ -24,7 +24,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  *
  * @author Evgeniy Kirichenko
  */
-@SnampDependencies({SnampFeature.SNMP_ADAPTER})
+@SnampDependencies({SnampFeature.SNMP_ADAPTER, SnampFeature.CONSOLE})
 public class HawtioConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     private static final String ADAPTER_NAME = "snmp";
@@ -59,6 +59,8 @@ public class HawtioConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
             Thread.sleep(1000);
         }
     }
+
+
 
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {

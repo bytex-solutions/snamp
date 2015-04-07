@@ -2,12 +2,16 @@ package com.itworks.snamp.testing.adapters.http;
 
 import com.google.common.base.Supplier;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.io.IOUtils;
+import com.itworks.snamp.jmx.CompositeDataBuilder;
+import com.itworks.snamp.jmx.TabularDataBuilder;
+import com.itworks.snamp.jmx.json.Formatters;
 import com.itworks.snamp.testing.CollectionSizeAwaitor;
 import com.itworks.snamp.testing.ImportPackages;
 import com.itworks.snamp.testing.SnampDependencies;
@@ -23,6 +27,10 @@ import org.osgi.framework.BundleException;
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.TabularData;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
@@ -36,7 +44,6 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.jmx.json.JsonUtils.toJsonArray;
-import static com.itworks.snamp.jmx.json.JsonUtils.toJsonObject;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -166,19 +173,32 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Test
-    public void testTableAttribute() throws IOException{
+    public void testTableAttribute() throws IOException, OpenDataException {
         //[{'col1':false,'col2':2,'col3':'pp'}]
-        testAttribute("7.1", toJsonArray(toJsonObject("col1", new JsonPrimitive(false),
-                "col2", new JsonPrimitive(2),
-                "col3", new JsonPrimitive("pp"))));
+        final TabularData data = new TabularDataBuilder()
+                .setTypeName("SimpleTable", true)
+                .setTypeDescription("descr", true)
+                .columns()
+                .addColumn("col1", "desc", SimpleType.BOOLEAN, false)
+                .addColumn("col2", "desc", SimpleType.INTEGER, false)
+                .addColumn("col3", "desc", SimpleType.STRING, true)
+                .queryObject(TabularDataBuilder.class)
+                .add(false, 2, "pp")
+                .build();
+        final Gson formatter = Formatters.enableOpenTypeSystemSupport(new GsonBuilder()).create();
+        testAttribute("7.1", formatter.toJsonTree(data));
     }
 
     @Test
-    public void testDictionaryAttribute() throws IOException{
+    public void testDictionaryAttribute() throws IOException, OpenDataException {
         //{'col1':false,'col2':42,'col3':'hello, world!'}
-        testAttribute("6.1", toJsonObject("col1", new JsonPrimitive(false),
-                "col2", new JsonPrimitive(42),
-                "col3", new JsonPrimitive("Hello, world!")));
+        final CompositeData data = new CompositeDataBuilder("dictionary", "desc")
+            .put("col1", "desc", false)
+            .put("col2", "desc", 42)
+            .put("col3", "desc", "Hello, world!")
+            .build();
+        final Gson formatter = Formatters.enableOpenTypeSystemSupport(new GsonBuilder()).create();
+        testAttribute("6.1", formatter.toJsonTree(data));
 
     }
 
