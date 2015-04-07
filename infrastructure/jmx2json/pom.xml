@@ -45,7 +45,7 @@
             <groupId>com.itworks.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>1.0.0</version>
-            <scope>provided</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

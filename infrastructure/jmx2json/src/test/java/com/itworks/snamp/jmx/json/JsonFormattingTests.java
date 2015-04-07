@@ -23,7 +23,7 @@ import java.nio.LongBuffer;
 public final class JsonFormattingTests extends Assert {
     @Test
     public void byteBufferTest(){
-        final ByteBuffer buffer = Buffers.wrap((byte)1, (byte)2, (byte)3);
+        final ByteBuffer buffer = Buffers.wrap((byte) 1, (byte) 2, (byte) 3);
         final Gson formatter = new GsonBuilder()
                 .registerTypeHierarchyAdapter(ByteBuffer.class, new ByteBufferFormatter())
                 .create();
