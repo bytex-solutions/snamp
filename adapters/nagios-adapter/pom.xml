@@ -8,10 +8,10 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>nagios-adapter</artifactId>
     <version>1.0.0</version>
     <name>Nagios Adapter</name>
-    <description>SNAMP adapter for Nagios NRPD/NCSA protocol</description>
+    <description>SNAMP adapter for NRDP/NSCA</description>
+    <artifactId>nagios-adapter</artifactId>
     <packaging>bundle</packaging>
     <build>
         <plugins>
@@ -21,11 +21,11 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.itworks.snamp.adapters.jmx</Bundle-SymbolicName>
-                        <Bundle-Activator>com.itworks.snamp.adapters.jmx.JmxResourceAdapterActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>com.itworks.snamp.adapters.nagios</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.adapters.nagios.NagiosResourceAdapterActivator</Bundle-Activator>
                         <Export-Package/>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Adapter>jmx</SNAMP-Resource-Adapter>
+                        <SNAMP-Resource-Adapter>nagios</SNAMP-Resource-Adapter>
                     </instructions>
                 </configuration>
             </plugin>
