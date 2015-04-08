@@ -557,7 +557,7 @@ var SnampShell = (function(SnampShell) {
                 if ($scope.activeNode.data.type == "params") {
                     return $scope.activeNode;
                 }
-                if ($scope.activeNode.data.type == "param") {
+                if ($scope.activeNode.data.type == "paramsAttr") {
                     return $scope.activeNode;
                 }
                 if ($scope.activeNode.data.type == "type") {
