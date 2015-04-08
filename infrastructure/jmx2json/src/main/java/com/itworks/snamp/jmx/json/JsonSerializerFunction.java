@@ -9,9 +9,10 @@ import java.util.Objects;
 /**
  * Represents a function used to serialize Java objects into JSON strings.
  * This class cannot be inherited.
+ * @param <I> Type of the object to be converted into JSON string.
  * @author Roman Sakno
  */
-public final class JsonSerializerFunction implements Function<Object, String> {
+public final class JsonSerializerFunction<I> implements Function<I, String> {
     private final Gson formatter;
 
     public JsonSerializerFunction(final Gson formatter){
@@ -23,7 +24,7 @@ public final class JsonSerializerFunction implements Function<Object, String> {
     }
 
     @Override
-    public String apply(final Object input) {
+    public String apply(final I input) {
         return formatter.toJson(input);
     }
 }
