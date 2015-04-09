@@ -7,14 +7,18 @@ import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
+import com.itworks.snamp.testing.adapters.snmp.SnmpClient;
+import com.itworks.snamp.testing.adapters.snmp.SnmpClientFactory;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
+import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import java.io.IOException;
 import java.util.Map;
 
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
@@ -30,6 +34,7 @@ public class HawtioConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
+    private final SnmpClient client;
 
 
 
@@ -44,8 +49,10 @@ public class HawtioConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
      *
      * @throws javax.management.MalformedObjectNameException the malformed object name exception
      */
-    public HawtioConsoleTest() throws MalformedObjectNameException {
+    public HawtioConsoleTest() throws MalformedObjectNameException, IOException {
+
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
+        client = SnmpClientFactory.createSnmpV2("udp:" + SNMP_HOST + "/" + SNMP_PORT);
     }
 
     /**
@@ -166,5 +173,35 @@ public class HawtioConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         attribute.getParameters().put("displayFormat", "rfc1903");
         attribute.getParameters().put("oid", "1.1.11.0");
         attributes.put("11.0", attribute);
+    }
+
+    @Override
+    protected void fillEvents(final Map<String, AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events, final Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> eventFactory) {
+        AgentConfiguration.ManagedResourceConfiguration.EventConfiguration event = eventFactory.get();
+        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("objectName", BEAN_NAME);
+        event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
+        event.getParameters().put("receiverName", "test-receiver-1");
+        event.getParameters().put("oid", "1.1.19.1");
+        events.put("19.1", event);
+
+        event = eventFactory.get();
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.testnotif");
+        event.getParameters().put("severity", "panic");
+        event.getParameters().put("objectName", BEAN_NAME);
+        event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
+        event.getParameters().put("receiverName", "test-receiver-2");
+        event.getParameters().put("oid", "1.1.20.1");
+        events.put("20.1", event);
+
+        event = eventFactory.get();
+        event.setCategory("com.itworks.snamp.connectors.tests.impl.plainnotif");
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("objectName", BEAN_NAME);
+        event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
+        event.getParameters().put("receiverName", "test-receiver-3");
+        event.getParameters().put("oid", "1.1.21.1");
+        events.put("21.1", event);
     }
 }
