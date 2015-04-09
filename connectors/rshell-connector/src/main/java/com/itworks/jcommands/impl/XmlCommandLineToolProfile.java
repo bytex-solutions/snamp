@@ -82,7 +82,7 @@ public class XmlCommandLineToolProfile {
     }
 
     protected static <T extends XmlCommandLineToolProfile> T loadFrom(final File source, final Class<T> profileType){
-        return JAXB.unmarshal(source, profileType);
+        return source.exists() ? JAXB.unmarshal(source, profileType) : null;
     }
 
     protected static <T extends XmlCommandLineToolProfile> T loadFrom(final InputStream source, final Class<T> profileType){

@@ -5,9 +5,12 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.ThreadLocalStack;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.connectors.attributes.AttributeDescriptorRead;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 
@@ -24,15 +27,19 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Represents SNAMP in-process management connector that exposes Java Bean properties through connector managementAttributes.
+ * Represents SNAMP in-process management connector that exposes
+ * Java Bean properties through connector managementAttributes.
  * <p>
  *     Use this class as base class for your custom management connector, if schema of the management information base
  *     is well known at the compile time and stable through connector instantiations.
@@ -66,82 +73,32 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         implements NotificationSupport, AttributeSupport {
 
     /**
-     * Represents attribute reading or writing context.
-     * This class cannot be inherited or instantiated directly in your code.
+     * Represents notification supported by this resource connector.
+     * This class cannot be instantiated or inherited directly in your code.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    public static final class AttributeContext implements AutoCloseable{
-        private final static ThreadLocal<AttributeContext> currentContext = new ThreadLocal<>();
-        private final MBeanAttributeInfo metadata;
-
-        private AttributeContext(final MBeanAttributeInfo metadata){
-            this.metadata = metadata;
-            currentContext.set(this);
-        }
-
-        /**
-         * Gets metadata of the calling attribute.
-         * @return The metadata of the calling attribute.
-         */
-        public MBeanAttributeInfo getMetadata(){
-            return metadata;
-        }
-
-        /**
-         * Gets name of the attribute as it is specified in the managed resource configuration.
-         * @return The name of the attribute as it is specified in the managed resource configuration.
-         */
-        public String getDeclaredAttributeName(){
-            return AttributeDescriptor.getAttributeName(getMetadata());
-        }
-
-        /**
-         * Gets timeout for the attribute get/set operation.
-         * @return The operation timeout.
-         */
-        public TimeSpan getOperationTimeout(){
-            return AttributeDescriptor.getReadWriteTimeout(metadata);
-        }
-
-        /**
-         * Gets current context.
-         * <p>
-         *     This method can be called inside of bean property and allows
-         *     to capture connector specific information.
-         * @return The current context.
-         */
-        public static AttributeContext get(){
-            return currentContext.get();
-        }
-
-        @Override
-        public void close() {
-            currentContext.remove();
-        }
-    }
-
-    public static final class NotificationContext implements AutoCloseable{
-        private final static ThreadLocal<NotificationContext> currentContext = new ThreadLocal<>();
+    public static final class JavaBeanNotification implements AutoCloseable{
+        private final static ThreadLocalStack<JavaBeanNotification> currentContext = new ThreadLocalStack<>();
         private final ManagementNotificationType<?> metadata;
 
-        private NotificationContext(final ManagementNotificationType<?> metadata){
+        private JavaBeanNotification(final ManagementNotificationType<?> metadata){
             this.metadata = metadata;
-            currentContext.set(this);
+            currentContext.push(this);
         }
 
         public ManagementNotificationType<?> getMetadata(){
             return metadata;
         }
 
-        public static NotificationContext get(){
-            return currentContext.get();
+        public static JavaBeanNotification current(){
+            return currentContext.top();
         }
 
         @Override
-        public void close() {
-            currentContext.remove();
+        public void close() throws NoSuchElementException{
+            currentContext.pop();
         }
     }
 
@@ -152,7 +109,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @since 1.0
      * @version 1.0
      */
-    private static interface ManagedBeanDescriptor<T>{
+    private interface ManagedBeanDescriptor<T>{
         /**
          * Gets metadata of the manageable bean.
          * @return The metadata of the manageable bean.
@@ -237,7 +194,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ManagementNotificationType<T> extends Descriptive{
+    protected interface ManagementNotificationType<T> extends Descriptive{
         /**
          * Gets user data type.
          * @return The user data type; or {@literal} null if user data is not supported.
@@ -251,7 +208,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         String getCategory();
     }
 
-    private static enum EmptyManagementNotificationType implements ManagementNotificationType<Void>{
+    private enum EmptyManagementNotificationType implements ManagementNotificationType<Void>{
         ;
 
         @Override
@@ -277,7 +234,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ManagementAttributeFormatter<T>{
+    protected interface ManagementAttributeFormatter<T>{
         /**
          * Gets JMX-compliant type of the attribute.
          * @return JMX-compliant type of the attribute.
@@ -296,7 +253,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
          * @param jmxValue The value to convert.
          * @return The converted attribute value.
          */
-        Object fromJmxValue(final Object jmxValue);
+        Object fromJmxValue(final T jmxValue);
     }
 
     private static final class DefaultManagementAttributeFormatter implements ManagementAttributeFormatter<Object>{
@@ -324,7 +281,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
-    protected static @interface ManagementAttribute {
+    protected @interface ManagementAttribute {
         /**
          * Determines whether the attribute if cached.
          * @return {@literal true}, if attribute value is cached in the private field; otherwise, {@literal false}.
@@ -353,7 +310,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @since 1.0
      * @version 1.0
      */
-    protected static interface BeanIntrospector{
+    protected interface BeanIntrospector{
         /**
          * Reflects the specified JavaBean.
          * @param beanType A type of JavaBean to reflect.
@@ -387,54 +344,177 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
-    private static class JavaBeanAttributeInfo extends MBeanAttributeInfo{
+    /**
+     * Represents factory for the user context associated with attribute.
+     * @param <T> Type of the user context.
+     * @param <E> Type of the exception that can be produced by initializer.
+     */
+    protected interface AttributeUserDataFactory<T, E extends Throwable>{
+        /**
+         * Creates a new user context.
+         * @param metadata The metadata of the attribute.
+         * @return User context.
+         * @throws E Unable to create user context.
+         */
+        T createUserData(final AttributeDescriptorRead metadata) throws E;
+    }
+
+    /**
+     * Represents an attribute declared as a Java property in this resource connector.
+     * This class cannot be inherited or instantiated directly in your code.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected static class JavaBeanAttributeInfo extends MBeanAttributeInfo implements AttributeDescriptorRead{
         private static final long serialVersionUID = -5047097712279607039L;
-        private final Method getter;
-        private final Method setter;
+        private static final ThreadLocalStack<JavaBeanAttributeInfo> currentAttribute = new ThreadLocalStack<>();
+        private final MethodHandle getter;
+        private final MethodHandle setter;
+        private volatile Object userData;
+
+        /**
+         * Represents attribute formatter.
+         */
         protected final ManagementAttributeFormatter formatter;
 
         private JavaBeanAttributeInfo(final String attributeName,
                                       final PropertyDescriptor property,
-                                      final AttributeDescriptor descriptor) throws ReflectionException {
+                                      final AttributeDescriptor descriptor,
+                                      final Object owner) throws ReflectionException {
             super(attributeName,
-                    getDescription(property, descriptor),
                     property.getPropertyType().getName(),
+                    getDescription(property, descriptor),
                     canRead(property),
                     canWrite(property),
                     isFlag(property),
                     descriptor);
-            this.getter = property.getReadMethod();
-            this.setter = property.getWriteMethod();
+            final Method getter = property.getReadMethod();
+            final Method setter = property.getWriteMethod();
             final ManagementAttribute info = getAdditionalInfo(getter, setter);
             if(info != null)
                 try {
-                    formatter = info.formatter().newInstance();
+                    final Class<? extends ManagementAttributeFormatter> formatterClass =
+                            info.formatter();
+                    this.formatter = Objects.equals(formatterClass, DefaultManagementAttributeFormatter.class) ?
+                            new DefaultManagementAttributeFormatter():
+                            formatterClass.newInstance();
                 } catch (final ReflectiveOperationException e){
                     throw new ReflectionException(e);
                 }
             else formatter = new DefaultManagementAttributeFormatter();
+            final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+            try{
+                this.setter = setter != null ? lookup.unreflect(setter).bindTo(owner): null;
+                this.getter = getter != null ? lookup.unreflect(getter).bindTo(owner): null;
+            } catch (final IllegalAccessException e) {
+                throw new ReflectionException(e);
+            }
         }
 
-        final Object getValue(final Object owner) throws ReflectionException{
-            if(getter != null)
-                try(final AttributeContext ignored = new AttributeContext(this)) {
-                    return formatter.toJmxValue(getter.invoke(owner));
+        /**
+         * Gets currently executing attribute.
+         * <p>
+         *     This method can be called inside of the property getter or setter only.
+         * @return The currently executing attribute.
+         */
+        public static JavaBeanAttributeInfo current(){
+            return currentAttribute.top();
+        }
+
+        final void clear(){
+            userData = null;
+        }
+
+        /**
+         * Gets user data associated with this attribute.
+         * @return The user data associated with this attribute.
+         */
+        public final Object getUserData(){
+            return userData;
+        }
+
+        /**
+         * Gets or creates user data associated with this attribute.
+         * @param factory The factory used to initialize user data.
+         * @param userDataType The type of the user data.
+         * @param <T> Type of the user data.
+         * @param <E> Type of the exception that may be raised by factory.
+         * @return The user data associated with this attribute.
+         * @throws E An exception by factory.
+         */
+        public final <T, E extends Throwable> T getUserData(final AttributeUserDataFactory<T, E> factory,
+                                                            final Class<T> userDataType) throws E {
+            Object userData = this.userData;
+            if (userDataType.isInstance(userData))
+                return userDataType.cast(userData);
+            else synchronized (this) {
+                userData = this.userData;
+                if (userDataType.isInstance(userData))
+                    return userDataType.cast(userData);
+                else {
+                    final T ud = factory.createUserData(this);
+                    this.userData = ud;
+                    return ud;
                 }
-                catch (final ReflectiveOperationException e) {
+            }
+        }
+
+        /**
+         * Returns the descriptor for the feature.  Changing the returned value
+         * will have no affect on the original descriptor.
+         *
+         * @return a descriptor that is either immutable or a copy of the original.
+         */
+        @Override
+        public final AttributeDescriptor getDescriptor() {
+            return Utils.safeCast(super.getDescriptor(), AttributeDescriptor.class);
+        }
+
+        private void pushThis(){
+            currentAttribute.push(this);
+        }
+
+        private static void pop(){
+            currentAttribute.pop();
+        }
+
+        final Object getValue() throws ReflectionException{
+            if(getter != null) {
+                pushThis();
+                try {
+                    return formatter.toJmxValue(getter.invoke());
+                } catch (final Exception e) {
                     throw new ReflectionException(e);
+                } catch (final Error e) {
+                    throw e;
+                } catch (final Throwable e) {
+                    throw new ReflectionException(new UndeclaredThrowableException(e));
+                } finally {
+                    pop();
                 }
+            }
             else throw new ReflectionException(new UnsupportedOperationException("Attribute is write-only"));
         }
 
-        final void setValue(final Object owner, final Object value) throws ReflectionException, InvalidAttributeValueException {
-            if (setter != null)
-                try (final AttributeContext ignored = new AttributeContext(this)) {
-                    setter.invoke(owner, formatter.fromJmxValue(value));
+        @SuppressWarnings("unchecked")
+        final void setValue(final Object value) throws ReflectionException, InvalidAttributeValueException {
+            if (setter != null) {
+                pushThis();
+                try {
+                    setter.invoke(formatter.fromJmxValue(value));
                 } catch (final IllegalArgumentException e) {
                     throw new InvalidAttributeValueException(e.getMessage());
-                } catch (final ReflectiveOperationException e) {
+                } catch (final Exception e) {
                     throw new ReflectionException(e);
+                } catch (final Error e) {
+                    throw e;
+                } catch (final Throwable e) {
+                    throw new ReflectionException(new UndeclaredThrowableException(e));
+                } finally {
+                    pop();
                 }
+            }
             else throw new ReflectionException(new UnsupportedOperationException("Attribute is read-only"));
         }
 
@@ -477,8 +557,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         private JavaBeanOpenAttributeInfo(final String attributeName,
                                           final PropertyDescriptor property,
-                                          final AttributeDescriptor descriptor) throws ReflectionException, OpenDataException {
-            super(attributeName, property, descriptor);
+                                          final AttributeDescriptor descriptor,
+                                          final Object owner) throws ReflectionException, OpenDataException {
+            super(attributeName, property, descriptor, owner);
             OpenType<?> type = formatter.getAttributeType();
             //tries to detect open type via WellKnownType
             if(type == null){
@@ -561,11 +642,11 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                 if(Objects.equals(property.getName(), descriptor.getAttributeName()))
                     try{
                         //try to connect as Open Type attribute
-                        return new JavaBeanOpenAttributeInfo(attributeID, property, descriptor);
+                        return new JavaBeanOpenAttributeInfo(attributeID, property, descriptor, bean.getInstance());
                     }
                     catch (final OpenDataException e){
                         //bean property type is not Open Type
-                        return new JavaBeanAttributeInfo(attributeID, property, descriptor);
+                        return new JavaBeanAttributeInfo(attributeID, property, descriptor, bean.getInstance());
                     }
             throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
         }
@@ -577,7 +658,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         @Override
         protected Object getAttribute(final JavaBeanAttributeInfo metadata) throws ReflectionException {
-            return metadata.getValue(bean.getInstance());
+            return metadata.getValue();
         }
 
         @Override
@@ -587,12 +668,18 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         @Override
         protected void setAttribute(final JavaBeanAttributeInfo attribute, final Object value) throws ReflectionException, InvalidAttributeValueException {
-            attribute.setValue(bean.getInstance(), value);
+            attribute.setValue(value);
         }
 
         @Override
         protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
             failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
+        }
+
+        @Override
+        protected boolean disconnectAttribute(final JavaBeanAttributeInfo attributeInfo) {
+            attributeInfo.clear();
+            return true;
         }
     }
 
@@ -648,7 +735,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         private void fire(final ManagementNotificationType<?> category, final String message, final Object userData) {
-            try(final NotificationContext ignored = new NotificationContext(category)){
+            try(final JavaBeanNotification ignored = new JavaBeanNotification(category)){
                 fire(category.getCategory(), message, userData);
             }
         }

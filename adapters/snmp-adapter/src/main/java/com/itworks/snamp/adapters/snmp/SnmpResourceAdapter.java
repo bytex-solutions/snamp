@@ -193,7 +193,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected void start(final Map<String, String> parameters) throws IOException, DuplicateRegistrationException {
+    protected void start(final Map<String, String> parameters) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException {
         start(new OID(parseContext(parameters)),
                 parseEngineID(parameters),
                 parsePort(parameters),

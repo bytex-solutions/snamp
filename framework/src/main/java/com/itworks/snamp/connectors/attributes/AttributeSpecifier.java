@@ -22,9 +22,9 @@ public enum  AttributeSpecifier implements Serializable {
     private final boolean isReadable;
     private final boolean isFlag;
 
-    private AttributeSpecifier(final boolean writable,
-                               final boolean readable,
-                               final boolean isFlag){
+    AttributeSpecifier(final boolean writable,
+                       final boolean readable,
+                       final boolean isFlag){
         this.isFlag = isFlag;
         this.isReadable = readable;
         this.isWritable = writable;
@@ -55,15 +55,27 @@ public enum  AttributeSpecifier implements Serializable {
     }
 
     public AttributeSpecifier writable(final boolean value) {
-        for (final AttributeSpecifier spec : values())
-            if (spec.isWritable == value) return spec;
-        return this;
+        for(final AttributeSpecifier spec: values())
+            if(spec.isWritable == value &&
+                    spec.isReadable == isReadable &&
+                    spec.isFlag == isFlag) return spec;
+        return NOT_ACCESSIBLE;
     }
 
     public AttributeSpecifier readable(final boolean value){
         for(final AttributeSpecifier spec: values())
-            if(spec.isReadable == value) return spec;
-        return this;
+            if(spec.isReadable == value &&
+                    spec.isWritable == isWritable &&
+                    spec.isFlag == isFlag) return spec;
+        return NOT_ACCESSIBLE;
+    }
+
+    public AttributeSpecifier flag(final boolean value){
+        for(final AttributeSpecifier spec: values())
+            if(spec.isReadable == isReadable &&
+                    spec.isWritable == isWritable &&
+                    spec.isFlag == value) return spec;
+        return NOT_ACCESSIBLE;
     }
 
     /**

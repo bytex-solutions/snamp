@@ -23,11 +23,12 @@ import com.itworks.snamp.jmx.TabularDataUtils;
 import com.itworks.snamp.jmx.TabularTypeBuilder;
 import com.itworks.snamp.scripting.OSGiScriptEngineManager;
 
-import javax.management.*;
+import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -274,7 +275,8 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         protected RShellAttributeInfo connectAttribute(final String attributeID,
                                                        final AttributeDescriptor descriptor) throws Exception {
             if (descriptor.hasField(COMMAND_PROFILE_PATH_PARAM)) {
-                final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(descriptor.getField(COMMAND_PROFILE_PATH_PARAM, String.class)));
+                final String commandProfileFilePath = descriptor.getField(COMMAND_PROFILE_PATH_PARAM, String.class);
+                final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
                 if (profile != null) {
                     profile.setScriptManager(scriptEngineManager);
                     switch (profile.getReaderTemplate().getCommandOutputParser().getParsingResultType()){
@@ -287,9 +289,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                     }
                 }
                 else
-                    throw new CommandProfileNotFoundException(descriptor.getFieldValue(COMMAND_PROFILE_PATH_PARAM));
+                    throw new FileNotFoundException(commandProfileFilePath + " RShell command profile doesn't exist");
             }
-            throw new UndefinedCommandProfileException();
+            throw new RShellConnectorAbsentParameterException(COMMAND_PROFILE_PATH_PARAM);
         }
 
         /**
@@ -337,10 +339,6 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
 
     MBeanAttributeInfo addAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
         return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
-    }
-
-    void removeAllAttributes(){
-        attributes.clear(false);
     }
 
     /**

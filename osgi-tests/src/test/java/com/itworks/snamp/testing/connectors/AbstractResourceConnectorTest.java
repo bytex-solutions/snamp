@@ -109,21 +109,25 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         this.connectorParameters = parameters;
     }
 
-    private void waitForConnector(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+    private static void waitForConnector(final TimeSpan timeout,
+                                  final String resourceName,
+                                  final BundleContext context) throws TimeoutException, InterruptedException {
         final Awaitor<ServiceReference<ManagedResourceConnector>, ExceptionPlaceholder> awaitor = new SpinWait<ServiceReference<ManagedResourceConnector>, ExceptionPlaceholder>() {
             @Override
             protected ServiceReference<ManagedResourceConnector> get() {
-                return ManagedResourceConnectorClient.getResourceConnector(getTestBundleContext(), TEST_RESOURCE_NAME);
+                return ManagedResourceConnectorClient.getResourceConnector(context, resourceName);
             }
         };
         awaitor.await(timeout);
     }
 
-    private void waitForNoConnector(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+    private static void waitForNoConnector(final TimeSpan timeout,
+                                           final String resourceName,
+                                           final BundleContext context) throws TimeoutException, InterruptedException {
         final Awaitor<Object, ExceptionPlaceholder> awaitor = new SpinWait<Object, ExceptionPlaceholder>() {
             @Override
             protected Object get() {
-                return ManagedResourceConnectorClient.getResourceConnector(getTestBundleContext(), TEST_RESOURCE_NAME) != null ? null : new Object();
+                return ManagedResourceConnectorClient.getResourceConnector(context, resourceName) != null ? null : new Object();
             }
         };
         awaitor.await(timeout);
@@ -163,18 +167,35 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     }
 
-    protected final void stopResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+    public static void stopResourceConnector(final TestName testName,
+                                              final String connectorType,
+                                             final String resourceName,
+                                               final BundleContext context) throws TimeoutException, InterruptedException, BundleException {
         try(final LogicalOperation ignored = ConnectorTestLogicalOperation.stopResourceConnector(connectorType, testName)) {
             ManagedResourceActivator.stopResourceConnector(context, connectorType);
-            waitForNoConnector(TimeSpan.fromSeconds(10));
+            waitForNoConnector(TimeSpan.fromSeconds(10), resourceName, context);
+        }
+    }
+
+    protected final void stopResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        stopResourceConnector(testName, connectorType, TEST_RESOURCE_NAME, context);
+    }
+
+    public static void startResourceConnector(final TestName testName,
+                                              final String connectorType,
+                                              final String resourceName,
+                                              final BundleContext context) throws TimeoutException, InterruptedException, BundleException {
+        try (final LogicalOperation ignored = ConnectorTestLogicalOperation.startResourceConnector(connectorType, testName)) {
+            ManagedResourceActivator.startResourceConnector(context, connectorType);
+            waitForConnector(TimeSpan.fromSeconds(10), resourceName, context);
         }
     }
 
     protected final void startResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
-        try (final LogicalOperation ignored = ConnectorTestLogicalOperation.startResourceConnector(connectorType, testName)) {
-            ManagedResourceActivator.startResourceConnector(context, connectorType);
-            waitForConnector(TimeSpan.fromSeconds(10));
-        }
+        startResourceConnector(testName,
+                connectorType,
+                TEST_RESOURCE_NAME,
+                context);
     }
 
     @Override

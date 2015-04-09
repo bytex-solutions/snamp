@@ -451,7 +451,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @version 1.0
      * @see ManagedResourceActivator.ConfigurationEntityDescriptionManager
      * @see ManagedResourceActivator.DiscoveryServiceManager
-     * @see ManagedResourceActivator.LicensingDescriptionServiceManager
      */
     protected static abstract class SupportConnectorServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T> {
 
@@ -1052,6 +1051,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 ArrayUtils.contains(ref.getPropertyKeys(), MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY);
     }
 
+    private static BigInteger toBigInteger(final String value){
+        return value == null || value.isEmpty() ?
+                BigInteger.ZERO :
+                new BigInteger(value.getBytes());
+    }
+
     /**
      * Computes unique hash code for the specified connection parameters.
      * @param connectionString The managed resource connection string.
@@ -1060,10 +1065,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     public static BigInteger computeConnectionParamsHashCode(final String connectionString,
                                                              final Map<String, String> connectionParameters) {
-        BigInteger result = new BigInteger(connectionString.getBytes());
+        BigInteger result = toBigInteger(connectionString);
         for(final Map.Entry<String, String> entry: connectionParameters.entrySet()){
-            result = result.xor(new BigInteger(entry.getKey().getBytes()));
-            result = result.xor(new BigInteger(entry.getValue().getBytes()));
+            result = result.xor(toBigInteger(entry.getKey()));
+            result = result.xor(toBigInteger(entry.getValue()));
         }
         return result;
     }

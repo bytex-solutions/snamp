@@ -16,12 +16,13 @@ public enum SnampFeature {
     RSHELL_CONNECTOR("rshell-connector-feature", "1.0.0"),
     SSH_ADAPTER("ssh-adapter-feature", "1.0.0"),
     WRAPPED_LIBS("wrapped-libs-for-tests", "1.0.0"),
-    HTTP_ADAPTER("http-adapter-feature", "1.0.0");
+    HTTP_ADAPTER("http-adapter-feature", "1.0.0"),
+    RESOURCE_AGGREGATOR("aggregator-connector-feature", "1.0.0");
 
     final String featureName;
     final String version;
 
-    private SnampFeature(final String featureName, final String version){
+    SnampFeature(final String featureName, final String version){
         this.featureName = featureName;
         this.version = version;
     }

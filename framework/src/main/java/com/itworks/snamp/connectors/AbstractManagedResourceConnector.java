@@ -123,6 +123,12 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
                 this.identity = Objects.requireNonNull(identity);
             }
 
+            static BigInteger toBigInteger(final String value){
+                return value == null || value.isEmpty() ?
+                        BigInteger.ZERO:
+                        new BigInteger(value.getBytes());
+            }
+
             final boolean equals(final FeatureHolder<?> other){
                 return other != null &&
                         Objects.equals(getClass(), other.getClass()) &&
@@ -238,12 +244,12 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             private static BigInteger computeIdentity(final String attributeName,
                                                       final TimeSpan readWriteTimeout,
                                                       final CompositeData options){
-                BigInteger result = new BigInteger(attributeName.getBytes());
+                BigInteger result = toBigInteger(attributeName);
                 if(readWriteTimeout != null)
                     result = result.xor(BigInteger.valueOf(readWriteTimeout.toNanos()));
                 for(final String propertyName: options.getCompositeType().keySet())
                     result = result
-                            .xor(new BigInteger(propertyName.getBytes()))
+                            .xor(toBigInteger(propertyName))
                             .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
                 return result;
             }
@@ -769,9 +775,9 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
 
             private static BigInteger computeIdentity(final String category,
                                                       final CompositeData options) {
-                BigInteger result = new BigInteger(category.getBytes());
+                BigInteger result = toBigInteger(category);
                 for (final String propertyName : options.getCompositeType().keySet())
-                    result = result.xor(new BigInteger(propertyName.getBytes()))
+                    result = result.xor(toBigInteger(propertyName))
                             .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
                 return result;
             }

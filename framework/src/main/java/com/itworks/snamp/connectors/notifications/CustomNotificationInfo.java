@@ -11,7 +11,7 @@ import javax.management.Notification;
  * @version 1.0
  * @since 1.0
  */
-public class CustomNotificationInfo extends MBeanNotificationInfo {
+public class CustomNotificationInfo extends MBeanNotificationInfo implements NotificationDescriptorRead {
     private static final long serialVersionUID = 414016119605849730L;
 
     /**

@@ -8,6 +8,7 @@ import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.SynchronizationListener;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,8 +29,8 @@ import java.util.logging.Logger;
  * @author Roman Sakno
  */
 public final class ManagedResourceConnectorBeanTest extends Assert {
-    private static final class TestManagementConnectorBean extends ManagedResourceConnectorBean {
-        private static enum TestNotificationType implements ManagementNotificationType<String>{
+    public static final class TestManagementConnectorBean extends ManagedResourceConnectorBean {
+        private enum TestNotificationType implements ManagementNotificationType<String>{
             PROPERTY_CHANGED;
 
             @Override
@@ -66,38 +67,44 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
             return Logger.getAnonymousLogger();
         }
 
+        @SpecialUse
         public final String getProperty1() {
-            assertEquals("property1", AttributeContext.get().getDeclaredAttributeName());
-            assertNotNull(AttributeContext.get().getOperationTimeout());
+            assertEquals("property1", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
+            assertNotNull(JavaBeanAttributeInfo.current().getDescriptor().getReadWriteTimeout());
             return field1;
         }
 
+        @SpecialUse
         public final void setProperty1(final String value) {
-            assertEquals("property1", AttributeContext.get().getDeclaredAttributeName());
-            assertNotNull(AttributeContext.get().getOperationTimeout());
+            assertEquals("property1", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
+            assertNotNull(JavaBeanAttributeInfo.current().getDescriptor().getReadWriteTimeout());
             field1 = value;
             emitPropertyChanged("property1");
         }
 
+        @SpecialUse
         public final int getProperty2() {
-            assertEquals("property2", AttributeContext.get().getDeclaredAttributeName());
-            assertNotNull(AttributeContext.get().getOperationTimeout());
+            assertEquals("property2", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
+            assertNotNull(JavaBeanAttributeInfo.current().getDescriptor().getReadWriteTimeout());
             return field2;
         }
 
+        @SpecialUse
         public final void setProperty2(final int value) {
-            assertEquals("property2", AttributeContext.get().getDeclaredAttributeName());
+            assertEquals("property2", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
             field2 = value;
             emitPropertyChanged("property2");
         }
 
+        @SpecialUse
         public final boolean getProperty3() {
-            assertEquals("property3", AttributeContext.get().getDeclaredAttributeName());
+            assertEquals("property3", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
             return field3;
         }
 
+        @SpecialUse
         public final void setProperty3(final boolean value) {
-            assertEquals("property3", AttributeContext.get().getDeclaredAttributeName());
+            assertEquals("property3", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
             field3 = value;
             emitPropertyChanged("property3");
         }

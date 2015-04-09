@@ -146,10 +146,10 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         super(new ResourceAdapterConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());
     }
 
-    static String parseContext(final Map<String, String> parameters){
-        return parameters.containsKey(CONTEXT_PARAM_NAME) ?
-                parameters.get(CONTEXT_PARAM_NAME) :
-                Integer.toString(oidCounter.getAndIncrement());
+    static String parseContext(final Map<String, String> parameters) throws SnmpAdapterAbsentParameterException{
+        if(parameters.containsKey(CONTEXT_PARAM_NAME))
+            return parameters.get(CONTEXT_PARAM_NAME);
+        else throw new SnmpAdapterAbsentParameterException(CONTEXT_PARAM_NAME);
     }
 
     static String parseOID(final DescriptorRead info){
