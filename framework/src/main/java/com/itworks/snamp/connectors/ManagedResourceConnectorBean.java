@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.itworks.snamp.Descriptive;
+import com.itworks.snamp.SafeCloseable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.ThreadLocalStack;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
@@ -471,18 +472,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             return Utils.safeCast(super.getDescriptor(), AttributeDescriptor.class);
         }
 
-        private void pushThis(){
-            currentAttribute.push(this);
-        }
-
-        private static void pop(){
-            currentAttribute.pop();
-        }
-
-        final Object getValue() throws ReflectionException{
-            if(getter != null) {
-                pushThis();
-                try {
+        final Object getValue() throws ReflectionException {
+            if (getter != null)
+                try (final SafeCloseable ignored = currentAttribute.pushScope(this)) {
                     return formatter.toJmxValue(getter.invoke());
                 } catch (final Exception e) {
                     throw new ReflectionException(e);
@@ -490,18 +482,14 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     throw e;
                 } catch (final Throwable e) {
                     throw new ReflectionException(new UndeclaredThrowableException(e));
-                } finally {
-                    pop();
                 }
-            }
             else throw new ReflectionException(new UnsupportedOperationException("Attribute is write-only"));
         }
 
         @SuppressWarnings("unchecked")
         final void setValue(final Object value) throws ReflectionException, InvalidAttributeValueException {
-            if (setter != null) {
-                pushThis();
-                try {
+            if (setter != null)
+                try(final SafeCloseable ignored = currentAttribute.pushScope(this)) {
                     setter.invoke(formatter.fromJmxValue(value));
                 } catch (final IllegalArgumentException e) {
                     throw new InvalidAttributeValueException(e.getMessage());
@@ -511,10 +499,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     throw e;
                 } catch (final Throwable e) {
                     throw new ReflectionException(new UndeclaredThrowableException(e));
-                } finally {
-                    pop();
                 }
-            }
             else throw new ReflectionException(new UnsupportedOperationException("Attribute is read-only"));
         }
 

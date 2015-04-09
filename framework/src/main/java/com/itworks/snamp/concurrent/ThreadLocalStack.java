@@ -1,5 +1,7 @@
 package com.itworks.snamp.concurrent;
 
+import com.itworks.snamp.SafeCloseable;
+
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -10,7 +12,19 @@ import java.util.NoSuchElementException;
  * @version 1.0
  * @since 1.0
  */
-public class ThreadLocalStack<T> extends ThreadLocal<Deque<T>> implements AutoCloseable {
+public class ThreadLocalStack<T> extends ThreadLocal<Deque<T>> implements SafeCloseable {
+    private static final class ElementScope<T> implements SafeCloseable{
+        private final Deque<T> stack;
+
+        private ElementScope(final Deque<T> stack){
+            this.stack = stack;
+        }
+
+        @Override
+        public void close() throws NoSuchElementException{
+            stack.pop();
+        }
+    }
 
     /**
      * Creates a new stack container isolated for the caller thread.
@@ -27,6 +41,16 @@ public class ThreadLocalStack<T> extends ThreadLocal<Deque<T>> implements AutoCl
      */
     public final void push(final T item){
         get().push(item);
+    }
+
+    /**
+     * Pushes a new element into the thread-local stack.
+     * @param item An item to push into the stack.
+     * @return Lexical scope controller that pops the pushed element.
+     */
+    public final SafeCloseable pushScope(final T item){
+        push(item);
+        return new ElementScope<>(get());
     }
 
     /**

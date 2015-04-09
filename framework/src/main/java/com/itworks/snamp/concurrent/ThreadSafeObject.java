@@ -1,6 +1,7 @@
 package com.itworks.snamp.concurrent;
 
 import com.google.common.collect.ImmutableMap;
+import com.itworks.snamp.SafeCloseable;
 import com.itworks.snamp.TimeSpan;
 
 import java.util.EnumSet;
@@ -25,7 +26,7 @@ public abstract class ThreadSafeObject {
      * @version 1.0
      * @since 1.0
      */
-    public static interface LockScope extends AutoCloseable, Lock {
+    public interface LockScope extends SafeCloseable, Lock {
         /**
          * Releases the lock.
          */
@@ -59,7 +60,7 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    private static interface ReadWriteLockSlim extends ReadWriteLock{
+    private interface ReadWriteLockSlim extends ReadWriteLock{
         @Override
         LockScope readLock();
 
@@ -95,7 +96,7 @@ public abstract class ThreadSafeObject {
      * @version 1.0
      * @since 1.0
      */
-    protected static enum SingleResourceGroup {
+    protected enum SingleResourceGroup {
         /**
          * Represents a single resource group.
          */
