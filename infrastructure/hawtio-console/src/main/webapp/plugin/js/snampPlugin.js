@@ -557,17 +557,14 @@ var SnampShell = (function(SnampShell) {
                 if ($scope.activeNode.data.type == "params") {
                     return $scope.activeNode;
                 }
-                if ($scope.activeNode.data.type == "paramsAttr") {
-                    return $scope.activeNode;
+                if ($scope.activeNode.data.type == "param") {
+                    return $scope.activeNode.getParent();
                 }
                 if ($scope.activeNode.data.type == "type") {
                     return getChildrenByType($scope.activeNode.getParent().getChildren(),"params");
                 }
                 if ($scope.activeNode.data.type == "adapter") {
                     return getChildrenByType($scope.activeNode.getChildren(),"params");
-                }
-                if ($scope.activeNode.data.type == "subParam") {
-                    return $scope.activeNode.getParent();
                 }
                 return $scope.activeNode;
             }
@@ -621,13 +618,10 @@ var SnampShell = (function(SnampShell) {
                     SnampShell.log.info(JSON.stringify(adapterConfig));
 
                     // Appending "AttributeParameters"
-                    if ($scope.activeNode.data.type == "param") {
-                        $scope.modalTitle = "Appending new attribute param";
-                        $scope.modalContent = adapterConfig["AttributeParameters"];
-                    } else {
-                        $scope.modalTitle = "Appending new attribute to " + node.getParent().data.title + " adapter";
-                        $scope.modalContent = adapterConfig["ResourceAdapterParameters"];
-                    }
+
+                    $scope.modalTitle = "Appending new attribute to " + node.getParent().data.title + " adapter";
+                    $scope.modalContent = adapterConfig["ResourceAdapterParameters"];
+
                     if (checkAllParamsSet) {
                         Core.$apply($scope);
                         $('#myModal').modal('show');
@@ -644,25 +638,14 @@ var SnampShell = (function(SnampShell) {
                     value = $scope.currentValue["Description"]["DefaultValue"];
                 }
                 var node = getActiveNodeParams();
-                if ($scope.activeNode.data.type == "param") {
-                    node = $scope.activeNode;
-                    node.addChild({
-                        title: $scope.currentParamKey + ": <input name=\"value\" type=\"text\" value=\"" + value + "\"/>",
-                        name: $scope.currentParamKey,
-                        type: "subParam",
-                        value: value,
-                        removable: true
-                    });
-                } else {
-                    node.addChild({
-                        title: $scope.currentParamKey + ": <input name=\"value\" type=\"text\" value=\"" + value + "\"/>",
-                        isFolder: false,
-                        name: $scope.currentParamKey,
-                        type: "param",
-                        value: value,
-                        removable: true
-                    });
-                }
+                node.addChild({
+                    title: $scope.currentParamKey + ": <input name=\"value\" type=\"text\" value=\"" + value + "\"/>",
+                    isFolder: false,
+                    name: $scope.currentParamKey,
+                    type: "param",
+                    value: value,
+                    removable: true
+                });
                 $('#myModal').modal('hide');
                 node.expand(true);
             };
@@ -673,18 +656,12 @@ var SnampShell = (function(SnampShell) {
             $scope.drawConfiguration = function () {
                 $.ui.dynatree.nodedatadefaults["icon"] = false; // Turn off icons by default
                 var isMac = /Mac/.test(navigator.platform);
-                $("#snampTreeConfig").dynatree({
+                var divContent = $("#snampTreeConfig");
+                divContent.dynatree({
                     noLink: true,
-                    selectMode: 1,
-                    onClick: function(node, event) {
+                    onClick: function(node) {
                         $scope.activeNode = node;
                         Core.$apply($scope);
-                        if (node.data.editable == true) {
-                            if (event.shiftKey) {
-                                $scope.editNode(node);
-                                return false;
-                            }
-                        }
                     },
                     onKeydown: function(node, event) {
                         if (node.data.editable == true) {
@@ -702,6 +679,23 @@ var SnampShell = (function(SnampShell) {
                     },
                     children: $scope.configurationJSON2Tree($scope.configuration)
                 });
+
+                // Before binding events to the tree - render inputs.
+                divContent.dynatree("getTree").renderInvisibleNodes();
+
+                // Input should be full managed with keyboard
+                divContent.find("input").focus(function() {
+                    alert(divContent.dynatree("getTree").getActiveNode().data.title);
+                    // Disable dynatree mouse- and key handling
+                    divContent.dynatree("getTree").$widget.unbind();
+                });
+                // Revert tree managing with keyboard and mouse
+                divContent.find("input").blur(function() {
+                    // Enable dynatree mouse- and key handling
+                    alert(divContent.dynatree("getTree").getActiveNode().data.title);
+                    divContent.dynatree("getTree").$widget.bind();
+                });
+
             };
 
             // Menu items
