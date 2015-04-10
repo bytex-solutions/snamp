@@ -30,7 +30,7 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      * @since 1.0
      * @version 1.0
      */
-    public static final class UnsupportedUpdateOperationException extends UnsupportedOperationException{
+    final class UnsupportedUpdateOperationException extends UnsupportedOperationException{
         private static final long serialVersionUID = 8128304831615736668L;
 
         /**

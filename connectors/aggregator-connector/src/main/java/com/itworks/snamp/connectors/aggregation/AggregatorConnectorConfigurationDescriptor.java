@@ -17,8 +17,10 @@ import java.util.ResourceBundle;
  */
 final class AggregatorConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
     private static final String SOURCE_PARAM = "source";
-    private static final String FOREIGN_ATTRIBUTE_PARAM = "foreignAttributeName";
+    private static final String FOREIGN_ATTRIBUTE_PARAM = "foreignAttribute";
     private static final String PATTERN_PARAM = "pattern";
+    private static final String FIRST_FOREIGN_ATTRIBUTE_PARAM = "firstForeignAttribute";
+    private static final String SECOND_FOREIGN_ATTRIBUTE_PARAM = "secondForeignAttribute";
 
     private static final class AttributeConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
         private static final String RESOURCE_NAME = "AttributeParameters";
@@ -27,7 +29,9 @@ final class AggregatorConnectorConfigurationDescriptor extends ConfigurationEnti
             super(AttributeConfiguration.class,
                     SOURCE_PARAM,
                     FOREIGN_ATTRIBUTE_PARAM,
-                    PATTERN_PARAM);
+                    PATTERN_PARAM,
+                    FIRST_FOREIGN_ATTRIBUTE_PARAM,
+                    SECOND_FOREIGN_ATTRIBUTE_PARAM);
         }
 
         @Override
@@ -53,6 +57,14 @@ final class AggregatorConnectorConfigurationDescriptor extends ConfigurationEnti
 
     static String getForeignAttributeName(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter{
         return getAttributeParameter(descriptor, FOREIGN_ATTRIBUTE_PARAM);
+    }
+
+    static String getFirstForeignAttributeName(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter{
+        return getAttributeParameter(descriptor, FIRST_FOREIGN_ATTRIBUTE_PARAM);
+    }
+
+    static String getSecondForeignAttributeName(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter{
+        return getAttributeParameter(descriptor, SECOND_FOREIGN_ATTRIBUTE_PARAM);
     }
 
     static String getPattern(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter{

@@ -25,7 +25,7 @@ public class SynchronizationEvent<T> {
      * @since 1.0
      * @version 1.0
      */
-    public static interface EventAwaitor<T> extends Awaitor<T, ExceptionPlaceholder>{
+    public interface EventAwaitor<T> extends Awaitor<T, ExceptionPlaceholder>{
         /**
          * Blocks the caller thread until the event will not be raised.
          *

@@ -29,7 +29,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @since 1.0
      * @version 1.0
      */
-    public static interface Action<R, V, E extends Throwable>{
+    public interface Action<R, V, E extends Throwable>{
         /**
          * Handles the resource.
          * @param resource The resource to handle.
@@ -47,7 +47,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @since 1.0
      * @version 1.0
      */
-    public static interface ConsistentAction<R, V> extends Action<R, V, ExceptionPlaceholder> {
+    public interface ConsistentAction<R, V> extends Action<R, V, ExceptionPlaceholder> {
         /**
          * Handles the resource.
          * @param resource The resource to handle.

@@ -23,7 +23,7 @@ abstract class UnaryAttributeAggregation<V> extends AbstractAttributeAggregation
     protected abstract V compute(final Object foreignAttributeValue) throws Exception;
 
     @Override
-    protected V compute(final AttributeSupport attributeSupport) throws Exception {
+    protected final V compute(final AttributeSupport attributeSupport) throws Exception {
         return compute(attributeSupport.getAttribute(getOperandAttribute()));
     }
 }

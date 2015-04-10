@@ -15,7 +15,7 @@ public class FutureThread<V> extends Thread implements Future<V> {
      * @since 1.0
      * @version 1.0
      */
-    private static enum State{
+    private enum State{
         /**
          * Thread is created but not started.
          */

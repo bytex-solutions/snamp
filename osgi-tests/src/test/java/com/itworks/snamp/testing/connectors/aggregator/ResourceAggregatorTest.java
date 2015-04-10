@@ -86,7 +86,7 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
     }
 
     @Override
-    protected boolean enableRemoteDebugging() {         ThreadLocal
+    protected boolean enableRemoteDebugging() {
         return true;
     }
 
@@ -187,7 +187,7 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
         attribute.setAttributeName("matches");
         attribute.getParameters().put("pattern", "[0-9]");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
-        attribute.getParameters().put("foreignAttributeName", "1.0");
+        attribute.getParameters().put("foreignAttribute", "1.0");
         connector.getElements(AttributeConfiguration.class).put("42", attribute);
 
         config.getManagedResources().put(AGGREG_RESOURCE_NAME, connector);

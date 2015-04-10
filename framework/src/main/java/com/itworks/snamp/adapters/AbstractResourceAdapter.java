@@ -348,7 +348,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param manager The update manager.
      * @param callback The callback used to notify about ending of the updating process.
      */
-    protected final void beginUpdate(final ResourceAdapterUpdateManager manager, ResourceAdapterUpdatedCallback callback){
+    protected final void beginUpdate(final ResourceAdapterUpdateManager manager,
+                                     ResourceAdapterUpdatedCallback callback){
         callback = callback != null ?
                 ResourceAdapterUpdateManager.combineCallbacks(callback, endUpdateNotifier):
                 endUpdateNotifier;

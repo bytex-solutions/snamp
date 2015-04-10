@@ -30,7 +30,7 @@ public class LogicalOperation implements AutoCloseable {
      * @since 1.0
      * @version 1.0
      */
-    public static interface CorrelationIdentifierGenerator{
+    public interface CorrelationIdentifierGenerator{
         /**
          * Generates a new unique correlation identifier.
          * @return A new unique correlation identifier.
