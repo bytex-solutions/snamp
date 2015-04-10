@@ -14,10 +14,7 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-import javax.management.Attribute;
-import javax.management.JMException;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
+import javax.management.*;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -30,6 +27,10 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies({SnampFeature.RESOURCE_AGGREGATOR, SnampFeature.JMX_CONNECTOR})
 public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
+    private interface TestLogic{
+        void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException;
+    }
+
     private static final String JMX_RESOURCE_NAME = "JMX-Resource";
     private static final String AGGREG_RESOURCE_NAME = "AGG";
     private static final String AGGREGATOR_CONNECTOR = "aggregator";
@@ -77,12 +78,17 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
                 context);
     }
 
-    private void patternMatcherTest(final AttributeSupport jmxConnector,
-                                    final AttributeSupport aggregator) throws JMException{
-        jmxConnector.setAttribute(new Attribute("1.0", "9"));
-        Object val = aggregator.getAttribute("42");
-        assertTrue(val instanceof Boolean);
-        assertTrue((Boolean)val);
+    @Test
+    public void patternMatcherTest() throws JMException{
+        runTest(new TestLogic() {
+            @Override
+            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
+                jmxConnector.setAttribute(new Attribute("1.0", "9"));
+                Object val = aggregator.getAttribute("42");
+                assertTrue(val instanceof Boolean);
+                assertTrue((Boolean)val);
+            }
+        });
     }
 
     @Override
@@ -90,13 +96,8 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
         return true;
     }
 
-    private void aggregationTest(final AttributeSupport jmxConnector,
-                                 final AttributeSupport aggregator) throws JMException{
-        patternMatcherTest(jmxConnector, aggregator);
-    }
 
-    @Test
-    public void aggregationTest() throws JMException {
+    private void runTest(final TestLogic logic) throws JMException {
         final ServiceReference<ManagedResourceConnector> jmxConnectorRef =
                 ManagedResourceConnectorClient.getResourceConnector(getTestBundleContext(), JMX_RESOURCE_NAME);
         final ServiceReference<ManagedResourceConnector> aggregatorRef =
@@ -104,9 +105,8 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
         assertNotNull(jmxConnectorRef);
         assertNotNull(aggregatorRef);
         try{
-            aggregationTest(
-                    getTestBundleContext().getService(jmxConnectorRef).queryObject(AttributeSupport.class),
-                    getTestBundleContext().getService(aggregatorRef).queryObject(AttributeSupport.class));
+            logic.runTest(getTestBundleContext().getService(jmxConnectorRef),
+                    getTestBundleContext().getService(aggregatorRef));
         }
         finally {
             getTestBundleContext().ungetService(jmxConnectorRef);
@@ -184,7 +184,7 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
         connector.setConnectionType(AGGREGATOR_CONNECTOR);
 
         attribute = connector.newElement(AttributeConfiguration.class);
-        attribute.setAttributeName("matches");
+        attribute.setAttributeName("match");
         attribute.getParameters().put("pattern", "[0-9]");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("foreignAttribute", "1.0");

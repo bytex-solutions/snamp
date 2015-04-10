@@ -12,10 +12,7 @@ import com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.itworks.snamp.concurrent.ConcurrentResourceAccessor;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ResourceEventListener;
-import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
-import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.attributes.OpenTypeAttributeInfo;
+import com.itworks.snamp.connectors.attributes.*;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.io.Buffers;
@@ -549,7 +546,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
     }
 
-    private static final class SnmpAttributeSupport extends AbstractAttributeSupport<SnmpAttributeInfo>{
+    private static final class SnmpAttributeSupport extends AbstractAttributeSupport<SnmpAttributeInfo> {
         private static TimeSpan BATCH_READ_WRITE_TIMEOUT = TimeSpan.fromSeconds(30);
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final ExecutorService executor;

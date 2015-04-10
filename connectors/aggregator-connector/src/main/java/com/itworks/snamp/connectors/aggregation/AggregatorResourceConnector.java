@@ -4,6 +4,7 @@ import com.itworks.snamp.configuration.AbsentConfigurationParameterException;
 import com.itworks.snamp.connectors.ManagedResourceConnectorBean;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptorRead;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 
 import javax.management.JMException;
 import java.beans.IntrospectionException;
@@ -28,6 +29,18 @@ public final class AggregatorResourceConnector extends ManagedResourceConnectorB
             return new PatternMatcher(metadata.getDescriptor());
         }
     };
+    private static final AggregationProvider<UnaryComparison> UNARY_COMPARISON_FACTORY = new AggregationProvider<UnaryComparison>() {
+        @Override
+        public UnaryComparison createUserData(final AttributeDescriptorRead metadata) throws AbsentConfigurationParameterException {
+            return new UnaryComparison(metadata.getDescriptor());
+        }
+    };
+    private static final AggregationProvider<BinaryComparison> BINARY_COMPARISON_FACTORY = new AggregationProvider<BinaryComparison>() {
+        @Override
+        public BinaryComparison createUserData(final AttributeDescriptorRead metadata) throws AbsentConfigurationParameterException {
+            return new BinaryComparison(metadata.getDescriptor());
+        }
+    };
 
     AggregatorResourceConnector(final String resourceName) throws IntrospectionException {
         super(resourceName);
@@ -39,9 +52,19 @@ public final class AggregatorResourceConnector extends ManagedResourceConnectorB
         return aggregation.compute(Utils.getBundleContextByObject(this));
     }
 
-    @ManagementAttribute(description = "")
-    public boolean isMatches() throws AbsentConfigurationParameterException, JMException {
+    @ManagementAttribute(description = "Checks whether the value of the foreign attribute matched to the user-defined regula expression")
+    public boolean isMatch() throws AbsentConfigurationParameterException, JMException {
         return compute(PATTERN_MATCHER_FACTORY, PatternMatcher.class);
+    }
+
+    @ManagementAttribute(description = "Compares the value of the foreign attribute with the user-defined value")
+    public boolean getCompareWithValue() throws AbsentConfigurationParameterException, JMException {
+        return compute(UNARY_COMPARISON_FACTORY, UnaryComparison.class);
+    }
+
+    @ManagementAttribute(description = "Compares two foreign attributes")
+    public boolean getCompareTwoAttributes() throws AbsentConfigurationParameterException, JMException {
+        return compute(BINARY_COMPARISON_FACTORY, BinaryComparison.class);
     }
 
     @Override

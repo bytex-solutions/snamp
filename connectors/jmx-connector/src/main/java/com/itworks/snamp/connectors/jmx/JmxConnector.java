@@ -6,6 +6,7 @@ import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ResourceEventListener;
+import com.itworks.snamp.connectors.attributes.AbstractAttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.*;
@@ -83,7 +84,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
     }
 
-    private static final class JmxAttributeSupport extends AbstractAttributeSupport<JmxAttributeInfo>{
+    private static final class JmxAttributeSupport extends AbstractAttributeSupport<JmxAttributeInfo> {
         private final JmxConnectionManager connectionManager;
 
         private JmxAttributeSupport(final String resourceName,

@@ -11,42 +11,42 @@ import java.math.BigDecimal;
 enum Comparison {
     ARE_EQUAL {
         @Override
-        boolean equals(final BigDecimal first, final BigDecimal second) {
+        boolean compute(final BigDecimal first, final BigDecimal second) {
             return first.equals(second);
         }
     },
     ARE_NOT_EQUAL {
         @Override
-        boolean equals(final BigDecimal first, final BigDecimal second) {
+        boolean compute(final BigDecimal first, final BigDecimal second) {
             return !first.equals(second);
         }
     },
     GREATER_THAN {
         @Override
-        boolean equals(final BigDecimal first, final BigDecimal second) {
+        boolean compute(final BigDecimal first, final BigDecimal second) {
             return first.compareTo(second) > 0;
         }
     },
     GREATER_THAN_OR_EQUAL {
         @Override
-        boolean equals(final BigDecimal first, final BigDecimal second) {
+        boolean compute(final BigDecimal first, final BigDecimal second) {
             return first.compareTo(second) >= 0;
         }
     },
     LESS_THAN {
         @Override
-        boolean equals(final BigDecimal first, final BigDecimal second) {
+        boolean compute(final BigDecimal first, final BigDecimal second) {
             return first.compareTo(second) < 0;
         }
     },
     LESS_THAN_OR_EQUAL {
         @Override
-        boolean equals(final BigDecimal first, final BigDecimal second) {
+        boolean compute(final BigDecimal first, final BigDecimal second) {
             return first.compareTo(second) <= 0;
         }
     };
 
-    abstract boolean equals(final BigDecimal first, final BigDecimal second);
+    abstract boolean compute(final BigDecimal first, final BigDecimal second);
 
     static Comparison parse(final String strategy){
         switch (strategy){

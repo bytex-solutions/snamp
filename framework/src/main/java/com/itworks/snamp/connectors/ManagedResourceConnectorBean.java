@@ -7,6 +7,7 @@ import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.SafeCloseable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.ThreadLocalStack;
+import com.itworks.snamp.connectors.attributes.AbstractAttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptorRead;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
@@ -607,7 +608,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
-    private static final class JavaBeanAttributeSupport extends AbstractAttributeSupport<JavaBeanAttributeInfo>{
+    private static final class JavaBeanAttributeSupport extends AbstractAttributeSupport<JavaBeanAttributeInfo> {
         private final Logger logger;
         private final ManagedBeanDescriptor<?> bean;
 

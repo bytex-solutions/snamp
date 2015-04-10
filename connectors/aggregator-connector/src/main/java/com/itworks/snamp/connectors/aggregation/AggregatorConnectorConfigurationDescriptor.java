@@ -21,6 +21,8 @@ final class AggregatorConnectorConfigurationDescriptor extends ConfigurationEnti
     private static final String PATTERN_PARAM = "pattern";
     private static final String FIRST_FOREIGN_ATTRIBUTE_PARAM = "firstForeignAttribute";
     private static final String SECOND_FOREIGN_ATTRIBUTE_PARAM = "secondForeignAttribute";
+    private static final String COMPARER_PARAM = "comparer";
+    private static final String VALUE_PARAM = "value";
 
     private static final class AttributeConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
         private static final String RESOURCE_NAME = "AttributeParameters";
@@ -31,7 +33,8 @@ final class AggregatorConnectorConfigurationDescriptor extends ConfigurationEnti
                     FOREIGN_ATTRIBUTE_PARAM,
                     PATTERN_PARAM,
                     FIRST_FOREIGN_ATTRIBUTE_PARAM,
-                    SECOND_FOREIGN_ATTRIBUTE_PARAM);
+                    SECOND_FOREIGN_ATTRIBUTE_PARAM,
+                    COMPARER_PARAM);
         }
 
         @Override
@@ -69,5 +72,13 @@ final class AggregatorConnectorConfigurationDescriptor extends ConfigurationEnti
 
     static String getPattern(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter{
         return getAttributeParameter(descriptor, PATTERN_PARAM);
+    }
+
+    static Comparison getComparisonType(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter{
+        return Comparison.parse(getAttributeParameter(descriptor, COMPARER_PARAM));
+    }
+
+    static String getUserDefinedValue(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter{
+        return getAttributeParameter(descriptor, VALUE_PARAM);
     }
 }
