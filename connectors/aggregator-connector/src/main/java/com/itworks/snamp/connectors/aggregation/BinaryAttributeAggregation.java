@@ -1,7 +1,8 @@
 package com.itworks.snamp.connectors.aggregation;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.attributes.AttributeSupport;
+
+import javax.management.DynamicMBean;
 
 /**
  * @author Roman Sakno
@@ -29,7 +30,7 @@ abstract class BinaryAttributeAggregation<V> extends AbstractAttributeAggregatio
     protected abstract V compute(final Object left, final Object right) throws Exception;
 
     @Override
-    protected final V compute(final AttributeSupport attributeSupport) throws Exception {
+    protected final V compute(final DynamicMBean attributeSupport) throws Exception {
         return compute(attributeSupport.getAttribute(getFirstOperandAttribute()),
                 attributeSupport.getAttribute(getSecondOperandAttribute()));
     }
