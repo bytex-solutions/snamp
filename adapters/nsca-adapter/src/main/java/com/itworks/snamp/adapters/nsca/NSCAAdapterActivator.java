@@ -17,7 +17,7 @@ public final class NSCAAdapterActivator extends ResourceAdapterActivator<NSCAAda
 
         @Override
         public NSCAAdapter createAdapter(final String adapterInstance,
-                                         final RequiredService<?>... dependencies) throws Exception {
+                                         final RequiredService<?>... dependencies) {
             return new NSCAAdapter(adapterInstance);
         }
     }
@@ -25,7 +25,7 @@ public final class NSCAAdapterActivator extends ResourceAdapterActivator<NSCAAda
     private static final class NSCAConfigurationProvider extends ConfigurationEntityDescriptionManager<NSCAAdapterConfigurationDescriptor>{
 
         @Override
-        protected NSCAAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
+        protected NSCAAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
             return new NSCAAdapterConfigurationDescriptor();
         }
     }

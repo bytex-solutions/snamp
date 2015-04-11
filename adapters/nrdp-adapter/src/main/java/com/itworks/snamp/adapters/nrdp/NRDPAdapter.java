@@ -1,10 +1,11 @@
-package com.itworks.snamp.adapters.nsca;
+package com.itworks.snamp.adapters.nrdp;
 
+import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
+import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
+import ch.shamu.jsendnrdp.domain.State;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.googlecode.jsendnsca.core.MessagePayload;
-import com.googlecode.jsendnsca.core.NagiosSettings;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
@@ -18,98 +19,97 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor.*;
+import static com.itworks.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.*;
 
 /**
- * Represents NSCA adapter.
- * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class NSCAAdapter extends AbstractResourceAdapter {
-    static final String NAME = "nsca";
+final class NRDPAdapter extends AbstractResourceAdapter {
+    static String NAME = "nrdp";
 
-    private static final class NSCAAttributeAccessor extends AttributeAccessor{
+    private static final class NRDPAttributeAccessor extends AttributeAccessor {
 
-        private NSCAAttributeAccessor(final MBeanAttributeInfo metadata) {
+        private NRDPAttributeAccessor(final MBeanAttributeInfo metadata) {
             super(metadata);
         }
 
-        private MessagePayload getMessage(){
-            final MessagePayload payload = new MessagePayload();
-            payload.setServiceName(getServiceName(getMetadata().getDescriptor(),
-                    AttributeDescriptor.getAttributeName(getMetadata().getDescriptor())));
+        private NagiosCheckResult getCheckResult(final String host){
+            State state = State.UNKNOWN;
+            String message;
+            final String service = getServiceName(getMetadata().getDescriptor(),
+                    AttributeDescriptor.getAttributeName(getMetadata().getDescriptor()));
             try{
-                payload.setMessage(Objects.toString(getValue(), ""));
+                message = Objects.toString(getValue(), "");
             }
             catch (final AttributeNotFoundException e){
-                payload.setMessage(e.getMessage());
-                payload.setLevel(MessagePayload.LEVEL_WARNING);
+                message = e.getMessage();
+                state = State.WARNING;
             }
             catch (final JMException e){
-                payload.setMessage(e.getMessage());
-                payload.setLevel(MessagePayload.LEVEL_CRITICAL);
+                message = e.getMessage();
+                state = State.CRITICAL;
             }
-            return payload;
+            return new NagiosCheckResult(host, service, state, message);
         }
     }
 
-    private static final class NSCAAttributeModel extends AbstractAttributesModel<NSCAAttributeAccessor>{
+    private static final class NRDPAttributeModel extends AbstractAttributesModel<NRDPAttributeAccessor> {
 
         @Override
-        protected NSCAAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) throws Exception {
-            return new NSCAAttributeAccessor(metadata);
+        protected NRDPAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) throws Exception {
+            return new NRDPAttributeAccessor(metadata);
         }
     }
 
-    private static final class NSCASourceInfo{
+    private static final class NRDPSourceInfo {
         private final String hostName;
         private final String serviceName;
-        private final int level;
+        private final State level;
 
-        private NSCASourceInfo(final String resourceName,
+        private NRDPSourceInfo(final String resourceName,
                                final Descriptor metadata){
             serviceName = getServiceName(metadata,
                     NotificationDescriptor.getNotificationCategory(metadata));
             hostName = resourceName;
             switch (NotificationDescriptor.getSeverity(metadata)){
                 case ALERT:
-                case WARNING: level = MessagePayload.LEVEL_WARNING; break;
+                case WARNING: level = State.WARNING; break;
                 case ERROR:
-                case PANIC: level = MessagePayload.LEVEL_CRITICAL; break;
+                case PANIC: level = State.CRITICAL; break;
                 case NOTICE:
                 case INFO:
                 case DEBUG:
                 case UNKNOWN:
-                    level = MessagePayload.LEVEL_OK; break;
-                default: level = MessagePayload.LEVEL_UNKNOWN;
+                    level = State.OK; break;
+                default: level = State.UNKNOWN;
             }
         }
     }
 
-    private static final class NSCANotificationAccessor extends NotificationRouter{
+    private static final class NRDPNotificationAccessor extends NotificationRouter {
         private final String resourceName;
 
-        private <L extends ThreadSafeObject & NotificationListener> NSCANotificationAccessor(final String resourceName,
-                                                                                                     final MBeanNotificationInfo metadata,
-                                                                                                     final L listener) {
+        private <L extends ThreadSafeObject & NotificationListener> NRDPNotificationAccessor(final String resourceName,
+                                                                                             final MBeanNotificationInfo metadata,
+                                                                                             final L listener) {
             super(metadata, listener);
             this.resourceName = resourceName;
         }
 
         @Override
         protected Notification intercept(final Notification notification) {
-            notification.setSource(new NSCASourceInfo(resourceName, getMetadata().getDescriptor()));
+            notification.setSource(new NRDPSourceInfo(resourceName, getMetadata().getDescriptor()));
             return notification;
         }
     }
 
-    private static final class NSCANotificationModel extends ThreadSafeObject implements NotificationListener{
-        private final Map<String, ResourceNotificationList<NSCANotificationAccessor>> notifications;
+    private static final class NRDPNotificationModel extends ThreadSafeObject implements NotificationListener{
+        private final Map<String, ResourceNotificationList<NRDPNotificationAccessor>> notifications;
         private ConcurrentPassiveCheckSender checkSender;
 
-        private NSCANotificationModel() {
+        private NRDPNotificationModel() {
             this.notifications = new HashMap<>(10);
         }
 
@@ -119,26 +119,24 @@ final class NSCAAdapter extends AbstractResourceAdapter {
 
         @Override
         public void handleNotification(final Notification notification, final Object handback) {
-            final NSCASourceInfo source = (NSCASourceInfo) notification.getSource();
-            final MessagePayload payload = new MessagePayload();
-            payload.setLevel(source.level);
-            payload.setMessage(notification.getMessage());
-            payload.setMessage(source.hostName);
-            payload.setServiceName(source.serviceName);
+            final NRDPSourceInfo source = (NRDPSourceInfo) notification.getSource();
             final ConcurrentPassiveCheckSender checkSender = this.checkSender;
             if (checkSender != null)
-                checkSender.send(payload);
+                checkSender.send(new NagiosCheckResult(source.hostName,
+                        source.serviceName,
+                        source.level,
+                        notification.getMessage()));
         }
 
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata){
             try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<NSCANotificationAccessor> list;
+                final ResourceNotificationList<NRDPNotificationAccessor> list;
                 if(notifications.containsKey(resourceName))
                     list = notifications.get(resourceName);
                 else notifications.put(resourceName, list = new ResourceNotificationList<>());
-                final NSCANotificationAccessor accessor;
-                list.put(accessor = new NSCANotificationAccessor(resourceName, metadata, this));
+                final NRDPNotificationAccessor accessor;
+                list.put(accessor = new NRDPNotificationAccessor(resourceName, metadata, this));
                 return accessor;
             }
         }
@@ -146,7 +144,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata){
             try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<NSCANotificationAccessor> list;
+                final ResourceNotificationList<NRDPNotificationAccessor> list;
                 if(notifications.containsKey(resourceName))
                     list = notifications.get(resourceName);
                 else return null;
@@ -177,32 +175,31 @@ final class NSCAAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NSCAPeriodPassiveCheckSender extends PeriodicPassiveCheckSender<NSCAAttributeAccessor>{
+    private static final class NSCAPeriodPassiveCheckSender extends PeriodicPassiveCheckSender<NRDPAttributeAccessor>{
         private final ConcurrentPassiveCheckSender checkSender;
 
         NSCAPeriodPassiveCheckSender(final TimeSpan period,
                                      final ConcurrentPassiveCheckSender sender,
-                                     final NSCAAttributeModel attributes) {
+                                     final NRDPAttributeModel attributes) {
             super(period, attributes);
             checkSender = Objects.requireNonNull(sender);
         }
 
         @Override
-        protected void processAttribute(final String resourceName, final NSCAAttributeAccessor accessor) {
-            final MessagePayload payload = accessor.getMessage();
-            payload.setHostname(resourceName);
+        protected void processAttribute(final String resourceName, final NRDPAttributeAccessor accessor) {
+            final NagiosCheckResult payload = accessor.getCheckResult(resourceName);
             checkSender.send(payload);
         }
     }
 
-    private final NSCAAttributeModel attributes;
+    private final NRDPAttributeModel attributes;
     private NSCAPeriodPassiveCheckSender attributeChecker;
-    private final NSCANotificationModel notifications;
+    private final NRDPNotificationModel notifications;
 
-    NSCAAdapter(final String instanceName) {
+    NRDPAdapter(final String instanceName) {
         super(instanceName);
-        attributes = new NSCAAttributeModel();
-        notifications = new NSCANotificationModel();
+        attributes = new NRDPAttributeModel();
+        notifications = new NRDPNotificationModel();
     }
 
     @SuppressWarnings("unchecked")
@@ -232,7 +229,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
     }
 
     private void start(final TimeSpan checkPeriod,
-                       final NagiosSettings settings,
+                       final NRDPServerConnectionSettings settings,
                        final Supplier<ExecutorService> threadPoolFactory) {
         final ConcurrentPassiveCheckSender checkSender = new ConcurrentPassiveCheckSender(settings, threadPoolFactory);
         notifications.setCheckSender(checkSender);
@@ -241,7 +238,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected void start(final Map<String, String> parameters) throws AbsentNSCAConfigurationParameterException {
+    protected void start(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {
         start(getPassiveCheckSendPeriod(parameters),
                 parseSettings(parameters),
                 new SenderThreadPoolConfig(parameters, NAME, getInstanceName()));

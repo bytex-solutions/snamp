@@ -18,7 +18,8 @@ public enum SnampFeature {
     WRAPPED_LIBS("wrapped-libs-for-tests", "1.0.0"),
     HTTP_ADAPTER("http-adapter-feature", "1.0.0"),
     RESOURCE_AGGREGATOR("aggregator-connector-feature", "1.0.0"),
-    NSCA_ADAPTER("nsca-adapter-feature", "1.0.0");
+    NSCA_ADAPTER("nsca-adapter-feature", "1.0.0"),
+    NRDP_ADAPTER("nrdp-adapter-feature", "1.0.0");
 
     final String featureName;
     final String version;

@@ -2,10 +2,12 @@ package com.itworks.snamp.adapters.nsca;
 
 import com.google.common.base.Supplier;
 import com.googlecode.jsendnsca.core.MessagePayload;
+import com.googlecode.jsendnsca.core.NagiosException;
 import com.googlecode.jsendnsca.core.NagiosPassiveCheckSender;
 import com.googlecode.jsendnsca.core.NagiosSettings;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
@@ -27,7 +29,7 @@ final class ConcurrentPassiveCheckSender extends NagiosPassiveCheckSender implem
     public void send(final MessagePayload payload) {
         executor.submit(new Callable<Void>() {
             @Override
-            public Void call() throws Exception {
+            public Void call() throws IOException, NagiosException {
                 ConcurrentPassiveCheckSender.super.send(payload);
                 return null;
             }
@@ -36,6 +38,6 @@ final class ConcurrentPassiveCheckSender extends NagiosPassiveCheckSender implem
 
     @Override
     public void close() {
-        executor.shutdown();
+        executor.shutdownNow();
     }
 }
