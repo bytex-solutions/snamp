@@ -622,7 +622,7 @@ var SnampShell = (function(SnampShell) {
                     $scope.modalTitle = "Appending new attribute to " + node.getParent().data.title + " adapter";
                     $scope.modalContent = adapterConfig["ResourceAdapterParameters"];
 
-                    if (checkAllParamsSet) {
+                    if (checkAllParamsSet()) {
                         Core.$apply($scope);
                         $('#myModal').modal('show');
                     } else {
@@ -660,6 +660,18 @@ var SnampShell = (function(SnampShell) {
                 divContent.dynatree({
                     noLink: true,
                     onClick: function(node) {
+
+                        var inputObject = $.parseHTML(node.data.title);
+
+                        if (inputObject.length > 1) {
+                            inputObject = $(inputObject[1]);
+                            if (inputObject.attr("type") == "text") {
+                                node.tree.$widget.unbind();
+                                inputObject.focus();
+                                SnampShell.log.info("Has focus", inputObject.html());
+                                node.tree.$widget.unbind();
+                            }
+                        }
                         $scope.activeNode = node;
                         Core.$apply($scope);
                     },
@@ -683,16 +695,13 @@ var SnampShell = (function(SnampShell) {
                 // Before binding events to the tree - render inputs.
                 divContent.dynatree("getTree").renderInvisibleNodes();
 
-                // Input should be full managed with keyboard
-                divContent.find("input").focus(function() {
-                    alert(divContent.dynatree("getTree").getActiveNode().data.title);
-                    // Disable dynatree mouse- and key handling
-                    divContent.dynatree("getTree").$widget.unbind();
-                });
                 // Revert tree managing with keyboard and mouse
                 divContent.find("input").blur(function() {
                     // Enable dynatree mouse- and key handling
-                    alert(divContent.dynatree("getTree").getActiveNode().data.title);
+                    console.log($(this).parent().html());
+                    $scope.activeNode.data.title = $(this).parent().html();
+                    $scope.activeNode.data.value = $(this).attr("value");
+                    
                     divContent.dynatree("getTree").$widget.bind();
                 });
 
