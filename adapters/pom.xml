@@ -38,6 +38,6 @@
       <module>jmx-adapter</module>
       <module>ssh-adapter</module>
       <module>http-adapter</module>
-      <module>nagios-adapter</module>
+      <module>nsca-adapter</module>
   </modules>
 </project>

@@ -4,11 +4,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import javax.management.*;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -144,6 +146,20 @@ public abstract class AbstractAttributesModel<TAccessor extends AttributeAccesso
             return attributes.containsKey(resourceName) ?
                     attributes.remove(resourceName).values():
                     ImmutableList.<TAccessor>of();
+        }
+    }
+
+    /**
+     * Reads all attributes sequentially.
+     * @param attributeReader An object that accepts attribute and its resource.
+     * @param <E> Type of the exception that may be produced by reader.
+     * @throws E Unable to process attribute.
+     */
+    public final <E extends Exception> void forEachAttribute(final RecordReader<String, TAccessor, E> attributeReader) throws E{
+        try(final LockScope ignored = beginRead()) {
+            for (final Map.Entry<String, ResourceAttributeList<TAccessor>> entry: attributes.entrySet())
+                for(final TAccessor accessor: entry.getValue().values())
+                    attributeReader.read(entry.getKey(), accessor);
         }
     }
 

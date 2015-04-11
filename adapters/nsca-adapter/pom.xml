@@ -9,9 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <version>1.0.0</version>
-    <name>Nagios Adapter</name>
-    <description>SNAMP adapter for NRDP/NSCA</description>
-    <artifactId>nagios-adapter</artifactId>
+    <name>Nagios NSCA Adapter</name>
+    <description>SNAMP adapter for NSCA passive check plug-in</description>
+    <artifactId>nsca-adapter</artifactId>
     <packaging>bundle</packaging>
     <build>
         <plugins>
@@ -21,11 +21,15 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.itworks.snamp.adapters.nagios</Bundle-SymbolicName>
-                        <Bundle-Activator>com.itworks.snamp.adapters.nagios.NagiosResourceAdapterActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>com.itworks.snamp.adapters.nsca</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.adapters.nsca.NSCAAdapterActivator</Bundle-Activator>
+                        <Embed-Dependency>
+                            *;scope=compile
+                        </Embed-Dependency>
+                        <Embed-Transitive>true</Embed-Transitive>
                         <Export-Package/>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Adapter>nagios</SNAMP-Resource-Adapter>
+                        <SNAMP-Resource-Adapter>nsca</SNAMP-Resource-Adapter>
                     </instructions>
                 </configuration>
             </plugin>
@@ -56,5 +60,18 @@
             <version>18.0</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.googlecode</groupId>
+            <artifactId>jsendnsca-core</artifactId>
+            <version>1.3.1</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <id>fusesource</id>
+            <name>Fuse Source Maven Repo</name>
+            <url>http://repo.fusesource.com/nexus/content/groups/public</url>
+        </repository>
+    </repositories>
 </project>

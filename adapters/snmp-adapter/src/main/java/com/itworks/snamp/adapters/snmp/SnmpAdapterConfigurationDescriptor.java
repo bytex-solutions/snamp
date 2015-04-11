@@ -12,7 +12,6 @@ import javax.management.DescriptorRead;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -27,8 +26,6 @@ import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
  * @since 1.0
  */
 final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
-    private static final AtomicInteger oidCounter = new AtomicInteger(5);
-
     /**
      * Represents authoritative engine ID
      */
