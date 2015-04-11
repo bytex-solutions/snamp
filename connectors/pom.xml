@@ -24,6 +24,11 @@
                       </goals>
                   </execution>
               </executions>
+              <configuration>
+                  <systemPropertyVariables>
+                      <ssh-cert-file>../../hostkey.ser</ssh-cert-file>
+                  </systemPropertyVariables>
+              </configuration>
           </plugin>
       </plugins>
   </build>

@@ -48,6 +48,21 @@ export MAVEN_OPTS="-Xmx512m -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.h
 mvn clean package
 ```
 
+## Running tests
+SNAMP project contains two category of tests:
+
+* Unit tests located in their bundles and running at `test` phase
+* Integration tests located in `osgi-tests` project
+
+It is necessary to install all OSGi bundles into local Maven repository before running integration tests.
+Therefore, integration tests can be executed at `site` build phase of `osgi-tests` project 
+
+## Profiles
+SNAM project provides the following Maven profiles:
+
+* `Development` profile disables all unit and integrations tests in the project
+* `Release` profile enables building final `zip` archive with SNAMP Platform
+
 ## Code Conventions and Optimization Techniques
 Optimization techniques used in SNAMP are based on [HotSpot Perofmance Techniques](https://wikis.oracle.com/display/HotSpotInternals/PerformanceTechniques).
 > premature optimization is the root of all evil - Donald Knuth

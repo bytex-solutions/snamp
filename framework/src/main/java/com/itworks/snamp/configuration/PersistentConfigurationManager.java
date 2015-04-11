@@ -231,6 +231,17 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         forEachAdapter(admin, ALL_ADAPTERS_QUERY, reader);
     }
 
+    public static void forEachAdapter(final ConfigurationAdmin admin,
+                                                            final RecordReader<String, ResourceAdapterConfiguration, ? extends Exception> reader) throws Exception {
+        forEachAdapter(admin, new Consumer<Configuration, Exception>() {
+            @Override
+            public void accept(final Configuration config) throws Exception {
+                final ConfigurationEntry<ResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
+                reader.read(entry.getKey(), entry.getValue());
+            }
+        });
+    }
+
     private static void readAdapters(final ConfigurationAdmin admin,
                                      final Map<String, ResourceAdapterConfiguration> output) throws IOException, InvalidSyntaxException {
         forEachAdapter(admin, new Consumer<Configuration, IOException>() {

@@ -20,40 +20,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.3.1</version>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <id>resign-license-file</id>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <mainClass>com.itworks.snamp.licensing.generator.LicenseManager</mainClass>
-                    <executableDependency>
-                        <groupId>com.itworks.snamp</groupId>
-                        <artifactId>license-generator</artifactId>
-                    </executableDependency>
-                    <includePluginDependencies>true</includePluginDependencies>
-                    <arguments>
-                        <argument>-u</argument>
-                        <argument>${user.home}/snamp.key</argument>
-                        <argument>${project.parent.basedir}/unlimited.lic</argument>
-                    </arguments>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.itworks.snamp</groupId>
-                        <artifactId>license-generator</artifactId>
-                        <version>1.0.0</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.servicemix.tooling</groupId>
                 <artifactId>depends-maven-plugin</artifactId>
                 <version>1.2</version>
@@ -97,6 +63,15 @@
                 <version>2.12.4</version>
                 <executions>
                     <execution>
+                        <id>default-test</id>
+                        <phase>test</phase>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>integration-test</id>
+                        <phase>pre-site</phase>
                         <goals>
                             <goal>test</goal>
                         </goals>
@@ -116,7 +91,6 @@
                         <com.itworks.snamp.webconsole.port>3344</com.itworks.snamp.webconsole.port>
                         <mavenLocalRepository>${settings.localRepository}</mavenLocalRepository>
                     </systemPropertyVariables>
-                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
         </plugins>

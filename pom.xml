@@ -59,7 +59,7 @@
 
     <profiles>
         <profile>
-            <id>development</id>
+            <id>Development</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>

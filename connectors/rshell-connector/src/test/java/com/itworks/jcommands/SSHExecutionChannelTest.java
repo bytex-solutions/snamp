@@ -1,5 +1,6 @@
 package com.itworks.jcommands;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.channels.CommandExecutionChannels;
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlParserDefinition;
@@ -16,7 +17,6 @@ import org.junit.*;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -34,7 +34,7 @@ public final class SSHExecutionChannelTest extends Assert {
     public SSHExecutionChannelTest() {
         server = SshServer.setUpDefaultServer();
         server.setPort(PORT);
-        server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
+        server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(System.getProperty("ssh-cert-file", "hostkey.ser")));
         server.setPasswordAuthenticator(new PasswordAuthenticator() {
             @Override
             public boolean authenticate(final String username, final String password, final ServerSession session) {
@@ -64,13 +64,13 @@ public final class SSHExecutionChannelTest extends Assert {
     @Test
     public void executeFreeCommandWithParsingTest() throws Exception{
         Assume.assumeTrue(Utils.IS_OS_LINUX);
-        final CommandExecutionChannel channel = CommandExecutionChannels.createChannel("ssh", new HashMap<String, String>(){{
-            put("userName", USER_NAME);
-            put("password", PASSWORD);
-            put("port", Integer.toString(PORT));
-            put("fingerprint", "e8:0d:af:84:bb:ec:05:03:b9:7c:f3:75:19:5a:2a:63");
-            put("format", "-m");
-        }});
+        final CommandExecutionChannel channel = CommandExecutionChannels.createChannel("ssh", ImmutableMap.of(
+            "userName", USER_NAME,
+            "password", PASSWORD,
+            "port", Integer.toString(PORT),
+            "fingerprint", "e8:0d:af:84:bb:ec:05:03:b9:7c:f3:75:19:5a:2a:63",
+            "format", "-m"
+            ));
         final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
         template.setCommandTemplate("free {format}");
         template.getCommandOutputParser().setParsingLanguage(XmlParserDefinition.REGEXP_LANG);
@@ -85,6 +85,7 @@ public final class SSHExecutionChannelTest extends Assert {
         template.getCommandOutputParser().addDictionaryEntryRule("total", "[0-9]+", XmlParsingResultType.INTEGER);
         template.getCommandOutputParser().addDictionaryEntryRule("used", "[0-9]+", XmlParsingResultType.INTEGER);
         template.getCommandOutputParser().addDictionaryEntryRule("free", "[0-9]+", XmlParsingResultType.INTEGER);
+        assertNotNull(channel);
         final Object memStatus = channel.exec(template, Collections.<String, Object>emptyMap());
         assertTrue(memStatus instanceof Map);
         assertEquals(3, ((Map)memStatus).size());
@@ -94,12 +95,13 @@ public final class SSHExecutionChannelTest extends Assert {
     @Test
     public void executeFreeCommandWithoutParsingTest() throws Exception {
         Assume.assumeTrue(Utils.IS_OS_LINUX);
-        final CommandExecutionChannel channel = CommandExecutionChannels.createChannel("ssh", new HashMap<String, String>(){{
-            put("userName", USER_NAME);
-            put("password", PASSWORD);
-            put("port", Integer.toString(PORT));
-            put("fingerprint", "e8:0d:af:84:bb:ec:05:03:b9:7c:f3:75:19:5a:2a:63");
-        }});
+        final CommandExecutionChannel channel = CommandExecutionChannels.createChannel("ssh", ImmutableMap.of(
+                "userName", USER_NAME,
+            "password", PASSWORD,
+            "port", Integer.toString(PORT),
+            "fingerprint", "e8:0d:af:84:bb:ec:05:03:b9:7c:f3:75:19:5a:2a:63"
+        ));
+        assertNotNull(channel);
         final String result = channel.exec(new ChannelProcessor<Void, String, Exception>() {
             @Override
             public String renderCommand(final Void stub,
