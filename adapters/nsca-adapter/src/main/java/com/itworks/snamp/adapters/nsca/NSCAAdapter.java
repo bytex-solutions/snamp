@@ -1,26 +1,21 @@
 package com.itworks.snamp.adapters.nsca;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.googlecode.jsendnsca.core.MessagePayload;
-import com.googlecode.jsendnsca.core.NagiosException;
-import com.googlecode.jsendnsca.core.NagiosPassiveCheckSender;
 import com.googlecode.jsendnsca.core.NagiosSettings;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
-import com.itworks.snamp.core.OSGiLoggingContext;
-import com.itworks.snamp.internal.Utils;
-import org.osgi.framework.BundleContext;
 
 import javax.management.*;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Level;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor.*;
@@ -111,20 +106,14 @@ final class NSCAAdapter extends AbstractResourceAdapter {
     }
 
     private static final class NSCANotificationModel extends ThreadSafeObject implements NotificationListener{
-        private final Logger logger;
         private final Map<String, ResourceNotificationList<NSCANotificationAccessor>> notifications;
-        private NagiosPassiveCheckSender checkSender;
+        private ConcurrentPassiveCheckSender checkSender;
 
-        private NSCANotificationModel(final Logger logger) {
-            this.logger = logger;
+        private NSCANotificationModel() {
             this.notifications = new HashMap<>(10);
         }
 
-        private BundleContext getBundleContext(){
-            return Utils.getBundleContextByObject(this);
-        }
-
-        private void setCheckSender(final NagiosPassiveCheckSender value){
+        private void setCheckSender(final ConcurrentPassiveCheckSender value){
             this.checkSender = value;
         }
 
@@ -136,19 +125,9 @@ final class NSCAAdapter extends AbstractResourceAdapter {
             payload.setMessage(notification.getMessage());
             payload.setMessage(source.hostName);
             payload.setServiceName(source.serviceName);
-            final NagiosPassiveCheckSender checkSender = this.checkSender;
+            final ConcurrentPassiveCheckSender checkSender = this.checkSender;
             if (checkSender != null)
-                try {
-                    checkSender.send(payload);
-                } catch (final NagiosException e) {
-                    try (final OSGiLoggingContext context = OSGiLoggingContext.get(logger, getBundleContext())) {
-                        context.log(Level.WARNING, "Unable to send passive check", e);
-                    }
-                } catch (final IOException e) {
-                    try (final OSGiLoggingContext context = OSGiLoggingContext.get(logger, getBundleContext())) {
-                        context.log(Level.SEVERE, "Unable to establish connection", e);
-                    }
-                }
+                checkSender.send(payload);
         }
 
         private NotificationAccessor addNotification(final String resourceName,
@@ -185,48 +164,34 @@ final class NSCAAdapter extends AbstractResourceAdapter {
             }
         }
 
-        private void clear(){
-            try(final LockScope ignored = beginWrite()){
-                for(final ResourceNotificationList<?> list: notifications.values())
-                    for(final NotificationAccessor accessor: list.values())
+        private void clear() {
+            try (final LockScope ignored = beginWrite()) {
+                for (final ResourceNotificationList<?> list : notifications.values())
+                    for (final NotificationAccessor accessor : list.values())
                         accessor.disconnect();
             }
+            final ConcurrentPassiveCheckSender sender = checkSender;
+            if (sender != null)
+                sender.close();
             checkSender = null;
         }
     }
 
     private static final class NSCAPeriodPassiveCheckSender extends PeriodicPassiveCheckSender<NSCAAttributeAccessor>{
-        private final Logger logger;
-        private final NagiosPassiveCheckSender checkSender;
+        private final ConcurrentPassiveCheckSender checkSender;
 
         NSCAPeriodPassiveCheckSender(final TimeSpan period,
-                                     final NagiosPassiveCheckSender sender,
-                                     final NSCAAttributeModel attributes,
-                                     final Logger logger) {
+                                     final ConcurrentPassiveCheckSender sender,
+                                     final NSCAAttributeModel attributes) {
             super(period, attributes);
             checkSender = Objects.requireNonNull(sender);
-            this.logger = logger;
-        }
-
-        private BundleContext getBundleContext(){
-            return Utils.getBundleContextByObject(this);
         }
 
         @Override
         protected void sendCheck(final String resourceName, final NSCAAttributeAccessor accessor) {
             final MessagePayload payload = accessor.getMessage();
             payload.setHostname(resourceName);
-            try {
-                checkSender.send(payload);
-            } catch (final NagiosException e) {
-                try (final OSGiLoggingContext context = OSGiLoggingContext.get(logger, getBundleContext())) {
-                    context.log(Level.WARNING, "Unable to send passive check", e);
-                }
-            } catch (final IOException e) {
-                try (final OSGiLoggingContext context = OSGiLoggingContext.get(logger, getBundleContext())) {
-                    context.log(Level.SEVERE, "Unable to establish connection", e);
-                }
-            }
+            checkSender.send(payload);
         }
     }
 
@@ -237,7 +202,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
     NSCAAdapter(final String instanceName) {
         super(instanceName);
         attributes = new NSCAAttributeModel();
-        notifications = new NSCANotificationModel(getLogger());
+        notifications = new NSCANotificationModel();
     }
 
     @SuppressWarnings("unchecked")
@@ -267,17 +232,19 @@ final class NSCAAdapter extends AbstractResourceAdapter {
     }
 
     private void start(final TimeSpan checkPeriod,
-                       final NagiosSettings settings) {
-        final NagiosPassiveCheckSender checkSender = new NagiosPassiveCheckSender(settings);
+                       final NagiosSettings settings,
+                       final Supplier<ExecutorService> threadPoolFactory) {
+        final ConcurrentPassiveCheckSender checkSender = new ConcurrentPassiveCheckSender(settings, threadPoolFactory);
         notifications.setCheckSender(checkSender);
-        attributeChecker = new NSCAPeriodPassiveCheckSender(checkPeriod, checkSender, attributes, getLogger());
+        attributeChecker = new NSCAPeriodPassiveCheckSender(checkPeriod, checkSender, attributes);
         attributeChecker.run();
     }
 
     @Override
     protected void start(final Map<String, String> parameters) throws AbsentNSCAConfigurationParameterException {
         start(getPassiveCheckSendPeriod(parameters),
-                parseSettings(parameters));
+                parseSettings(parameters),
+                new SenderThreadPoolConfig(parameters, NAME, getInstanceName()));
     }
 
     @Override
