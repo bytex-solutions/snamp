@@ -1,7 +1,8 @@
-package com.itworks.snamp.connectors.aggregation;
+package com.itworks.snamp.connectors.aggregator;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
+import javax.management.openmbean.SimpleType;
 import java.math.BigDecimal;
 
 /**
@@ -12,11 +13,18 @@ import java.math.BigDecimal;
  * @version 1.0
  */
 final class UnaryComparison extends UnaryAttributeAggregation<Boolean> {
+    private static final long serialVersionUID = -1172592787419948019L;
+    static final String NAME = "comparisonWith";
+    private static final String DESCRIPTION = "Compares value of the foreign attribute with user-defined number";
     private final Comparison comparison;
     private final BigDecimal userDefinedValue;
 
-    UnaryComparison(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
-        super(descriptor);
+    UnaryComparison(final String attributeID,
+                    final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+        super(attributeID,
+                DESCRIPTION,
+                SimpleType.BOOLEAN,
+                descriptor);
         comparison = AggregatorConnectorConfigurationDescriptor.getComparisonType(descriptor);
         userDefinedValue = new BigDecimal(AggregatorConnectorConfigurationDescriptor.getUserDefinedValue(descriptor));
     }

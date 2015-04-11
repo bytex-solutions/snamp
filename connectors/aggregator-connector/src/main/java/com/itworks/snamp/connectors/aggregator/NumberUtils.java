@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.aggregation;
+package com.itworks.snamp.connectors.aggregator;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -26,6 +26,14 @@ final class NumberUtils {
             return BigDecimal.valueOf(((Number)value).doubleValue());
         else if(value instanceof String)
             return new BigDecimal((String)value);
+        else throw new NumberFormatException(String.format("Value %s is not a number", value));
+    }
+
+    static long toLong(final Object value) throws NumberFormatException{
+        if(value instanceof Number)
+            return ((Number)value).longValue();
+        else if(value instanceof String)
+            return Long.parseLong((String)value);
         else throw new NumberFormatException(String.format("Value %s is not a number", value));
     }
 }

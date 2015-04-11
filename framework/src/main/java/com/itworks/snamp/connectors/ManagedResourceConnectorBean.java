@@ -4,15 +4,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.itworks.snamp.Descriptive;
-import com.itworks.snamp.SafeCloseable;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.concurrent.ThreadLocalStack;
-import com.itworks.snamp.connectors.attributes.AbstractAttributeSupport;
-import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.attributes.AttributeDescriptorRead;
-import com.itworks.snamp.connectors.attributes.AttributeSupport;
+import com.itworks.snamp.connectors.attributes.*;
 import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 
@@ -73,36 +67,6 @@ import java.util.logging.Logger;
  */
 public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector
         implements NotificationSupport, AttributeSupport {
-
-    /**
-     * Represents notification supported by this resource connector.
-     * This class cannot be instantiated or inherited directly in your code.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    public static final class JavaBeanNotification implements AutoCloseable{
-        private final static ThreadLocalStack<JavaBeanNotification> currentContext = new ThreadLocalStack<>();
-        private final ManagementNotificationType<?> metadata;
-
-        private JavaBeanNotification(final ManagementNotificationType<?> metadata){
-            this.metadata = metadata;
-            currentContext.push(this);
-        }
-
-        public ManagementNotificationType<?> getMetadata(){
-            return metadata;
-        }
-
-        public static JavaBeanNotification current(){
-            return currentContext.top();
-        }
-
-        @Override
-        public void close() throws NoSuchElementException{
-            currentContext.pop();
-        }
-    }
 
     /**
      * Represents description of the bean to be managed by this connector.
@@ -246,16 +210,18 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         /**
          * Converts attribute value to the JMX-compliant type.
          * @param attributeValue The value of the attribute.
+         * @param metadata The metadata of the bean property.
          * @return JMX-compliant attribute value.
          */
-        T toJmxValue(final Object attributeValue);
+        T toJmxValue(final Object attributeValue, final CustomAttributeInfo metadata);
 
         /**
          * Converts JMX-compliant attribute value into the native Java object.
          * @param jmxValue The value to convert.
+         * @param metadata The metadata of the bean property.
          * @return The converted attribute value.
          */
-        Object fromJmxValue(final T jmxValue);
+        Object fromJmxValue(final T jmxValue, final CustomAttributeInfo metadata);
     }
 
     private static final class DefaultManagementAttributeFormatter implements ManagementAttributeFormatter<Object>{
@@ -265,12 +231,14 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         @Override
-        public Object toJmxValue(final Object attributeValue) {
+        public Object toJmxValue(final Object attributeValue,
+                                 final CustomAttributeInfo descriptor) {
             return attributeValue;
         }
 
         @Override
-        public Object fromJmxValue(final Object jmxValue) {
+        public Object fromJmxValue(final Object jmxValue,
+                                   final CustomAttributeInfo descriptor) {
             return jmxValue;
         }
     }
@@ -347,33 +315,16 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     /**
-     * Represents factory for the user context associated with attribute.
-     * @param <T> Type of the user context.
-     * @param <E> Type of the exception that can be produced by initializer.
-     */
-    protected interface AttributeUserDataFactory<T, E extends Throwable>{
-        /**
-         * Creates a new user context.
-         * @param metadata The metadata of the attribute.
-         * @return User context.
-         * @throws E Unable to create user context.
-         */
-        T createUserData(final AttributeDescriptorRead metadata) throws E;
-    }
-
-    /**
      * Represents an attribute declared as a Java property in this resource connector.
      * This class cannot be inherited or instantiated directly in your code.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static class JavaBeanAttributeInfo extends MBeanAttributeInfo implements AttributeDescriptorRead{
+    protected static class JavaBeanAttributeInfo extends CustomAttributeInfo implements AttributeDescriptorRead{
         private static final long serialVersionUID = -5047097712279607039L;
-        private static final ThreadLocalStack<JavaBeanAttributeInfo> currentAttribute = new ThreadLocalStack<>();
         private final MethodHandle getter;
         private final MethodHandle setter;
-        private volatile Object userData;
 
         /**
          * Represents attribute formatter.
@@ -385,11 +336,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                       final AttributeDescriptor descriptor,
                                       final Object owner) throws ReflectionException {
             super(attributeName,
-                    property.getPropertyType().getName(),
+                    property.getPropertyType(),
                     getDescription(property, descriptor),
-                    canRead(property),
-                    canWrite(property),
-                    isFlag(property),
+                    getSpecifier(property),
                     descriptor);
             final Method getter = property.getReadMethod();
             final Method setter = property.getWriteMethod();
@@ -414,69 +363,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             }
         }
 
-        /**
-         * Gets currently executing attribute.
-         * <p>
-         *     This method can be called inside of the property getter or setter only.
-         * @return The currently executing attribute.
-         */
-        public static JavaBeanAttributeInfo current(){
-            return currentAttribute.top();
-        }
-
-        final void clear(){
-            userData = null;
-        }
-
-        /**
-         * Gets user data associated with this attribute.
-         * @return The user data associated with this attribute.
-         */
-        public final Object getUserData(){
-            return userData;
-        }
-
-        /**
-         * Gets or creates user data associated with this attribute.
-         * @param factory The factory used to initialize user data.
-         * @param userDataType The type of the user data.
-         * @param <T> Type of the user data.
-         * @param <E> Type of the exception that may be raised by factory.
-         * @return The user data associated with this attribute.
-         * @throws E An exception by factory.
-         */
-        public final <T, E extends Throwable> T getUserData(final AttributeUserDataFactory<T, E> factory,
-                                                            final Class<T> userDataType) throws E {
-            Object userData = this.userData;
-            if (userDataType.isInstance(userData))
-                return userDataType.cast(userData);
-            else synchronized (this) {
-                userData = this.userData;
-                if (userDataType.isInstance(userData))
-                    return userDataType.cast(userData);
-                else {
-                    final T ud = factory.createUserData(this);
-                    this.userData = ud;
-                    return ud;
-                }
-            }
-        }
-
-        /**
-         * Returns the descriptor for the feature.  Changing the returned value
-         * will have no affect on the original descriptor.
-         *
-         * @return a descriptor that is either immutable or a copy of the original.
-         */
-        @Override
-        public final AttributeDescriptor getDescriptor() {
-            return Utils.safeCast(super.getDescriptor(), AttributeDescriptor.class);
-        }
-
         final Object getValue() throws ReflectionException {
             if (getter != null)
-                try (final SafeCloseable ignored = currentAttribute.pushScope(this)) {
-                    return formatter.toJmxValue(getter.invoke());
+                try {
+                    return formatter.toJmxValue(getter.invoke(), this);
                 } catch (final Exception e) {
                     throw new ReflectionException(e);
                 } catch (final Error e) {
@@ -490,8 +380,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         @SuppressWarnings("unchecked")
         final void setValue(final Object value) throws ReflectionException, InvalidAttributeValueException {
             if (setter != null)
-                try(final SafeCloseable ignored = currentAttribute.pushScope(this)) {
-                    setter.invoke(formatter.fromJmxValue(value));
+                try {
+                    setter.invoke(formatter.fromJmxValue(value, this));
                 } catch (final IllegalArgumentException e) {
                     throw new InvalidAttributeValueException(e.getMessage());
                 } catch (final Exception e) {
@@ -504,17 +394,16 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             else throw new ReflectionException(new UnsupportedOperationException("Attribute is read-only"));
         }
 
-        private static boolean canRead(final PropertyDescriptor property){
-            return property.getReadMethod() != null;
-        }
-
-        private static boolean canWrite(final PropertyDescriptor property){
-            return property.getWriteMethod() != null;
-        }
-
-        private static boolean isFlag(final PropertyDescriptor property){
-            final Method getter = property.getReadMethod();
-            return getter != null && getter.getName().startsWith("is");
+        private static AttributeSpecifier getSpecifier(final PropertyDescriptor descriptor){
+            AttributeSpecifier result = AttributeSpecifier.NOT_ACCESSIBLE;
+            if(descriptor.getReadMethod() != null){
+                result = result.readable(true);
+                result = descriptor.getReadMethod().getName().startsWith("is") ?
+                        result.flag(true):
+                        result;
+            }
+            result = result.writable(descriptor.getWriteMethod() != null);
+            return result;
         }
 
         private static ManagementAttribute getAdditionalInfo(final Method... methods){
@@ -661,22 +550,16 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
             failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
         }
-
-        @Override
-        protected boolean disconnectAttribute(final JavaBeanAttributeInfo attributeInfo) {
-            attributeInfo.clear();
-            return true;
-        }
     }
 
-    private static final class JavaBeanNotificationSupport extends AbstractNotificationSupport<CustomNotificationInfo>{
+    private static final class JavaBeanNotificationSupport extends AbstractNotificationSupport<CustomNotificationInfo> {
         private final Logger logger;
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
         private final NotificationListenerInvoker listenerInvoker;
 
         private JavaBeanNotificationSupport(final String resourceName,
                                             final Set<? extends ManagementNotificationType<?>> notifTypes,
-                                            final Logger logger){
+                                            final Logger logger) {
             super(resourceName, CustomNotificationInfo.class);
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
@@ -690,7 +573,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         @Override
         protected CustomNotificationInfo enableNotifications(final String category,
-                                                            final NotificationDescriptor metadata) throws IllegalArgumentException {
+                                                             final NotificationDescriptor metadata) throws IllegalArgumentException {
             //find the suitable notification type
             final ManagementNotificationType<?> type = Iterables.find(notifTypes, new Predicate<ManagementNotificationType<?>>() {
                 @Override
@@ -698,16 +581,16 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     return Objects.equals(type.getCategory(), metadata.getNotificationCategory());
                 }
             });
-            if(type != null){
+            if (type != null) {
                 String description = type.getDescription(Locale.getDefault());
-                if(description == null || description.isEmpty()) {
+                if (description == null || description.isEmpty()) {
                     description = metadata.getDescription();
-                    if(description == null || description.isEmpty())
+                    if (description == null || description.isEmpty())
                         description = type.getCategory();
                 }
                 return new CustomNotificationInfo(category, description, metadata.setUserDataType(type.getUserDataType()));
-            }
-            else throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getNotificationCategory()));
+            } else
+                throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getNotificationCategory()));
         }
 
         @Override
@@ -721,9 +604,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         private void fire(final ManagementNotificationType<?> category, final String message, final Object userData) {
-            try(final JavaBeanNotification ignored = new JavaBeanNotification(category)){
-                fire(category.getCategory(), message, userData);
-            }
+            fire(category.getCategory(), message, userData);
         }
     }
 

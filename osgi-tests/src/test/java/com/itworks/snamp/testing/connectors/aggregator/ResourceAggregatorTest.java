@@ -3,7 +3,6 @@ package com.itworks.snamp.testing.connectors.aggregator;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
-import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
@@ -15,6 +14,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import javax.management.*;
+
+import java.math.BigInteger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -86,14 +87,159 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
                 jmxConnector.setAttribute(new Attribute("1.0", "9"));
                 Object val = aggregator.getAttribute("42");
                 assertTrue(val instanceof Boolean);
-                assertTrue((Boolean)val);
+                assertTrue((Boolean) val);
+                jmxConnector.setAttribute(new Attribute("1.0", "aaa"));
+                val = aggregator.getAttribute("42");
+                assertTrue(val instanceof Boolean);
+                assertFalse((Boolean) val);
+            }
+        });
+    }
+
+    @Test
+    public void comparisonWithTest() throws JMException{
+        runTest(new TestLogic() {
+            @Override
+            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
+                jmxConnector.setAttribute(new Attribute("3.0", 56));
+                Object val = aggregator.getAttribute("43");
+                assertTrue(val instanceof Boolean);
+                assertTrue((Boolean) val);
+                jmxConnector.setAttribute(new Attribute("3.0", 9));
+                val = aggregator.getAttribute("43");
+                assertTrue(val instanceof Boolean);
+                assertFalse((Boolean) val);
+            }
+        });
+    }
+
+    @Test
+    public void percentFromTest() throws JMException{
+        runTest(new TestLogic() {
+            @Override
+            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
+                jmxConnector.setAttribute(new Attribute("3.0", 25));
+                Object val = aggregator.getAttribute("45");
+                assertTrue(val instanceof Double);
+                assertEquals(50, (Double) val, 2);
+                jmxConnector.setAttribute(new Attribute("3.0", 40));
+                val = aggregator.getAttribute("45");
+                assertTrue(val instanceof Double);
+                assertEquals(80, (Double) val, 2);
+            }
+        });
+    }
+
+    @Test
+    public void percentTest() throws JMException{
+        runTest(new TestLogic() {
+            @Override
+            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
+                jmxConnector.setAttribute(new Attribute("3.0", 25));
+                jmxConnector.setAttribute(new Attribute("4.0", BigInteger.valueOf(50L)));
+                Object val = aggregator.getAttribute("46");
+                assertTrue(val instanceof Double);
+                assertEquals(50, (Double) val, 2);
+                jmxConnector.setAttribute(new Attribute("3.0", 40));
+                val = aggregator.getAttribute("46");
+                assertTrue(val instanceof Double);
+                assertEquals(80, (Double) val, 2);
+            }
+        });
+    }
+
+    @Test
+    public void comparisonTest() throws JMException{
+        runTest(new TestLogic() {
+            @Override
+            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
+                jmxConnector.setAttribute(new Attribute("3.0", 56));
+                jmxConnector.setAttribute(new Attribute("4.0", BigInteger.ONE));
+                Object val = aggregator.getAttribute("44");
+                assertTrue(val instanceof Boolean);
+                assertTrue((Boolean) val);
+                jmxConnector.setAttribute(new Attribute("3.0", 150));
+                jmxConnector.setAttribute(new Attribute("4.0", new BigInteger("100500")));
+                val = aggregator.getAttribute("44");
+                assertTrue(val instanceof Boolean);
+                assertFalse((Boolean) val);
+            }
+        });
+    }
+
+    @Test
+    public void counterTest() throws JMException{
+        runTest(new TestLogic() {
+            @Override
+            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
+                jmxConnector.setAttribute(new Attribute("3.0", 5));
+                Object val = aggregator.getAttribute("47");
+                assertEquals(5L, val);
+                val = aggregator.getAttribute("47");
+                assertEquals(10L, val);
+                val = aggregator.getAttribute("47");
+                assertEquals(15L, val);
+                try {
+                    Thread.sleep(5000);
+                } catch (final InterruptedException e) {
+                    throw new ReflectionException(e);
+                }
+                val = aggregator.getAttribute("47");
+                assertEquals(5L, val);
+            }
+        });
+    }
+
+    @Test
+    public void averageTest() throws JMException{
+        runTest(new TestLogic() {
+            @Override
+            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
+                jmxConnector.setAttribute(new Attribute("3.0", 20));
+                Object val = aggregator.getAttribute("48");
+                assertEquals(20F, (Double)val, 3);
+                jmxConnector.setAttribute(new Attribute("3.0", 40));
+                val = aggregator.getAttribute("48");
+                assertEquals(30F, (Double)val, 3);
+                try {
+                    Thread.sleep(5000);
+                } catch (final InterruptedException e) {
+                    throw new ReflectionException(e);
+                }
+                val = aggregator.getAttribute("48");
+                assertEquals(40F, (Double)val, 3);
+            }
+        });
+    }
+
+    @Test
+    public void peakTest() throws JMException{
+        runTest(new TestLogic() {
+            @Override
+            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
+                jmxConnector.setAttribute(new Attribute("3.0", 20));
+                Object val = aggregator.getAttribute("49");
+                assertEquals(20L, val);
+                jmxConnector.setAttribute(new Attribute("3.0", 40));
+                val = aggregator.getAttribute("49");
+                assertEquals(40L, val);
+                jmxConnector.setAttribute(new Attribute("3.0", 30));
+                val = aggregator.getAttribute("49");
+                assertEquals(30L, val);
+                try {
+                    Thread.sleep(5000);
+                } catch (final InterruptedException e) {
+                    throw new ReflectionException(e);
+                }
+                val = aggregator.getAttribute("49");
+                assertEquals(30L, val);
             }
         });
     }
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
 
@@ -184,11 +330,62 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
         connector.setConnectionType(AGGREGATOR_CONNECTOR);
 
         attribute = connector.newElement(AttributeConfiguration.class);
-        attribute.setAttributeName("match");
+        attribute.setAttributeName("matcher");
         attribute.getParameters().put("pattern", "[0-9]");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("foreignAttribute", "1.0");
         connector.getElements(AttributeConfiguration.class).put("42", attribute);
+
+        attribute = connector.newElement(AttributeConfiguration.class);
+        attribute.setAttributeName("comparisonWith");
+        attribute.getParameters().put("comparer", ">=");
+        attribute.getParameters().put("source", JMX_RESOURCE_NAME);
+        attribute.getParameters().put("foreignAttribute", "3.0");
+        attribute.getParameters().put("value", "10");
+        connector.getElements(AttributeConfiguration.class).put("43", attribute);
+
+        attribute = connector.newElement(AttributeConfiguration.class);
+        attribute.setAttributeName("comparison");
+        attribute.getParameters().put("comparer", ">=");
+        attribute.getParameters().put("source", JMX_RESOURCE_NAME);
+        attribute.getParameters().put("firstForeignAttribute", "3.0");
+        attribute.getParameters().put("secondForeignAttribute", "4.0");
+        connector.getElements(AttributeConfiguration.class).put("44", attribute);
+
+        attribute = connector.newElement(AttributeConfiguration.class);
+        attribute.setAttributeName("percentFrom");
+        attribute.getParameters().put("source", JMX_RESOURCE_NAME);
+        attribute.getParameters().put("foreignAttribute", "3.0");
+        attribute.getParameters().put("value", "50");
+        connector.getElements(AttributeConfiguration.class).put("45", attribute);
+
+        attribute = connector.newElement(AttributeConfiguration.class);
+        attribute.setAttributeName("percent");
+        attribute.getParameters().put("source", JMX_RESOURCE_NAME);
+        attribute.getParameters().put("firstForeignAttribute", "3.0");
+        attribute.getParameters().put("secondForeignAttribute", "4.0");
+        connector.getElements(AttributeConfiguration.class).put("46", attribute);
+
+        attribute = connector.newElement(AttributeConfiguration.class);
+        attribute.setAttributeName("counter");
+        attribute.getParameters().put("source", JMX_RESOURCE_NAME);
+        attribute.getParameters().put("foreignAttribute", "3.0");
+        attribute.getParameters().put("timeInterval", "5000");
+        connector.getElements(AttributeConfiguration.class).put("47", attribute);
+
+        attribute = connector.newElement(AttributeConfiguration.class);
+        attribute.setAttributeName("average");
+        attribute.getParameters().put("source", JMX_RESOURCE_NAME);
+        attribute.getParameters().put("foreignAttribute", "3.0");
+        attribute.getParameters().put("timeInterval", "5000");
+        connector.getElements(AttributeConfiguration.class).put("48", attribute);
+
+        attribute = connector.newElement(AttributeConfiguration.class);
+        attribute.setAttributeName("peak");
+        attribute.getParameters().put("source", JMX_RESOURCE_NAME);
+        attribute.getParameters().put("foreignAttribute", "3.0");
+        attribute.getParameters().put("timeInterval", "5000");
+        connector.getElements(AttributeConfiguration.class).put("49", attribute);
 
         config.getManagedResources().put(AGGREG_RESOURCE_NAME, connector);
     }

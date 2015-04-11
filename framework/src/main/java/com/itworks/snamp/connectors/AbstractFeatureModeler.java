@@ -104,11 +104,6 @@ public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends
             this.identity = Objects.requireNonNull(identity);
         }
 
-        /**
-         * Determines whether this object contains the same metadata as other.
-         * @param other
-         * @return
-         */
         public final boolean equals(final FeatureHolder<?> other){
             return other != null &&
                     Objects.equals(getClass(), other.getClass()) &&
@@ -189,7 +184,7 @@ public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends
         }
     }
 
-    protected final void fireResourceEvent(final ResourceEvent event) {
+    protected final void fireResourceEvent(final FeatureModifiedEvent<?> event) {
         try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
             resourceEventListeners.fire(event);
         }

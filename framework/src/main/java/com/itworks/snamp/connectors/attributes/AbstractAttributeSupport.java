@@ -1,10 +1,8 @@
 package com.itworks.snamp.connectors.attributes;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.ObjectArrays;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractFeatureModeler;
-import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
@@ -14,7 +12,6 @@ import com.itworks.snamp.jmx.JMExceptionUtils;
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;

@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.aggregation;
+package com.itworks.snamp.connectors.aggregator;
 
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
@@ -33,7 +33,7 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
                                            final String listId,
                                            final String category,
                                            final CompositeData options) {
-            connector.enableNotifications(listId, category, options);
+            //not supported
         }
 
         @Override

@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.aggregation;
+package com.itworks.snamp.connectors.aggregator;
 
 import java.math.BigDecimal;
 

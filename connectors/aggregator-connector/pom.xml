@@ -21,8 +21,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.itworks.snamp.connectors.aggregation</Bundle-SymbolicName>
-                        <Bundle-Activator>com.itworks.snamp.connectors.aggregation.AggregatorResourceConnectorActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>com.itworks.snamp.connectors.aggregator</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.connectors.aggregator.AggregatorResourceConnectorActivator</Bundle-Activator>
                         <Export-Package/>
                         <!--SNAMP specific header-->
                         <SNAMP-Resource-Connector>aggregator</SNAMP-Resource-Connector>

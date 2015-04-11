@@ -7,6 +7,7 @@ import com.itworks.snamp.adapters.AttributeValue;
 import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
 import com.itworks.snamp.connectors.notifications.SynchronizationListener;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.junit.Assert;
@@ -49,6 +50,26 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
             }
         }
 
+        static final class Property1Formatter implements ManagementAttributeFormatter<String>{
+
+            @Override
+            public SimpleType<String> getAttributeType() {
+                return SimpleType.STRING;
+            }
+
+            @Override
+            public String toJmxValue(final Object attributeValue, final CustomAttributeInfo metadata) {
+                assertEquals("property1", metadata.getDescriptor().getAttributeName());
+                return attributeValue.toString();
+            }
+
+            @Override
+            public Object fromJmxValue(final String jmxValue, final CustomAttributeInfo metadata) {
+                assertEquals("property1", metadata.getDescriptor().getAttributeName());
+                return jmxValue;
+            }
+        }
+
         private String field1;
         private int field2;
         private boolean field3;
@@ -68,43 +89,35 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         }
 
         @SpecialUse
+        @ManagementAttribute(formatter = Property1Formatter.class)
         public final String getProperty1() {
-            assertEquals("property1", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
-            assertNotNull(JavaBeanAttributeInfo.current().getDescriptor().getReadWriteTimeout());
             return field1;
         }
 
         @SpecialUse
         public final void setProperty1(final String value) {
-            assertEquals("property1", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
-            assertNotNull(JavaBeanAttributeInfo.current().getDescriptor().getReadWriteTimeout());
             field1 = value;
             emitPropertyChanged("property1");
         }
 
         @SpecialUse
         public final int getProperty2() {
-            assertEquals("property2", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
-            assertNotNull(JavaBeanAttributeInfo.current().getDescriptor().getReadWriteTimeout());
             return field2;
         }
 
         @SpecialUse
         public final void setProperty2(final int value) {
-            assertEquals("property2", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
             field2 = value;
             emitPropertyChanged("property2");
         }
 
         @SpecialUse
         public final boolean getProperty3() {
-            assertEquals("property3", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
             return field3;
         }
 
         @SpecialUse
         public final void setProperty3(final boolean value) {
-            assertEquals("property3", JavaBeanAttributeInfo.current().getDescriptor().getAttributeName());
             field3 = value;
             emitPropertyChanged("property3");
         }

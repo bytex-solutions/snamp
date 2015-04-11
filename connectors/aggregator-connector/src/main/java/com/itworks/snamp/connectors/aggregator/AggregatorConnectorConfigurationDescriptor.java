@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.aggregation;
+package com.itworks.snamp.connectors.aggregator;
 
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
@@ -23,6 +23,7 @@ final class AggregatorConnectorConfigurationDescriptor extends ConfigurationEnti
     private static final String SECOND_FOREIGN_ATTRIBUTE_PARAM = "secondForeignAttribute";
     private static final String COMPARER_PARAM = "comparer";
     private static final String VALUE_PARAM = "value";
+    private static final String TIME_INTERVAL_PARAM = "timeInterval";
 
     private static final class AttributeConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
         private static final String RESOURCE_NAME = "AttributeParameters";
@@ -34,7 +35,9 @@ final class AggregatorConnectorConfigurationDescriptor extends ConfigurationEnti
                     PATTERN_PARAM,
                     FIRST_FOREIGN_ATTRIBUTE_PARAM,
                     SECOND_FOREIGN_ATTRIBUTE_PARAM,
-                    COMPARER_PARAM);
+                    COMPARER_PARAM,
+                    VALUE_PARAM,
+                    TIME_INTERVAL_PARAM);
         }
 
         @Override
@@ -80,5 +83,9 @@ final class AggregatorConnectorConfigurationDescriptor extends ConfigurationEnti
 
     static String getUserDefinedValue(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter{
         return getAttributeParameter(descriptor, VALUE_PARAM);
+    }
+
+    static long getTimeIntervalInMillis(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+        return Long.parseLong(getAttributeParameter(descriptor, TIME_INTERVAL_PARAM));
     }
 }
