@@ -572,9 +572,9 @@ var SnampShell = (function(SnampShell) {
             /**
              * Checks of all available params are already defined
              */
-            function checkAllParamsSet() {
-                return getActiveNodeParams().getChildren().length < $scope.modalContent.length;
-            }
+            $scope.allParamAlreadySet = function() {
+                return getActiveNodeParams().getChildren().length >= $scope.modalContent.length;
+            };
 
             /**
              * Append new element to the treeView model.
@@ -592,14 +592,14 @@ var SnampShell = (function(SnampShell) {
                         operation: 'getAdapterConfigurationSchema',
                         arguments: [adapterName, ""] // default console
                     }).value;
-                    SnampShell.log.info(JSON.stringify(adapterConfig));
+                    SnampShell.log.info(JSON.stringify(adapterConfig["ResourceAdapterParameters"]));
 
                     // Appending "AttributeParameters"
 
                     $scope.modalTitle = "Appending new attribute to " + node.getParent().data.title + " adapter";
                     $scope.modalContent = adapterConfig["ResourceAdapterParameters"];
 
-                    if (checkAllParamsSet()) {
+                    if (!$scope.allParamAlreadySet()) {
                         Core.$apply($scope);
                         $('#myModal').modal('show');
                     } else {
