@@ -399,15 +399,11 @@ var SnampShell = (function(SnampShell) {
              */
             $scope.editNode = function(node){
                 var tree = node.tree;
-                // Disable dynatree mouse- and key handling
 
                 // Replace node with <input>
                 inputObject = $(".dynatree-title", node.span).find("input");
-
                 // Focus <input> and bind keyboard handler
-                inputObject
-                    .focus()
-
+                inputObject.focus()
             };
 
             /**
@@ -476,7 +472,118 @@ var SnampShell = (function(SnampShell) {
                 if (jsonObject.hasOwnProperty("ManagedResources")) {
                     array[1].children = [];
                     angular.forEach(jsonObject["ManagedResources"], function (value, key) {
-                        array[1].children.push({title: key, isFolder: true})
+                        var currentChild = {
+                            title: key,
+                            isFolder: true,
+                            name: value["Connector"]["ConnectionType"],
+                            type: "connector",
+                            children: [],
+                            removable: true
+                        }; // adapter userDefined name
+                        currentChild.children.push({
+                            title: "Connection type: " + generateDropDown($scope.getConnectors(), "connectorName", value["Connector"]["ConnectionType"]),
+                            isFolder: false,
+                            name: value["Connector"]["ConnectionType"],
+                            type: "type",
+                            value: value["Connector"]["ConnectionType"]
+                        }); // adapter system name
+                        currentChild.children.push({
+                            title: "Connection string: " + "<input name=\"connectionString\" type=\"text\" value=\"" + value["Connector"]["ConnectionString"] + "\"/>",
+                            isFolder: false,
+                            name: value["Connector"]["ConnectionString"],
+                            type: "string",
+                            value: value["Connector"]["ConnectionString"]
+                        }); // adapter system name
+
+                        // Parsing connector's parameters
+                        var params = {
+                            title: "Parameters",
+                            isFolder: true,
+                            children: [],
+                            name: value["Connector"]["ConnectionType"] + " params",
+                            type: "params"
+                        };
+
+                        // Loop over certain connector's parameters
+                        if (value["Connector"]["Parameters"]) {
+                            angular.forEach(value["Connector"]["Parameters"], function (parameterValue, parameterKey) {
+                                params.children.push({
+                                    title: parameterKey +": <input name=\"value\" type=\"text\" value=\"" + parameterValue["Value"] + "\"/>",
+                                    isFolder: false,
+                                    name: parameterKey,
+                                    type: "param",
+                                    value: parameterValue["Value"],
+                                    removable: true
+                                });
+                            });
+                        }
+
+                        // Appending proper parameters to the certain connector
+                        currentChild.children.push(params);
+
+                        // Parsing certain connector's attributes
+                        var attributes = {
+                            title: "Attributes",
+                            isFolder: true,
+                            children: [],
+                            name: value["Connector"]["ConnectionType"] + " attribites",
+                            type: "attributes"
+                        };
+
+                        // Loop over the attributes
+                        if (value["Connector"]["Attributes"]) {
+                            angular.forEach(value["Connector"]["Attributes"], function (parameterValue, parameterKey) {
+                                // Parameters
+                                var attrParams = {
+                                    title: "Parameters",
+                                    isFolder: true,
+                                    children: [],
+                                    name: parameterKey + " params",
+                                    type: "attrParams"
+                                };
+
+                                // Loop over certain attribute additional properties
+                                if (parameterValue["Attribute"]["AdditionalProperties"]) {
+                                    angular.forEach(parameterValue["Attribute"]["AdditionalProperties"], function (attrValue, attrKey) {
+                                        attrParams.children.push({
+                                            title: attrKey + ": <input name=\"value\" type=\"text\" value=\"" + attrValue["Value"] + "\"/>",
+                                            isFolder: false,
+                                            name: attrKey,
+                                            type: "attrParam",
+                                            value: attrValue["Value"],
+                                            removable: true
+                                        });
+                                    });
+                                }
+
+                                // Appending certain attribute to the attributes tree node
+                                attributes.children.push({
+                                    title: "User defined name" +": <input name=\"value\" type=\"text\" value=\"" + parameterKey + "\"/>",
+                                    isFolder: true,
+                                    name: parameterKey,
+                                    type: "attribute",
+                                    value: parameterKey,
+                                    removable: true,
+                                    children: [ // appending Attribute name and it's already defined additional properties
+                                        {
+                                            title: "Attribute name" + ": <input name=\"value\" type=\"text\" value=\"" + parameterValue["Attribute"]["Name"] + "\"/>",
+                                            isFolder: true,
+                                            name: parameterValue["Attribute"]["Name"],
+                                            type: "attrName",
+                                            value: parameterValue["Attribute"]["Name"]
+                                        },
+                                        attrParams
+                                    ]
+                                });
+
+                            });
+                        }
+
+                        // Appending attributes to the certain connector
+                        currentChild.children.push(attributes);
+
+                        // Appending certain connector to the Managed Resources node
+                        array[1].children.push(currentChild);
                     });
                 }
                 return array;
@@ -627,6 +734,11 @@ var SnampShell = (function(SnampShell) {
                 node.expand(true);
             };
 
+            // http://stackoverflow.com/questions/8100770/auto-scaling-inputtype-text-to-width-of-value
+            function resizeInput() {
+                $(this).css('width', (($(this).val().length + 1) * 8) + 'px');
+            }
+
             /**
              * Draw configuration to the html.
              */
@@ -660,19 +772,18 @@ var SnampShell = (function(SnampShell) {
                 });
 
                 // Before binding events to the tree - render inputs.
-                //divContent.dynatree("getTree").renderInvisibleNodes();
+                divContent.dynatree("getTree").renderInvisibleNodes();
 
-          /*      // Revert tree managing with keyboard and mouse
-                divContent.find("input").blur(function() {
-                    // Enable dynatree mouse- and key handling
-                    console.log($(this).parent().html());
-                    $scope.activeNode.data.title = $(this).parent().html();
-                    $scope.activeNode.data.value = $(this).attr("value");
-                    
-                    divContent.dynatree("getTree").$widget.bind();
-                });*/
-
+                divContent.find('input[type="text"]')
+                    // event handler
+                    .keyup(resizeInput)
+                    // resize on page load
+                    .each(resizeInput);
             };
+
+
+
+
 
             // Menu items
             $scope.menuSelected = function (section) {
