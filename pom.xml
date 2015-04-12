@@ -39,7 +39,6 @@
     <module>framework</module>
     <module>connectors</module>
     <module>adapters</module>
-    <module>license-generator</module>
     <module>infrastructure/hawtio-console</module>
     <module>infrastructure/jmx2json</module>
     <module>third-party-libs/bundlized/snmp4j</module>

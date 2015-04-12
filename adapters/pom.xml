@@ -40,5 +40,6 @@
       <module>http-adapter</module>
       <module>nsca-adapter</module>
       <module>nrdp-adapter</module>
+      <module>nagios-adapter</module>
   </modules>
 </project>

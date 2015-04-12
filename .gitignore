@@ -9,6 +9,7 @@ out/
 *.key
 exam/
 unlimited.lic
+docs/
 
 #latex section
 *.aux
