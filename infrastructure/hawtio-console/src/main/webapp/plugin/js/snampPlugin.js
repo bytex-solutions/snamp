@@ -398,39 +398,16 @@ var SnampShell = (function(SnampShell) {
              * @param node
              */
             $scope.editNode = function(node){
-                if (!(node.data.editable == true)) {
-                    return;
-                }
-                var prevTitle = node.data.title,
-                    tree = node.tree;
+                var tree = node.tree;
                 // Disable dynatree mouse- and key handling
-                tree.$widget.unbind();
+
                 // Replace node with <input>
-                $(".dynatree-title", node.span).html("<input id='editNode' value='" + prevTitle + "'>");
+                inputObject = $(".dynatree-title", node.span).find("input");
+
                 // Focus <input> and bind keyboard handler
-                $("input#editNode")
+                inputObject
                     .focus()
-                    .keydown(function(event){
-                        switch( event.which ) {
-                            case 27: // [esc]
-                                // discard changes on [esc]
-                                $("input#editNode").val(prevTitle);
-                                $(this).blur();
-                                break;
-                            case 13: // [enter]
-                                // simulate blur to accept new value
-                                $(this).blur();
-                                break;
-                        }
-                    }).blur(function(event){
-                        // Accept new value, when user leaves <input>
-                        var title = $("input#editNode").val();
-                        node.setTitle(title);
-                        node.data.value = title;
-                        // Re-enable mouse and keyboard handlling
-                        tree.$widget.bind();
-                        node.focus();
-                    });
+
             };
 
             /**
@@ -659,19 +636,9 @@ var SnampShell = (function(SnampShell) {
                 var divContent = $("#snampTreeConfig");
                 divContent.dynatree({
                     noLink: true,
+                    selectMode: 1,
+                    keyboard: false,
                     onClick: function(node) {
-
-                        var inputObject = $.parseHTML(node.data.title);
-
-                        if (inputObject.length > 1) {
-                            inputObject = $(inputObject[1]);
-                            if (inputObject.attr("type") == "text") {
-                                node.tree.$widget.unbind();
-                                inputObject.focus();
-                                SnampShell.log.info("Has focus", inputObject.html());
-                                node.tree.$widget.unbind();
-                            }
-                        }
                         $scope.activeNode = node;
                         Core.$apply($scope);
                     },
@@ -693,9 +660,9 @@ var SnampShell = (function(SnampShell) {
                 });
 
                 // Before binding events to the tree - render inputs.
-                divContent.dynatree("getTree").renderInvisibleNodes();
+                //divContent.dynatree("getTree").renderInvisibleNodes();
 
-                // Revert tree managing with keyboard and mouse
+          /*      // Revert tree managing with keyboard and mouse
                 divContent.find("input").blur(function() {
                     // Enable dynatree mouse- and key handling
                     console.log($(this).parent().html());
@@ -703,7 +670,7 @@ var SnampShell = (function(SnampShell) {
                     $scope.activeNode.data.value = $(this).attr("value");
                     
                     divContent.dynatree("getTree").$widget.bind();
-                });
+                });*/
 
             };
 
