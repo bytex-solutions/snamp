@@ -341,6 +341,10 @@ public enum  WellKnownType implements Serializable, Type {
         return openType != null;
     }
 
+    public final boolean isSimpleType(){
+        return openType instanceof SimpleType<?>;
+    }
+
     /**
      * Determines whether this type describes an array.
      * <p>

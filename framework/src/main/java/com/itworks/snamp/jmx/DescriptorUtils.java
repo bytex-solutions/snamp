@@ -10,6 +10,7 @@ import javax.management.ImmutableDescriptor;
 import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents utility methods for working with {@link javax.management.Descriptor} instances.
@@ -18,6 +19,11 @@ import java.util.Map;
  * @since 1.0
  */
 public final class DescriptorUtils {
+    public static final String DEFAULT_VALUE_FIELD  = "defaultValue";
+    public static final String LEGAL_VALUES_FIELD = "legalValues";
+    public static final String MIN_VALUE_FIELD = "minValue";
+    public static final String MAX_VALUE_FIELD = "maxValue";
+
     /**
      * Represents empty immutable descriptor.
      */
@@ -69,6 +75,54 @@ public final class DescriptorUtils {
 
     public static boolean hasField(final Descriptor descr, final String fieldName){
         return ArrayUtils.contains(descr.getFieldNames(), fieldName);
+    }
+
+    public static boolean hasDefaultValue(final Descriptor descr){
+        return hasField(descr, DEFAULT_VALUE_FIELD);
+    }
+
+    public static boolean hasLegalValues(final Descriptor descr){
+        return hasField(descr, LEGAL_VALUES_FIELD);
+    }
+
+    public static boolean hasMaxValue(final Descriptor descr){
+        return hasField(descr, MAX_VALUE_FIELD);
+    }
+
+    public static boolean hasMinValue(final Descriptor descr){
+        return hasField(descr, MIN_VALUE_FIELD);
+    }
+
+    public static <T> T getDefaultValue(final Descriptor descr, final Class<T> type){
+        final Object value = descr.getFieldValue(DEFAULT_VALUE_FIELD);
+        return type.isInstance(value) ? type.cast(value) : null;
+    }
+
+    public static Object getRawLegalValues(final Descriptor descr){
+        return descr.getFieldValue(LEGAL_VALUES_FIELD);
+    }
+
+    public static Set<?> getLegalValues(final Descriptor descr){
+        final Object value = getRawLegalValues(descr);
+        return value instanceof Set<?> ? (Set<?>)value : null;
+    }
+
+    public static Object getRawMaxValue(final Descriptor descr){
+        return descr.getFieldValue(MAX_VALUE_FIELD);
+    }
+
+    public static Comparable<?> getMaxValue(final Descriptor descr){
+        final Object value = getRawMaxValue(descr);
+        return value instanceof Comparable<?> ? (Comparable<?>)value : null;
+    }
+
+    public static Object getRawMinValue(final Descriptor descr){
+        return descr.getFieldValue(MIN_VALUE_FIELD);
+    }
+
+    public static Comparable<?> getMinValue(final Descriptor descr){
+        final Object value = getRawMinValue(descr);
+        return value instanceof Comparable<?> ? (Comparable<?>)value : null;
     }
 
     public static ImmutableDescriptor copyOf(final Descriptor descr){
