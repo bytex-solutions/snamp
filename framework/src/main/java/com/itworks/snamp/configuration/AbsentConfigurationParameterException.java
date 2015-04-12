@@ -12,7 +12,7 @@ public class AbsentConfigurationParameterException extends Exception {
     private final String parameterName;
 
     public AbsentConfigurationParameterException(final String parameterName){
-        super(String.format("Configuration parameter %s is not specified", parameterName));
+        super(String.format("Configuration parameter '%s' is not specified", parameterName));
         this.parameterName = parameterName;
     }
 

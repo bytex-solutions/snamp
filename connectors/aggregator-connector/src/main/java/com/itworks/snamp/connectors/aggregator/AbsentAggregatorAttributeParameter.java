@@ -8,6 +8,8 @@ import com.itworks.snamp.configuration.AbsentConfigurationParameterException;
  * @since 1.0
  */
 final class AbsentAggregatorAttributeParameter extends AbsentConfigurationParameterException {
+    private static final long serialVersionUID = 7497859739400238690L;
+
     AbsentAggregatorAttributeParameter(final String parameterName) {
         super(parameterName);
     }

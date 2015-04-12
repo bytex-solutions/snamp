@@ -113,6 +113,11 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <systemPropertyVariables>
+                        <com.itworks.snamp.licensing.file>${project.parent.basedir}/unlimited.lic</com.itworks.snamp.licensing.file>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>

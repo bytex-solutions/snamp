@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.aggregator;
 
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
@@ -24,6 +24,7 @@ final class AggregatorConnectorConfigurationDescriptor extends ConfigurationEnti
     private static final String COMPARER_PARAM = "comparer";
     private static final String VALUE_PARAM = "value";
     private static final String TIME_INTERVAL_PARAM = "timeInterval";
+    private static final String FIELD_PATH_PARAM = "fieldPath";
 
     private static final class AttributeConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
         private static final String RESOURCE_NAME = "AttributeParameters";
@@ -87,5 +88,11 @@ final class AggregatorConnectorConfigurationDescriptor extends ConfigurationEnti
 
     static long getTimeIntervalInMillis(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
         return Long.parseLong(getAttributeParameter(descriptor, TIME_INTERVAL_PARAM));
+    }
+
+    static CompositeDataPath getFieldPath(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter{
+        if(descriptor.hasField(FIELD_PATH_PARAM))
+            return new CompositeDataPath(descriptor.getField(FIELD_PATH_PARAM, String.class));
+        else throw new AbsentAggregatorAttributeParameter(FIELD_PATH_PARAM);
     }
 }

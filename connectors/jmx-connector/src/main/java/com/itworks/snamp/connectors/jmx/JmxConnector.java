@@ -17,7 +17,6 @@ import javax.management.openmbean.*;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -162,25 +161,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             else return new JmxAttributeInfo(attributeName, targetAttr, namespace, metadata);
         }
 
-        private JmxAttributeInfo createCompositeAttribute(final ObjectName namespace, final String attributeName, final AttributeDescriptor metadata) throws Exception {
-            final CompositeValueNavigator navigator = new CompositeValueNavigator(metadata.getAttributeName());
-            //получить описатель поля, этот описатель может содержать знак @ для вложенного атрибута
-            final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
-                @Override
-                public MBeanAttributeInfo handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    for (final MBeanAttributeInfo attr : connection.getMBeanInfo(namespace).getAttributes())
-                        if (Objects.equals(navigator.attributeName, attr.getName())) return attr;
-                    return null;
-                }
-            });
-            if (targetAttr == null) throw new AttributeNotFoundException(attributeName);
-            else return new JmxCompositeAttributeInfo(attributeName,
-                    targetAttr,
-                    namespace,
-                    metadata,
-                    navigator);
-        }
-
         private ObjectName findObjectName(final ObjectName namespace) throws Exception {
             return connectionManager.handleConnection(new MBeanServerConnectionHandler<ObjectName>() {
                 @Override
@@ -202,8 +182,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                                                   final boolean useRegexp) throws Exception{
             //creates JMX attribute provider based on its metadata and connection options.
             if(namespace == null) return null;
-            if(CompositeValueNavigator.isCompositeAttribute(metadata.getAttributeName()))
-                return createCompositeAttribute(namespace, attributeName, metadata);
             else if(useRegexp) return connectAttribute(findObjectName(namespace), attributeName, metadata, false);
             else return createPlainAttribute(namespace, attributeName, metadata);
         }
@@ -230,17 +208,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return connectAttribute(new ObjectName(namespace), attributeID, descriptor);
         }
 
-        private Object getAttribute(final JmxCompositeAttributeInfo metadata) throws Exception {
-            return connectionManager.handleConnection(new MBeanServerConnectionHandler<Object>() {
-                @Override
-                public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    final Object value = connection.getAttribute(metadata.getOwner(),
-                            AttributeDescriptor.getAttributeName(metadata));
-                    return value != null ? metadata.navigator.getValue(value) : null;
-                }
-            });
-        }
-
         /**
          * Obtains the value of a specific attribute of the managed resource.
          *
@@ -250,15 +217,13 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         protected Object getAttribute(final JmxAttributeInfo metadata) throws Exception {
-            return metadata instanceof JmxCompositeAttributeInfo ?
-                    getAttribute((JmxCompositeAttributeInfo)metadata):
-                    connectionManager.handleConnection(new MBeanServerConnectionHandler<Object>() {
-                        @Override
-                        public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
-                            return connection.getAttribute(metadata.getOwner(),
-                                    AttributeDescriptor.getAttributeName(metadata));
-                        }
-                });
+            return connectionManager.handleConnection(new MBeanServerConnectionHandler<Object>() {
+                @Override
+                public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
+                    return connection.getAttribute(metadata.getOwner(),
+                            AttributeDescriptor.getAttributeName(metadata));
+                }
+            });
         }
 
         /**
@@ -435,90 +400,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
 
 
     /**
-     * Represents field navigator in the composite JMX data.
-     */
-    private static final class CompositeValueNavigator
-    {
-        /**
-         * Represents path delimiter.
-         */
-        private static final char delimiter = '@';
-        /**
-         * Represents the name of the attribute that has a composite type.
-         */
-        private final String attributeName;
-        private final String[] path;
-
-        /**
-         * Initializes a new field navigator.
-         * @param attributeName The name
-         */
-        private CompositeValueNavigator(final String attributeName)
-        {
-            if(!isCompositeAttribute(attributeName)) throw new IllegalArgumentException("Неверный формат имени составного атрибута");
-            final String[] parts = attributeName.split(new String(new char[]{delimiter}));
-            this.attributeName = parts[0];
-            this.path = Arrays.copyOfRange(parts, 1, parts.length);
-        }
-
-        @SuppressWarnings("UnusedDeclaration")
-        private int depth(){
-            return path.length;
-        }
-
-        @SuppressWarnings("UnusedDeclaration")
-        private String item(int index)
-        {
-            return path[index];
-        }
-
-        private Object getValue(final Object root, final int index)
-        {
-            if(root instanceof CompositeData && index < path.length){
-                final CompositeData cdata = (CompositeData)root;
-                final String subattr = path[index];
-                return cdata.containsKey(subattr) ? getValue(cdata.get(subattr), index + 1) : root;
-            }
-            else return root;
-        }
-
-        private Object getValue(final Object root)
-        {
-            return getValue(root, 0);
-        }
-
-        private OpenType<?> getType(final OpenType<?> root, final int index){
-            if(root instanceof CompositeType && index < path.length){
-                final CompositeType cdata = (CompositeType)root;
-                final String subattr = path[index];
-                return cdata.containsKey(subattr) ? getType(cdata.getType(subattr), index + 1) : root;
-            }
-            else return root;
-        }
-
-        private OpenType<?> getType(final OpenType<?> root){
-            return getType(root, 0);
-        }
-
-        /**
-         * Получить полный путь композитного атрибута.
-         */
-        @Override
-        public String toString(){
-            return this.attributeName + Arrays.toString(path).replace(", ", new String(new char[]{delimiter}));
-        }
-
-        /**
-         * Determines whether the attribute name contains subfield path.
-         * @param attributeName The name of the attribute.
-         * @return {@literal true}, if the specified attribute is a decomposition; otherwise, {@literal false}.
-         */
-        private static boolean isCompositeAttribute(final String attributeName){
-            return attributeName.indexOf(delimiter) >= 0;
-        }
-    }
-
-    /**
      * Represents an abstract class for building JMX attribute providers.
      */
     private static class JmxAttributeInfo extends OpenMBeanAttributeInfoSupport implements JmxAttributeMetadata {
@@ -576,31 +457,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
 
     }
-
-    private static final class JmxCompositeAttributeInfo extends JmxAttributeInfo{
-        private static final long serialVersionUID = -8511917301245817602L;
-        private final CompositeValueNavigator navigator;
-
-        private JmxCompositeAttributeInfo(final String attributeName,
-                                          final MBeanAttributeInfo nativeAttr,
-                                          final ObjectName namespace,
-                                          final AttributeDescriptor metadata,
-                                          final CompositeValueNavigator navigator) throws OpenDataException {
-            super(attributeName,
-                    nativeAttr,
-                    false,     //composite attribute is always read-only
-                    namespace,
-                    metadata,
-                    new Function<MBeanAttributeInfo, OpenType<?>>() {
-                        @Override
-                        public OpenType<?> apply(final MBeanAttributeInfo nativeAttr) {
-                            return navigator.getType(AttributeDescriptor.getOpenType(nativeAttr));
-                        }
-                    });
-            this.navigator = Objects.requireNonNull(navigator);
-        }
-    }
-
     private final JmxNotificationSupport notifications;
     private final JmxAttributeSupport attributes;
     private final JmxConnectionManager connectionManager;

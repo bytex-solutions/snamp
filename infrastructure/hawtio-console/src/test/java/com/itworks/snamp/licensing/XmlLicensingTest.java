@@ -38,7 +38,7 @@ public final class XmlLicensingTest extends Assert {
             licenseContent = writer.toString();
         }
         assertFalse(licenseContent.isEmpty());
-        try(final InputStream input = new FileInputStream("unlimited.lic");
+        try(final InputStream input = new FileInputStream(getLicenseFile());
             final InputStreamReader reader = new InputStreamReader(input, "UTF-8")){
             license = XmlLicense.load(reader);
         }
@@ -47,9 +47,13 @@ public final class XmlLicensingTest extends Assert {
         assertTrue(license.checkNumberOfManagedResources(Long.MAX_VALUE));
     }
 
+    private static String getLicenseFile(){
+        return System.getProperty("com.itworks.snamp.licensing.file", "unlimited.lic");
+    }
+
     @Test
     public void signatureVerificationTest() throws IOException, MarshalException, ParserConfigurationException, SAXException, XMLSignatureException {
-        try(final InputStream input = new FileInputStream("unlimited.lic")){
+        try(final InputStream input = new FileInputStream(getLicenseFile())){
             assertNotNull(LicenseAttribute.fromStream(input));
         }
     }

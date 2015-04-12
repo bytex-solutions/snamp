@@ -43,6 +43,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
                 case Counter.NAME: return new Counter(attributeID, descriptor);
                 case Average.NAME: return new Average(attributeID, descriptor);
                 case Peak.NAME: return new Peak(attributeID, descriptor);
+                case Decomposer.NAME: return new Decomposer(attributeID, descriptor);
                 default: return null;
             }
         }
