@@ -1,0 +1,54 @@
+package com.itworks.snamp.adapters.nagios;
+
+import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+
+import javax.management.Descriptor;
+
+import java.util.Objects;
+
+import static com.itworks.snamp.jmx.DescriptorUtils.*;
+
+/**
+ * @author Roman Sakno
+ * @version 1.0
+ * @since 1.0
+ */
+final class NagiosAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+    private static final String SERVICE_NAME_PARAM = "serviceName";
+    private static final String LABEL_PARAM = "label";
+    private static final String CRIT_LEVEL_PARAM = "criticalLevel";
+    private static final String WARN_LEVEL_PARAM = "warningLevel";
+    private static final String UOM_PARAM = UNIT_OF_MEASUREMENT_FIELD;
+    private static final String MAX_VALUE_PARAM = MAX_VALUE_FIELD;
+    private static final String MIN_VALUE_PARAM = MIN_VALUE_FIELD;
+
+    static String getServiceName(final Descriptor descriptor, final String defaultService){
+        return hasField(descriptor, SERVICE_NAME_PARAM) ?
+                getField(descriptor, SERVICE_NAME_PARAM, String.class):
+                defaultService;
+    }
+
+    static String getUnitOfMeasurement(final Descriptor descr){
+        return getUOM(descr);
+    }
+
+    static String getLabel(final Descriptor descr, final String defaultLabel){
+        return getField(descr, LABEL_PARAM, String.class, defaultLabel);
+    }
+
+    static String getMaxValue(final Descriptor descr){
+        return Objects.toString(getRawMaxValue(descr), "");
+    }
+
+    static String getMinValue(final Descriptor descr){
+        return Objects.toString(getRawMinValue(descr), "");
+    }
+
+    static String getCritLevel(final Descriptor descr){
+        return Objects.toString(descr.getFieldValue(CRIT_LEVEL_PARAM), "");
+    }
+
+    static String getWarnLevel(final Descriptor descr){
+        return Objects.toString(descr.getFieldValue(WARN_LEVEL_PARAM), "");
+    }
+}

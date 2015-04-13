@@ -9,14 +9,14 @@ import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
 import com.itworks.snamp.jmx.DescriptorUtils;
-import com.itworks.snamp.jmx.SimpleTypeParseException;
-import com.itworks.snamp.jmx.SimpleTypeParser;
 import com.itworks.snamp.jmx.WellKnownType;
 
 import javax.management.*;
 import javax.management.openmbean.OpenType;
-import java.io.Serializable;
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 
 /**
  * Exposes access to individual management attribute.
@@ -27,31 +27,6 @@ import java.util.Objects;
  * @version 1.0
  */
 public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, AttributeSupport> implements AttributeValueReader, Consumer<Object, JMException> {
-    /**
-     * Represents a value of the attribute specified by the SNAMP administrator
-     * in the attribute configuration parameter.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    protected static class ValueLevel implements Serializable{
-        private static final long serialVersionUID = -7199946659701345760L;
-        private final String fieldName;
-        private final int defaultComparisonResult;
-
-        /**
-         * Initializes a new definition of the special attribute value.
-         * @param parameterName The name of the configuration parameter.
-         * @param defaultComparisonResult Default comparison result used
-         *                                when configuration parameter was not spcified.
-         */
-        public ValueLevel(final String parameterName,
-                             final int defaultComparisonResult){
-            this.fieldName = Objects.requireNonNull(parameterName);
-            this.defaultComparisonResult = defaultComparisonResult;
-        }
-    }
-
     private static final class WellKnownTypeCache extends SimpleCache<FeatureAccessor<? extends MBeanAttributeInfo, ?>, WellKnownType, ExceptionPlaceholder> {
 
         @Override
@@ -94,8 +69,6 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
         }
     }
 
-    protected static final ValueLevel MAX_VALUE_LEVEL = new ValueLevel(DescriptorUtils.MAX_VALUE_FIELD, -1);
-    protected static final ValueLevel MIN_VALUE_LEVEL = new ValueLevel(DescriptorUtils.MIN_VALUE_FIELD, 1);
     private AttributeSupport attributeSupport;
     private final WellKnownTypeCache wellKnownType;
     private final OpenTypeCache openType;
@@ -335,30 +308,36 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
         return getValue();
     }
 
-    private Comparable<?> parseSimpleField(final String fieldName,
-                                                   final SimpleTypeParser parser) throws SimpleTypeParseException {
-        final Object fieldValue = getMetadata().getDescriptor().getFieldValue(fieldName);
-        final WellKnownType attributeType = getType();
-        if(attributeType == null || fieldValue == null) return null;
-        else if(attributeType.isSimpleType()){
-            if(attributeType.isInstance(fieldValue)) return (Comparable<?>)fieldValue;
-            else return parser.parse(attributeType, fieldValue.toString());
-        }
+    private static BigDecimal toBigDecimal(Object value,
+                                           final DecimalFormat format) throws ParseException {
+        if(value instanceof String)
+            value = format.parse((String)value);
+        if(value instanceof BigDecimal)
+            return (BigDecimal)value;
+        else if(value instanceof BigInteger)
+            return new BigDecimal((BigInteger)value);
+        else if(value instanceof Long)
+            return BigDecimal.valueOf((long)value);
+        else if(value instanceof Double)
+            return BigDecimal.valueOf((double)value);
+        else if(value instanceof Integer)
+            return BigDecimal.valueOf((int)value);
+        else if(value instanceof Number)
+            return BigDecimal.valueOf(((Number)value).longValue());
         else return null;
     }
 
-    @SuppressWarnings("unchecked")
-    protected final int checkValue(final Object actualValue,
-                                   final ValueLevel level,
-                                   final SimpleTypeParser parser) {
-        if (!(actualValue instanceof Comparable)) return level.defaultComparisonResult;
-        final Comparable<?> fieldValue;
-        try {
-            fieldValue = parseSimpleField(level.fieldName, parser);
-        } catch (final SimpleTypeParseException e) {
-            return level.defaultComparisonResult;
-        }
-        return fieldValue == null ? level.defaultComparisonResult :
-                ((Comparable) actualValue).compareTo(fieldValue);
+    protected final boolean isInRange(final Number value,
+                                      final DecimalFormat format) throws ParseException {
+        final BigDecimal minValue = toBigDecimal(DescriptorUtils.getRawMinValue(getMetadata().getDescriptor()),
+                format);
+        final BigDecimal maxValue = toBigDecimal(DescriptorUtils.getRawMaxValue(getMetadata().getDescriptor()),
+                format);
+        final BigDecimal actualValue = toBigDecimal(value, format);
+        if(minValue != null && actualValue.compareTo(minValue) <= 0)
+            return false;
+        else if(maxValue != null && actualValue.compareTo(maxValue) >= 0)
+            return false;
+        else return true;
     }
 }

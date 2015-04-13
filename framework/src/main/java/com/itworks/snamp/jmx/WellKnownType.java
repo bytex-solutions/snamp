@@ -307,7 +307,7 @@ public enum  WellKnownType implements Serializable, Type {
     private final Class<?> javaType;
 
 
-    private <T> WellKnownType(final SimpleType<T> openType){
+    <T> WellKnownType(final SimpleType<T> openType){
         this.openType = Objects.requireNonNull(openType, "openType is null.");
         try {
             this.javaType = Class.forName(openType.getClassName());
@@ -316,8 +316,8 @@ public enum  WellKnownType implements Serializable, Type {
         }
     }
 
-    private <A> WellKnownType(final SimpleType<?> componentType,
-                         final boolean primitive){
+    <A> WellKnownType(final SimpleType<?> componentType,
+                      final boolean primitive){
         try {
             this.openType = new ArrayType<A>(componentType, primitive);
             this.javaType = Class.forName(openType.getClassName());
@@ -327,7 +327,7 @@ public enum  WellKnownType implements Serializable, Type {
         }
     }
 
-    private WellKnownType(final Class<?> javaType) {
+    WellKnownType(final Class<?> javaType) {
         this.openType = null;
         this.javaType = Objects.requireNonNull(javaType, "javaType is null.");
     }
@@ -341,8 +341,12 @@ public enum  WellKnownType implements Serializable, Type {
         return openType != null;
     }
 
-    public final boolean isSimpleType(){
-        return openType instanceof SimpleType<?>;
+    /**
+     * Determines whether this type is a number type.
+     * @return {@literal true}, if this type is a number type; otherwise, {@literal false}.
+     */
+    public final boolean isNumber(){
+        return Number.class.isAssignableFrom(javaType);
     }
 
     /**

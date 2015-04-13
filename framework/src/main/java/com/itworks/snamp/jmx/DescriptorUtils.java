@@ -7,6 +7,7 @@ import com.itworks.snamp.ArrayUtils;
 
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
+import javax.management.JMX;
 import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.Map;
@@ -19,10 +20,11 @@ import java.util.Set;
  * @since 1.0
  */
 public final class DescriptorUtils {
-    public static final String DEFAULT_VALUE_FIELD  = "defaultValue";
-    public static final String LEGAL_VALUES_FIELD = "legalValues";
-    public static final String MIN_VALUE_FIELD = "minValue";
-    public static final String MAX_VALUE_FIELD = "maxValue";
+    public static final String DEFAULT_VALUE_FIELD  = JMX.DEFAULT_VALUE_FIELD;
+    public static final String LEGAL_VALUES_FIELD = JMX.LEGAL_VALUES_FIELD;
+    public static final String MIN_VALUE_FIELD = JMX.MIN_VALUE_FIELD;
+    public static final String MAX_VALUE_FIELD = JMX.MAX_VALUE_FIELD;
+    public static final String UNIT_OF_MEASUREMENT_FIELD = "units";
 
     /**
      * Represents empty immutable descriptor.
@@ -30,7 +32,6 @@ public final class DescriptorUtils {
     public static final Descriptor EMPTY = new ImmutableDescriptor();
 
     private DescriptorUtils(){
-
     }
 
     public static <T> T getField(final Descriptor descr,
@@ -123,6 +124,10 @@ public final class DescriptorUtils {
     public static Comparable<?> getMinValue(final Descriptor descr){
         final Object value = getRawMinValue(descr);
         return value instanceof Comparable<?> ? (Comparable<?>)value : null;
+    }
+
+    public static String getUOM(final Descriptor descr){
+        return getField(descr, UNIT_OF_MEASUREMENT_FIELD, String.class, "");
     }
 
     public static ImmutableDescriptor copyOf(final Descriptor descr){

@@ -39,4 +39,14 @@ public class WellKnownTypeTest extends Assert {
             assertEquals(type, WellKnownType.getType(type.getJavaType().getName()));
         }
     }
+
+    @Test
+    public void isNumberTest(){
+        assertTrue(WellKnownType.BYTE.isNumber());
+        assertTrue(WellKnownType.SHORT.isNumber());
+        assertTrue(WellKnownType.BIG_INT.isNumber());
+        assertTrue(WellKnownType.BIG_DECIMAL.isNumber());
+        assertFalse(WellKnownType.BOOL.isNumber());
+        assertFalse(WellKnownType.STRING.isNumber());
+    }
 }

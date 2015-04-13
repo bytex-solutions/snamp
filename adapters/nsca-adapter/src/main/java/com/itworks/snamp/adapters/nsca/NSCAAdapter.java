@@ -10,9 +10,10 @@ import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
-import com.itworks.snamp.jmx.SimpleTypeParser;
 
 import javax.management.*;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -32,8 +33,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
     static final String NAME = "nsca";
 
     private static final class NSCAAttributeAccessor extends AttributeAccessor{
-        private static final ValueLevel WARN_VALUE_LEVEL = new ValueLevel(WARN_LEVEL_PARAM, -1);
-        private static final ValueLevel CRIT_VALUE_LEVEL = new ValueLevel(CRIT_LEVEL_PARAM, -1);
+        private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
         private NSCAAttributeAccessor(final MBeanAttributeInfo metadata) {
             super(metadata);
@@ -43,21 +43,15 @@ final class NSCAAdapter extends AbstractResourceAdapter {
             final MessagePayload payload = new MessagePayload();
             payload.setServiceName(getServiceName(getMetadata().getDescriptor(),
                     AttributeDescriptor.getAttributeName(getMetadata().getDescriptor())));
-            try{
+            try {
                 final Object attributeValue = getValue();
                 payload.setMessage(Objects.toString(attributeValue, ""));
-                final SimpleTypeParser parser = new SimpleTypeParser();
-                if(checkValue(attributeValue, MAX_VALUE_LEVEL, parser) >= 0)
-                    payload.setLevel(MessagePayload.LEVEL_CRITICAL);
-                else if(checkValue(attributeValue, CRIT_VALUE_LEVEL, parser) >= 0)
-                    payload.setLevel(MessagePayload.LEVEL_CRITICAL);
-                else if(checkValue(attributeValue, WARN_VALUE_LEVEL, parser) >= 0)
-                    payload.setLevel(MessagePayload.LEVEL_WARNING);
-                else if(checkValue(attributeValue, MIN_VALUE_LEVEL, parser) <= 0)
-                    payload.setLevel(MessagePayload.LEVEL_WARNING);
+                if (attributeValue instanceof Number)
+                    payload.setLevel(isInRange((Number) attributeValue, DECIMAL_FORMAT) ?
+                            MessagePayload.LEVEL_OK : MessagePayload.LEVEL_CRITICAL);
                 else payload.setLevel(MessagePayload.LEVEL_OK);
             }
-            catch (final AttributeNotFoundException e){
+            catch (final AttributeNotFoundException | ParseException e){
                 payload.setMessage(e.getMessage());
                 payload.setLevel(MessagePayload.LEVEL_WARNING);
             }

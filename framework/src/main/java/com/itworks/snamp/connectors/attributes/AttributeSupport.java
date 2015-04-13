@@ -46,7 +46,7 @@ public interface AttributeSupport {
      * The name of the field of {@link javax.management.openmbean.OpenType} in {@link javax.management.Descriptor}
      * which describes the attribute type.
      */
-    String OPEN_TYPE = "openType";
+    String OPEN_TYPE = JMX.OPEN_TYPE_FIELD;
 
     /**
      * Obtain the value of a specific attribute of the managed resource.

@@ -11,9 +11,10 @@ import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
-import com.itworks.snamp.jmx.SimpleTypeParser;
 
 import javax.management.*;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -31,9 +32,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
     static String NAME = "nrdp";
 
     private static final class NRDPAttributeAccessor extends AttributeAccessor {
-        private static final ValueLevel WARN_VALUE_LEVEL = new ValueLevel(WARN_LEVEL_PARAM, -1);
-        private static final ValueLevel CRIT_VALUE_LEVEL = new ValueLevel(CRIT_LEVEL_PARAM, -1);
-
+        private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
         private NRDPAttributeAccessor(final MBeanAttributeInfo metadata) {
             super(metadata);
@@ -46,19 +45,13 @@ final class NRDPAdapter extends AbstractResourceAdapter {
                     AttributeDescriptor.getAttributeName(getMetadata().getDescriptor()));
             try{
                 final Object attributeValue = getValue();
-                message = Objects.toString(attributeValue, "");
-                final SimpleTypeParser parser = new SimpleTypeParser();
-                if(checkValue(attributeValue, MAX_VALUE_LEVEL, parser) >= 0)
-                    state = State.CRITICAL;
-                else if(checkValue(attributeValue, CRIT_VALUE_LEVEL, parser) >= 0)
-                   state = State.CRITICAL;
-                else if(checkValue(attributeValue, WARN_VALUE_LEVEL, parser) >= 0)
-                    state = State.WARNING;
-                else if(checkValue(attributeValue, MIN_VALUE_LEVEL, parser) <= 0)
-                    state = State.WARNING;
+                if(attributeValue instanceof Number)
+                    state = isInRange((Number)attributeValue, DECIMAL_FORMAT) ?
+                            State.OK : State.CRITICAL;
                 else state = State.OK;
+                message = Objects.toString(attributeValue, "");
             }
-            catch (final AttributeNotFoundException e){
+            catch (final AttributeNotFoundException | ParseException e){
                 message = e.getMessage();
                 state = State.WARNING;
             }

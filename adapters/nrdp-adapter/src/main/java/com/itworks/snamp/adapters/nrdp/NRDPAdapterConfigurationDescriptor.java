@@ -30,8 +30,6 @@ final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     private static final String PASSIVE_CHECK_SEND_PERIOD_PARAM = "passiveCheckSendPeriod";
     private static final String MAX_VALUE_PARAM = DescriptorUtils.MAX_VALUE_FIELD;
     private static final String MIN_VALUE_PARAM = DescriptorUtils.MIN_VALUE_FIELD;
-    static final String WARN_LEVEL_PARAM = "warnLevel";
-    static final String CRIT_LEVEL_PARAM = "criticalLevel";
 
     private static final class EventConfigurationInfo extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
         private static final String RESOURCE_NAME = "EventParameters";
@@ -54,9 +52,7 @@ final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntityDescri
             super(AttributeConfiguration.class,
                     SERVICE_NAME_PARAM,
                     MAX_VALUE_PARAM,
-                    MIN_VALUE_PARAM,
-                    WARN_LEVEL_PARAM,
-                    CRIT_LEVEL_PARAM);
+                    MIN_VALUE_PARAM);
         }
 
         @Override
