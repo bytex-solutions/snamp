@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.nsca;
 
+import com.google.common.base.Strings;
 import com.googlecode.jsendnsca.core.Encryption;
 import com.googlecode.jsendnsca.core.NagiosSettings;
 import com.itworks.snamp.TimeSpan;
@@ -15,6 +16,7 @@ import java.util.ResourceBundle;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import static com.itworks.snamp.jmx.DescriptorUtils.getField;
+import static com.itworks.snamp.jmx.DescriptorUtils.getUOM;
 import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
 
 /**
@@ -32,6 +34,7 @@ final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     private static final String PASSIVE_CHECK_SEND_PERIOD_PARAM = "passiveCheckSendPeriod";
     private static final String MAX_VALUE_PARAM = DescriptorUtils.MAX_VALUE_FIELD;
     private static final String MIN_VALUE_PARAM = DescriptorUtils.MIN_VALUE_FIELD;
+    private static final String UNIT_OF_MEASUREMENT_PARAM = DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD;
 
     private static final class EventConfigurationInfo extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
         private static final String RESOURCE_NAME = "EventParameters";
@@ -54,7 +57,8 @@ final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntityDescri
             super(AttributeConfiguration.class,
                     SERVICE_NAME_PARAM,
                     MAX_VALUE_PARAM,
-                    MIN_VALUE_PARAM);
+                    MIN_VALUE_PARAM,
+                    UNIT_OF_MEASUREMENT_PARAM);
         }
 
         @Override
@@ -123,5 +127,9 @@ final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         if(parameters.containsKey(PASSIVE_CHECK_SEND_PERIOD_PARAM))
             return new TimeSpan(Long.parseLong(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM)));
         else return TimeSpan.fromSeconds(1L);
+    }
+
+    static String getUnitOfMeasurement(final Descriptor descr){
+        return Strings.nullToEmpty(getUOM(descr));
     }
 }

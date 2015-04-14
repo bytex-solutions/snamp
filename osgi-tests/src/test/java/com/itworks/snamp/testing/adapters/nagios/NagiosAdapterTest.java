@@ -175,10 +175,5 @@ public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
         attribute.getParameters().put("warningThreshold", "60");
         attribute.getParameters().put(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, "MB");
         attributes.put("3.0", attribute);
-
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("bigint");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("4.0", attribute);
     }
 }

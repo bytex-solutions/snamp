@@ -45,7 +45,8 @@ final class NSCAAdapter extends AbstractResourceAdapter {
                     AttributeDescriptor.getAttributeName(getMetadata().getDescriptor())));
             try {
                 final Object attributeValue = getValue();
-                payload.setMessage(Objects.toString(attributeValue, ""));
+                payload.setMessage(Objects.toString(attributeValue, "0") +
+                getUnitOfMeasurement(getMetadata().getDescriptor()));
                 if (attributeValue instanceof Number)
                     payload.setLevel(isInRange((Number) attributeValue, DECIMAL_FORMAT) ?
                             MessagePayload.LEVEL_OK : MessagePayload.LEVEL_CRITICAL);

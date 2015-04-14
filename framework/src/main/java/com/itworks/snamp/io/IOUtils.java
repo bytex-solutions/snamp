@@ -57,4 +57,14 @@ public final class IOUtils {
                                                          final Class<T> expectedType) throws IOException{
         return deserialize(serializedForm, TypeToken.of(expectedType));
     }
+
+    public static byte[] readFully(final InputStream inputStream) throws IOException {
+        try(final ByteArrayOutputStream out = new ByteArrayOutputStream(1024)){
+            final byte[] buffer = new byte[512];
+            int count = 0;
+            while ((count = inputStream.read(buffer)) > 0)
+                out.write(buffer, 0, count);
+            return out.toByteArray();
+        }
+    }
 }

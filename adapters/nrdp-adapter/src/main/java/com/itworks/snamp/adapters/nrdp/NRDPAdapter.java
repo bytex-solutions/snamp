@@ -49,7 +49,8 @@ final class NRDPAdapter extends AbstractResourceAdapter {
                     state = isInRange((Number)attributeValue, DECIMAL_FORMAT) ?
                             State.OK : State.CRITICAL;
                 else state = State.OK;
-                message = Objects.toString(attributeValue, "");
+                message = Objects.toString(attributeValue, "0") +
+                        getUnitOfMeasurement(getMetadata().getDescriptor());
             }
             catch (final AttributeNotFoundException | ParseException e){
                 message = e.getMessage();

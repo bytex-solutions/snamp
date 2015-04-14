@@ -28,6 +28,12 @@
                         </Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
                         <Export-Package/>
+                        <Import-Package>
+                            !javax.servlet.*,
+                            !org.apache.log.*,
+                            !org.slf4j.impl.*,
+                            *
+                        </Import-Package>
                         <!--SNAMP specific header-->
                         <SNAMP-Resource-Adapter>nrdp</SNAMP-Resource-Adapter>
                     </instructions>
@@ -65,6 +71,30 @@
             <artifactId>jsend-nrdp</artifactId>
             <version>1.0.1</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-all</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-servlet_3.0_spec</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
