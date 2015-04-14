@@ -690,7 +690,7 @@ var SnampShell = (function(SnampShell) {
                         if (value["Adapter"]["Parameters"]) {
                             angular.forEach(value["Adapter"]["Parameters"], function (parameterValue, parameterKey) {
                                 params.children.push({
-                                    title: parameterKey +": <input name=\"value\" type=\"text\" value=\"" + parameterValue["Value"] + "\"/>",
+                                    title: parameterKey +": <value>" + parameterValue["Value"] + "</value>",
                                     isFolder: false,
                                     name: parameterKey,
                                     type: "param",
@@ -723,7 +723,7 @@ var SnampShell = (function(SnampShell) {
                             value: value["Connector"]["ConnectionType"]
                         }); // adapter system name
                         currentChild.children.push({
-                            title: "Connection string: " + "<input name=\"connectionString\" type=\"text\" value=\"" + value["Connector"]["ConnectionString"] + "\"/>",
+                            title: "Connection string: " + "<value>" + value["Connector"]["ConnectionString"] + "</value>",
                             isFolder: false,
                             name: value["Connector"]["ConnectionString"],
                             type: "string",
@@ -743,7 +743,7 @@ var SnampShell = (function(SnampShell) {
                         if (value["Connector"]["Parameters"]) {
                             angular.forEach(value["Connector"]["Parameters"], function (parameterValue, parameterKey) {
                                 params.children.push({
-                                    title: parameterKey +": <input name=\"value\" type=\"text\" value=\"" + parameterValue["Value"] + "\"/>",
+                                    title: parameterKey +": <value>" + parameterValue["Value"] + "</value>",
                                     isFolder: false,
                                     name: parameterKey,
                                     type: "param",
@@ -781,7 +781,7 @@ var SnampShell = (function(SnampShell) {
                                 if (parameterValue["Attribute"]["AdditionalProperties"]) {
                                     angular.forEach(parameterValue["Attribute"]["AdditionalProperties"], function (attrValue, attrKey) {
                                         attrParams.children.push({
-                                            title: attrKey + ": <input name=\"value\" type=\"text\" value=\"" + attrValue["Value"] + "\"/>",
+                                            title: attrKey + ": <value>" + attrValue["Value"] + "</value>",
                                             isFolder: false,
                                             name: attrKey,
                                             type: "attrParam",
@@ -793,7 +793,7 @@ var SnampShell = (function(SnampShell) {
 
                                 // Appending certain attribute to the attributes tree node
                                 attributes.children.push({
-                                    title: "User defined name" +": <input name=\"value\" type=\"text\" value=\"" + parameterKey + "\"/>",
+                                    title: "User defined name" +": <value>" + parameterKey + "</value>",
                                     isFolder: true,
                                     name: parameterKey,
                                     type: "attribute",
@@ -801,7 +801,7 @@ var SnampShell = (function(SnampShell) {
                                     removable: true,
                                     children: [ // appending Attribute name and it's already defined additional properties
                                         {
-                                            title: "Attribute name" + ": <input name=\"value\" type=\"text\" value=\"" + parameterValue["Attribute"]["Name"] + "\"/>",
+                                            title: "Attribute name" + ": <value>" + parameterValue["Attribute"]["Name"] + "</value>",
                                             isFolder: true,
                                             name: parameterValue["Attribute"]["Name"],
                                             type: "attrName",
@@ -958,7 +958,7 @@ var SnampShell = (function(SnampShell) {
                 }
                 var node = getActiveNodeParams();
                 node.addChild({
-                    title: $scope.currentParamKey + ": <input name=\"value\" type=\"text\" value=\"" + value + "\"/>",
+                    title: $scope.currentParamKey + ": <value>" + value + "</value>",
                     isFolder: false,
                     name: $scope.currentParamKey,
                     type: "param",
@@ -968,11 +968,6 @@ var SnampShell = (function(SnampShell) {
                 $('#myModal').modal('hide');
                 node.expand(true);
             };
-
-            // http://stackoverflow.com/questions/8100770/auto-scaling-inputtype-text-to-width-of-value
-            function resizeInput() {
-                $(this).css('width', (($(this).val().length + 1) * 8) + 'px');
-            }
 
 
             // --- Contextmenu helper --------------------------------------------------
@@ -992,9 +987,7 @@ var SnampShell = (function(SnampShell) {
                             alert("Todo: appply action '" + action + "' to node " + node);
                     }
                 });
-            };
-
-
+            }
 
             /**
              * Draw configuration to the html.
@@ -1039,17 +1032,7 @@ var SnampShell = (function(SnampShell) {
 
                 // Before binding events to the tree - render inputs.
                 divContent.dynatree("getTree").renderInvisibleNodes();
-
-                divContent.find('input[type="text"]')
-                    // event handler
-                    .keyup(resizeInput)
-                    // resize on page load
-                    .each(resizeInput);
             };
-
-
-
-
 
             // Menu items
             $scope.menuSelected = function (section) {
