@@ -969,6 +969,51 @@ var SnampShell = (function(SnampShell) {
                 node.expand(true);
             };
 
+            var clipboardNode = null;
+            var pasteMode = null;
+
+            // --- Copy/paste/cut functionality ----------------------------------------
+            function copyPaste(action, node) {
+                switch( action ) {
+                    case "cut":
+                    case "copy":
+                        clipboardNode = node;
+                        pasteMode = action;
+                        break;
+                    case "paste":
+                        if( !clipboardNode ) {
+                            alert("Clipoard is empty.");
+                            break;
+                        }
+                        if( pasteMode == "cut" ) {
+                            // Cut mode: check for recursion and remove source
+                            var isRecursive = false;
+                            var cb = clipboardNode.toDict(true, function(dict){
+                                // If one of the source nodes is the target, we must not move
+                                if( dict.key == node.data.key )
+                                    isRecursive = true;
+                            });
+                            if( isRecursive ) {
+                                alert("Cannot move a node to a sub node.");
+                                return;
+                            }
+                            node.addChild(cb);
+                            clipboardNode.remove();
+                        } else {
+                            // Copy mode: prevent duplicate keys:
+                            var cb = clipboardNode.toDict(true, function(dict){
+                                dict.title = "Copy of " + dict.title;
+                                delete dict.key; // Remove key, so a new one will be created
+                            });
+                            node.addChild(cb);
+                        }
+                        clipboardNode = pasteMode = null;
+                        break;
+                    default:
+                        alert("Unhandled clipboard action '" + action + "'");
+                }
+            };
+
 
             // --- Contextmenu helper --------------------------------------------------
             function bindContextMenu(span) {
@@ -977,7 +1022,15 @@ var SnampShell = (function(SnampShell) {
                     // The event was bound to the <span> tag, but the node object
                     // is stored in the parent <li> tag
                     var node = $.ui.dynatree.getNode(el);
+                    $scope.activeNode = node;
+                    Core.$apply($scope);
                     switch( action ) {
+                        case "append":
+                            $scope.appendNewElement();
+                            break;
+                        case "delete":
+                            $scope.removeNode($scope.activeNode)
+                            break;
                         case "cut":
                         case "copy":
                         case "paste":
