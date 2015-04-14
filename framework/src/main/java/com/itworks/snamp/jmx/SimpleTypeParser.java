@@ -9,6 +9,7 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -77,7 +78,18 @@ public final class SimpleTypeParser {
     }
 
     @SuppressWarnings("unchecked")
-    public final <T> T parse(final SimpleType<T> type, final String value) throws SimpleTypeParseException {
+    public <T> T parse(final SimpleType<T> type, final String value) throws SimpleTypeParseException {
         return (T)parse(WellKnownType.getType(type), value);
+    }
+
+    public <T> String toString(final SimpleType<T> type, final T value){
+        if(type == null) throw new IllegalArgumentException("type is null");
+        else if(value instanceof Number)
+            return numberFormat.format(value);
+        else if(value instanceof Date)
+            return dateFormat.format(value);
+        else if(value != null)
+            return value.toString();
+        else return null;
     }
 }

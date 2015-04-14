@@ -18,6 +18,7 @@
         <module>http-adapter-feature</module>
         <module>nsca-adapter-feature</module>
         <module>nrdp-adapter-feature</module>
+        <module>nagios-adapter-feature</module>
     </modules>
 
 </project>

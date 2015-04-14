@@ -181,11 +181,13 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+        ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
         assertNotNull(desc);
         final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("usePlatformMBean");
         assertNotNull(param);
         assertFalse(param.getDescription(null).isEmpty());
+        desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        assertNotNull(desc);
     }
 
     @Override

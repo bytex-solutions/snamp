@@ -237,9 +237,20 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
         });
     }
 
+    @Test
+    public void decomposerTest() throws JMException{
+        runTest(new TestLogic() {
+            @Override
+            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
+                Object val = aggregator.getAttribute("50");
+                assertEquals("10", val);
+            }
+        });
+    }
+
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
 
@@ -386,6 +397,13 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
         attribute.getParameters().put("foreignAttribute", "3.0");
         attribute.getParameters().put("timeInterval", "5000");
         connector.getElements(AttributeConfiguration.class).put("49", attribute);
+
+        attribute = connector.newElement(AttributeConfiguration.class);
+        attribute.setAttributeName("decomposer");
+        attribute.getParameters().put("source", JMX_RESOURCE_NAME);
+        attribute.getParameters().put("foreignAttribute", "6.1");
+        attribute.getParameters().put("fieldPath", "col2");
+        connector.getElements(AttributeConfiguration.class).put("50", attribute);
 
         config.getManagedResources().put(AGGREG_RESOURCE_NAME, connector);
     }

@@ -8,7 +8,7 @@ package com.itworks.snamp.testing;
  */
 public enum SnampFeature {
     PLATFORM("platform-feature", "1.0.0"),
-    CONSOLE("console-feature", "1.0.0"),
+    WEB_CONSOLE("console-feature", "1.0.0"),
     JMX_CONNECTOR("jmx-connector-feature", "1.0.0"),
     SNMP_ADAPTER("snmp-adapter-feature", "1.0.0"),
     JMX_ADAPTER("jmx-adapter-feature", "1.0.0"),
@@ -19,7 +19,8 @@ public enum SnampFeature {
     HTTP_ADAPTER("http-adapter-feature", "1.0.0"),
     RESOURCE_AGGREGATOR("aggregator-connector-feature", "1.0.0"),
     NSCA_ADAPTER("nsca-adapter-feature", "1.0.0"),
-    NRDP_ADAPTER("nrdp-adapter-feature", "1.0.0");
+    NRDP_ADAPTER("nrdp-adapter-feature", "1.0.0"),
+    NAGIOS_ADAPTER("nagios-adapter-feature", "1.0.0");
 
     final String featureName;
     final String version;

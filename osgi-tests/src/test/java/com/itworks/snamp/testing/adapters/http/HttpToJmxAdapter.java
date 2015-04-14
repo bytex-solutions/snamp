@@ -8,6 +8,8 @@ import com.google.gson.JsonPrimitive;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterClient;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.jmx.CompositeDataBuilder;
 import com.itworks.snamp.jmx.TabularDataBuilder;
@@ -233,6 +235,15 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     @Test
     public void testNotificationViaComet() throws IOException{
         testNotificationTransport(Request.TRANSPORT.LONG_POLLING);
+    }
+
+    @Test
+    public void configurationDescriptorTest() throws BundleException {
+        final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+        assertNotNull(desc);
+        final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("dateFormat");
+        assertNotNull(param);
+        assertFalse(param.getDescription(null).isEmpty());
     }
 
     @Override

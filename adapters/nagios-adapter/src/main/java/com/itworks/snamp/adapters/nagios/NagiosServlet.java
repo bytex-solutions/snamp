@@ -4,6 +4,7 @@ import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
+import java.util.Objects;
 
 /**
  * Represents a servlet for Nagios REST service.
@@ -21,7 +22,7 @@ final class NagiosServlet extends ServletContainer {
         return result;
     }
 
-    public NagiosServlet(){
-        super(createResourceConfig(new NagiosActiveCheckService()));
+    public NagiosServlet(final NagiosActiveCheckService serviceImpl) {
+        super(createResourceConfig(Objects.requireNonNull(serviceImpl)));
     }
 }

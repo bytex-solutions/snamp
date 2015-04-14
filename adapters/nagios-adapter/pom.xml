@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <version>1.0.0</version>
-    <name>Nagios Adapter</name>
+    <name>Nagios ActiveCheck Adapter</name>
     <description>SNAMP adapter for Nagios active check</description>
     <artifactId>nagios-adapter</artifactId>
     <packaging>bundle</packaging>
@@ -85,6 +85,12 @@
             <artifactId>junit</artifactId>
             <version>4.11</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.aggregate</groupId>
+            <artifactId>jetty-all-server</artifactId>
+            <version>8.1.15.v20140411</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

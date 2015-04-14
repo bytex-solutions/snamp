@@ -20,7 +20,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 1.0
  * @since 1.0
  */
-final class NagiosThreshold implements Predicate<BigDecimal> {
+final class NagiosThreshold implements Predicate<Number> {
     //https://nagios-plugins.org/doc/guidelines.html#THRESHOLDFORMAT
     private static final Pattern THRESHOLD_FORMAT = Pattern.compile("(?<inverse>@)?(?<lower>~|[0-9]+)((?<delim>:)(?<upper>[0-9]*))?");
 
@@ -71,7 +71,7 @@ final class NagiosThreshold implements Predicate<BigDecimal> {
     }
 
     @Override
-    public boolean apply(final BigDecimal value) {
+    public boolean apply(final Number value) {
         return check(value);
     }
 

@@ -22,9 +22,9 @@ final class NagiosPluginOutput {
     //https://nagios-plugins.org/doc/guidelines.html#PLUGOUTPUT
 
     //SERVICE STATUS: VALUE
-    private static final String SIMPLE_OUTPUT = "%s %s: %s";
+    private static final String SIMPLE_OUTPUT = "%s %s: %s%s";
     //'label'=value[UOM];[warn];[crit];[min];[max]
-    private static final String EXTENDED_OUTPUT = SIMPLE_OUTPUT + "| %s=%s%s;%s;%s;%s;%s";
+    private static final String EXTENDED_OUTPUT = SIMPLE_OUTPUT + " | %s=%s%s;%s;%s;%s;%s";
 
     /**
      * Represents service status.
@@ -40,8 +40,8 @@ final class NagiosPluginOutput {
     private String serviceName;
     private String labelName;
     private String unitOfMeasurement;
-    private NagiosThreshold warnLevel;
-    private NagiosThreshold critLevel;
+    private NagiosThreshold warnThreshold;
+    private NagiosThreshold critThreshold;
     private String maxValue;
     private String minValue;
     private String value;
@@ -73,20 +73,20 @@ final class NagiosPluginOutput {
         this.unitOfMeasurement = nullToEmpty(value);
     }
 
-    boolean checkWarnLevel(final Number value){
-        return warnLevel == null || warnLevel.check(value);
+    boolean checkWarnThreshold(final Number value){
+        return warnThreshold == null || warnThreshold.check(value);
     }
 
-    void setWarnLevel(final String value) {
-        this.warnLevel = isNullOrEmpty(value) ? null : new NagiosThreshold(value);
+    void setWarnThreshold(final String value) {
+        this.warnThreshold = isNullOrEmpty(value) ? null : new NagiosThreshold(value);
     }
 
-    boolean checkCritLevel(final Number value) {
-        return critLevel == null || critLevel.check(value);
+    boolean checkCritThreshold(final Number value) {
+        return critThreshold == null || critThreshold.check(value);
     }
 
-    void setCritLevel(final String value) {
-        this.critLevel = isNullOrEmpty(value) ? null : new NagiosThreshold(value);
+    void setCritThreshold(final String value) {
+        this.critThreshold = isNullOrEmpty(value) ? null : new NagiosThreshold(value);
     }
 
     void setMaxValue(String value) {
@@ -101,13 +101,17 @@ final class NagiosPluginOutput {
         this.value = Objects.toString(value, "null");
     }
 
+    void setMessage(final String value){
+        this.value = value;
+    }
+
     void setMetadata(final MBeanAttributeInfo metadata){
         setServiceName(getServiceName(metadata.getDescriptor(),
                 AttributeDescriptor.getAttributeName(metadata)));
         setLabel(getLabel(metadata.getDescriptor(), metadata.getName()));
         setUnitOfMeasurement(getUnitOfMeasurement(metadata.getDescriptor()));
-        setWarnLevel(getWarnLevel(metadata.getDescriptor()));
-        setCritLevel(getCritLevel(metadata.getDescriptor()));
+        setWarnThreshold(getWarnThreshold(metadata.getDescriptor()));
+        setCritThreshold(getCritThreshold(metadata.getDescriptor()));
         setMaxValue(getMaxValue(metadata.getDescriptor()));
         setMinValue(getMinValue(metadata.getDescriptor()));
     }
@@ -117,15 +121,14 @@ final class NagiosPluginOutput {
      * @return A string in Nagios Plugins format.
      */
     public String toString() {
-        if (isNullOrEmpty(unitOfMeasurement) &&
-                warnLevel == null &&
-                critLevel == null &&
+        if (warnThreshold == null &&
+                critThreshold == null &&
                 isNullOrEmpty(maxValue) &&
                 isNullOrEmpty(minValue))
-            return String.format(SIMPLE_OUTPUT, serviceName, status, value);
+            return String.format(SIMPLE_OUTPUT, serviceName, status, value, unitOfMeasurement);
         else
-            return String.format(EXTENDED_OUTPUT, serviceName, status, value,
-                    labelName, value, unitOfMeasurement, toString(warnLevel), toString(critLevel), minValue, maxValue);
+            return String.format(EXTENDED_OUTPUT, serviceName, status, value, unitOfMeasurement,
+                    labelName, value, unitOfMeasurement, toString(warnThreshold), toString(critThreshold), minValue, maxValue);
     }
 
     private static String toString(final NagiosThreshold threshold){

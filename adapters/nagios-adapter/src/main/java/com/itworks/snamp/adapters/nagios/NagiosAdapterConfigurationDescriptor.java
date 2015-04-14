@@ -1,12 +1,16 @@
 package com.itworks.snamp.adapters.nagios;
 
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
 import javax.management.Descriptor;
 
+import java.util.Locale;
 import java.util.Objects;
+import java.util.ResourceBundle;
 
 import static com.itworks.snamp.jmx.DescriptorUtils.*;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * @author Roman Sakno
@@ -16,11 +20,36 @@ import static com.itworks.snamp.jmx.DescriptorUtils.*;
 final class NagiosAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
     private static final String SERVICE_NAME_PARAM = "serviceName";
     private static final String LABEL_PARAM = "label";
-    private static final String CRIT_LEVEL_PARAM = "criticalLevel";
-    private static final String WARN_LEVEL_PARAM = "warningLevel";
+    private static final String CRIT_THRESHOLD_PARAM = "criticalThreshold";
+    private static final String WARN_THRESHOLD_PARAM = "warningThreshold";
     private static final String UOM_PARAM = UNIT_OF_MEASUREMENT_FIELD;
     private static final String MAX_VALUE_PARAM = MAX_VALUE_FIELD;
     private static final String MIN_VALUE_PARAM = MIN_VALUE_FIELD;
+
+    private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
+        private static final String RESOURCE_NAME = "AttributeParameters";
+
+        private AttributeConfigurationInfo(){
+            super(AttributeConfiguration.class,
+                    SERVICE_NAME_PARAM,
+                    LABEL_PARAM,
+                    CRIT_THRESHOLD_PARAM,
+                    WARN_THRESHOLD_PARAM,
+                    UOM_PARAM,
+                    MAX_VALUE_PARAM,
+                    MIN_VALUE_PARAM);
+        }
+
+        @Override
+        protected ResourceBundle getBundle(final Locale loc) {
+            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
+                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
+        }
+    }
+
+    NagiosAdapterConfigurationDescriptor(){
+        super(new AttributeConfigurationInfo());
+    }
 
     static String getServiceName(final Descriptor descriptor, final String defaultService){
         return hasField(descriptor, SERVICE_NAME_PARAM) ?
@@ -44,11 +73,11 @@ final class NagiosAdapterConfigurationDescriptor extends ConfigurationEntityDesc
         return Objects.toString(getRawMinValue(descr), "");
     }
 
-    static String getCritLevel(final Descriptor descr){
-        return Objects.toString(descr.getFieldValue(CRIT_LEVEL_PARAM), "");
+    static String getCritThreshold(final Descriptor descr){
+        return Objects.toString(descr.getFieldValue(CRIT_THRESHOLD_PARAM), "");
     }
 
-    static String getWarnLevel(final Descriptor descr){
-        return Objects.toString(descr.getFieldValue(WARN_LEVEL_PARAM), "");
+    static String getWarnThreshold(final Descriptor descr){
+        return Objects.toString(descr.getFieldValue(WARN_THRESHOLD_PARAM), "");
     }
 }
