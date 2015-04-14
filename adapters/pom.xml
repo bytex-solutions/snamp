@@ -41,5 +41,6 @@
       <module>nsca-adapter</module>
       <module>nrdp-adapter</module>
       <module>nagios-adapter</module>
+      <module>syslog-adapter</module>
   </modules>
 </project>

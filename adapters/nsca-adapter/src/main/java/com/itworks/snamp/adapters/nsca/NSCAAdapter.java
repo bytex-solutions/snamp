@@ -62,6 +62,11 @@ final class NSCAAdapter extends AbstractResourceAdapter {
             }
             return payload;
         }
+
+        @Override
+        public boolean canWrite() {
+            return false;
+        }
     }
 
     private static final class NSCAAttributeModel extends AbstractAttributesModel<NSCAAttributeAccessor>{

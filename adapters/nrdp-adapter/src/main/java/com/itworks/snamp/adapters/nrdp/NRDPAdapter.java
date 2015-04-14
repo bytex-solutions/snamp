@@ -62,6 +62,11 @@ final class NRDPAdapter extends AbstractResourceAdapter {
             }
             return new NagiosCheckResult(host, service, state, message);
         }
+
+        @Override
+        public boolean canWrite() {
+            return false;
+        }
     }
 
     private static final class NRDPAttributeModel extends AbstractAttributesModel<NRDPAttributeAccessor> {
@@ -83,11 +88,11 @@ final class NRDPAdapter extends AbstractResourceAdapter {
                     NotificationDescriptor.getNotificationCategory(metadata));
             hostName = resourceName;
             switch (NotificationDescriptor.getSeverity(metadata)){
-                case ALERT:
+                case NOTICE:
                 case WARNING: level = State.WARNING; break;
+                case ALERT:
                 case ERROR:
                 case PANIC: level = State.CRITICAL; break;
-                case NOTICE:
                 case INFO:
                 case DEBUG:
                 case UNKNOWN:

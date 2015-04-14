@@ -45,4 +45,9 @@ final class NagiosAttributeAccessor extends AttributeAccessor {
         }
         return result;
     }
+
+    @Override
+    public boolean canWrite() {
+        return false;
+    }
 }

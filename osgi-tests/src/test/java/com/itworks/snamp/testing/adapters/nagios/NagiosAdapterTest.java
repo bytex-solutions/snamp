@@ -36,7 +36,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  * @version 1.0
  * @since 1.0
  */
-@SnampDependencies({SnampFeature.NAGIOS_ADAPTER})
+@SnampDependencies(SnampFeature.NAGIOS_ADAPTER)
 public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "nagios";
     private static final String ADAPTER_INSTANCE = "test-nagios";
