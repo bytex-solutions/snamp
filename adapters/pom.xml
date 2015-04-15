@@ -42,5 +42,6 @@
       <module>nrdp-adapter</module>
       <module>nagios-adapter</module>
       <module>syslog-adapter</module>
+      <module>xmpp-adapter</module>
   </modules>
 </project>

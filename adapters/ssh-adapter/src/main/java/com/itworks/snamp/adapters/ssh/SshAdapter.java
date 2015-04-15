@@ -15,7 +15,6 @@ import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
 import com.itworks.snamp.connectors.notifications.NotificationBox;
-import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.TabularDataUtils;
 import com.itworks.snamp.jmx.WellKnownType;
@@ -32,7 +31,8 @@ import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 
 import javax.management.*;
-import javax.management.openmbean.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.TabularData;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -234,7 +234,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         protected void printValueAsText(final Writer output) throws JMException, IOException {
-            output.append(Objects.toString(getValue(Object.class), "NULL"));
+            output.append(Objects.toString(getValue(), "NULL"));
         }
 
         @Override

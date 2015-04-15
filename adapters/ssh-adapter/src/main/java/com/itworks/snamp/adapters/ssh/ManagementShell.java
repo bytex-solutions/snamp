@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * @since 1.0
  */
 final class ManagementShell implements Command, SessionAware {
-    private static final Pattern COMMAND_DELIMITIER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+    private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 
     private static final class CommandExecutionContextImpl extends Switch<Class<?>, Object> implements CommandExecutionContext{
 
@@ -238,7 +238,7 @@ final class ManagementShell implements Command, SessionAware {
 
     private static String[] splitArguments(final String value){
         final List<String> matchList = new LinkedList<>();
-        final Matcher regexMatcher = COMMAND_DELIMITIER.matcher(value);
+        final Matcher regexMatcher = COMMAND_DELIMITER.matcher(value);
         while (regexMatcher.find()) {
             if (regexMatcher.group(1) != null) {
                 // Add double-quoted string without the quotes

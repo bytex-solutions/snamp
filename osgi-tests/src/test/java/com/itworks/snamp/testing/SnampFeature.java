@@ -21,7 +21,8 @@ public enum SnampFeature {
     NSCA_ADAPTER("nsca-adapter-feature", "1.0.0"),
     NRDP_ADAPTER("nrdp-adapter-feature", "1.0.0"),
     NAGIOS_ADAPTER("nagios-adapter-feature", "1.0.0"),
-    SYSLOG_ADAPTER("syslog-adapter-feature", "1.0.0");
+    SYSLOG_ADAPTER("syslog-adapter-feature", "1.0.0"),
+    XMPP_ADAPTER("xmpp-adapter-feature", "1.0.0");
 
     final String featureName;
     final String version;

@@ -20,6 +20,7 @@
         <module>nrdp-adapter-feature</module>
         <module>nagios-adapter-feature</module>
         <module>syslog-adapter-factory</module>
+        <module>xmpp-adapter-feature</module>
     </modules>
 
 </project>
