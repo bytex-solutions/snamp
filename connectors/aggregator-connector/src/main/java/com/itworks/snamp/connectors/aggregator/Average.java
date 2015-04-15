@@ -23,9 +23,9 @@ final class Average extends UnaryAttributeAggregation<Double> {
     private long count;
 
     Average(final String attributeID,
-                      final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+                      final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, DESCRIPTION, SimpleType.DOUBLE, descriptor);
-        updateInterval = AggregatorConnectorConfigurationDescriptor.getTimeIntervalInMillis(descriptor);
+        updateInterval = AggregatorConnectorConfiguration.getTimeIntervalInMillis(descriptor);
         timer = Stopwatch.createStarted();
     }
 

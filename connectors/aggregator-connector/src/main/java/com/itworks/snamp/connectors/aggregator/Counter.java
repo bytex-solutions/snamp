@@ -24,9 +24,9 @@ final class Counter extends UnaryAttributeAggregation<Long> {
     private final AtomicLong counter;
 
     protected Counter(final String attributeID,
-                      final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+                      final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, DESCRIPTION, SimpleType.LONG, descriptor);
-        updateInterval = AggregatorConnectorConfigurationDescriptor.getTimeIntervalInMillis(descriptor);
+        updateInterval = AggregatorConnectorConfiguration.getTimeIntervalInMillis(descriptor);
         counter = new AtomicLong(0L);
         timer = Stopwatch.createStarted();
     }

@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.adapters.xmpp.client.XMPPClient;
+import com.itworks.snamp.configuration.AbsentConfigurationParameterException;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
@@ -26,7 +28,10 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.File;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
@@ -55,15 +60,19 @@ public final class XmppAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
                                 final Supplier<ResourceAdapterConfiguration> adapterFactory) {
         final ResourceAdapterConfiguration xmppAdapter = adapterFactory.get();
         xmppAdapter.setAdapterName(ADAPTER_NAME);
-        xmppAdapter.getParameters().put("port", Integer.toString(PORT));
-        xmppAdapter.getParameters().put("host", "127.0.0.1");
-        xmppAdapter.getParameters().put("userName", USER_NAME);
-        xmppAdapter.getParameters().put("password", PASSWORD);
-        xmppAdapter.getParameters().put("keystore", getPathToFileInProjectRoot("xmpp_tls.cert"));
-        xmppAdapter.getParameters().put("domain", "itworks.com");
-        xmppAdapter.getParameters().put("keystorePassword", "boguspw");
-        xmppAdapter.getParameters().put("allowUnsafeCertificate", "true");
+        fillParameters(xmppAdapter.getParameters());
         adapters.put(ADAPTER_INSTANCE, xmppAdapter);
+    }
+
+    private static void fillParameters(final Map<String, String> serverParameters){
+        serverParameters.put("port", Integer.toString(PORT));
+        serverParameters.put("host", "127.0.0.1");
+        serverParameters.put("userName", USER_NAME);
+        serverParameters.put("password", PASSWORD);
+        serverParameters.put("keystore", getPathToFileInProjectRoot("xmpp_tls.cert"));
+        serverParameters.put("domain", "itworks.com");
+        serverParameters.put("keystorePassword", "boguspw");
+        serverParameters.put("allowUnsafeCertificate", "true");
     }
 
     @Override
@@ -71,9 +80,23 @@ public final class XmppAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
         return true;
     }
 
+    private void testAttribute(final String attributeID) throws AbsentConfigurationParameterException, GeneralSecurityException, IOException, TimeoutException, InterruptedException{
+        final Map<String, String> parameters = new HashMap<>(10);
+        fillParameters(parameters);
+        parameters.put("userName", "tester");
+        parameters.put("password", "456");
+        try(final XMPPClient client = new XMPPClient(parameters)){
+            client.connectAndLogin();
+            final String command = String.format("get -n %s -r %s --json", attributeID, TEST_RESOURCE_NAME);
+            client.beginChat("agent");
+            final String response = client.sendMessageSync(command, "Hi.*", TimeSpan.fromSeconds(60));
+            response.toString();
+        }
+    }
+
     @Test
-    public void simpleTest() throws InterruptedException {
-        Thread.sleep(1);
+    public void simpleTest() throws AbsentConfigurationParameterException, GeneralSecurityException, IOException, TimeoutException, InterruptedException {
+        testAttribute("3.0");
     }
 
     @Override

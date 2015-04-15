@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.connectors.aggregator;
 
 import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
@@ -14,8 +15,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import javax.management.*;
-
 import java.math.BigInteger;
+import java.util.Locale;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -250,7 +251,7 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
 
@@ -269,6 +270,16 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
             getTestBundleContext().ungetService(jmxConnectorRef);
             getTestBundleContext().ungetService(aggregatorRef);
         }
+    }
+
+    @Test
+    public void configurationTest(){
+        final ConfigurationEntityDescription description = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), AGGREGATOR_CONNECTOR, ManagedResourceConfiguration.class);
+        assertNotNull(description);
+        final ConfigurationEntityDescription.ParameterDescription parameter =
+                description.getParameterDescriptor("notificationFrequency");
+        assertNotNull(parameter);
+        assertFalse(parameter.getDescription(Locale.getDefault()).isEmpty());
     }
 
     /**

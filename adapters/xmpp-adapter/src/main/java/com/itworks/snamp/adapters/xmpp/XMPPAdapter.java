@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-public final class XMPPAdapter extends AbstractResourceAdapter {
+final class XMPPAdapter extends AbstractResourceAdapter {
     static {
         final SmackInitializer initializer = new Java7SmackInitializer();
         initializer.initialize();

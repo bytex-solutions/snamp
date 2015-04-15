@@ -14,12 +14,12 @@ final class BinaryComparison extends BinaryAttributeAggregation<Boolean> {
     private final Comparison comparison;
 
     BinaryComparison(final String attributeID,
-                     final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+                     final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID,
                 DESCRIPTION,
                 SimpleType.BOOLEAN,
                 descriptor);
-        comparison = AggregatorConnectorConfigurationDescriptor.getComparisonType(descriptor);
+        comparison = AggregatorConnectorConfiguration.getComparisonType(descriptor);
     }
 
     @Override

@@ -33,7 +33,7 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
                                            final String listId,
                                            final String category,
                                            final CompositeData options) {
-            //not supported
+            connector.enableNotifications(listId, category, options);
         }
 
         @Override
@@ -46,14 +46,15 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
                                                            final String connectionString,
                                                            final Map<String, String> connectionParameters,
                                                            final RequiredService<?>... dependencies) throws IntrospectionException {
-            return new AggregatorResourceConnector(resourceName);
+            return new AggregatorResourceConnector(resourceName,
+                    AggregatorConnectorConfiguration.getNotificationFrequency(connectionParameters));
         }
     }
 
-    private static final class ConfigurationProvider extends ConfigurationEntityDescriptionManager<AggregatorConnectorConfigurationDescriptor>{
+    private static final class ConfigurationProvider extends ConfigurationEntityDescriptionManager<AggregatorConnectorConfiguration>{
         @Override
-        protected AggregatorConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new AggregatorConnectorConfigurationDescriptor();
+        protected AggregatorConnectorConfiguration createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+            return new AggregatorConnectorConfiguration();
         }
     }
 

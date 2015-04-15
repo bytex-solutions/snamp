@@ -17,9 +17,9 @@ abstract class UnaryAttributeAggregation<T> extends AbstractAttributeAggregation
     protected UnaryAttributeAggregation(final String attributeID,
                                         final String description,
                                         final OpenType<T> attributeType,
-                                        final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+                                        final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, description, attributeType, descriptor);
-        foreignAttribute = AggregatorConnectorConfigurationDescriptor.getForeignAttributeName(descriptor);
+        foreignAttribute = AggregatorConnectorConfiguration.getForeignAttributeName(descriptor);
     }
 
     public final String getOperandAttribute(){

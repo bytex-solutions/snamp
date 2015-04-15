@@ -17,7 +17,7 @@ final class BinaryPercent extends BinaryAttributeAggregation<Double> {
     private static final String DESCRIPTION = "Computes percent value: (first / second) * 100";
 
     protected BinaryPercent(final String attributeID,
-                            final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+                            final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, DESCRIPTION, SimpleType.DOUBLE, descriptor);
     }
 

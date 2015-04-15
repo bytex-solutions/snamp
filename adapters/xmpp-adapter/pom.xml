@@ -23,7 +23,9 @@
                     <instructions>
                         <Bundle-SymbolicName>com.itworks.snamp.adapters.xmpp</Bundle-SymbolicName>
                         <Bundle-Activator>com.itworks.snamp.adapters.xmpp.XMPPAdapterActivator</Bundle-Activator>
-                        <Export-Package/>
+                        <Export-Package>
+                            com.itworks.snamp.adapters.xmpp.client.*
+                        </Export-Package>
                         <Embed-Dependency>
                             *;scope=compile
                         </Embed-Dependency>
@@ -74,6 +76,7 @@
             <groupId>org.igniterealtime.smack</groupId>
             <artifactId>smack-java7</artifactId>
             <version>4.1.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.igniterealtime.smack</groupId>
@@ -83,13 +86,7 @@
         </dependency>
         <dependency>
             <groupId>org.igniterealtime.smack</groupId>
-            <artifactId>smack-resolver-javax</artifactId>
-            <version>4.1.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.igniterealtime.smack</groupId>
-            <artifactId>smack-sasl-javax</artifactId>
+            <artifactId>smack-extensions</artifactId>
             <version>4.1.0</version>
             <scope>compile</scope>
         </dependency>

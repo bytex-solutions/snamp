@@ -10,6 +10,7 @@ import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -52,6 +53,33 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
             return value == null || value.isEmpty() ?
                     BigInteger.ZERO:
                     new BigInteger(value.getBytes());
+        }
+    }
+
+    /**
+     * Represents batch notification sender.
+     */
+    protected abstract class NotificationCollector extends LinkedList<Notification>{
+        private static final long serialVersionUID = -7783660559033012643L;
+
+        /**
+         * Processes enabled notification.
+         * @param metadata Notification metadata.
+         * @see #enqueue(MBeanNotificationInfo, String, Object)
+         */
+        protected abstract void process(final M metadata);
+
+        /**
+         * Enqueues a notification to sent in future.
+         * @param metadata Notification metadata.
+         * @param message Notification message.
+         * @param userData Advanced data to be associated with the notification.
+         */
+        protected final void enqueue(final MBeanNotificationInfo metadata,
+                                     final String message,
+                                     final Object userData){
+            for(final String listID: metadata.getNotifTypes())
+                add(createNotification(listID, message, userData));
         }
     }
 
@@ -106,6 +134,32 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
      */
     protected abstract NotificationListenerInvoker getListenerInvoker();
 
+    private Notification createNotification(final String listID,
+                                                   final String message,
+                                                   final Object userData){
+        final Notification result = new Notification(listID,
+                this,
+                sequenceCounter.getAndIncrement(),
+                message);
+        result.setUserData(userData);
+        result.setTimeStamp(System.currentTimeMillis());
+        return result;
+    }
+
+    /**
+     * Collects notifications in batch manner.
+     * @param sender An object used to collect notifications
+     */
+    protected final void fire(final NotificationCollector sender){
+        //collect notifications
+        try(final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)){
+            for(final NotificationHolder<M> holder: notifications.values())
+                sender.process(holder.getMetadata());
+        }
+        //send notifications
+        fireListeners(sender);
+    }
+
     /**
      * Invokes all listeners associated with the specified notification category.
      * @param category An event category.
@@ -121,17 +175,18 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
             for (final NotificationHolder<M> holder : notifications.values())
                 if (Objects.equals(NotificationDescriptor.getNotificationCategory(holder.getMetadata()), category))
                     for (final String listId : holder.getMetadata().getNotifTypes()) {
-                        final Notification n = new Notification(listId,
-                                this,
-                                sequenceCounter.getAndIncrement(),
-                                message);
-                        n.setTimeStamp(System.currentTimeMillis());
-                        n.setUserData(userData);
+                        final Notification n = createNotification(listId,
+                                message,
+                                userData);
                         notifs.add(n);
                     }
         }
         //fire listeners
-        for (final Notification n : notifs)
+        fireListeners(notifs);
+    }
+
+    private void fireListeners(final Iterable<? extends Notification> notifications){
+        for (final Notification n : notifications)
             listeners.handleNotification(getListenerInvoker(), n, null);
     }
 

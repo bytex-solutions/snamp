@@ -9,6 +9,7 @@ import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.XMPPError;
 import org.osgi.framework.BundleContext;
 
 import java.io.Closeable;
@@ -28,15 +29,14 @@ import java.util.regex.Pattern;
  */
 final class ChatController extends ThreadSafeObject implements ChatManagerListener, Closeable {
     private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
-    private static final class ChatSession implements ChatMessageListener, Closeable{
-        private final Chat chat;
+
+    private static final class ChatSession implements ChatMessageListener{
         private final Logger logger;
         private final XMPPAttributeModel attributes;
 
         private ChatSession(final Chat chat,
                             final XMPPAttributeModel attributes,
                             final Logger logger){
-            this.chat = Objects.requireNonNull(chat);
             chat.addMessageListener(this);
             this.logger = logger;
             this.attributes = attributes;
@@ -48,10 +48,14 @@ final class ChatController extends ThreadSafeObject implements ChatManagerListen
 
         @Override
         public void processMessage(final Chat chat, Message message) {
+            if(message.getBody() == null) return;
             final String[] arguments = splitArguments(message.getBody());
             if (arguments.length == 0) {
                 try {
-                    chat.sendMessage("Oops! I can't recognize the message");
+                    message = new Message();
+                    message.setSubject("Empty request");
+                    message.setError(XMPPError.from(XMPPError.Condition.bad_request, "Oops! I can't recognize the message"));
+                    chat.sendMessage(message);
                 } catch (final SmackException.NotConnectedException e) {
                     unableToSendMessage(e);
                 }
@@ -70,12 +74,16 @@ final class ChatController extends ThreadSafeObject implements ChatManagerListen
             try {
                 message = cmd.doCommand(ArrayUtils.remove(arguments, 0));
             }
-            catch (final CommandException e){
-                message = new Message(e.getMessage(), Message.Type.error);
+            catch (final InvalidCommandFormatException e){
+                message = new Message();
+                message.setSubject("Invalid command format");
+                message.setError(XMPPError.from(XMPPError.Condition.bad_request, e.getMessage()));
             }
-            //prepare message
-            message.setThread(chat.getThreadID());
-            message.setSubject(chat.getParticipant());
+            catch (final CommandException e){
+                message = new Message();
+                message.setSubject("Error in managed resource");
+                message.setError(XMPPError.from(XMPPError.Condition.service_unavailable, e.getMessage()));
+            }
             //send message to participant
             try {
                 chat.sendMessage(message);
@@ -88,11 +96,6 @@ final class ChatController extends ThreadSafeObject implements ChatManagerListen
             try (final OSGiLoggingContext context = OSGiLoggingContext.get(logger, getBundleContext())) {
                 context.log(Level.SEVERE, "Unable to send XMPP message", e);
             }
-        }
-
-        @Override
-        public void close() {
-            chat.close();
         }
     }
 
@@ -108,12 +111,10 @@ final class ChatController extends ThreadSafeObject implements ChatManagerListen
 
     @Override
     public void chatCreated(final Chat chat, final boolean createdLocally) {
-        if (!createdLocally) {
-            try (final LockScope ignored = beginWrite()) {
-                sessions.add(new ChatSession(chat, attributes, logger));
-            }
-            sayHello(chat);
+        try (final LockScope ignored = beginWrite()) {
+            sessions.add(new ChatSession(chat, attributes, logger));
         }
+        sayHello(chat);
     }
 
     private void sayHello(final Chat chat){
@@ -158,8 +159,6 @@ final class ChatController extends ThreadSafeObject implements ChatManagerListen
      */
     public void closeAllChats(){
         try(final LockScope ignored = beginWrite()){
-            for(final ChatSession session: sessions)
-                session.close();
             sessions.clear();
         }
     }

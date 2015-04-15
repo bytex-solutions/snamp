@@ -1,6 +1,8 @@
 package com.itworks.snamp.adapters.xmpp;
 
+import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.java7.Java7HostnameVerifier;
@@ -14,7 +16,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -23,7 +27,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 1.0
  * @since 1.0
  */
-final class XMPPAdapterConfiguration extends ConfigurationEntityDescriptionProviderImpl {
+public final class XMPPAdapterConfiguration extends ConfigurationEntityDescriptionProviderImpl {
     private static final String USER_NAME_PARAM = "userName";
     private static final String PASSWORD_PARAM = "password";
     private static final String DOMAIN_PARAM = "domain";
@@ -35,7 +39,34 @@ final class XMPPAdapterConfiguration extends ConfigurationEntityDescriptionProvi
     private static final String KEYSTORE_PASSWORD_PARAM = "keystorePassword";
     private static final String ALLOW_CUSTOM_CERTIFICATE = "allowUnsafeCertificate";
 
-    static AbstractXMPPConnection createConnection(final Map<String, String> parameters) throws AbsentXMPPConfigurationParameterException, GeneralSecurityException, IOException {
+    private static final class AdapterConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration>{
+        private static final String RESOURCE_NAME = "AdapterParameters";
+
+        private AdapterConfigurationDescriptor(){
+            super(ResourceAdapterConfiguration.class,
+                    PORT_PARAM,
+                    HOST_PARAM,
+                    PASSWORD_PARAM,
+                    KEYSTORE_PASSWORD_PARAM,
+                    KEYSTORE_PATH_PARAM,
+                    KEYSTORE_TYPE_PARAM);
+        }
+
+        @Override
+        protected ResourceBundle getBundle(final Locale loc) {
+            return ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc != null ? loc : Locale.getDefault());
+        }
+    }
+
+    XMPPAdapterConfiguration(){
+        super(new AdapterConfigurationDescriptor());
+    }
+
+    public static String getDomain(final Map<String, String> parameters){
+        return parameters.get(DOMAIN_PARAM);
+    }
+
+    public static AbstractXMPPConnection createConnection(final Map<String, String> parameters) throws AbsentXMPPConfigurationParameterException, GeneralSecurityException, IOException {
         if (!parameters.containsKey(USER_NAME_PARAM))
             throw new AbsentXMPPConfigurationParameterException(USER_NAME_PARAM);
         else if (!parameters.containsKey(PASSWORD_PARAM))
@@ -76,8 +107,6 @@ final class XMPPAdapterConfiguration extends ConfigurationEntityDescriptionProvi
                         .setKeystoreType(isNullOrEmpty(keystoreType) ? KeyStore.getDefaultType() : keystoreType)
                         .setCustomSSLContext(SSLContext.getDefault())
                         .setHostnameVerifier(new Java7HostnameVerifier());
-                if(!isNullOrEmpty(keystorePassword))
-                    builder.setCallbackHandler(new PasswordCallbackHandler(parameters.get(KEYSTORE_PASSWORD_PARAM)));
             }
         }
         else builder.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)

@@ -26,13 +26,13 @@ abstract class AbstractAttributeAggregation<T> extends OpenAttributeAccessor<T> 
     protected AbstractAttributeAggregation(final String attributeID,
                                            final String description,
                                            final OpenType<T> attributeType,
-                                           final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+                                           final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID,
                 description,
                 attributeType,
                 AttributeSpecifier.READ_ONLY,
                 descriptor);
-        source = AggregatorConnectorConfigurationDescriptor.getSourceManagedResource(descriptor);
+        source = AggregatorConnectorConfiguration.getSourceManagedResource(descriptor);
     }
 
 

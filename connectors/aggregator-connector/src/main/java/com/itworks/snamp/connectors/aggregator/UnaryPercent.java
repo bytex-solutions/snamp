@@ -18,9 +18,9 @@ final class UnaryPercent extends UnaryAttributeAggregation<Double>{
     private final BigDecimal userValue;
 
     UnaryPercent(final String attributeID,
-                           final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+                           final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, DESCRIPTION, SimpleType.DOUBLE, descriptor);
-        userValue = new BigDecimal(AggregatorConnectorConfigurationDescriptor.getUserDefinedValue(descriptor));
+        userValue = new BigDecimal(AggregatorConnectorConfiguration.getUserDefinedValue(descriptor));
     }
 
 

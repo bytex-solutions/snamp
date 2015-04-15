@@ -19,9 +19,9 @@ final class Decomposer extends UnaryAttributeAggregation<String> {
     private final CompositeDataPath path;
 
     protected Decomposer(final String attributeID,
-                         final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+                         final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, DESCRIPTION, SimpleType.STRING, descriptor);
-        path = AggregatorConnectorConfigurationDescriptor.getFieldPath(descriptor);
+        path = AggregatorConnectorConfiguration.getFieldPath(descriptor);
     }
 
     private static String toString(final Object value){

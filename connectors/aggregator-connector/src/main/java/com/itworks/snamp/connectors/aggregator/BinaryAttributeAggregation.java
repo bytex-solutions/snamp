@@ -18,10 +18,10 @@ abstract class BinaryAttributeAggregation<T> extends AbstractAttributeAggregatio
     protected BinaryAttributeAggregation(final String attributeID,
                                          final String description,
                                          final OpenType<T> attributeType,
-                                         final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+                                         final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, description, attributeType, descriptor);
-        leftOperand = AggregatorConnectorConfigurationDescriptor.getFirstForeignAttributeName(descriptor);
-        rightOperand = AggregatorConnectorConfigurationDescriptor.getSecondForeignAttributeName(descriptor);
+        leftOperand = AggregatorConnectorConfiguration.getFirstForeignAttributeName(descriptor);
+        rightOperand = AggregatorConnectorConfiguration.getSecondForeignAttributeName(descriptor);
     }
 
     public final String getFirstOperandAttribute(){

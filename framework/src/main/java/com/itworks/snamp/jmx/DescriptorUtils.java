@@ -8,9 +8,13 @@ import com.itworks.snamp.ArrayUtils;
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
 import javax.management.JMX;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -65,6 +69,39 @@ public final class DescriptorUtils {
         return getField(descr, fieldName, fieldType, Suppliers.<T>ofInstance(null));
     }
 
+    public static Properties toProperties(final Descriptor descr) {
+        final Properties result = new Properties();
+        if (descr != null)
+            for (final String fieldName : descr.getFieldNames()) {
+                final Object fieldValue = descr.getFieldValue(fieldName);
+                if (fieldValue != null)
+                    result.setProperty(fieldName, fieldValue.toString());
+            }
+        return result;
+    }
+
+    public static String toString(final Descriptor descr, final String comments) throws IOException {
+        final Properties props = toProperties(descr);
+        try(final StringWriter writer = new StringWriter(1024)){
+            props.store(writer, comments);
+            return writer.toString();
+        }
+    }
+
+    public static String toXML(final Descriptor descr, final String comments) throws IOException {
+        final Properties props = toProperties(descr);
+        final String ENCODING = "UTF-8";
+        try (final ByteArrayOutputStream out = new ByteArrayOutputStream(1024)) {
+            props.storeToXML(out, comments, ENCODING);
+            return new String(out.toByteArray(), ENCODING);
+        }
+    }
+
+    /**
+     * Converts {@link Descriptor} to map of fields.
+     * @param descr The descriptor to convert. May be {@literal null}.
+     * @return A map of fields.
+     */
     public static Map<String, ?> toMap(final Descriptor descr){
         if(descr == null) return Collections.emptyMap();
         final String[] fields = descr.getFieldNames();
@@ -74,6 +111,12 @@ public final class DescriptorUtils {
         return result;
     }
 
+    /**
+     * Determines whether {@link Descriptor} instance has the specified field.
+     * @param descr The descriptor. Cannot be {@literal null}.
+     * @param fieldName The name of the field.
+     * @return {@literal true}, if {@link Descriptor} instance has the field; otherwise, {@literal false}.
+     */
     public static boolean hasField(final Descriptor descr, final String fieldName){
         return ArrayUtils.contains(descr.getFieldNames(), fieldName);
     }

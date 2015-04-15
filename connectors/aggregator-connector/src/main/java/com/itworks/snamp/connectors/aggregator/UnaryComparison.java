@@ -20,13 +20,13 @@ final class UnaryComparison extends UnaryAttributeAggregation<Boolean> {
     private final BigDecimal userDefinedValue;
 
     UnaryComparison(final String attributeID,
-                    final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+                    final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID,
                 DESCRIPTION,
                 SimpleType.BOOLEAN,
                 descriptor);
-        comparison = AggregatorConnectorConfigurationDescriptor.getComparisonType(descriptor);
-        userDefinedValue = new BigDecimal(AggregatorConnectorConfigurationDescriptor.getUserDefinedValue(descriptor));
+        comparison = AggregatorConnectorConfiguration.getComparisonType(descriptor);
+        userDefinedValue = new BigDecimal(AggregatorConnectorConfiguration.getUserDefinedValue(descriptor));
     }
 
     @Override

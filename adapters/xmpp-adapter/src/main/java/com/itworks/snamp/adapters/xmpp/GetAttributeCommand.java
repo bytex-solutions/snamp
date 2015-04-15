@@ -42,7 +42,10 @@ final class GetAttributeCommand extends AbstractAttributeCommand {
         } catch (final JMException e) {
             throw new CommandException(e);
         }
-        return new Message(value);
+        final Message result = new Message();
+        result.setSubject(String.format("Value of '%s/%s'", resourceName, attributeID));
+        result.setBody(value);
+        return result;
     }
 
     @Override

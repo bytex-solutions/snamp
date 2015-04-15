@@ -21,9 +21,9 @@ final class Peak extends UnaryAttributeAggregation<Long> {
     private final long timeInterval;
     private final Stopwatch timer;
 
-    protected Peak(final String attributeID, final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+    protected Peak(final String attributeID, final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, DESCRIPTION, SimpleType.LONG, descriptor);
-        timeInterval = AggregatorConnectorConfigurationDescriptor.getTimeIntervalInMillis(descriptor);
+        timeInterval = AggregatorConnectorConfiguration.getTimeIntervalInMillis(descriptor);
         timer = Stopwatch.createStarted();
         peak = 0L;
     }

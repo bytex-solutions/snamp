@@ -20,12 +20,12 @@ final class PatternMatcher extends UnaryAttributeAggregation<Boolean> {
     private final Pattern pattern;
 
     PatternMatcher(final String attributeID,
-                   final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameter {
+                   final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID,
                 DESCRIPTION,
                 SimpleType.BOOLEAN,
                 descriptor);
-        pattern = Pattern.compile(AggregatorConnectorConfigurationDescriptor.getPattern(descriptor));
+        pattern = Pattern.compile(AggregatorConnectorConfiguration.getPattern(descriptor));
     }
 
     @Override
