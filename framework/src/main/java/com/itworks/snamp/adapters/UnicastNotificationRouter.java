@@ -2,7 +2,6 @@ package com.itworks.snamp.adapters;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
-import javax.management.NotificationListener;
 import java.lang.ref.WeakReference;
 
 /**
@@ -12,7 +11,7 @@ import java.lang.ref.WeakReference;
  * @version 1.0
  * @since 1.0
  */
-public class NotificationRouter extends NotificationAccessor {
+public class UnicastNotificationRouter extends NotificationAccessor {
     private final WeakReference<NotificationListener> weakListener;
 
     /**
@@ -22,8 +21,8 @@ public class NotificationRouter extends NotificationAccessor {
      * @param metadata The metadata of the notification. Cannot be {@literal null}.
      * @param destination The notification acceptor.
      */
-    public NotificationRouter(final MBeanNotificationInfo metadata,
-                              final NotificationListener destination) {
+    public UnicastNotificationRouter(final MBeanNotificationInfo metadata,
+                                     final NotificationListener destination) {
         super(metadata);
         this.weakListener = new WeakReference<>(destination);
     }
@@ -45,6 +44,11 @@ public class NotificationRouter extends NotificationAccessor {
         return notification;
     }
 
+    protected NotificationEvent createNotificationEvent(final Notification notification,
+                                                        final Object handback){
+        return new NotificationEvent(getMetadata(), notification);
+    }
+
     /**
      * Routes accepted notification to the underlying listener.
      * @param notification The notification to route.
@@ -53,6 +57,6 @@ public class NotificationRouter extends NotificationAccessor {
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
         final NotificationListener listener = weakListener.get();
-        if(listener != null) listener.handleNotification(intercept(notification), handback);
+        if(listener != null) listener.handleNotification(createNotificationEvent(intercept(notification), handback));
     }
 }

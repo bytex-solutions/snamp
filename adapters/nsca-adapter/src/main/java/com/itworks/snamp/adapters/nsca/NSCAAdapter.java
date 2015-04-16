@@ -7,6 +7,7 @@ import com.googlecode.jsendnsca.core.MessagePayload;
 import com.googlecode.jsendnsca.core.NagiosSettings;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
+import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
@@ -21,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor.*;
+import static com.itworks.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor.getServiceName;
 
 /**
  * Represents NSCA adapter.
@@ -77,32 +79,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NSCASourceInfo{
-        private final String hostName;
-        private final String serviceName;
-        private final int level;
-
-        private NSCASourceInfo(final String resourceName,
-                               final Descriptor metadata){
-            serviceName = getServiceName(metadata,
-                    NotificationDescriptor.getNotificationCategory(metadata));
-            hostName = resourceName;
-            switch (NotificationDescriptor.getSeverity(metadata)){
-                case ALERT:
-                case WARNING: level = MessagePayload.LEVEL_WARNING; break;
-                case ERROR:
-                case PANIC: level = MessagePayload.LEVEL_CRITICAL; break;
-                case NOTICE:
-                case INFO:
-                case DEBUG:
-                case UNKNOWN:
-                    level = MessagePayload.LEVEL_OK; break;
-                default: level = MessagePayload.LEVEL_UNKNOWN;
-            }
-        }
-    }
-
-    private static final class NSCANotificationAccessor extends NotificationRouter{
+    private static final class NSCANotificationAccessor extends UnicastNotificationRouter {
         private final String resourceName;
 
         private <L extends ThreadSafeObject & NotificationListener> NSCANotificationAccessor(final String resourceName,
@@ -114,8 +91,28 @@ final class NSCAAdapter extends AbstractResourceAdapter {
 
         @Override
         protected Notification intercept(final Notification notification) {
-            notification.setSource(new NSCASourceInfo(resourceName, getMetadata().getDescriptor()));
+            notification.setSource(resourceName);
             return notification;
+        }
+
+        private static int getLevel(final MBeanNotificationInfo metadata){
+            switch (NotificationDescriptor.getSeverity(metadata)){
+                case ALERT:
+                case WARNING: return MessagePayload.LEVEL_WARNING;
+                case ERROR:
+                case PANIC: return MessagePayload.LEVEL_CRITICAL;
+                case NOTICE:
+                case INFO:
+                case DEBUG:
+                case UNKNOWN:
+                    return MessagePayload.LEVEL_OK;
+                default: return MessagePayload.LEVEL_UNKNOWN;
+            }
+        }
+
+        private static String getServiceName(final MBeanNotificationInfo metadata){
+            return NSCAAdapterConfigurationDescriptor.getServiceName(metadata.getDescriptor(),
+                    NotificationDescriptor.getNotificationCategory(metadata));
         }
     }
 
@@ -132,13 +129,15 @@ final class NSCAAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public void handleNotification(final Notification notification, final Object handback) {
-            final NSCASourceInfo source = (NSCASourceInfo) notification.getSource();
+        public void handleNotification(final NotificationEvent event) {
+            final int level = NSCANotificationAccessor.getLevel(event.getSource());
+            final String resourceName = (String)event.getNotification().getSource();
+            final String serviceName = NSCANotificationAccessor.getServiceName(event.getSource());
             final MessagePayload payload = new MessagePayload();
-            payload.setLevel(source.level);
-            payload.setMessage(notification.getMessage());
-            payload.setMessage(source.hostName);
-            payload.setServiceName(source.serviceName);
+            payload.setLevel(level);
+            payload.setMessage(event.getNotification().getMessage());
+            payload.setMessage(resourceName);
+            payload.setServiceName(serviceName);
             final ConcurrentPassiveCheckSender checkSender = this.checkSender;
             if (checkSender != null)
                 checkSender.send(payload);

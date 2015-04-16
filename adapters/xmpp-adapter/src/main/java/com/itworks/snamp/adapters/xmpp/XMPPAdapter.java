@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.xmpp;
 
+import com.google.common.collect.Iterables;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.adapters.FeatureAccessor;
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -12,6 +13,7 @@ import org.jivesoftware.smack.packet.Presence;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
+import javax.management.MBeanNotificationInfo;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Map;
@@ -31,32 +33,37 @@ final class XMPPAdapter extends AbstractResourceAdapter {
     static final String NAME = "xmpp";
 
     private AbstractXMPPConnection connection;
-    private final ChatController controller;
+    private final Bot chatBot;
 
     XMPPAdapter(final String instanceName) {
         super(instanceName);
         connection = null;
-        controller = new ChatController(getLogger());
+        chatBot = new Bot(getLogger());
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, S>)controller.getAttributes().addAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M, S>) chatBot.getAttributes().addAttribute(resourceName, (MBeanAttributeInfo)feature);
+        else if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M, S>) chatBot.getNotifications().enableNotifications(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
     @Override
     protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) {
-        return controller.getAttributes().clear(resourceName);
+        return Iterables.concat(chatBot.getAttributes().clear(resourceName),
+                chatBot.getNotifications().clear(resourceName));
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, ?>)controller.getAttributes().removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M, ?>) chatBot.getAttributes().removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+        else if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M, ?>) chatBot.getNotifications().disableNotifications(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
@@ -66,11 +73,12 @@ final class XMPPAdapter extends AbstractResourceAdapter {
         connection.connect();
         connection.login();
         final ChatManager chatManager = ChatManager.getInstanceFor(connection);
-        chatManager.addChatListener(controller);
+        chatManager.addChatListener(chatBot);
     }
 
     @Override
     protected void stop() throws Exception {
+        chatBot.close();
         connection.disconnect(new Presence(Presence.Type.unavailable));
         connection = null;
         System.gc();

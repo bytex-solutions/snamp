@@ -3,22 +3,19 @@ package com.itworks.snamp.adapters.xmpp;
 import org.apache.commons.cli.*;
 import org.jivesoftware.smack.packet.Message;
 
-import java.util.Objects;
-
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
 abstract class AbstractCommand extends BasicParser implements Command {
-    private final Options options;
     protected static final Option RESOURCE_OPTION = new Option("r",
             "resource",
             true,
             "Name of the managed resource");
 
     protected AbstractCommand(final Options commandOptions){
-        this.options = Objects.requireNonNull(commandOptions);
+        setOptions(commandOptions);
     }
 
     protected AbstractCommand(){
@@ -31,7 +28,7 @@ abstract class AbstractCommand extends BasicParser implements Command {
     public final Message doCommand(final String[] arguments) throws CommandException {
         final CommandLine command;
         try {
-            command = parse(options, arguments);
+            command = parse(getOptions(), arguments);
         } catch (final ParseException e) {
             throw new CommandException(e);
         }

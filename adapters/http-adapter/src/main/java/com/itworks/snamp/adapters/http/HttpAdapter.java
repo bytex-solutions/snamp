@@ -5,11 +5,12 @@ import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itworks.snamp.adapters.*;
+import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.jmx.json.*;
+import com.itworks.snamp.jmx.json.Formatters;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.atmosphere.cpr.AtmosphereConfig;
@@ -103,7 +104,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class HttpNotificationRouter extends NotificationRouter{
+    private static final class HttpNotificationRouter extends UnicastNotificationRouter {
         private final String resourceName;
 
         private HttpNotificationRouter(final String resourceName,
@@ -153,9 +154,9 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public void handleNotification(final Notification notif, final Object handback){
+        public void handleNotification(final NotificationEvent event){
             if(isInitialized() && !isDestroyed())
-                broadcast(formatter.toJson(notif));
+                broadcast(formatter.toJson(event.getNotification()));
         }
 
         @Override
@@ -163,7 +164,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
             if (isInitialized()) super.destroy();
         }
 
-        private NotificationRouter addNotification(final MBeanNotificationInfo metadata) {
+        private UnicastNotificationRouter addNotification(final MBeanNotificationInfo metadata) {
             final HttpNotificationRouter emitter = new HttpNotificationRouter(resourceName,
                     metadata,
                     this);
@@ -171,7 +172,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
             return emitter;
         }
 
-        private NotificationRouter removeNotification(final MBeanNotificationInfo metadata) {
+        private UnicastNotificationRouter removeNotification(final MBeanNotificationInfo metadata) {
             return notifications.remove(metadata);
         }
 
@@ -214,7 +215,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
             };
         }
 
-        private NotificationRouter addNotification(final String resourceName,
+        private UnicastNotificationRouter addNotification(final String resourceName,
                                     final MBeanNotificationInfo metadata) {
             try (final LockScope ignored = beginWrite()) {
                 final NotificationBroadcaster broadcaster;

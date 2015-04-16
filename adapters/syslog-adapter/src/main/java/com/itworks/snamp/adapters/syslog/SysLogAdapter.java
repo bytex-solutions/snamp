@@ -1,19 +1,21 @@
 package com.itworks.snamp.adapters.syslog;
 
+import com.cloudbees.syslog.Facility;
+import com.cloudbees.syslog.Severity;
 import com.cloudbees.syslog.SyslogMessage;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 
-import javax.management.*;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanFeatureInfo;
+import javax.management.MBeanNotificationInfo;
 import java.io.CharArrayWriter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.adapters.syslog.SysLogConfigurationDescriptor.createSender;
@@ -48,18 +50,21 @@ final class SysLogAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public void handleNotification(final Notification notification, final Object handback) {
-            final SysLogSourceInfo source = (SysLogSourceInfo) notification.getSource();
+        public void handleNotification(final NotificationEvent event) {
+            final String resourceName = (String)event.getNotification().getSource();
+            final Severity severity = SysLogNotificationAccessor.getSeverity(event.getSource());
+            final Facility facility = SysLogNotificationAccessor.getFacility(event.getSource());
+            final String applicationName = SysLogNotificationAccessor.getApplicationName(event.getSource(), resourceName);
             final ConcurrentSyslogMessageSender checkSender = this.checkSender;
             if (checkSender != null){
                 final SyslogMessage message = new SyslogMessage()
-                    .withSeverity(source.getSeverity())
-                    .withFacility(source.getFacility())
-                    .withMsgId(notification.getType())
-                    .withAppName(source.getApplicationName())
-                    .withTimestamp(notification.getTimeStamp())
-                    .withMsg(new CharArrayWriter().append(notification.getMessage()))
-                    .withProcId(SysLogUtils.getProcessId(source.getApplicationName()));
+                    .withSeverity(severity)
+                    .withFacility(facility)
+                    .withMsgId(event.getNotification().getType())
+                    .withAppName(applicationName)
+                    .withTimestamp(event.getNotification().getTimeStamp())
+                    .withMsg(new CharArrayWriter().append(event.getNotification().getMessage()))
+                    .withProcId(SysLogUtils.getProcessId(applicationName));
                 checkSender.sendMessage(message);
             }
         }

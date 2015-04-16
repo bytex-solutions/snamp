@@ -4,6 +4,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smackx.pep.packet.XMPPAttributeItem;
 
 import javax.management.JMException;
 import java.util.Objects;
@@ -16,7 +17,6 @@ import java.util.Objects;
 final class GetAttributeCommand extends AbstractAttributeCommand {
     static final String NAME = "get";
     static final String COMMAND_USAGE = "get -n <name> -r <resource> [-t|-j]";
-    static final String COMMAND_NAME = "get";
     static final String COMMAND_DESC = "Print attribute value";
     private static final Option TEXT_OPTION = new Option("t", "text", false, "Print attribute value in plain text format");
     private static final Option JSON_OPTION = new Option("j", "json", false, "Print attribute value in JSON format");
@@ -37,14 +37,16 @@ final class GetAttributeCommand extends AbstractAttributeCommand {
                                  final String attributeID,
                                  final AttributeValueFormat format) throws CommandException{
         final String value;
+        final XMPPAttributePayload payload = new XMPPAttributePayload();
         try{
-            value = reader.getAttribute(resourceName, attributeID, format);
+            value = reader.getAttribute(resourceName, attributeID, format, payload);
         } catch (final JMException e) {
             throw new CommandException(e);
         }
         final Message result = new Message();
         result.setSubject(String.format("Value of '%s/%s'", resourceName, attributeID));
         result.setBody(value);
+        result.addExtension(new XMPPAttributeItem(payload));
         return result;
     }
 

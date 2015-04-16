@@ -1,5 +1,7 @@
 package com.itworks.snamp.connectors.notifications;
 
+import com.itworks.snamp.adapters.NotificationEvent;
+
 import javax.management.Notification;
 import javax.management.NotificationListener;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -10,7 +12,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @version 1.0
  * @since 1.0
  */
-public class NotificationBox extends ArrayBlockingQueue<Notification> implements NotificationListener {
+public class NotificationBox extends ArrayBlockingQueue<Notification> implements NotificationListener, com.itworks.snamp.adapters.NotificationListener {
     private static final long serialVersionUID = 7011237951803102271L;
 
     /**
@@ -35,5 +37,15 @@ public class NotificationBox extends ArrayBlockingQueue<Notification> implements
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
         offer(notification);
+    }
+
+    /**
+     * Handles notifications.
+     *
+     * @param event Notification event.
+     */
+    @Override
+    public void handleNotification(final NotificationEvent event) {
+        offer(event.getNotification());
     }
 }

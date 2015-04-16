@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
+import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
@@ -77,32 +78,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NRDPSourceInfo {
-        private final String hostName;
-        private final String serviceName;
-        private final State level;
-
-        private NRDPSourceInfo(final String resourceName,
-                               final Descriptor metadata){
-            serviceName = getServiceName(metadata,
-                    NotificationDescriptor.getNotificationCategory(metadata));
-            hostName = resourceName;
-            switch (NotificationDescriptor.getSeverity(metadata)){
-                case NOTICE:
-                case WARNING: level = State.WARNING; break;
-                case ALERT:
-                case ERROR:
-                case PANIC: level = State.CRITICAL; break;
-                case INFO:
-                case DEBUG:
-                case UNKNOWN:
-                    level = State.OK; break;
-                default: level = State.UNKNOWN;
-            }
-        }
-    }
-
-    private static final class NRDPNotificationAccessor extends NotificationRouter {
+    private static final class NRDPNotificationAccessor extends UnicastNotificationRouter {
         private final String resourceName;
 
         private <L extends ThreadSafeObject & NotificationListener> NRDPNotificationAccessor(final String resourceName,
@@ -114,8 +90,28 @@ final class NRDPAdapter extends AbstractResourceAdapter {
 
         @Override
         protected Notification intercept(final Notification notification) {
-            notification.setSource(new NRDPSourceInfo(resourceName, getMetadata().getDescriptor()));
+            notification.setSource(resourceName);
             return notification;
+        }
+
+        private static State getLevel(final MBeanNotificationInfo metadata){
+            switch (NotificationDescriptor.getSeverity(metadata)){
+                case NOTICE:
+                case WARNING: return State.WARNING;
+                case ALERT:
+                case ERROR:
+                case PANIC: return State.CRITICAL;
+                case INFO:
+                case DEBUG:
+                case UNKNOWN:
+                    return State.OK;
+                default: return State.UNKNOWN;
+            }
+        }
+
+        private static String getServiceName(final MBeanNotificationInfo metadata){
+            return NRDPAdapterConfigurationDescriptor.getServiceName(metadata.getDescriptor(),
+                    NotificationDescriptor.getNotificationCategory(metadata));
         }
     }
 
@@ -132,14 +128,16 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public void handleNotification(final Notification notification, final Object handback) {
-            final NRDPSourceInfo source = (NRDPSourceInfo) notification.getSource();
+        public void handleNotification(final NotificationEvent event) {
+            final State level = NRDPNotificationAccessor.getLevel(event.getSource());
+            final String resourceName = (String)event.getNotification().getSource();
+            final String serviceName = NRDPNotificationAccessor.getServiceName(event.getSource());
             final ConcurrentPassiveCheckSender checkSender = this.checkSender;
             if (checkSender != null)
-                checkSender.send(new NagiosCheckResult(source.hostName,
-                        source.serviceName,
-                        source.level,
-                        notification.getMessage()));
+                checkSender.send(new NagiosCheckResult(resourceName,
+                        serviceName,
+                        level,
+                        event.getNotification().getMessage()));
         }
 
         private NotificationAccessor addNotification(final String resourceName,

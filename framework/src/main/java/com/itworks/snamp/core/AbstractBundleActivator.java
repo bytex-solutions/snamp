@@ -348,7 +348,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         private int appendCalledTimes = 0;
 
         void append(final RequiredService<?> dependency){
-            super.append(String.format("(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName()));
+            append(String.format("(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName()));
             appendCalledTimes += 1;
         }
 
@@ -359,6 +359,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             else context.addServiceListener(listener, filter);
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public String toString() {
             switch (appendCalledTimes){

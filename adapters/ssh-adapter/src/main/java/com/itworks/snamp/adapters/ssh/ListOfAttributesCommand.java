@@ -10,13 +10,14 @@ import java.io.PrintWriter;
 
 /**
  * Represents shell command that obtains a list of attributes.
- * This class canntot be inherited.
+ * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
 final class ListOfAttributesCommand extends AbstractManagementShellCommand {
     static final String COMMAND_NAME = "attr-list";
+    static final String COMMAND_USAGE = "attr-list [-s] [-d] [-r resource-name]";
     private static final Option SHOW_NAMES_OPTION = new Option("s", "names", false, "Display resource-dependent names of attributes");
     private static final Option SHOW_DETAILS_OPTION = new Option("d", "details", false, "Display details on attribute");
     static final Options COMMAND_OPTIONS = new Options()

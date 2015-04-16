@@ -1,15 +1,12 @@
 package com.itworks.snamp.connectors;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ObjectArrays;
+import com.itworks.snamp.WeakEventListenerList;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 
 import javax.management.MBeanFeatureInfo;
-import java.lang.ref.WeakReference;
 import java.math.BigInteger;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Objects;
 
 /**
@@ -21,61 +18,17 @@ import java.util.Objects;
  * @version 1.0
  */
 public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends ThreadSafeObject {
-    private static final class WeakResourceEventListener extends WeakReference<ResourceEventListener> implements Supplier<ResourceEventListener> {
 
-        private WeakResourceEventListener(final ResourceEventListener listener) {
-            super(Objects.requireNonNull(listener));
-        }
-    }
-
-    private static final class ResourceEventListenerList extends LinkedList<WeakResourceEventListener> {
+    private static final class ResourceEventListenerList extends WeakEventListenerList<ResourceEventListener, ResourceEvent> {
         private static final long serialVersionUID = -9139754747382955308L;
 
-        private ResourceEventListenerList(){
+        private ResourceEventListenerList() {
 
-        }
-
-        public boolean add(final ResourceEventListener listener) {
-            //remove dead references
-            final Iterator<WeakResourceEventListener> listeners = iterator();
-            while (listeners.hasNext()){
-                final WeakResourceEventListener l = listeners.next();
-                if(l.get() == null) listeners.remove();
-            }
-            //add a new weak reference to the listener
-            return add(new WeakResourceEventListener(listener));
-        }
-
-        public boolean remove(final ResourceEventListener listener){
-            final Iterator<WeakResourceEventListener> listeners = iterator();
-            while (listeners.hasNext()){
-                final WeakResourceEventListener ref = listeners.next();
-                final ResourceEventListener l = ref.get();
-                if(l == null) listeners.remove(); //remove dead reference
-                else if(Objects.equals(listener, l)){
-                    ref.clear();    //help GC
-                    listeners.remove();
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public void fire(final ResourceEvent event){
-            final Iterator<WeakResourceEventListener> listeners = iterator();
-            while (listeners.hasNext()){
-                final WeakResourceEventListener ref = listeners.next();
-                final ResourceEventListener l = ref.get();
-                if(l == null) listeners.remove(); //remove dead reference
-                else l.handle(event);
-            }
         }
 
         @Override
-        public void clear() {
-            for(final WeakResourceEventListener listener: this)
-                listener.clear(); //help GC
-            super.clear();
+        protected void invoke(final ResourceEvent event, final ResourceEventListener listener) {
+            listener.handle(event);
         }
     }
 

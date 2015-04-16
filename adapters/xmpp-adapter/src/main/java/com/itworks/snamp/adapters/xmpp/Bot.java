@@ -1,7 +1,8 @@
 package com.itworks.snamp.adapters.xmpp;
 
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.adapters.NotificationEvent;
+import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import org.jivesoftware.smack.SmackException;
@@ -10,9 +11,12 @@ import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.XMPPError;
+import org.jivesoftware.smackx.pep.packet.XMPPNotificationItem;
 import org.osgi.framework.BundleContext;
 
 import java.io.Closeable;
+import java.lang.ref.WeakReference;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -22,24 +26,30 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Manages chat sessions.
+ * Represents XMPP Bot responsible for handling humand commands
+ * and managing chat sessions.
+ * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class ChatController extends ThreadSafeObject implements ChatManagerListener, Closeable {
+final class Bot implements ChatManagerListener, Closeable {
     private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 
-    private static final class ChatSession implements ChatMessageListener{
+    private static final class ChatSession<A extends AttributeReader & AttributeWriter> extends WeakReference<Chat> implements ChatMessageListener, Closeable, NotificationListener{
         private final Logger logger;
-        private final XMPPAttributeModel attributes;
+        private final A attributes;
+        private volatile boolean closed;
+        private final AllowedNotifications allowedNotifs;
 
         private ChatSession(final Chat chat,
-                            final XMPPAttributeModel attributes,
+                            final A attributes,
                             final Logger logger){
+            super(chat);
             chat.addMessageListener(this);
             this.logger = logger;
             this.attributes = attributes;
+            this.allowedNotifs = new AllowedNotifications();
         }
 
         private BundleContext getBundleContext(){
@@ -48,7 +58,11 @@ final class ChatController extends ThreadSafeObject implements ChatManagerListen
 
         @Override
         public void processMessage(final Chat chat, Message message) {
-            if(message.getBody() == null) return;
+            if (message.getBody() == null) return;
+            else if(closed){
+                chat.removeMessageListener(this);
+                return;
+            }
             final String[] arguments = splitArguments(message.getBody());
             if (arguments.length == 0) {
                 try {
@@ -62,9 +76,28 @@ final class ChatController extends ThreadSafeObject implements ChatManagerListen
                 return;
             }
             final Command cmd;
-            switch (arguments[0]){
+            switch (arguments[0]) {
                 case GetAttributeCommand.NAME:
                     cmd = new GetAttributeCommand(attributes);
+                    break;
+                case SetAttributeCommand.NAME:
+                    cmd = new SetAttributeCommand(attributes);
+                    break;
+                case HelpCommand.NAME:
+                    cmd = new HelpCommand();
+                    break;
+                case ExitCommand.NAME:
+                    cmd = new ExitCommand(chat);
+                    closed = true;
+                    break;
+                case ListOfResourcesCommand.NAME:
+                    cmd = new ListOfResourcesCommand(attributes);
+                    break;
+                case ListOfAttributesCommand.NAME:
+                    cmd = new ListOfAttributesCommand(attributes);
+                    break;
+                case ManageNotificationsCommand.NAME:
+                    cmd = new ManageNotificationsCommand(allowedNotifs);
                     break;
                 default:
                     cmd = new UnknownCommand(arguments[0]);
@@ -73,23 +106,26 @@ final class ChatController extends ThreadSafeObject implements ChatManagerListen
             //process command
             try {
                 message = cmd.doCommand(ArrayUtils.remove(arguments, 0));
-            }
-            catch (final InvalidCommandFormatException e){
+            } catch (final InvalidCommandFormatException e) {
                 message = new Message();
                 message.setSubject("Invalid command format");
                 message.setError(XMPPError.from(XMPPError.Condition.bad_request, e.getMessage()));
-            }
-            catch (final CommandException e){
+            } catch (final CommandException e) {
                 message = new Message();
                 message.setSubject("Error in managed resource");
                 message.setError(XMPPError.from(XMPPError.Condition.service_unavailable, e.getMessage()));
             }
             //send message to participant
-            try {
-                chat.sendMessage(message);
-            } catch (final SmackException.NotConnectedException e) {
-                unableToSendMessage(e);
-            }
+            if (message != null)
+                try {
+                    chat.sendMessage(message);
+                } catch (final SmackException.NotConnectedException e) {
+                    unableToSendMessage(e);
+                }
+        }
+
+        private boolean isClosed(){
+            return closed;
         }
 
         private void unableToSendMessage(final Exception e) {
@@ -97,23 +133,65 @@ final class ChatController extends ThreadSafeObject implements ChatManagerListen
                 context.log(Level.SEVERE, "Unable to send XMPP message", e);
             }
         }
+
+        @Override
+        public void close() {
+            clear();
+            closed = true;
+        }
+
+        /**
+         * Handles notifications.
+         *
+         * @param event Notification event.
+         */
+        @Override
+        public void handleNotification(final NotificationEvent event) {
+            if(allowedNotifs.isAllowed(event)) {
+                final Chat chat = get();
+                if(chat == null) return;
+                final XMPPNotificationPayload payload =
+                        new XMPPNotificationPayload(event.getNotification(), event.getSource());
+                final Message message = new Message();
+                message.setSubject("Notification");
+                message.setBody(XMPPNotificationPayload.toString(event.getNotification()));
+                message.addExtension(new XMPPNotificationItem(payload));
+                try {
+                    chat.sendMessage(message);
+                } catch (final SmackException.NotConnectedException e) {
+                    unableToSendMessage(e);
+                }
+            }
+        }
     }
 
     private final LinkedList<ChatSession> sessions;
     private final Logger logger;
     private final XMPPAttributeModel attributes;
+    private final XMPPNotificationModel notifications;
 
-    ChatController(final Logger logger){
+    Bot(final Logger logger){
         sessions = new LinkedList<>();
         this.logger = Objects.requireNonNull(logger);
         this.attributes = new XMPPAttributeModel();
+        this.notifications = new XMPPNotificationModel();
+    }
+
+    private synchronized ChatSession chatCreatedImpl(final Chat chat){
+        //remove closed sessions
+        final Iterator<ChatSession> it = sessions.iterator();
+        while (it.hasNext())
+            if (it.next().isClosed()) it.remove();
+        //register a new session
+        final ChatSession session = new ChatSession<>(chat, attributes, logger);
+        sessions.add(session);
+        return session;
     }
 
     @Override
     public void chatCreated(final Chat chat, final boolean createdLocally) {
-        try (final LockScope ignored = beginWrite()) {
-            sessions.add(new ChatSession(chat, attributes, logger));
-        }
+        final ChatSession session = chatCreatedImpl(chat);
+        notifications.addNotificationListener(session);
         sayHello(chat);
     }
 
@@ -154,12 +232,18 @@ final class ChatController extends ThreadSafeObject implements ChatManagerListen
         return attributes;
     }
 
+    public XMPPNotificationModel getNotifications(){
+        return notifications;
+    }
+
     /**
      * Closes all chat sessions.
      */
-    public void closeAllChats(){
-        try(final LockScope ignored = beginWrite()){
-            sessions.clear();
+    public synchronized void closeAllChats() {
+        final Iterator<ChatSession> sessions = this.sessions.iterator();
+        while (sessions.hasNext()) {
+            sessions.next().close();
+            sessions.remove();
         }
     }
 
@@ -169,5 +253,7 @@ final class ChatController extends ThreadSafeObject implements ChatManagerListen
     @Override
     public void close() {
         closeAllChats();
+        attributes.clear();
+        notifications.clear();
     }
 }

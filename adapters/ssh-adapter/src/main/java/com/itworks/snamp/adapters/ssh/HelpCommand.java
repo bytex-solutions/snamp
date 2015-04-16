@@ -63,7 +63,7 @@ final class HelpCommand extends AbstractManagementShellCommand {
     protected void doCommand(final CommandLine input, final PrintWriter output) {
         printHelp(formatter, output, COMMAND_NAME, COMMAND_DESC, COMMAND_OPTIONS);
         printHelp(formatter, output, ListOfResourcesCommand.COMMAND_NAME, ListOfResourcesCommand.COMMAND_DESC, ListOfResourcesCommand.COMMAND_OPTIONS);
-        printHelp(formatter, output, ListOfAttributesCommand.COMMAND_NAME, ListOfAttributesCommand.COMMAND_DESC, ListOfAttributesCommand.COMMAND_OPTIONS);
+        printHelp(formatter, output, ListOfAttributesCommand.COMMAND_USAGE, ListOfAttributesCommand.COMMAND_DESC, ListOfAttributesCommand.COMMAND_OPTIONS);
         output.println();
         printHelp(formatter, output, GetAttributeCommand.COMMAND_USAGE, GetAttributeCommand.COMMAND_DESC, GetAttributeCommand.COMMAND_OPTIONS);
         printHelp(formatter, output, SetAttributeCommand.COMMAND_USAGE, SetAttributeCommand.COMMAND_DESC, SetAttributeCommand.COMMAND_OPTIONS);

@@ -15,9 +15,11 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import javax.management.*;
+import javax.management.NotificationListener;
 import javax.management.openmbean.*;
 import java.io.Closeable;
 import java.lang.management.ManagementFactory;
+import java.lang.ref.WeakReference;
 import java.nio.*;
 import java.util.Collection;
 import java.util.Objects;
@@ -36,14 +38,16 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         ATTRIBUTES
     }
 
-    private static final class JmxNotificationRouter extends NotificationRouter {
+    private static final class JmxNotificationRouter extends NotificationAccessor {
         private final String resourceName;
+        private final WeakReference<NotificationListener> listenerRef;
 
         private JmxNotificationRouter(final String resourceName,
                                       final MBeanNotificationInfo metadata,
                                       final NotificationListener destination) {
-            super(metadata, destination);
+            super(metadata);
             this.resourceName = resourceName;
+            listenerRef = new WeakReference<>(destination);
         }
 
         private MBeanNotificationInfo cloneMetadata(){
@@ -54,9 +58,10 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         }
 
         @Override
-        protected Notification intercept(final Notification notification) {
+        public void handleNotification(final Notification notification, final Object handback) {
             notification.setSource(resourceName);
-            return notification;
+            final NotificationListener listener = listenerRef.get();
+            if(listener != null) listener.handleNotification(notification, handback);
         }
     }
 

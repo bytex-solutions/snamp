@@ -56,7 +56,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     static final String NAME = SshHelpers.ADAPTER_NAME;
     private static Gson FORMATTER = Formatters.enableAll(new GsonBuilder()).create();
 
-    private static final class SshNotificationMappingImpl extends NotificationRouter implements SshNotificationMapping {
+    private static final class SshNotificationMappingImpl extends UnicastNotificationRouter implements SshNotificationMapping {
         private static final Gson formatter = new GsonBuilder()
                 .registerTypeHierarchyAdapter(Notification.class, new NotificationSerializer())
                 .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter())
@@ -213,7 +213,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
          */
         @Override
         public final void setValue(final Reader input) throws JMException, IOException {
-            if(getType() != null)
+            if(getType() != null && canWrite())
                 setValue(FORMATTER.fromJson(input, getType().getJavaType()));
             else throw new UnsupportedOperationException(String.format("Attribute %s is read-only", getName()));
         }
@@ -280,10 +280,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         protected void printValueAsText(final ByteBuffer buffer, final Writer output) throws IOException {
-            while (buffer.hasRemaining()) {
-                output.append(Byte.toString(buffer.get()));
-                output.append(WHITESPACE);
-            }
+            while (buffer.hasRemaining())
+                output.append(Byte.toString(buffer.get())).append(WHITESPACE);
         }
     }
 
@@ -294,10 +292,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         protected void printValueAsText(final CharBuffer buffer, final Writer output) throws IOException {
-            while (buffer.hasRemaining()) {
-                output.append(buffer.get());
-                output.append(WHITESPACE);
-            }
+            while (buffer.hasRemaining())
+                output.append(buffer.get()).append(WHITESPACE);
         }
     }
 
@@ -308,10 +304,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         protected void printValueAsText(final ShortBuffer buffer, final Writer output) throws IOException {
-            while (buffer.hasRemaining()) {
-                output.append(Short.toString(buffer.get()));
-                output.append(WHITESPACE);
-            }
+            while (buffer.hasRemaining())
+                output.append(Short.toString(buffer.get())).append(WHITESPACE);
         }
     }
 
@@ -322,10 +316,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         protected void printValueAsText(final IntBuffer buffer, final Writer output) throws IOException {
-            while (buffer.hasRemaining()) {
-                output.append(Integer.toString(buffer.get()));
-                output.append(WHITESPACE);
-            }
+            while (buffer.hasRemaining())
+                output.append(Integer.toString(buffer.get())).append(WHITESPACE);
         }
     }
 
@@ -336,10 +328,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         protected void printValueAsText(final LongBuffer buffer, final Writer output) throws IOException {
-            while (buffer.hasRemaining()) {
-                output.append(Long.toString(buffer.get()));
-                output.append(WHITESPACE);
-            }
+            while (buffer.hasRemaining())
+                output.append(Long.toString(buffer.get())).append(WHITESPACE);
         }
     }
 
@@ -350,10 +340,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         protected void printValueAsText(final FloatBuffer buffer, final Writer output) throws IOException {
-            while (buffer.hasRemaining()) {
-                output.append(Float.toString(buffer.get()));
-                output.append(WHITESPACE);
-            }
+            while (buffer.hasRemaining())
+                output.append(Float.toString(buffer.get())).append(WHITESPACE);
         }
     }
 
@@ -364,10 +352,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         protected void printValueAsText(final DoubleBuffer buffer, final Writer output) throws IOException {
-            while (buffer.hasRemaining()) {
-                output.append(Double.toString(buffer.get()));
-                output.append(WHITESPACE);
-            }
+            while (buffer.hasRemaining())
+                output.append(Double.toString(buffer.get())).append(WHITESPACE);
         }
     }
 
@@ -379,10 +365,10 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         @Override
         protected void printValueAsText(final Writer output) throws JMException, IOException {
             final CompositeData value = getValue(CompositeData.class);
-            for(final String key: value.getCompositeType().keySet()){
-                output.append(String.format("%s = %s", key, FORMATTER.toJson(value.get(key))));
-                output.append(System.lineSeparator());
-            }
+            for(final String key: value.getCompositeType().keySet())
+                output
+                        .append(String.format("%s = %s", key, FORMATTER.toJson(value.get(key))))
+                        .append(System.lineSeparator());
         }
     }
 
@@ -413,7 +399,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             TabularDataUtils.forEachRow(data, new Consumer<CompositeData, IOException>() {
                 @Override
                 public void accept(final CompositeData row) throws IOException{
-                    final Collection<String> values = Collections2.transform(row.values(), new JsonSerializerFunction(FORMATTER));
+                    final Collection<?> values = Collections2.transform(row.values(), new JsonSerializerFunction(FORMATTER));
                     output.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
                 }
             });
