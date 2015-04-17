@@ -42,7 +42,8 @@
                 <instructions>
                     <Bundle-SymbolicName>com.itworks.snamp.core</Bundle-SymbolicName>
                     <Export-Package>
-                        com.itworks.snamp.*
+                        com.itworks.snamp.*,
+                        org.apache.karaf.branding
                     </Export-Package>
                 </instructions>
             </configuration>

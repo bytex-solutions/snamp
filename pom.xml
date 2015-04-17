@@ -47,6 +47,7 @@
     <module>infrastructure/jaas-config</module>
     <module>features</module>
     <module>osgi-tests</module>
+
   </modules>
     <repositories>
         <repository>
@@ -65,11 +66,24 @@
         <profile>
             <id>Development</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <!-- skip tests by default -->
+                <!-- skip tests -->
                 <maven.test.skip>true</maven.test.skip>
+            </properties>
+        </profile>
+        <profile>
+            <id>Release</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>assembly</module>
+            </modules>
+            <properties>
+                <!-- enable tests -->
+                <maven.test.skip>false</maven.test.skip>
             </properties>
         </profile>
     </profiles>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>snamp</artifactId>
+        <groupId>com.itworks.snamp</groupId>
+        <version>1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>assembly</artifactId>
+    <name>SNAMP Distribution Package</name>
+    <description>Assembly of SNAMP Distribution Package</description>
+    <packaging>karaf-assembly</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.karaf.tooling</groupId>
+                <artifactId>karaf-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <ignoreScopeProvided>true</ignoreScopeProvided>
+                    <bootFeatures>
+                        <feature>platform-feature</feature>
+                    </bootFeatures>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.karaf.tooling</groupId>
+            <artifactId>karaf-maven-plugin</artifactId>
+            <type>maven-plugin</type>
+            <version>3.0.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- scope is compile so all features (there is only one) are installed into startup.properties and the feature repo itself is not added in etc/org.apache.karaf.features.cfg file -->
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>platform-feature</artifactId>
+            <version>1.0.0</version>
+            <type>kar</type>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+</project>
