@@ -67,4 +67,12 @@ public final class IOUtils {
             return out.toByteArray();
         }
     }
+
+    public static boolean hasMoreData(final InputStream is){
+        try {
+            return is.available() > 0;
+        } catch (final IOException ingored) {
+            return false;
+        }
+    }
 }

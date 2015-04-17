@@ -6,10 +6,13 @@ import com.itworks.snamp.StringAppender;
 import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.jmx.json.Formatters;
+import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
 
 import javax.management.Descriptor;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
+import java.util.Collection;
 
 /**
  * @author Roman Sakno
@@ -17,7 +20,10 @@ import javax.management.MBeanAttributeInfo;
  * @since 1.0
  */
 abstract class XMPPAttributeAccessor extends AttributeAccessor {
-    protected static Gson FORMATTER = Formatters.enableAll(new GsonBuilder()).create();
+    protected static Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+                        .serializeSpecialFloatingPointValues()
+                        .serializeNulls()
+            .create();
 
     XMPPAttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
@@ -50,5 +56,14 @@ abstract class XMPPAttributeAccessor extends AttributeAccessor {
 
     final String getOriginalName() {
         return AttributeDescriptor.getAttributeName(getMetadata());
+    }
+
+    final void createExtensions(final Collection<ExtensionElement> output){
+        if(XMPPAdapterConfiguration.isM2MEnabled(getMetadata().getDescriptor())) {
+            final JivePropertiesExtension result = new JivePropertiesExtension();
+            result.setProperty("writable", getMetadata().isWritable());
+            result.setProperty("readable", getMetadata().isReadable());
+            XMPPUtils.copyDescriptorFields(getMetadata().getDescriptor(), result);
+        }
     }
 }

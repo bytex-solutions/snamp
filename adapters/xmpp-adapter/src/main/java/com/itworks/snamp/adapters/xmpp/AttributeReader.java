@@ -1,6 +1,9 @@
 package com.itworks.snamp.adapters.xmpp;
 
+import org.jivesoftware.smack.packet.ExtensionElement;
+
 import javax.management.JMException;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -12,7 +15,7 @@ interface AttributeReader {
     String getAttribute(final String resourceName,
                         final String attributeID,
                         final AttributeValueFormat format,
-                        final XMPPAttributePayload payload) throws JMException;
+                        final Collection<ExtensionElement> extras) throws JMException;
 
     Set<String> getHostedResources();
 

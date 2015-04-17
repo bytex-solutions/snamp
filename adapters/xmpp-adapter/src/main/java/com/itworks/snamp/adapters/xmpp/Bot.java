@@ -3,23 +3,22 @@ package com.itworks.snamp.adapters.xmpp;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.adapters.NotificationEvent;
 import com.itworks.snamp.adapters.NotificationListener;
+import com.itworks.snamp.concurrent.VolatileBox;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.jmx.ExpressionBasedDescriptorFilter;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
+import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.XMPPError;
-import org.jivesoftware.smackx.pep.packet.XMPPNotificationItem;
 import org.osgi.framework.BundleContext;
 
 import java.io.Closeable;
 import java.lang.ref.WeakReference;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -40,7 +39,7 @@ final class Bot implements ChatManagerListener, Closeable {
         private final Logger logger;
         private final A attributes;
         private volatile boolean closed;
-        private final AllowedNotifications allowedNotifs;
+        private final VolatileBox<ExpressionBasedDescriptorFilter> notificationFilter;
 
         private ChatSession(final Chat chat,
                             final A attributes,
@@ -49,7 +48,7 @@ final class Bot implements ChatManagerListener, Closeable {
             chat.addMessageListener(this);
             this.logger = logger;
             this.attributes = attributes;
-            this.allowedNotifs = new AllowedNotifications();
+            notificationFilter = new VolatileBox<>(null);
         }
 
         private BundleContext getBundleContext(){
@@ -97,7 +96,7 @@ final class Bot implements ChatManagerListener, Closeable {
                     cmd = new ListOfAttributesCommand(attributes);
                     break;
                 case ManageNotificationsCommand.NAME:
-                    cmd = new ManageNotificationsCommand(allowedNotifs);
+                    cmd = new ManageNotificationsCommand(notificationFilter);
                     break;
                 default:
                     cmd = new UnknownCommand(arguments[0]);
@@ -130,12 +129,14 @@ final class Bot implements ChatManagerListener, Closeable {
 
         private void unableToSendMessage(final Exception e) {
             try (final OSGiLoggingContext context = OSGiLoggingContext.get(logger, getBundleContext())) {
-                context.log(Level.SEVERE, "Unable to send XMPP message", e);
+                context.log(Level.WARNING, "Unable to send XMPP message", e);
             }
         }
 
         @Override
         public void close() {
+            final Chat chat = get();
+            if (chat != null) chat.close();
             clear();
             closed = true;
         }
@@ -147,19 +148,20 @@ final class Bot implements ChatManagerListener, Closeable {
          */
         @Override
         public void handleNotification(final NotificationEvent event) {
-            if(allowedNotifs.isAllowed(event)) {
+            final ExpressionBasedDescriptorFilter filter = notificationFilter.get();
+            if(filter == null || filter.match(event.getSource())) {
                 final Chat chat = get();
                 if(chat == null) return;
-                final XMPPNotificationPayload payload =
-                        new XMPPNotificationPayload(event.getNotification(), event.getSource());
                 final Message message = new Message();
                 message.setSubject("Notification");
-                message.setBody(XMPPNotificationPayload.toString(event.getNotification()));
-                message.addExtension(new XMPPNotificationItem(payload));
+                message.setBody(XMPPNotificationAccessor.toString(event.getNotification()));
+                final Collection<ExtensionElement> extras = new LinkedList<>();
+                XMPPNotificationAccessor.createExtensions(event.getSource(), extras);
+                message.addExtensions(extras);
                 try {
                     chat.sendMessage(message);
-                } catch (final SmackException.NotConnectedException e) {
-                    unableToSendMessage(e);
+                } catch (final SmackException.NotConnectedException ignored) {
+                    close();
                 }
             }
         }

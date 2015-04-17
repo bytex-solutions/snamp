@@ -54,7 +54,9 @@ final class HttpAdapter extends AbstractResourceAdapter {
                 builder = builder.setDateFormat(dateFormat);
             builder = Formatters.enableBufferSupport(builder);
             builder = Formatters.enableOpenTypeSystemSupport(builder);
-            formatter = builder.create();
+            formatter = builder
+                    .serializeSpecialFloatingPointValues()
+                    .serializeNulls().create();
         }
 
         @Override
@@ -189,7 +191,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
     private static final class HttpNotificationsModel extends ThreadSafeObject implements NotificationSupport{
         private final KeyedObjects<String, NotificationBroadcaster> notifications;
-        private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder()).create();
+        private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+                .serializeSpecialFloatingPointValues()
+                .serializeNulls()
+                .create();
 
         private HttpNotificationsModel(){
             this.notifications = createBroadcasters();

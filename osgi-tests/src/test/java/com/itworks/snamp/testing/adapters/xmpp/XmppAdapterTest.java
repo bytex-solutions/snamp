@@ -2,13 +2,16 @@ package com.itworks.snamp.testing.adapters.xmpp;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.xmpp.client.XMPPClient;
+import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.configuration.AbsentConfigurationParameterException;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
+import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.apache.vysper.mina.TCPEndpoint;
@@ -20,10 +23,12 @@ import org.apache.vysper.xmpp.authorization.Plain;
 import org.apache.vysper.xmpp.authorization.SASLMechanism;
 import org.apache.vysper.xmpp.modules.extension.xep0045_muc.MUCModule;
 import org.apache.vysper.xmpp.server.XMPPServer;
+import org.jivesoftware.smack.packet.Message;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
+import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.File;
@@ -31,9 +36,11 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
@@ -77,26 +84,72 @@ public final class XmppAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
-    private void testAttribute(final String attributeID) throws AbsentConfigurationParameterException, GeneralSecurityException, IOException, TimeoutException, InterruptedException{
+    private void testAttribute(final String attributeID,
+                               final String value,
+                               final Equator<String> equator) throws AbsentConfigurationParameterException, GeneralSecurityException, IOException, TimeoutException, InterruptedException{
         final Map<String, String> parameters = new HashMap<>(10);
         fillParameters(parameters);
         parameters.put("userName", "tester");
         parameters.put("password", "456");
         try(final XMPPClient client = new XMPPClient(parameters)){
             client.connectAndLogin();
-            final String command = String.format("get -n %s -r %s --json", attributeID, TEST_RESOURCE_NAME);
+            final String SET = String.format("set -n %s -r %s -v %s --silent", attributeID, TEST_RESOURCE_NAME, value);
+            final String GET = String.format("get -n %s -r %s --json", attributeID, TEST_RESOURCE_NAME);
             client.beginChat("agent");
-            final String response = client.sendMessageSync(command, "Hi.*", TimeSpan.fromSeconds(60));
-            response.toString();
+            client.peekMessage(SET);
+            final String response = client.sendMessage(GET, "Hi.*", TimeSpan.fromSeconds(10));
+            assertTrue(String.format("Expected %s. Actual %s", value, response),
+                    equator.equate(response, value));
         }
     }
 
+    private static Equator<String> quotedEquator(){
+        return new Equator<String>() {
+            @Override
+            public boolean equate(String value1, String value2) {
+                value2 = value2.replace('\'', '\"');
+                value1 = '\"' + value1 + '\"';
+                return Objects.equals(value1, value2);
+            }
+        };
+    }
+
     @Test
-    public void simpleTest() throws AbsentConfigurationParameterException, GeneralSecurityException, IOException, TimeoutException, InterruptedException {
-        testAttribute("3.0");
+    public void integerTest() throws AbsentConfigurationParameterException, GeneralSecurityException, IOException, TimeoutException, InterruptedException {
+        testAttribute("3.0", "56", AbstractResourceConnectorTest.<String>valueEquator());
+    }
+
+    @Test
+    public void stringTest() throws InterruptedException, GeneralSecurityException, TimeoutException, AbsentConfigurationParameterException, IOException {
+        testAttribute("1.0", "\"'Hello, world'\"", quotedEquator());
+    }
+
+    @Test
+    public void notificationTest() throws InterruptedException, GeneralSecurityException, TimeoutException, AbsentConfigurationParameterException, IOException{
+        final String ATTRIBUTE_ID = "3.0";
+        final Map<String, String> parameters = new HashMap<>(10);
+        fillParameters(parameters);
+        parameters.put("userName", "tester");
+        parameters.put("password", "456");
+        try(final XMPPClient client = new XMPPClient(parameters)) {
+            client.connectAndLogin();
+            final String SET = String.format("set -n %s -r %s -v %s --silent", ATTRIBUTE_ID, TEST_RESOURCE_NAME, "82");
+            client.beginChat("agent");
+            //wait for message
+            final Awaitor<Message, ExceptionPlaceholder> notifAwaitor =
+                    client.waitMessage("Hi.*");
+            //enable notifs
+            client.peekMessage("notifs -f (severity=notice)");
+            //set attribute
+            client.peekMessage(SET);
+            //Note: do not change Object to Message because Message class is not visible
+            //from the PAX test bundle
+            final Object notification = notifAwaitor.await(TimeSpan.fromSeconds(5));
+            assertNotNull(notification);
+        }
     }
 
     @Override
@@ -151,8 +204,44 @@ public final class XmppAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     @Override
     protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
         AttributeConfiguration attribute = attributeFactory.get();
+        attribute.setAttributeName("string");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attributes.put("1.0", attribute);
+
+        attribute = attributeFactory.get();
+        attribute.setAttributeName("boolean");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attributes.put("2.0", attribute);
+
+        attribute = attributeFactory.get();
         attribute.setAttributeName("int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("enableM2M", "true");
         attributes.put("3.0", attribute);
+
+        attribute = attributeFactory.get();
+        attribute.setAttributeName("bigint");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attributes.put("4.0", attribute);
+
+        attribute = attributeFactory.get();
+        attribute.setAttributeName("array");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attributes.put("5.1", attribute);
+
+        attribute = attributeFactory.get();
+        attribute.setAttributeName("float");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attributes.put("8.0", attribute);
+    }
+
+    @Override
+    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
+        EventConfiguration event = eventFactory.get();
+        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("objectName", BEAN_NAME);
+        event.getParameters().put("enableM2M", "true");
+        events.put("19.1", event);
     }
 }

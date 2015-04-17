@@ -1,10 +1,16 @@
 package com.itworks.snamp.adapters.xmpp;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.adapters.UnicastNotificationRouter;
+import com.itworks.snamp.jmx.json.Formatters;
+import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
+import java.util.Collection;
 
 /**
  * Bridge between notifications and XMPP protocol.
@@ -15,6 +21,10 @@ import javax.management.Notification;
  */
 final class XMPPNotificationAccessor extends UnicastNotificationRouter {
     private final String resourceName;
+    private static Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+            .serializeSpecialFloatingPointValues()
+            .serializeNulls()
+            .create();
 
     XMPPNotificationAccessor(final MBeanNotificationInfo metadata,
                              final NotificationListener listener,
@@ -27,5 +37,18 @@ final class XMPPNotificationAccessor extends UnicastNotificationRouter {
     protected Notification intercept(final Notification notification) {
         notification.setSource(resourceName);
         return notification;
+    }
+
+    static void createExtensions(final MBeanNotificationInfo metadata,
+                                 final Collection<ExtensionElement> extensions){
+        if(XMPPAdapterConfiguration.isM2MEnabled(metadata.getDescriptor())) {
+            final JivePropertiesExtension extension = new JivePropertiesExtension();
+            XMPPUtils.copyDescriptorFields(metadata.getDescriptor(), extension);
+            extensions.add(extension);
+        }
+    }
+
+    static String toString(final Notification notif){
+        return FORMATTER.toJson(notif);
     }
 }

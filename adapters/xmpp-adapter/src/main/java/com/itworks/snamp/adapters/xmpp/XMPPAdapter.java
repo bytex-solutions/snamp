@@ -79,7 +79,8 @@ final class XMPPAdapter extends AbstractResourceAdapter {
     @Override
     protected void stop() throws Exception {
         chatBot.close();
-        connection.disconnect(new Presence(Presence.Type.unavailable));
+        if (connection.isConnected())
+            connection.disconnect(new Presence(Presence.Type.unavailable));
         connection = null;
         System.gc();
     }

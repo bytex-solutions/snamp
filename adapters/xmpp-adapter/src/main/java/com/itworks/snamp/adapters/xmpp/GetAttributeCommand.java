@@ -3,10 +3,12 @@ package com.itworks.snamp.adapters.xmpp;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smackx.pep.packet.XMPPAttributeItem;
 
 import javax.management.JMException;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Objects;
 
 /**
@@ -37,16 +39,17 @@ final class GetAttributeCommand extends AbstractAttributeCommand {
                                  final String attributeID,
                                  final AttributeValueFormat format) throws CommandException{
         final String value;
-        final XMPPAttributePayload payload = new XMPPAttributePayload();
+        final Collection<ExtensionElement> extensions =
+                new LinkedList<>();
         try{
-            value = reader.getAttribute(resourceName, attributeID, format, payload);
+            value = reader.getAttribute(resourceName, attributeID, format, extensions);
         } catch (final JMException e) {
             throw new CommandException(e);
         }
         final Message result = new Message();
         result.setSubject(String.format("Value of '%s/%s'", resourceName, attributeID));
         result.setBody(value);
-        result.addExtension(new XMPPAttributeItem(payload));
+        result.addExtensions(extensions);
         return result;
     }
 

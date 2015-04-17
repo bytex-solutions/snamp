@@ -20,10 +20,17 @@ final class ChatMessageEvent extends SynchronizationEvent<Message> implements Ch
         this.filter = Pattern.compile(filter);
     }
 
+    boolean processMessage(final Message message){
+        if(message.getBody() == null) return false;
+        else if(filter.matcher(message.getBody()).matches()) return false;
+        else {
+            fire(message);
+            return true;
+        }
+    }
+
     @Override
     public void processMessage(final Chat chat, final Message message) {
-        if(message.getBody() == null) return;
-        else if(filter.matcher(message.getBody()).matches()) return;
-        else fire(message);
+        processMessage(message);
     }
 }

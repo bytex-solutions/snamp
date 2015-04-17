@@ -1,8 +1,10 @@
 package com.itworks.snamp.adapters.ssh;
 
 import com.itworks.snamp.Consumer;
+import com.itworks.snamp.jmx.ExpressionBasedDescriptorFilter;
 
 import javax.management.Notification;
+import java.io.Writer;
 import java.util.Set;
 
 /**
@@ -29,18 +31,7 @@ public interface AdapterController {
                                                    final String attributeID,
                                                    final Consumer<? super SshAttributeMapping, E> handler) throws E;
 
-    /**
-     * Gets a collection of available notifications.
-     * @param resourceName The name of the managed resource.
-     * @return A collection of available notifications.
-     */
-    Set<String> getNotifications(final String resourceName);
+    Notification poll(final ExpressionBasedDescriptorFilter filter);
 
-    <E extends Exception> boolean processNotification(final String resourceName,
-                                                      final String notificationID,
-                                                      final Consumer<? super SshNotificationMapping, E> handler) throws E;
-
-    Notification poll(final String resourceName);
-
-    Notification poll();
+    void print(final Notification notif, final Writer output);
 }

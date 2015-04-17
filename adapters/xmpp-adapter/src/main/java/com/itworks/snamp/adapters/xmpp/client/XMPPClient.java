@@ -1,13 +1,16 @@
 package com.itworks.snamp.adapters.xmpp.client;
 
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.xmpp.XMPPAdapterConfiguration;
+import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.configuration.AbsentConfigurationParameterException;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
+import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 
@@ -44,9 +47,18 @@ public final class XMPPClient implements Closeable {
         else return false;
     }
 
-    public String sendMessageSync(final String message,
-                                  final String ignoreFilter,
-                                  final TimeSpan responseTimeout) throws IOException, TimeoutException, InterruptedException {
+    public void peekMessage(final String message) throws IOException {
+        if(chat == null) throw new IOException("Chat doesn't exist");
+        else try {
+            chat.sendMessage(message);
+        } catch (final SmackException.NotConnectedException e) {
+            throw new IOException(e);
+        }
+    }
+
+    public String sendMessage(final String message,
+                              final String ignoreFilter,
+                              final TimeSpan responseTimeout) throws IOException, TimeoutException, InterruptedException {
         if(chat == null) throw new IOException("Chat doesn't exist");
         final ChatMessageEvent response = new ChatMessageEvent(ignoreFilter);
         chat.addMessageListener(response);
@@ -63,6 +75,19 @@ public final class XMPPClient implements Closeable {
             chat.removeMessageListener(response);
         }
         return responseMsg.getBody();
+    }
+
+    public Awaitor<Message, ExceptionPlaceholder> waitMessage(final String ignoreFilter) throws IOException {
+        if (chat == null) throw new IOException("Chat doesn't exist");
+        final ChatMessageEvent response = new ChatMessageEvent(ignoreFilter);
+        chat.addMessageListener(new ChatMessageListener() {
+            @Override
+            public void processMessage(final Chat chat, final Message message) {
+                if (response.processMessage(message))
+                    chat.removeMessageListener(this);
+            }
+        });
+        return response.getAwaitor();
     }
 
     public boolean endChat(){
@@ -96,4 +121,5 @@ public final class XMPPClient implements Closeable {
     public String toString() {
         return connection.toString();
     }
+
 }

@@ -12,10 +12,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents utility methods for working with {@link javax.management.Descriptor} instances.
@@ -109,6 +106,15 @@ public final class DescriptorUtils {
         for(final String fieldName: fields)
             result.put(fieldName, descr.getFieldValue(fieldName));
         return result;
+    }
+
+    /**
+     * Creates {@link Dictionary} facade for the specified {@link Descriptor} instance.
+     * @param descr Descriptor object to wrap.
+     * @return A dictionary backed by {@link Descriptor} instance.
+     */
+    public static Dictionary<String, ?> asDictionary(final Descriptor descr){
+        return new DescriptorDictionary(descr);
     }
 
     /**

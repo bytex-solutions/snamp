@@ -112,16 +112,6 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     }
 
     @Test
-    public void tableTest() throws IOException{
-        testScalarAttribute("7.1", "\"[{'col1':false,'col2':2,'col3':'pp'}]\"", quotedEquator());
-    }
-
-    @Test
-    public void dictionaryTest() throws IOException{
-        testScalarAttribute("6.1", "\"{'col1':false,'col2':42,'col3':'hello, world!'}\"", quotedEquator());
-    }
-
-    @Test
     public void arrayTest() throws IOException{
         testScalarAttribute("5.1", "[42,100,332,99]", AbstractResourceConnectorTest.<String>valueEquator());
     }
@@ -191,25 +181,9 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         attributes.put("5.1", attribute);
 
         attribute = attributeFactory.get();
-        attribute.setAttributeName("dictionary");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("6.1", attribute);
-
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("table");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("columnBasedPrint", "true");
-        attributes.put("7.1", attribute);
-
-        attribute = attributeFactory.get();
         attribute.setAttributeName("float");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attributes.put("8.0", attribute);
-
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("9.0", attribute);
     }
 
     @Override

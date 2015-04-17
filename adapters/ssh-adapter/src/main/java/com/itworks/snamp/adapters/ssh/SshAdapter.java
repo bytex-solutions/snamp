@@ -5,7 +5,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -14,11 +13,12 @@ import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
-import com.itworks.snamp.connectors.notifications.NotificationBox;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.itworks.snamp.jmx.TabularDataUtils;
 import com.itworks.snamp.jmx.WellKnownType;
-import com.itworks.snamp.jmx.json.*;
+import com.itworks.snamp.jmx.json.Formatters;
+import com.itworks.snamp.jmx.json.JsonSerializerFunction;
 import net.schmizz.sshj.userauth.keyprovider.*;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
@@ -54,38 +54,35 @@ import static com.itworks.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*
  */
 final class SshAdapter extends AbstractResourceAdapter implements AdapterController {
     static final String NAME = SshHelpers.ADAPTER_NAME;
-    private static Gson FORMATTER = Formatters.enableAll(new GsonBuilder()).create();
+    private static Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+            .serializeSpecialFloatingPointValues()
+            .serializeNulls()
+            .create();
 
     private static final class SshNotificationMappingImpl extends UnicastNotificationRouter implements SshNotificationMapping {
-        private static final Gson formatter = new GsonBuilder()
-                .registerTypeHierarchyAdapter(Notification.class, new NotificationSerializer())
-                .registerTypeAdapter(ObjectName.class, new ObjectNameFormatter())
-                .registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataFormatter())
-                .registerTypeHierarchyAdapter(TabularData.class, new TabularDataFormatter()).create();
-
         private final String resourceName;
 
         private SshNotificationMappingImpl(final MBeanNotificationInfo metadata,
-                                           final NotificationBox mailbox,
+                                           final NotificationEventBox mailbox,
                                            final String resourceName){
             super(metadata, mailbox);
             this.resourceName = resourceName;
         }
 
         @Override
-        public void print(final Notification notif, final Writer output) {
-            notif.setSource(resourceName);
-            formatter.toJson(notif, output);
+        protected Notification intercept(final Notification notification) {
+            notification.setSource(resourceName);
+            return notification;
         }
     }
 
     private static final class SshNotificationsModel extends ThreadSafeObject{
         private final Map<String, ResourceNotificationList<SshNotificationMappingImpl>> notifications;
-        private final NotificationBox mailbox;
+        private final NotificationEventBox mailbox;
 
         private SshNotificationsModel(){
             notifications = createNotifs();
-            mailbox = new NotificationBox(50);
+            mailbox = new NotificationEventBox(50);
         }
 
         private static Map<String, ResourceNotificationList<SshNotificationMappingImpl>> createNotifs(){
@@ -106,25 +103,6 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                 notifications.clear();
             }
             mailbox.clear();
-        }
-
-        private Notification poll(final String resourceName) {
-            final Notification notif = mailbox.poll();
-            return notif != null && Objects.equals(resourceName, notif.getSource()) ? notif : null;
-        }
-
-        private Notification poll() {
-            return mailbox.poll();
-        }
-
-        private Set<String> getResourceNotifications(final String resourceName) {
-            try(final LockScope ignored = beginRead()){
-                if(notifications.containsKey(resourceName)){
-                    final ResourceNotificationList<?> notifs = notifications.get(resourceName);
-                    return notifs != null ? notifs.keySet() : ImmutableSet.<String>of();
-                }
-                else return ImmutableSet.of();
-            }
         }
 
         private NotificationAccessor addNotification(final String resourceName,
@@ -162,21 +140,10 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             }
         }
 
-        private <E extends Exception> boolean processNotification(final String resourceName,
-                                                                 final String notificationID,
-                                                                 final Consumer<? super SshNotificationMapping, E> handler) throws E{
-            try(final LockScope ignored = beginRead()){
-                if(notifications.containsKey(resourceName)){
-                    final ResourceNotificationList<SshNotificationMappingImpl> list = notifications.get(resourceName);
-                    final SshNotificationMappingImpl mapping = list.get(notificationID);
-                    if(mapping != null){
-                        handler.accept(mapping);
-                        return true;
-                    }
-                    else return false;
-                }
-                else return false;
-            }
+        private Notification poll(final ExpressionBasedDescriptorFilter filter) {
+            final NotificationEvent event = mailbox.poll();
+            return filter == null || filter.match(event.getSource()) ?
+                    event.getNotification() : null;
         }
     }
 
@@ -652,31 +619,8 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     }
 
     @Override
-    public Notification poll(final String resourceName) {
-        return notifications.poll(resourceName);
-    }
-
-    @Override
-    public Notification poll() {
-        return notifications.poll();
-    }
-
-    /**
-     * Gets a collection of available notifications.
-     *
-     * @param resourceName The name of the managed resource.
-     * @return A collection of available notifications.
-     */
-    @Override
-    public Set<String> getNotifications(final String resourceName) {
-        return notifications.getResourceNotifications(resourceName);
-    }
-
-    @Override
-    public <E extends Exception> boolean processNotification(final String resourceName,
-                                                             final String notificationID,
-                                                             final Consumer<? super SshNotificationMapping, E> handler) throws E {
-        return notifications.processNotification(resourceName, notificationID, handler);
+    public Notification poll(final ExpressionBasedDescriptorFilter filter) {
+        return notifications.poll(filter);
     }
 
     @SuppressWarnings("unchecked")
@@ -702,5 +646,10 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         else if(feature instanceof MBeanNotificationInfo)
             return (FeatureAccessor<M, ?>)notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
         else return null;
+    }
+
+    @Override
+    public void print(final Notification notif, final Writer output) {
+        FORMATTER.toJson(notif, output);
     }
 }

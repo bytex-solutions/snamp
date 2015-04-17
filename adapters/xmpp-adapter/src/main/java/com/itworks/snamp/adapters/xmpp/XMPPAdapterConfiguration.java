@@ -3,12 +3,14 @@ package com.itworks.snamp.adapters.xmpp;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.itworks.snamp.jmx.DescriptorUtils;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.java7.Java7HostnameVerifier;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 
+import javax.management.Descriptor;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import java.io.FileInputStream;
@@ -37,7 +39,8 @@ public final class XMPPAdapterConfiguration extends ConfigurationEntityDescripti
     private static final String KEYSTORE_PATH_PARAM = "keystore";
     private static final String KEYSTORE_TYPE_PARAM = "keystoreType";
     private static final String KEYSTORE_PASSWORD_PARAM = "keystorePassword";
-    private static final String ALLOW_CUSTOM_CERTIFICATE = "allowUnsafeCertificate";
+    private static final String ALLOW_CUSTOM_CERTIFICATE_PARAM = "allowUnsafeCertificate";
+    private static final String M2M_FEATURES_PARAM = "enableM2M";
 
     private static final class AdapterConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration>{
         private static final String RESOURCE_NAME = "AdapterParameters";
@@ -98,7 +101,7 @@ public final class XMPPAdapterConfiguration extends ConfigurationEntityDescripti
             final String keystorePassword = parameters.get(KEYSTORE_PASSWORD_PARAM);
             final String keystoreType = parameters.get(KEYSTORE_TYPE_PARAM);
             final String keystorePath = parameters.get(KEYSTORE_PATH_PARAM);
-            if(parameters.containsKey(ALLOW_CUSTOM_CERTIFICATE) &&
+            if(parameters.containsKey(ALLOW_CUSTOM_CERTIFICATE_PARAM) &&
                     !isNullOrEmpty(keystorePassword) && !isNullOrEmpty(keystorePath))
                 builder.setCustomSSLContext(createSSLContext(keystorePath, keystoreType, keystorePassword))
                         .setHostnameVerifier(FakeTrustManagerFactory.FAKE_HOST_VERIFIER);
@@ -136,5 +139,9 @@ public final class XMPPAdapterConfiguration extends ConfigurationEntityDescripti
         sslContext.init(kmf.getKeyManagers(), trustManager.engineGetTrustManagers(), null);
 
         return sslContext;
+    }
+
+    static boolean isM2MEnabled(final Descriptor descr){
+        return DescriptorUtils.hasField(descr, M2M_FEATURES_PARAM);
     }
 }

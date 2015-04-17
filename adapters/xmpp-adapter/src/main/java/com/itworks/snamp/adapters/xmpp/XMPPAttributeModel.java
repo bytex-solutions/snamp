@@ -11,6 +11,7 @@ import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
 import com.itworks.snamp.jmx.TabularDataUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.jmx.json.JsonSerializerFunction;
+import org.jivesoftware.smack.packet.ExtensionElement;
 
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
@@ -29,19 +30,19 @@ final class XMPPAttributeModel extends AbstractAttributesModel<XMPPAttributeAcce
     private static final class Reader implements Consumer<XMPPAttributeAccessor, JMException>{
         private final AttributeValueFormat format;
         private String output;
-        private final XMPPAttributePayload payload;
+        private final Collection<ExtensionElement> extras;
 
         private Reader(final AttributeValueFormat format,
-                       final XMPPAttributePayload payload){
+                       final Collection<ExtensionElement> extras){
             this.format = format;
             output = null;
-            this.payload = Objects.requireNonNull(payload);
+            this.extras = extras;
         }
 
         @Override
         public void accept(final XMPPAttributeAccessor value) throws JMException {
             output = value.getValue(format);
-            payload.init(value.getMetadata());
+            value.createExtensions(extras);
         }
 
         @Override
@@ -309,8 +310,8 @@ final class XMPPAttributeModel extends AbstractAttributesModel<XMPPAttributeAcce
     public String getAttribute(final String resourceName,
                                final String attributeID,
                                final AttributeValueFormat format,
-                               final XMPPAttributePayload payload) throws JMException{
-        final Reader reader = new Reader(format, payload);
+                               final Collection<ExtensionElement> extras) throws JMException{
+        final Reader reader = new Reader(format, extras);
         processAttribute(resourceName, attributeID, reader);
         return reader.toString();
     }
