@@ -61,7 +61,7 @@ Therefore, integration tests can be executed at `site` build phase of `osgi-test
 SNAM project provides the following Maven profiles:
 
 * `Development` profile disables all unit and integrations tests in the project
-* `Release` profile enables building final `zip` archive with SNAMP Platform
+* `Release` profile enables to assembly final SNAMP Distribution package on top of Apache Karaf container 
 
 ## Code Conventions and Optimization Techniques
 Optimization techniques used in SNAMP are based on [HotSpot Perofmance Techniques](https://wikis.oracle.com/display/HotSpotInternals/PerformanceTechniques).
