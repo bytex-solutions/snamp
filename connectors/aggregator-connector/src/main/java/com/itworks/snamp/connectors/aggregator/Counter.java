@@ -1,11 +1,9 @@
 package com.itworks.snamp.connectors.aggregator;
 
-import com.google.common.base.Stopwatch;
+import com.itworks.snamp.concurrent.SumLongAccumulator;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Represents counter.
@@ -17,31 +15,18 @@ final class Counter extends UnaryAttributeAggregation<Long> {
     static final String NAME = "counter";
     private static final long serialVersionUID = 4529159977546061535L;
     private static final String DESCRIPTION = "Summarizes value of the attribute during update interval";
-    private static final TimeUnit INTERVAL_UNIT = TimeUnit.MILLISECONDS;
 
-    private final long updateInterval;
-    private final Stopwatch timer;
-    private final AtomicLong counter;
+    private final SumLongAccumulator accumulator;
 
     protected Counter(final String attributeID,
                       final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, DESCRIPTION, SimpleType.LONG, descriptor);
-        updateInterval = AggregatorConnectorConfiguration.getTimeIntervalInMillis(descriptor);
-        counter = new AtomicLong(0L);
-        timer = Stopwatch.createStarted();
-    }
-
-    private synchronized void reset(){
-        if(timer.elapsed(INTERVAL_UNIT) > updateInterval){
-            timer.reset().start();
-            counter.set(0L);
-        }
+        accumulator = new SumLongAccumulator(0L,
+                AggregatorConnectorConfiguration.getTimeIntervalInMillis(descriptor));
     }
 
     @Override
-    protected Long compute(final Object value) throws Exception {
-        if(timer.elapsed(INTERVAL_UNIT) > updateInterval)
-            reset();
-        return counter.addAndGet(NumberUtils.toLong(value));
+    protected Long compute(final Object value) throws NumberFormatException {
+        return accumulator.setAndGet(NumberUtils.toLong(value));
     }
 }

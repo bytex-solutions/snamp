@@ -11,45 +11,16 @@
     <version>1.0.0</version>
     <artifactId>nrdp-adapter-feature</artifactId>
     <name>NRDP Adapter Karaf Feature</name>
-    <packaging>pom</packaging>
+    <packaging>kar</packaging>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
-                <artifactId>features-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>create-kar</id>
-                        <goals>
-                            <goal>create-kar</goal>
-                        </goals>
-                        <configuration>
-                            <featuresFile>${project.basedir}/src/main/resources/features.xml</featuresFile>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-artifacts</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attach-artifact</goal>
-                        </goals>
-                        <configuration>
-                            <artifacts>
-                                <artifact>
-                                    <file>${project.basedir}/src/main/resources/features.xml</file>
-                                    <type>xml</type>
-                                    <classifier>features</classifier>
-                                </artifact>
-                            </artifacts>
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>karaf-maven-plugin</artifactId>
+                <version>3.0.3</version>
+                <configuration>
+                    <featuresFile>${project.basedir}/src/main/resources/features.xml</featuresFile>
+                </configuration>
             </plugin>
         </plugins>
     </build>

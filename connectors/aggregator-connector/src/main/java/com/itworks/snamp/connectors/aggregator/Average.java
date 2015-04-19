@@ -1,10 +1,8 @@
 package com.itworks.snamp.connectors.aggregator;
 
-import com.google.common.base.Stopwatch;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Roman Sakno
@@ -15,10 +13,9 @@ final class Average extends UnaryAttributeAggregation<Double> {
     static final String NAME = "average";
     private static final long serialVersionUID = -3823081282353067204L;
     private static final String DESCRIPTION = "Computes average value of the attribute during update interval";
-    private static final TimeUnit INTERVAL_UNIT = TimeUnit.MILLISECONDS;
 
     private final long updateInterval;
-    private final Stopwatch timer;
+    private long timer;
     private double sum;
     private long count;
 
@@ -26,12 +23,13 @@ final class Average extends UnaryAttributeAggregation<Double> {
                       final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, DESCRIPTION, SimpleType.DOUBLE, descriptor);
         updateInterval = AggregatorConnectorConfiguration.getTimeIntervalInMillis(descriptor);
-        timer = Stopwatch.createStarted();
+        timer = System.currentTimeMillis();
     }
 
     private synchronized double avg(final Object value){
-        if(timer.elapsed(INTERVAL_UNIT) > updateInterval){
-            timer.reset().start();
+        final long currentTime = System.currentTimeMillis();
+        if(currentTime - timer > updateInterval){
+            timer = currentTime;
             sum = 0;
             count = 0;
         }

@@ -15,7 +15,7 @@
         <exam.version>4.4.0</exam.version>
         <felix.gogo.version>0.14.0</felix.gogo.version>
         <slf4jVersion>1.7.7</slf4jVersion>
-        <karaf.version>3.0.2</karaf.version>
+        <karaf.version>3.0.3</karaf.version>
     </properties>
     <build>
         <plugins>

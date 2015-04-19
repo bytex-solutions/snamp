@@ -10,53 +10,17 @@
     <modelVersion>4.0.0</modelVersion>
     <name>SNAMP Platform Karaf Feature</name>
     <artifactId>platform-feature</artifactId>
-    <packaging>pom</packaging>
+    <packaging>kar</packaging>
     <version>1.0.0</version>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
-                <artifactId>features-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>create-kar</id>
-                        <goals>
-                            <goal>create-kar</goal>
-                        </goals>
-                        <configuration>
-                            <featuresFile>${project.basedir}/src/main/resources/features.xml</featuresFile>
-                        </configuration>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.wagon</groupId>
-                        <artifactId>wagon-http-lightweight</artifactId>
-                        <version>2.8</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-artifacts</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attach-artifact</goal>
-                        </goals>
-                        <configuration>
-                            <artifacts>
-                                <artifact>
-                                    <file>${project.basedir}/src/main/resources/features.xml</file>
-                                    <type>xml</type>
-                                    <classifier>features</classifier>
-                                </artifact>
-                            </artifacts>
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>karaf-maven-plugin</artifactId>
+                <version>3.0.3</version>
+                <configuration>
+                    <featuresFile>${project.basedir}/src/main/resources/features.xml</featuresFile>
+                </configuration>
             </plugin>
         </plugins>
     </build>

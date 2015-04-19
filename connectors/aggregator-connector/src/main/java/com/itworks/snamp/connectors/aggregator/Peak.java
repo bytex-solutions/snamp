@@ -1,10 +1,9 @@
 package com.itworks.snamp.connectors.aggregator;
 
-import com.google.common.base.Stopwatch;
+import com.itworks.snamp.concurrent.PeakLongAccumulator;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Roman Sakno
@@ -15,29 +14,16 @@ final class Peak extends UnaryAttributeAggregation<Long> {
     static final String NAME = "peak";
     private static final long serialVersionUID = 9156690032615261535L;
     private static final String DESCRIPTION = "Detects value at the specified time interval";
-    private static final TimeUnit INTERVAL_UNIT = TimeUnit.MILLISECONDS;
 
-    private long peak;
-    private final long timeInterval;
-    private final Stopwatch timer;
+    private final PeakLongAccumulator accumulator;
 
     protected Peak(final String attributeID, final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, DESCRIPTION, SimpleType.LONG, descriptor);
-        timeInterval = AggregatorConnectorConfiguration.getTimeIntervalInMillis(descriptor);
-        timer = Stopwatch.createStarted();
-        peak = 0L;
-    }
-
-    private synchronized long compute(final long value){
-        if(timer.elapsed(INTERVAL_UNIT) > timeInterval){
-            timer.reset().start();
-            return peak = value;
-        }
-        else return value > peak ? (peak = value) : value;
+        accumulator = new PeakLongAccumulator(0L, AggregatorConnectorConfiguration.getTimeIntervalInMillis(descriptor));
     }
 
     @Override
-    protected Long compute(final Object value) throws Exception {
-        return compute(NumberUtils.toLong(value));
+    protected Long compute(final Object value) throws NumberFormatException {
+        return accumulator.setAndGet(NumberUtils.toLong(value));
     }
 }
